@@ -1,10 +1,9 @@
 import { StatusBar } from "expo-status-bar";
 import React from "react";
-import { Dimensions, Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import BackGround from "./components/BackGround";
 
 const Beach = require("./assets/images/beach.gif");
-const { width, height } = Dimensions.get("window");
 
 export default function App() {
   return (
@@ -16,7 +15,7 @@ export default function App() {
           style={styles.image}
         ></Image>
       </View>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </View>
   );
 }
