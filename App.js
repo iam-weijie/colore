@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     height: 80,
     position: "absolute",
     right: 0,
-    bottom: 100,
+    bottom: 120,
     transform: [{ rotate: "0deg" }],
   },
 });
