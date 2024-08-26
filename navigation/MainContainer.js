@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 // Screens
 import DmScreen from "./screens/DmScreen";
@@ -25,7 +26,8 @@ export default function MainContainer() {
             let rn = route.name;
 
             if (rn === homeName) {
-              iconName = focused ? "home" : "home-outline";
+              iconName = focused ? "bottle-tonic" : "bottle-tonic-outline";
+              return <Icon name={iconName} size={size + 5} color={color} />;
             } else if (rn === userName) {
               iconName = focused ? "person-circle" : "person-circle-outline";
             } else if (rn === dmName) {
