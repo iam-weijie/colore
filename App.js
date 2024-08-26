@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
 import BackGround from "./components/BackGround";
 
 const Beach = require("./assets/images/beach.gif");
@@ -10,10 +10,12 @@ export default function App() {
     <View style={styles.container}>
       <View>
         <BackGround placeholderImageSource={Beach} />
-        <Image
-          source={require("./assets/images/empty_bottle.png")}
-          style={styles.image}
-        ></Image>
+        <Pressable onPress={() => console.log("Home")}>
+          <Image
+            source={require("./assets/images/empty_bottle.png")}
+            style={styles.image}
+          ></Image>
+        </Pressable>
       </View>
       <StatusBar style="light" />
     </View>
