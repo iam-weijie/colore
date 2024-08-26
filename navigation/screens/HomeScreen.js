@@ -5,7 +5,7 @@ import BackGround from "../../components/BackGround";
 
 const Beach = require("../../assets/images/beach.gif");
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View>
