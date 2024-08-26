@@ -27,12 +27,15 @@ export default function MainContainer() {
             if (rn === homeName) {
               iconName = focused ? "home" : "home-outline";
             } else if (rn === userName) {
-              iconName = focused ? "user" : "list-outline";
+              iconName = focused ? "person-circle" : "person-circle-outline";
             } else if (rn === dmName) {
-              iconName = focused ? "message" : "message-outline";
+              iconName = focused ? "chatbubbles" : "chatbubbles-outline";
             }
-            return <Ionicons name={iconName} size={size} color={color} />;
+            return <Ionicons name={iconName} size={size + 5} color={color} />;
           },
+
+          tabBarStyle: { paddingTop: 5 },
+          tabBarLabelStyle: { display: "none" },
         })}
       >
         <Tab.Screen name={homeName} component={HomeScreen} />
