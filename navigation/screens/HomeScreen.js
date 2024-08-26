@@ -31,11 +31,11 @@ const styles = StyleSheet.create({
   },
 
   image: {
-    width: 80,
     height: 60,
+    width: 60,
     position: "absolute",
     right: 0,
-    bottom: 150,
-    transform: [{ rotate: "0deg" }],
+    bottom: 120,
+    transform: [{ rotate: "40deg" }],
   },
 });
