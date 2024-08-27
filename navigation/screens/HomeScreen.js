@@ -1,21 +1,51 @@
 import { StatusBar } from "expo-status-bar";
-import React from "react";
-import { Image, Pressable, StyleSheet, View } from "react-native";
+import React, { useState } from "react";
+import {
+  Dimensions,
+  Image,
+  ImageBackground,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import BackGround from "../../components/BackGround";
 
+const { width, height } = Dimensions.get("window");
 const Beach = require("../../assets/images/beach.gif");
+const empty_bottle = require("../../assets/images/empty_bottle.png");
+const new_parchment = require("../../assets/images/new_parchment.jpg");
 
 export default function HomeScreen() {
+  const [showTextInput, setShowTextInput] = useState(false);
+  const [text, setText] = useState("");
+
+  const handlePress = () => {
+    setShowTextInput(true);
+  };
+
   return (
     <View style={styles.container}>
       <View>
         <BackGround placeholderImageSource={Beach} />
-        <Pressable onPress={() => console.log("Home")}>
-          <Image
-            source={require("../../assets/images/empty_bottle.png")}
-            style={styles.image}
-          ></Image>
+        <Pressable onPress={handlePress}>
+          <Image source={empty_bottle} style={styles.emptyBottle}></Image>
         </Pressable>
+        {showTextInput && (
+          <ImageBackground style={styles.parchment} source={new_parchment}>
+            <TextInput
+              style={styles.textInput}
+              multiline={true}
+              placeholder="Type here..."
+              onChangeText={setText}
+              value={text}
+            ></TextInput>
+            <Pressable onPress={() => setShowTextInput(false)}>
+              <Text style={styles.xBtn}>Ⓧ</Text>
+            </Pressable>
+          </ImageBackground>
+        )}
       </View>
       <StatusBar style="auto" />
     </View>
@@ -30,12 +60,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  image: {
+  emptyBottle: {
     height: 60,
     width: 60,
     position: "absolute",
     right: 0,
     bottom: 120,
     transform: [{ rotate: "40deg" }],
+  },
+
+  textInput: {
+    height: height - 200,
+    width: width - 60,
+    fontSize: 16,
+    position: "absolute",
+    top: 110,
+    left: 30,
+  },
+
+  parchment: {
+    height: height,
+    width: width,
+    position: "absolute",
+  },
+
+  xBtn: {
+    fontSize: 24,
+    position: "absolute",
+    top: 90,
+    right: 10,
   },
 });
