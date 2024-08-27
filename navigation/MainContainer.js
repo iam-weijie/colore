@@ -9,7 +9,7 @@ import HomeScreen from "./screens/HomeScreen";
 import UserScreen from "./screens/UserScreen";
 
 // Screen names
-const homeName = "Home";
+const homeName = "Driftn";
 const dmName = "Message";
 const userName = "User";
 
