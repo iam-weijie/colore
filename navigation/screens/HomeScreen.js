@@ -44,8 +44,14 @@ export default function HomeScreen() {
             <Pressable onPress={() => setShowTextInput(false)}>
               <Text style={styles.cancelBtn}>Cancel</Text>
             </Pressable>
-            <Pressable>
-              <Text style={styles.postBtn}>Post</Text>
+            <Pressable
+              style={[
+                styles.postBtn,
+                text.length === 0 && styles.postBtnDisable,
+              ]}
+              disabled={text.length === 0}
+            >
+              <Text style={styles.postBtnText}>Post</Text>
             </Pressable>
           </ImageBackground>
         )}
@@ -90,14 +96,26 @@ const styles = StyleSheet.create({
   cancelBtn: {
     fontSize: 16,
     position: "absolute",
-    top: 100,
-    left: 10,
+    top: 105,
+    left: 16,
   },
 
   postBtn: {
+    backgroundColor: "#007aff",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 5,
     fontSize: 16,
     position: "absolute",
-    top: 100,
+    top: 99,
     right: 10,
+  },
+
+  postBtnText: {
+    color: "white",
+  },
+
+  postBtnDisable: {
+    backgroundColor: "#d3d3d3",
   },
 });
