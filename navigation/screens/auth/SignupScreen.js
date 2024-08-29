@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
+import CustomButton from "../../../components/CustomButton";
 import InputField from "../../../components/InputField";
 import { icons } from "../../../constants";
 
@@ -9,6 +10,8 @@ const SignupScreen = () => {
     email: "",
     password: "",
   });
+
+  const onSignUpPress = async () => {};
 
   return (
     <ScrollView className="flex-1 bg-white">
@@ -33,7 +36,8 @@ const SignupScreen = () => {
             label="Email"
             placeHolder="Enter your email"
             icon={icons.email}
-            value={form.name}
+            textContentType="emailAddress"
+            value={form.email}
             onChangeText={(value) =>
               setForm({ value: { ...form, email: value } })
             }
@@ -42,12 +46,19 @@ const SignupScreen = () => {
             label="Password"
             placeHolder="Enter your password"
             icon={icons.lock}
-            value={form.name}
+            value={form.password}
             secureTextEntry={true}
+            textContentType="password"
             onChangeText={(value) =>
               setForm({ value: { ...form, password: value } })
             }
           />
+
+          <CustomButton
+            title="Sign Up"
+            onPress={onSignUpPress}
+            className="mt-12"
+          ></CustomButton>
         </View>
       </View>
     </ScrollView>
