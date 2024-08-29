@@ -1,7 +1,8 @@
+import { SignedIn, SignedOut } from "@clerk/clerk-expo";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
@@ -23,19 +24,6 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 export default function MainContainer() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  // simulate an auth check
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      // TO DO: check auth status
-      const userIsLoggedIn = false; // set to true if user is logged in
-      setIsLoggedIn(userIsLoggedIn);
-    };
-
-    checkAuthStatus();
-  }, []);
-
   // Bottom tab navigator
   const TabNavigator = () => {
     return (
@@ -70,24 +58,25 @@ export default function MainContainer() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        {isLoggedIn ? (
+      <SignedIn>
+        <Stack.Navigator>
           <Stack.Screen name="Home" component={TabNavigator} />
-        ) : (
-          <>
-            <Stack.Screen
-              name={signupName}
-              component={SignupScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={loginName}
-              component={LoginScreen}
-              options={{ headerShown: false }}
-            />
-          </>
-        )}
-      </Stack.Navigator>
+        </Stack.Navigator>
+      </SignedIn>
+      <SignedOut>
+        <Stack.Navigator>
+          <Stack.Screen
+            name={signupName}
+            component={SignupScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={loginName}
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </SignedOut>
     </NavigationContainer>
   );
 }
