@@ -18,6 +18,7 @@ const InputField = ({
   inputStyle,
   iconStyle,
   className,
+  placeHolder,
   ...props
 }) => (
   <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -35,6 +36,7 @@ const InputField = ({
           <TextInput
             className={`rounded-full p-4 font-semibold text-[15px] flex-1 ${inputStyle} text-left`}
             secureTextEntry={secureTextEntry}
+            placeholder={placeHolder}
             {...props}
           />
         </View>
