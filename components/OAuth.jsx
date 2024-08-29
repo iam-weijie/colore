@@ -3,7 +3,7 @@ import { icons } from "../constants";
 import CustomButton from "./CustomButton";
 
 const OAuth = () => {
-  const handleGoogleSignIn = async () => {};
+  const handleGoogleLogIn = async () => {};
 
   return (
     <View>
@@ -25,7 +25,7 @@ const OAuth = () => {
         )}
         bgVariant="outline"
         textVariant="primary"
-        onPress={handleGoogleSignIn}
+        onPress={handleGoogleLogIn}
       />
     </View>
   );
