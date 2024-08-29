@@ -6,7 +6,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 // Screens
-import SignupScreen from "./screens/(auth)/SignupScreen";
+import SignupScreen from "./screens/auth/SignupScreen";
 import DmScreen from "./screens/DmScreen";
 import HomeScreen from "./screens/HomeScreen";
 import UserScreen from "./screens/UserScreen";
