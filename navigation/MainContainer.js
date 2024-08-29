@@ -1,23 +1,42 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import React, { useEffect, useState } from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 // Screens
+import SignupScreen from "./screens/(auth)/SignupScreen";
 import DmScreen from "./screens/DmScreen";
 import HomeScreen from "./screens/HomeScreen";
 import UserScreen from "./screens/UserScreen";
 
 // Screen names
+const signupName = "Signup";
 const homeName = "Driftn";
 const dmName = "Message";
 const userName = "User";
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 export default function MainContainer() {
-  return (
-    <NavigationContainer>
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // simulate an auth check
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      // TO DO: check auth status
+      const userIsLoggedIn = false; // set to true if user is logged in
+      setIsLoggedIn(userIsLoggedIn);
+    };
+
+    checkAuthStatus();
+  }, []);
+
+  // Bottom tab navigator
+  const TabNavigator = () => {
+    return (
       <Tab.Navigator
         initialRouteName={homeName}
         screenOptions={({ route }) => ({
@@ -44,6 +63,22 @@ export default function MainContainer() {
         <Tab.Screen name={dmName} component={DmScreen} />
         <Tab.Screen name={userName} component={UserScreen} />
       </Tab.Navigator>
+    );
+  };
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        {isLoggedIn ? (
+          <Stack.Screen name="Home" component={TabNavigator} />
+        ) : (
+          <Stack.Screen
+            name={signupName}
+            component={SignupScreen}
+            options={{ headerShown: false }}
+          />
+        )}
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
