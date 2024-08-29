@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import CustomButton from "../../../components/CustomButton";
 import InputField from "../../../components/InputField";
+import OAuth from "../../../components/OAuth";
 import { icons } from "../../../constants";
 
 const SignupScreen = () => {
@@ -63,7 +64,7 @@ const SignupScreen = () => {
             className="mt-6"
           ></CustomButton>
 
-          {/* OAuth */}
+          <OAuth />
 
           <View className="flex-row items-center justify-center mt-4">
             <Text className="text-gray-500">Already have an account?</Text>
