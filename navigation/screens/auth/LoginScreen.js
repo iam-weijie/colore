@@ -1,11 +1,70 @@
-import React from "react";
-import { Text, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import React, { useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import CustomButton from "../../../components/CustomButton";
+import InputField from "../../../components/InputField";
+import OAuth from "../../../components/OAuth";
+import { icons } from "../../../constants";
 
 const LoginScreen = () => {
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const navigation = useNavigation();
+
+  const onLogInPress = async () => {};
+
   return (
-    <View>
-      <Text>LoginScreen</Text>
-    </View>
+    <ScrollView className="flex-1 bg-white">
+      <View className="flex-1 bg-white ">
+        <View className="relative w-full h-[150px]">
+          <Text className="text-2xl text-black font-semibold absolute bottom-5 left-5">
+            Welcome 👋
+          </Text>
+        </View>
+
+        <View className="p-5">
+          <InputField
+            label="Email"
+            placeHolder="Enter your email"
+            icon={icons.email}
+            textContentType="emailAddress"
+            value={form.email}
+            onChangeText={(value) =>
+              setForm({ value: { ...form, email: value } })
+            }
+          />
+          <InputField
+            label="Password"
+            placeHolder="Enter your password"
+            icon={icons.lock}
+            value={form.password}
+            secureTextEntry={true}
+            textContentType="password"
+            onChangeText={(value) =>
+              setForm({ value: { ...form, password: value } })
+            }
+          />
+
+          <CustomButton
+            title="Log In"
+            onPress={onLogInPress}
+            className="mt-12"
+          ></CustomButton>
+
+          <OAuth />
+
+          <View className="flex-row items-center justify-center mt-4">
+            <Text className="text-gray-500">Don't have an account?</Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+              <Text className="text-blue-500 ml-2">Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
   );
 };
 
