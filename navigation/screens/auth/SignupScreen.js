@@ -1,5 +1,6 @@
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import CustomButton from "../../../components/CustomButton";
 import InputField from "../../../components/InputField";
 import { icons } from "../../../constants";
@@ -10,6 +11,8 @@ const SignupScreen = () => {
     email: "",
     password: "",
   });
+
+  const navigation = useNavigation();
 
   const onSignUpPress = async () => {};
 
@@ -57,8 +60,17 @@ const SignupScreen = () => {
           <CustomButton
             title="Sign Up"
             onPress={onSignUpPress}
-            className="mt-12"
+            className="mt-6"
           ></CustomButton>
+
+          {/* OAuth */}
+
+          <View className="flex-row items-center justify-center mt-4">
+            <Text className="text-gray-500">Already have an account?</Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+              <Text className="text-blue-500 ml-2">Log In</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </ScrollView>
