@@ -1,7 +1,17 @@
-import { images } from "@/constants";
+import CustomButton from "@/components/CustomButton";
+import InputField from "@/components/InputField";
+import { icons, images } from "@/constants";
+import { useState } from "react";
 import { Image, ScrollView, Text, View } from "react-native";
 
 const SignUp = () => {
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const onSignUpPress = async () => {}
+
   return (
     <ScrollView className="flex-1 bg-white">
       <View className="flex-1 bg-white ">
@@ -13,7 +23,29 @@ const SignUp = () => {
         </View>
 
         <View className="p-5">
+          <InputField
+            label="Email"
+            placeholder="Enter your email"
+            icon={icons.email}
+            textContentType="emailAddress"
+            value={form.email}
+            onChangeText={(value) => setForm({ ...form, email: value })}
+          />
+          <InputField
+            label="Password"
+            placeholder="Enter your password"
+            icon={icons.lock}
+            value={form.password}
+            secureTextEntry={true}
+            textContentType="password"
+            onChangeText={(value) => setForm({ ...form, password: value })}
+          />
 
+          <CustomButton
+            title="Sign Up"
+            onPress={onSignUpPress}
+            className="mt-12"
+          ></CustomButton>
         </View>
       </View>
     </ScrollView>
