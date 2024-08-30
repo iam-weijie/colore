@@ -11,6 +11,10 @@ const SignUp = () => {
             Create Your Account
           </Text>
         </View>
+
+        <View className="p-5">
+
+        </View>
       </View>
     </ScrollView>
   );
