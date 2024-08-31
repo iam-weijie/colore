@@ -1,5 +1,5 @@
 import { useSignUp } from "@clerk/clerk-expo";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useState } from "react";
 import { Image, ScrollView, Text, View } from "react-native";
 import { ReactNativeModal } from "react-native-modal";
@@ -18,7 +18,7 @@ const SignUp = () => {
   });
 
   const [verification, setVerification] = useState({
-    state: "success",
+    state: "default",
     error: "",
     code: "",
   });
@@ -125,7 +125,19 @@ const SignUp = () => {
               className="w-[110px] h-[110px] mx-auto my-5"
             />
 
-            <Text>Verified</Text>
+            <Text className="text-3xl font-JakartaBold text-center">
+              Verified
+            </Text>
+
+            <Text className="text-base text-gray-400 font-Jakarta text-center mt-2">
+              You have been successfully verified.
+            </Text>
+
+            <CustomButton
+              title="Continue"
+              onPress={() => router.replace("/(root)/(tabs)/home")}
+              className="mt-5"
+            />
           </View>
         </ReactNativeModal>
       </View>
