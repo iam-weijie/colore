@@ -1,12 +1,13 @@
-import CustomButton from "@/components/CustomButton";
-import InputField from "@/components/InputField";
-import OAuth from "@/components/OAuth";
-import { icons, images } from "@/constants";
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link } from "expo-router";
 import { useState } from "react";
 import { Image, ScrollView, Text, View } from "react-native";
-import ReactNativeModal from "react-native-modal";
+import { ReactNativeModal } from "react-native-modal";
+
+import CustomButton from "@/components/CustomButton";
+import InputField from "@/components/InputField";
+import OAuth from "@/components/OAuth";
+import { icons, images } from "@/constants";
 
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -60,7 +61,7 @@ const SignUp = () => {
         setVerification({
           ...verification,
           state: "failed",
-          error: "Verification failed.",
+          error: "Verification failed. Please try again.",
         });
       }
     } catch (err: any) {
@@ -123,6 +124,8 @@ const SignUp = () => {
               source={icons.check}
               className="w-[110px] h-[110px] mx-auto my-5"
             />
+
+            <Text>Verified</Text>
           </View>
         </ReactNativeModal>
       </View>

@@ -5,7 +5,6 @@ const Layout = () => {
     <Stack>
       <Stack.Screen name="sign-up" options={{ headerShown: false }} />
       <Stack.Screen name="log-in" options={{ headerShown: false }} />
-      <Stack.Screen name="+not-found" />
     </Stack>
   );
 };
