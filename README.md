@@ -13,3 +13,9 @@
    ```bash
     npx expo start
    ```
+
+_Note:_ For best dev experience, it is recommended to use Node v.20
+
+```bash
+nvm use 20
+```
