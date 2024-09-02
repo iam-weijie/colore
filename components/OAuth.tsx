@@ -19,7 +19,7 @@ const OAuth = () => {
     } catch (err) {
       console.error("OAuth error", err);
     }
-  }, []);
+  }, [startOAuthFlow]);
 
   return (
     <View>

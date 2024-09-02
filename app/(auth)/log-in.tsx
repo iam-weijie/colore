@@ -38,7 +38,7 @@ const LogIn = () => {
       console.error(JSON.stringify(err, null, 2));
       Alert.alert("Error", err.errors[0].longMessage);
     }
-  }, [isLoaded, form.email, form.password]);
+  }, [isLoaded, form, signIn, setActive, router]);
 
   return (
     <ScrollView className="flex-1 bg-white">
@@ -84,8 +84,6 @@ const LogIn = () => {
             </Link>
           </Text>
         </View>
-
-        {/*Verification modal*/}
       </View>
     </ScrollView>
   );
