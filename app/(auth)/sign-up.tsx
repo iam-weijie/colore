@@ -1,7 +1,14 @@
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { Alert, Image, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ReactNativeModal } from "react-native-modal";
 
 import CustomButton from "@/components/CustomButton";
@@ -68,14 +75,14 @@ const SignUp = () => {
       } else {
         setVerification({
           ...verification,
-          state: "failed",
+          state: "pending",
           error: "Verification failed. Please try again.",
         });
       }
     } catch (err: any) {
       setVerification({
         ...verification,
-        state: "failed",
+        state: "pending",
         error: err.errors[0].longMessage,
       });
     }
@@ -135,6 +142,14 @@ const SignUp = () => {
           }}
         >
           <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
+            <TouchableOpacity
+              onPress={() =>
+                setVerification({ ...verification, state: "default" })
+              }
+              className="absolute right-0 p-4"
+            >
+              <Image source={icons.close} className="w-3.5 h-3.5" />
+            </TouchableOpacity>
             <Text className="text-2xl font-JakartaExtraBold mb-2">
               Verification
             </Text>
