@@ -201,7 +201,7 @@ const SignUp = () => {
               title="Continue"
               onPress={() => {
                 setShowSuccessModal(false);
-                router.push("/(root)/(tabs)/home");
+                router.push("/(root)/user-info");
               }}
               className="mt-5"
             />
