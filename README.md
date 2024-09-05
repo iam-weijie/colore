@@ -11,7 +11,14 @@
 2. Start the app
 
    ```bash
-    npx expo start
+   npm start
+
+   ```
+
+   or
+
+   ```bash
+   npx expo start
    ```
 
 ## Tech Stack
