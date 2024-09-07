@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
+import DropdownMenu from "@/components/DropdownMenu";
 import InputField from "@/components/InputField";
 import { fetchAPI } from "@/lib/fetch";
 import { calculateAge, formatDate } from "@/lib/utils";
@@ -135,6 +136,15 @@ const UserInfo = () => {
                 maximumDate={tenYearsAgo}
               />
             )}
+
+            <View className="my-2 w-full">
+              <Text className="text-lg font-JakartaSemiBold mb-3">
+                Location
+              </Text>
+              <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
+                <DropdownMenu />
+              </View>
+            </View>
 
             <CustomButton
               title="Get Started"
