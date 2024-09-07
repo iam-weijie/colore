@@ -26,8 +26,8 @@ const UserInfo = () => {
   const [showPicker, setShowPicker] = useState(false);
 
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
     userLocation: "",
   });
 
@@ -87,7 +87,7 @@ const UserInfo = () => {
           <View className="flex flex-col items-start justify-start w-full">
             <InputField
               label="First name"
-              placeholder={user?.firstName || "Your First Name"}
+              placeholder="Your First Name"
               containerStyle="w-full"
               inputStyle="p-3.5"
               value={form.firstName}
@@ -96,7 +96,7 @@ const UserInfo = () => {
 
             <InputField
               label="Last name"
-              placeholder={user?.lastName || "Your Last Name"}
+              placeholder="Your Last Name"
               containerStyle="w-full"
               inputStyle="p-3.5"
               value={form.lastName}
@@ -139,6 +139,7 @@ const UserInfo = () => {
                 router.push("/(root)/(tabs)/home");
               }}
               className="mt-5"
+              disabled={!form.firstName || !form.lastName || !dateOfBirth}
             />
           </View>
         </View>
