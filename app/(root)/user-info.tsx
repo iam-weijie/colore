@@ -5,6 +5,7 @@ import DateTimePicker, {
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -49,6 +50,19 @@ const UserInfo = () => {
     return `${month}/${day}/${year}`;
   };
 
+  const calculateAge = (birthday: Date) => {
+    const today = new Date();
+
+    let age = today.getFullYear() - birthday.getFullYear();
+    const m = today.getMonth() - birthday.getMonth();
+
+    if (m < 0 || (m === 0 && today.getDate() < birthday.getDate())) {
+      age--;
+    }
+
+    return age;
+  };
+
   const onChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
     if (selectedDate) {
       const currentDate = selectedDate;
@@ -64,6 +78,16 @@ const UserInfo = () => {
   };
 
   const handleGetStarted = async () => {
+    const age = calculateAge(date);
+
+    if (age < 13) {
+      Alert.alert(
+        "Age Restriction",
+        "You must be over 13 years old to use this app."
+      );
+      return;
+    }
+
     await fetchAPI("/(api)/info", {
       method: "POST",
       body: JSON.stringify({
@@ -73,6 +97,8 @@ const UserInfo = () => {
         userLocation: form.userLocation,
       }),
     });
+
+    router.push("/(root)/(tabs)/home");
   };
 
   return (
@@ -136,7 +162,6 @@ const UserInfo = () => {
               title="Get Started"
               onPress={() => {
                 handleGetStarted();
-                router.push("/(root)/(tabs)/home");
               }}
               className="mt-5"
               disabled={!form.firstName || !form.lastName || !dateOfBirth}
