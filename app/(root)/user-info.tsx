@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
+import { fetchAPI } from "@/lib/fetch";
 
 const UserInfo = () => {
   const { user } = useUser();
@@ -23,6 +24,12 @@ const UserInfo = () => {
   const [date, setDate] = useState(new Date());
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [showPicker, setShowPicker] = useState(false);
+
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    userLocation: "",
+  });
 
   const toggleDatePicker = () => {
     setShowPicker(!showPicker);
@@ -56,6 +63,18 @@ const UserInfo = () => {
     }
   };
 
+  const handleGetStarted = async () => {
+    await fetchAPI("/(api)/info", {
+      method: "POST",
+      body: JSON.stringify({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        dateOfBirth: dateOfBirth,
+        userLocation: form.userLocation,
+      }),
+    });
+  };
+
   return (
     <SafeAreaView className="flex-1">
       <ScrollView
@@ -71,7 +90,8 @@ const UserInfo = () => {
               placeholder={user?.firstName || "Your First Name"}
               containerStyle="w-full"
               inputStyle="p-3.5"
-              editable={true}
+              value={form.firstName}
+              onChangeText={(value) => setForm({ ...form, firstName: value })}
             />
 
             <InputField
@@ -79,7 +99,8 @@ const UserInfo = () => {
               placeholder={user?.lastName || "Your Last Name"}
               containerStyle="w-full"
               inputStyle="p-3.5"
-              editable={true}
+              value={form.lastName}
+              onChangeText={(value) => setForm({ ...form, lastName: value })}
             />
 
             <View className="my-2 w-full">
@@ -114,6 +135,7 @@ const UserInfo = () => {
             <CustomButton
               title="Get Started"
               onPress={() => {
+                handleGetStarted();
                 router.push("/(root)/(tabs)/home");
               }}
               className="mt-5"

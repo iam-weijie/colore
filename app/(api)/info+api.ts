@@ -5,10 +5,10 @@ export async function handler(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
 
     if (request.method === "POST") {
-      const { firstname, lastname, dateOfBirth, userLocation } =
+      const { firstName, lastName, dateOfBirth, userLocation } =
         await request.json();
 
-      if (!firstname || !lastname || !dateOfBirth || !userLocation) {
+      if (!firstName || !lastName || !dateOfBirth || !userLocation) {
         return Response.json(
           { error: "Missing required fields" },
           { status: 400 }
@@ -16,8 +16,13 @@ export async function handler(request: Request) {
       }
 
       const response = await sql`
-  INSERT INTO users (firstname, lastname, date_of_birth, user_location)
-  VALUES (${firstname}, ${lastname}, ${dateOfBirth}, ${userLocation})
+      UPDATE users
+      SET
+        firstname = ${firstName},
+        lastname = ${lastName},
+        date_of_birth = ${dateOfBirth},
+        user_location = ${userLocation}
+      WHERE email = ${userEmail} 
   `;
 
       return new Response(JSON.stringify({ data: response }), {
