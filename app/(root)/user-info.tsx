@@ -7,7 +7,7 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TouchableOpacity,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,16 +24,30 @@ const UserInfo = () => {
 
   const toggleDatePicker = () => {
     setShowPicker(!showPicker);
+    setDateOfBirth(formatDate(date));
   };
 
-  const onChange = (event: any, selectedDate: any) => {
-    if (selectedDate) {
+  const formatDate = (rawDate: Date) => {
+    let date = new Date(rawDate);
+
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+
+    month = month < 10 ? `0${month}` : month;
+    day = day < 10 ? `0${day}` : day;
+
+    return `${month}/${day}/${year}`;
+  };
+
+  const onChange = ({ type }, selectedDate) => {
+    if (type === "set") {
       const currentDate = selectedDate;
       setDate(currentDate);
 
       if (Platform.OS === "android") {
         toggleDatePicker();
-        setDateOfBirth(currentDate.toDateString());
+        setDateOfBirth(formatDate(currentDate));
       }
     } else {
       toggleDatePicker();
@@ -66,36 +80,33 @@ const UserInfo = () => {
               editable={true}
             />
 
+            <View className="my-2 w-full">
+              <Text className="text-lg font-JakartaSemiBold mb-3">
+                Date of Birth
+              </Text>
+              <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
+                <Pressable onPress={toggleDatePicker}>
+                  <TextInput
+                    className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
+                    placeholder="MM/DD/YYYY"
+                    value={dateOfBirth}
+                    onChangeText={setDateOfBirth}
+                    editable={false}
+                    onPressIn={toggleDatePicker}
+                  />
+                </Pressable>
+              </View>
+            </View>
+
             {showPicker && (
               <DateTimePicker
-                mode="date"
-                display="spinner"
                 value={date}
+                display="spinner"
+                mode="date"
                 onChange={onChange}
-                style={{ height: 120, marginTop: -10 }}
+                style={{ height: 150 }}
+                maximumDate={new Date("2015-1-1")}
               />
-            )}
-
-            {showPicker && Platform.OS === "ios" && (
-              <View className="row justify-around">
-                <TouchableOpacity onPress={toggleDatePicker}>
-                  <Text>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {!showPicker && (
-              <Pressable onPress={toggleDatePicker}>
-                <InputField
-                  label="Date of Birth"
-                  placeholder="Your Birthday"
-                  value={dateOfBirth}
-                  onChangeText={setDateOfBirth}
-                  containerStyle="w-full"
-                  inputStyle="p-3.5"
-                  editable={false}
-                />
-              </Pressable>
             )}
 
             <CustomButton
