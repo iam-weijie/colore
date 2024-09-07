@@ -1,5 +1,7 @@
 import { useUser } from "@clerk/clerk-expo";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -30,8 +32,8 @@ const UserInfo = () => {
   const formatDate = (rawDate: Date) => {
     let date = new Date(rawDate);
 
-    let day = date.getDate();
-    let month = date.getMonth() + 1;
+    let day: string | number = date.getDate();
+    let month: string | number = date.getMonth() + 1;
     let year = date.getFullYear();
 
     month = month < 10 ? `0${month}` : month;
@@ -40,8 +42,8 @@ const UserInfo = () => {
     return `${month}/${day}/${year}`;
   };
 
-  const onChange = ({ type }, selectedDate) => {
-    if (type === "set") {
+  const onChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (selectedDate) {
       const currentDate = selectedDate;
       setDate(currentDate);
 
