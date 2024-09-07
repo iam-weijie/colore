@@ -22,7 +22,10 @@ import { fetchAPI } from "@/lib/fetch";
 const UserInfo = () => {
   const { user } = useUser();
 
-  const [date, setDate] = useState(new Date());
+  const tenYearsAgo = new Date();
+  tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
+
+  const [date, setDate] = useState(tenYearsAgo);
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [showPicker, setShowPicker] = useState(false);
 
@@ -154,7 +157,7 @@ const UserInfo = () => {
                 mode="date"
                 onChange={onChange}
                 style={{ height: 150 }}
-                maximumDate={new Date("2015-1-1")}
+                maximumDate={tenYearsAgo}
               />
             )}
 
