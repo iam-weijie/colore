@@ -1,6 +1,15 @@
 import { useUser } from "@clerk/clerk-expo";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
-import { ScrollView, Text, View } from "react-native";
+import { useState } from "react";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
@@ -8,7 +17,28 @@ import InputField from "@/components/InputField";
 
 const UserInfo = () => {
   const { user } = useUser();
-  // TO DO: instead of clerk, should user the user data from google login.
+
+  const [date, setDate] = useState(new Date());
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [showPicker, setShowPicker] = useState(false);
+
+  const toggleDatePicker = () => {
+    setShowPicker(!showPicker);
+  };
+
+  const onChange = (event: any, selectedDate: any) => {
+    if (selectedDate) {
+      const currentDate = selectedDate;
+      setDate(currentDate);
+
+      if (Platform.OS === "android") {
+        toggleDatePicker();
+        setDateOfBirth(currentDate.toDateString());
+      }
+    } else {
+      toggleDatePicker();
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1">
@@ -35,6 +65,38 @@ const UserInfo = () => {
               inputStyle="p-3.5"
               editable={true}
             />
+
+            {showPicker && (
+              <DateTimePicker
+                mode="date"
+                display="spinner"
+                value={date}
+                onChange={onChange}
+                style={{ height: 120, marginTop: -10 }}
+              />
+            )}
+
+            {showPicker && Platform.OS === "ios" && (
+              <View className="row justify-around">
+                <TouchableOpacity onPress={toggleDatePicker}>
+                  <Text>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {!showPicker && (
+              <Pressable onPress={toggleDatePicker}>
+                <InputField
+                  label="Date of Birth"
+                  placeholder="Your Birthday"
+                  value={dateOfBirth}
+                  onChangeText={setDateOfBirth}
+                  containerStyle="w-full"
+                  inputStyle="p-3.5"
+                  editable={false}
+                />
+              </Pressable>
+            )}
 
             <CustomButton
               title="Get Started"
