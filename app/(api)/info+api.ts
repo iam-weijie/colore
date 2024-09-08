@@ -1,11 +1,17 @@
 import { neon } from "@neondatabase/serverless";
 
+// NOTE: for some reason you get a "Method not allowed" if you
+// use the handler instead of just putting a POST request in
+// the function name, even with the methods specified in
+// the control statements ¯\_(ツ)_/¯
+
 // export async function handler(request: Request) {
 export async function POST(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
 
     if (request.method === "POST") {
+      console.log("Received POST request.");
       const { firstName, lastName, dateOfBirth, userLocation, clerkId } =
         await request.json();
 
