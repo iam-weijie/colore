@@ -23,6 +23,10 @@ import { calculateAge, formatDate } from "@/lib/utils";
 const UserInfo = () => {
   const { user } = useUser();
 
+  if (!user) {
+    return <Text>Error: No user</Text>;
+  }
+
   const tenYearsAgo = new Date();
   tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
 
@@ -61,7 +65,7 @@ const UserInfo = () => {
     if (age < 13) {
       Alert.alert(
         "Age Restriction",
-        "You must be over 13 years old to use this app."
+        "You must be over 13 years old to use this app.",
       );
       return;
     }
@@ -73,6 +77,7 @@ const UserInfo = () => {
         lastName: form.lastName,
         dateOfBirth: dateOfBirth,
         userLocation: form.userLocation,
+        clerkId: user.id,
       }),
     });
 
