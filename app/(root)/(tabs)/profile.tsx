@@ -67,11 +67,11 @@ const Profile = () => {
           </Pressable>
 
           {showDropdown && (
-            <View className="flex flex-row items-center justify-between">
+            <View className="flex flex-row  justify-between">
               <DropdownMenu />
 
               <TouchableOpacity onPress={toggleDropdown}>
-                <Text>✔</Text>
+                <Text className="mt-2 ">✔</Text>
               </TouchableOpacity>
             </View>
           )}

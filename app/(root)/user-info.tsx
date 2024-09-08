@@ -16,7 +16,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
-import DropdownMenu from "@/components/DropdownMenu";
 import InputField from "@/components/InputField";
 import { fetchAPI } from "@/lib/fetch";
 import { calculateAge, formatDate } from "@/lib/utils";
@@ -141,7 +140,7 @@ const UserInfo = () => {
               <Text className="text-lg font-JakartaSemiBold mb-3">
                 Location
               </Text>
-              <DropdownMenu />
+              {/*  TO DO: select user location  <DropdownMenu /> */}
             </View>
 
             <CustomButton
