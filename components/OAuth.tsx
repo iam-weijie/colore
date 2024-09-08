@@ -15,7 +15,8 @@ const OAuth = () => {
 
       // TO DO: if google is first-time login, push to user-info page.
       if (result.code === "session_exists" || result.code === "success") {
-        router.push("/(root)/(tabs)/home");
+        // router.push("/(root)/(tabs)/home");
+        router.push("/(root)/user-info");
       }
     } catch (err) {
       console.error("OAuth error", err);

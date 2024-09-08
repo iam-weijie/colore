@@ -35,3 +35,24 @@ export const images = {
   signup,
   login,
 };
+
+export const country = [
+  { label: "Canada", value: "1" },
+  { label: "France", value: "2" },
+  { label: "UK", value: "3" },
+  { label: "US", value: "4" },
+];
+
+export const state = [
+  { label: "Canada", value: "1" },
+  { label: "France", value: "2" },
+  { label: "UK", value: "3" },
+  { label: "US", value: "4" },
+];
+
+export const city = [
+  { label: "Canada", value: "1" },
+  { label: "France", value: "2" },
+  { label: "UK", value: "3" },
+  { label: "US", value: "4" },
+];

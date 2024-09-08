@@ -1,9 +1,11 @@
+import DropdownMenu from "@/components/DropdownMenu";
 import { icons } from "@/constants/index";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
   Image,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -16,8 +18,18 @@ const Profile = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
 
-  const [name, setName] = useState(user?.firstName || "J. Doe");
-  const [isEditing, setIsEditing] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [userLocation, setUserLocation] = useState("Montreal");
+
+  // TO DO: Replace with user info fetched from neon
+  const [form, setForm] = useState({
+    firstName: user?.firstName || "J. Doe",
+  });
+
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+    setUserLocation("Montreal");
+  };
 
   const handleSignOut = async () => {
     signOut();
@@ -31,23 +43,38 @@ const Profile = () => {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         <View className="flex flex-row items-center justify-between">
-          {isEditing ? (
-            <TextInput
-              className="text-2xl font-JakartaBold my-5"
-              placeholder={name}
-              onChangeText={setName}
-              onBlur={() => setIsEditing(false)}
-              autoFocus
-            />
-          ) : (
-            <TouchableOpacity onPress={() => setIsEditing(true)}>
-              <Text className="text-2xl font-JakartaBold my-5">{name}</Text>
-            </TouchableOpacity>
-          )}
+          <TextInput
+            className="text-2xl font-JakartaBold my-5"
+            value={form.firstName}
+            onChangeText={(value) => setForm({ ...form, firstName: value })}
+          />
 
           <TouchableOpacity onPress={handleSignOut}>
             <Image source={icons.logout} className="w-5 h-5" />
           </TouchableOpacity>
+        </View>
+
+        <View>
+          <Pressable onPress={toggleDropdown}>
+            {!showDropdown && (
+              <TextInput
+                className="text-base my-1"
+                value={`📍${userLocation}`}
+                editable={false}
+                onPressIn={toggleDropdown}
+              />
+            )}
+          </Pressable>
+
+          {showDropdown && (
+            <View className="flex flex-row  justify-between">
+              <DropdownMenu />
+
+              <TouchableOpacity onPress={toggleDropdown}>
+                <Text className="mt-2 ">✔</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
