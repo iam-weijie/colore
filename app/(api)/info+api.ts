@@ -1,29 +1,52 @@
 import { neon } from "@neondatabase/serverless";
 
-export async function handler(request: Request) {
+// NOTE: for some reason you get a "Method not allowed" if you
+// use the handler instead of just putting a POST request in
+// the function name, even with the methods specified in
+// the control statements ¯\_(ツ)_/¯
+
+// export async function handler(request: Request) {
+export async function POST(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
 
     if (request.method === "POST") {
-      const { firstName, lastName, dateOfBirth, userLocation } =
+      console.log("Received POST request.");
+      const { firstName, lastName, dateOfBirth, userLocation, clerkId } =
         await request.json();
 
-      if (!firstName || !lastName || !dateOfBirth || !userLocation) {
+      if (
+        !firstName ||
+        !lastName ||
+        !dateOfBirth ||
+        !userLocation ||
+        !clerkId
+      ) {
         return Response.json(
           { error: "Missing required fields" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
+      // const response = await sql`
+      // UPDATE users
+      // SET
+      //   firstname = ${firstName},
+      //   lastname = ${lastName},
+      //   date_of_birth = ${dateOfBirth},
+      //   user_location = ${userLocation}
+      // WHERE email = ${userEmail}
+      // `;
+
       const response = await sql`
-      UPDATE users
-      SET
-        firstname = ${firstName},
-        lastname = ${lastName},
-        date_of_birth = ${dateOfBirth},
-        user_location = ${userLocation}
-      WHERE email = ${userEmail} 
-  `;
+        UPDATE users
+        SET
+          firstname = ${firstName},
+          lastname = ${lastName},
+          date_of_birth = ${dateOfBirth},
+          user_location = ${userLocation}
+        WHERE clerk_id = ${clerkId} 
+      `;
 
       return new Response(JSON.stringify({ data: response }), {
         status: 201,
@@ -35,7 +58,7 @@ export async function handler(request: Request) {
       if (!userId) {
         return Response.json(
           { error: "Missing userId parameter" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 

@@ -61,7 +61,7 @@ const UserInfo = () => {
     if (age < 13) {
       Alert.alert(
         "Age Restriction",
-        "You must be over 13 years old to use this app."
+        "You must be over 13 years old to use this app.",
       );
       return;
     }
@@ -73,6 +73,7 @@ const UserInfo = () => {
         lastName: form.lastName,
         dateOfBirth: dateOfBirth,
         userLocation: form.userLocation,
+        clerkId: user!.id,
       }),
     });
 
@@ -141,6 +142,18 @@ const UserInfo = () => {
                 Location
               </Text>
               {/*  TO DO: select user location  <DropdownMenu /> */}
+              {/* this input field is here as a placeholder, because otherwise
+              the empty location field string causes issues with the SQL statement */}
+              <InputField
+                label="Location"
+                placeholder="Location"
+                containerStyle="w-full"
+                inputStyle="p-3.5"
+                value={form.userLocation}
+                onChangeText={(value) =>
+                  setForm({ ...form, userLocation: value })
+                }
+              />
             </View>
 
             <CustomButton
