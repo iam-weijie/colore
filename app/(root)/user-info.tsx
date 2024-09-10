@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
+import DropdownMenu from "@/components/DropdownMenu";
 import InputField from "@/components/InputField";
 import { fetchAPI } from "@/lib/fetch";
 import { calculateAge, formatDate } from "@/lib/utils";
@@ -29,6 +30,7 @@ const UserInfo = () => {
   const [date, setDate] = useState(tenYearsAgo);
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [showPicker, setShowPicker] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const [form, setForm] = useState({
     firstName: user?.firstName || "",
@@ -55,13 +57,17 @@ const UserInfo = () => {
     }
   };
 
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
   const handleGetStarted = async () => {
     const age = calculateAge(date);
 
     if (age < 13) {
       Alert.alert(
         "Age Restriction",
-        "You must be over 13 years old to use this app.",
+        "You must be over 13 years old to use this app."
       );
       return;
     }
@@ -139,22 +145,21 @@ const UserInfo = () => {
 
             <View className="my-2 w-full">
               <Text className="text-lg font-JakartaSemiBold mb-3">
-                Location
+                Date of Birth
               </Text>
-              {/*  TO DO: select user location  <DropdownMenu /> */}
-              {/* this input field is here as a placeholder, because otherwise
-              the empty location field string causes issues with the SQL statement */}
-              <InputField
-                label="Location"
-                placeholder="Location"
-                containerStyle="w-full"
-                inputStyle="p-3.5"
-                value={form.userLocation}
-                onChangeText={(value) =>
-                  setForm({ ...form, userLocation: value })
-                }
-              />
+              <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
+                <Pressable onPress={toggleDropdown}>
+                  <TextInput
+                    className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
+                    placeholder="Your Location"
+                    editable={false}
+                    onPressIn={toggleDropdown}
+                  />
+                </Pressable>
+              </View>
             </View>
+
+            {showDropdown && <DropdownMenu />}
 
             <CustomButton
               title="Get Started"
