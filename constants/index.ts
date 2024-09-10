@@ -36,13 +36,23 @@ export const images = {
   login,
 };
 
-export const locations = {
-  Canada: {
-    Ontario: ["Toronto", "Ottawa"],
-    Quebec: ["Montreal", "Quebec City"],
+export const countries = [
+  {
+    id: "1",
+    name: "USA",
+    states: [
+      { name: "California", cities: ["Los Angeles", "San Francisco"] },
+      { name: "New York", cities: ["New York City", "Buffalo"] },
+      { name: "Illinois", cities: ["Chicago", "Springfield"] },
+    ],
   },
-  "United States": {
-    California: ["Los Angeles", "San Francisco"],
-    "New York": ["New York City", "Buffalo"],
+  {
+    id: "2",
+    name: "Canada",
+    states: [
+      { name: "Ontario", cities: ["Toronto", "Ottawa"] },
+      { name: "British Columbia", cities: ["Vancouver", "Victoria"] },
+      { name: "Quebec", cities: ["Montreal", "Quebec City"] },
+    ],
   },
-};
+];
