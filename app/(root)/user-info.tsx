@@ -29,7 +29,6 @@ const UserInfo = () => {
   const [date, setDate] = useState(tenYearsAgo);
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [showPicker, setShowPicker] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
 
   const [form, setForm] = useState({
     firstName: user?.firstName || "",
@@ -54,10 +53,6 @@ const UserInfo = () => {
     } else {
       toggleDatePicker();
     }
-  };
-
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
   };
 
   const handleGetStarted = async () => {
@@ -167,7 +162,12 @@ const UserInfo = () => {
                 handleGetStarted();
               }}
               className="mt-5"
-              disabled={!form.firstName || !form.lastName || !dateOfBirth}
+              disabled={
+                !form.firstName ||
+                !form.lastName ||
+                !dateOfBirth ||
+                !form.userLocation
+              }
             />
           </View>
         </View>
