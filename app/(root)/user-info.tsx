@@ -122,6 +122,7 @@ const UserInfo = () => {
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="MM/DD/YYYY"
+                    placeholderTextColor="#c0c0c0"
                     value={dateOfBirth}
                     onChangeText={setDateOfBirth}
                     editable={false}
@@ -151,6 +152,8 @@ const UserInfo = () => {
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="Your Location"
+                    placeholderTextColor="#c0c0c0"
+                    value={form.userLocation}
                     editable={false}
                     onPressIn={() => router.push("/(root)/country")}
                   />
