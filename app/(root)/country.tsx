@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { FlatList, ScrollView, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const country = () => {
+const Country = () => {
   return (
     <SafeAreaView className="flex-1">
       <ScrollView className="px-5">
@@ -29,4 +29,4 @@ const country = () => {
   );
 };
 
-export default country;
+export default Country;

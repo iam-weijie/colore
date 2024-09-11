@@ -2,8 +2,8 @@ import { countries } from "@/constants/index";
 import { useLocalSearchParams } from "expo-router";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 
-const city = () => {
-  const { state, country } = useLocalSearchParams(); // Get selected state and country from route params
+const City = () => {
+  const { state, country } = useLocalSearchParams();
 
   const selectedCountry = countries.find((c) => c.name === country);
   const selectedState = selectedCountry?.states.find((s) => s.name === state);
@@ -31,4 +31,4 @@ const city = () => {
   );
 };
 
-export default city;
+export default City;

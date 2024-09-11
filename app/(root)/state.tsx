@@ -2,7 +2,7 @@ import { countries } from "@/constants/index";
 import { router, useLocalSearchParams } from "expo-router";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 
-const state = () => {
+const State = () => {
   const { country } = useLocalSearchParams();
 
   const selectedCountry = countries.find((c) => c.name === country);
@@ -31,4 +31,4 @@ const state = () => {
   );
 };
 
-export default state;
+export default State;
