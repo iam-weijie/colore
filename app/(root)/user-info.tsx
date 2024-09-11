@@ -144,15 +144,15 @@ const UserInfo = () => {
 
             <View className="my-2 w-full">
               <Text className="text-lg font-JakartaSemiBold mb-3">
-                Date of Birth
+                Location
               </Text>
               <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
-                <Pressable onPress={() => router.push("/(root)/user-info")}>
+                <Pressable onPress={() => router.push("/(root)/country")}>
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="Your Location"
                     editable={false}
-                    onPressIn={() => router.push("/(root)/user-info")}
+                    onPressIn={() => router.push("/(root)/country")}
                   />
                 </Pressable>
               </View>

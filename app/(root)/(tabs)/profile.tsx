@@ -53,7 +53,7 @@ const Profile = () => {
         </View>
 
         <View>
-          <Pressable onPress={() => router.push("/(root)/user-info")}>
+          <Pressable onPress={() => router.push("/(root)/country")}>
             <TextInput
               className="text-base my-1"
               value={`📍${userLocation}`}
