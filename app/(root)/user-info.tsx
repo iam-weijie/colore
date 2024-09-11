@@ -16,7 +16,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
-import DropdownMenu from "@/components/DropdownMenu";
 import InputField from "@/components/InputField";
 import { fetchAPI } from "@/lib/fetch";
 import { calculateAge, formatDate } from "@/lib/utils";
@@ -148,18 +147,16 @@ const UserInfo = () => {
                 Date of Birth
               </Text>
               <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
-                <Pressable onPress={toggleDropdown}>
+                <Pressable onPress={() => router.push("/(root)/user-info")}>
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="Your Location"
                     editable={false}
-                    onPressIn={toggleDropdown}
+                    onPressIn={() => router.push("/(root)/user-info")}
                   />
                 </Pressable>
               </View>
             </View>
-
-            {showDropdown && <DropdownMenu />}
 
             <CustomButton
               title="Get Started"
