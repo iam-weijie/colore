@@ -1,6 +1,7 @@
 import { countries } from "@/constants/index";
 import { router, useLocalSearchParams } from "expo-router";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Text, TouchableOpacity } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const State = () => {
   const { country } = useLocalSearchParams();
@@ -9,7 +10,7 @@ const State = () => {
   const states = selectedCountry ? selectedCountry.states : [];
 
   return (
-    <View>
+    <SafeAreaView>
       <Text>Select a State in {country}</Text>
       <FlatList
         data={states}
@@ -27,7 +28,7 @@ const State = () => {
           </TouchableOpacity>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
