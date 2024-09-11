@@ -4,7 +4,7 @@ import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const State = () => {
-  const { country } = useLocalSearchParams();
+  const { country, previousScreen } = useLocalSearchParams();
 
   const selectedCountry = countries.find((c) => c.name === country);
   const states = selectedCountry ? selectedCountry.states : [];
@@ -22,7 +22,7 @@ const State = () => {
             onPress={() =>
               router.push({
                 pathname: "/(root)/city",
-                params: { state: item.name, country },
+                params: { state: item.name, country, previousScreen },
               })
             }
           >

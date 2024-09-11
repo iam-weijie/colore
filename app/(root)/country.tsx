@@ -1,9 +1,11 @@
 import { countries } from "@/constants/index";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Country = () => {
+  const { previousScreen } = useLocalSearchParams();
+
   return (
     <SafeAreaView className="flex-1">
       <Text className="text-lg font-JakartaSemiBold m-3">Select a Country</Text>
@@ -15,7 +17,7 @@ const Country = () => {
             onPress={() =>
               router.push({
                 pathname: "/(root)/state",
-                params: { country: item.name },
+                params: { country: item.name, previousScreen },
               })
             }
           >

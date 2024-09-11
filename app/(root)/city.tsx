@@ -5,7 +5,7 @@ import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const City = () => {
-  const { state, country } = useLocalSearchParams();
+  const { state, country, previousScreen } = useLocalSearchParams();
 
   const selectedCountry = countries.find((c) => c.name === country);
   const selectedState = selectedCountry?.states.find((s) => s.name === state);
@@ -27,6 +27,7 @@ const City = () => {
       <Text className="text-lg font-JakartaSemiBold m-3">
         Select a City in {state}
       </Text>
+      <Text>Previous Screen: {previousScreen}</Text>
 
       <FlatList
         data={cities}

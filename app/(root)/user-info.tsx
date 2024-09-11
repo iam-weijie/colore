@@ -13,6 +13,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
@@ -22,6 +23,8 @@ import { calculateAge, formatDate } from "@/lib/utils";
 
 const UserInfo = () => {
   const { user } = useUser();
+  const route = useRoute();
+  const currentScreen = route.name as string;
 
   const tenYearsAgo = new Date();
   tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
@@ -155,7 +158,12 @@ const UserInfo = () => {
                     placeholderTextColor="#c0c0c0"
                     value={form.userLocation}
                     editable={false}
-                    onPressIn={() => router.push("/(root)/country")}
+                    onPressIn={() =>
+                      router.push({
+                        pathname: "/(root)/country",
+                        params: { previousScreen: currentScreen },
+                      })
+                    }
                   />
                 </Pressable>
               </View>

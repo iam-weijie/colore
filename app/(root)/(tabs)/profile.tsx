@@ -10,11 +10,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Profile = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
+  const route = useRoute();
+  const currentScreen = route.name as string;
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [userLocation, setUserLocation] = useState("Montreal");
@@ -53,12 +56,24 @@ const Profile = () => {
         </View>
 
         <View>
-          <Pressable onPress={() => router.push("/(root)/country")}>
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/(root)/country",
+                params: { previousScreen: currentScreen },
+              })
+            }
+          >
             <TextInput
               className="text-base my-1"
               value={`📍${userLocation}`}
               editable={false}
-              onPressIn={() => router.push("/(root)/country")}
+              onPressIn={() =>
+                router.push({
+                  pathname: "/(root)/country",
+                  params: { previousScreen: currentScreen },
+                })
+              }
             />
           </Pressable>
         </View>
