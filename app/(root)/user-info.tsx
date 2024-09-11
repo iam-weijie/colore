@@ -149,6 +149,7 @@ const UserInfo = () => {
                     placeholder="Your Location"
                     // placeholderTextColor="#c0c0c0"
                     value={form.userLocation}
+                    // TODO: onChangeText
                     editable={false}
                     onPressIn={() => router.push("/(root)/country")}
                   />
