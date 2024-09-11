@@ -1,5 +1,5 @@
 import { countries } from "@/constants/index";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,11 +17,17 @@ const City = () => {
     setSelectedCity(city);
   };
 
+  const handleConfirmPress = () => {
+    // TODO: find a way to findout where select location was pressed and go back from here
+    router.replace();
+  };
+
   return (
     <SafeAreaView className="flex-1">
       <Text className="text-lg font-JakartaSemiBold m-3">
         Select a City in {state}
       </Text>
+
       <FlatList
         data={cities}
         keyExtractor={(item) => item}
@@ -44,6 +50,13 @@ const City = () => {
           </TouchableOpacity>
         )}
       />
+
+      <TouchableOpacity
+        onPress={handleConfirmPress}
+        className="absolute top-14 right-4 p-2 rounded-lg  bg-primary-500"
+      >
+        <Text className="text-white">Done</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
