@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const Country = () => {
   return (
     <SafeAreaView className="flex-1">
-      <Text>Select a Country</Text>
+      <Text className="text-lg font-JakartaSemiBold m-3">Select a Country</Text>
       <FlatList
         data={countries}
         keyExtractor={(item) => item.id}
@@ -19,7 +19,9 @@ const Country = () => {
               })
             }
           >
-            <Text>{item.name}</Text>
+            <Text className="font-JakartaSemiBold text-[15px] ml-3 my-2">
+              {item.name}
+            </Text>
           </TouchableOpacity>
         )}
       />

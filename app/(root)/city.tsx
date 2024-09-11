@@ -11,8 +11,10 @@ const City = () => {
   const cities = selectedState ? selectedState.cities : [];
 
   return (
-    <SafeAreaView>
-      <Text>Select a City in {state}</Text>
+    <SafeAreaView className="flex-1">
+      <Text className="text-lg font-JakartaSemiBold m-3">
+        Select a City in {state}
+      </Text>
       <FlatList
         data={cities}
         keyExtractor={(item) => item}
@@ -24,7 +26,9 @@ const City = () => {
           //     params: { city: item, state, country },
           //   })
           >
-            <Text>{item}</Text>
+            <Text className="font-JakartaSemiBold text-[15px] ml-3 my-2">
+              {item}
+            </Text>
           </TouchableOpacity>
         )}
       />

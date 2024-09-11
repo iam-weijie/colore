@@ -10,8 +10,10 @@ const State = () => {
   const states = selectedCountry ? selectedCountry.states : [];
 
   return (
-    <SafeAreaView>
-      <Text>Select a State in {country}</Text>
+    <SafeAreaView className="flex-1">
+      <Text className="text-lg font-JakartaSemiBold m-3">
+        Select a State in {country}
+      </Text>
       <FlatList
         data={states}
         keyExtractor={(item) => item.name}
@@ -24,7 +26,9 @@ const State = () => {
               })
             }
           >
-            <Text>{item.name}</Text>
+            <Text className="font-JakartaSemiBold text-[15px] ml-3 my-2">
+              {item.name}
+            </Text>
           </TouchableOpacity>
         )}
       />
