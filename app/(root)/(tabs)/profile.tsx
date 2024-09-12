@@ -1,4 +1,3 @@
-import DropdownMenu from "@/components/DropdownMenu";
 import { icons } from "@/constants/index";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
@@ -7,7 +6,6 @@ import {
   Image,
   Pressable,
   ScrollView,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -18,18 +16,13 @@ const Profile = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
 
-  const [showDropdown, setShowDropdown] = useState(false);
+  // TODO: get user location from neon
   const [userLocation, setUserLocation] = useState("Montreal");
 
-  // TO DO: Replace with user info fetched from neon
+  // TODO: Replace with user info fetched from neon
   const [form, setForm] = useState({
     firstName: user?.firstName || "J. Doe",
   });
-
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
-    setUserLocation("Montreal");
-  };
 
   const handleSignOut = async () => {
     signOut();
@@ -55,26 +48,14 @@ const Profile = () => {
         </View>
 
         <View>
-          <Pressable onPress={toggleDropdown}>
-            {!showDropdown && (
-              <TextInput
-                className="text-base my-1"
-                value={`📍${userLocation}`}
-                editable={false}
-                onPressIn={toggleDropdown}
-              />
-            )}
+          <Pressable onPress={() => router.push("/(root)/country")}>
+            <TextInput
+              className="text-base my-1"
+              value={`📍${userLocation}`}
+              editable={false}
+              onPressIn={() => router.push("/(root)/country")}
+            />
           </Pressable>
-
-          {showDropdown && (
-            <View className="flex flex-row  justify-between">
-              <DropdownMenu />
-
-              <TouchableOpacity onPress={toggleDropdown}>
-                <Text className="mt-2 ">✔</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
       </ScrollView>
     </SafeAreaView>

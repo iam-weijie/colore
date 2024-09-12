@@ -61,7 +61,7 @@ const UserInfo = () => {
     if (age < 13) {
       Alert.alert(
         "Age Restriction",
-        "You must be over 13 years old to use this app.",
+        "You must be over 13 years old to use this app."
       );
       return;
     }
@@ -117,6 +117,7 @@ const UserInfo = () => {
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="MM/DD/YYYY"
+                    // placeholderTextColor="#c0c0c0"
                     value={dateOfBirth}
                     onChangeText={setDateOfBirth}
                     editable={false}
@@ -141,29 +142,36 @@ const UserInfo = () => {
               <Text className="text-lg font-JakartaSemiBold mb-3">
                 Location
               </Text>
-              {/*  TO DO: select user location  <DropdownMenu /> */}
-              {/* this input field is here as a placeholder, because otherwise
-              the empty location field string causes issues with the SQL statement */}
-              <InputField
-                label="Location"
-                placeholder="Location"
-                containerStyle="w-full"
-                inputStyle="p-3.5"
-                value={form.userLocation}
-                onChangeText={(value) =>
-                  setForm({ ...form, userLocation: value })
+              <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
+                <Pressable onPress={() => router.push("/(root)/country")}>
+                  <TextInput
+                    className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
+                    placeholder="Your Location"
+                    // placeholderTextColor="#c0c0c0"
+                    value={form.userLocation}
+                    // TODO: onChangeText
+                    editable={false}
+                    onPressIn={() => router.push("/(root)/country")}
+                  />
+                </Pressable>
+              </View>
+            </View>
+
+            <View className="mt-4 w-full">
+              <CustomButton
+                title="Get Started"
+                onPress={() => {
+                  handleGetStarted();
+                }}
+                className="my-5 "
+                disabled={
+                  !form.firstName ||
+                  !form.lastName ||
+                  !dateOfBirth ||
+                  !form.userLocation
                 }
               />
             </View>
-
-            <CustomButton
-              title="Get Started"
-              onPress={() => {
-                handleGetStarted();
-              }}
-              className="mt-5"
-              disabled={!form.firstName || !form.lastName || !dateOfBirth}
-            />
           </View>
         </View>
       </ScrollView>

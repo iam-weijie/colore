@@ -36,23 +36,23 @@ export const images = {
   login,
 };
 
-export const country = [
-  { label: "Canada", value: "1" },
-  { label: "France", value: "2" },
-  { label: "UK", value: "3" },
-  { label: "US", value: "4" },
-];
-
-export const state = [
-  { label: "Canada", value: "1" },
-  { label: "France", value: "2" },
-  { label: "UK", value: "3" },
-  { label: "US", value: "4" },
-];
-
-export const city = [
-  { label: "Canada", value: "1" },
-  { label: "France", value: "2" },
-  { label: "UK", value: "3" },
-  { label: "US", value: "4" },
+export const countries = [
+  {
+    id: "1",
+    name: "USA",
+    states: [
+      { name: "California", cities: ["Los Angeles", "San Francisco"] },
+      { name: "New York", cities: ["New York City", "Buffalo"] },
+      { name: "Illinois", cities: ["Chicago", "Springfield"] },
+    ],
+  },
+  {
+    id: "2",
+    name: "Canada",
+    states: [
+      { name: "Ontario", cities: ["Toronto", "Ottawa"] },
+      { name: "British Columbia", cities: ["Vancouver", "Victoria"] },
+      { name: "Quebec", cities: ["Montreal", "Quebec City"] },
+    ],
+  },
 ];
