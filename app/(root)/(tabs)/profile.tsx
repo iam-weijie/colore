@@ -21,18 +21,13 @@ const Profile = () => {
   const route = useRoute();
   const currentScreen = route.name as string;
 
-  const [showDropdown, setShowDropdown] = useState(false);
+  // TODO: get user location from neon
   const [userLocation, setUserLocation] = useState("Montreal");
 
-  // TO DO: Replace with user info fetched from neon
+  // TODO: Replace with user info fetched from neon
   const [form, setForm] = useState({
     firstName: user?.firstName || "J. Doe",
   });
-
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
-    setUserLocation("Montreal");
-  };
 
   const handleSignOut = async () => {
     signOut();

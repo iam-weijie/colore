@@ -31,14 +31,7 @@ const City = () => {
         data={cities}
         keyExtractor={(item) => item}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => handleCityPress(item)}
-            // TODO: store the selected info to db
-            // onPress={() =>
-
-            //     params: { city: item, state, country },
-            //   })
-          >
+          <TouchableOpacity onPress={() => handleCityPress(item)}>
             <Text className="font-JakartaSemiBold text-[15px] ml-3 my-2">
               {item}
             </Text>
@@ -51,7 +44,11 @@ const City = () => {
       />
 
       <TouchableOpacity
-        onPress={handleConfirmPress}
+        onPress={
+          handleConfirmPress
+          // TODO: pass the following info to the previous screen
+          //     params: { city: item, state, country }
+        }
         className="absolute top-14 right-4 p-2 rounded-lg  bg-primary-500"
       >
         <Text className="text-white">Done</Text>

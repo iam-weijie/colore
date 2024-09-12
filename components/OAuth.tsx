@@ -13,7 +13,8 @@ const OAuth = () => {
     try {
       const result = await googleOAuth(startOAuthFlow);
 
-      // TO DO: if google is first-time login, push to user-info page.
+      // TODO: check if user is first-time login, if yes, push to user-info page.
+
       if (result.code === "session_exists" || result.code === "success") {
         // router.push("/(root)/(tabs)/home");
         router.push("/(root)/user-info");

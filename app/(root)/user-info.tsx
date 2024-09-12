@@ -37,7 +37,6 @@ const UserInfo = () => {
     stateVars.dateOfBirth || formatDate(date),
   );
   const [showPicker, setShowPicker] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
 
   const [form, setForm] = useState({
     firstName: stateVars.firstName || user?.firstName || "",
@@ -61,10 +60,6 @@ const UserInfo = () => {
     } else {
       toggleDatePicker();
     }
-  };
-
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
   };
 
   const handleGetStarted = async () => {
@@ -139,7 +134,7 @@ const UserInfo = () => {
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="MM/DD/YYYY"
-                    placeholderTextColor="#c0c0c0"
+                    // placeholderTextColor="#c0c0c0"
                     value={dateOfBirth}
                     onChangeText={setDateOfBirth}
                     editable={false}
@@ -169,8 +164,9 @@ const UserInfo = () => {
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="Your Location"
-                    placeholderTextColor="#c0c0c0"
+                    // placeholderTextColor="#c0c0c0"
                     value={form.userLocation}
+                    // TODO: onChangeText
                     editable={false}
                     onPressIn={handleNavigateToCountry}
                   />
@@ -178,14 +174,21 @@ const UserInfo = () => {
               </View>
             </View>
 
-            <CustomButton
-              title="Get Started"
-              onPress={() => {
-                handleGetStarted();
-              }}
-              className="mt-5"
-              disabled={!form.firstName || !form.lastName || !dateOfBirth}
-            />
+            <View className="mt-4 w-full">
+              <CustomButton
+                title="Get Started"
+                onPress={() => {
+                  handleGetStarted();
+                }}
+                className="my-5 "
+                disabled={
+                  !form.firstName ||
+                  !form.lastName ||
+                  !dateOfBirth ||
+                  !form.userLocation
+                }
+              />
+            </View>
           </View>
         </View>
       </ScrollView>
