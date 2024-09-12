@@ -12,10 +12,12 @@ import {
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigationContext } from "@/components/NavigationContext";
 
 const Profile = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
+  const { stateVars, setStateVars } = useNavigationContext();
   const route = useRoute();
   const currentScreen = route.name as string;
 
@@ -37,6 +39,14 @@ const Profile = () => {
     router.replace("/(auth)/log-in");
   };
 
+  const handleNavigateToCountry = () => {
+    setStateVars({
+      ...stateVars,
+      previousScreen: currentScreen,
+    });
+    router.push("/(root)/country");
+  };
+
   return (
     <SafeAreaView className="flex-1">
       <ScrollView
@@ -56,24 +66,12 @@ const Profile = () => {
         </View>
 
         <View>
-          <Pressable
-            onPress={() =>
-              router.push({
-                pathname: "/(root)/country",
-                params: { previousScreen: currentScreen },
-              })
-            }
-          >
+          <Pressable onPress={handleNavigateToCountry}>
             <TextInput
               className="text-base my-1"
               value={`📍${userLocation}`}
               editable={false}
-              onPressIn={() =>
-                router.push({
-                  pathname: "/(root)/country",
-                  params: { previousScreen: currentScreen },
-                })
-              }
+              onPressIn={handleNavigateToCountry}
             />
           </Pressable>
         </View>

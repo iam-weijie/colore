@@ -1,11 +1,13 @@
 import { countries } from "@/constants/index";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, Href } from "expo-router";
 import { useState } from "react";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigationContext } from "../../components/NavigationContext";
 
 const City = () => {
-  const { state, country, previousScreen } = useLocalSearchParams();
+  const { stateVars } = useNavigationContext();
+  const { state, country } = useLocalSearchParams();
 
   const selectedCountry = countries.find((c) => c.name === country);
   const selectedState = selectedCountry?.states.find((s) => s.name === state);
@@ -18,17 +20,13 @@ const City = () => {
   };
 
   const handleConfirmPress = () => {
-    // TODO: find a way to findout where select location was pressed and go back from here
-    router.replace();
+    router.replace(`/(root)/${stateVars.previousScreen}` as Href<string>);
   };
-
   return (
     <SafeAreaView className="flex-1">
       <Text className="text-lg font-JakartaSemiBold m-3">
         Select a City in {state}
       </Text>
-      <Text>Previous Screen: {previousScreen}</Text>
-
       <FlatList
         data={cities}
         keyExtractor={(item) => item}

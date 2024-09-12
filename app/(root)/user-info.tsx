@@ -2,7 +2,8 @@ import { useUser } from "@clerk/clerk-expo";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { useRoute } from "@react-navigation/native";
 import { useState } from "react";
 import {
   Alert,
@@ -20,29 +21,32 @@ import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { fetchAPI } from "@/lib/fetch";
 import { calculateAge, formatDate } from "@/lib/utils";
+import { useNavigationContext } from "@/components/NavigationContext";
 
 const UserInfo = () => {
   const { user } = useUser();
   const route = useRoute();
   const currentScreen = route.name as string;
+  const { stateVars, setStateVars } = useNavigationContext();
 
   const tenYearsAgo = new Date();
   tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
 
-  const [date, setDate] = useState(tenYearsAgo);
-  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [date, setDate] = useState(new Date(stateVars.date || tenYearsAgo));
+  const [dateOfBirth, setDateOfBirth] = useState(
+    stateVars.dateOfBirth || formatDate(date),
+  );
   const [showPicker, setShowPicker] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
   const [form, setForm] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    userLocation: "",
+    firstName: stateVars.firstName || user?.firstName || "",
+    lastName: stateVars.lastName || user?.lastName || "",
+    userLocation: stateVars.userLocation || "",
   });
 
   const toggleDatePicker = () => {
     setShowPicker(!showPicker);
-    setDateOfBirth(formatDate(date));
   };
 
   const onChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
@@ -69,7 +73,7 @@ const UserInfo = () => {
     if (age < 13) {
       Alert.alert(
         "Age Restriction",
-        "You must be over 13 years old to use this app."
+        "You must be over 13 years old to use this app.",
       );
       return;
     }
@@ -88,6 +92,17 @@ const UserInfo = () => {
     router.push("/(root)/(tabs)/home");
   };
 
+  const handleNavigateToCountry = () => {
+    setStateVars({
+      ...stateVars,
+      previousScreen: currentScreen,
+      firstName: form.firstName,
+      lastName: form.lastName,
+      dateOfBirth: dateOfBirth,
+    });
+    router.push("/(root)/country");
+  };
+
   return (
     <SafeAreaView className="flex-1">
       <ScrollView
@@ -95,7 +110,6 @@ const UserInfo = () => {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         <Text className="text-2xl font-JakartaBold my-5">Who are you 👀</Text>
-
         <View className="flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3">
           <View className="flex flex-col items-start justify-start w-full">
             <InputField
@@ -151,19 +165,14 @@ const UserInfo = () => {
                 Location
               </Text>
               <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
-                <Pressable onPress={() => router.push("/(root)/country")}>
+                <Pressable onPress={handleNavigateToCountry}>
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="Your Location"
                     placeholderTextColor="#c0c0c0"
                     value={form.userLocation}
                     editable={false}
-                    onPressIn={() =>
-                      router.push({
-                        pathname: "/(root)/country",
-                        params: { previousScreen: currentScreen },
-                      })
-                    }
+                    onPressIn={handleNavigateToCountry}
                   />
                 </Pressable>
               </View>
