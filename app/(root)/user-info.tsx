@@ -2,8 +2,8 @@ import { useUser } from "@clerk/clerk-expo";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { router, useLocalSearchParams } from "expo-router";
 import { useRoute } from "@react-navigation/native";
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
@@ -14,14 +14,13 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
+import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { calculateAge, formatDate } from "@/lib/utils";
-import { useNavigationContext } from "@/components/NavigationContext";
 
 const UserInfo = () => {
   const { user } = useUser();
@@ -34,7 +33,7 @@ const UserInfo = () => {
 
   const [date, setDate] = useState(new Date(stateVars.date || tenYearsAgo));
   const [dateOfBirth, setDateOfBirth] = useState(
-    stateVars.dateOfBirth || formatDate(date),
+    stateVars.dateOfBirth || formatDate(date)
   );
   const [showPicker, setShowPicker] = useState(false);
 
@@ -68,7 +67,7 @@ const UserInfo = () => {
     if (age < 13) {
       Alert.alert(
         "Age Restriction",
-        "You must be over 13 years old to use this app.",
+        "You must be over 13 years old to use this app."
       );
       return;
     }
