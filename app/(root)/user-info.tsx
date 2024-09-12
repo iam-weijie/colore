@@ -31,10 +31,8 @@ const UserInfo = () => {
   const tenYearsAgo = new Date();
   tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
 
-  const [date, setDate] = useState(new Date(stateVars.date || tenYearsAgo));
-  const [dateOfBirth, setDateOfBirth] = useState(
-    stateVars.dateOfBirth || formatDate(date)
-  );
+  const [date, setDate] = useState(tenYearsAgo);
+  const [dateOfBirth, setDateOfBirth] = useState(stateVars.dateOfBirth || "");
   const [showPicker, setShowPicker] = useState(false);
 
   const [form, setForm] = useState({
@@ -45,6 +43,7 @@ const UserInfo = () => {
 
   const toggleDatePicker = () => {
     setShowPicker(!showPicker);
+    setDateOfBirth(formatDate(date));
   };
 
   const onChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
@@ -59,6 +58,17 @@ const UserInfo = () => {
     } else {
       toggleDatePicker();
     }
+  };
+
+  const handleNavigateToCountry = () => {
+    setStateVars({
+      ...stateVars,
+      previousScreen: currentScreen,
+      firstName: form.firstName,
+      lastName: form.lastName,
+      dateOfBirth: dateOfBirth,
+    });
+    router.push("/(root)/country");
   };
 
   const handleGetStarted = async () => {
@@ -84,17 +94,6 @@ const UserInfo = () => {
     });
 
     router.push("/(root)/(tabs)/home");
-  };
-
-  const handleNavigateToCountry = () => {
-    setStateVars({
-      ...stateVars,
-      previousScreen: currentScreen,
-      firstName: form.firstName,
-      lastName: form.lastName,
-      dateOfBirth: dateOfBirth,
-    });
-    router.push("/(root)/country");
   };
 
   return (
@@ -133,7 +132,7 @@ const UserInfo = () => {
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="MM/DD/YYYY"
-                    // placeholderTextColor="#c0c0c0"
+                    placeholderTextColor="#c0c0c0"
                     value={dateOfBirth}
                     onChangeText={setDateOfBirth}
                     editable={false}
@@ -163,7 +162,7 @@ const UserInfo = () => {
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="Your Location"
-                    // placeholderTextColor="#c0c0c0"
+                    placeholderTextColor="#c0c0c0"
                     value={form.userLocation}
                     // TODO: onChangeText
                     editable={false}
