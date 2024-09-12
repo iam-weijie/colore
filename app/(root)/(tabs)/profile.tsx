@@ -10,11 +10,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigationContext } from "@/components/NavigationContext";
 
 const Profile = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
+  const { stateVars, setStateVars } = useNavigationContext();
+  const route = useRoute();
+  const currentScreen = route.name as string;
 
   // TODO: get user location from neon
   const [userLocation, setUserLocation] = useState("Montreal");
@@ -27,6 +32,14 @@ const Profile = () => {
   const handleSignOut = async () => {
     signOut();
     router.replace("/(auth)/log-in");
+  };
+
+  const handleNavigateToCountry = () => {
+    setStateVars({
+      ...stateVars,
+      previousScreen: currentScreen,
+    });
+    router.push("/(root)/country");
   };
 
   return (
@@ -48,12 +61,12 @@ const Profile = () => {
         </View>
 
         <View>
-          <Pressable onPress={() => router.push("/(root)/country")}>
+          <Pressable onPress={handleNavigateToCountry}>
             <TextInput
               className="text-base my-1"
               value={`📍${userLocation}`}
               editable={false}
-              onPressIn={() => router.push("/(root)/country")}
+              onPressIn={handleNavigateToCountry}
             />
           </Pressable>
         </View>

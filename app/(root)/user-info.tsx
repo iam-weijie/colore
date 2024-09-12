@@ -2,6 +2,7 @@ import { useUser } from "@clerk/clerk-expo";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { useRoute } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -17,23 +18,27 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
+import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { calculateAge, formatDate } from "@/lib/utils";
 
 const UserInfo = () => {
   const { user } = useUser();
+  const route = useRoute();
+  const currentScreen = route.name as string;
+  const { stateVars, setStateVars } = useNavigationContext();
 
   const tenYearsAgo = new Date();
   tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
 
   const [date, setDate] = useState(tenYearsAgo);
-  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState(stateVars.dateOfBirth || "");
   const [showPicker, setShowPicker] = useState(false);
 
   const [form, setForm] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    userLocation: "",
+    firstName: stateVars.firstName || user?.firstName || "",
+    lastName: stateVars.lastName || user?.lastName || "",
+    userLocation: stateVars.userLocation || "",
   });
 
   const toggleDatePicker = () => {
@@ -53,6 +58,17 @@ const UserInfo = () => {
     } else {
       toggleDatePicker();
     }
+  };
+
+  const handleNavigateToCountry = () => {
+    setStateVars({
+      ...stateVars,
+      previousScreen: currentScreen,
+      firstName: form.firstName,
+      lastName: form.lastName,
+      dateOfBirth: dateOfBirth,
+    });
+    router.push("/(root)/country");
   };
 
   const handleGetStarted = async () => {
@@ -87,7 +103,6 @@ const UserInfo = () => {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         <Text className="text-2xl font-JakartaBold my-5">Who are you 👀</Text>
-
         <View className="flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3">
           <View className="flex flex-col items-start justify-start w-full">
             <InputField
@@ -117,7 +132,7 @@ const UserInfo = () => {
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="MM/DD/YYYY"
-                    // placeholderTextColor="#c0c0c0"
+                    placeholderTextColor="#c0c0c0"
                     value={dateOfBirth}
                     onChangeText={setDateOfBirth}
                     editable={false}
@@ -143,15 +158,15 @@ const UserInfo = () => {
                 Location
               </Text>
               <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
-                <Pressable onPress={() => router.push("/(root)/country")}>
+                <Pressable onPress={handleNavigateToCountry}>
                   <TextInput
                     className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
                     placeholder="Your Location"
-                    // placeholderTextColor="#c0c0c0"
+                    placeholderTextColor="#c0c0c0"
                     value={form.userLocation}
                     // TODO: onChangeText
                     editable={false}
-                    onPressIn={() => router.push("/(root)/country")}
+                    onPressIn={handleNavigateToCountry}
                   />
                 </Pressable>
               </View>
