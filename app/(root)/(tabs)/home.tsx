@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import PostModal from "@/components/PostModal"; // Import the PostModal component
+import { ReactNativeModal } from "react-native-modal";
 
 export default function Page() {
   const { user } = useUser();
@@ -72,11 +72,22 @@ export default function Page() {
               )}
             />
             {selectedPost && (
-              <PostModal
-                visible={!!selectedPost}
-                onClose={handleCloseModal}
-                post={selectedPost}
-              />
+              <ReactNativeModal isVisible={!!selectedPost}>
+                <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
+                  <Text>{selectedPost.content}</Text>
+                  <Text>
+                    Posted by: {selectedPost.firstname} {selectedPost.lastname}
+                    {"\n"}
+                    {selectedPost.city}, {selectedPost.state},{" "}
+                    {selectedPost.country}
+                  </Text>
+                  <View>
+                    <Text>Likes: {selectedPost.likes_count}</Text>
+                    <Text>Comments: {selectedPost.reports_count}</Text>
+                  </View>
+                  <Button title="Close" onPress={handleCloseModal} />
+                </View>
+              </ReactNativeModal>
             )}
           </View>
         )}

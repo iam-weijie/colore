@@ -5,6 +5,7 @@ export async function GET(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     console.log("Received GET request for random posts.");
 
+    // comments table to be joined later :]
     const response = await sql`
       SELECT 
       p.id, 
