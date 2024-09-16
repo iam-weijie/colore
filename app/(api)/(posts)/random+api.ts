@@ -6,12 +6,22 @@ export async function GET(request: Request) {
     console.log("Received GET request for random posts.");
 
     const response = await sql`
-      SELECT * 
-      FROM posts
+      SELECT 
+      p.id, 
+      p.content, 
+      p.likes_count, 
+      p.report_count, 
+      u.firstname, 
+      u.lastname, 
+      u.country, 
+      u.state, 
+      u.city
+      FROM posts p
+      JOIN users u ON p.user_id = u.clerk_id
       ORDER BY RANDOM()
       LIMIT 3;
     `;
-
+    console.log(response);
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });

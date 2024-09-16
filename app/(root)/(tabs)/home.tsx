@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import { Text, Button, FlatList, View, ActivityIndicator } from "react-native";
-import { router } from "expo-router";
+import {
+  Text,
+  Button,
+  FlatList,
+  View,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
+import { router, Href } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Page() {
@@ -37,6 +44,8 @@ export default function Page() {
       <SignedIn>
         <Text>Hello {user?.emailAddresses[0].emailAddress}</Text>
         <Button title="New Post" onPress={handleNewPostPress} />
+        {/* TODO: Display every post as a clickable object, which opens a window with the post (with the option to add comment) + hide info */}
+        {/* TODO??: Have the user be limited to a certain number of refreshes */}
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : error ? (
@@ -46,8 +55,26 @@ export default function Page() {
             data={posts}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <View>
-                <Text>{item.content}</Text>
+              <View
+                style={{
+                  padding: 10,
+                  borderBottomWidth: 1,
+                  borderColor: "#ccc",
+                }}
+              >
+                <Text style={{ fontSize: 18, marginBottom: 5 }}>
+                  {item.content}
+                </Text>
+
+                <View>
+                  <Text>Likes: {item.likes_count}</Text>
+                  <Text>Reports: {item.report_count}</Text>
+                </View>
+
+                <Text style={{ fontStyle: "italic", color: "#888" }}>
+                  Posted by: {item.firstname} {item.lastname}, {item.city},{" "}
+                  {item.state}, {item.country}
+                </Text>
               </View>
             )}
           />
