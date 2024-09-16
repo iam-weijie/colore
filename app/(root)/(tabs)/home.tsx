@@ -8,14 +8,16 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { router, Href } from "expo-router";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import PostModal from "@/components/PostModal"; // Import the PostModal component
 
 export default function Page() {
   const { user } = useUser();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchRandomPosts = async () => {
@@ -35,8 +37,16 @@ export default function Page() {
     fetchRandomPosts();
   }, []);
 
+  const handlePostPress = (post: any) => {
+    setSelectedPost(post);
+  };
+
   const handleNewPostPress = () => {
     router.push("/(root)/new-post");
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPost(null);
   };
 
   return (
@@ -44,40 +54,31 @@ export default function Page() {
       <SignedIn>
         <Text>Hello {user?.emailAddresses[0].emailAddress}</Text>
         <Button title="New Post" onPress={handleNewPostPress} />
-        {/* TODO: Display every post as a clickable object, which opens a window with the post (with the option to add comment) + hide info */}
-        {/* TODO??: Have the user be limited to a certain number of refreshes */}
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : error ? (
           <Text>{error}</Text>
         ) : (
-          <FlatList
-            data={posts}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View
-                style={{
-                  padding: 10,
-                  borderBottomWidth: 1,
-                  borderColor: "#ccc",
-                }}
-              >
-                <Text style={{ fontSize: 18, marginBottom: 5 }}>
-                  {item.content}
-                </Text>
-
-                <View>
-                  <Text>Likes: {item.likes_count}</Text>
-                  <Text>Reports: {item.report_count}</Text>
-                </View>
-
-                <Text style={{ fontStyle: "italic", color: "#888" }}>
-                  Posted by: {item.firstname} {item.lastname}, {item.city},{" "}
-                  {item.state}, {item.country}
-                </Text>
-              </View>
+          <View>
+            <FlatList
+              data={posts}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => handlePostPress(item)}>
+                  <View>
+                    <Text>CLICK ME</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+            {selectedPost && (
+              <PostModal
+                visible={!!selectedPost}
+                onClose={handleCloseModal}
+                post={selectedPost}
+              />
             )}
-          />
+          </View>
         )}
       </SignedIn>
     </SafeAreaView>
