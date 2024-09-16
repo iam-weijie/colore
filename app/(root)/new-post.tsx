@@ -20,7 +20,7 @@ const NewPost = () => {
       return;
     }
 
-    await fetchAPI("/(api)/post", {
+    await fetchAPI("/(api)/(posts)/new", {
       method: "POST",
       body: JSON.stringify({
         content: cleanedContent,
