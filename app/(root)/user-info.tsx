@@ -11,7 +11,7 @@ import {
   Pressable,
   ScrollView,
   Text,
-    TextInput,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -69,18 +69,23 @@ const UserInfo = () => {
       dateOfBirth: dateOfBirth,
       city: stateVars.city || "",
       state: stateVars.state || "",
-      country: stateVars.country || ""
+      country: stateVars.country || "",
     });
     router.push("/(root)/country");
   };
 
   const handleGetStarted = async () => {
     //Check that all form fields have been filled
-    if (!form.firstName || !form.lastName || !dateOfBirth || !form.userLocation) {
+    if (
+      !form.firstName ||
+      !form.lastName ||
+      !dateOfBirth ||
+      !form.userLocation
+    ) {
       Alert.alert("Error", "Please fill out all fields.");
       return;
     }
-    
+
     const age = calculateAge(date);
     //console.log(age);
 
@@ -92,20 +97,19 @@ const UserInfo = () => {
       return;
     }
 
-      await fetchAPI("/(api)/info", {
-        method: "POST",
-        body: JSON.stringify({
-          firstName: form.firstName,
-          lastName: form.lastName,
-          dateOfBirth: dateOfBirth,
-          city: stateVars.city,
-          state: stateVars.state,
-          country: stateVars.country,
-          clerkId: user!.id,
-        }),
-      });
+    await fetchAPI("/(api)/info", {
+      method: "POST",
+      body: JSON.stringify({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        dateOfBirth: dateOfBirth,
+        city: stateVars.city,
+        state: stateVars.state,
+        country: stateVars.country,
+        clerkId: user!.id,
+      }),
+    });
 
-      
     router.push("/(root)/(tabs)/home");
   };
 
@@ -177,7 +181,6 @@ const UserInfo = () => {
                     placeholder="Your Location"
                     placeholderTextColor="#c0c0c0"
                     value={form.userLocation}
-                    // TODO: onChangeText
                     editable={false}
                     onPressIn={handleNavigateToCountry}
                   />

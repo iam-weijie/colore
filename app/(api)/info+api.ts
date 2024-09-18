@@ -12,8 +12,15 @@ export async function POST(request: Request) {
 
     if (request.method === "POST") {
       console.log("Received POST request.");
-      const { firstName, lastName, dateOfBirth, city, state, country,  clerkId } =
-        await request.json();
+      const {
+        firstName,
+        lastName,
+        dateOfBirth,
+        city,
+        state,
+        country,
+        clerkId,
+      } = await request.json();
 
       if (
         !firstName ||
@@ -26,7 +33,7 @@ export async function POST(request: Request) {
       ) {
         return Response.json(
           { error: "Missing required fields" },
-          { status: 400 },
+          { status: 400 }
         );
       }
 
@@ -62,7 +69,7 @@ export async function POST(request: Request) {
       if (!userId) {
         return Response.json(
           { error: "Missing userId parameter" },
-          { status: 400 },
+          { status: 400 }
         );
       }
 
