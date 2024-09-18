@@ -72,6 +72,12 @@ const UserInfo = () => {
   };
 
   const handleGetStarted = async () => {
+    //Check that all form fields have been filled
+    if (!form.firstName || !form.lastName || !dateOfBirth || !form.userLocation) {
+      Alert.alert("Error", "Please fill out all fields.");
+      return;
+    }
+    
     const age = calculateAge(date);
 
     if (age < 13) {
@@ -82,16 +88,27 @@ const UserInfo = () => {
       return;
     }
 
-    await fetchAPI("/(api)/info", {
-      method: "POST",
-      body: JSON.stringify({
-        firstName: form.firstName,
-        lastName: form.lastName,
-        dateOfBirth: dateOfBirth,
-        userLocation: form.userLocation,
-        clerkId: user!.id,
-      }),
-    });
+    try {
+      const response = await fetchAPI("/(api)/info", {
+        method: "POST",
+        body: JSON.stringify({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          dateOfBirth: dateOfBirth,
+          userLocation: form.userLocation,
+          clerkId: user!.id,
+        }),
+      });
+
+      //A bit more error handling logic
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('There has been a problem with your fetch operation:', error);
+      Alert.alert("Error", "Failed to save user information.");
+      return;
+    }
 
     router.push("/(root)/(tabs)/home");
   };
