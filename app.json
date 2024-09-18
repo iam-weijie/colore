@@ -24,7 +24,7 @@
     "web": {
       "bundler": "metro",
       "output": "server",
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.ico"
     },
     "plugins": [
     [  "expo-router", {"origin":"https://colore.app/"}]
