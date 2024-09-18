@@ -18,10 +18,12 @@ const City = () => {
   const handleCityPress = (city: string) => {
     setSelectedCity(city);
   };
-
   const handleConfirmPress = () => {
     setStateVars({
       ...stateVars,
+      city: selectedCity,
+      state: state,
+      country: country,
       userLocation: `${selectedCity}, ${state}, ${country}`
     });
     router.replace(`/(root)/${stateVars.previousScreen}` as Href<string>);
@@ -51,8 +53,6 @@ const City = () => {
       <TouchableOpacity
         onPress={
           handleConfirmPress
-          // TODO: pass the following info to the previous screen
-          //     params: { city: item, state, country }
         }
         className="absolute top-14 right-4 p-2 rounded-lg  bg-primary-500"
       >

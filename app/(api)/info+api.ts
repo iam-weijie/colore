@@ -12,14 +12,16 @@ export async function POST(request: Request) {
 
     if (request.method === "POST") {
       console.log("Received POST request.");
-      const { firstName, lastName, dateOfBirth, userLocation, clerkId } =
+      const { firstName, lastName, dateOfBirth, city, state, country,  clerkId } =
         await request.json();
 
       if (
         !firstName ||
         !lastName ||
         !dateOfBirth ||
-        !userLocation ||
+        !city ||
+        !state ||
+        !country ||
         !clerkId
       ) {
         return Response.json(
@@ -44,7 +46,9 @@ export async function POST(request: Request) {
           firstname = ${firstName},
           lastname = ${lastName},
           date_of_birth = ${dateOfBirth},
-          user_location = ${userLocation}
+          city = ${city},
+          state = ${state},
+          country = ${country}
         WHERE clerk_id = ${clerkId} 
       `;
 

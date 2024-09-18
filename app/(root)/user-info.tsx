@@ -11,7 +11,7 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
+    TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -67,6 +67,9 @@ const UserInfo = () => {
       firstName: form.firstName,
       lastName: form.lastName,
       dateOfBirth: dateOfBirth,
+      city: stateVars.city || "",
+      state: stateVars.state || "",
+      country: stateVars.country || ""
     });
     router.push("/(root)/country");
   };
@@ -79,6 +82,7 @@ const UserInfo = () => {
     }
     
     const age = calculateAge(date);
+    //console.log(age);
 
     if (age < 13) {
       Alert.alert(
@@ -88,28 +92,20 @@ const UserInfo = () => {
       return;
     }
 
-    try {
-      const response = await fetchAPI("/(api)/info", {
+      await fetchAPI("/(api)/info", {
         method: "POST",
         body: JSON.stringify({
           firstName: form.firstName,
           lastName: form.lastName,
           dateOfBirth: dateOfBirth,
-          userLocation: form.userLocation,
+          city: stateVars.city,
+          state: stateVars.state,
+          country: stateVars.country,
           clerkId: user!.id,
         }),
       });
 
-      //A bit more error handling logic
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('There has been a problem with your fetch operation:', error);
-      Alert.alert("Error", "Failed to save user information.");
-      return;
-    }
-
+      
     router.push("/(root)/(tabs)/home");
   };
 
