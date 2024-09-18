@@ -1,5 +1,5 @@
 import { countries } from "@/constants/index";
-import { router, useLocalSearchParams, Href } from "expo-router";
+import { Href, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,11 +24,11 @@ const City = () => {
       city: selectedCity,
       state: state,
       country: country,
-      userLocation: `${selectedCity}, ${state}, ${country}`
+      userLocation: `${selectedCity}, ${state}, ${country}`,
     });
     router.replace(`/(root)/${stateVars.previousScreen}` as Href<string>);
   };
-    
+
   return (
     <SafeAreaView className="flex-1">
       <Text className="text-lg font-JakartaSemiBold m-3">
@@ -51,10 +51,11 @@ const City = () => {
       />
 
       <TouchableOpacity
-        onPress={
-          handleConfirmPress
-        }
-        className="absolute top-14 right-4 p-2 rounded-lg  bg-primary-500"
+        onPress={handleConfirmPress}
+        disabled={!selectedCity}
+        className={`absolute top-14 right-4 p-2 rounded-lg ${
+          selectedCity ? "bg-primary-500" : "bg-gray-300"
+        }`}
       >
         <Text className="text-white">Done</Text>
       </TouchableOpacity>
