@@ -12,19 +12,28 @@ export async function POST(request: Request) {
 
     if (request.method === "POST") {
       console.log("Received POST request.");
-      const { firstName, lastName, dateOfBirth, userLocation, clerkId } =
-        await request.json();
+      const {
+        firstName,
+        lastName,
+        dateOfBirth,
+        city,
+        state,
+        country,
+        clerkId,
+      } = await request.json();
 
       if (
         !firstName ||
         !lastName ||
         !dateOfBirth ||
-        !userLocation ||
+        !city ||
+        !state ||
+        !country ||
         !clerkId
       ) {
         return Response.json(
           { error: "Missing required fields" },
-          { status: 400 },
+          { status: 400 }
         );
       }
 
@@ -44,7 +53,9 @@ export async function POST(request: Request) {
           firstname = ${firstName},
           lastname = ${lastName},
           date_of_birth = ${dateOfBirth},
-          user_location = ${userLocation}
+          city = ${city},
+          state = ${state},
+          country = ${country}
         WHERE clerk_id = ${clerkId} 
       `;
 
@@ -58,7 +69,7 @@ export async function POST(request: Request) {
       if (!userId) {
         return Response.json(
           { error: "Missing userId parameter" },
-          { status: 400 },
+          { status: 400 }
         );
       }
 

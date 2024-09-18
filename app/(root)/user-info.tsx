@@ -67,12 +67,27 @@ const UserInfo = () => {
       firstName: form.firstName,
       lastName: form.lastName,
       dateOfBirth: dateOfBirth,
+      city: stateVars.city || "",
+      state: stateVars.state || "",
+      country: stateVars.country || "",
     });
     router.push("/(root)/country");
   };
 
   const handleGetStarted = async () => {
+    //Check that all form fields have been filled
+    if (
+      !form.firstName ||
+      !form.lastName ||
+      !dateOfBirth ||
+      !form.userLocation
+    ) {
+      Alert.alert("Error", "Please fill out all fields.");
+      return;
+    }
+
     const age = calculateAge(date);
+    //console.log(age);
 
     if (age < 13) {
       Alert.alert(
@@ -88,7 +103,9 @@ const UserInfo = () => {
         firstName: form.firstName,
         lastName: form.lastName,
         dateOfBirth: dateOfBirth,
-        userLocation: form.userLocation,
+        city: stateVars.city,
+        state: stateVars.state,
+        country: stateVars.country,
         clerkId: user!.id,
       }),
     });
@@ -164,7 +181,6 @@ const UserInfo = () => {
                     placeholder="Your Location"
                     placeholderTextColor="#c0c0c0"
                     value={form.userLocation}
-                    // TODO: onChangeText
                     editable={false}
                     onPressIn={handleNavigateToCountry}
                   />

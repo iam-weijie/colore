@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationContext } from "../../components/NavigationContext";
 
 const City = () => {
-  const { stateVars } = useNavigationContext();
+  const { stateVars, setStateVars } = useNavigationContext();
   const { state, country } = useLocalSearchParams();
 
   const selectedCountry = countries.find((c) => c.name === country);
@@ -18,10 +18,17 @@ const City = () => {
   const handleCityPress = (city: string) => {
     setSelectedCity(city);
   };
-
   const handleConfirmPress = () => {
+    setStateVars({
+      ...stateVars,
+      city: selectedCity,
+      state: state,
+      country: country,
+      userLocation: `${selectedCity}, ${state}, ${country}`
+    });
     router.replace(`/(root)/${stateVars.previousScreen}` as Href<string>);
   };
+    
   return (
     <SafeAreaView className="flex-1">
       <Text className="text-lg font-JakartaSemiBold m-3">
@@ -46,8 +53,6 @@ const City = () => {
       <TouchableOpacity
         onPress={
           handleConfirmPress
-          // TODO: pass the following info to the previous screen
-          //     params: { city: item, state, country }
         }
         className="absolute top-14 right-4 p-2 rounded-lg  bg-primary-500"
       >
