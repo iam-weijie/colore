@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { router, Link } from "expo-router";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ReactNativeModal } from "react-native-modal";
 import { fetchAPI } from "@/lib/fetch";
@@ -85,7 +85,7 @@ export default function Page() {
                   <TouchableOpacity
                     onPress={() =>
                       router.push({
-                        pathname: "/(profile)/[id]",
+                        pathname: "/(root)/(profile)/[id]",
                         params: { id: selectedPost.clerk_id },
                       })
                     }

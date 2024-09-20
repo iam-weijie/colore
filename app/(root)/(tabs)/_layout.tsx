@@ -1,6 +1,5 @@
-import { useUser } from "@clerk/clerk-expo";
 import { icons } from "@/constants";
-import { Tabs, Href } from "expo-router";
+import { Tabs } from "expo-router";
 import { Image, ImageSourcePropType, View } from "react-native";
 
 const TabIcon = ({
@@ -27,8 +26,6 @@ const TabIcon = ({
 );
 
 export default function Layout() {
-  const { user } = useUser();
-
   return (
     <Tabs
       initialRouteName="index"
@@ -73,17 +70,13 @@ export default function Layout() {
         }}
       />
       <Tabs.Screen
-        name="(profile)/[id]"
+        name="profile"
         options={{
           title: "Profile",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} source={icons.profile} />
           ),
-          href: {
-            pathname: "/(profile)/[id]",
-            params: { id: user!.id },
-          },
         }}
       />
     </Tabs>

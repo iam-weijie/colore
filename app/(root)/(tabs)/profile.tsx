@@ -19,7 +19,6 @@ import { fetchAPI } from "@/lib/fetch";
 
 const Profile = () => {
   const { user } = useUser();
-  const { id } = useLocalSearchParams(); // get id of profile
   const { signOut } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,11 +70,10 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    const profileId = String(id); // to prevent TS from complaining
-    if (profileId) {
-      fetchUserData(profileId);
+    if (user) {
+      fetchUserData(user!.id);
     }
-  }, [id]);
+  }, [user]);
 
   return (
     <SafeAreaView className="flex-1">

@@ -10,12 +10,14 @@ import logout from "@/assets/icons/logout.png";
 import person from "@/assets/icons/person.png";
 import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
+import back from "@/assets/icons/back.png";
 import search from "@/assets/icons/search.png";
 
 import login from "@/assets/images/login.png";
 import signup from "@/assets/images/signup.png";
 
 export const icons = {
+  back,
   person,
   email,
   lock,
