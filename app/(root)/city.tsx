@@ -4,8 +4,11 @@ import { useState } from "react";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationContext } from "../../components/NavigationContext";
+import { fetchAPI } from "@/lib/fetch";
+import { useUser } from "@clerk/clerk-expo";
 
 const City = () => {
+  const { user } = useUser();
   const { stateVars, setStateVars } = useNavigationContext();
   const { state, country } = useLocalSearchParams();
 
@@ -18,7 +21,7 @@ const City = () => {
   const handleCityPress = (city: string) => {
     setSelectedCity(city);
   };
-  const handleConfirmPress = () => {
+  const handleConfirmPress = async () => {
     setStateVars({
       ...stateVars,
       city: selectedCity,
@@ -26,7 +29,29 @@ const City = () => {
       country: country,
       userLocation: `${selectedCity}, ${state}, ${country}`,
     });
-    router.replace(`/(root)/${stateVars.previousScreen}` as Href<string>);
+
+    try {
+      // Send PATCH request to update user location in the database
+      const response = await fetch("/(api)/(user)/updateuser", {
+        method: "PATCH",
+        body: JSON.stringify({
+          city: selectedCity,
+          state: state,
+          country: country,
+          clerkId: user!.id, // assuming clerkId is stored in stateVars
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update user location");
+      }
+
+      const data = await response.json();
+      console.log("Location updated successfully:", data);
+      router.replace(`/(root)/${stateVars.previousScreen}` as Href<string>);
+    } catch (error) {
+      console.error("Error updating location:", error);
+    }
   };
 
   return (
