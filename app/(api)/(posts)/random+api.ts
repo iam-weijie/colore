@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       ORDER BY RANDOM()
-      LIMIT 3;
+      LIMIT 6;
     `;
     return new Response(JSON.stringify({ data: response }), {
       status: 200,

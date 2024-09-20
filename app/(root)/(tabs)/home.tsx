@@ -8,9 +8,10 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { router } from "expo-router";
+import { router, Href } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ReactNativeModal } from "react-native-modal";
+import { fetchAPI } from "@/lib/fetch";
 
 export default function Page() {
   const { user } = useUser();
@@ -19,21 +20,25 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
-  useEffect(() => {
-    const fetchRandomPosts = async () => {
-      try {
-        const response = await fetch("/(api)/(posts)/random"); // Adjust the API route as necessary
-        if (!response.ok) throw new Error("Network response was not ok");
-        const result = await response.json();
-        setPosts(result.data);
-      } catch (error) {
-        setError("Failed to fetch random posts.");
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchRandomPosts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetchAPI("/(api)/(posts)/random", {
+        method: "GET",
+      });
+      setPosts(response.data);
+    } catch (error) {
+      setError("Failed to fetch random posts.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // TODO: Store posts locally instead of making a GET request every time
+  // the user refreshes. Or store in database and then pass to client side few times a day
+  useEffect(() => {
     fetchRandomPosts();
   }, []);
 
@@ -54,6 +59,7 @@ export default function Page() {
       <SignedIn>
         <Text>Hello {user?.emailAddresses[0].emailAddress}</Text>
         <Button title="New Post" onPress={handleNewPostPress} />
+        <Button title="Reload Posts" onPress={fetchRandomPosts} />
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : error ? (

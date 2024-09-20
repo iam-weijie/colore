@@ -1,7 +1,7 @@
 import { icons } from "@/constants/index";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Image,
   Pressable,
@@ -13,6 +13,7 @@ import {
 import { useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationContext } from "@/components/NavigationContext";
+import { fetchAPI } from "@/lib/fetch";
 
 const Profile = () => {
   const { user } = useUser();
@@ -20,11 +21,7 @@ const Profile = () => {
   const { stateVars, setStateVars } = useNavigationContext();
   const route = useRoute();
   const currentScreen = route.name as string;
-
-  // TODO: get user location from neon
   const [userLocation, setUserLocation] = useState("Montreal");
-
-  // TODO: Replace with user info fetched from neon
   const [form, setForm] = useState({
     firstName: user?.firstName || "J. Doe",
   });
@@ -41,6 +38,30 @@ const Profile = () => {
     });
     router.push("/(root)/country");
   };
+
+  const fetchUserData = async (userId: string) => {
+    try {
+      const response = await fetchAPI(`/(api)/(user)/getinfo?id=${userId}`, {
+        method: "GET",
+      });
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      console.log(response.data);
+      setForm({
+        firstName: response.data.firstname,
+      });
+      setUserLocation(response.data.country || "No country selected");
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchUserData(user.id);
+    }
+  }, [user]);
 
   return (
     <SafeAreaView className="flex-1">
