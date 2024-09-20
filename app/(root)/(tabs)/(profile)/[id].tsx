@@ -1,6 +1,6 @@
 import { icons } from "@/constants/index";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState, useEffect } from "react";
 import {
   Image,
@@ -9,6 +9,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Text,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,7 +19,10 @@ import { fetchAPI } from "@/lib/fetch";
 
 const Profile = () => {
   const { user } = useUser();
+  const { id } = useLocalSearchParams(); // get id of profile
   const { signOut } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { stateVars, setStateVars } = useNavigationContext();
   const route = useRoute();
   const currentScreen = route.name as string;
@@ -40,6 +45,8 @@ const Profile = () => {
   };
 
   const fetchUserData = async (userId: string) => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await fetchAPI(`/(api)/(user)/getinfo?id=${userId}`, {
         method: "GET",
@@ -51,47 +58,60 @@ const Profile = () => {
       setForm({
         firstName: response.data.firstname,
       });
-      setUserLocation(response.data.country || "No country selected");
+      setUserLocation(
+        `${response.data.city}, ${response.data.state}, ${response.data.country}` ||
+          "No country selected"
+      );
     } catch (error) {
+      setError("Failed to fetch user data.");
       console.error("Failed to fetch user data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      fetchUserData(user.id);
+    const profileId = String(id); // to prevent TS from complaining
+    if (profileId) {
+      fetchUserData(profileId);
     }
-  }, [user]);
+  }, [id]);
 
   return (
     <SafeAreaView className="flex-1">
-      <ScrollView
-        className="px-5"
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
-        <View className="flex flex-row items-center justify-between">
-          <TextInput
-            className="text-2xl font-JakartaBold my-5"
-            value={form.firstName}
-            onChangeText={(value) => setForm({ ...form, firstName: value })}
-          />
-
-          <TouchableOpacity onPress={handleSignOut}>
-            <Image source={icons.logout} className="w-5 h-5" />
-          </TouchableOpacity>
-        </View>
-
-        <View>
-          <Pressable onPress={handleNavigateToCountry}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : error ? (
+        <Text>{error}</Text>
+      ) : (
+        <ScrollView
+          className="px-5"
+          contentContainerStyle={{ paddingBottom: 120 }}
+        >
+          <View className="flex flex-row items-center justify-between">
             <TextInput
-              className="text-base my-1"
-              value={`📍${userLocation}`}
-              editable={false}
-              onPressIn={handleNavigateToCountry}
+              className="text-2xl font-JakartaBold my-5"
+              value={form.firstName}
+              onChangeText={(value) => setForm({ ...form, firstName: value })}
             />
-          </Pressable>
-        </View>
-      </ScrollView>
+
+            <TouchableOpacity onPress={handleSignOut}>
+              <Image source={icons.logout} className="w-5 h-5" />
+            </TouchableOpacity>
+          </View>
+
+          <View>
+            <Pressable onPress={handleNavigateToCountry}>
+              <TextInput
+                className="text-base my-1"
+                value={`📍${userLocation}`}
+                editable={false}
+                onPressIn={handleNavigateToCountry}
+              />
+            </Pressable>
+          </View>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };

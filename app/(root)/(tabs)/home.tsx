@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { router, Href } from "expo-router";
+import { router, Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ReactNativeModal } from "react-native-modal";
 import { fetchAPI } from "@/lib/fetch";
@@ -27,6 +27,7 @@ export default function Page() {
       const response = await fetchAPI("/(api)/(posts)/random", {
         method: "GET",
       });
+      console.log(response.data);
       setPosts(response.data);
     } catch (error) {
       setError("Failed to fetch random posts.");
@@ -81,9 +82,17 @@ export default function Page() {
               <ReactNativeModal isVisible={!!selectedPost}>
                 <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
                   <Text>{selectedPost.content}</Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(profile)/[id]",
+                        params: { id: selectedPost.clerk_id },
+                      })
+                    }
+                  >
+                    <Text>{selectedPost.firstname}</Text>
+                  </TouchableOpacity>
                   <Text>
-                    Posted by: {selectedPost.firstname} {selectedPost.lastname}
-                    {"\n"}
                     {selectedPost.city}, {selectedPost.state},{" "}
                     {selectedPost.country}
                   </Text>

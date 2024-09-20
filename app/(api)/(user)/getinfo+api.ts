@@ -3,7 +3,6 @@ import { neon } from "@neondatabase/serverless";
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
-    console.log(url);
     const clerkId = url.searchParams.get("id");
     if (!clerkId) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {

@@ -16,7 +16,8 @@ export async function GET(request: Request) {
       u.lastname, 
       u.country, 
       u.state, 
-      u.city
+      u.city,
+      u.clerk_id
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       ORDER BY RANDOM()
