@@ -9,6 +9,7 @@ const Layout = () => {
       <Stack.Screen name="country" options={{ headerShown: false }} />
       <Stack.Screen name="state" options={{ headerShown: false }} />
       <Stack.Screen name="city" options={{ headerShown: false }} />
+      <Stack.Screen name="new-post" options={{ headerShown: false }} />
     </Stack>
   );
 };
