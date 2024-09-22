@@ -32,20 +32,19 @@ interface UserProfile {
 }
 
 interface Props {
-  currentUserId?: string;
   userId: string;
+  isEditable: boolean;
   onSignOut?: () => void; // Optional
 }
 
 const UserProfileComponent: React.FC<Props> = ({
   userId,
-  currentUserId,
+  isEditable,
   onSignOut,
 }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
-  const [isEditable, setIsEditable] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
   const route = useRoute();
   const router = useRouter();
@@ -72,7 +71,6 @@ const UserProfileComponent: React.FC<Props> = ({
         }
         const profile = response.data as UserProfile;
         setProfileUser(profile);
-        setIsEditable(currentUserId === profile.clerk_id); // only allow users to edit their own profile
       } catch (error) {
         setError("Failed to fetch user data.");
         console.error("Failed to fetch user data:", error);
@@ -81,17 +79,14 @@ const UserProfileComponent: React.FC<Props> = ({
       }
     };
     fetchUserData();
-  }, [userId, currentUserId]);
+  }, [userId]);
 
   if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
   if (error) return <Text>{error}</Text>;
 
   return (
     <SafeAreaView className="flex-1">
-      <View
-        className="px-5"
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
+      <View className="px-5" contentContainerStyle={{ paddingBottom: 20 }}>
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
             <TouchableOpacity

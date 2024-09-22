@@ -20,7 +20,7 @@ const Profile = () => {
       {user && id && (
         <UserProfile
           userId={id as string}
-          currentUserId={user?.id}
+          isEditable={false}
           onSignOut={signOut}
         />
       )}

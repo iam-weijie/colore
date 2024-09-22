@@ -9,11 +9,7 @@ const Profile = () => {
   return (
     <SafeAreaView className="flex-1">
       {user && (
-        <UserProfile
-          userId={user?.id}
-          currentUserId={user?.id}
-          onSignOut={signOut}
-        />
+        <UserProfile userId={user?.id} isEditable={true} onSignOut={signOut} />
       )}
     </SafeAreaView>
   );
