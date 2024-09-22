@@ -88,9 +88,9 @@ const UserProfileComponent: React.FC<Props> = ({
 
   return (
     <SafeAreaView className="flex-1">
-      <ScrollView
+      <View
         className="px-5"
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
       >
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
@@ -127,7 +127,7 @@ const UserProfileComponent: React.FC<Props> = ({
             />
           </Pressable>
         </View>
-      </ScrollView>
+      </View>
       <UserPostsGallery userId={userId} />
     </SafeAreaView>
   );
