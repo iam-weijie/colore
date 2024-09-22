@@ -78,7 +78,11 @@ const Profile = () => {
         >
           <View className="flex flex-row items-center ">
             <TouchableOpacity onPress={navigateToHome}>
-              <Image source={icons.back} className="w-5 h-5" />
+              <Image
+                source={icons.back}
+                tintColor="#0076e3"
+                className="w-5 h-5"
+              />
             </TouchableOpacity>
 
             <Text className="text-2xl font-JakartaBold my-5 left-2">
