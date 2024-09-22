@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  ScrollView,
   View,
   TextInput,
   TouchableOpacity,
@@ -34,7 +33,7 @@ interface UserProfile {
 interface Props {
   userId: string;
   isEditable: boolean;
-  onSignOut?: () => void; // Optional
+  onSignOut?: () => void;
 }
 
 const UserProfileComponent: React.FC<Props> = ({
