@@ -1,11 +1,10 @@
 import { countries } from "@/constants/index";
+import { useUser } from "@clerk/clerk-expo";
 import { Href, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigationContext } from "../../components/NavigationContext";
-import { fetchAPI } from "@/lib/fetch";
-import { useUser } from "@clerk/clerk-expo";
+import { useNavigationContext } from "../../../components/NavigationContext";
 
 const City = () => {
   const { user } = useUser();
