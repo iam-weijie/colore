@@ -20,7 +20,7 @@ const Profile = () => {
       {user && id && (
         <UserProfile
           userId={id as string}
-          currentUserClerkId={user?.id}
+          currentUserId={user?.id}
           onSignOut={signOut}
         />
       )}

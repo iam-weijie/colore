@@ -12,7 +12,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { fetchAPI } from "@/lib/fetch";
 import { icons } from "@/constants/index";
+import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
+import { useNavigationContext } from "@/components/NavigationContext";
 
 interface UserProfile {
   city: string;
@@ -43,7 +45,18 @@ const UserProfileComponent: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
   const [isEditable, setIsEditable] = useState(false);
+  const { stateVars, setStateVars } = useNavigationContext();
+  const route = useRoute();
   const router = useRouter();
+  const currentScreen = route.name as string;
+
+  const handleNavigateToCountry = () => {
+    setStateVars({
+      ...stateVars,
+      previousScreen: currentScreen,
+    });
+    router.push("/(root)/country");
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -79,15 +92,19 @@ const UserProfileComponent: React.FC<Props> = ({
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         <View className="flex flex-row items-center justify-between">
-          <TouchableOpacity onPress={() => router.push("/(root)/(tabs)/home")}>
-            <Image
-              source={icons.back}
-              tintColor="#0076e3"
-              className="w-5 h-5"
-            />
-          </TouchableOpacity>
+          {!isEditable && (
+            <TouchableOpacity
+              onPress={() => router.push("/(root)/(tabs)/home")}
+            >
+              <Image
+                source={icons.back}
+                tintColor="#0076e3"
+                className="w-5 h-5"
+              />
+            </TouchableOpacity>
+          )}
           <Text
-            className={`text-2xl font-JakartaBold my-5 ${!isEditable ? "ml-2" : ""}`}
+            className={`text-2xl font-JakartaBold my-5 ${!isEditable ? "ml-2" : ""} flex-1`}
           >
             {isEditable
               ? `${profileUser?.firstname} ${profileUser?.lastname}`
@@ -101,11 +118,11 @@ const UserProfileComponent: React.FC<Props> = ({
         </View>
 
         <View>
-          <Pressable disabled={!isEditable}>
+          <Pressable disabled={!isEditable} onPress={handleNavigateToCountry}>
             <TextInput
               className="text-base my-1"
               value={`📍${profileUser?.city}, ${profileUser?.state}, ${profileUser?.country}`}
-              editable={isEditable}
+              editable={false}
             />
           </Pressable>
         </View>
