@@ -106,7 +106,7 @@ const UserProfileComponent: React.FC<Props> = ({
               : `${profileUser?.firstname.charAt(0)}.`}
           </Text> */}
           <Text
-            className={`text-2xl font-JakartaBold my-5 ${!isEditable ? "ml-2" : ""} flex-1`}
+            className={`text-2xl font-JakartaBold ${!isEditable ? "ml-2" : ""} flex-1`}
           >
             {profileUser?.firstname.charAt(0)}.
           </Text>
