@@ -15,6 +15,7 @@ import { icons } from "@/constants/index";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useNavigationContext } from "@/components/NavigationContext";
+import UserPostsGallery from "@/components/PostGallery";
 
 interface UserProfile {
   city: string;
@@ -127,6 +128,7 @@ const UserProfileComponent: React.FC<Props> = ({
           </Pressable>
         </View>
       </ScrollView>
+      <UserPostsGallery userId={userId} />
     </SafeAreaView>
   );
 };
