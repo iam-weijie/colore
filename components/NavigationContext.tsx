@@ -12,7 +12,7 @@ interface NavigationContextType {
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(
-  undefined,
+  undefined
 );
 
 // component that will pass context to children
@@ -34,7 +34,7 @@ export const useNavigationContext = () => {
   const context = useContext(NavigationContext);
   if (!context) {
     throw new Error(
-      "useNavigationContext must be used within a NavigationProvider",
+      "useNavigationContext must be used within a NavigationProvider"
     );
   }
   return context;
