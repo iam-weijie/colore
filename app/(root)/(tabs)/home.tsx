@@ -89,7 +89,7 @@ export default function Page() {
                       })
                     }
                   >
-                    <Text>{selectedPost.firstname}</Text>
+                    <Text>{selectedPost.firstname.charAt(0)}.</Text>
                   </TouchableOpacity>
                   <Text>
                     {selectedPost.city}, {selectedPost.state},{" "}
