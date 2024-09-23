@@ -12,7 +12,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // could possibly separate out more code here
 const Profile = () => {
   const { id } = useLocalSearchParams();
-  const { signOut } = useAuth();
   const { user } = useUser();
 
   return (
@@ -21,7 +20,6 @@ const Profile = () => {
         <UserProfile
           userId={id as string}
           isEditable={false}
-          onSignOut={signOut}
         />
       )}
     </SafeAreaView>
