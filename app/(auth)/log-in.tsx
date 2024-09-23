@@ -40,6 +40,8 @@ const LogIn = () => {
     }
   }, [isLoaded, form, signIn, setActive, router]);
 
+  // TODO: forgot password
+
   return (
     <ScrollView className="flex-1 bg-white">
       <View className="flex-1 bg-white ">

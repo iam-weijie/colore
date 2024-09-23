@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Driftn",
-    "slug": "driftn",
+    "name": "Coloré",
+    "slug": "colore",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -27,7 +27,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-    [  "expo-router", {"origin":"https://driftn.app/"}]
+    [  "expo-router", {"origin":"https://colore.app/"}]
     ],
     "experiments": {
       "typedRoutes": true

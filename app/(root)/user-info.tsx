@@ -11,7 +11,7 @@ import {
   Pressable,
   ScrollView,
   Text,
-    TextInput,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -70,19 +70,21 @@ const UserInfo = () => {
       dateOfBirth: dateOfBirth,
       city: stateVars.city || "",
       state: stateVars.state || "",
-      country: stateVars.country || ""
+      country: stateVars.country || "",
     });
     router.push("/(root)/country");
   };
 
   const handleGetStarted = async () => {
     //Check that all form fields have been filled
+
     if (!form.firstName || !form.lastName || !form.dateOfBirth || !form.userLocation) {
       Alert.alert("Error", "Please fill out all fields.");
       return;
     }
     let temp: number[] = dateOfBirth.split('/').map(Number);
     const age = calculateAge(new Date(Date.UTC(temp[2], temp[0] - 1, temp[1])));
+
     //console.log(age);
 
     if (age < 13) {
@@ -178,7 +180,6 @@ const UserInfo = () => {
                     placeholder="Your Location"
                     placeholderTextColor="#c0c0c0"
                     value={form.userLocation}
-                    // TODO: onChangeText
                     editable={false}
                     onPressIn={handleNavigateToCountry}
                   />
