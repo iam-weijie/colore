@@ -42,7 +42,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ userId }) => {
       setError(null);
       try {
         const response = await fetchAPI(
-          `/(api)/(posts)/getUserPosts?id=${userId}`,
+          `/(api)/(posts)/getuserposts?id=${userId}`,
           {
             method: "GET",
           }
