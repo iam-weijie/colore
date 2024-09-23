@@ -85,8 +85,6 @@ const UserInfo = () => {
     let temp: number[] = dateOfBirth.split('/').map(Number);
     const age = calculateAge(new Date(Date.UTC(temp[2], temp[0] - 1, temp[1])));
 
-    //console.log(age);
-
     if (age < 13) {
       Alert.alert(
         "Age Restriction",

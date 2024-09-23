@@ -11,7 +11,6 @@ export async function GET(request: Request) {
     }
 
     const sql = neon(`${process.env.DATABASE_URL}`);
-    console.log("Received GET request for user with ID:", clerkId);
 
     const response = await sql`
       SELECT * FROM users WHERE clerk_id = ${clerkId};

@@ -12,7 +12,6 @@ const NewPost = () => {
 
   const handlePostSubmit = async () => {
     const cleanedContent = postContent.trim();
-    console.log(user!.id);
     // additional sanitization needed
 
     if (cleanedContent === "") {

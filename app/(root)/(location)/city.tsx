@@ -46,7 +46,6 @@ const City = () => {
       }
 
       const data = await response.json();
-      console.log("Location updated successfully:", data);
       router.replace(`/(root)/${stateVars.previousScreen}` as Href<string>);
     } catch (error) {
       console.error("Error updating location:", error);
