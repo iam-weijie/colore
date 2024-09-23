@@ -31,7 +31,7 @@ const City = () => {
 
     try {
       // Send PATCH request to update user location in the database
-      const response = await fetch("/(api)/(user)/updateuser", {
+      const response = await fetch("/(api)/(user)/updateUser", {
         method: "PATCH",
         body: JSON.stringify({
           city: selectedCity,

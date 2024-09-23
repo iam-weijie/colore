@@ -62,7 +62,7 @@ const SignUp = () => {
       });
 
       if (completeSignUp.status === "complete") {
-        await fetchAPI("/(api)/(user)/newuser", {
+        await fetchAPI("/(api)/(user)/newUser", {
           method: "POST",
           body: JSON.stringify({
             email: form.email,

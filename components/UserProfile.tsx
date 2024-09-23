@@ -62,7 +62,7 @@ const UserProfileComponent: React.FC<Props> = ({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchAPI(`/(api)/(user)/getinfo?id=${userId}`, {
+        const response = await fetchAPI(`/(api)/(user)/getInfo?id=${userId}`, {
           method: "GET",
         });
         if (response.error) {
