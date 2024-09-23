@@ -38,6 +38,7 @@ const UserInfo = () => {
   const [form, setForm] = useState({
     firstName: stateVars.firstName || user?.firstName || "",
     lastName: stateVars.lastName || user?.lastName || "",
+    dateOfBirth: stateVars.dateOfBirth || "",
     userLocation: stateVars.userLocation || "",
   });
 
@@ -76,17 +77,14 @@ const UserInfo = () => {
 
   const handleGetStarted = async () => {
     //Check that all form fields have been filled
-    if (
-      !form.firstName ||
-      !form.lastName ||
-      !dateOfBirth ||
-      !form.userLocation
-    ) {
+
+    if (!form.firstName || !form.lastName || !form.dateOfBirth || !form.userLocation) {
       Alert.alert("Error", "Please fill out all fields.");
       return;
     }
+    let temp: number[] = dateOfBirth.split('/').map(Number);
+    const age = calculateAge(new Date(Date.UTC(temp[2], temp[0] - 1, temp[1])));
 
-    const age = calculateAge(date);
     //console.log(age);
 
     if (age < 13) {
@@ -96,6 +94,7 @@ const UserInfo = () => {
       );
       return;
     }
+
 
     await fetchAPI("/(api)/(user)/postinfo", {
       method: "POST",
@@ -151,7 +150,7 @@ const UserInfo = () => {
                     placeholder="MM/DD/YYYY"
                     placeholderTextColor="#c0c0c0"
                     value={dateOfBirth}
-                    onChangeText={setDateOfBirth}
+                    onChangeText={(value) => setForm({ ...form, dateOfBirth: value })}
                     editable={false}
                     onPressIn={toggleDatePicker}
                   />
