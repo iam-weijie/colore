@@ -1,7 +1,9 @@
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
+
   try {
+    const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
     if (!clerkId) {
@@ -9,19 +11,11 @@ export async function GET(request: Request) {
         status: 400,
       });
     }
-
-    const sql = neon(`${process.env.DATABASE_URL}`);
-
     const response = await sql`
-      SELECT
-      firstname,
-      lastname,
-      date_of_birth,
-      city,
-      state,
-      country      
+      SELECT *  
       FROM users WHERE clerk_id = ${clerkId};
     `;
+    console.log(response);
 
     if (response.length === 0) {
       return new Response(JSON.stringify({ error: "User not found" }), {
@@ -29,7 +23,7 @@ export async function GET(request: Request) {
       });
     }
 
-    return new Response(JSON.stringify({ data: response[0] }), {
+    return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
   } catch (error) {
