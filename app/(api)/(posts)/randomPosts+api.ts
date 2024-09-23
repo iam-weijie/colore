@@ -4,6 +4,8 @@ export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     console.log("Received GET request for random posts.");
+    const url = new URL(request.url);
+    const clerkId = url.searchParams.get("id");
 
     // comments table to be joined later :]
     const response = await sql`
@@ -20,6 +22,7 @@ export async function GET(request: Request) {
       u.clerk_id
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
+      WHERE u.clerk_id != ${clerkId}
       ORDER BY RANDOM()
       LIMIT 6;
     `;

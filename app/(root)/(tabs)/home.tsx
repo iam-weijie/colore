@@ -24,7 +24,7 @@ export default function Page() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetchAPI("/(api)/(posts)/randomPosts", {
+      const response = await fetchAPI(`/(api)/(posts)/randomPosts?id=${user?.id}`, {
         method: "GET",
       });
       setPosts(response.data);
