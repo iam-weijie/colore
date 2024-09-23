@@ -123,6 +123,7 @@ const UserProfileComponent: React.FC<Props> = ({
               className="text-base my-1"
               value={`📍${profileUser?.city}, ${profileUser?.state}, ${profileUser?.country}`}
               editable={false}
+              onPressIn={handleNavigateToCountry}
             />
           </Pressable>
         </View>
