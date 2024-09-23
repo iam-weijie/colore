@@ -11,6 +11,7 @@ import person from "@/assets/icons/person.png";
 import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
 import search from "@/assets/icons/search.png";
+import trash from "@/assets/icons/trash.png";
 
 import login from "@/assets/images/login.png";
 import signup from "@/assets/images/signup.png";
@@ -29,6 +30,7 @@ export const icons = {
   album,
   logout,
   search,
+  trash,
 };
 
 export const images = {
