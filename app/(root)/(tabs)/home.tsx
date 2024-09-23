@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
+import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  Text,
+  ActivityIndicator,
   Button,
   FlatList,
-  View,
-  ActivityIndicator,
+  Text,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { ReactNativeModal } from "react-native-modal";
-import { fetchAPI } from "@/lib/fetch";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Page() {
   const { user } = useUser();
@@ -24,9 +24,12 @@ export default function Page() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetchAPI(`/(api)/(posts)/randomPosts?id=${user?.id}`, {
-        method: "GET",
-      });
+      const response = await fetchAPI(
+        `/(api)/(posts)/randomPosts?id=${user?.id}`,
+        {
+          method: "GET",
+        }
+      );
       setPosts(response.data);
     } catch (error) {
       setError("Failed to fetch random posts.");

@@ -1,14 +1,14 @@
+import { fetchAPI } from "@/lib/fetch";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  FlatList,
   ActivityIndicator,
-  TouchableOpacity,
   Button,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
-import { fetchAPI } from "@/lib/fetch";
 
 interface Post {
   id: number;

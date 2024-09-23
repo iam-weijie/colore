@@ -76,13 +76,16 @@ const UserInfo = () => {
   };
 
   const handleGetStarted = async () => {
-    //Check that all form fields have been filled
-
-    if (!form.firstName || !form.lastName || !form.dateOfBirth || !form.userLocation) {
+    if (
+      !form.firstName ||
+      !form.lastName ||
+      !form.dateOfBirth ||
+      !form.userLocation
+    ) {
       Alert.alert("Error", "Please fill out all fields.");
       return;
     }
-    let temp: number[] = dateOfBirth.split('/').map(Number);
+    let temp: number[] = dateOfBirth.split("/").map(Number);
     const age = calculateAge(new Date(Date.UTC(temp[2], temp[0] - 1, temp[1])));
 
     if (age < 13) {
@@ -92,7 +95,6 @@ const UserInfo = () => {
       );
       return;
     }
-
 
     await fetchAPI("/(api)/(user)/postInfo", {
       method: "POST",
@@ -107,7 +109,7 @@ const UserInfo = () => {
       }),
     });
 
-    router.push("/(root)/(tabs)/home");
+    router.replace("/(root)/(tabs)/home");
   };
 
   return (
@@ -148,7 +150,9 @@ const UserInfo = () => {
                     placeholder="MM/DD/YYYY"
                     placeholderTextColor="#c0c0c0"
                     value={dateOfBirth}
-                    onChangeText={(value) => setForm({ ...form, dateOfBirth: value })}
+                    onChangeText={(value) =>
+                      setForm({ ...form, dateOfBirth: value })
+                    }
                     editable={false}
                     onPressIn={toggleDatePicker}
                   />
