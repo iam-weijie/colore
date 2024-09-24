@@ -13,7 +13,7 @@ const TabIcon = ({
     className={`flex flex-row justify-center items-center rounded-full ${focused ? "bg-general-300" : ""}`}
   >
     <View
-      className={`rounded-full w-12 h-12 items-center justify-center ${focused ? "bg-blue-400" : ""}`}
+      className={`rounded-full w-12 h-12 items-center justify-center ${focused ? "bg-gray-500" : ""}`}
     >
       <Image
         source={source}
@@ -33,7 +33,7 @@ const Layout = () => (
       tabBarInactiveTintColor: "white",
       tabBarShowLabel: false,
       tabBarStyle: {
-        backgroundColor: "#DAA520",
+        backgroundColor: "#333333",
         borderRadius: 50,
         paddingBottom: 0,
         overflow: "hidden",
