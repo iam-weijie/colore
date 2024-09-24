@@ -1,19 +1,19 @@
+import PostIt from "@/components/PostIt";
+import { SignedIn } from "@clerk/clerk-expo";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { SignedIn, useUser } from "@clerk/clerk-expo";
 import {
-  Text,
+  ActivityIndicator,
   Button,
   FlatList,
-  View,
-  ActivityIndicator,
+  Text,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { ReactNativeModal } from "react-native-modal";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Page() {
-  const { user } = useUser();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +52,10 @@ export default function Page() {
   return (
     <SafeAreaView>
       <SignedIn>
-        <Text>Hello {user?.emailAddresses[0].emailAddress}</Text>
+        <Text className="text-2xl font-JakartaBold m-3">Coloré</Text>
+
+        <PostIt />
+
         <Button title="New Post" onPress={handleNewPostPress} />
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
