@@ -14,6 +14,7 @@ import { icons } from "@/constants/index";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useNavigationContext } from "@/components/NavigationContext";
+import PostGallery from "@/components/PostGallery";
 
 interface UserProfile {
   city: string;
@@ -27,6 +28,20 @@ interface UserProfile {
   lastname: string;
   report_count: number;
   state: string;
+}
+
+interface UserData {
+  userInfo: UserProfile;
+  posts: Post[];
+}
+
+interface Post {
+  id: number;
+  content: string;
+  firstname: string;
+  created_at: string;
+  likes_count: number;
+  report_count: number;
 }
 
 interface Props {
@@ -43,6 +58,7 @@ const UserProfile: React.FC<Props> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
   const { stateVars, setStateVars } = useNavigationContext();
   const route = useRoute();
   const router = useRouter();
@@ -61,16 +77,15 @@ const UserProfile: React.FC<Props> = ({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchAPI(`/(api)/(users)/getUserInfo?id=${userId}`, {
+        const response = await fetchAPI(`/(api)/(users)/getUserInfoPosts?id=${userId}`, {
           method: "GET",
         });
         if (response.error) {
           throw new Error(response.error);
         }
-
-        // data being returned as array
-        const profile = response.data[0] as UserProfile;
-        setProfileUser(profile);
+        const { userInfo, posts } = response as UserData;
+        setProfileUser(userInfo);
+        setUserPosts(posts);
       } catch (error) {
         setError("Failed to fetch user data.");
         console.error("Failed to fetch user data:", error);
@@ -99,13 +114,6 @@ const UserProfile: React.FC<Props> = ({
               />
             </TouchableOpacity>
           )}
-          {/* <Text
-            className={`text-2xl font-JakartaBold my-5 ${!isEditable ? "ml-2" : ""} flex-1`}
-          >
-            {isEditable
-              ? `${profileUser?.firstname} ${profileUser?.lastname}`
-              : `${profileUser?.firstname.charAt(0)}.`}
-          </Text> */}
           <Text
             className={`text-2xl font-JakartaBold ${!isEditable ? "ml-2" : ""} flex-1`}
           >
@@ -129,6 +137,7 @@ const UserProfile: React.FC<Props> = ({
           </Pressable>
         </View>
       </View>
+      <PostGallery userId={userId} posts={userPosts} /> 
     </SafeAreaView>
   );
 };
