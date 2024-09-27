@@ -21,7 +21,7 @@ const State = () => {
           <TouchableOpacity
             onPress={() =>
               router.push({
-                pathname: "/(root)/city",
+                pathname: "/(root)/(location)/city",
                 params: { state: item.name, country, previousScreen },
               })
             }

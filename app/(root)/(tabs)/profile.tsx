@@ -1,5 +1,7 @@
+import { useNavigationContext } from "@/components/NavigationContext";
 import { icons } from "@/constants/index";
 import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useRoute } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -10,9 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigationContext } from "@/components/NavigationContext";
 
 const Profile = () => {
   const { user } = useUser();
@@ -39,7 +39,7 @@ const Profile = () => {
       ...stateVars,
       previousScreen: currentScreen,
     });
-    router.push("/(root)/country");
+    router.push("/(root)/(location)/country");
   };
 
   return (

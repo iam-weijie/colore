@@ -3,7 +3,7 @@ import { Href, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigationContext } from "../../components/NavigationContext";
+import { useNavigationContext } from "../../../components/NavigationContext";
 
 const City = () => {
   const { stateVars, setStateVars } = useNavigationContext();

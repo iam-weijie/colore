@@ -4,7 +4,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { useRoute } from "@react-navigation/native";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Platform,
@@ -24,6 +24,59 @@ import { calculateAge, formatDate } from "@/lib/utils";
 
 const UserInfo = () => {
   const { user } = useUser();
+  const [userData, setUserData] = useState({
+    city: "",
+    state: "",
+    country: "",
+    email: "",
+    firstname: "",
+    lastname: "",
+    date_of_birth: "",
+  });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetchAPI(
+          `/(api)/(users)/getUserInfo?id=${user!.id}`,
+          {
+            method: "GET",
+          }
+        );
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        return response.data[0];
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+    const getData = async () => {
+      const data = await fetchUserData();
+      setUserData({
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        email: data.email,
+        firstname: data.firstname,
+        lastname: data.lastname,
+        date_of_birth: data.date_of_birth,
+      });
+    };
+    getData();
+  }, [user]);
+  if (
+    userData.city &&
+    userData.state &&
+    userData.country &&
+    userData.email &&
+    userData.firstname &&
+    userData.lastname &&
+    userData.date_of_birth
+  ) {
+    router.push("/(root)/(tabs)/home");
+  }
+
   const route = useRoute();
   const currentScreen = route.name as string;
   const { stateVars, setStateVars } = useNavigationContext();
@@ -72,20 +125,23 @@ const UserInfo = () => {
       state: stateVars.state || "",
       country: stateVars.country || "",
     });
-    router.push("/(root)/country");
+    router.push("/(root)/(location)/country");
   };
 
   const handleGetStarted = async () => {
     //Check that all form fields have been filled
 
-    if (!form.firstName || !form.lastName || !form.dateOfBirth || !form.userLocation) {
+    if (
+      !form.firstName ||
+      !form.lastName ||
+      !form.dateOfBirth ||
+      !form.userLocation
+    ) {
       Alert.alert("Error", "Please fill out all fields.");
       return;
     }
-    let temp: number[] = dateOfBirth.split('/').map(Number);
+    let temp: number[] = dateOfBirth.split("/").map(Number);
     const age = calculateAge(new Date(Date.UTC(temp[2], temp[0] - 1, temp[1])));
-
-    //console.log(age);
 
     if (age < 13) {
       Alert.alert(
@@ -95,20 +151,19 @@ const UserInfo = () => {
       return;
     }
 
-      await fetchAPI("/(api)/(user)/newUserInfo", {
-        method: "POST",
-        body: JSON.stringify({
-          firstName: form.firstName,
-          lastName: form.lastName,
-          dateOfBirth: form.dateOfBirth,
-          city: stateVars.city,
-          state: stateVars.state,
-          country: stateVars.country,
-          clerkId: user!.id,
-        }),
-      });
+    await fetchAPI("/(api)/(user)/newUserInfo", {
+      method: "POST",
+      body: JSON.stringify({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        dateOfBirth: form.dateOfBirth,
+        city: stateVars.city,
+        state: stateVars.state,
+        country: stateVars.country,
+        clerkId: user!.id,
+      }),
+    });
 
-      
     router.push("/(root)/(tabs)/home");
   };
 
@@ -150,7 +205,9 @@ const UserInfo = () => {
                     placeholder="MM/DD/YYYY"
                     placeholderTextColor="#c0c0c0"
                     value={dateOfBirth}
-                    onChangeText={(value) => setForm({ ...form, dateOfBirth: value })}
+                    onChangeText={(value) =>
+                      setForm({ ...form, dateOfBirth: value })
+                    }
                     editable={false}
                     onPressIn={toggleDatePicker}
                   />
