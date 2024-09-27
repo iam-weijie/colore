@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
-
+  console.log("received GET request for user information");
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
@@ -12,8 +12,16 @@ export async function GET(request: Request) {
       });
     }
     const response = await sql`
-      SELECT *  
-      FROM users WHERE clerk_id = ${clerkId};
+      SELECT
+      u.city,
+      u.state,
+      u.country, 
+      u.email,
+      u.firstname,
+      u.lastname,
+      u.date_of_birth
+      FROM users u
+      WHERE u.clerk_id = ${clerkId}
     `;
     console.log(response);
 

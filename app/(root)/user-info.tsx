@@ -25,16 +25,12 @@ import { calculateAge, formatDate } from "@/lib/utils";
 
 const UserInfo = () => {
   const { user } = useUser();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   //console.log(user!.id);
   useEffect(() => {
     const fetchUserData = async () => {
-      setLoading(true);
-      setError(null);
       try {
         const response = await fetchAPI(
-          `/(api)/(posts)/userInfoCheck?id=${user!.id}`,
+          `/(api)/userInfoCheck?id=${user!.id}`,
           {
             method: "GET",
           }
@@ -44,22 +40,12 @@ const UserInfo = () => {
         }
         console.log(response.data);
       } catch (error) {
-        setError("Failed to fetch user data.");
         console.error("Failed to fetch user data:", error);
-      } finally {
-        setLoading(false);
       }
     };
     fetchUserData();
   }, [user]);
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-
-  if (error) {
-    return <Text>{error}</Text>;
-  }
   /*useEffect(() => {
     const fetchUserData = async () =>{
         const response = await fetchAPI(
