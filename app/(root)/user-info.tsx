@@ -129,8 +129,6 @@ const UserInfo = () => {
   };
 
   const handleGetStarted = async () => {
-    //Check that all form fields have been filled
-
     if (
       !form.firstName ||
       !form.lastName ||
