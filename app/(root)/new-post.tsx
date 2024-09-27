@@ -1,10 +1,10 @@
-import { router } from "expo-router";
-import { SignedIn, useUser } from "@clerk/clerk-expo";
-import { TextInput, Text, StyleSheet, Alert } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useState } from "react";
-import { fetchAPI } from "@/lib/fetch";
 import CustomButton from "@/components/CustomButton";
+import { fetchAPI } from "@/lib/fetch";
+import { SignedIn, useUser } from "@clerk/clerk-expo";
+import { router } from "expo-router";
+import React, { useState } from "react";
+import { Alert, StyleSheet, Text, TextInput } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const NewPost = () => {
   const { user } = useUser();
