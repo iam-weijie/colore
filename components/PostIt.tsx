@@ -37,7 +37,7 @@ const PostIt = ({ content, firstname, likes_count, report_count }: PostItProps) 
       <View className="bg-yellow-300 px-8 py-10 rounded-2xl min-w-[300px] min-h-[400px] max-w-[90%] mx-auto">
           <TouchableOpacity 
             onPress={toggleModal} 
-            style={{ position: 'absolute', top: 10, right: 10 }} // Close button positioning
+            style={{ position: 'absolute', top: 10, right: 10 }}
           >
             <Image source={icons.remove} className="w-8 h-8"/>
           </TouchableOpacity>
