@@ -39,7 +39,7 @@ const Profile = () => {
       ...stateVars,
       previousScreen: currentScreen,
     });
-    router.push("/(root)/country");
+    router.push("/(root)/(location)/country");
   };
 
   return (

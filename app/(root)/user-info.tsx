@@ -125,7 +125,7 @@ const UserInfo = () => {
       state: stateVars.state || "",
       country: stateVars.country || "",
     });
-    router.push("/(root)/country");
+    router.push("/(root)/(location)/country");
   };
 
   const handleGetStarted = async () => {
