@@ -25,7 +25,18 @@ import { calculateAge, formatDate } from "@/lib/utils";
 
 const UserInfo = () => {
   const { user } = useUser();
-  //console.log(user!.id);
+  const [userData, setUserData] = useState(
+    {
+      city: "",
+      state: "",
+      country: "",
+      email: "",
+      firstname: "",
+      lastname: "",
+      date_of_birth: "",
+    }
+  );
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -38,29 +49,28 @@ const UserInfo = () => {
         if (response.error) {
           throw new Error(response.error);
         }
-        console.log(response.data);
+        return response.data[0];
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
     };
-    fetchUserData();
+    const getData = async () => {
+      const data = await fetchUserData();
+      setUserData({
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        email: data.email,
+        firstname: data.firstname,
+        lastname: data.lastname,
+        date_of_birth: data.date_of_birth,
+        });
+      };
+    getData();
   }, [user]);
-
-  /*useEffect(() => {
-    const fetchUserData = async () =>{
-        const response = await fetchAPI(
-          `/(api)/(user)/userInfoCheck?id=${user!.id}`, 
-          {
-            method: "GET",
-          }
-        );
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      console.log(response);
-    }
-    fetchUserData();
-  }, [user]);*/
+  if (userData.city && userData.state && userData.country && userData.email && userData.firstname && userData.lastname && userData.date_of_birth) {
+    router.push("/(root)/(tabs)/home");
+  }
 
   const route = useRoute();
   const currentScreen = route.name as string;
@@ -123,7 +133,7 @@ const UserInfo = () => {
     let temp: number[] = dateOfBirth.split('/').map(Number);
     const age = calculateAge(new Date(Date.UTC(temp[2], temp[0] - 1, temp[1])));
 
-    //console.log(age);
+
 
     if (age < 13) {
       Alert.alert(
