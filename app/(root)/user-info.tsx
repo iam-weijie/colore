@@ -149,7 +149,7 @@ const UserInfo = () => {
       return;
     }
 
-    await fetchAPI("/(api)/(user)/newUserInfo", {
+    await fetchAPI("/(api)/(users)/newUserInfo", {
       method: "POST",
       body: JSON.stringify({
         firstName: form.firstName,
