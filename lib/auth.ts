@@ -38,7 +38,7 @@ export const googleOAuth = async (startOAuthFlow: any) => {
         await setActive!({ session: createdSessionId });
 
         if (signUp.createdUserId) {
-          await fetchAPI("/(api)/user", {
+          await fetchAPI("/(api)/(user)/newUser", {
             method: "POST",
             body: JSON.stringify({
               email: signUp.emailAddress,

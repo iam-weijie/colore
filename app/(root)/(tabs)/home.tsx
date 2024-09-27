@@ -15,7 +15,7 @@ export default function Page() {
   useEffect(() => {
     const fetchRandomPosts = async () => {
       try {
-        const response = await fetch("/(api)/(posts)/random"); // Adjust the API route as necessary
+        const response = await fetch("/(api)/(posts)/getRandomPosts"); // Adjust the API route as necessary
         if (!response.ok) throw new Error("Network response was not ok");
         const result = await response.json();
         setPosts(result.data);
