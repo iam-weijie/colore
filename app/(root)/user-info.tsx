@@ -41,7 +41,7 @@ const UserInfo = () => {
     const fetchUserData = async () => {
       try {
         const response = await fetchAPI(
-          `/(api)/userInfoCheck?id=${user!.id}`,
+          `/(api)/(users)/getUserInfo?id=${user!.id}`,
           {
             method: "GET",
           }
