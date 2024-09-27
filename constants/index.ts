@@ -7,10 +7,13 @@ import google from "@/assets/icons/google.png";
 import home from "@/assets/icons/home.png";
 import lock from "@/assets/icons/lock.png";
 import logout from "@/assets/icons/logout.png";
+import pencil from "@/assets/icons/pencil.png";
 import person from "@/assets/icons/person.png";
 import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
+import refresh from "@/assets/icons/refresh.png";
 import search from "@/assets/icons/search.png";
+import trash from "@/assets/icons/trash.png";
 
 import login from "@/assets/images/login.png";
 import signup from "@/assets/images/signup.png";
@@ -29,6 +32,9 @@ export const icons = {
   album,
   logout,
   search,
+  trash,
+  pencil,
+  refresh,
 };
 
 export const images = {
