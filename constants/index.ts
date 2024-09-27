@@ -14,6 +14,7 @@ import profile from "@/assets/icons/profile.png";
 import refresh from "@/assets/icons/refresh.png";
 import search from "@/assets/icons/search.png";
 import trash from "@/assets/icons/trash.png";
+import back from "@/assets/icons/back.svg";
 
 import login from "@/assets/images/login.png";
 import signup from "@/assets/images/signup.png";
@@ -35,6 +36,7 @@ export const icons = {
   trash,
   pencil,
   refresh,
+  back,
 };
 
 export const images = {
