@@ -71,7 +71,6 @@ const UserProfile: React.FC<Props> = ({
         // data being returned as array
         const profile = response.data[0] as UserProfile;
         setProfileUser(profile);
-        console.log(profile);
       } catch (error) {
         setError("Failed to fetch user data.");
         console.error("Failed to fetch user data:", error);
