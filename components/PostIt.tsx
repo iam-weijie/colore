@@ -18,8 +18,6 @@ const PostIt = ({ content, firstname, likes_count, report_count }: PostItProps) 
     setModalVisible(!isModalVisible);
   };
 
-  console.log(content, firstname, likes_count, report_count);
-
   return (
     <View style={{ marginBottom: 10, marginHorizontal: 5 }}>
       <TouchableOpacity onPress={toggleModal}>
@@ -41,7 +39,7 @@ const PostIt = ({ content, firstname, likes_count, report_count }: PostItProps) 
             onPress={toggleModal} 
             style={{ position: 'absolute', top: 10, right: 10 }} // Close button positioning
           >
-            <Image source={icons.close} className="w-5 h-5"/>
+            <Image source={icons.remove} className="w-8 h-8"/>
           </TouchableOpacity>
           
         
