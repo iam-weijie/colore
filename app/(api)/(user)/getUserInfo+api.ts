@@ -12,16 +12,7 @@ export async function GET(request: Request) {
       });
     }
     const response = await sql`
-      SELECT
-      u.city,
-      u.state,
-      u.country, 
-      u.email,
-      u.firstname,
-      u.lastname,
-      u.date_of_birth
-      FROM users u
-      WHERE u.clerk_id = ${clerkId}
+      SELECT * from users WHERE clerk_id = ${clerkId}
     `;
     console.log(response);
 
