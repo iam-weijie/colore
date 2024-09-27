@@ -29,7 +29,7 @@ const LogIn = () => {
 
       if (logInAttempt.status === "complete") {
         await setActive({ session: logInAttempt.createdSessionId });
-        router.replace("/(root)/(tabs)/home");
+        router.replace("/(root)/user-info");
       } else {
         console.error(JSON.stringify(logInAttempt, null, 2));
         Alert.alert("Error", "Log in failed. Please try again.");
