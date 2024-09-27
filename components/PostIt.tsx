@@ -39,7 +39,7 @@ const PostIt = ({ content, firstname, likes_count, report_count }: PostItProps) 
             onPress={toggleModal} 
             style={{ position: 'absolute', top: 10, right: 10 }} // Close button positioning
           >
-            <Image source={icons.remove} className="w-8 h-8"/>
+            <Image source={icons.close} className="w-8 h-8"/>
           </TouchableOpacity>
           
         
