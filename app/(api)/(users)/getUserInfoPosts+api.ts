@@ -47,6 +47,13 @@ export async function GET(request: Request) {
       city: response[0].city,
     };
 
+    // no post id, do not return posts
+    if (!response[0].post_id) {
+      return new Response(JSON.stringify({ userInfo , posts: []}), {
+        status: 200,
+      });
+    }
+
     const userPosts = response.map((post) => ({
       id: post.post_id,
       content: post.content,
