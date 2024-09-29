@@ -96,8 +96,31 @@ const UserProfile: React.FC<Props> = ({
     fetchUserData();
   }, [userId]);
 
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
-  if (error) return <Text>{error}</Text>;
+  if (loading) return (
+    <SafeAreaView className="flex-1">
+      <View className="flex flex-row items-center justify-between">
+        <ActivityIndicator size="large" color="#0000ff" />
+        {isEditable && onSignOut && (
+          <TouchableOpacity onPress={onSignOut} className="mr-4">
+            <Image source={icons.logout} className="w-5 h-5"/>
+          </TouchableOpacity>
+        )}
+      </View>
+    </SafeAreaView>
+  );
+  
+  if (error) return (
+    <SafeAreaView className="flex-1">
+      <View className="flex flex-row items-center justify-between">
+        <Text>{error}</Text>
+        {isEditable && onSignOut && (
+          <TouchableOpacity onPress={onSignOut} className="mr-4">
+            <Image source={icons.logout} className="w-5 h-5" />
+          </TouchableOpacity>
+        )}
+      </View>
+    </SafeAreaView>
+  );
 
   return (
     <SafeAreaView className="flex-1">
