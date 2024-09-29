@@ -69,7 +69,7 @@ const UserProfile: React.FC<Props> = ({
       ...stateVars,
       previousScreen: currentScreen,
     });
-    router.push("/(root)/country");
+    router.push("/(root)/(location)/country");
   };
 
   useEffect(() => {
