@@ -37,12 +37,14 @@ interface UserData {
 
 interface Post {
   id: number;
-  content: string;
+  user_id: string;
   firstname: string;
+  content: string;
   created_at: string;
   likes_count: number;
   report_count: number;
 }
+
 
 interface Props {
   userId: string;
@@ -144,7 +146,7 @@ const UserProfile: React.FC<Props> = ({
           </Text>
           {isEditable && onSignOut && (
             <TouchableOpacity onPress={onSignOut}>
-              <Image source={icons.logout} className="w-5 h-5" />
+              <Image source={icons.logout} className="w-5 h-5"/>
             </TouchableOpacity>
           )}
         </View>
@@ -160,7 +162,7 @@ const UserProfile: React.FC<Props> = ({
           </Pressable>
         </View>
       </View>
-      <PostGallery userId={userId} posts={userPosts} /> 
+      <PostGallery posts={userPosts} /> 
     </SafeAreaView>
   );
 };
