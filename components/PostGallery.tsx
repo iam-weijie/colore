@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
 import { icons } from "@/constants/index";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface Post {
   id: number;
@@ -27,6 +28,7 @@ interface UserPostsGalleryProps {
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [likedPost, setLikedPost] = useState<boolean>(false);
 
   const truncateText = (text: string, maxLength: number) => {
     if (text.length > maxLength) {
@@ -45,9 +47,8 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
         <Text className="font-JakartaSemiBold">
           {truncateText(item.content, 100)}
         </Text>
-        <View className="flex-row justify-between">
+        <View className="flex-row justify-end">
           <Text className="text-gray-500">Likes: {item.likes_count}</Text>
-          <Text className="text-gray-500">Reports: {item.report_count}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -68,16 +69,21 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
       />
       {selectedPost && (
         <ReactNativeModal isVisible={!!selectedPost}>
-          <View className="bg-white px-6 py-4 rounded-2xl min-h-[400px] max-h-[70%] max-w-[90%] mx-auto"> 
+          <View className="bg-white px-6 py-4 rounded-2xl min-h-[150px] max-h-[70%] max-w-[90%] mx-auto"> 
             <TouchableOpacity onPress={handleCloseModal}>
               <Image className="w-6 h-6" source={icons.close} style={{alignSelf: "flex-end"}}/>
             </TouchableOpacity>
             <ScrollView>
-              <Text className="text-sm mb-2">{selectedPost.content}</Text> 
+              <Text className="text-[16px] mb-2 font-Jakarta">{selectedPost.content}</Text> 
             </ScrollView>
-            <View>
-              <Text className="text-sm">Likes: {selectedPost.likes_count}</Text>
-              <Text className="text-sm">Reports: {selectedPost.report_count}</Text>
+            <View className="my-2">
+              <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
+                <MaterialCommunityIcons
+                  name={likedPost ? "heart" : "heart-outline"}
+                  size={32}
+                  color={likedPost ? "red" : "black"}
+                />
+              </TouchableOpacity>
             </View>
           </View>
       </ReactNativeModal>
