@@ -18,8 +18,10 @@
    or
 
    ```bash
-   npx expo start
+   npx expo -c
    ```
+
+   to clear the cache
 
 ## Issues and Feature Requests
 
