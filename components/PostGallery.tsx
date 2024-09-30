@@ -43,7 +43,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
 
   const renderItem = ({ item }: { item: Post }) => (
     <TouchableOpacity onPress={() => setSelectedPost(item)}>
-      <View className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent">
+      <View className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent w-[88%] mx-auto">
         <Text className="font-JakartaSemiBold">
           {truncateText(item.content, 100)}
         </Text>
@@ -69,7 +69,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
       />
       {selectedPost && (
         <ReactNativeModal isVisible={!!selectedPost}>
-          <View className="bg-white px-6 py-4 rounded-2xl min-h-[150px] max-h-[70%] max-w-[90%] mx-auto"> 
+          <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto"> 
             <TouchableOpacity onPress={handleCloseModal}>
               <Image className="w-6 h-6" source={icons.close} style={{alignSelf: "flex-end"}}/>
             </TouchableOpacity>
