@@ -102,11 +102,6 @@ const UserProfile: React.FC<Props> = ({
     <SafeAreaView className="flex-1">
       <View className="flex flex-row items-center justify-between">
         <ActivityIndicator size="large" color="#0000ff" />
-        {isEditable && onSignOut && (
-          <TouchableOpacity onPress={onSignOut} className="mr-4">
-            <Image source={icons.logout} className="w-5 h-5"/>
-          </TouchableOpacity>
-        )}
       </View>
     </SafeAreaView>
   );
@@ -114,12 +109,7 @@ const UserProfile: React.FC<Props> = ({
   if (error) return (
     <SafeAreaView className="flex-1">
       <View className="flex flex-row items-center justify-between">
-        <Text>{error}</Text>
-        {isEditable && onSignOut && (
-          <TouchableOpacity onPress={onSignOut} className="mr-4">
-            <Image source={icons.logout} className="w-5 h-5" />
-          </TouchableOpacity>
-        )}
+        <Text>An error occurred</Text>
       </View>
     </SafeAreaView>
   );

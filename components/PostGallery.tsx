@@ -1,14 +1,15 @@
-import { fetchAPI } from "@/lib/fetch";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Button,
   FlatList,
   Text,
   TouchableOpacity,
   View,
+  ScrollView,
+  Image,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
+import { icons } from "@/constants/index";
 
 interface Post {
   id: number;
@@ -25,7 +26,6 @@ interface UserPostsGalleryProps {
 }
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
-
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   const truncateText = (text: string, maxLength: number) => {
@@ -68,14 +68,16 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
       />
       {selectedPost && (
         <ReactNativeModal isVisible={!!selectedPost}>
-          <View className="bg-white px-8 py-10 rounded-2xl min-h-[400px] max-w-[90%] mx-auto"> 
-            <Button title="Close" className="m-2" onPress={handleCloseModal} />
+          <View className="bg-white px-6 py-4 rounded-2xl min-h-[400px] max-h-[70%] max-w-[90%] mx-auto"> 
+            <TouchableOpacity onPress={handleCloseModal}>
+              <Image className="w-6 h-6" source={icons.close} style={{alignSelf: "flex-end"}}/>
+            </TouchableOpacity>
+            <ScrollView>
+              <Text className="text-sm mb-2">{selectedPost.content}</Text> 
+            </ScrollView>
             <View>
-              <Text className="text-lg font-bold mb-2">{selectedPost.content}</Text> 
-              <View>
-                <Text className="text-sm">Likes: {selectedPost.likes_count}</Text>
-                <Text className="text-sm">Reports: {selectedPost.report_count}</Text>
-              </View>
+              <Text className="text-sm">Likes: {selectedPost.likes_count}</Text>
+              <Text className="text-sm">Reports: {selectedPost.report_count}</Text>
             </View>
           </View>
       </ReactNativeModal>
