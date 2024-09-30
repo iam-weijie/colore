@@ -14,6 +14,7 @@ import { icons } from "@/constants/index";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useNavigationContext } from "@/components/NavigationContext";
+import PostGallery from "@/components/PostGallery";
 
 interface UserProfile {
   city: string;
@@ -29,6 +30,22 @@ interface UserProfile {
   state: string;
 }
 
+interface UserData {
+  userInfo: UserProfile;
+  posts: Post[];
+}
+
+interface Post {
+  id: number;
+  user_id: string;
+  firstname: string;
+  content: string;
+  created_at: string;
+  likes_count: number;
+  report_count: number;
+}
+
+
 interface Props {
   userId: string;
   isEditable: boolean;
@@ -43,6 +60,7 @@ const UserProfile: React.FC<Props> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
   const { stateVars, setStateVars } = useNavigationContext();
   const route = useRoute();
   const router = useRouter();
@@ -53,7 +71,7 @@ const UserProfile: React.FC<Props> = ({
       ...stateVars,
       previousScreen: currentScreen,
     });
-    router.push("/(root)/country");
+    router.push("/(root)/(location)/country");
   };
 
   useEffect(() => {
@@ -61,17 +79,15 @@ const UserProfile: React.FC<Props> = ({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchAPI(`/(api)/(users)/getUserInfo?id=${userId}`, {
+        const response = await fetchAPI(`/(api)/(users)/getUserInfoPosts?id=${userId}`, {
           method: "GET",
         });
         if (response.error) {
           throw new Error(response.error);
         }
-
-        // data being returned as array
-        const profile = response.data[0] as UserProfile;
-        setProfileUser(profile);
-        console.log(profile);
+        const { userInfo, posts } = response as UserData;
+        setProfileUser(userInfo);
+        setUserPosts(posts);
       } catch (error) {
         setError("Failed to fetch user data.");
         console.error("Failed to fetch user data:", error);
@@ -82,8 +98,21 @@ const UserProfile: React.FC<Props> = ({
     fetchUserData();
   }, [userId]);
 
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
-  if (error) return <Text>{error}</Text>;
+  if (loading) return (
+    <SafeAreaView className="flex-1">
+      <View className="flex flex-row items-center justify-between">
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    </SafeAreaView>
+  );
+  
+  if (error) return (
+    <SafeAreaView className="flex-1">
+      <View className="flex flex-row items-center justify-between">
+        <Text>An error occurred</Text>
+      </View>
+    </SafeAreaView>
+  );
 
   return (
     <SafeAreaView className="flex-1">
@@ -100,13 +129,6 @@ const UserProfile: React.FC<Props> = ({
               />
             </TouchableOpacity>
           )}
-          {/* <Text
-            className={`text-2xl font-JakartaBold my-5 ${!isEditable ? "ml-2" : ""} flex-1`}
-          >
-            {isEditable
-              ? `${profileUser?.firstname} ${profileUser?.lastname}`
-              : `${profileUser?.firstname.charAt(0)}.`}
-          </Text> */}
           <Text
             className={`text-2xl font-JakartaBold ${!isEditable ? "ml-2" : ""} flex-1`}
           >
@@ -114,7 +136,7 @@ const UserProfile: React.FC<Props> = ({
           </Text>
           {isEditable && onSignOut && (
             <TouchableOpacity onPress={onSignOut}>
-              <Image source={icons.logout} className="w-5 h-5" />
+              <Image source={icons.logout} className="w-5 h-5"/>
             </TouchableOpacity>
           )}
         </View>
@@ -130,6 +152,7 @@ const UserProfile: React.FC<Props> = ({
           </Pressable>
         </View>
       </View>
+      <PostGallery posts={userPosts} /> 
     </SafeAreaView>
   );
 };
