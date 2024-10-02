@@ -21,6 +21,8 @@ const PostModal: React.FC<PostModalProps> = ({ isVisible, post, handleCloseModal
         <TouchableOpacity onPress={handleCloseModal}>
           <Image className="w-6 h-6" source={icons.close} style={{alignSelf: "flex-end"}}/>
         </TouchableOpacity>
+        {/* This will be linked to profile page later */}
+        {post && post.firstname && <Text className="text-gray-400">{post.firstname.charAt(0)}.</Text>}
         <ScrollView>
           {post && (
             <Text className="text-[16px] mb-2 font-Jakarta">{post.content}</Text>
