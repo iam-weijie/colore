@@ -47,25 +47,25 @@ export default function Page() {
     <SafeAreaView className="flex-1">
       <SignedIn>
         <Text className="text-2xl font-JakartaBold m-3">Coloré</Text>
-
-        <Button title="New Post" onPress={handleNewPostPress} />
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : error ? (
           <Text>{error}</Text>
         ) : (
-          <View>
-            <FlatList
-              data={posts}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handlePostPress(item)}>
-                  <View>
-                    <Text>CLICK ME</Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-            />
+        <View className="relative flex-1">
+          <FlatList
+            className=""
+            data={posts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View>
+                <TouchableOpacity className="relative" onPress={() => handlePostPress(item)}>
+                  <PostIt/>
+               </TouchableOpacity>
+              </View>
+            )}
+            numColumns={2}
+          />
             {selectedPost && (
               <ReactNativeModal isVisible={!!selectedPost}>
                 <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
