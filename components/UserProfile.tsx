@@ -15,6 +15,7 @@ import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
+import { Post } from "@/types/type";
 
 interface UserProfile {
   city: string;
@@ -34,17 +35,6 @@ interface UserData {
   userInfo: UserProfile;
   posts: Post[];
 }
-
-interface Post {
-  id: number;
-  user_id: string;
-  firstname: string;
-  content: string;
-  created_at: string;
-  likes_count: number;
-  report_count: number;
-}
-
 
 interface Props {
   userId: string;

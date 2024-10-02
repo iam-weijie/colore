@@ -25,8 +25,8 @@ declare interface Post {
     state: string;
     country: string;
   };
-  likes_count: number;
-  reports_count: number;
+  like_count: number;
+  report_count: number;
 }
 
 declare interface ButtonProps extends TouchableOpacityProps {

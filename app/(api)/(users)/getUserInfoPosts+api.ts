@@ -25,7 +25,7 @@ export async function GET(request: Request) {
         p.id AS post_id, 
         p.content, 
         p.created_at, 
-        p.likes_count, 
+        p.like_count, 
         p.report_count
       FROM users u
       LEFT JOIN posts p ON u.clerk_id = p.user_id
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
       content: post.content,
       firstname: response[0].firstname,
       created_at: post.created_at,
-      likes_count: post.likes_count,
+      like_count: post.like_count,
       report_count: post.report_count,
     }));
 

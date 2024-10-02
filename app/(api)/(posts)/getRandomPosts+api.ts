@@ -12,7 +12,7 @@ export async function GET(request: Request) {
       SELECT 
       p.id, 
       p.content, 
-      p.likes_count, 
+      p.like_count, 
       p.report_count, 
       u.firstname, 
       u.lastname, 

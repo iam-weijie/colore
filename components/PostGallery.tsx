@@ -33,7 +33,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
           {truncateText(item.content, 100)}
         </Text>
         <View className="flex-row justify-end">
-          <Text className="text-gray-500">Likes: {item.likes_count}</Text>
+          <Text className="text-gray-500">Likes: {item.like_count}</Text>
         </View>
       </View>
     </TouchableOpacity>
