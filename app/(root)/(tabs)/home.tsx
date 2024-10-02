@@ -3,7 +3,7 @@ import { icons } from "@/constants";
 import { SignedIn } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import ReactNativeModal from "react-native-modal";
+import PostModal from "@/components/PostModal";
 import { Image, Text, TouchableOpacity, View, FlatList, Button, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -84,22 +84,11 @@ export default function Page() {
               columnWrapperStyle={{ justifyContent: 'space-between' }} 
             />
             {selectedPost && (
-              <ReactNativeModal isVisible={!!selectedPost}>
-                <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
-                  <Text>{selectedPost.content}</Text>
-                  <Text>
-                    Posted by: {selectedPost.firstname} {selectedPost.lastname}
-                    {"\n"}
-                    {selectedPost.city}, {selectedPost.state},{" "}
-                    {selectedPost.country}
-                  </Text>
-                  <View>
-                    <Text>Likes: {selectedPost.likes_count}</Text>
-                    <Text>Comments: {selectedPost.reports_count}</Text>
-                  </View>
-                  <Button title="Close" onPress={handleCloseModal} />
-                </View>
-              </ReactNativeModal>
+              <PostModal 
+                isVisible={!!selectedPost}
+                post={selectedPost}
+                handleCloseModal={handleCloseModal}
+              />
             )}
         </View>
         )}

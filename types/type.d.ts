@@ -8,6 +8,7 @@ declare interface User {
   email: string;
   location: {
     city: string;
+    state: string;
     country: string;
   };
   paid_member: boolean;
@@ -16,12 +17,15 @@ declare interface User {
 declare interface Post {
   user_id: number;
   post_id: string;
+  first_name: string;
   content: string;
   created_date: Date;
   location: {
     city: string;
+    state: string;
     country: string;
   };
+  likes: number;
   reports: number;
 }
 
