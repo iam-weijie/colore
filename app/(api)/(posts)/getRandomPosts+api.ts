@@ -24,7 +24,6 @@ export async function GET(request: Request) {
       ORDER BY RANDOM()
       LIMIT ${number};
     `;
-    console.log(response);
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });

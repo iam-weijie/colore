@@ -63,7 +63,11 @@ export default function Page() {
             </View>
           </View>
         {loading ? (
-          <ActivityIndicator size="large" color="#0000ff" />
+          <SafeAreaView className="flex-1">
+            <View className="flex-1 justify-center items-center">
+              <ActivityIndicator size="large" color="#0000ff" />
+            </View>
+          </SafeAreaView>
         ) : error ? (
           <Text>{error}</Text>
         ) : (
