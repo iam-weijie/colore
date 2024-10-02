@@ -6,19 +6,36 @@ import { useEffect, useState } from "react";
 import PostModal from "@/components/PostModal";
 import { Image, Text, TouchableOpacity, View, FlatList, Button, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Post } from "@/types/type";
+
+interface PostWithPosition extends Post {
+  position: {
+    top: number;
+    left: number;
+  };
+}
 
 export default function Page() {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
+ 
 
   const fetchRandomPosts = async () => {
     try {
-      const response = await fetch(`/(api)/(posts)/getRandomPosts?number=${6}`);
+      const response = await fetch(`/(api)/(posts)/getRandomPosts?number=${3}`);
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
-      setPosts(result.data);
+      // set positions of posts
+      const postsWithPositions = result.data.map((post: Post) => ({
+        ...post,
+        position: {
+          top: Math.random() * 300, 
+          left: Math.random() * 200, 
+        },
+      }));
+      setPosts(postsWithPositions);
     } catch (error) {
       setError("Failed to fetch random posts.");
       console.error(error);
@@ -53,14 +70,6 @@ export default function Page() {
       <SignedIn>
           <View className="flex-row justify-between items-center p-3">
             <Text className="text-2xl font-JakartaBold">Coloré</Text>
-            <View className="flex flex-row space-x-4">
-              <TouchableOpacity onPress={handleReloadPosts}>
-                <Image source={icons.refresh} className="w-8 h-8" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleNewPostPress}>
-                <Image source={icons.pencil} className="w-7 h-7" />
-              </TouchableOpacity>
-            </View>
           </View>
         {loading ? (
           <SafeAreaView className="flex-1">
@@ -71,35 +80,33 @@ export default function Page() {
         ) : error ? (
           <Text>{error}</Text>
         ) : (
-        <View className="relative flex-1">
-           <FlatList
-              className="mx-3"
-              data={posts}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  className="flex-1 m-3"
-                  onPress={() => handlePostPress(item)}
-                >
-                  <PostIt />
-                </TouchableOpacity>
-              )}
-              numColumns={2}
-              columnWrapperStyle={{ justifyContent: 'space-between' }} 
+          <View className="relative flex-1">
+          {posts.map((post, index) => {
+            return (
+              <TouchableOpacity
+                key={post.id}
+                onPress={() => handlePostPress(post)}
+                style={{ position: "absolute", top: post.position.top, left: post.position.left }}
+              >
+                <PostIt />
+              </TouchableOpacity>
+            );
+          })}
+
+          {selectedPost && (
+            <PostModal 
+              isVisible={!!selectedPost}
+              post={selectedPost}
+              handleCloseModal={handleCloseModal}
             />
-            {selectedPost && (
-              <PostModal 
-                isVisible={!!selectedPost}
-                post={selectedPost}
-                handleCloseModal={handleCloseModal}
-              />
-            )}
+          )}
         </View>
+
         )}
 
-        {/* <View>
-          <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8">
-            <TouchableOpacity>
+        <View>
+          <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8 z-10">
+            <TouchableOpacity onPress={handleReloadPosts}>
               <Image source={icons.refresh} className="w-8 h-8" />
             </TouchableOpacity>
 
@@ -107,7 +114,7 @@ export default function Page() {
               <Image source={icons.pencil} className="w-7 h-7" />
             </TouchableOpacity>
           </View>
-        </View> */}
+        </View>
       </SignedIn>
     </SafeAreaView>
   );
