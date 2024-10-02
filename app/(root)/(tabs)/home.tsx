@@ -55,7 +55,7 @@ export default function Page() {
               <Image source={icons.refresh} className="w-8 h-8" />
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleNewPostPress}>
               <Image source={icons.pencil} className="w-7 h-7" />
             </TouchableOpacity>
           </View>
