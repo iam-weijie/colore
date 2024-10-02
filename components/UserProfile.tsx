@@ -100,9 +100,9 @@ const UserProfile: React.FC<Props> = ({
 
   if (loading) return (
     <SafeAreaView className="flex-1">
-      <View className="flex flex-row items-center justify-between">
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
+    <View className="flex-1 justify-center items-center">
+      <ActivityIndicator size="large" color="#0000ff" />
+    </View>
     </SafeAreaView>
   );
   
