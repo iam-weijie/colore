@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  Text,
-  Pressable,
-  ActivityIndicator,
-  Image,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { fetchAPI } from "@/lib/fetch";
+import { useNavigationContext } from "@/components/NavigationContext";
 import { icons } from "@/constants/index";
+import { fetchAPI } from "@/lib/fetch";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useNavigationContext } from "@/components/NavigationContext";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface UserProfile {
   city: string;
@@ -35,11 +35,7 @@ interface Props {
   onSignOut?: () => void;
 }
 
-const UserProfile: React.FC<Props> = ({
-  userId,
-  isEditable,
-  onSignOut,
-}) => {
+const UserProfile: React.FC<Props> = ({ userId, isEditable, onSignOut }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
@@ -61,9 +57,12 @@ const UserProfile: React.FC<Props> = ({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchAPI(`/(api)/(users)/getUserInfo?id=${userId}`, {
-          method: "GET",
-        });
+        const response = await fetchAPI(
+          `/(api)/(users)/getUserInfo?id=${userId}`,
+          {
+            method: "GET",
+          }
+        );
         if (response.error) {
           throw new Error(response.error);
         }

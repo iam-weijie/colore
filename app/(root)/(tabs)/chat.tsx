@@ -1,6 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface ConversationItem {
   id: string;
@@ -12,7 +19,7 @@ interface ConversationItem {
 interface ChatTabProps {}
 
 const Chat: React.FC<ChatTabProps> = () => {
-  const [searchText, setSearchText] = useState<string>('');
+  const [searchText, setSearchText] = useState<string>("");
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
 
   useEffect(() => {
@@ -22,27 +29,48 @@ const Chat: React.FC<ChatTabProps> = () => {
   const fetchConversations = async (): Promise<void> => {
     // Simulating API call to fetch conversations
     const fetchedConversations: ConversationItem[] = [
-      { id: 'conv1', name: "John Doe", lastMessageContent: 'Hello!', lastMessageTimestamp: new Date('2023-09-30T10:00:00Z') },
-      { id: 'conv2', name: "John Doe", lastMessageContent: 'How are you?', lastMessageTimestamp: new Date('2023-09-30T11:00:00Z') },
-      { id: 'conv3', name: "John Doe", lastMessageContent: 'Great, thanks!', lastMessageTimestamp: new Date('2023-09-30T12:00:00Z') },
+      {
+        id: "conv1",
+        name: "John Doe",
+        lastMessageContent: "Hello!",
+        lastMessageTimestamp: new Date("2023-09-30T10:00:00Z"),
+      },
+      {
+        id: "conv2",
+        name: "John Doe",
+        lastMessageContent: "How are you?",
+        lastMessageTimestamp: new Date("2023-09-30T11:00:00Z"),
+      },
+      {
+        id: "conv3",
+        name: "John Doe",
+        lastMessageContent: "Great, thanks!",
+        lastMessageTimestamp: new Date("2023-09-30T12:00:00Z"),
+      },
     ];
     setConversations(fetchedConversations);
   };
 
-  const filteredConversations = conversations.filter(conversation =>
+  const filteredConversations = conversations.filter((conversation) =>
     conversation.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const renderConversationItem = ({ item }: { item: ConversationItem }): React.ReactElement => (
+  const renderConversationItem = ({
+    item,
+  }: {
+    item: ConversationItem;
+  }): React.ReactElement => (
     <View style={styles.conversationItem}>
       <Text style={styles.name}>{item.name}</Text>
       <Text style={styles.lastMessage}>{item.lastMessageContent}</Text>
-      <Text style={styles.timestamp}>{new Date(item.lastMessageTimestamp).toLocaleString()}</Text>
+      <Text style={styles.timestamp}>
+        {new Date(item.lastMessageTimestamp).toLocaleString()}
+      </Text>
     </View>
   );
 
   const handleCreateNewConversation = (): void => {
-    router.push("/(root)/(tabs)/(chat)/new-conversation");
+    router.push("/(root)/(chat)/new-conversation");
   };
 
   return (
@@ -57,7 +85,10 @@ const Chat: React.FC<ChatTabProps> = () => {
               onChangeText={(text): void => setSearchText(text)}
             />
           </View>
-          <TouchableOpacity onPress={handleCreateNewConversation} style={styles.createButton}>
+          <TouchableOpacity
+            onPress={handleCreateNewConversation}
+            style={styles.createButton}
+          >
             <Text style={styles.createButtonText}>+</Text>
           </TouchableOpacity>
         </View>
@@ -74,15 +105,15 @@ const Chat: React.FC<ChatTabProps> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   contentContainer: {
     flex: 1,
     paddingTop: 64,
   },
   searchBarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginHorizontal: 16,
   },
   searchBar: {
@@ -90,40 +121,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     fontSize: 16,
     marginRight: 8,
   },
   createButton: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#007AFF',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#007AFF",
     borderRadius: 20,
   },
   createButtonText: {
     fontSize: 26,
-    color: 'white',
+    color: "white",
   },
   conversationItem: {
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   name: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   lastMessage: {
-    color: '#666',
+    color: "#666",
     fontSize: 14,
     marginBottom: 4,
   },
   timestamp: {
-    color: '#999',
+    color: "#999",
     fontSize: 12,
   },
 });
