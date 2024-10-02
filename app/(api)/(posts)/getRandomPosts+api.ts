@@ -3,6 +3,8 @@ import { neon } from "@neondatabase/serverless";
 export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
+    const url = new URL(request.url);
+    const number = url.searchParams.get("number");
     console.log("Received GET request for random posts.");
 
     // comments table to be joined later :]
@@ -20,7 +22,7 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       ORDER BY RANDOM()
-      LIMIT 3;
+      LIMIT ${number};
     `;
     return new Response(JSON.stringify({ data: response }), {
       status: 200,

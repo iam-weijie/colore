@@ -13,21 +13,21 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
-  useEffect(() => {
-    const fetchRandomPosts = async () => {
-      try {
-        const response = await fetch("/(api)/(posts)/getRandomPosts"); 
-        if (!response.ok) throw new Error("Network response was not ok");
-        const result = await response.json();
-        setPosts(result.data);
-      } catch (error) {
-        setError("Failed to fetch random posts.");
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchRandomPosts = async () => {
+    try {
+      const response = await fetch(`/(api)/(posts)/getRandomPosts?number=${6}`);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const result = await response.json();
+      setPosts(result.data);
+    } catch (error) {
+      setError("Failed to fetch random posts.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchRandomPosts();
   }, []);
 
@@ -43,29 +43,46 @@ export default function Page() {
     setSelectedPost(null);
   };
 
+  const handleReloadPosts = () => {
+    setLoading(true);
+    fetchRandomPosts();
+  };
+
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <Text className="text-2xl font-JakartaBold m-3">Coloré</Text>
+          <View className="flex-row justify-between items-center p-3">
+            <Text className="text-2xl font-JakartaBold">Coloré</Text>
+            <View className="flex flex-row space-x-4">
+              <TouchableOpacity onPress={handleReloadPosts}>
+                <Image source={icons.refresh} className="w-8 h-8" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleNewPostPress}>
+                <Image source={icons.pencil} className="w-7 h-7" />
+              </TouchableOpacity>
+            </View>
+          </View>
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : error ? (
           <Text>{error}</Text>
         ) : (
         <View className="relative flex-1">
-          <FlatList
-            className=""
-            data={posts}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View>
-                <TouchableOpacity className="relative" onPress={() => handlePostPress(item)}>
-                  <PostIt/>
-               </TouchableOpacity>
-              </View>
-            )}
-            numColumns={2}
-          />
+           <FlatList
+              className="mx-3"
+              data={posts}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  className="flex-1 m-3"
+                  onPress={() => handlePostPress(item)}
+                >
+                  <PostIt />
+                </TouchableOpacity>
+              )}
+              numColumns={2}
+              columnWrapperStyle={{ justifyContent: 'space-between' }} 
+            />
             {selectedPost && (
               <ReactNativeModal isVisible={!!selectedPost}>
                 <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
@@ -87,7 +104,7 @@ export default function Page() {
         </View>
         )}
 
-        <View className="flex-1">
+        {/* <View>
           <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8">
             <TouchableOpacity>
               <Image source={icons.refresh} className="w-8 h-8" />
@@ -97,7 +114,7 @@ export default function Page() {
               <Image source={icons.pencil} className="w-7 h-7" />
             </TouchableOpacity>
           </View>
-        </View>
+        </View> */}
       </SignedIn>
     </SafeAreaView>
   );
