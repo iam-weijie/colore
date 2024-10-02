@@ -1,64 +1,73 @@
-import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useState } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet } from 'react-native';
-
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { router } from "expo-router";
 
 interface ConversationItem {
-  id: number;
+  id: string;
   name: string;
-  lastMessage: string;
+  lastMessageContent: string;
+  lastMessageTimestamp: Date;
 }
 
-const Chat: React.FC = () => {
-  const [searchText, setSearchText] = useState('');
-  const conversations: ConversationItem[] = [
-    { id: 1, name: 'John Doe', lastMessage: 'Hello!' },
-    { id: 2, name: 'Jane Smith', lastMessage: 'How are you?' },
-    { id: 3, name: 'Bob Johnson', lastMessage: 'Great, thanks!' },
-    { id: 4, name: 'John Doe', lastMessage: 'Hello!' },
-    { id: 5, name: 'Jane Smith', lastMessage: 'How are you?' },
-    { id: 6, name: 'Bob Johnson', lastMessage: 'Great, thanks!' },
-    { id: 7, name: 'John Doe', lastMessage: 'Hello!' },
-    { id: 8, name: 'Jane Smith', lastMessage: 'How are you?' },
-    { id: 9, name: 'Bob Johnson', lastMessage: 'Great, thanks!' },
-    { id: 10, name: 'John Doe', lastMessage: 'Hello!' },
-    { id: 11, name: 'Jane Smith', lastMessage: 'How are you?' },
-    { id: 12, name: 'Bob Johnson', lastMessage: 'Great, thanks!' },
-    { id: 13, name: 'John Doe', lastMessage: 'Hello!' },
-    { id: 14, name: 'Jane Smith', lastMessage: 'How are you?' },
-    { id: 15, name: 'Bob Johnson', lastMessage: 'Great, thanks!' },
-    { id: 16, name: 'John Doe', lastMessage: 'Hello!' },
-    { id: 17, name: 'Jane Smith', lastMessage: 'How are you?' },
-    { id: 18, name: 'Bob Johnson', lastMessage: 'Great, thanks!' },
-  ];
+interface ChatTabProps {}
+
+const Chat: React.FC<ChatTabProps> = () => {
+  const [searchText, setSearchText] = useState<string>('');
+  const [conversations, setConversations] = useState<ConversationItem[]>([]);
+
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
+  const fetchConversations = async (): Promise<void> => {
+    // Simulating API call to fetch conversations
+    const fetchedConversations: ConversationItem[] = [
+      { id: 'conv1', name: "John Doe", lastMessageContent: 'Hello!', lastMessageTimestamp: new Date('2023-09-30T10:00:00Z') },
+      { id: 'conv2', name: "John Doe", lastMessageContent: 'How are you?', lastMessageTimestamp: new Date('2023-09-30T11:00:00Z') },
+      { id: 'conv3', name: "John Doe", lastMessageContent: 'Great, thanks!', lastMessageTimestamp: new Date('2023-09-30T12:00:00Z') },
+    ];
+    setConversations(fetchedConversations);
+  };
 
   const filteredConversations = conversations.filter(conversation =>
     conversation.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const renderConversationItem = ({ item }: { item: ConversationItem }) => (
+  const renderConversationItem = ({ item }: { item: ConversationItem }): React.ReactElement => (
     <View style={styles.conversationItem}>
       <Text style={styles.name}>{item.name}</Text>
-      <Text style={styles.lastMessage}>{item.lastMessage}</Text>
+      <Text style={styles.lastMessage}>{item.lastMessageContent}</Text>
+      <Text style={styles.timestamp}>{new Date(item.lastMessageTimestamp).toLocaleString()}</Text>
     </View>
   );
 
+  const handleCreateNewConversation = (): void => {
+    router.push("/(root)/(tabs)/(chat)/new-conversation");
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.contentContainer}>
-        <TextInput
-          style={styles.searchBar}
-          placeholder="Search conversations..."
-          value={searchText}
-          onChangeText={(text) => setSearchText(text)}
-        />
+        <View style={styles.searchBarContainer}>
+          <View style={{ flex: 1 }}>
+            <TextInput
+              style={[styles.searchBar, { marginLeft: 8 }]}
+              placeholder="Search conversations..."
+              value={searchText}
+              onChangeText={(text): void => setSearchText(text)}
+            />
+          </View>
+          <TouchableOpacity onPress={handleCreateNewConversation} style={styles.createButton}>
+            <Text style={styles.createButtonText}>+</Text>
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={filteredConversations}
           renderItem={renderConversationItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item): string => item.id}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -69,16 +78,33 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    paddingTop: 0,
+    paddingTop: 64,
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
   },
   searchBar: {
     height: 34,
-    marginHorizontal: 8,
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#ccc',
     fontSize: 16,
+    marginRight: 8,
+  },
+  createButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    borderRadius: 20,
+  },
+  createButtonText: {
+    fontSize: 26,
+    color: 'white',
   },
   conversationItem: {
     paddingVertical: 12,
@@ -94,6 +120,11 @@ const styles = StyleSheet.create({
   lastMessage: {
     color: '#666',
     fontSize: 14,
+    marginBottom: 4,
+  },
+  timestamp: {
+    color: '#999',
+    fontSize: 12,
   },
 });
 
