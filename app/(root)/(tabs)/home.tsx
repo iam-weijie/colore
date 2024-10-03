@@ -1,32 +1,57 @@
 import PostIt from "@/components/PostIt";
+import PostModal from "@/components/PostModal";
 import { icons } from "@/constants";
-import { SignedIn } from "@clerk/clerk-expo";
+import { Post } from "@/types/type";
+import { SignedIn, useAuth, useUser, useSession } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Page() {
+  //const { user } = useUser();
+  //console.log(user);
+  //const { isLoaded, isSignedIn, session } = useSession();
+  //console.log("session: ", session);
+  //useAuth();
+  //router.replace("/(auth)/log-in");
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
+  const { user } = useUser();
+
+  const fetchRandomPosts = async () => {
+    try {
+      const response = await fetch(
+        `/(api)/(posts)/getRandomPosts?number=${3}&id=${user!.id}`
+      );
+      if (!response.ok) throw new Error("Network response was not ok");
+      const result = await response.json();
+      // set positions of posts
+      const postsWithPositions = result.data.map((post: Post) => ({
+        ...post,
+        position: {
+          top: Math.random() * 300,
+          left: Math.random() * 200,
+        },
+      }));
+      setPosts(postsWithPositions);
+    } catch (error) {
+      setError("Failed to fetch random posts.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchRandomPosts = async () => {
-      try {
-        const response = await fetch("/(api)/(posts)/getRandomPosts"); // Adjust the API route as necessary
-        if (!response.ok) throw new Error("Network response was not ok");
-        const result = await response.json();
-        setPosts(result.data);
-      } catch (error) {
-        setError("Failed to fetch random posts.");
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchRandomPosts();
   }, []);
 
@@ -42,63 +67,64 @@ export default function Page() {
     setSelectedPost(null);
   };
 
+  const handleReloadPosts = () => {
+    setLoading(true);
+    fetchRandomPosts();
+  };
+
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <Text className="text-2xl font-JakartaBold m-3">Coloré</Text>
+        <View className="flex-row justify-between items-center p-3">
+          <Text className="text-2xl font-JakartaBold">Coloré</Text>
+        </View>
+        {loading ? (
+          <SafeAreaView className="flex-1">
+            <View className="flex-1 justify-center items-center">
+              <ActivityIndicator size="large" color="#0000ff" />
+            </View>
+          </SafeAreaView>
+        ) : error ? (
+          <Text>{error}</Text>
+        ) : (
+          <View className="relative flex-1">
+            {posts.map((post, index) => {
+              return (
+                <TouchableOpacity
+                  key={post.id}
+                  onPress={() => handlePostPress(post)}
+                  style={{
+                    position: "absolute",
+                    top: post.position.top,
+                    left: post.position.left,
+                  }}
+                >
+                  <PostIt />
+                </TouchableOpacity>
+              );
+            })}
 
-        <View className="flex-1">
-          <PostIt />
+            {selectedPost && (
+              <PostModal
+                isVisible={!!selectedPost}
+                post={selectedPost}
+                handleCloseModal={handleCloseModal}
+              />
+            )}
+          </View>
+        )}
 
-          <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8">
-            <TouchableOpacity>
+        <View>
+          <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8 z-10">
+            <TouchableOpacity onPress={handleReloadPosts}>
               <Image source={icons.refresh} className="w-8 h-8" />
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleNewPostPress}>
               <Image source={icons.pencil} className="w-7 h-7" />
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* <Button title="New Post" onPress={handleNewPostPress} />
-        {loading ? (
-          <ActivityIndicator size="large" color="#0000ff" />
-        ) : error ? (
-          <Text>{error}</Text>
-        ) : (
-          <View>
-            <FlatList
-              data={posts}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handlePostPress(item)}>
-                  <View>
-                    <Text>CLICK ME</Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-            />
-            {selectedPost && (
-              <ReactNativeModal isVisible={!!selectedPost}>
-                <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
-                  <Text>{selectedPost.content}</Text>
-                  <Text>
-                    Posted by: {selectedPost.firstname} {selectedPost.lastname}
-                    {"\n"}
-                    {selectedPost.city}, {selectedPost.state},{" "}
-                    {selectedPost.country}
-                  </Text>
-                  <View>
-                    <Text>Likes: {selectedPost.likes_count}</Text>
-                    <Text>Comments: {selectedPost.reports_count}</Text>
-                  </View>
-                  <Button title="Close" onPress={handleCloseModal} />
-                </View>
-              </ReactNativeModal>
-            )} */}
-        {/* </View> */}
-        {/* )} */}
       </SignedIn>
     </SafeAreaView>
   );

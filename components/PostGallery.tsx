@@ -1,34 +1,10 @@
+import PostModal from "@/components/PostModal";
+import { Post, UserPostsGalleryProps } from "@/types/type";
 import React, { useState } from "react";
-import {
-  Button,
-  FlatList,
-  Text,
-  TouchableOpacity,
-  View,
-  ScrollView,
-  Image,
-} from "react-native";
-import ReactNativeModal from "react-native-modal";
-import { icons } from "@/constants/index";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-
-interface Post {
-  id: number;
-  user_id: string;
-  firstname: string;
-  content: string;
-  created_at: string;
-  likes_count: number;
-  report_count: number;
-}
-
-interface UserPostsGalleryProps {
-  posts: Post[];
-}
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [likedPost, setLikedPost] = useState<boolean>(false);
 
   const truncateText = (text: string, maxLength: number) => {
     if (text.length > maxLength) {
@@ -48,7 +24,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
           {truncateText(item.content, 100)}
         </Text>
         <View className="flex-row justify-end">
-          <Text className="text-gray-500">Likes: {item.likes_count}</Text>
+          <Text className="text-gray-500">Likes: {item.like_count}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -68,26 +44,11 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
         showsVerticalScrollIndicator={false}
       />
       {selectedPost && (
-        <ReactNativeModal isVisible={!!selectedPost}>
-          <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto"> 
-            <TouchableOpacity onPress={handleCloseModal}>
-              <Image className="w-6 h-6" source={icons.close} style={{alignSelf: "flex-end"}}/>
-            </TouchableOpacity>
-            <ScrollView>
-              <Text className="text-[16px] mb-2 font-Jakarta">{selectedPost.content}</Text> 
-            </ScrollView>
-            <View className="my-2">
-              <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
-                <MaterialCommunityIcons
-                  name={likedPost ? "heart" : "heart-outline"}
-                  size={32}
-                  color={likedPost ? "red" : "black"}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-      </ReactNativeModal>
-      
+        <PostModal
+          isVisible={!!selectedPost}
+          post={selectedPost}
+          handleCloseModal={handleCloseModal}
+        />
       )}
     </View>
   );
