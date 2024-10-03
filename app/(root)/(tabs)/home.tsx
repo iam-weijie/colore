@@ -1,14 +1,18 @@
 import PostIt from "@/components/PostIt";
+import PostModal from "@/components/PostModal";
 import { icons } from "@/constants";
-import { SignedIn } from "@clerk/clerk-expo";
+import { Post } from "@/types/type";
+import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import PostModal from "@/components/PostModal";
-import { Image, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "@clerk/clerk-expo";
-import { Post } from "@/types/type";
-import { PostWithPosition } from "@/types/type";
 
 export default function Page() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -16,19 +20,20 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const { user } = useUser();
- 
 
   const fetchRandomPosts = async () => {
     try {
-      const response = await fetch(`/(api)/(posts)/getRandomPosts?number=${3}&id=${user!.id}`);
+      const response = await fetch(
+        `/(api)/(posts)/getRandomPosts?number=${3}&id=${user!.id}`
+      );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
       // set positions of posts
       const postsWithPositions = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 300, 
-          left: Math.random() * 200, 
+          top: Math.random() * 300,
+          left: Math.random() * 200,
         },
       }));
       setPosts(postsWithPositions);
@@ -64,9 +69,9 @@ export default function Page() {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-          <View className="flex-row justify-between items-center p-3">
-            <Text className="text-2xl font-JakartaBold">Coloré</Text>
-          </View>
+        <View className="flex-row justify-between items-center p-3">
+          <Text className="text-2xl font-JakartaBold">Coloré</Text>
+        </View>
         {loading ? (
           <SafeAreaView className="flex-1">
             <View className="flex-1 justify-center items-center">
@@ -77,27 +82,30 @@ export default function Page() {
           <Text>{error}</Text>
         ) : (
           <View className="relative flex-1">
-          {posts.map((post, index) => {
-            return (
-              <TouchableOpacity
-                key={post.id}
-                onPress={() => handlePostPress(post)}
-                style={{ position: "absolute", top: post.position.top, left: post.position.left }}
-              >
-                <PostIt />
-              </TouchableOpacity>
-            );
-          })}
+            {posts.map((post, index) => {
+              return (
+                <TouchableOpacity
+                  key={post.id}
+                  onPress={() => handlePostPress(post)}
+                  style={{
+                    position: "absolute",
+                    top: post.position.top,
+                    left: post.position.left,
+                  }}
+                >
+                  <PostIt />
+                </TouchableOpacity>
+              );
+            })}
 
-          {selectedPost && (
-            <PostModal 
-              isVisible={!!selectedPost}
-              post={selectedPost}
-              handleCloseModal={handleCloseModal}
-            />
-          )}
-        </View>
-
+            {selectedPost && (
+              <PostModal
+                isVisible={!!selectedPost}
+                post={selectedPost}
+                handleCloseModal={handleCloseModal}
+              />
+            )}
+          </View>
         )}
 
         <View>
