@@ -20,6 +20,7 @@ import { fetchAPI } from "@/lib/fetch";
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     email: "",
@@ -32,8 +33,16 @@ const SignUp = () => {
     code: "",
   });
 
+  const handleConfirmPassword = (value: string) => {
+    if (form.password !== value) {
+      setError("* Passwords do not match");
+    } else {
+      setError("");
+    }
+  };
+
   const onSignUpPress = async () => {
-    if (!isLoaded) {
+    if (!isLoaded || error) {
       return;
     }
 
@@ -107,6 +116,7 @@ const SignUp = () => {
             value={form.email}
             onChangeText={(value) => setForm({ ...form, email: value })}
           />
+
           <InputField
             label="Password"
             placeholder="Enter your password"
@@ -117,10 +127,23 @@ const SignUp = () => {
             onChangeText={(value) => setForm({ ...form, password: value })}
           />
 
+          <InputField
+            label=""
+            placeholder="Confirm your password"
+            icon={icons.lock}
+            secureTextEntry={true}
+            textContentType="password"
+            onChangeText={handleConfirmPassword}
+            containerStyle="mt-[-20px]"
+          />
+          {error ? (
+            <Text className="text-red-500 text-sm mt-1">{error}</Text>
+          ) : null}
+
           <CustomButton
             title="Sign Up"
             onPress={onSignUpPress}
-            className="mt-12"
+            className="mt-6"
           />
 
           <OAuth />
