@@ -2,7 +2,7 @@ import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
 import { icons } from "@/constants";
 import { Post } from "@/types/type";
-import { SignedIn, useUser } from "@clerk/clerk-expo";
+import { SignedIn, useAuth, useUser, useSession } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -15,6 +15,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Page() {
+  //const { user } = useUser();
+  //console.log(user);
+  //const { isLoaded, isSignedIn, session } = useSession();
+  //console.log("session: ", session);
+  //useAuth();
+  //router.replace("/(auth)/log-in");
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

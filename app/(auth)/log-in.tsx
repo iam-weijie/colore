@@ -2,7 +2,7 @@ import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
 import { icons, images } from "@/constants";
-import { useSignIn } from "@clerk/clerk-expo";
+import { useSignIn, useSession } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
@@ -10,7 +10,11 @@ import { Alert, Image, ScrollView, Text, View } from "react-native";
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
-
+  //const { isLoaded1, isSignedIn, session } = useSession();
+  //console.log("isLoggedIn: ", isSignedIn);
+  //console.log("isLoaded: ", isLoaded1);
+  //console.log("session: ", session);
+  //session?.end();
   const [form, setForm] = useState({
     email: "",
     password: "",
