@@ -74,8 +74,12 @@ const LogIn = () => {
           <CustomButton
             title="Log In"
             onPress={onLogInPress}
-            className="mt-12"
+            className="mt-6"
           />
+
+          <Text className="text-base text-center text-general-200 mt-6">
+            Forgot your password?
+          </Text>
 
           <OAuth />
 
