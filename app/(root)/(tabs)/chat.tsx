@@ -2,21 +2,13 @@ import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
-  StyleSheet,
-  Text,
   TextInput,
+  Text, 
   TouchableOpacity,
   View,
 } from "react-native";
+import { ConversationItem, ChatTabProps } from "../../../types/type";
 
-interface ConversationItem {
-  id: string;
-  name: string;
-  lastMessageContent: string;
-  lastMessageTimestamp: Date;
-}
-
-interface ChatTabProps {}
 
 const Chat: React.FC<ChatTabProps> = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -60,12 +52,12 @@ const Chat: React.FC<ChatTabProps> = () => {
   }: {
     item: ConversationItem;
   }): React.ReactElement => (
-    <View style={styles.conversationItem}>
-      <Text style={styles.name}>{item.name}</Text>
-      <Text style={styles.lastMessage}>{item.lastMessageContent}</Text>
-      <Text style={styles.timestamp}>
-        {new Date(item.lastMessageTimestamp).toLocaleString()}
-      </Text>
+    <View className="flex flex-row justify-between items-center p-4 border-b border-gray-200">
+      <View>
+        <Text className="text-lg font-bold mb-2">{item.name}</Text>
+        <Text className="text-gray-600 text-sm mb-2">{item.lastMessageContent}</Text>
+      </View>
+      <Text className="text-xs text-gray-400">{new Date(item.lastMessageTimestamp).toLocaleString()}</Text>
     </View>
   );
 
@@ -74,22 +66,20 @@ const Chat: React.FC<ChatTabProps> = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        <View style={styles.searchBarContainer}>
-          <View style={{ flex: 1 }}>
-            <TextInput
-              style={[styles.searchBar, { marginLeft: 8 }]}
-              placeholder="Search conversations..."
-              value={searchText}
-              onChangeText={(text): void => setSearchText(text)}
-            />
-          </View>
+    <View className="flex-1 bg-gray-100">
+      <View className="flex-1 pt-16">
+        <View className="flex flex-row items-center mx-4 mb-4">
+          <TextInput
+            className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Search conversations..."
+            value={searchText}
+            onChangeText={(text): void => setSearchText(text)}
+          />
           <TouchableOpacity
             onPress={handleCreateNewConversation}
-            style={styles.createButton}
+            className="w-10 h-10 ml-2 flex justify-center items-center bg-blue-600 rounded-full"
           >
-            <Text style={styles.createButtonText}>+</Text>
+            <Text className="text-white text-xl">+</Text>
           </TouchableOpacity>
         </View>
         <FlatList
@@ -102,61 +92,4 @@ const Chat: React.FC<ChatTabProps> = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  contentContainer: {
-    flex: 1,
-    paddingTop: 64,
-  },
-  searchBarContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 16,
-  },
-  searchBar: {
-    height: 34,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    fontSize: 16,
-    marginRight: 8,
-  },
-  createButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#007AFF",
-    borderRadius: 20,
-  },
-  createButtonText: {
-    fontSize: 26,
-    color: "white",
-  },
-  conversationItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  lastMessage: {
-    color: "#666",
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  timestamp: {
-    color: "#999",
-    fontSize: 12,
-  },
-});
-
-export default Chat;
+export default Chat;  
