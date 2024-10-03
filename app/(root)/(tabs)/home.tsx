@@ -4,8 +4,9 @@ import { SignedIn } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import PostModal from "@/components/PostModal";
-import { Image, Text, TouchableOpacity, View, FlatList, Button, ActivityIndicator } from "react-native";
+import { Image, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "@clerk/clerk-expo";
 import { Post } from "@/types/type";
 
 interface PostWithPosition extends Post {
@@ -20,11 +21,12 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
+  const { user } = useUser();
  
 
   const fetchRandomPosts = async () => {
     try {
-      const response = await fetch(`/(api)/(posts)/getRandomPosts?number=${3}`);
+      const response = await fetch(`/(api)/(posts)/getRandomPosts?number=${3}&id=${user!.id}`);
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
       // set positions of posts
