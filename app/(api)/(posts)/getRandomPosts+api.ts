@@ -5,6 +5,7 @@ export async function GET(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const number = url.searchParams.get("number");
+    const userId = url.searchParams.get("Id");
     console.log("Received GET request for random posts.");
 
     // comments table to be joined later :]
