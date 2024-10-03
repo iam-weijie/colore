@@ -1,13 +1,7 @@
-import React, { useState } from "react";
-import {
-  FlatList,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import PostModal from "@/components/PostModal";
-import { Post } from "@/types/type";
-import { UserPostsGalleryProps } from "@/types/type";
+import { Post, UserPostsGalleryProps } from "@/types/type";
+import React, { useState } from "react";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -50,11 +44,11 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
         showsVerticalScrollIndicator={false}
       />
       {selectedPost && (
-        <PostModal 
+        <PostModal
           isVisible={!!selectedPost}
           post={selectedPost}
           handleCloseModal={handleCloseModal}
-        />  
+        />
       )}
     </View>
   );
