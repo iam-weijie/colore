@@ -29,6 +29,37 @@ declare interface Post {
   report_count: number;
 }
 
+declare interface UserProfileType {
+  id: number;
+  clerk_id: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  date_of_birth: string;
+  city: string;
+  state: string;
+  country: string;
+  is_paid_user: boolean;
+  report_count: number;
+}
+
+declare interface UserData {
+  userInfo: UserProfile;
+  posts: Post[];
+}
+
+declare interface PostWithPosition extends Post {
+  position: {
+    top: number;
+    left: number;
+  };
+}
+
+declare interface NavigationContextType {
+  stateVars: any;
+  setStateVars: (state: any) => void;
+}
+
 declare interface ButtonProps extends TouchableOpacityProps {
   title: string;
   bgVariant?: "primary" | "secondary" | "danger" | "outline" | "success";
@@ -37,6 +68,27 @@ declare interface ButtonProps extends TouchableOpacityProps {
   IconRight?: React.ComponentType<any>;
   className?: string;
 }
+
+declare interface UserPostsGalleryProps {
+  posts: Post[];
+}
+
+declare interface UserProfileProps {
+  userId: string;
+  isEditable: boolean;
+  onSignOut?: () => void;
+}
+
+declare interface PostModalProps {
+  isVisible: boolean;
+  post: Post | null;
+  handleCloseModal: () => void;
+}
+
+declare interface UserPostsGalleryProps {
+  posts: Post[];
+}
+
 
 declare interface InputFieldProps extends TextInputProps {
   label: string;

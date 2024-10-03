@@ -5,12 +5,7 @@ import { icons } from "@/constants/index";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Post } from "@/types/type";
 import { useState } from "react";
-
-interface PostModalProps {
-  isVisible: boolean;
-  post: Post | null;
-  handleCloseModal: () => void;
-}
+import { PostModalProps } from "@/types/type";
 
 const PostModal: React.FC<PostModalProps> = ({ isVisible, post, handleCloseModal, }) => {
   const [likedPost, setLikedPost] = useState<boolean>(false);

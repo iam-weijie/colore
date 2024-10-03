@@ -7,10 +7,7 @@ import {
 } from "react-native";
 import PostModal from "@/components/PostModal";
 import { Post } from "@/types/type";
-
-interface UserPostsGalleryProps {
-  posts: Post[];
-}
+import { UserPostsGalleryProps } from "@/types/type";
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);

@@ -1,15 +1,11 @@
 import React, { createContext, useContext, useState } from "react";
+import { NavigationContextType } from "@/types/type";
 
 // allows maintenance of state across multiple screens
 // helpful to preserve user-entered values even if they navigate away from that screen
 // must wrap the component in the NavigationProvider component
 // then set or access the state variables by using the hook:
 // const { state, setState } = useNavigationContext(); // Access context state and setter
-
-interface NavigationContextType {
-  stateVars: any;
-  setStateVars: (state: any) => void;
-}
 
 const NavigationContext = createContext<NavigationContextType | undefined>(
   undefined,

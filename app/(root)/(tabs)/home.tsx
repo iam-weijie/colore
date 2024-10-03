@@ -8,13 +8,7 @@ import { Image, Text, TouchableOpacity, View, ActivityIndicator } from "react-na
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import { Post } from "@/types/type";
-
-interface PostWithPosition extends Post {
-  position: {
-    top: number;
-    left: number;
-  };
-}
+import { PostWithPosition } from "@/types/type";
 
 export default function Page() {
   const [posts, setPosts] = useState<any[]>([]);
