@@ -15,51 +15,16 @@ import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
+import { Post, UserProfileType, UserProfileProps, UserData } from "@/types/type";
 
-interface UserProfile {
-  city: string;
-  clerk_id: string;
-  country: string;
-  date_of_birth: string;
-  email: string;
-  firstname: string;
-  id: number;
-  is_paid_user: boolean;
-  lastname: string;
-  report_count: number;
-  state: string;
-}
-
-interface UserData {
-  userInfo: UserProfile;
-  posts: Post[];
-}
-
-interface Post {
-  id: number;
-  user_id: string;
-  firstname: string;
-  content: string;
-  created_at: string;
-  likes_count: number;
-  report_count: number;
-}
-
-
-interface Props {
-  userId: string;
-  isEditable: boolean;
-  onSignOut?: () => void;
-}
-
-const UserProfile: React.FC<Props> = ({
+const UserProfile: React.FC<UserProfileProps> = ({
   userId,
   isEditable,
   onSignOut,
 }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
+  const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const { stateVars, setStateVars } = useNavigationContext();
   const route = useRoute();
@@ -100,7 +65,7 @@ const UserProfile: React.FC<Props> = ({
 
   if (loading) return (
     <SafeAreaView className="flex-1">
-      <View className="flex flex-row items-center justify-between">
+      <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     </SafeAreaView>

@@ -3,7 +3,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput } from "react-native";
+import { Alert, Text, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const NewPost = () => {
@@ -12,7 +12,6 @@ const NewPost = () => {
 
   const handlePostSubmit = async () => {
     const cleanedContent = postContent.trim();
-    console.log(user!.id);
     // additional sanitization needed
 
     if (cleanedContent === "") {
@@ -45,34 +44,11 @@ const NewPost = () => {
           value={postContent}
           onChangeText={setPostContent}
           multiline
-          style={styles.textInput}
         />
         <CustomButton title="Submit Post" onPress={handlePostSubmit} />
       </SignedIn>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 20,
-    marginBottom: 16,
-  },
-  textInput: {
-    height: 150,
-    width: "100%",
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 8,
-    marginBottom: 16,
-  },
-});
 
 export default NewPost;

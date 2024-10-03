@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const { content, clerkId } = await request.json();
 
     const response = await sql`
-      INSERT INTO posts (user_id, content, likes_count, report_count)
+      INSERT INTO posts (user_id, content, like_count, report_count)
       VALUES (${clerkId}, ${content}, 0, 0)
       RETURNING id;
     `;

@@ -1,3 +1,4 @@
+import { NavigationContextType } from "@/types/type";
 import React, { createContext, useContext, useState } from "react";
 
 // allows maintenance of state across multiple screens
@@ -6,13 +7,8 @@ import React, { createContext, useContext, useState } from "react";
 // then set or access the state variables by using the hook:
 // const { state, setState } = useNavigationContext(); // Access context state and setter
 
-interface NavigationContextType {
-  stateVars: any;
-  setStateVars: (state: any) => void;
-}
-
 const NavigationContext = createContext<NavigationContextType | undefined>(
-  undefined,
+  undefined
 );
 
 // component that will pass context to children
@@ -34,7 +30,7 @@ export const useNavigationContext = () => {
   const context = useContext(NavigationContext);
   if (!context) {
     throw new Error(
-      "useNavigationContext must be used within a NavigationProvider",
+      "useNavigationContext must be used within a NavigationProvider"
     );
   }
   return context;

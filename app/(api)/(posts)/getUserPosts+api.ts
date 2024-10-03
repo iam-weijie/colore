@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       p.content, 
       u.firstname,
       p.created_at,
-      p.likes_count, 
+      p.like_count, 
       p.report_count,
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
