@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState } from "react";
 import { NavigationContextType } from "@/types/type";
+import React, { createContext, useContext, useState } from "react";
 
 // allows maintenance of state across multiple screens
 // helpful to preserve user-entered values even if they navigate away from that screen
@@ -8,7 +8,7 @@ import { NavigationContextType } from "@/types/type";
 // const { state, setState } = useNavigationContext(); // Access context state and setter
 
 const NavigationContext = createContext<NavigationContextType | undefined>(
-  undefined,
+  undefined
 );
 
 // component that will pass context to children
@@ -30,7 +30,7 @@ export const useNavigationContext = () => {
   const context = useContext(NavigationContext);
   if (!context) {
     throw new Error(
-      "useNavigationContext must be used within a NavigationProvider",
+      "useNavigationContext must be used within a NavigationProvider"
     );
   }
   return context;
