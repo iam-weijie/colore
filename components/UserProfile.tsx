@@ -81,7 +81,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   return (
     <SafeAreaView className="flex-1">
-      <View className="px-5" contentContainerStyle={{ paddingBottom: 20 }}>
+      <View className="px-5">
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
             <TouchableOpacity
