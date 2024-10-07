@@ -1,21 +1,26 @@
-import { useState, useEffect } from "react";
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  Text,
-  Pressable,
-  ActivityIndicator,
-  Image,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { fetchAPI } from "@/lib/fetch";
-import { icons } from "@/constants/index";
-import { useRoute } from "@react-navigation/native";
-import { useRouter } from "expo-router";
 import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
-import { Post, UserProfileType, UserProfileProps, UserData } from "@/types/type";
+import { icons } from "@/constants/index";
+import { fetchAPI } from "@/lib/fetch";
+import {
+  Post,
+  UserData,
+  UserProfileProps,
+  UserProfileType,
+} from "@/types/type";
+import { useRoute } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const UserProfile: React.FC<UserProfileProps> = ({
   userId,
@@ -44,9 +49,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchAPI(`/(api)/(users)/getUserInfoPosts?id=${userId}`, {
-          method: "GET",
-        });
+        const response = await fetchAPI(
+          `/(api)/(users)/getUserInfoPosts?id=${userId}`,
+          {
+            method: "GET",
+          }
+        );
         if (response.error) {
           throw new Error(response.error);
         }
@@ -63,25 +71,27 @@ const UserProfile: React.FC<UserProfileProps> = ({
     fetchUserData();
   }, [userId]);
 
-  if (loading) return (
-    <SafeAreaView className="flex-1">
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    </SafeAreaView>
-  );
-  
-  if (error) return (
-    <SafeAreaView className="flex-1">
-      <View className="flex flex-row items-center justify-between">
-        <Text>An error occurred</Text>
-      </View>
-    </SafeAreaView>
-  );
+  if (loading)
+    return (
+      <SafeAreaView className="flex-1">
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      </SafeAreaView>
+    );
+
+  if (error)
+    return (
+      <SafeAreaView className="flex-1">
+        <View className="flex flex-row items-center justify-between">
+          <Text>An error occurred</Text>
+        </View>
+      </SafeAreaView>
+    );
 
   return (
     <SafeAreaView className="flex-1">
-      <View className="px-5" contentContainerStyle={{ paddingBottom: 20 }}>
+      <View className="px-5">
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
             <TouchableOpacity
@@ -101,7 +111,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </Text>
           {isEditable && onSignOut && (
             <TouchableOpacity onPress={onSignOut}>
-              <Image source={icons.logout} className="w-5 h-5"/>
+              <Image source={icons.logout} className="w-5 h-5" />
             </TouchableOpacity>
           )}
         </View>
@@ -117,7 +127,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </Pressable>
         </View>
       </View>
-      <PostGallery posts={userPosts} /> 
+      <PostGallery posts={userPosts} />
     </SafeAreaView>
   );
 };
