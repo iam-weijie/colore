@@ -15,8 +15,8 @@ declare interface User {
 }
 
 declare interface Post {
+  id: string;
   user_id: number;
-  post_id: string;
   firstname: string;
   content: string;
   created_date: Date;
