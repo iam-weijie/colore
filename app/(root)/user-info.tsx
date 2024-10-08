@@ -46,7 +46,6 @@ const UserInfo = () => {
         );
         if (response.error) {
           if (response.error === "User not found") {
-            console.log("User not found, creating new user");
             await fetchAPI("/(api)/(users)/newUser", {
               method: "POST",
               body: JSON.stringify({
@@ -67,6 +66,7 @@ const UserInfo = () => {
         console.error("Failed to fetch user data:", error);
       }
     };
+
     const getData = async () => {
       const data = await fetchUserData();
       setUserData({
@@ -90,7 +90,7 @@ const UserInfo = () => {
     userData.lastname &&
     userData.date_of_birth
   ) {
-    router.push("/(root)/(tabs)/home");
+    router.replace("/(root)/(tabs)/home");
   }
 
   const route = useRoute();

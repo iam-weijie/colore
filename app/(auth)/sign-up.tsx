@@ -171,7 +171,7 @@ const SignUp = () => {
               }
               className="absolute right-0 p-4"
             >
-              <Image source={icons.close} className="w-3.5 h-3.5" />
+              <Image source={icons.close} className="w-5 h-5" />
             </TouchableOpacity>
             <Text className="text-2xl font-JakartaExtraBold mb-2">
               Verification
