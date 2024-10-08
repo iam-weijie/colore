@@ -53,7 +53,7 @@ export default function Page() {
 
   useEffect(() => {
     fetchRandomPosts();
-  }, []);
+  });
 
   const handlePostPress = (post: any) => {
     setSelectedPost(post);
