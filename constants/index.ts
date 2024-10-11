@@ -1,9 +1,11 @@
 import album from "@/assets/icons/album.png";
+import back from "@/assets/icons/back.svg";
 import chat from "@/assets/icons/chat.png";
 import check from "@/assets/icons/check.png";
 import close from "@/assets/icons/close.png";
 import email from "@/assets/icons/email.png";
 import google from "@/assets/icons/google.png";
+import heart from "@/assets/icons/heart.png";
 import home from "@/assets/icons/home.png";
 import lock from "@/assets/icons/lock.png";
 import logout from "@/assets/icons/logout.png";
@@ -14,8 +16,6 @@ import profile from "@/assets/icons/profile.png";
 import refresh from "@/assets/icons/refresh.png";
 import search from "@/assets/icons/search.png";
 import trash from "@/assets/icons/trash.png";
-import back from "@/assets/icons/back.svg";
-import heart from "@/assets/icons/heart.png";
 
 import login from "@/assets/images/login.png";
 import signup from "@/assets/images/signup.png";
@@ -38,7 +38,7 @@ export const icons = {
   pencil,
   refresh,
   back,
-  heart
+  heart,
 };
 
 export const images = {

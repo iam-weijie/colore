@@ -23,7 +23,6 @@ export async function GET(request: Request) {
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
-
   } catch (error) {
     console.error(error);
     return new Response(

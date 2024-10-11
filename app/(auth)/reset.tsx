@@ -1,24 +1,15 @@
-import { useSignUp } from "@clerk/clerk-expo";
-import { Link, router } from "expo-router";
+import { useSignIn } from "@clerk/clerk-expo";
+import { router } from "expo-router";
 import { useState } from "react";
-import {
-  Alert,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { ReactNativeModal } from "react-native-modal";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
-import OAuth from "@/components/OAuth";
-import { icons, images } from "@/constants";
-import { fetchAPI } from "@/lib/fetch";
+import { icons } from "@/constants";
 
-const SignUp = () => {
-  const { isLoaded, signUp, setActive } = useSignUp();
+const PwReset = () => {
+  const { signIn } = useSignIn();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,59 +32,31 @@ const SignUp = () => {
     }
   };
 
-  const onSignUpPress = async () => {
-    if (!isLoaded || error) {
-      return;
-    }
-
+  // Request a password reset code by email
+  const onRequestReset = async () => {
     try {
-      await signUp.create({
-        emailAddress: form.email,
-        password: form.password,
+      await signIn!.create({
+        strategy: "reset_password_email_code",
+        identifier: form.email,
       });
-
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-
       setVerification({ ...verification, state: "pending" });
     } catch (err: any) {
-      Alert.alert("Error", err.errors[0].longMessage);
+      alert(err.errors[0].message);
     }
   };
 
-  const onPressVerify = async () => {
-    if (!isLoaded) {
-      return;
-    }
-
+  // Reset the password with the code and the new password
+  const onReset = async () => {
     try {
-      const completeSignUp = await signUp.attemptEmailAddressVerification({
+      await signIn!.attemptFirstFactor({
+        strategy: "reset_password_email_code",
         code: verification.code,
+        password: form.password,
       });
 
-      if (completeSignUp.status === "complete") {
-        await fetchAPI("/(api)/(users)/newUser", {
-          method: "POST",
-          body: JSON.stringify({
-            email: form.email,
-            clerkId: completeSignUp.createdUserId,
-          }),
-        });
-
-        await setActive({ session: completeSignUp.createdSessionId });
-        setVerification({ ...verification, state: "success" });
-      } else {
-        setVerification({
-          ...verification,
-          state: "pending",
-          error: "Verification failed. Please try again.",
-        });
-      }
+      setVerification({ ...verification, state: "success" });
     } catch (err: any) {
-      setVerification({
-        ...verification,
-        state: "pending",
-        error: err.errors[0].longMessage,
-      });
+      alert(err.errors[0].message);
     }
   };
 
@@ -101,9 +64,8 @@ const SignUp = () => {
     <ScrollView className="flex-1 bg-white">
       <View className="flex-1 bg-white ">
         <View className="relative w-full h-[250px]">
-          <Image source={images.signup} className="z-0 w-full h-[250px] " />
           <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5">
-            Create Your Account
+            Reset Your Password
           </Text>
         </View>
 
@@ -117,43 +79,11 @@ const SignUp = () => {
             onChangeText={(value) => setForm({ ...form, email: value })}
           />
 
-          <InputField
-            label="Password"
-            placeholder="Enter your password"
-            icon={icons.lock}
-            value={form.password}
-            secureTextEntry={true}
-            textContentType="password"
-            onChangeText={(value) => setForm({ ...form, password: value })}
-          />
-
-          <InputField
-            label=""
-            placeholder="Confirm your password"
-            icon={icons.lock}
-            secureTextEntry={true}
-            textContentType="password"
-            onChangeText={handleConfirmPassword}
-            containerStyle="mt-[-20px]"
-          />
-          {error ? (
-            <Text className="text-red-500 text-sm mt-1">{error}</Text>
-          ) : null}
-
           <CustomButton
-            title="Sign Up"
-            onPress={onSignUpPress}
-            className="mt-6"
+            title="Continue"
+            onPress={onRequestReset}
+            className="mt-10"
           />
-
-          <OAuth />
-
-          <Text className="text-base text-center text-general-200 mt-10">
-            Already have an account?{" "}
-            <Link href="/log-in">
-              <Text className="text-primary-500">Log In</Text>
-            </Link>
-          </Text>
         </View>
 
         <ReactNativeModal
@@ -197,9 +127,32 @@ const SignUp = () => {
               </Text>
             )}
 
+            <InputField
+              label="Password"
+              placeholder="Enter new password"
+              icon={icons.lock}
+              value={form.password}
+              secureTextEntry={true}
+              textContentType="password"
+              onChangeText={(value) => setForm({ ...form, password: value })}
+            />
+
+            <InputField
+              label=""
+              placeholder="Confirm your password"
+              icon={icons.lock}
+              secureTextEntry={true}
+              textContentType="password"
+              onChangeText={handleConfirmPassword}
+              containerStyle="mt-[-20px]"
+            />
+            {error ? (
+              <Text className="text-red-500 text-sm mt-1">{error}</Text>
+            ) : null}
+
             <CustomButton
-              title="Verify Email"
-              onPress={onPressVerify}
+              title="Reset Password"
+              onPress={onReset}
               className="mt-5 bg-success-500"
             />
           </View>
@@ -213,15 +166,15 @@ const SignUp = () => {
             />
 
             <Text className="text-3xl font-JakartaBold text-center">
-              Verified
+              Success
             </Text>
 
             <Text className="text-base text-gray-400 font-Jakarta text-center mt-2">
-              You have been successfully verified.
+              Password reset successfully.
             </Text>
 
             <CustomButton
-              title="Continue"
+              title="Start"
               onPress={() => {
                 setShowSuccessModal(false);
                 router.push("/(root)/user-info");
@@ -235,4 +188,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default PwReset;

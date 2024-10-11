@@ -2,7 +2,7 @@ import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
 import { icons, images } from "@/constants";
-import { useSignIn, useSession } from "@clerk/clerk-expo";
+import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
@@ -44,8 +44,6 @@ const LogIn = () => {
     }
   }, [isLoaded, form, signIn, setActive, router]);
 
-  // TODO: forgot password
-
   return (
     <ScrollView className="flex-1 bg-white">
       <View className="flex-1 bg-white ">
@@ -80,9 +78,8 @@ const LogIn = () => {
             onPress={onLogInPress}
             className="mt-6"
           />
-
           <Text className="text-base text-center text-general-200 mt-6">
-            Forgot your password?
+            <Link href="/reset">Forgot your password?</Link>
           </Text>
 
           <OAuth />
