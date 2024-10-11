@@ -4,8 +4,11 @@ import { useState } from "react";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationContext } from "../../../components/NavigationContext";
+import { fetchAPI } from "@/lib/fetch";
+import { useUser } from "@clerk/clerk-expo";
 
 const City = () => {
+  const { user } = useUser();
   const { stateVars, setStateVars } = useNavigationContext();
   const { state, country } = useLocalSearchParams();
 
@@ -18,7 +21,7 @@ const City = () => {
   const handleCityPress = (city: string) => {
     setSelectedCity(city);
   };
-  const handleConfirmPress = () => {
+  const handleConfirmPress = async () => {
     setStateVars({
       ...stateVars,
       city: selectedCity,
@@ -26,6 +29,22 @@ const City = () => {
       country: country,
       userLocation: `${selectedCity}, ${state}, ${country}`,
     });
+    
+    // update user info if they're coming from profile, otherwise
+    // send them back to the user info page
+    // without updating the database
+    if (stateVars.previousScreen === "profile") {
+      await fetchAPI("/(api)/(users)/patchUserInfo", {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user!.id,
+          country: country,
+          state: state,
+          city: selectedCity,
+        }),
+      });
+    }
+
     router.replace(`/(root)/${stateVars.previousScreen}` as Href<string>);
   };
 
