@@ -2,7 +2,7 @@ import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
 import { icons } from "@/constants";
 import { Post } from "@/types/type";
-import { SignedIn, useAuth, useUser, useSession } from "@clerk/clerk-expo";
+import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -53,7 +53,7 @@ export default function Page() {
 
   useEffect(() => {
     fetchRandomPosts();
-  }, []);
+  });
 
   const handlePostPress = (post: any) => {
     setSelectedPost(post);

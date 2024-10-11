@@ -49,7 +49,7 @@ export async function GET(request: Request) {
 
     // no post id, do not return posts
     if (!response[0].post_id) {
-      return new Response(JSON.stringify({ userInfo , posts: []}), {
+      return new Response(JSON.stringify({ userInfo, posts: [] }), {
         status: 200,
       });
     }
@@ -66,7 +66,6 @@ export async function GET(request: Request) {
     return new Response(JSON.stringify({ userInfo, posts: userPosts }), {
       status: 200,
     });
-
   } catch (error) {
     console.error(error);
     return new Response(
