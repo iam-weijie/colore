@@ -6,13 +6,16 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
 
+    console.log("Received GET request for user posts.");
+
     const response = await sql`
       SELECT 
       p.id, 
       p.content, 
-      p.likes_count, 
+      u.firstname,
+      p.created_at,
+      p.like_count, 
       p.report_count,
-      u.clerk_id
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       WHERE u.clerk_id = ${clerkId}

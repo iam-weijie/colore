@@ -10,7 +10,11 @@ import { Alert, Image, ScrollView, Text, View } from "react-native";
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
-
+  //const { isLoaded1, isSignedIn, session } = useSession();
+  //console.log("isLoggedIn: ", isSignedIn);
+  //console.log("isLoaded: ", isLoaded1);
+  //console.log("session: ", session);
+  //session?.end();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -39,8 +43,6 @@ const LogIn = () => {
       Alert.alert("Error", err.errors[0].longMessage);
     }
   }, [isLoaded, form, signIn, setActive, router]);
-
-  // TODO: forgot password
 
   return (
     <ScrollView className="flex-1 bg-white">
@@ -74,8 +76,11 @@ const LogIn = () => {
           <CustomButton
             title="Log In"
             onPress={onLogInPress}
-            className="mt-12"
+            className="mt-6"
           />
+          <Text className="text-base text-center text-general-200 mt-6">
+            <Link href="/reset">Forgot your password?</Link>
+          </Text>
 
           <OAuth />
 

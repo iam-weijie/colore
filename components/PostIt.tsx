@@ -2,7 +2,7 @@ import { View } from "react-native";
 
 const PostIt = () => {
   return (
-    <View className="absolute left-10 top-36">
+    <View>
       {/* Bottom Half with Shadow */}
       <View className="bg-yellow-300 rounded-b-2xl w-40 h-32 absolute bottom-0 shadow-lg" />
 

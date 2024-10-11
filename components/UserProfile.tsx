@@ -1,6 +1,13 @@
 import { useNavigationContext } from "@/components/NavigationContext";
+import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
+import {
+  Post,
+  UserData,
+  UserProfileProps,
+  UserProfileType,
+} from "@/types/type";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -15,30 +22,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-interface UserProfile {
-  city: string;
-  clerk_id: string;
-  country: string;
-  date_of_birth: string;
-  email: string;
-  firstname: string;
-  id: number;
-  is_paid_user: boolean;
-  lastname: string;
-  report_count: number;
-  state: string;
-}
-
-interface Props {
-  userId: string;
-  isEditable: boolean;
-  onSignOut?: () => void;
-}
-
-const UserProfile: React.FC<Props> = ({ userId, isEditable, onSignOut }) => {
+const UserProfile: React.FC<UserProfileProps> = ({
+  userId,
+  isEditable,
+  onSignOut,
+}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
+  const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
   const { stateVars, setStateVars } = useNavigationContext();
   const route = useRoute();
   const router = useRouter();
@@ -49,7 +41,7 @@ const UserProfile: React.FC<Props> = ({ userId, isEditable, onSignOut }) => {
       ...stateVars,
       previousScreen: currentScreen,
     });
-    router.push("/(root)/country");
+    router.push("/(root)/(location)/country");
   };
 
   useEffect(() => {
@@ -58,7 +50,7 @@ const UserProfile: React.FC<Props> = ({ userId, isEditable, onSignOut }) => {
       setError(null);
       try {
         const response = await fetchAPI(
-          `/(api)/(users)/getUserInfo?id=${userId}`,
+          `/(api)/(users)/getUserInfoPosts?id=${userId}`,
           {
             method: "GET",
           }
@@ -66,11 +58,9 @@ const UserProfile: React.FC<Props> = ({ userId, isEditable, onSignOut }) => {
         if (response.error) {
           throw new Error(response.error);
         }
-
-        // data being returned as array
-        const profile = response.data[0] as UserProfile;
-        setProfileUser(profile);
-        console.log(profile);
+        const { userInfo, posts } = response as UserData;
+        setProfileUser(userInfo);
+        setUserPosts(posts);
       } catch (error) {
         setError("Failed to fetch user data.");
         console.error("Failed to fetch user data:", error);
@@ -81,12 +71,27 @@ const UserProfile: React.FC<Props> = ({ userId, isEditable, onSignOut }) => {
     fetchUserData();
   }, [userId]);
 
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
-  if (error) return <Text>{error}</Text>;
+  if (loading)
+    return (
+      <SafeAreaView className="flex-1">
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      </SafeAreaView>
+    );
+
+  if (error)
+    return (
+      <SafeAreaView className="flex-1">
+        <View className="flex flex-row items-center justify-between">
+          <Text>An error occurred</Text>
+        </View>
+      </SafeAreaView>
+    );
 
   return (
     <SafeAreaView className="flex-1">
-      <View className="px-5" contentContainerStyle={{ paddingBottom: 20 }}>
+      <View className="px-5">
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
             <TouchableOpacity
@@ -99,13 +104,6 @@ const UserProfile: React.FC<Props> = ({ userId, isEditable, onSignOut }) => {
               />
             </TouchableOpacity>
           )}
-          {/* <Text
-            className={`text-2xl font-JakartaBold my-5 ${!isEditable ? "ml-2" : ""} flex-1`}
-          >
-            {isEditable
-              ? `${profileUser?.firstname} ${profileUser?.lastname}`
-              : `${profileUser?.firstname.charAt(0)}.`}
-          </Text> */}
           <Text
             className={`text-2xl font-JakartaBold ${!isEditable ? "ml-2" : ""} flex-1`}
           >
@@ -129,6 +127,7 @@ const UserProfile: React.FC<Props> = ({ userId, isEditable, onSignOut }) => {
           </Pressable>
         </View>
       </View>
+      <PostGallery posts={userPosts} />
     </SafeAreaView>
   );
 };

@@ -6,10 +6,8 @@ export async function POST(request: Request) {
     console.log("Received POST request.");
     const { content, clerkId } = await request.json();
 
-    console.log(content, clerkId);
-
     const response = await sql`
-      INSERT INTO posts (user_id, content, likes_count, report_count)
+      INSERT INTO posts (user_id, content, like_count, report_count)
       VALUES (${clerkId}, ${content}, 0, 0)
       RETURNING id;
     `;

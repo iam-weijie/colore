@@ -24,6 +24,7 @@ import { calculateAge, formatDate } from "@/lib/utils";
 
 const UserInfo = () => {
   const { user } = useUser();
+  console.log(user);
   const [userData, setUserData] = useState({
     city: "",
     state: "",
@@ -44,13 +45,28 @@ const UserInfo = () => {
           }
         );
         if (response.error) {
-          throw new Error(response.error);
+          if (response.error === "User not found") {
+            await fetchAPI("/(api)/(users)/newUser", {
+              method: "POST",
+              body: JSON.stringify({
+                email: user!.emailAddresses[0]?.emailAddress,
+                clerkId: user!.id,
+              }),
+            });
+          } else {
+            console.log("Error fetching user data");
+            console.log("response data: ", response.data);
+            console.log("response status: ", response.status);
+            console.log("response: ", response);
+            throw new Error(response.error);
+          }
         }
         return response.data[0];
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
     };
+
     const getData = async () => {
       const data = await fetchUserData();
       setUserData({
@@ -74,7 +90,7 @@ const UserInfo = () => {
     userData.lastname &&
     userData.date_of_birth
   ) {
-    router.push("/(root)/(tabs)/home");
+    router.replace("/(root)/(tabs)/home");
   }
 
   const route = useRoute();

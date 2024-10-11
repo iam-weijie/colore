@@ -14,8 +14,6 @@ export async function GET(request: Request) {
     const response = await sql`
       SELECT * from users WHERE clerk_id = ${clerkId}
     `;
-    console.log(response);
-
     if (response.length === 0) {
       return new Response(JSON.stringify({ error: "User not found" }), {
         status: 404,
