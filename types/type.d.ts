@@ -115,3 +115,10 @@ declare interface ConversationItem {
 }
 
 declare interface ChatTabProps {}
+
+declare interface Message {
+  id: string;
+  senderId: string;
+  content: string;
+  timestamp: Date;
+}

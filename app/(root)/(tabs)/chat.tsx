@@ -41,24 +41,34 @@ const Chat: React.FC<ChatTabProps> = () => {
       },
     ];
     setConversations(fetchedConversations);
+    //TODO actually get conversations from db
   };
 
   const filteredConversations = conversations.filter((conversation) =>
     conversation.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
+  const handleOpenChat = (conversationId: string): void => {
+    console.log(`Opening chat with conversation ID: ${conversationId}`);
+    router.push(`/(root)/(chat)/conversation?conversationId=${conversationId}`);
+  };
+
   const renderConversationItem = ({
     item,
   }: {
     item: ConversationItem;
   }): React.ReactElement => (
-    <View className="flex flex-row justify-between items-center p-4 border-b border-gray-200">
-      <View>
-        <Text className="text-lg font-bold mb-2">{item.name}</Text>
-        <Text className="text-gray-600 text-sm mb-2">{item.lastMessageContent}</Text>
+    <TouchableOpacity onPress={() => handleOpenChat(item.id)}>
+      <View className="flex flex-row justify-between items-center p-4 border-b border-gray-200">
+        <View>
+          <Text className="text-lg font-bold mb-2">{item.name}</Text>
+          <Text className="text-gray-600 text-sm mb-2">{item.lastMessageContent}</Text>
+        </View>
+        <Text className="text-xs text-gray-400">
+          {new Date(item.lastMessageTimestamp).toLocaleString()}
+        </Text>
       </View>
-      <Text className="text-xs text-gray-400">{new Date(item.lastMessageTimestamp).toLocaleString()}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   const handleCreateNewConversation = (): void => {

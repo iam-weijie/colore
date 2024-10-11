@@ -1,20 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, Text, TextInput, View } from "react-native";
+import { FlatList, Text, TextInput, View, TouchableOpacity } from "react-native";
 import { User } from "../../../types/type";
 
 const NewConversation = (): React.ReactElement => {
   const [searchText, setSearchText] = useState("");
   const [users, setUsers] = useState<User[]>([]);
 
+  
   const filteredUsers = users.filter((user) =>
     (user.first_name.toLowerCase() + " " + user.last_name.toLowerCase()).includes(searchText.toLowerCase())
   );
 
+  const startChat = (user: User): void => {
+    console.log(`Starting chat with ${user.first_name} ${user.last_name}`);
+    // TODO: Add your logic for initiating a chat here
+  };
+  const showProfile = (user: User): void => {
+    console.log(`Showing profile of ${user.first_name} ${user.last_name}`);
+    // TODO: Actually show the profile
+  };
+
   const renderUser = ({ item }: { item: User }): React.ReactElement => (
     <View className="flex flex-row justify-between items-center p-4 border-b border-gray-200">
-      <Text className="text-lg">{item.first_name + " " + item.last_name}</Text>
+      <TouchableOpacity onPress={() => showProfile(item)}>
+        <Text className="text-lg text-black">{item.first_name + " " + item.last_name}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        className="bg-blue-500 py-2 px-4 rounded"
+        onPress={() => startChat(item)}
+      >
+        <Text className="text-white">Chat</Text>
+      </TouchableOpacity>
     </View>
   );
+
 
   // Simulating API call to fetch users
   useEffect(() => {
@@ -22,18 +41,22 @@ const NewConversation = (): React.ReactElement => {
       const fetchedUsers: User[] = [
         { id: 1, first_name: "John", last_name: "Doe"},
         { id: 2, first_name: "Jane", last_name: "Smith"},
-        // Add more users here...
+        { id: 3, first_name: "This", last_name: "is"},
+        { id: 4, first_name: "a", last_name: "placeholder"},
+        //TODO: actually get users from db
       ];
       setUsers(fetchedUsers);
     };
     fetchUsers();
   }, []);
 
+  
   return (
     <View className="flex-1 bg-gray-100 pt-16">
       <TextInput
         className="h-12 mx-4 px-4 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
         placeholder="Search users..."
+        placeholderTextColor="#4a4a4a"
         value={searchText}
         onChangeText={(text): void => setSearchText(text)}
       />
