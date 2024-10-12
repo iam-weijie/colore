@@ -1,11 +1,12 @@
+import CustomButton from "@/components/CustomButton";
+import { useNavigationContext } from "@/components/NavigationContext";
 import { countries } from "@/constants/index";
-import { Href, router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { FlatList, Text, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigationContext } from "../../../components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { useUser } from "@clerk/clerk-expo";
+import { Href, router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const City = () => {
   const { user } = useUser();
@@ -29,7 +30,7 @@ const City = () => {
       country: country,
       userLocation: `${selectedCity}, ${state}, ${country}`,
     });
-    
+
     // update user info if they're coming from profile, otherwise
     // send them back to the user info page
     // without updating the database
@@ -50,9 +51,21 @@ const City = () => {
 
   return (
     <SafeAreaView className="flex-1">
-      <Text className="text-lg font-JakartaSemiBold m-3">
-        Select a City in {state}
-      </Text>
+      <View className="flex flex-row justify-between items-center ">
+        <Text className="text-lg font-JakartaSemiBold m-3">
+          Select a City in {state}
+        </Text>
+
+        <CustomButton
+          className="w-14 h-8 rounded-md mx-3"
+          fontSize="sm"
+          title="Done"
+          padding="0"
+          onPress={handleConfirmPress}
+          disabled={!selectedCity}
+        />
+      </View>
+
       <FlatList
         data={cities}
         keyExtractor={(item) => item}
@@ -68,16 +81,6 @@ const City = () => {
           </TouchableOpacity>
         )}
       />
-
-      <TouchableOpacity
-        onPress={handleConfirmPress}
-        disabled={!selectedCity}
-        className={`absolute top-14 right-4 p-2 rounded-lg ${
-          selectedCity ? "bg-primary-500" : "bg-gray-300"
-        }`}
-      >
-        <Text className="text-white">Done</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };
