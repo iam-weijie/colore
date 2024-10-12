@@ -79,7 +79,7 @@ const NewPost = () => {
                 </TouchableOpacity>
               </View>
               <Text className="flex-1 text-xl font-JakartaSemiBold mt-3">
-                Create a New Post
+                New Post
               </Text>
               <CustomButton
                 className="mr-2 mt-2 w-16 h-9 rounded"

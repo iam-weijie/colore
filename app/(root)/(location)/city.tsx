@@ -1,11 +1,11 @@
 import { countries } from "@/constants/index";
+import { fetchAPI } from "@/lib/fetch";
+import { useUser } from "@clerk/clerk-expo";
 import { Href, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationContext } from "../../../components/NavigationContext";
-import { fetchAPI } from "@/lib/fetch";
-import { useUser } from "@clerk/clerk-expo";
 
 const City = () => {
   const { user } = useUser();
@@ -29,7 +29,7 @@ const City = () => {
       country: country,
       userLocation: `${selectedCity}, ${state}, ${country}`,
     });
-    
+
     // update user info if they're coming from profile, otherwise
     // send them back to the user info page
     // without updating the database
