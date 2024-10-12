@@ -54,10 +54,18 @@ const NewPost = () => {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
+        <View className="flex-row justify-between">
         <Text className="text-xl font-JakartaSemiBold m-3">
           Create a New Post
         </Text>
-        <View className="mx-3 max-h-[70%]">
+          <CustomButton
+            className="mr-2 mt-2 w-16 h-10 rounded" 
+            fontSize="sm"
+            title="Post" 
+            onPress={handlePostSubmit} 
+          />
+        </View>
+        <View className="mx-3 max-h-[50%]">
           <TextInput
             className="border mx-3 px-2 my-5 rounded-lg border-slate-400 font-Jakarta mx-2 my-2"
             placeholder="Enter post content"
@@ -73,14 +81,6 @@ const NewPost = () => {
               textAlignVertical: "top",
             }}
           />
-          <View className="flex-row justify-end">
-            <CustomButton
-              className="mr-2 mt-2 w-16 h-10 rounded" 
-              fontSize="sm"
-              title="Post" 
-              onPress={handlePostSubmit} 
-            />
-          </View>
         </View>
       </SignedIn>
     </SafeAreaView>
