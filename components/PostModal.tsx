@@ -19,11 +19,7 @@ const PostModal: React.FC<PostModalProps> = ({
     <ReactNativeModal isVisible={isVisible}>
       <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
         <TouchableOpacity onPress={handleCloseModal}>
-          <Image
-            className="w-6 h-6"
-            source={icons.close}
-            style={{ alignSelf: "flex-end" }}
-          />
+          <Image className="w-6 h-6 self-end left-3" source={icons.close} />
         </TouchableOpacity>
         {post && post.firstname && user!.id != post.clerk_id && (
           <TouchableOpacity
