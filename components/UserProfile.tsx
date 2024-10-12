@@ -1,6 +1,5 @@
 import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
-import AntDesign from '@expo/vector-icons/AntDesign';
 import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import {
@@ -9,6 +8,7 @@ import {
   UserProfileProps,
   UserProfileType,
 } from "@/types/type";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -99,15 +99,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
           {!isEditable && (
             <View className="ml-2 mr-2">
               <TouchableOpacity
-              onPress={() => router.push("/(root)/(tabs)/home")}
+                onPress={() => router.push("/(root)/(tabs)/home")}
               >
                 <AntDesign name="caretleft" size={18} color="0076e3" />
               </TouchableOpacity>
-            </View> 
+            </View>
           )}
-          <Text
-            className={`text-2xl font-JakartaBold flex-1`}
-          >
+          <Text className={`text-2xl font-JakartaBold flex-1`}>
             {profileUser?.firstname.charAt(0)}.
           </Text>
           {isEditable && onSignOut && (
@@ -128,7 +126,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </Pressable>
         </View>
       </View>
-      <View className="flex-grow items-center"> 
+      <View className="flex-grow items-center">
         <PostGallery posts={userPosts} />
       </View>
     </SafeAreaView>
