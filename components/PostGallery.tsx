@@ -1,10 +1,12 @@
 import PostModal from "@/components/PostModal";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import React, { useState } from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, View, Dimensions } from "react-native";
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+
+  const screenWidth = Dimensions.get("window").width;
 
   const truncateText = (text: string, maxLength: number) => {
     if (text.length > maxLength) {
@@ -19,7 +21,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
 
   const renderItem = ({ item }: { item: Post }) => (
     <TouchableOpacity onPress={() => setSelectedPost(item)}>
-      <View className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent w-[88%] mx-auto">
+      <View className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent mx-auto" style={{ width: screenWidth * 0.85 }}>
         <Text className="font-JakartaSemiBold">
           {truncateText(item.content, 100)}
         </Text>
@@ -35,7 +37,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
   };
 
   return (
-    <View className="absolute w-[88%] max-h-[85%]">
+    <View className="absolute max-h-[85%]">
       <FlatList
         className="flex-1"
         data={posts}
