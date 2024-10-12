@@ -56,9 +56,15 @@ export async function GET(request: Request) {
 
     const userPosts = response.map((post) => ({
       id: post.post_id,
+      clerk_id: post.clerk_id, 
+      firstname: post.firstname,
       content: post.content,
-      firstname: response[0].firstname,
-      created_at: post.created_at,
+      created_date: new Date(post.created_at), 
+      location: {
+        city: post.city,
+        state: post.state,
+        country: post.country, 
+      },
       like_count: post.like_count,
       report_count: post.report_count,
     }));

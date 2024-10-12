@@ -15,6 +15,7 @@ export async function GET(request: Request) {
         p.content, 
         p.like_count, 
         p.report_count, 
+        u.clerk_id,
         u.firstname, 
         u.lastname, 
         u.country, 

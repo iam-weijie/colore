@@ -8,6 +8,7 @@ import {
   UserProfileProps,
   UserProfileType,
 } from "@/types/type";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -37,11 +38,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const currentScreen = route.name as string;
 
   const handleNavigateToCountry = () => {
-    setStateVars({
-      ...stateVars,
-      previousScreen: currentScreen,
-    });
-    router.push("/(root)/(location)/country");
+    if (isEditable) {
+      setStateVars({
+        ...stateVars,
+        previousScreen: currentScreen,
+      });
+      router.push("/(root)/(location)/country");
+    }
   };
 
   useEffect(() => {
@@ -94,19 +97,15 @@ const UserProfile: React.FC<UserProfileProps> = ({
       <View className="px-5">
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
-            <TouchableOpacity
-              onPress={() => router.push("/(root)/(tabs)/home")}
-            >
-              <Image
-                source={icons.back}
-                tintColor="#0076e3"
-                className="w-5 h-5"
-              />
-            </TouchableOpacity>
+            <View className="ml-2 mr-2">
+              <TouchableOpacity
+                onPress={() => router.push("/(root)/(tabs)/home")}
+              >
+                <AntDesign name="caretleft" size={18} color="0076e3" />
+              </TouchableOpacity>
+            </View>
           )}
-          <Text
-            className={`text-2xl font-JakartaBold ${!isEditable ? "ml-2" : ""} flex-1`}
-          >
+          <Text className={`text-2xl font-JakartaBold flex-1`}>
             {profileUser?.firstname.charAt(0)}.
           </Text>
           {isEditable && onSignOut && (
@@ -127,7 +126,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </Pressable>
         </View>
       </View>
-      <PostGallery posts={userPosts} />
+      <View className="flex-grow items-center">
+        <PostGallery posts={userPosts} />
+      </View>
     </SafeAreaView>
   );
 };
