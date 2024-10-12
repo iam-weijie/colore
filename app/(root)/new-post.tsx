@@ -70,28 +70,30 @@ const NewPost = () => {
           onPressIn={() => Keyboard.dismiss()}
         >
           <View>
-            <View className="flex-row justify-between">
-              <View className="ml-2 mr-2 mt-4">
+            <View className="flex flex-row justify-center items-center mt-3 mx-4">
+              <View className="flex-1">
                 <TouchableOpacity
                   onPress={() => router.push("/(root)/(tabs)/home")}
                 >
                   <AntDesign name="caretleft" size={18} color="0076e3" />
                 </TouchableOpacity>
               </View>
-              <Text className="flex-1 text-xl font-JakartaSemiBold mt-3">
+              <Text className="absolute text-xl font-JakartaSemiBold">
                 New Post
               </Text>
               <CustomButton
-                className="mr-2 mt-2 w-16 h-9 rounded"
+                className="w-14 h-8 rounded-md"
                 fontSize="sm"
                 title="Post"
                 padding="0"
                 onPress={handlePostSubmit}
+                disabled={!postContent}
               />
             </View>
+
             <View className="mx-3">
               <TextInput
-                className="font-Jakarta mx-2 my-2"
+                className="font-Jakarta mx-2 my-5"
                 placeholder="Enter post content"
                 value={postContent}
                 onChangeText={handleChangeText}
