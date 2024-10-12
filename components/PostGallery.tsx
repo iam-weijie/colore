@@ -35,13 +35,14 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
   };
 
   return (
-    <View className="flex-1 p-4">
+    <View className="flex-1 p-4  max-h-[80%]">
       <FlatList
+        className="flex-1"
         data={posts}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         numColumns={1}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
       />
       {selectedPost && (
         <PostModal
