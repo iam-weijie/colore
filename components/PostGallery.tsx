@@ -35,7 +35,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
   };
 
   return (
-    <View className="absolute max-h-[85%]">
+    <View className="absolute w-[88%] max-h-[85%]">
       <FlatList
         className="flex-1"
         data={posts}
