@@ -71,7 +71,7 @@ const NewPost = () => {
               <AntDesign name="caretleft" size={18} color="0076e3" />
             </TouchableOpacity>
           </View>
-          <Text className="flex-1 text-xl font-JakartaSemiBold m-3">
+          <Text className="flex-1 text-xl font-JakartaSemiBold mt-3">
             Create a New Post
           </Text>
           <CustomButton
@@ -84,7 +84,7 @@ const NewPost = () => {
         </View>
         <View className="mx-3 max-h-[50%]">
           <TextInput
-            className="border mx-3 px-2 my-5 rounded-lg border-slate-400 font-Jakarta mx-2 my-2"
+            className="font-Jakarta mx-2 my-2"
             placeholder="Enter post content"
             value={postContent}
             onChangeText={handleChangeText}
