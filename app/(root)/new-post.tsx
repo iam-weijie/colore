@@ -2,8 +2,9 @@ import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Text, TextInput, View, Button, Dimensions } from "react-native";
+import { Alert, Text, TextInput, View, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import CustomButton from "@/components/CustomButton";
 
 const NewPost = () => {
   const { user } = useUser();
@@ -45,9 +46,9 @@ const NewPost = () => {
         <Text className="text-xl font-JakartaSemiBold m-3">
           Create a New Post
         </Text>
-        <View className="border mx-3 my-5 rounded-lg border-slate-400 h-50 max-h-[70%]">
+        <View className="mx-3 max-h-[70%]">
           <TextInput
-            className="font-Jakarta mx-2 my-2"
+            className="border mx-3 px-2 my-5 rounded-lg border-slate-400 font-Jakarta mx-2 my-2"
             placeholder="Enter post content"
             value={postContent}
             onChangeText={setPostContent}
@@ -61,12 +62,15 @@ const NewPost = () => {
               textAlignVertical: "top",
             }}
           />
+          <View className="flex-row justify-end">
+            <CustomButton
+              className="w-16 h-10 rounded-none" 
+              fontSize="sm"
+              title="Post" 
+              onPress={handlePostSubmit} 
+            />
+          </View>
         </View>
-        <Button 
-          className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full absolute right-4 bottom-4"
-          title="Submit Post" 
-          onPress={handlePostSubmit} 
-        />
       </SignedIn>
     </SafeAreaView>
   );
