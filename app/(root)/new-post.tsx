@@ -7,12 +7,12 @@ import React, { useState } from "react";
 import {
   Alert,
   Dimensions,
+  Keyboard,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Keyboard,
   TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -65,7 +65,10 @@ const NewPost = () => {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} onPressIn={() => Keyboard.dismiss()}>  
+        <TouchableWithoutFeedback
+          onPress={() => Keyboard.dismiss()}
+          onPressIn={() => Keyboard.dismiss()}
+        >
           <View>
             <View className="flex-row justify-between">
               <View className="ml-2 mr-2 mt-4">
@@ -104,7 +107,7 @@ const NewPost = () => {
                 }}
               />
             </View>
-          </View>     
+          </View>
         </TouchableWithoutFeedback>
       </SignedIn>
     </SafeAreaView>
