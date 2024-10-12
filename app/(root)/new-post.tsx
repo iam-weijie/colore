@@ -23,7 +23,7 @@ const NewPost = () => {
   const maxCharacters = 3000;
 
   // need to get user's screen size to set a min height
-  const minHeight = Dimensions.get("screen").height * 0.2;
+  const screenHeight = Dimensions.get("screen").height;
 
   const handleContentSizeChange = (event: any) => {
     setInputHeight(event.nativeEvent.contentSize.height);
@@ -86,7 +86,7 @@ const NewPost = () => {
                 onPress={handlePostSubmit}
               />
             </View>
-            <View className="mx-3 max-h-[50%]">
+            <View className="mx-3">
               <TextInput
                 className="font-Jakarta mx-2 my-2"
                 placeholder="Enter post content"
@@ -98,7 +98,8 @@ const NewPost = () => {
                 style={{
                   paddingTop: 10,
                   paddingBottom: 0,
-                  minHeight: minHeight,
+                  minHeight: screenHeight * 0.2,
+                  maxHeight: screenHeight * 0.45,
                   textAlignVertical: "top",
                 }}
               />
