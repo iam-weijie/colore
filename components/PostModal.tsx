@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import ReactNativeModal from "react-native-modal";
+import { useUser} from "@clerk/clerk-expo";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
