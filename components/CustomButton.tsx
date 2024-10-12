@@ -56,13 +56,14 @@ const CustomButton = ({
   className,
   disabled = false,
   fontSize = "lg",
+  padding = "4",
   ...props
 }: ButtonProps) => {
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      className={`w-full rounded-full flex flex-row justify-center items-center shadow-md shadow-neutral-400/70 ${getBgVariantStyle(bgVariant, disabled)} ${className}`}
+      className={`w-full rounded-full  ${padding === "0" ? "p-0" : `p-${padding}`} flex flex-row justify-center items-center shadow-md shadow-neutral-400/70 ${getBgVariantStyle(bgVariant, disabled)} ${className}`}
       {...props}
     >
       {IconLeft && <IconLeft />}

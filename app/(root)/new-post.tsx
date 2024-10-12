@@ -70,6 +70,7 @@ const NewPost = () => {
             className="mr-2 mt-2 w-16 h-10 rounded" 
             fontSize="sm"
             title="Post" 
+            padding="0"
             onPress={handlePostSubmit} 
           />
         </View>
