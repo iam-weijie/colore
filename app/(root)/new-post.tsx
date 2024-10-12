@@ -75,7 +75,7 @@ const NewPost = () => {
             Create a New Post
           </Text>
           <CustomButton
-            className="mr-2 mt-2 w-16 h-10 rounded"
+            className="mr-2 mt-2 w-16 h-9 rounded"
             fontSize="sm"
             title="Post"
             padding="0"
