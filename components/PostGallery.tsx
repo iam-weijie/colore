@@ -1,7 +1,13 @@
 import PostModal from "@/components/PostModal";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import React, { useState } from "react";
-import { FlatList, Text, TouchableOpacity, View, Dimensions } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -21,7 +27,10 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
 
   const renderItem = ({ item }: { item: Post }) => (
     <TouchableOpacity onPress={() => setSelectedPost(item)}>
-      <View className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent mx-auto" style={{ width: screenWidth * 0.85 }}>
+      <View
+        className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent mx-auto"
+        style={{ width: screenWidth * 0.85 }}
+      >
         <Text className="font-JakartaSemiBold">
           {truncateText(item.content, 100)}
         </Text>
@@ -43,7 +52,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
         data={posts}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
-        numColumns={1}           
+        numColumns={1}
         showsVerticalScrollIndicator={false}
       />
       {selectedPost && (
