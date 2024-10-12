@@ -1,11 +1,18 @@
+import CustomButton from "@/components/CustomButton";
 import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Text, TextInput, View, Dimensions, TouchableOpacity } from "react-native";
+import {
+  Alert,
+  Dimensions,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import CustomButton from "@/components/CustomButton";
-import AntDesign from '@expo/vector-icons/AntDesign';
 
 const NewPost = () => {
   const { user } = useUser();
@@ -14,11 +21,10 @@ const NewPost = () => {
   const maxCharacters = 3000;
 
   // need to get user's screen size to set a min height
-  const minHeight = Dimensions.get("screen").height * 0.2; 
+  const minHeight = Dimensions.get("screen").height * 0.2;
 
   const handleContentSizeChange = (event: any) => {
     setInputHeight(event.nativeEvent.contentSize.height);
-    
   };
 
   const handlePostSubmit = async () => {
@@ -46,9 +52,11 @@ const NewPost = () => {
     if (text.length <= maxCharacters) {
       setPostContent(text);
     } else {
-      setPostContent(text.substring(0, maxCharacters))
-      Alert.alert("Limit Reached", `You can only enter up to ${maxCharacters} characters.`);
-
+      setPostContent(text.substring(0, maxCharacters));
+      Alert.alert(
+        "Limit Reached",
+        `You can only enter up to ${maxCharacters} characters.`
+      );
     }
   };
 
@@ -58,20 +66,20 @@ const NewPost = () => {
         <View className="flex-row justify-between">
           <View className="ml-2 mr-2 mt-4">
             <TouchableOpacity
-            onPress={() => router.push("/(root)/(tabs)/home")}
+              onPress={() => router.push("/(root)/(tabs)/home")}
             >
               <AntDesign name="caretleft" size={18} color="0076e3" />
             </TouchableOpacity>
-          </View> 
+          </View>
           <Text className="flex-1 text-xl font-JakartaSemiBold m-3">
             Create a New Post
           </Text>
           <CustomButton
-            className="mr-2 mt-2 w-16 h-10 rounded" 
+            className="mr-2 mt-2 w-16 h-10 rounded"
             fontSize="sm"
-            title="Post" 
+            title="Post"
             padding="0"
-            onPress={handlePostSubmit} 
+            onPress={handlePostSubmit}
           />
         </View>
         <View className="mx-3 max-h-[50%]">
@@ -83,9 +91,9 @@ const NewPost = () => {
             multiline
             scrollEnabled
             onContentSizeChange={handleContentSizeChange}
-            style={{ 
-              paddingTop: 10, 
-              paddingBottom: 0, 
+            style={{
+              paddingTop: 10,
+              paddingBottom: 0,
               minHeight: minHeight,
               textAlignVertical: "top",
             }}
