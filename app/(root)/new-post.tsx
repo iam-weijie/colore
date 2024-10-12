@@ -11,6 +11,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -63,42 +65,46 @@ const NewPost = () => {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <View className="flex-row justify-between">
-          <View className="ml-2 mr-2 mt-4">
-            <TouchableOpacity
-              onPress={() => router.push("/(root)/(tabs)/home")}
-            >
-              <AntDesign name="caretleft" size={18} color="0076e3" />
-            </TouchableOpacity>
-          </View>
-          <Text className="flex-1 text-xl font-JakartaSemiBold mt-3">
-            Create a New Post
-          </Text>
-          <CustomButton
-            className="mr-2 mt-2 w-16 h-9 rounded"
-            fontSize="sm"
-            title="Post"
-            padding="0"
-            onPress={handlePostSubmit}
-          />
-        </View>
-        <View className="mx-3 max-h-[50%]">
-          <TextInput
-            className="font-Jakarta mx-2 my-2"
-            placeholder="Enter post content"
-            value={postContent}
-            onChangeText={handleChangeText}
-            multiline
-            scrollEnabled
-            onContentSizeChange={handleContentSizeChange}
-            style={{
-              paddingTop: 10,
-              paddingBottom: 0,
-              minHeight: minHeight,
-              textAlignVertical: "top",
-            }}
-          />
-        </View>
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>  
+          <View>
+            <View className="flex-row justify-between">
+              <View className="ml-2 mr-2 mt-4">
+                <TouchableOpacity
+                  onPress={() => router.push("/(root)/(tabs)/home")}
+                >
+                  <AntDesign name="caretleft" size={18} color="0076e3" />
+                </TouchableOpacity>
+              </View>
+              <Text className="flex-1 text-xl font-JakartaSemiBold mt-3">
+                Create a New Post
+              </Text>
+              <CustomButton
+                className="mr-2 mt-2 w-16 h-9 rounded"
+                fontSize="sm"
+                title="Post"
+                padding="0"
+                onPress={handlePostSubmit}
+              />
+            </View>
+            <View className="mx-3 max-h-[50%]">
+              <TextInput
+                className="font-Jakarta mx-2 my-2"
+                placeholder="Enter post content"
+                value={postContent}
+                onChangeText={handleChangeText}
+                multiline
+                scrollEnabled
+                onContentSizeChange={handleContentSizeChange}
+                style={{
+                  paddingTop: 10,
+                  paddingBottom: 0,
+                  minHeight: minHeight,
+                  textAlignVertical: "top",
+                }}
+              />
+            </View>
+          </View>     
+        </TouchableWithoutFeedback>
       </SignedIn>
     </SafeAreaView>
   );
