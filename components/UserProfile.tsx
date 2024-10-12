@@ -126,7 +126,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </Pressable>
         </View>
       </View>
-      <PostGallery posts={userPosts} />
+      <View className="flex-grow items-center"> 
+        <PostGallery posts={userPosts} />
+      </View>
     </SafeAreaView>
   );
 };
