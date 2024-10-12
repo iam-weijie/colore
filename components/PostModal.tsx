@@ -1,11 +1,11 @@
 import { icons } from "@/constants/index";
 import { PostModalProps } from "@/types/type";
+import { useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import ReactNativeModal from "react-native-modal";
-import { router } from "expo-router";
-import { useUser } from "@clerk/clerk-expo";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -25,7 +25,7 @@ const PostModal: React.FC<PostModalProps> = ({
             style={{ alignSelf: "flex-end" }}
           />
         </TouchableOpacity>
-        {post && post.firstname && (user!.id != post.clerk_id ) && (
+        {post && post.firstname && user!.id != post.clerk_id && (
           <TouchableOpacity
             onPress={() => {
               handleCloseModal();
@@ -33,8 +33,7 @@ const PostModal: React.FC<PostModalProps> = ({
                 pathname: "/(root)/(profile)/[id]",
                 params: { id: post!.clerk_id },
               });
-              }
-            }
+            }}
           >
             <Text>{post.firstname.charAt(0)}</Text>
           </TouchableOpacity>
