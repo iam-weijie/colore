@@ -1,5 +1,6 @@
 import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
+import AntDesign from '@expo/vector-icons/AntDesign';
 import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import {
@@ -94,15 +95,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
       <View className="px-5">
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
-            <TouchableOpacity
+            <View className="ml-2 mr-2">
+              <TouchableOpacity
               onPress={() => router.push("/(root)/(tabs)/home")}
-            >
-              <Image
-                source={icons.back}
-                tintColor="#0076e3"
-                className="w-5 h-5"
-              />
-            </TouchableOpacity>
+              >
+                <AntDesign name="caretleft" size={18} color="0076e3" />
+              </TouchableOpacity>
+            </View> 
           )}
           <Text
             className={`text-2xl font-JakartaBold flex-1`}
