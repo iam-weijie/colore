@@ -10,6 +10,7 @@ const NewPost = () => {
   const { user } = useUser();
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
+  const maxCharacters = 3000;
 
   // need to get user's screen size to set a min height
   const minHeight = Dimensions.get("screen").height * 0.2; 
@@ -40,6 +41,16 @@ const NewPost = () => {
     router.replace("/(root)/home");
   };
 
+  const handleChangeText = (text: string) => {
+    if (text.length <= maxCharacters) {
+      setPostContent(text);
+    } else {
+      setPostContent(text.substring(0, maxCharacters))
+      Alert.alert("Limit Reached", `You can only enter up to ${maxCharacters} characters.`);
+
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
@@ -51,7 +62,7 @@ const NewPost = () => {
             className="border mx-3 px-2 my-5 rounded-lg border-slate-400 font-Jakarta mx-2 my-2"
             placeholder="Enter post content"
             value={postContent}
-            onChangeText={setPostContent}
+            onChangeText={handleChangeText}
             multiline
             scrollEnabled
             onContentSizeChange={handleContentSizeChange}
