@@ -65,7 +65,7 @@ const NewPost = () => {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>  
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} onPressIn={() => Keyboard.dismiss()}>  
           <View>
             <View className="flex-row justify-between">
               <View className="ml-2 mr-2 mt-4">
