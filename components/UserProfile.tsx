@@ -38,11 +38,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const currentScreen = route.name as string;
 
   const handleNavigateToCountry = () => {
-    setStateVars({
-      ...stateVars,
-      previousScreen: currentScreen,
-    });
-    router.push("/(root)/(location)/country");
+    if (isEditable) {
+      setStateVars({
+        ...stateVars,
+        previousScreen: currentScreen,
+      });
+      router.push("/(root)/(location)/country");
+    }
   };
 
   useEffect(() => {
