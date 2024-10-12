@@ -2,9 +2,10 @@ import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Text, TextInput, View, Dimensions } from "react-native";
+import { Alert, Text, TextInput, View, Dimensions, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "@/components/CustomButton";
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 const NewPost = () => {
   const { user } = useUser();
@@ -55,9 +56,16 @@ const NewPost = () => {
     <SafeAreaView className="flex-1">
       <SignedIn>
         <View className="flex-row justify-between">
-        <Text className="text-xl font-JakartaSemiBold m-3">
-          Create a New Post
-        </Text>
+          <View className="ml-2 mr-2 mt-4">
+            <TouchableOpacity
+            onPress={() => router.push("/(root)/(tabs)/home")}
+            >
+              <AntDesign name="caretleft" size={18} color="0076e3" />
+            </TouchableOpacity>
+          </View> 
+          <Text className="flex-1 text-xl font-JakartaSemiBold m-3">
+            Create a New Post
+          </Text>
           <CustomButton
             className="mr-2 mt-2 w-16 h-10 rounded" 
             fontSize="sm"
