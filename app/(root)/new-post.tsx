@@ -64,7 +64,7 @@ const NewPost = () => {
           />
           <View className="flex-row justify-end">
             <CustomButton
-              className="w-16 h-10 rounded-none" 
+              className="mr-2 mt-2 w-16 h-10 rounded" 
               fontSize="sm"
               title="Post" 
               onPress={handlePostSubmit} 
