@@ -105,7 +105,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
             </TouchableOpacity>
           )}
           <Text
-            className={`text-2xl font-JakartaBold ${!isEditable ? "ml-2" : ""} flex-1`}
+            className={`text-2xl font-JakartaBold flex-1`}
           >
             {profileUser?.firstname.charAt(0)}.
           </Text>

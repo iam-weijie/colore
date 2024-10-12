@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import ReactNativeModal from "react-native-modal";
-import { useUser} from "@clerk/clerk-expo";
+import { router } from "expo-router";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -23,9 +23,19 @@ const PostModal: React.FC<PostModalProps> = ({
             style={{ alignSelf: "flex-end" }}
           />
         </TouchableOpacity>
-        {/* This will be linked to profile page later */}
         {post && post.firstname && (
-          <Text className="text-gray-400">{post.firstname.charAt(0)}.</Text>
+          <TouchableOpacity
+            onPress={() => {
+              handleCloseModal();
+              router.push({
+                pathname: "/(root)/(profile)/[id]",
+                params: { id: post!.clerk_id },
+              });
+              }
+            }
+          >
+            <Text>{post.firstname.charAt(0)}</Text>
+          </TouchableOpacity>
         )}
         <ScrollView>
           {post && (
