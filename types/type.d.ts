@@ -35,7 +35,7 @@ declare interface UserProfileType {
   firstname: string;
   lastname: string;
   email: string;
-  date_of_birth: string;
+  date_of_birth: Date;
   city: string;
   state: string;
   country: string;

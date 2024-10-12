@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import ReactNativeModal from "react-native-modal";
 import { router } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -12,6 +13,7 @@ const PostModal: React.FC<PostModalProps> = ({
   handleCloseModal,
 }) => {
   const [likedPost, setLikedPost] = useState<boolean>(false);
+  const { user } = useUser();
 
   return (
     <ReactNativeModal isVisible={isVisible}>
@@ -23,7 +25,7 @@ const PostModal: React.FC<PostModalProps> = ({
             style={{ alignSelf: "flex-end" }}
           />
         </TouchableOpacity>
-        {post && post.firstname && (
+        {post && post.firstname && (user!.id != post.clerk_id ) && (
           <TouchableOpacity
             onPress={() => {
               handleCloseModal();
