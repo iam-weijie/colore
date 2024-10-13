@@ -94,12 +94,13 @@ const NewPost = () => {
             <View className="mx-3">
               <TextInput
                 className="font-Jakarta mx-2 my-5"
-                placeholder="Enter post content"
+                placeholder="Type something..."
                 value={postContent}
                 onChangeText={handleChangeText}
+                onContentSizeChange={handleContentSizeChange}
+                autoFocus
                 multiline
                 scrollEnabled
-                onContentSizeChange={handleContentSizeChange}
                 style={{
                   paddingTop: 10,
                   paddingBottom: 0,
