@@ -72,9 +72,7 @@ const NewPost = () => {
           <View>
             <View className="flex flex-row justify-center items-center mt-3 mx-4">
               <View className="flex-1">
-                <TouchableOpacity
-                  onPress={() => router.back()}
-                >
+                <TouchableOpacity onPress={() => router.back()}>
                   <AntDesign name="caretleft" size={18} color="0076e3" />
                 </TouchableOpacity>
               </View>
@@ -94,12 +92,13 @@ const NewPost = () => {
             <View className="mx-3">
               <TextInput
                 className="font-Jakarta mx-2 my-5"
-                placeholder="Enter post content"
+                placeholder="Type something..."
                 value={postContent}
                 onChangeText={handleChangeText}
+                onContentSizeChange={handleContentSizeChange}
+                autoFocus
                 multiline
                 scrollEnabled
-                onContentSizeChange={handleContentSizeChange}
                 style={{
                   paddingTop: 10,
                   paddingBottom: 0,
