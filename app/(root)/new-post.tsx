@@ -72,9 +72,7 @@ const NewPost = () => {
           <View>
             <View className="flex flex-row justify-center items-center mt-3 mx-4">
               <View className="flex-1">
-                <TouchableOpacity
-                  onPress={() => router.back()}
-                >
+                <TouchableOpacity onPress={() => router.back()}>
                   <AntDesign name="caretleft" size={18} color="0076e3" />
                 </TouchableOpacity>
               </View>
