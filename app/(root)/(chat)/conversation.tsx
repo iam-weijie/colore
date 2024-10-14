@@ -124,10 +124,9 @@ const Conversation: React.FC = () => {
               title="Send"
               onPress={handleSendMessage}
               disabled={!newMessage.trim()}
-              className="ml-2 w-20 h-8 rounded-md"
+              className="ml-3 w-14 h-11 rounded-md"
               fontSize="sm"
               padding="0"
-              style={{ height: 44 }} //Comment this out if you want the button to be thinner (but it looks weird to me cause it's not the same size as the text input)
             />
           </View>
         </View>

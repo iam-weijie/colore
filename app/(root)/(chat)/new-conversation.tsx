@@ -41,7 +41,7 @@ const NewConversation = (): React.ReactElement => {
         title="Chat"
         onPress={() => startChat(item)}
         disabled={!item.id || !item.first_name || !item.last_name}
-        className="w-20 h-8 rounded-md"
+        className="w-14 h-8 rounded-md"
         fontSize="sm"
         padding="0"
       />
