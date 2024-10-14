@@ -2,13 +2,12 @@ import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
+  Text,
   TextInput,
-  Text, 
   TouchableOpacity,
   View,
 } from "react-native";
-import { ConversationItem, ChatTabProps } from "../../../types/type";
-
+import { ChatTabProps, ConversationItem } from "../../../types/type";
 
 const Chat: React.FC<ChatTabProps> = () => {
   const [searchText, setSearchText] = useState<string>("");
@@ -62,7 +61,9 @@ const Chat: React.FC<ChatTabProps> = () => {
       <View className="flex flex-row justify-between items-center p-4 border-b border-gray-200">
         <View>
           <Text className="text-lg font-bold mb-2">{item.name}</Text>
-          <Text className="text-gray-600 text-sm mb-2">{item.lastMessageContent}</Text>
+          <Text className="text-gray-600 text-sm mb-2">
+            {item.lastMessageContent}
+          </Text>
         </View>
         <Text className="text-xs text-gray-400">
           {new Date(item.lastMessageTimestamp).toLocaleString()}
@@ -104,4 +105,4 @@ const Chat: React.FC<ChatTabProps> = () => {
   );
 };
 
-export default Chat;  
+export default Chat;
