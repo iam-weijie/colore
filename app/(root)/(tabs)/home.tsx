@@ -78,6 +78,7 @@ export default function Page() {
         <View className="flex-row justify-between items-center mx-7 mt-3">
           <Text className="text-2xl font-JakartaBold">Coloré</Text>
         </View>
+
         {loading ? (
           <View className="flex-[0.8] justify-center items-center">
             <ActivityIndicator size="large" color="black" />

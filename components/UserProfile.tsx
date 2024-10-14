@@ -76,7 +76,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   if (loading)
     return (
-      <View className="flex-1 justify-center items-center">
+      <View className="flex-[0.8] justify-center items-center">
         <ActivityIndicator size="large" color="black" />
       </View>
     );
