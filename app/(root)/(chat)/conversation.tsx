@@ -1,8 +1,15 @@
-import React, { useEffect, useState, useRef, useCallback} from "react";
-import { FlatList, TextInput, Text, View, KeyboardAvoidingView, SafeAreaView} from "react-native";
-import { Message } from "@/types/type"; 
-import { useLocalSearchParams } from "expo-router";
 import CustomButton from "@/components/CustomButton";
+import { Message } from "@/types/type";
+import { useLocalSearchParams } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  SafeAreaView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 const Conversation: React.FC = () => {
   const searchParams = useLocalSearchParams();
@@ -47,11 +54,11 @@ const Conversation: React.FC = () => {
   }, []);
 
   const handleSendMessage = (): void => {
-    if (newMessage.trim().length === 0) return; 
+    if (newMessage.trim().length === 0) return;
 
     // Create new message object generate an ID in a normal way later
     const newMessageObj: Message = {
-      id: `msg${messages.length + 1}`, 
+      id: `msg${messages.length + 1}`,
       content: newMessage,
       senderId: "You", //TODO: set sender to user ID eventually
       timestamp: new Date(),
@@ -65,16 +72,28 @@ const Conversation: React.FC = () => {
       scrollToBottom();
     }, 100);
   };
-  const renderMessageItem = ({ item }: { item: Message }): React.ReactElement => (
+  const renderMessageItem = ({
+    item,
+  }: {
+    item: Message;
+  }): React.ReactElement => (
     <View
       className={`p-2 my-1 rounded-lg ${
-        item.senderId === "You" ? "bg-black text-white ml-auto max-w-[70%]" : "bg-gray-200 mr-auto max-w-[70%]"
+        item.senderId === "You"
+          ? "bg-black text-white ml-auto max-w-[70%]"
+          : "bg-gray-200 mr-auto max-w-[70%]"
       }`}
     >
-      <Text className={`font-bold ${item.senderId === "You" ? "text-white" : "text-black"}`}>
+      <Text
+        className={`font-bold ${item.senderId === "You" ? "text-white" : "text-black"}`}
+      >
         {item.senderId}
       </Text>
-      <Text className={`${item.senderId === "You" ? "text-white" : "text-black"}`}>{item.content}</Text>
+      <Text
+        className={`${item.senderId === "You" ? "text-white" : "text-black"}`}
+      >
+        {item.content}
+      </Text>
       <Text className="text-xs text-gray-500">
         {new Date(item.timestamp).toLocaleTimeString()}
       </Text>
