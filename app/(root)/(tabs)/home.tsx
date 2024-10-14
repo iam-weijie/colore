@@ -79,11 +79,9 @@ export default function Page() {
           <Text className="text-2xl font-JakartaBold">Coloré</Text>
         </View>
         {loading ? (
-          <SafeAreaView className="flex-1">
-            <View className="flex-1 justify-center items-center">
-              <ActivityIndicator size="large" color="#0000ff" />
-            </View>
-          </SafeAreaView>
+          <View className="flex-1 justify-center">
+            <ActivityIndicator size="large" color="black" />
+          </View>
         ) : error ? (
           <Text>{error}</Text>
         ) : (

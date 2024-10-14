@@ -76,28 +76,26 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   if (loading)
     return (
-      <SafeAreaView className="flex-1">
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      </SafeAreaView>
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="black" />
+      </View>
     );
 
   if (error)
     return (
       <SafeAreaView className="flex-1">
         <View className="flex flex-row items-center justify-between">
-          <Text>An error occurred</Text>
+          <Text>An error occurred. Please try again Later.</Text>
         </View>
       </SafeAreaView>
     );
 
   return (
     <SafeAreaView className="flex-1">
-      <View className="px-5">
+      <View className="mx-7 mb-7">
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
-            <View className="ml-2 mr-2">
+            <View>
               <TouchableOpacity
                 onPress={() => router.push("/(root)/(tabs)/home")}
               >
@@ -118,7 +116,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         <View>
           <Pressable disabled={!isEditable} onPress={handleNavigateToCountry}>
             <TextInput
-              className="text-base my-1"
+              className="text-base mt-3"
               value={`📍${profileUser?.city}, ${profileUser?.state}, ${profileUser?.country}`}
               editable={false}
               onPressIn={handleNavigateToCountry}
