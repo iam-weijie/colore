@@ -108,3 +108,19 @@ declare interface PaymentProps {
   email: string;
   amount: string;
 }
+
+declare interface ConversationItem {
+  id: string;
+  name: string;
+  lastMessageContent: string;
+  lastMessageTimestamp: Date;
+}
+
+declare interface ChatTabProps {}
+
+declare interface Message {
+  id: string;
+  senderId: string;
+  content: string;
+  timestamp: Date;
+}
