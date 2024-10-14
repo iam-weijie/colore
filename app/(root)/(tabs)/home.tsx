@@ -75,7 +75,7 @@ export default function Page() {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <View className="flex-row justify-between items-center p-3">
+        <View className="flex-row justify-between items-center mx-7 mt-3">
           <Text className="text-2xl font-JakartaBold">Coloré</Text>
         </View>
         {loading ? (
