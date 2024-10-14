@@ -87,9 +87,11 @@ const Chat: React.FC<ChatTabProps> = () => {
           />
           <TouchableOpacity
             onPress={handleCreateNewConversation}
-            className="w-10 h-10 ml-2 flex justify-center items-center bg-blue-600 rounded-full"
+            className="w-10 h-10 ml-2 flex justify-center items-center bg-black rounded-full"
           >
-            <Text className="text-white text-xl">+</Text>
+            <View className="flex justify-center items-center w-full h-full">
+              <Text className="text-white text-3xl -mt-[3px]">+</Text>
+            </View>
           </TouchableOpacity>
         </View>
         <FlatList

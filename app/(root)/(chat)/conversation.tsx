@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef, useCallback} from "react";
-import { FlatList, TextInput, Text, View, KeyboardAvoidingView, TouchableOpacity } from "react-native";
+import { FlatList, TextInput, Text, View, KeyboardAvoidingView, SafeAreaView} from "react-native";
 import { Message } from "@/types/type"; 
 import { useLocalSearchParams } from "expo-router";
-
+import CustomButton from "@/components/CustomButton";
 
 const Conversation: React.FC = () => {
   const searchParams = useLocalSearchParams();
@@ -65,53 +65,55 @@ const Conversation: React.FC = () => {
       scrollToBottom();
     }, 100);
   };
-
   const renderMessageItem = ({ item }: { item: Message }): React.ReactElement => (
-      <View
-        className={`p-2 my-1 rounded-lg ${
-          item.senderId === "You" 
-            ? "bg-blue-500 text-white ml-auto max-w-[70%]"
-            : "bg-gray-200 text-black mr-auto max-w-[70%]"
-        }`}
-      >
-        <Text className="font-bold">{item.senderId}</Text>
-        <Text>{item.content}</Text>
-        <Text className="text-xs text-gray-500">
-          {new Date(item.timestamp).toLocaleTimeString()}
-        </Text>
-      </View>
+    <View
+      className={`p-2 my-1 rounded-lg ${
+        item.senderId === "You" ? "bg-black text-white ml-auto max-w-[70%]" : "bg-gray-200 mr-auto max-w-[70%]"
+      }`}
+    >
+      <Text className={`font-bold ${item.senderId === "You" ? "text-white" : "text-black"}`}>
+        {item.senderId}
+      </Text>
+      <Text className={`${item.senderId === "You" ? "text-white" : "text-black"}`}>{item.content}</Text>
+      <Text className="text-xs text-gray-500">
+        {new Date(item.timestamp).toLocaleTimeString()}
+      </Text>
+    </View>
   );
 
   return (
-    <KeyboardAvoidingView
-      behavior={"padding"} //I'm really hoping this works on both IOS and android, but in case it doesn't we might have to do some platform specific things (which isn't hard, I just need to set up an android emulator to be able to test it)
-      style={{ flex: 1 }}
-    >
-      <View className="flex-1 bg-gray-100">
-        <FlatList
-          data={messages}
-          renderItem={renderMessageItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 16 }}
-          style={{ flexGrow: 1 }}
-          extraData={messages}
-        />
-        <View className="flex-row items-center p-4 border-t border-gray-200">
-          <TextInput
-            className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
-            placeholder="Type a message..."
-            value={newMessage}
-            onChangeText={(text) => setNewMessage(text)}
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
+        <View className="flex-1 bg-gray-100">
+          <FlatList
+            data={messages}
+            renderItem={renderMessageItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ padding: 16 }}
+            style={{ flexGrow: 1 }}
+            extraData={messages}
           />
-          <TouchableOpacity
-            onPress={handleSendMessage}
-            className="ml-2 bg-blue-600 px-4 py-2 rounded-lg"
-          >
-            <Text className="text-white">Send</Text>
-          </TouchableOpacity>
+          <View className="flex-row items-center p-4 border-t border-gray-200">
+            <TextInput
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
+              placeholder="Type a message..."
+              value={newMessage}
+              onChangeText={(text) => setNewMessage(text)}
+              style={{ height: 44 }}
+            />
+            <CustomButton
+              title="Send"
+              onPress={handleSendMessage}
+              disabled={!newMessage.trim()}
+              className="ml-2 w-20 h-8 rounded-md"
+              fontSize="sm"
+              padding="0"
+              style={{ height: 44 }} //Comment this out if you want the button to be thinner (but it looks weird to me cause it's not the same size as the text input)
+            />
+          </View>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

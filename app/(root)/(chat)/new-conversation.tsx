@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FlatList, Text, TextInput, View, TouchableOpacity } from "react-native";
 import { User } from "../../../types/type";
+import CustomButton from "@/components/CustomButton";
 
 const NewConversation = (): React.ReactElement => {
   const [searchText, setSearchText] = useState("");
@@ -25,12 +26,14 @@ const NewConversation = (): React.ReactElement => {
       <TouchableOpacity onPress={() => showProfile(item)}>
         <Text className="text-lg text-black">{item.first_name + " " + item.last_name}</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        className="bg-blue-500 py-2 px-4 rounded"
+      <CustomButton
+        title="Chat"
         onPress={() => startChat(item)}
-      >
-        <Text className="text-white">Chat</Text>
-      </TouchableOpacity>
+        disabled={!item.id || !item.first_name || !item.last_name}
+        className="w-20 h-8 rounded-md"
+        fontSize="sm"
+        padding="0"
+      />
     </View>
   );
 
