@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { FlatList, TextInput, Text, View, TouchableOpacity } from "react-native";
+import React, { useEffect, useState, useRef, useCallback} from "react";
+import { FlatList, TextInput, Text, View, KeyboardAvoidingView, TouchableOpacity } from "react-native";
 import { Message } from "@/types/type"; 
 import { useLocalSearchParams } from "expo-router";
+
 
 const Conversation: React.FC = () => {
   const searchParams = useLocalSearchParams();
   const conversationId = searchParams.conversationId;
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
+
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     // Simulating fetching messages for the conversation
@@ -37,6 +40,11 @@ const Conversation: React.FC = () => {
     };
     fetchMessages();
   }, [conversationId]);
+  const scrollToBottom = useCallback(() => {
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({ offset: 0, animated: true });
+    }
+  }, []);
 
   const handleSendMessage = (): void => {
     if (newMessage.trim().length === 0) return; 
@@ -51,47 +59,59 @@ const Conversation: React.FC = () => {
 
     // Update the state to include the new message
     setMessages((prevMessages) => [...prevMessages, newMessageObj]);
-    setNewMessage(""); // Clear the input after sending
+    setNewMessage("");
+
+    setTimeout(() => {
+      scrollToBottom();
+    }, 100);
   };
 
   const renderMessageItem = ({ item }: { item: Message }): React.ReactElement => (
-    <View
-      className={`p-2 my-1 rounded-lg ${
-        item.senderId === "You" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
-      }`}
-    >
-      <Text className="font-bold">{item.senderId}</Text>
-      <Text>{item.content}</Text>
-      <Text className="text-xs text-gray-500">
-        {new Date(item.timestamp).toLocaleTimeString()}
-      </Text>
-    </View>
+      <View
+        className={`p-2 my-1 rounded-lg ${
+          item.senderId === "You" 
+            ? "bg-blue-500 text-white ml-auto max-w-[70%]"
+            : "bg-gray-200 text-black mr-auto max-w-[70%]"
+        }`}
+      >
+        <Text className="font-bold">{item.senderId}</Text>
+        <Text>{item.content}</Text>
+        <Text className="text-xs text-gray-500">
+          {new Date(item.timestamp).toLocaleTimeString()}
+        </Text>
+      </View>
   );
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <FlatList
-        data={messages}
-        renderItem={renderMessageItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16 }}
-        
-      />
-      <View className="flex-row items-center p-4 border-t border-gray-200">
-        <TextInput
-          className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
-          placeholder="Type a message..."
-          value={newMessage}
-          onChangeText={(text) => setNewMessage(text)}
+    <KeyboardAvoidingView
+      behavior={"padding"} //I'm really hoping this works on both IOS and android, but in case it doesn't we might have to do some platform specific things (which isn't hard, I just need to set up an android emulator to be able to test it)
+      style={{ flex: 1 }}
+    >
+      <View className="flex-1 bg-gray-100">
+        <FlatList
+          data={messages}
+          renderItem={renderMessageItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ padding: 16 }}
+          style={{ flexGrow: 1 }}
+          extraData={messages}
         />
-        <TouchableOpacity
-          onPress={handleSendMessage}
-          className="ml-2 bg-blue-600 px-4 py-2 rounded-lg"
-        >
-          <Text className="text-white">Send</Text>
-        </TouchableOpacity>
+        <View className="flex-row items-center p-4 border-t border-gray-200">
+          <TextInput
+            className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
+            placeholder="Type a message..."
+            value={newMessage}
+            onChangeText={(text) => setNewMessage(text)}
+          />
+          <TouchableOpacity
+            onPress={handleSendMessage}
+            className="ml-2 bg-blue-600 px-4 py-2 rounded-lg"
+          >
+            <Text className="text-white">Send</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
