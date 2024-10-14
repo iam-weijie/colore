@@ -75,15 +75,14 @@ export default function Page() {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <View className="flex-row justify-between items-center p-3">
+        <View className="flex-row justify-between items-center mx-7 mt-3">
           <Text className="text-2xl font-JakartaBold">Coloré</Text>
         </View>
+
         {loading ? (
-          <SafeAreaView className="flex-1">
-            <View className="flex-1 justify-center items-center">
-              <ActivityIndicator size="large" color="#0000ff" />
-            </View>
-          </SafeAreaView>
+          <View className="flex-[0.8] justify-center items-center">
+            <ActivityIndicator size="large" color="black" />
+          </View>
         ) : error ? (
           <Text>{error}</Text>
         ) : (
@@ -114,16 +113,14 @@ export default function Page() {
           </View>
         )}
 
-        <View>
-          <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8 z-10">
-            <TouchableOpacity onPress={handleReloadPosts}>
-              <Image source={icons.refresh} className="w-8 h-8" />
-            </TouchableOpacity>
+        <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8 z-10">
+          <TouchableOpacity onPress={handleReloadPosts}>
+            <Image source={icons.refresh} className="w-8 h-8" />
+          </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleNewPostPress}>
-              <Image source={icons.pencil} className="w-7 h-7" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity onPress={handleNewPostPress}>
+            <Image source={icons.pencil} className="w-7 h-7" />
+          </TouchableOpacity>
         </View>
       </SignedIn>
     </SafeAreaView>
