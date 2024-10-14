@@ -91,7 +91,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     );
 
   return (
-    <SafeAreaView className="flex-1">
+    <View className="flex-1 mt-3">
       <View className="mx-7 mb-7">
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
@@ -127,7 +127,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       <View className="flex-grow items-center">
         <PostGallery posts={userPosts} />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
