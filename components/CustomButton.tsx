@@ -20,7 +20,7 @@ const getBgVariantStyle = (
     case "outline":
       return "bg-transparent border-neutral-300 border-[0.5px]";
     default:
-      return "bg-[#0286FF]";
+      return "bg-[#333333]";
   }
 };
 
@@ -55,18 +55,20 @@ const CustomButton = ({
   IconRight,
   className,
   disabled = false,
+  fontSize = "lg",
+  padding = "4",
   ...props
 }: ButtonProps) => {
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      className={`w-full rounded-full p-3 flex flex-row justify-center items-center shadow-md shadow-neutral-400/70 ${getBgVariantStyle(bgVariant, disabled)} ${className}`}
+      className={`w-full rounded-full p-${padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${getBgVariantStyle(bgVariant, disabled)} ${className}`}
       {...props}
     >
       {IconLeft && <IconLeft />}
       <Text
-        className={`text-lg font-bold ${getTextVariantStyle(textVariant, disabled)}`}
+        className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}
       >
         {title}
       </Text>

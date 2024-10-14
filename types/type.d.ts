@@ -16,7 +16,7 @@ declare interface User {
 
 declare interface Post {
   id: string;
-  user_id: number;
+  clerk_id: string;
   firstname: string;
   content: string;
   created_date: Date;
@@ -35,7 +35,7 @@ declare interface UserProfileType {
   firstname: string;
   lastname: string;
   email: string;
-  date_of_birth: string;
+  date_of_birth: Date;
   city: string;
   state: string;
   country: string;
@@ -64,6 +64,8 @@ declare interface ButtonProps extends TouchableOpacityProps {
   title: string;
   bgVariant?: "primary" | "secondary" | "danger" | "outline" | "success";
   textVariant?: "primary" | "default" | "secondary" | "danger" | "success";
+  fontSize?: "sm" | "md" | "lg" | "xl";
+  padding?: string;
   IconLeft?: React.ComponentType<any>;
   IconRight?: React.ComponentType<any>;
   className?: string;

@@ -1,5 +1,4 @@
 import album from "@/assets/icons/album.png";
-import back from "@/assets/icons/back.svg";
 import chat from "@/assets/icons/chat.png";
 import check from "@/assets/icons/check.png";
 import close from "@/assets/icons/close.png";
@@ -16,7 +15,6 @@ import profile from "@/assets/icons/profile.png";
 import refresh from "@/assets/icons/refresh.png";
 import search from "@/assets/icons/search.png";
 import trash from "@/assets/icons/trash.png";
-
 import login from "@/assets/images/login.png";
 import signup from "@/assets/images/signup.png";
 
@@ -37,7 +35,6 @@ export const icons = {
   trash,
   pencil,
   refresh,
-  back,
   heart,
 };
 
