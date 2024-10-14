@@ -47,7 +47,7 @@ const NewPost = () => {
     setPostContent("");
     Alert.alert("Success", "Post created successfully.");
 
-    router.replace("/(root)/home");
+    router.back();
   };
 
   const handleChangeText = (text: string) => {
