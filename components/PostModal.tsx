@@ -2,7 +2,7 @@ import { icons } from "@/constants/index";
 import { PostModalProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter, Href } from "expo-router";
+import { useRouter } from "expo-router";
 import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View, Alert } from "react-native";
@@ -18,7 +18,6 @@ const PostModal: React.FC<PostModalProps> = ({
   const [likedPost, setLikedPost] = useState<boolean>(false);
   const { user } = useUser();
   const router = useRouter();
-  const route = useRoute();
 
   const handleDeletePress = async () => {
     Alert.alert(
@@ -67,7 +66,7 @@ const PostModal: React.FC<PostModalProps> = ({
             </Text>
           )}
         </ScrollView>
-        <View className="my-2">
+        <View className="my-2 flex-row justify-between items-center">
           <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
             <MaterialCommunityIcons
               name={likedPost ? "heart" : "heart-outline"}
@@ -75,12 +74,12 @@ const PostModal: React.FC<PostModalProps> = ({
               color={likedPost ? "red" : "black"}
             />
           </TouchableOpacity>
+          {post && post.clerk_id == user?.id && (
+            <TouchableOpacity onPress={handleDeletePress}>
+              <Image source={icons.trash} className="w-7 h-7" />
+            </TouchableOpacity>
+          )}
         </View>
-        {post && post.clerk_id == user?.id && (
-          <TouchableOpacity onPress={handleDeletePress}>
-            <Text>delete</Text>
-          </TouchableOpacity>
-        )}
       </View>
     </ReactNativeModal>
   );
