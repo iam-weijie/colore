@@ -1,14 +1,19 @@
 import { icons } from "@/constants/index";
+import { fetchAPI } from "@/lib/fetch";
 import { PostModalProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View, Alert } from "react-native";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import ReactNativeModal from "react-native-modal";
-import { fetchAPI } from "@/lib/fetch";
-import { create } from "react-test-renderer";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -21,25 +26,24 @@ const PostModal: React.FC<PostModalProps> = ({
   const router = useRouter();
 
   const handleDeletePress = async () => {
-    Alert.alert(
-      "Delete Post",
-      "Are you sure you want to delete this post?",
-      [
-        { text: "Cancel" },
-        { text: "Delete", onPress: handleDelete },
-      ]
-    );
-  }
+    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
+      { text: "Cancel" },
+      { text: "Delete", onPress: handleDelete },
+    ]);
+  };
 
   const handleDelete = async () => {
     await fetchAPI(`/(api)/(posts)/deletePost?id=${post!.id}`, {
-      method: "DELETE"
+      method: "DELETE",
     });
 
     Alert.alert("Post deleted successfully.");
     handleCloseModal();
-    handleUpdate();
-  }
+    // call only if defined (aka refresh needed after deleting post)
+    if (typeof handleUpdate === "function") {
+      await handleUpdate();
+    }
+  };
 
   return (
     <ReactNativeModal isVisible={isVisible}>
