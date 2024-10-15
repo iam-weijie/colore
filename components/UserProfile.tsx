@@ -97,7 +97,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           {!isEditable && (
             <View>
               <TouchableOpacity
-                onPress={() => router.push("/(root)/(tabs)/home")}
+                onPress={() => router.back()}
               >
                 <AntDesign name="caretleft" size={18} color="0076e3" />
               </TouchableOpacity>
