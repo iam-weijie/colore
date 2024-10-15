@@ -17,6 +17,8 @@ export async function GET(request: Request) {
     const response = await sql`
       SELECT 
         u.clerk_id, 
+        u.date_of_birth,
+        u.email,
         u.firstname, 
         u.lastname,
         u.country,
@@ -40,6 +42,7 @@ export async function GET(request: Request) {
 
     const userInfo = {
       clerk_id: response[0].clerk_id,
+      date_of_birth: response[0].clerk_id,
       firstname: response[0].firstname,
       lastname: response[0].lastname,
       country: response[0].country,
@@ -60,11 +63,9 @@ export async function GET(request: Request) {
       firstname: post.firstname,
       content: post.content,
       created_date: new Date(post.created_at), 
-      location: {
-        city: post.city,
-        state: post.state,
-        country: post.country, 
-      },
+      city: post.city,
+      state: post.state,
+      country: post.country, 
       like_count: post.like_count,
       report_count: post.report_count,
     }));
