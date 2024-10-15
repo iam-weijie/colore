@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View, Alert } from "react-native";
 import ReactNativeModal from "react-native-modal";
 import { fetchAPI } from "@/lib/fetch";
+import { create } from "react-test-renderer";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -60,11 +61,9 @@ const PostModal: React.FC<PostModalProps> = ({
           </TouchableOpacity>
         )}
         <ScrollView>
-          {post && (
-            <Text className="text-[16px] mb-2 font-Jakarta">
-              {post.content}
-            </Text>
-          )}
+          <Text className="text-[16px] mb-2 font-Jakarta">
+            {post!.content}
+          </Text>
         </ScrollView>
         <View className="my-2 flex-row justify-between items-center">
           <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>

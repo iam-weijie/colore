@@ -57,7 +57,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
 
 declare interface UserPostsGalleryProps {
   posts: Post[];
-  handleUpdate?: () => void;
+  handleUpdate?: () => void | undefined | Promise<void>;
 }
 
 declare interface UserProfileProps {
@@ -70,7 +70,7 @@ declare interface PostModalProps {
   isVisible: boolean;
   post: Post | null;
   handleCloseModal: () => void;
-  handleUpdate: () => void;
+  handleUpdate: () => void | Promise<void>;
 }
 
 declare interface UserPostsGalleryProps {
