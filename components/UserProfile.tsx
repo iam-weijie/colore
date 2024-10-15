@@ -47,30 +47,31 @@ const UserProfile: React.FC<UserProfileProps> = ({
     }
   };
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetchAPI(
-          `/(api)/(users)/getUserInfoPosts?id=${userId}`,
-          {
-            method: "GET",
-          }
-        );
-        if (response.error) {
-          throw new Error(response.error);
+  const fetchUserData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetchAPI(
+        `/(api)/(users)/getUserInfoPosts?id=${userId}`,
+        {
+          method: "GET",
         }
-        const { userInfo, posts } = response as UserData;
-        setProfileUser(userInfo);
-        setUserPosts(posts);
-      } catch (error) {
-        setError("Failed to fetch user data.");
-        console.error("Failed to fetch user data:", error);
-      } finally {
-        setLoading(false);
+      );
+      if (response.error) {
+        throw new Error(response.error);
       }
-    };
+      const { userInfo, posts } = response as UserData;
+      setProfileUser(userInfo);
+      setUserPosts(posts);
+    } catch (error) {
+      setError("Failed to fetch user data.");
+      console.error("Failed to fetch user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUserData();
   }, [userId]);
 
@@ -96,9 +97,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
             <View>
-              <TouchableOpacity
-                onPress={() => router.back()}
-              >
+              <TouchableOpacity onPress={() => router.back()}>
                 <AntDesign name="caretleft" size={18} color="0076e3" />
               </TouchableOpacity>
             </View>
@@ -125,7 +124,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </View>
       </View>
       <View className="flex-grow items-center">
-        <PostGallery posts={userPosts} />
+        <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
       </View>
     </View>
   );

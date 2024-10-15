@@ -1,30 +1,14 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
-declare interface User {
-  id: number;
-  first_name: string;
-  last_name: string;
-  birthday: Date;
-  email: string;
-  location: {
-    city: string;
-    state: string;
-    country: string;
-  };
-  paid_member: boolean;
-}
-
 declare interface Post {
   id: string;
   clerk_id: string;
   firstname: string;
   content: string;
   created_date: Date;
-  location: {
-    city: string;
-    state: string;
-    country: string;
-  };
+  city: string;
+  state: string;
+  country: string;
   like_count: number;
   report_count: number;
 }
@@ -44,7 +28,7 @@ declare interface UserProfileType {
 }
 
 declare interface UserData {
-  userInfo: UserProfile;
+  userInfo: UserProfileType;
   posts: Post[];
 }
 
@@ -73,6 +57,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
 
 declare interface UserPostsGalleryProps {
   posts: Post[];
+  handleUpdate?: () => void | undefined | Promise<void>;
 }
 
 declare interface UserProfileProps {
@@ -85,12 +70,12 @@ declare interface PostModalProps {
   isVisible: boolean;
   post: Post | null;
   handleCloseModal: () => void;
+  handleUpdate?: () => void | Promise<void>;
 }
 
 declare interface UserPostsGalleryProps {
   posts: Post[];
 }
-
 
 declare interface InputFieldProps extends TextInputProps {
   label: string;
