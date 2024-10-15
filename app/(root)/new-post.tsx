@@ -45,7 +45,7 @@ const NewPost = () => {
     });
 
     setPostContent("");
-    Alert.alert("Post published successfully.");
+    Alert.alert("Post published.");
 
     router.back();
   };

@@ -37,7 +37,7 @@ const PostModal: React.FC<PostModalProps> = ({
       method: "DELETE",
     });
 
-    Alert.alert("Post deleted successfully.");
+    Alert.alert("Post deleted.");
     handleCloseModal();
     // call only if defined (aka refresh needed after deleting post)
     if (typeof handleUpdate === "function") {
@@ -65,9 +65,7 @@ const PostModal: React.FC<PostModalProps> = ({
           </TouchableOpacity>
         )}
         <ScrollView>
-          <Text className="text-[16px] mb-2 font-Jakarta">
-            {post!.content}
-          </Text>
+          <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
         </ScrollView>
         <View className="my-2 flex-row justify-between items-center">
           <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
