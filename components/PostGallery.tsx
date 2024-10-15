@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 
-const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
+const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts, handleUpdate }) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   const screenWidth = Dimensions.get("window").width;
@@ -60,6 +60,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({ posts }) => {
           isVisible={!!selectedPost}
           post={selectedPost}
           handleCloseModal={handleCloseModal}
+          handleUpdate={handleUpdate}
         />
       )}
     </View>

@@ -13,6 +13,7 @@ const PostModal: React.FC<PostModalProps> = ({
   isVisible,
   post,
   handleCloseModal,
+  handleUpdate,
 }) => {
   const [likedPost, setLikedPost] = useState<boolean>(false);
   const { user } = useUser();
@@ -37,7 +38,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
     Alert.alert("Post deleted successfully.");
     handleCloseModal();
-    router.push(route.name as Href);
+    handleUpdate();
   }
 
   return (
