@@ -70,7 +70,7 @@ declare interface PostModalProps {
   isVisible: boolean;
   post: Post | null;
   handleCloseModal: () => void;
-  handleUpdate?: () => void | undefined | Promise<void>;
+  handleUpdate?: () => void | Promise<void>;
 }
 
 declare interface UserPostsGalleryProps {
