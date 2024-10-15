@@ -77,7 +77,6 @@ declare interface UserPostsGalleryProps {
   posts: Post[];
 }
 
-
 declare interface InputFieldProps extends TextInputProps {
   label: string;
   icon?: any;
