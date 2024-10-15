@@ -97,9 +97,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
             <View>
-              <TouchableOpacity
-                onPress={() => router.back()}
-              >
+              <TouchableOpacity onPress={() => router.back()}>
                 <AntDesign name="caretleft" size={18} color="0076e3" />
               </TouchableOpacity>
             </View>
@@ -126,7 +124,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </View>
       </View>
       <View className="flex-grow items-center">
-        <PostGallery posts={userPosts} handleUpdate={fetchUserData}/>
+        <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
       </View>
     </View>
   );
