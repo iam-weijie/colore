@@ -2,10 +2,12 @@ import { icons } from "@/constants/index";
 import { PostModalProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { useRouter, Href } from "expo-router";
+import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View, Alert } from "react-native";
 import ReactNativeModal from "react-native-modal";
+import { fetchAPI } from "@/lib/fetch";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -14,6 +16,29 @@ const PostModal: React.FC<PostModalProps> = ({
 }) => {
   const [likedPost, setLikedPost] = useState<boolean>(false);
   const { user } = useUser();
+  const router = useRouter();
+  const route = useRoute();
+
+  const handleDeletePress = async () => {
+    Alert.alert(
+      "Delete Post",
+      "Are you sure you want to delete this post?",
+      [
+        { text: "Cancel" },
+        { text: "Delete", onPress: handleDelete },
+      ]
+    );
+  }
+
+  const handleDelete = async () => {
+    await fetchAPI(`/(api)/(posts)/deletePost?id=${post!.id}`, {
+      method: "DELETE"
+    });
+
+    Alert.alert("Post deleted successfully.");
+    handleCloseModal();
+    router.push(route.name as Href);
+  }
 
   return (
     <ReactNativeModal isVisible={isVisible}>
@@ -50,6 +75,11 @@ const PostModal: React.FC<PostModalProps> = ({
             />
           </TouchableOpacity>
         </View>
+        {post && post.clerk_id == user?.id && (
+          <TouchableOpacity onPress={handleDeletePress}>
+            <Text>delete</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ReactNativeModal>
   );
