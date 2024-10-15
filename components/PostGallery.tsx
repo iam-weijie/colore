@@ -64,7 +64,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
           post={selectedPost}
           handleCloseModal={handleCloseModal}
           handleUpdate={handleUpdate}
-          />
+        />
       )}
     </View>
   );
