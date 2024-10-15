@@ -48,7 +48,7 @@ const PostModal: React.FC<PostModalProps> = ({
         <TouchableOpacity onPress={handleCloseModal}>
           <Image className="w-6 h-6 self-end left-3" source={icons.close} />
         </TouchableOpacity>
-        {post && post.firstname && user!.id != post.clerk_id && (
+        {post && post.firstname && user!.id !== post.clerk_id && (
           <TouchableOpacity
             onPress={() => {
               handleCloseModal();
@@ -76,7 +76,7 @@ const PostModal: React.FC<PostModalProps> = ({
               color={likedPost ? "red" : "black"}
             />
           </TouchableOpacity>
-          {post && post.clerk_id == user?.id && (
+          {post && post.clerk_id === user?.id && (
             <TouchableOpacity onPress={handleDeletePress}>
               <Image source={icons.trash} className="w-7 h-7" />
             </TouchableOpacity>
