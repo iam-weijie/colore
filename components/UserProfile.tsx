@@ -24,13 +24,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
+import { UserNicknamePair } from "@/types/type";
+
 
 const UserProfile: React.FC<UserProfileProps> = ({
   userId,
   isEditable,
   onSignOut,
 }) => {
-  type UserNicknamePair = [string, string];
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
   const [loading, setLoading] = useState(true);

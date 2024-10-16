@@ -9,10 +9,10 @@ import {
 import { fetchAPI } from "@/lib/fetch";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useUser } from "@clerk/clerk-expo";
+import { UserNicknamePair } from "@/types/type";
 
 
 const nickname = () => {
-  type UserNicknamePair = [string, string];
   const router = useRouter();
   const { user } = useUser();
   const { stateVars, setStateVars } = useNavigationContext();
