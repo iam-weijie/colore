@@ -50,7 +50,7 @@ const PostModal: React.FC<PostModalProps> = ({
         }
         // console.log("response: ", response.data[0].nicknames);
         const nicknames = response.data[0].nicknames || [];
-        return findUserNickname(nicknames, post.clerk_id) === -1 ? "" : nicknames[findUserNickname(nicknames, post.clerk_id)][1];
+        return findUserNickname(nicknames, post!.clerk_id) === -1 ? "" : nicknames[findUserNickname(nicknames, post!.clerk_id)][1];
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
@@ -84,9 +84,20 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
   const handleCommentsPress = () => {
+    handleCloseModal();
     router.push({
       pathname: "/(root)/(post)/[id]",
-      params: { id: post!.id },
+      // send through params to avoid doing another API call for post
+      params: { 
+        id: post!.id, 
+        clerk_id: post!.clerk_id,
+        content: post!.content, 
+        nickname: nickname,
+        firstname: post!.firstname,
+        like_count: post!.like_count,
+        report_count: post!.report_count,
+        created_at: post!.created_at,
+      },
     })
   }
 

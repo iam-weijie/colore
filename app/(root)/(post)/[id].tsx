@@ -3,7 +3,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Alert,
   Dimensions,
@@ -15,9 +15,61 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams } from "expo-router";
+import { PostComment } from "@/types/type";
 
 const PostScreen = () => {
   const { user } = useUser();
+  const {
+    id,
+    clerk_id,
+    content,
+    nickname,
+    firstname,
+    like_count,
+    report_count,
+    created_at,
+  } = useLocalSearchParams();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [postComments, setpostComments] = useState<PostComment[]>([]);
+
+  const fetchComments = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetchAPI(
+        `/(api)/(comments)/getComments?id=${id}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      const comments = response.data;
+      console.log(comments);
+    } catch (error) {
+      setError("Failed to fetch comments.");
+      console.error("Failed to fetch comments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchComments();
+  }, [id]);
+
+  const renderComment = ({ item }: { item: PostComment }) => (
+    <View className="p-4 border-b border-gray-200">
+      <Text className="font-JakartaSemiBold">
+        {item.firstname} 
+      </Text>
+      <Text>{item.content}</Text>
+      <Text className="text-sm text-gray-500">{new Date(item.created_at).toLocaleString()}</Text>
+    </View>
+  );
 
   return (
     <SafeAreaView className="flex-1">
@@ -36,6 +88,22 @@ const PostScreen = () => {
               <Text className="absolute text-xl font-JakartaSemiBold">
                 Post
               </Text>
+            </View>
+
+            <View className="p-4 border-b border-gray-200">
+              <Text className="font-JakartaSemiBold text-lg">
+                {nickname || firstname}
+              </Text>
+              <Text className="mt-2">{content}</Text>
+
+              <View className="flex-row justify-between mt-4">
+                <TouchableOpacity onPress={() => {console.log("like")}}>
+                  <Text>Like ({like_count})</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => {console.log("report")}}>
+                  <Text>Report ({report_count})</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </TouchableWithoutFeedback>
