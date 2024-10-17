@@ -101,7 +101,6 @@ const PostModal: React.FC<PostModalProps> = ({
           >
             <Text className="text-[16px] mb-2 font-Jakarta font-bold">
               {nickname ? nickname : `${post?.firstname?.charAt(0)}.`}
-              {"\n"}
             </Text>
           </TouchableOpacity>
         )}
