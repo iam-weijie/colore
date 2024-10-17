@@ -71,6 +71,10 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
   const handleDelete = async () => {
+    await fetchAPI(`/(api)/(posts)/deletePostComments?id=${post!.id}`, {
+      method: "DELETE",
+    });
+
     await fetchAPI(`/(api)/(posts)/deletePost?id=${post!.id}`, {
       method: "DELETE",
     });

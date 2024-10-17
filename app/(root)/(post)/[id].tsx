@@ -101,6 +101,10 @@ const PostScreen = () => {
   };
 
   const handleDeletePost = async () => {
+    await fetchAPI(`/(api)/(posts)/deletePostComments?id=${id}`, {
+      method: "DELETE",
+    });
+
     await fetchAPI(`/(api)/(posts)/deletePost?id=${id}`, {
       method: "DELETE",
     });
