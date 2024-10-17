@@ -43,7 +43,6 @@ const PostScreen  = () => {
   const [newComment, setNewComment] = useState<string>("");
   const [likedComment, setLikedComment] = useState<boolean>(false);
 
-  const { height } = Dimensions.get("window");
   const maxCharacters = 500;
 
   const fetchComments = async () => {
@@ -158,7 +157,7 @@ const PostScreen  = () => {
         </Text>
       </TouchableOpacity>
       <Text>{item.content}</Text>
-      <Text className="text-sm text-gray-500">{new Date(item.created_at).toLocaleString()}</Text>
+      <Text className="text-sm text-gray-500">{new Date(item.created_at).toLocaleDateString()}</Text>
       <View className="my-2 flex-row justify-between items-center">
         <TouchableOpacity onPress={() => setLikedComment(!likedComment)}>
           <MaterialCommunityIcons
@@ -201,7 +200,7 @@ const PostScreen  = () => {
               {nickname || firstname}
             </Text>
             <Text className="text-sm text-gray-500">
-              {typeof created_at === "string" ? new Date(created_at).toLocaleString() : "No date"}
+              {typeof created_at === "string" ? new Date(created_at).toLocaleDateString() : "No date"}
             </Text>
             <Text className="mt-2">{content}</Text>
 
