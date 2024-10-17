@@ -4,7 +4,7 @@ import { PostModalProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Alert,
   Image,
@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
+import { UserNicknamePair } from "@/types/type";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -24,6 +25,43 @@ const PostModal: React.FC<PostModalProps> = ({
   const [likedPost, setLikedPost] = useState<boolean>(false);
   const { user } = useUser();
   const router = useRouter();
+  const [nickname, setNickname] = useState<string>("");
+
+  function findUserNickname(userArray: UserNicknamePair[], userId: string): number {
+    const index = userArray.findIndex(pair => pair[0] === userId);
+    return index;
+  }
+
+  const fetchCurrentNickname = async () => {
+    try {
+        console.log("user: ", user!.id);
+        const response = await fetchAPI(
+          `/(api)/(users)/getUserInfo?id=${user!.id}`,
+          {
+            method: "GET",
+          }
+        );
+        if (response.error) {
+          console.log("Error fetching user data");
+          console.log("response data: ", response.data);
+          console.log("response status: ", response.status);
+          console.log("response: ", response);
+          throw new Error(response.error);
+        }
+        console.log("response: ", response.data[0].nicknames);
+        const nicknames = response.data[0].nicknames || [];
+        return findUserNickname(nicknames, post.clerk_id) === -1 ? "" : nicknames[findUserNickname(nicknames, post.clerk_id)][1];
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+    useEffect(() => {
+        const getData = async () => {
+            const data = await fetchCurrentNickname();
+            setNickname(data);
+          };
+          getData();
+    }, [user]);
 
   const handleDeletePress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
@@ -61,7 +99,10 @@ const PostModal: React.FC<PostModalProps> = ({
               });
             }}
           >
-            <Text>{post.firstname.charAt(0)}</Text>
+            <Text className="text-[16px] mb-2 font-Jakarta font-bold">
+              {nickname ? nickname : `${post?.firstname?.charAt(0)}.`}
+              {"\n"}
+            </Text>
           </TouchableOpacity>
         )}
         <ScrollView>

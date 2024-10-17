@@ -1,4 +1,5 @@
 import { useNavigationContext } from "@/components/NavigationContext";
+import CustomButton from "@/components/CustomButton";
 import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
@@ -22,12 +23,17 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "@clerk/clerk-expo";
+import { UserNicknamePair } from "@/types/type";
+
 
 const UserProfile: React.FC<UserProfileProps> = ({
   userId,
   isEditable,
   onSignOut,
 }) => {
+  const { user } = useUser();
+  const [nickname, setNickname] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
@@ -36,6 +42,42 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const route = useRoute();
   const router = useRouter();
   const currentScreen = route.name as string;
+  
+  function findUserNickname(userArray: UserNicknamePair[], userId: string): number {
+    const index = userArray.findIndex(pair => pair[0] === userId);
+    return index;
+  }
+
+  const fetchCurrentNickname = async () => {
+    try {
+        console.log("user: ", user!.id);
+        const response = await fetchAPI(
+          `/(api)/(users)/getUserInfo?id=${user!.id}`,
+          {
+            method: "GET",
+          }
+        );
+        if (response.error) {
+          console.log("Error fetching user data");
+          console.log("response data: ", response.data);
+          console.log("response status: ", response.status);
+          console.log("response: ", response);
+          throw new Error(response.error);
+        }
+        console.log("response: ", response.data[0].nicknames);
+        const nicknames = response.data[0].nicknames || [];
+        return findUserNickname(nicknames, userId) === -1 ? "" : nicknames[findUserNickname(nicknames, userId)][1];
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+    useEffect(() => {
+        const getData = async () => {
+            const data = await fetchCurrentNickname();
+            setNickname(data);
+          };
+          getData();
+    }, [stateVars]);
 
   const handleNavigateToCountry = () => {
     if (isEditable) {
@@ -71,6 +113,17 @@ const UserProfile: React.FC<UserProfileProps> = ({
     }
   };
 
+  const handleAddNickname = () => {
+    console.log("Add Nickname button was pressed:");
+    setStateVars({
+      ...stateVars,
+      previousScreen: currentScreen,
+      userId,
+    });
+    router.push("/(root)/(profile)/nickname");
+  };
+
+
   useEffect(() => {
     fetchUserData();
   }, [userId]);
@@ -103,8 +156,20 @@ const UserProfile: React.FC<UserProfileProps> = ({
             </View>
           )}
           <Text className={`text-2xl font-JakartaBold flex-1`}>
-            {profileUser?.firstname.charAt(0)}.
+            {nickname ? nickname : `${profileUser?.firstname?.charAt(0)}.`}
           </Text>
+
+          <View className="flex flex-row items-center">
+            {!isEditable && (
+              <CustomButton
+                title="Nickname"
+                onPress={handleAddNickname}
+                className="mr-3 w-[100px] h-11 rounded-md"
+                fontSize="sm"
+                padding="2"
+              />
+            )}
+          </View>
           {isEditable && onSignOut && (
             <TouchableOpacity onPress={onSignOut}>
               <Image source={icons.logout} className="w-5 h-5" />
