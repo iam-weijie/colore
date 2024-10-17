@@ -1,29 +1,28 @@
 import CustomButton from "@/components/CustomButton";
+import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
+import { PostComment } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
+  Image,
   Keyboard,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  ScrollView,
-  Image,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
-import { PostComment } from "@/types/type";
-import { icons } from "@/constants/index";
 
-const PostScreen  = () => {
+const PostScreen = () => {
   const { user } = useUser();
   const router = useRouter();
   const {
@@ -75,7 +74,11 @@ const PostScreen  = () => {
     try {
       const response = await fetchAPI(`/(api)/(comments)/newComment`, {
         method: "POST",
-        body: JSON.stringify({ content: newComment, postId: id, clerkId: user?.id }),
+        body: JSON.stringify({
+          content: newComment,
+          postId: id,
+          clerkId: user?.id,
+        }),
       });
 
       if (response.error) {
@@ -88,7 +91,6 @@ const PostScreen  = () => {
       console.error("Failed to submit comment:", error);
     }
   };
-
 
   const handleDeletePostPress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
@@ -107,18 +109,22 @@ const PostScreen  = () => {
   };
 
   const handleDeleteCommentPress = async (id: number) => {
-    Alert.alert("Delete Comment", "Are you sure you want to delete this comment?", [
-      { text: "Cancel" },
-      { text: "Delete", onPress: () => handleDeleteComment(id) },
-    ]);
+    Alert.alert(
+      "Delete Comment",
+      "Are you sure you want to delete this comment?",
+      [
+        { text: "Cancel" },
+        { text: "Delete", onPress: () => handleDeleteComment(id) },
+      ]
+    );
   };
-  
+
   const handleDeleteComment = async (id: number) => {
     try {
       await fetchAPI(`/(api)/(comments)/deleteComment?id=${id}`, {
         method: "DELETE",
       });
-  
+
       Alert.alert("Comment deleted.");
       fetchComments();
     } catch (error) {
@@ -130,9 +136,9 @@ const PostScreen  = () => {
   const handleUserProfile = async (id: string) => {
     router.push({
       pathname: "/(root)/(profile)/[id]",
-      params: { id }
-    })
-  }
+      params: { id },
+    });
+  };
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -152,13 +158,19 @@ const PostScreen  = () => {
 
   const renderComment = ({ item }: { item: PostComment }) => (
     <View className="p-4 border-b border-gray-200">
-      <TouchableOpacity onPress={() => {handleUserProfile(item.user_id)}}>
+      <TouchableOpacity
+        onPress={() => {
+          handleUserProfile(item.user_id);
+        }}
+      >
         <Text className="font-JakartaSemiBold">
-          {item.firstname.charAt(0)}. 
+          {item.firstname.charAt(0)}.
         </Text>
       </TouchableOpacity>
       <Text>{item.content}</Text>
-      <Text className="text-sm text-gray-500">{new Date(item.created_at).toLocaleString()}</Text>
+      <Text className="text-sm text-gray-500">
+        {new Date(item.created_at).toLocaleString()}
+      </Text>
       <View className="my-2 flex-row justify-between items-center">
         <TouchableOpacity onPress={() => setLikedComment(!likedComment)}>
           <MaterialCommunityIcons
@@ -189,9 +201,7 @@ const PostScreen  = () => {
                 <AntDesign name="caretleft" size={18} color="0076e3" />
               </TouchableOpacity>
             </View>
-            <Text className="absolute text-xl font-JakartaSemiBold">
-              Post
-            </Text>
+            <Text className="absolute text-xl font-JakartaSemiBold">Post</Text>
           </View>
         </TouchableWithoutFeedback>
         <ScrollView>
@@ -201,7 +211,9 @@ const PostScreen  = () => {
               {nickname || firstname}
             </Text>
             <Text className="text-sm text-gray-500">
-              {typeof created_at === "string" ? new Date(created_at).toLocaleString() : "No date"}
+              {typeof created_at === "string"
+                ? new Date(created_at).toLocaleString()
+                : "No date"}
             </Text>
             <Text className="mt-2">{content}</Text>
 
@@ -224,25 +236,31 @@ const PostScreen  = () => {
           {/* Comment section */}
           <View className="mt-4 mb-24">
             <Text className="font-JakartaSemiBold text-lg mx-4">Comments</Text>
-            {loading && (
-              <ActivityIndicator size="large" color="#0076e3" />
-            )}
-            {error && (
-              <Text className="text-red-500 mx-4">{error}</Text>
-            )}
+            {loading && <ActivityIndicator size="large" color="#0076e3" />}
+            {error && <Text className="text-red-500 mx-4">{error}</Text>}
             {!loading && !error && postComments.length === 0 && (
-              <Text className="text-gray-500 mx-4 min-h-[30px]">No comments yet.</Text>
+              <Text className="text-gray-500 mx-4 min-h-[30px]">
+                No comments yet.
+              </Text>
             )}
             {!loading && !error && postComments.length > 0 && (
               <View className="mx-2">
-                {postComments.map((comment) => renderComment({ item: comment }))}
+                {postComments.map((comment) =>
+                  renderComment({ item: comment })
+                )}
               </View>
             )}
           </View>
         </ScrollView>
         <View className="flex-row justify-between items-center absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
           <TextInput
-            style={{ flex: 1, borderColor: '#ccc', borderWidth: 1, borderRadius: 5, padding: 8 }}
+            style={{
+              flex: 1,
+              borderColor: "#ccc",
+              borderWidth: 1,
+              borderRadius: 5,
+              padding: 8,
+            }}
             placeholder="Write a comment..."
             value={newComment}
             onChangeText={handleChangeText}
@@ -250,7 +268,7 @@ const PostScreen  = () => {
           />
           <CustomButton
             title="Send"
-            onPress={handleCommentSubmit} 
+            onPress={handleCommentSubmit}
             disabled={newComment.length === 0}
             className="ml-3 w-14 h-8 rounded-md"
             fontSize="sm"
@@ -259,7 +277,7 @@ const PostScreen  = () => {
         </View>
       </SignedIn>
     </SafeAreaView>
-  );  
+  );
 };
 
 export default PostScreen;
