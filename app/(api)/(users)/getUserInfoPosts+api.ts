@@ -32,6 +32,7 @@ export async function GET(request: Request) {
       FROM users u
       LEFT JOIN posts p ON u.clerk_id = p.user_id
       WHERE u.clerk_id = ${clerkId}
+      ORDER BY p.created_at DESC;
     `;
 
     if (response.length === 0) {

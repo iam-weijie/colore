@@ -19,6 +19,7 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       WHERE u.clerk_id = ${clerkId}
+      ORDER BY p.created_at ASC;
       `;
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
