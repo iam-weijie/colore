@@ -61,10 +61,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
           console.log("Error fetching user data");
           console.log("response data: ", response.data);
           console.log("response status: ", response.status);
-          console.log("response: ", response);
+          // console.log("response: ", response);
           throw new Error(response.error);
         }
-        console.log("response: ", response.data[0].nicknames);
+        // console.log("response: ", response.data[0].nicknames);
         const nicknames = response.data[0].nicknames || [];
         return findUserNickname(nicknames, userId) === -1 ? "" : nicknames[findUserNickname(nicknames, userId)][1];
       } catch (error) {

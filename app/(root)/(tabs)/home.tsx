@@ -4,15 +4,85 @@ import { icons } from "@/constants";
 import { Post } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   ActivityIndicator,
   Image,
   Text,
   TouchableOpacity,
   View,
+  PanResponder,
+  Animated
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { PostWithPosition } from "@/types/type";
+
+type DraggablePostItProps = {
+  post: PostWithPosition;
+  onPress: () => void;
+};
+
+const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress}) => {
+  const position = useRef(new Animated.ValueXY()).current;
+  const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        // when gesture starts, set to dragging
+        setIsDragging(true);
+      },
+      // this is called when the user moves finger
+      // to initiate component movement
+      onPanResponderMove: Animated.event(
+        [
+          null,
+          {
+            dx: position.x,
+            dy: position.y,
+          }
+        ],
+        { useNativeDriver: false }
+      ),
+      onPanResponderRelease: (event, gestureState) => {   
+        const dx = gestureState.dx;
+        const dy = gestureState.dy;
+        // console.log(dx, dy);
+        position.extractOffset(); // reset the offset so transformations don't accumulate
+
+        if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
+          onPress();
+        } 
+        setIsDragging(false);
+
+      },
+    })
+  ).current;
+  
+
+  return (
+    <Animated.View
+      {...panResponder.panHandlers}
+      style={
+        {
+          transform: position.getTranslateTransform(),
+          opacity: isDragging ? 0.8 : 1,
+          position: "absolute",
+          top: post.position.top,
+          left: post.position.left,
+        }
+      }
+    >
+      <TouchableOpacity onPress={onPress}>
+        <PostIt />
+      </TouchableOpacity>
+    </Animated.View>
+  )
+
+}
 
 export default function Page() {
   //const { user } = useUser();
@@ -38,7 +108,7 @@ export default function Page() {
       const postsWithPositions = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 300,
+          top: Math.random() * 150,
           left: Math.random() * 200,
         },
       }));
@@ -89,17 +159,22 @@ export default function Page() {
           <View className="relative flex-1">
             {posts.map((post, index) => {
               return (
-                <TouchableOpacity
+                // <TouchableOpacity
+                //   key={post.id}
+                //   onPress={() => handlePostPress(post)}
+                //   style={{
+                //     position: "absolute",
+                //     top: post.position.top,
+                //     left: post.position.left,
+                //   }}
+                // >
+                //   <DraggablePostIt />
+                // </TouchableOpacity>
+                <DraggablePostIt 
                   key={post.id}
+                  post={post}
                   onPress={() => handlePostPress(post)}
-                  style={{
-                    position: "absolute",
-                    top: post.position.top,
-                    left: post.position.left,
-                  }}
-                >
-                  <PostIt />
-                </TouchableOpacity>
+                />
               );
             })}
 

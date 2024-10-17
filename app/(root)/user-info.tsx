@@ -57,7 +57,7 @@ const UserInfo = () => {
             console.log("Error fetching user data");
             console.log("response data: ", response.data);
             console.log("response status: ", response.status);
-            console.log("response: ", response);
+            // console.log("response: ", response);
             throw new Error(response.error);
           }
         }
