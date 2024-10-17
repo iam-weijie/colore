@@ -42,8 +42,9 @@ const PostScreen = () => {
   const [newComment, setNewComment] = useState<string>("");
   const [likedComment, setLikedComment] = useState<boolean>(false);
 
-  const maxCharacters = 500;
+  const maxCharacters = 6000;
   const displayName = Array.isArray(firstname) ? firstname[0] : firstname; // to correct type warning
+  const screenHeight = Dimensions.get("screen").height;
 
   const fetchComments = async () => {
     setLoading(true);
@@ -254,17 +255,20 @@ const PostScreen = () => {
         </ScrollView>
         <View className="flex-row justify-between items-center absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
           <TextInput
-            style={{
-              flex: 1,
-              borderColor: "#ccc",
-              borderWidth: 1,
-              borderRadius: 5,
-              padding: 8,
-            }}
+            className="flex-1 border border-gray-300 rounded-md p-2 max-h-30"
             placeholder="Write a comment..."
             value={newComment}
+            multiline
+            scrollEnabled
             onChangeText={handleChangeText}
             onSubmitEditing={handleCommentSubmit}
+            style={{
+              paddingTop: 10,
+              paddingBottom: 0,
+              minHeight: screenHeight * 0.05,
+              maxHeight: screenHeight * 0.35,
+              textAlignVertical: "top",
+            }}
           />
           <CustomButton
             title="Send"
