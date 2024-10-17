@@ -1,3 +1,4 @@
+import { ChatTabProps, ConversationItem } from "@/types/type";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -7,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { ChatTabProps, ConversationItem } from "../../../types/type";
 
 const Chat: React.FC<ChatTabProps> = () => {
   const [searchText, setSearchText] = useState<string>("");

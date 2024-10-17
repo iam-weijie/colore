@@ -109,3 +109,5 @@ declare interface Message {
   content: string;
   timestamp: Date;
 }
+
+type UserNicknamePair = [string, string];
