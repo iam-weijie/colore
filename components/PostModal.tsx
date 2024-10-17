@@ -83,6 +83,13 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   };
 
+  const handleCommentsPress = () => {
+    router.push({
+      pathname: "/(root)/(post)/[id]",
+      params: { id: post!.id },
+    })
+  }
+
   return (
     <ReactNativeModal isVisible={isVisible}>
       <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
@@ -120,6 +127,11 @@ const PostModal: React.FC<PostModalProps> = ({
               <Image source={icons.trash} className="w-7 h-7" />
             </TouchableOpacity>
           )}
+        </View>
+        <View>
+          <TouchableOpacity onPress={handleCommentsPress}>
+            <Text>Comments</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ReactNativeModal>
