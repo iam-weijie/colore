@@ -44,6 +44,7 @@ const PostScreen  = () => {
   const [likedComment, setLikedComment] = useState<boolean>(false);
 
   const { height } = Dimensions.get("window");
+  const maxCharacters = 500;
 
   const fetchComments = async () => {
     setLoading(true);
@@ -132,6 +133,18 @@ const PostScreen  = () => {
       params: { id }
     })
   }
+
+  const handleChangeText = (text: string) => {
+    if (text.length <= maxCharacters) {
+      setNewComment(text);
+    } else {
+      setNewComment(text.substring(0, maxCharacters));
+      Alert.alert(
+        "Limit Reached",
+        `You can only enter up to ${maxCharacters} characters.`
+      );
+    }
+  };
 
   useEffect(() => {
     fetchComments();
@@ -232,7 +245,7 @@ const PostScreen  = () => {
             style={{ flex: 1, borderColor: '#ccc', borderWidth: 1, borderRadius: 5, padding: 8 }}
             placeholder="Write a comment..."
             value={newComment}
-            onChangeText={setNewComment}
+            onChangeText={handleChangeText}
             onSubmitEditing={handleCommentSubmit}
           />
           <CustomButton
