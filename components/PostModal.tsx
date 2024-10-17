@@ -131,15 +131,15 @@ const PostModal: React.FC<PostModalProps> = ({
         </ScrollView>
         <View className="my-2 flex-row justify-between items-center">
           <View className="flex flex-row items-center">
-            <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
+            <TouchableOpacity onPress={handleCommentsPress}>
+              <Image source={icons.comment} className="w-8 h-8"/>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setLikedPost(!likedPost)} className="ml-2">
               <MaterialCommunityIcons
                 name={likedPost ? "heart" : "heart-outline"}
                 size={32}
                 color={likedPost ? "red" : "black"}
               />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleCommentsPress}>
-              <Image source={icons.comment} className="w-8 h-8 ml-2"/>
             </TouchableOpacity>
           </View>
           {post && post.clerk_id === user?.id && (
