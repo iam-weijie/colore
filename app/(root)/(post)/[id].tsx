@@ -162,7 +162,7 @@ const PostScreen = () => {
   }, [id]);
 
   const renderComment = ({ item }: { item: PostComment }) => (
-    <View className="p-4 border-b border-gray-200">
+    <View key={item.id} className="p-4 border-b border-gray-200">
       <TouchableOpacity
         onPress={() => {
           handleUserProfile(item.user_id);
