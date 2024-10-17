@@ -63,7 +63,7 @@ export async function GET(request: Request) {
       clerk_id: post.clerk_id, 
       firstname: post.firstname,
       content: post.content,
-      created_date: post.created_at, 
+      created_at: post.created_at, 
       city: post.city,
       state: post.state,
       country: post.country, 

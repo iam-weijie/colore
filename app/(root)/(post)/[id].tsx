@@ -71,7 +71,7 @@ const PostScreen  = () => {
     if (!newComment.trim()) return;
 
     try {
-      const response = await fetchAPI("/(api)/(comments)/newComment", {
+      const response = await fetchAPI(`/(api)/(comments)/newComment`, {
         method: "POST",
         body: JSON.stringify({ content: newComment, postId: id, clerkId: user?.id }),
       });
@@ -173,7 +173,7 @@ const PostScreen  = () => {
           </View>
 
           {/* Comment section */}
-          <View className="mt-4">
+          <View className="mt-4 mb-24">
             <Text className="font-JakartaSemiBold text-lg mx-4">Comments</Text>
             {loading && (
               <ActivityIndicator size="large" color="#0076e3" />
@@ -193,17 +193,17 @@ const PostScreen  = () => {
         </ScrollView>
         <View className="flex-row justify-between items-center absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
           <TextInput
+            style={{ flex: 1, borderColor: '#ccc', borderWidth: 1, borderRadius: 5, padding: 8 }}
             placeholder="Write a comment..."
             value={newComment}
             onChangeText={setNewComment}
             onSubmitEditing={handleCommentSubmit}
-            multiline={true}
           />
           <CustomButton
             title="Send"
             onPress={handleCommentSubmit} 
             disabled={newComment.length === 0}
-            className="absolute bottom-4 right-4 w-14 h-8 rounded-md"
+            className="ml-3 w-14 h-8 rounded-md"
             fontSize="sm"
             padding="0"
           />
