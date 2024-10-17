@@ -14,14 +14,16 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ScrollView,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { PostComment } from "@/types/type";
 import { icons } from "@/constants/index";
 
-const PostScreen = () => {
+const PostScreen  = () => {
   const { user } = useUser();
   const router = useRouter();
   const {
@@ -36,7 +38,7 @@ const PostScreen = () => {
   } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [postComments, setpostComments] = useState<PostComment[]>([]);
+  const [postComments, setPostComments] = useState<PostComment[]>([]);
   const [likedPost, setLikedPost] = useState<boolean>(false);
 
   const fetchComments = async () => {
@@ -53,7 +55,7 @@ const PostScreen = () => {
         throw new Error(response.error);
       }
       const comments = response.data;
-      console.log(comments);
+      setPostComments(comments);
     } catch (error) {
       setError("Failed to fetch comments.");
       console.error("Failed to fetch comments:", error);
@@ -75,7 +77,6 @@ const PostScreen = () => {
     });
 
     Alert.alert("Post deleted.");
-
     router.back();
   };
 
@@ -100,7 +101,7 @@ const PostScreen = () => {
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
         >
-          <View>
+          <ScrollView>
             <View className="flex flex-row justify-center items-center mt-3 mx-4">
               <View className="flex-1">
                 <TouchableOpacity onPress={() => router.back()}>
@@ -112,9 +113,13 @@ const PostScreen = () => {
               </Text>
             </View>
   
+            {/* Post information */}
             <View className="p-4 border-b border-gray-200">
               <Text className="font-JakartaSemiBold text-lg">
                 {nickname || firstname}
+              </Text>
+              <Text className="text-sm text-gray-500">
+                {typeof created_at === "string" ? new Date(created_at).toLocaleString() : "No date"}
               </Text>
               <Text className="mt-2">{content}</Text>
   
@@ -127,13 +132,33 @@ const PostScreen = () => {
                   />
                 </TouchableOpacity>
                 {clerk_id === user?.id && (
-                  <TouchableOpacity onPress={() => {}}>
+                  <TouchableOpacity onPress={handleDeletePress}>
                     <Image source={icons.trash} className="w-7 h-7" />
                   </TouchableOpacity>
                 )}
               </View>
             </View>
-          </View>
+
+            {/* Comment section */}
+            <View className="mt-4">
+              <Text className="font-JakartaSemiBold text-lg mx-4">Comments</Text>
+              {loading && (
+                <ActivityIndicator size="large" color="#0076e3" />
+              )}
+              {error && (
+                <Text className="text-red-500 mx-4">{error}</Text>
+              )}
+              {!loading && !error && postComments.length === 0 && (
+                <Text className="text-gray-500 mx-4 min-h-[30px]">No comments yet.</Text>
+              )}
+              {!loading && !error && postComments.length > 0 && (
+                <View className="mx-2">
+                  {postComments.map((comment) => renderComment({ item: comment }))}
+                </View>
+              )}
+            </View>
+                
+          </ScrollView>
         </TouchableWithoutFeedback>
       </SignedIn>
     </SafeAreaView>
