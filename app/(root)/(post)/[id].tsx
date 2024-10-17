@@ -170,7 +170,7 @@ const PostScreen = () => {
       </TouchableOpacity>
       <Text>{item.content}</Text>
       <Text className="text-sm text-gray-500">
-        {new Date(item.created_at).toLocaleString()}
+        {new Date(item.created_at).toLocaleDateString()}
       </Text>
       <View className="my-2 flex-row justify-between items-center">
         <TouchableOpacity onPress={() => setLikedComment(!likedComment)}>
@@ -213,7 +213,7 @@ const PostScreen = () => {
             </Text>
             <Text className="text-sm text-gray-500">
               {typeof created_at === "string"
-                ? new Date(created_at).toLocaleString()
+                ? new Date(created_at).toLocaleDateString()
                 : "No date"}
             </Text>
             <Text className="mt-2">{content}</Text>
