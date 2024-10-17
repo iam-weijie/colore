@@ -126,23 +126,23 @@ const PostModal: React.FC<PostModalProps> = ({
           <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
         </ScrollView>
         <View className="my-2 flex-row justify-between items-center">
-          <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
-            <MaterialCommunityIcons
-              name={likedPost ? "heart" : "heart-outline"}
-              size={32}
-              color={likedPost ? "red" : "black"}
-            />
-          </TouchableOpacity>
+          <View className="flex flex-row items-center">
+            <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
+              <MaterialCommunityIcons
+                name={likedPost ? "heart" : "heart-outline"}
+                size={32}
+                color={likedPost ? "red" : "black"}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleCommentsPress}>
+              <Image source={icons.comment} className="w-8 h-8 ml-2"/>
+            </TouchableOpacity>
+          </View>
           {post && post.clerk_id === user?.id && (
             <TouchableOpacity onPress={handleDeletePress}>
               <Image source={icons.trash} className="w-7 h-7" />
             </TouchableOpacity>
           )}
-        </View>
-        <View>
-          <TouchableOpacity onPress={handleCommentsPress}>
-            <Text>Comments</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </ReactNativeModal>
