@@ -154,7 +154,7 @@ const PostScreen  = () => {
             color={likedComment ? "red" : "black"}
           />
         </TouchableOpacity>
-        {clerk_id === user?.id && (
+        {item.user_id === user?.id && (
           <TouchableOpacity onPress={() => handleDeleteCommentPress(item.id)}>
             <Image source={icons.trash} className="w-5 h-5" />
           </TouchableOpacity>
