@@ -16,7 +16,7 @@ export async function DELETE(request: Request) {
   } catch (error) {
     console.error(error);
     return new Response(
-      JSON.stringify({ error: "Failed to delete comment." }),
+      JSON.stringify({ error: "Failed to delete post." }),
       {
         status: 500,
       }
