@@ -6,10 +6,10 @@ export async function DELETE(request: Request) {
     const url = new URL(request.url);
     const postId = url.searchParams.get("id");
 
-    console.log("Received DELETE request for post.");
+    console.log("Received DELETE request for comment.");
 
     const response = await sql`
-      DELETE FROM posts WHERE id=${postId}`;
+      DELETE FROM comments WHERE id=${postId}`;
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });

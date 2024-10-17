@@ -41,6 +41,7 @@ const PostScreen  = () => {
   const [postComments, setPostComments] = useState<PostComment[]>([]);
   const [likedPost, setLikedPost] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>("");
+  const [likedComment, setLikedComment] = useState<boolean>(false);
 
   const { height } = Dimensions.get("window");
 
@@ -88,20 +89,41 @@ const PostScreen  = () => {
   };
 
 
-  const handleDeletePress = async () => {
+  const handleDeletePostPress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
       { text: "Cancel" },
-      { text: "Delete", onPress: handleDelete },
+      { text: "Delete", onPress: handleDeletePost },
     ]);
   };
 
-  const handleDelete = async () => {
+  const handleDeletePost = async () => {
     await fetchAPI(`/(api)/(posts)/deletePost?id=${id}`, {
       method: "DELETE",
     });
 
     Alert.alert("Post deleted.");
     router.back();
+  };
+
+  const handleDeleteCommentPress = async (id: number) => {
+    Alert.alert("Delete Comment", "Are you sure you want to delete this comment?", [
+      { text: "Cancel" },
+      { text: "Delete", onPress: () => handleDeleteComment(id) },
+    ]);
+  };
+  
+  const handleDeleteComment = async (id: number) => {
+    try {
+      await fetchAPI(`/(api)/(comments)/deleteComment?id=${id}`, {
+        method: "DELETE",
+      });
+  
+      Alert.alert("Comment deleted.");
+      fetchComments();
+    } catch (error) {
+      Alert.alert("Error", "Failed to delete comment.");
+      console.error("Failed to delete comment:", error);
+    }
   };
 
   const handleUserProfile = async (id: string) => {
@@ -124,6 +146,20 @@ const PostScreen  = () => {
       </TouchableOpacity>
       <Text>{item.content}</Text>
       <Text className="text-sm text-gray-500">{new Date(item.created_at).toLocaleString()}</Text>
+      <View className="my-2 flex-row justify-between items-center">
+        <TouchableOpacity onPress={() => setLikedComment(!likedComment)}>
+          <MaterialCommunityIcons
+            name={likedComment ? "heart" : "heart-outline"}
+            size={24}
+            color={likedComment ? "red" : "black"}
+          />
+        </TouchableOpacity>
+        {clerk_id === user?.id && (
+          <TouchableOpacity onPress={() => handleDeleteCommentPress(item.id)}>
+            <Image source={icons.trash} className="w-5 h-5" />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 
@@ -165,7 +201,7 @@ const PostScreen  = () => {
                 />
               </TouchableOpacity>
               {clerk_id === user?.id && (
-                <TouchableOpacity onPress={handleDeletePress}>
+                <TouchableOpacity onPress={handleDeletePostPress}>
                   <Image source={icons.trash} className="w-7 h-7" />
                 </TouchableOpacity>
               )}
