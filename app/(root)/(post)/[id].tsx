@@ -264,7 +264,7 @@ const PostScreen = () => {
             onSubmitEditing={handleCommentSubmit}
             style={{
               paddingTop: 10,
-              paddingBottom: 0,
+              paddingBottom: 10,
               minHeight: screenHeight * 0.05,
               maxHeight: screenHeight * 0.35,
               textAlignVertical: "top",
