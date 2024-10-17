@@ -2,8 +2,9 @@ import CustomButton from "@/components/CustomButton";
 import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   Alert,
   Dimensions,
@@ -13,13 +14,16 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { PostComment } from "@/types/type";
+import { icons } from "@/constants/index";
 
 const PostScreen = () => {
   const { user } = useUser();
+  const router = useRouter();
   const {
     id,
     clerk_id,
@@ -33,6 +37,7 @@ const PostScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [postComments, setpostComments] = useState<PostComment[]>([]);
+  const [likedPost, setLikedPost] = useState<boolean>(false);
 
   const fetchComments = async () => {
     setLoading(true);
@@ -55,6 +60,23 @@ const PostScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeletePress = async () => {
+    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
+      { text: "Cancel" },
+      { text: "Delete", onPress: handleDelete },
+    ]);
+  };
+
+  const handleDelete = async () => {
+    await fetchAPI(`/(api)/(posts)/deletePost?id=${id}`, {
+      method: "DELETE",
+    });
+
+    Alert.alert("Post deleted.");
+
+    router.back();
   };
 
   useEffect(() => {
@@ -89,27 +111,33 @@ const PostScreen = () => {
                 Post
               </Text>
             </View>
-
+  
             <View className="p-4 border-b border-gray-200">
               <Text className="font-JakartaSemiBold text-lg">
                 {nickname || firstname}
               </Text>
               <Text className="mt-2">{content}</Text>
-
-              <View className="flex-row justify-between mt-4">
-                <TouchableOpacity onPress={() => {console.log("like")}}>
-                  <Text>Like ({like_count})</Text>
+  
+              <View className="my-2 flex-row justify-between items-center">
+                <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
+                  <MaterialCommunityIcons
+                    name={likedPost ? "heart" : "heart-outline"}
+                    size={32}
+                    color={likedPost ? "red" : "black"}
+                  />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => {console.log("report")}}>
-                  <Text>Report ({report_count})</Text>
-                </TouchableOpacity>
+                {clerk_id === user?.id && (
+                  <TouchableOpacity onPress={() => {}}>
+                    <Image source={icons.trash} className="w-7 h-7" />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>
         </TouchableWithoutFeedback>
       </SignedIn>
     </SafeAreaView>
-  );
+  );  
 };
 
 export default PostScreen;
