@@ -44,6 +44,7 @@ const PostScreen  = () => {
   const [likedComment, setLikedComment] = useState<boolean>(false);
 
   const maxCharacters = 500;
+  const displayName = Array.isArray(firstname) ? firstname[0] : firstname; // to correct type warning
 
   const fetchComments = async () => {
     setLoading(true);
@@ -197,7 +198,7 @@ const PostScreen  = () => {
           {/* Post information */}
           <View className="p-4 border-b border-gray-200">
             <Text className="font-JakartaSemiBold text-lg">
-              {nickname || firstname}
+              {nickname || displayName.charAt(0) + "."}
             </Text>
             <Text className="text-sm text-gray-500">
               {typeof created_at === "string" ? new Date(created_at).toLocaleDateString() : "No date"}
