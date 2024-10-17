@@ -15,6 +15,8 @@ declare interface Post {
 
 export interface PostComment {
   id: number;
+  post_id: number;
+  user_id: string;
   content: string;
   firstname: string;
   created_at: string;

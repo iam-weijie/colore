@@ -80,15 +80,24 @@ const PostScreen  = () => {
     router.back();
   };
 
+  const handleUserProfile = async (id: string) => {
+    router.push({
+      pathname: "/(root)/(profile)/[id]",
+      params: { id }
+    })
+  }
+
   useEffect(() => {
     fetchComments();
   }, [id]);
 
   const renderComment = ({ item }: { item: PostComment }) => (
     <View className="p-4 border-b border-gray-200">
-      <Text className="font-JakartaSemiBold">
-        {item.firstname} 
-      </Text>
+      <TouchableOpacity onPress={() => {handleUserProfile(item.user_id)}}>
+        <Text className="font-JakartaSemiBold">
+          {item.firstname.charAt(0)}. 
+        </Text>
+      </TouchableOpacity>
       <Text>{item.content}</Text>
       <Text className="text-sm text-gray-500">{new Date(item.created_at).toLocaleString()}</Text>
     </View>

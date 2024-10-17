@@ -11,6 +11,8 @@ export async function GET(request: Request) {
     const response = await sql`
       SELECT 
       c.id, 
+      c.post_id,
+      u.clerk_id AS user_id,
       c.content, 
       u.firstname,
       c.created_at,
