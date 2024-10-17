@@ -15,10 +15,18 @@ import {
   Animated
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { PostWithPosition } from "@/types/type";
 
-const DraggablePostIt = () => {
+type DraggablePostItProps = {
+  post: PostWithPosition;
+  onPress: () => void;
+};
+
+const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress}) => {
   const position = useRef(new Animated.ValueXY()).current;
-
+  const positionY = useRef(new Animated.Value(post.position.top)).current;
+  const positionX = useRef(new Animated.Value(post.position.left)).current;
+  const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const panResponder = useRef(
@@ -39,24 +47,40 @@ const DraggablePostIt = () => {
             dy: position.y,
           }
         ],
-        // run on JavaScript thread rather than native thread
         { useNativeDriver: false }
       ),
-      onPanResponderRelease: () => {
+      onPanResponderRelease: (event, gestureState) => {   
+        const dx = gestureState.dx;
+        const dy = gestureState.dy;
+        // console.log(dx, dy);
+        position.extractOffset(); // reset the offset so transformations don't accumulate
+
+        if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
+          onPress();
+        } 
         setIsDragging(false);
+
       },
     })
   ).current;
+  
 
   return (
     <Animated.View
-      style={{
-        transform: position.getTranslateTransform(),
-        opacity: isDragging ? 0.8 : 1,
-      }}
       {...panResponder.panHandlers}
+      style={
+        {
+          transform: position.getTranslateTransform(),
+          opacity: isDragging ? 0.8 : 1,
+          position: "absolute",
+          top: post.position.top,
+          left: post.position.left,
+        }
+      }
     >
-      <PostIt />
+      <TouchableOpacity onPress={onPress}>
+        <PostIt />
+      </TouchableOpacity>
     </Animated.View>
   )
 
@@ -86,7 +110,7 @@ export default function Page() {
       const postsWithPositions = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 300,
+          top: Math.random() * 150,
           left: Math.random() * 200,
         },
       }));
@@ -137,17 +161,22 @@ export default function Page() {
           <View className="relative flex-1">
             {posts.map((post, index) => {
               return (
-                <TouchableOpacity
+                // <TouchableOpacity
+                //   key={post.id}
+                //   onPress={() => handlePostPress(post)}
+                //   style={{
+                //     position: "absolute",
+                //     top: post.position.top,
+                //     left: post.position.left,
+                //   }}
+                // >
+                //   <DraggablePostIt />
+                // </TouchableOpacity>
+                <DraggablePostIt 
                   key={post.id}
+                  post={post}
                   onPress={() => handlePostPress(post)}
-                  style={{
-                    position: "absolute",
-                    top: post.position.top,
-                    left: post.position.left,
-                  }}
-                >
-                  <DraggablePostIt />
-                </TouchableOpacity>
+                />
               );
             })}
 
