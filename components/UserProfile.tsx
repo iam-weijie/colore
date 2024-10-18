@@ -50,7 +50,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   const fetchCurrentNickname = async () => {
     try {
-        console.log("user: ", user!.id);
+        // console.log("user: ", user!.id);
         const response = await fetchAPI(
           `/(api)/(users)/getUserInfo?id=${user!.id}`,
           {
@@ -149,7 +149,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       <View className="mx-7 mb-7">
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
-            <View>
+            <View className="mr-2">
               <TouchableOpacity onPress={() => router.back()}>
                 <AntDesign name="caretleft" size={18} color="0076e3" />
               </TouchableOpacity>
