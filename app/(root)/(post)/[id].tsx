@@ -26,9 +26,9 @@ const PostScreen = () => {
   const { user } = useUser();
   const router = useRouter();
   const {
-    id,
-    clerk_id,
-    content,
+    id = "",
+    clerk_id = "",
+    content = "",
     nickname,
     firstname,
     like_count,
@@ -44,6 +44,7 @@ const PostScreen = () => {
 
   const maxCharacters = 6000;
   const displayName = Array.isArray(firstname) ? firstname[0] : firstname; // to correct type warning
+  const userId = Array.isArray(clerk_id) ? clerk_id[0] : clerk_id;
   const screenHeight = Dimensions.get("screen").height;
 
   const fetchComments = async () => {
@@ -172,23 +173,25 @@ const PostScreen = () => {
           {item.firstname.charAt(0)}.
         </Text>
       </TouchableOpacity>
-      <Text>{item.content}</Text>
       <Text className="text-sm text-gray-500">
         {new Date(item.created_at).toLocaleDateString()}
       </Text>
-      <View className="my-2 flex-row justify-between items-center">
-        <TouchableOpacity onPress={() => setLikedComment(!likedComment)}>
-          <MaterialCommunityIcons
-            name={likedComment ? "heart" : "heart-outline"}
-            size={24}
-            color={likedComment ? "red" : "black"}
-          />
-        </TouchableOpacity>
-        {item.user_id === user?.id && (
-          <TouchableOpacity onPress={() => handleDeleteCommentPress(item.id)}>
-            <Image source={icons.trash} className="w-5 h-5" />
+      <View className="flex flex-row mr-2">
+        <Text className="flex-1">{item.content}</Text>
+        <View className="flex flex-col items-center">
+          <TouchableOpacity onPress={() => setLikedComment(!likedComment)}>
+            <MaterialCommunityIcons
+              name={likedComment ? "heart" : "heart-outline"}
+              size={24}
+              color={likedComment ? "red" : "black"}
+            />
           </TouchableOpacity>
-        )}
+          {item.user_id === user?.id && (
+            <TouchableOpacity onPress={() => handleDeleteCommentPress(item.id)}>
+              <Image source={icons.trash} className="mt-3 w-5 h-5" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -196,47 +199,49 @@ const PostScreen = () => {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <TouchableWithoutFeedback
-          onPress={() => Keyboard.dismiss()}
-          onPressIn={() => Keyboard.dismiss()}
-        >
-          <View className="flex flex-row justify-center items-center mt-3 mx-4">
-            <View className="flex-1">
-              <TouchableOpacity onPress={() => router.back()}>
-                <AntDesign name="caretleft" size={18} color="0076e3" />
-              </TouchableOpacity>
-            </View>
-            <Text className="absolute text-xl font-JakartaSemiBold">Post</Text>
-          </View>
-        </TouchableWithoutFeedback>
-        <ScrollView>
-          {/* Post information */}
-          <View className="p-4 border-b border-gray-200">
-            <Text className="font-JakartaSemiBold text-lg">
-              {nickname || displayName.charAt(0) + "."}
-            </Text>
-            <Text className="text-sm text-gray-500">
-              {typeof created_at === "string"
-                ? new Date(created_at).toLocaleDateString()
-                : "No date"}
-            </Text>
-            <Text className="mt-2">{content}</Text>
+        <View className="flex flex-row justify-center items-center mt-3 mx-4">
+          <TouchableOpacity onPress={() => router.back()} className="mr-4">
+            <AntDesign name="caretleft" size={18} />
+          </TouchableOpacity>
 
-            <View className="my-2 flex-row justify-between items-center">
-              <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
-                <MaterialCommunityIcons
-                  name={likedPost ? "heart" : "heart-outline"}
-                  size={32}
-                  color={likedPost ? "red" : "black"}
-                />
-              </TouchableOpacity>
-              {clerk_id === user?.id && (
-                <TouchableOpacity onPress={handleDeletePostPress}>
-                  <Image source={icons.trash} className="w-7 h-7" />
-                </TouchableOpacity>
-              )}
-            </View>
+          <View className="flex-1">
+            <TouchableOpacity onPress={() => handleUserProfile(userId)}>
+              <Text className="font-JakartaSemiBold text-lg">
+                {nickname || displayName.charAt(0) + "."}
+              </Text>
+            </TouchableOpacity>
+              <Text className="text-sm text-gray-500">
+                {typeof created_at === "string"
+                  ? new Date(created_at).toLocaleDateString()
+                  : "No date"}
+              </Text>
           </View>
+        </View>
+        <ScrollView>
+          <TouchableWithoutFeedback
+            onPress={() => Keyboard.dismiss()}
+            onPressIn={() => Keyboard.dismiss()}
+          >
+          {/* Post information */}
+            <View className="p-4 border-b border-gray-200 relative">
+              <View className="absolute top-4 right-4 items-center mt-2">
+                <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
+                  <MaterialCommunityIcons
+                    name={likedPost ? "heart" : "heart-outline"}
+                    size={32}
+                    color={likedPost ? "red" : "black"}
+                  />
+                </TouchableOpacity>
+                {clerk_id === user?.id && (
+                  <TouchableOpacity onPress={handleDeletePostPress} className="mt-4">
+                    <Image source={icons.trash} className="w-7 h-7" />
+                  </TouchableOpacity>
+                )}
+              </View>
+              <Text className="mt-2 ml-2 mr-10 min-h-[80]">{content}</Text>
+            </View>
+          </TouchableWithoutFeedback>
+
 
           {/* Comment section */}
           <View className="mt-4 mb-24">
@@ -269,7 +274,6 @@ const PostScreen = () => {
             style={{
               paddingTop: 10,
               paddingBottom: 0,
-              minHeight: screenHeight * 0.05,
               maxHeight: screenHeight * 0.35,
               textAlignVertical: "top",
             }}
