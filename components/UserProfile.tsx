@@ -27,6 +27,8 @@ import { useUser } from "@clerk/clerk-expo";
 import { UserNicknamePair } from "@/types/type";
 
 
+
+
 const UserProfile: React.FC<UserProfileProps> = ({
   userId,
   isEditable,
@@ -99,10 +101,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
           method: "GET",
         }
       );
+
+
       if (response.error) {
         throw new Error(response.error);
       }
       const { userInfo, posts } = response as UserData;
+ 
       setProfileUser(userInfo);
       setUserPosts(posts);
     } catch (error) {

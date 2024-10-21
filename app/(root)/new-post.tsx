@@ -36,18 +36,35 @@ const NewPost = () => {
       return;
     }
 
-    await fetchAPI("/(api)/(posts)/newPost", {
-      method: "POST",
-      body: JSON.stringify({
-        content: cleanedContent,
-        clerkId: user!.id,
+        
+    try {
+      const repsonse = await fetchAPI("/(api)/(posts)/newPost", {
+        method: "POST",
+        body: JSON.stringify({
+          content: cleanedContent,
+          clerkId: user!.id,
+          color: "blue",
       }),
     });
+
+    // await fetchAPI("/(api)/(posts)/newPost", {
+    //   method: "POST",
+    //   body: JSON.stringify({
+    //     content: cleanedContent,
+    //     clerkId: user!.id,
+    //   }),
+    // });
 
     setPostContent("");
     Alert.alert("Post published.");
 
     router.back();
+
+  }
+  catch (error){
+    console.error('Error creating post:', error);
+    Alert.alert("Error", "Failed to create post. Please try again.");
+  }
   };
 
   const handleChangeText = (text: string) => {
@@ -116,3 +133,4 @@ const NewPost = () => {
 };
 
 export default NewPost;
+
