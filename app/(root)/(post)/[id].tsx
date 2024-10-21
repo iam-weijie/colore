@@ -22,6 +22,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { UserNicknamePair } from "@/types/type";
 
 const PostScreen = () => {
   const { user } = useUser();
@@ -42,11 +43,44 @@ const PostScreen = () => {
   const [likedPost, setLikedPost] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>("");
   const [likedComment, setLikedComment] = useState<boolean>(false);
+  const [nicknames, setNicknames] = useState<UserNicknamePair[]>([]);
 
   const maxCharacters = 6000;
   const displayName = Array.isArray(firstname) ? firstname[0] : firstname; // to correct type warning
   const userId = Array.isArray(clerk_id) ? clerk_id[0] : clerk_id;
   const screenHeight = Dimensions.get("screen").height;
+
+  function findUserNickname(userArray: UserNicknamePair[], userId: string): number {
+    const index = userArray.findIndex(pair => pair[0] === userId);
+    return index;
+  }
+  const fetchNicknames = async () => {
+    try {
+        console.log("user: ", user!.id);
+        const response = await fetchAPI(
+          `/(api)/(users)/getUserInfo?id=${user!.id}`,
+          {
+            method: "GET",
+          }
+        );
+        if (response.error) {
+          console.log("Error fetching user data");
+          console.log("response data: ", response.data);
+          console.log("response status: ", response.status);
+          // console.log("response: ", response);
+          throw new Error(response.error);
+        }
+        // console.log("response: ", response.data[0].nicknames);
+        const nicknames = response.data[0].nicknames || [];
+        setNicknames(nicknames);
+        return;
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+    useEffect(() => {
+        fetchNicknames();
+    }, []);
 
   const fetchComments = async () => {
     setLoading(true);
@@ -88,6 +122,7 @@ const PostScreen = () => {
         throw new Error(response.error);
       }
       setNewComment("");
+      fetchNicknames();
       fetchComments();
     } catch (error) {
       Alert.alert("Error", "Failed to submit comment.");
@@ -171,7 +206,7 @@ const PostScreen = () => {
         }}
       >
         <Text className="font-JakartaSemiBold">
-          {item.firstname.charAt(0)}.
+          {findUserNickname(nicknames, item.user_id)===-1 ? `${item.firstname.charAt(0)}.`:nicknames[findUserNickname(nicknames, item.user_id)][1]}
         </Text>
       </TouchableOpacity>
       <Text className="text-sm text-gray-500">
@@ -200,6 +235,7 @@ const PostScreen = () => {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
+        <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
         <View className="flex flex-row justify-center items-center mt-3 mx-4">
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
             <AntDesign name="caretleft" size={18} />
@@ -263,7 +299,7 @@ const PostScreen = () => {
             )}
           </View>
         </ScrollView>
-        <KeyboardAvoidingView>
+        
           <View className="flex-row justify-between items-center absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
             <TextInput
               className="flex-1 border border-gray-300 rounded-md p-2 max-h-30 mr-16"
