@@ -13,6 +13,7 @@ import {
   Dimensions,
   Image,
   Keyboard,
+  KeyboardAvoidingView,
   ScrollView,
   Text,
   TextInput,
@@ -262,31 +263,33 @@ const PostScreen = () => {
             )}
           </View>
         </ScrollView>
-        <View className="flex-row justify-between items-center absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
-          <TextInput
-            className="flex-1 border border-gray-300 rounded-md p-2 max-h-30 mr-16"
-            placeholder="Write a comment..."
-            value={newComment}
-            multiline
-            scrollEnabled
-            onChangeText={handleChangeText}
-            onSubmitEditing={handleCommentSubmit}
-            style={{
-              paddingTop: 10,
-              paddingBottom: 0,
-              maxHeight: screenHeight * 0.35,
-              textAlignVertical: "top",
-            }}
-          />
-          <CustomButton
-            title="Send"
-            onPress={handleCommentSubmit}
-            disabled={newComment.length === 0}
-            className="absolute bottom-4 ml-3 w-14 h-8 rounded-md absolute bottom-4 right-4"
-            fontSize="sm"
-            padding="0"
-          />
-        </View>
+        <KeyboardAvoidingView>
+          <View className="flex-row justify-between items-center absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+            <TextInput
+              className="flex-1 border border-gray-300 rounded-md p-2 max-h-30 mr-16"
+              placeholder="Write a comment..."
+              value={newComment}
+              multiline
+              scrollEnabled
+              onChangeText={handleChangeText}
+              onSubmitEditing={handleCommentSubmit}
+              style={{
+                paddingTop: 10,
+                paddingBottom: 0,
+                maxHeight: screenHeight * 0.35,
+                textAlignVertical: "top",
+              }}
+            />
+            <CustomButton
+              title="Send"
+              onPress={handleCommentSubmit}
+              disabled={newComment.length === 0}
+              className="absolute bottom-4 ml-3 w-14 h-8 rounded-md absolute bottom-4 right-4"
+              fontSize="sm"
+              padding="0"
+            />
+          </View>
+        </KeyboardAvoidingView>
       </SignedIn>
     </SafeAreaView>
   );
