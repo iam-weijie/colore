@@ -13,7 +13,7 @@ declare interface Post {
   report_count: number;
 }
 
-export interface PostComment {
+declare interface PostComment {
   id: number;
   post_id: number;
   user_id: string;
