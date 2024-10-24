@@ -50,7 +50,7 @@ const PostModal: React.FC<PostModalProps> = ({
         }
         // console.log("response: ", response.data[0].nicknames);
         const nicknames = response.data[0].nicknames || [];
-        return findUserNickname(nicknames, post.clerk_id) === -1 ? "" : nicknames[findUserNickname(nicknames, post.clerk_id)][1];
+        return findUserNickname(nicknames, post!.clerk_id) === -1 ? "" : nicknames[findUserNickname(nicknames, post!.clerk_id)][1];
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
@@ -71,6 +71,10 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
   const handleDelete = async () => {
+    await fetchAPI(`/(api)/(posts)/deletePostComments?id=${post!.id}`, {
+      method: "DELETE",
+    });
+
     await fetchAPI(`/(api)/(posts)/deletePost?id=${post!.id}`, {
       method: "DELETE",
     });
@@ -82,6 +86,24 @@ const PostModal: React.FC<PostModalProps> = ({
       await handleUpdate();
     }
   };
+
+  const handleCommentsPress = () => {
+    handleCloseModal();
+    router.push({
+      pathname: "/(root)/(post)/[id]",
+      // send through params to avoid doing another API call for post
+      params: { 
+        id: post!.id, 
+        clerk_id: post!.clerk_id,
+        content: post!.content, 
+        nickname: nickname,
+        firstname: post!.firstname,
+        like_count: post!.like_count,
+        report_count: post!.report_count,
+        created_at: post!.created_at,
+      },
+    })
+  }
 
   return (
     <ReactNativeModal isVisible={isVisible}>
@@ -101,7 +123,6 @@ const PostModal: React.FC<PostModalProps> = ({
           >
             <Text className="text-[16px] mb-2 font-Jakarta font-bold">
               {nickname ? nickname : `${post?.firstname?.charAt(0)}.`}
-              {"\n"}
             </Text>
           </TouchableOpacity>
         )}
@@ -109,13 +130,18 @@ const PostModal: React.FC<PostModalProps> = ({
           <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
         </ScrollView>
         <View className="my-2 flex-row justify-between items-center">
-          <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
-            <MaterialCommunityIcons
-              name={likedPost ? "heart" : "heart-outline"}
-              size={32}
-              color={likedPost ? "red" : "black"}
-            />
-          </TouchableOpacity>
+          <View className="flex flex-row items-center">
+            <TouchableOpacity onPress={handleCommentsPress}>
+              <Image source={icons.comment} className="w-8 h-8"/>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setLikedPost(!likedPost)} className="ml-2">
+              <MaterialCommunityIcons
+                name={likedPost ? "heart" : "heart-outline"}
+                size={32}
+                color={likedPost ? "red" : "black"}
+              />
+            </TouchableOpacity>
+          </View>
           {post && post.clerk_id === user?.id && (
             <TouchableOpacity onPress={handleDeletePress}>
               <Image source={icons.trash} className="w-7 h-7" />

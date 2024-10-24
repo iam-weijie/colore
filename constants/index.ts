@@ -2,6 +2,7 @@ import album from "@/assets/icons/album.png";
 import chat from "@/assets/icons/chat.png";
 import check from "@/assets/icons/check.png";
 import close from "@/assets/icons/close.png";
+import comment from "@/assets/icons/comment.png";
 import email from "@/assets/icons/email.png";
 import google from "@/assets/icons/google.png";
 import heart from "@/assets/icons/heart.png";
@@ -36,6 +37,7 @@ export const icons = {
   pencil,
   refresh,
   heart,
+  comment,
 };
 
 export const images = {
