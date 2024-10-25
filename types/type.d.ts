@@ -5,10 +5,21 @@ declare interface Post {
   clerk_id: string;
   firstname: string;
   content: string;
-  created_date: Date;
+  created_at: string;
   city: string;
   state: string;
   country: string;
+  like_count: number;
+  report_count: number;
+}
+
+declare interface PostComment {
+  id: number;
+  post_id: number;
+  user_id: string;
+  content: string;
+  firstname: string;
+  created_at: string;
   like_count: number;
   report_count: number;
 }
@@ -19,7 +30,7 @@ declare interface UserProfileType {
   firstname: string;
   lastname: string;
   email: string;
-  date_of_birth: Date;
+  date_of_birth: string;
   city: string;
   state: string;
   country: string;
