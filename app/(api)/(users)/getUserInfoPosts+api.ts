@@ -28,8 +28,7 @@ export async function GET(request: Request) {
         p.content, 
         p.created_at, 
         p.like_count, 
-        p.report_count,
-        p.color
+        p.report_count
       FROM users u
       LEFT JOIN posts p ON u.clerk_id = p.user_id
       WHERE u.clerk_id = ${clerkId}
@@ -70,7 +69,6 @@ export async function GET(request: Request) {
       country: post.country, 
       like_count: post.like_count,
       report_count: post.report_count,
-      color: post.color
     }));
 
     return new Response(JSON.stringify({ userInfo, posts: userPosts }), {

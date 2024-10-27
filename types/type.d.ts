@@ -11,7 +11,6 @@ declare interface Post {
   country: string;
   like_count: number;
   report_count: number;
-  color: string;
 }
 
 declare interface PostComment {
