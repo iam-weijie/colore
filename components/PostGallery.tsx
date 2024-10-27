@@ -50,6 +50,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
   return (
     <View className="absolute max-h-[85%]">
+      <Text className="text-lg font-JakartaSemiBold">Posts</Text>
       <FlatList
         className="flex-1"
         data={posts}

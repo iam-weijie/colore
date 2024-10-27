@@ -149,7 +149,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   return (
     <View className="flex-1 mt-3">
-      <View className="mx-7 mb-7">
+      <View className="mx-7 mb-2">
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
             <View className="mr-2">
@@ -196,6 +196,29 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </Text>
         )}
         </View>
+      </View>
+      <View/>
+      <View className="mx-4 my-4">
+        <View className="border-t border-gray-200" /> 
+      </View>
+      <View className="flex-row justify-between mx-6">
+        <View className="flex-1 items-center">
+          <Text className="text-gray-500 font-Jakarta">Liked Posts</Text>
+          <Text className="text-lg font-JakartaBold">0</Text>
+        </View>
+
+        <View className="flex-1 items-center">
+          <Text className="text-gray-500 font-Jakarta">Friends</Text>
+          <Text className="text-lg font-JakartaBold">0</Text>
+        </View>
+
+        <View className="flex-1 items-center">
+          <Text className="text-gray-500 font-Jakarta">Posts</Text>
+          <Text className="text-lg font-JakartaBold">{userPosts.length}</Text>
+        </View>
+      </View>
+      <View className="mx-4 my-4">
+        <View className="border-t border-gray-200" /> 
       </View>
       <View className="flex-grow items-center">
         <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
