@@ -25,6 +25,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import { UserNicknamePair } from "@/types/type";
+import ColorGallery from "./ColorGallery";
 
 const UserProfile: React.FC<UserProfileProps> = ({
   userId,
@@ -220,9 +221,16 @@ const UserProfile: React.FC<UserProfileProps> = ({
       <View className="mx-4 my-4">
         <View className="border-t border-gray-200" /> 
       </View>
-      <View className="flex-grow items-center">
+      <View className="items-center">
+        <ColorGallery />
+      </View>
+      <View className="mx-4 my-4">
+        <View className="border-t border-gray-200" /> 
+      </View>
+      <View className="items-center flex-1">
         <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
       </View>
+      {currentScreen === "profile"&& <View className="min-h-[80px]"/>}
     </View>
   );
 };

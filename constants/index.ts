@@ -18,6 +18,7 @@ import search from "@/assets/icons/search.png";
 import trash from "@/assets/icons/trash.png";
 import login from "@/assets/images/login.png";
 import signup from "@/assets/images/signup.png";
+import { PostItColor } from "@/types/type";
 
 export const icons = {
   person,
@@ -63,5 +64,26 @@ export const countries = [
       { name: "British Columbia", cities: ["Vancouver", "Victoria"] },
       { name: "Quebec", cities: ["Montreal", "Quebec City"] },
     ],
+  },
+];
+
+export const temporaryColors: PostItColor[] = [
+  {
+      name: "yellow",
+      id: 0,
+      hex: "#ffe640",
+      rarity: "default",
+  },
+  {
+      name: "pink",
+      id: 1,
+      hex: "#fbb1d6",
+      rarity: "default",
+  },
+  {
+      name: "light-blue",
+      id: 2,
+      hex: "#93c5fd",
+      rarity: "default",
   },
 ];
