@@ -184,14 +184,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
         {isEditable ? (
           <Pressable disabled={!isEditable} onPress={handleNavigateToCountry}>
             <TextInput
-              className="text-base mt-3"
+              className="text-base font-Jakarta mt-3"
               value={`📍${profileUser?.city}, ${profileUser?.state}, ${profileUser?.country}`}
               editable={false}
               onPressIn={handleNavigateToCountry}
             />
           </Pressable>
         ) : (
-          <Text className="text-base mt-3">
+          <Text className="text-gray-500 font-Jakarta text-base mt-3">
             📍{profileUser?.city}, {profileUser?.state}, {profileUser?.country}
           </Text>
         )}
