@@ -181,6 +181,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </View>
 
         <View>
+        {isEditable ? (
           <Pressable disabled={!isEditable} onPress={handleNavigateToCountry}>
             <TextInput
               className="text-base mt-3"
@@ -189,6 +190,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
               onPressIn={handleNavigateToCountry}
             />
           </Pressable>
+        ) : (
+          <Text className="text-base mt-3">
+            📍{profileUser?.city}, {profileUser?.state}, {profileUser?.country}
+          </Text>
+        )}
         </View>
       </View>
       <View className="flex-grow items-center">
