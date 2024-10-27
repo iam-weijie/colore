@@ -26,12 +26,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import { UserNicknamePair } from "@/types/type";
 
-
-
-
 const UserProfile: React.FC<UserProfileProps> = ({
   userId,
-  isEditable,
   onSignOut,
 }) => {
   const { user } = useUser();
@@ -44,6 +40,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const route = useRoute();
   const router = useRouter();
   const currentScreen = route.name as string;
+
+  const isEditable = user!.id === userId;
   
   function findUserNickname(userArray: UserNicknamePair[], userId: string): number {
     const index = userArray.findIndex(pair => pair[0] === userId);

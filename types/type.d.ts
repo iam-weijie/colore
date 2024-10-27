@@ -74,7 +74,6 @@ declare interface UserPostsGalleryProps {
 
 declare interface UserProfileProps {
   userId: string;
-  isEditable: boolean;
   onSignOut?: () => void;
 }
 
