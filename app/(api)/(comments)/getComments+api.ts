@@ -4,22 +4,24 @@ export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const clerkId = url.searchParams.get("id");
+    const postId = url.searchParams.get("id");
 
-    console.log("Received GET request for user posts.");
+    console.log("Received GET request for post comments.");
 
     const response = await sql`
       SELECT 
-      p.id, 
-      p.content, 
+      c.id, 
+      c.post_id,
+      u.clerk_id AS user_id,
+      c.content, 
       u.firstname,
-      p.created_at,
-      p.like_count, 
-      p.report_count,
-      FROM posts p
-      JOIN users u ON p.user_id = u.clerk_id
-      WHERE u.clerk_id = ${clerkId}
-      ORDER BY p.created_at ASC;
+      c.created_at,
+      c.like_count, 
+      c.report_count
+      FROM comments c
+      JOIN users u ON c.user_id = u.clerk_id
+      WHERE c.post_id = ${postId}
+      ORDER BY c.created_at ASC;
       `;
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
