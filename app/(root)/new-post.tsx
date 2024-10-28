@@ -16,12 +16,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-
 const NewPost = () => {
   const { user } = useUser();
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
-  const [postColor, setPostColor] = useState("yellow");
   const maxCharacters = 3000;
 
   // need to get user's screen size to set a min height
@@ -38,35 +36,18 @@ const NewPost = () => {
       return;
     }
 
-        
-    try {
-      const repsonse = await fetchAPI("/(api)/(posts)/newPost", {
-        method: "POST",
-        body: JSON.stringify({
-          content: cleanedContent,
-          clerkId: user!.id,
-          color: postColor,
+    await fetchAPI("/(api)/(posts)/newPost", {
+      method: "POST",
+      body: JSON.stringify({
+        content: cleanedContent,
+        clerkId: user!.id,
       }),
     });
-
-    // await fetchAPI("/(api)/(posts)/newPost", {
-    //   method: "POST",
-    //   body: JSON.stringify({
-    //     content: cleanedContent,
-    //     clerkId: user!.id,
-    //   }),
-    // });
 
     setPostContent("");
     Alert.alert("Post published.");
 
     router.back();
-
-  }
-  catch (error){
-    console.error('Error creating post:', error);
-    Alert.alert("Error", "Failed to create post. Please try again.");
-  }
   };
 
   const handleChangeText = (text: string) => {
@@ -80,24 +61,6 @@ const NewPost = () => {
       );
     }
   };
-
-
-  const ColorCircle = ({ color, onPress, isSelected }) => (
-    <TouchableOpacity 
-      onPress={onPress}
-      style={{
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        backgroundColor: color,
-        marginHorizontal: 5,
-        borderWidth: isSelected ? 2 : 0,
-        borderColor: "black",
-      }}
-    />
-
-  );
-
 
   return (
     <SafeAreaView className="flex-1">
@@ -125,24 +88,7 @@ const NewPost = () => {
                 disabled={!postContent}
               />
             </View>
-            <View className="flex-row justify-end items-center mx-1 mb-1">
-              <Text className="font-JakartaSemiBold mr-2">Color:</Text>
-              <ColorCircle 
-                color="yellow" 
-                onPress={() => setPostColor("yellow")}
-                isSelected={postColor === "yellow"}
-              />
-              <ColorCircle 
-                color="blue" 
-                onPress={() => setPostColor("blue")}
-                isSelected={postColor === "blue"}
-              />
-              <ColorCircle 
-                color="red" 
-                onPress={() => setPostColor("red")}
-                isSelected={postColor === "red"}
-            />
-           </View>
+
             <View className="mx-3">
               <TextInput
                 className="font-Jakarta mx-2 my-5"
@@ -170,4 +116,3 @@ const NewPost = () => {
 };
 
 export default NewPost;
-

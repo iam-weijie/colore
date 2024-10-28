@@ -11,7 +11,6 @@ declare interface Post {
   country: string;
   like_count: number;
   report_count: number;
-  color: string;
 }
 
 declare interface PostComment {
@@ -51,6 +50,13 @@ declare interface PostWithPosition extends Post {
   };
 }
 
+declare interface PostItColor {
+  name: string;
+  id: number;
+  hex: string;
+  rarity: string;
+}
+
 declare interface NavigationContextType {
   stateVars: any;
   setStateVars: (state: any) => void;
@@ -74,7 +80,6 @@ declare interface UserPostsGalleryProps {
 
 declare interface UserProfileProps {
   userId: string;
-  isEditable: boolean;
   onSignOut?: () => void;
 }
 

@@ -17,7 +17,6 @@ const Profile = () => {
       {user && (
         <UserProfile
           userId={user?.id}
-          isEditable={true}
           onSignOut={handleSignOut}
         />
       )}
