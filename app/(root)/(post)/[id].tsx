@@ -56,7 +56,7 @@ const PostScreen = () => {
   }
   const fetchNicknames = async () => {
     try {
-        console.log("user: ", user!.id);
+        // console.log("user: ", user!.id);
         const response = await fetchAPI(
           `/(api)/(users)/getUserInfo?id=${user!.id}`,
           {
