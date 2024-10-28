@@ -1,16 +1,57 @@
 import { View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
 const PostIt = () => {
   return (
     <View>
       {/* Bottom Half with Shadow */}
-      <View className="bg-yellow-300 rounded-b-2xl w-40 h-32 absolute bottom-0 shadow-lg" />
+      <View style={{
+        position: 'absolute',
+        bottom: 0,
+        width: 160,
+        height: 128,
+        backgroundColor: '#fde047', // yellow-300
+        borderBottomLeftRadius: 16,
+        borderBottomRightRadius: 16,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
+      }} />
 
-      {/* Top Half without Shadow */}
-      <View className="bg-yellow-300 rounded-2xl w-40 h-40" />
+      {/* Main Square with All Rounded Corners */}
+      <Svg height="160" width="160">
+        <Path
+          d="M16,0 
+             A16,16 0 0,0 0,16
+             L0,144
+             A16,16 0 0,1 16,160
+             L144,160
+             A16,16 0 0,1 160,144
+             L160,36
+             L124,0
+             A16,16 0 0,0 16,0
+             Z"
+          fill="#fde047" // yellow-300
+        />
+      </Svg>
 
-      {/* Folded Corner */}
-      <View className="absolute right-0 top-0 w-0 h-0 border-t-[36px] border-l-[36px] rounded-bl-md border-t-[#f2f2f2] border-l-yellow-200 border-r-transparent" />
+      {/* Folded Corner Shadow */}
+      <View style={{
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+        borderTopWidth: 36,
+        borderLeftWidth: 36,
+        borderRightWidth: 0,
+        borderStyle: 'solid',
+        borderTopColor: 'transparent',
+        borderLeftColor: '#fef08a', // yellow-200
+        borderRightColor: 'transparent',
+      }} />
     </View>
   );
 };
