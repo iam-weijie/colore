@@ -23,6 +23,9 @@ type DraggablePostItProps = {
 };
 
 const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress}) => {
+
+
+
   const position = useRef(new Animated.ValueXY()).current;
   const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -77,7 +80,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress}) => {
       }
     >
       <TouchableOpacity onPress={onPress}>
-        <PostIt />
+        <PostIt color={post.color?.hex || "#ffe640" } /> 
       </TouchableOpacity>
     </Animated.View>
   )
@@ -101,6 +104,7 @@ export default function Page() {
     try {
       const response = await fetch(
         `/(api)/(posts)/getRandomPosts?number=${3}&id=${user!.id}`
+
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
