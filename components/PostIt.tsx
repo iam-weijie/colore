@@ -1,16 +1,40 @@
 import { View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
 const PostIt = () => {
   return (
-    <View>
-      {/* Bottom Half with Shadow */}
-      <View className="bg-yellow-300 rounded-b-2xl w-40 h-32 absolute bottom-0 shadow-lg" />
-
-      {/* Top Half without Shadow */}
-      <View className="bg-yellow-300 rounded-2xl w-40 h-40" />
+    <View className="w-40 h-40 shadow">
+      {/* Post-it Shape */}
+      <Svg height="160" width="160">
+        <Path
+          d="M16,0 
+             A16,16 0 0,0 0,16
+             L0,144
+             A16,16 0 0,0 16,160
+             L144,160
+             A16,16 0 0,0 160,144
+             L160,36
+             L124,0
+             Z"
+          fill="#fde047" // Tailwind yellow-300
+        />
+      </Svg>
 
       {/* Folded Corner */}
-      <View className="absolute right-0 top-0 w-0 h-0 border-t-[36px] border-l-[36px] rounded-bl-md border-t-[#f2f2f2] border-l-yellow-200 border-r-transparent" />
+      <View
+        className="absolute right-0 top-0"
+        style={{
+          width: 0,
+          height: 0,
+          borderTopWidth: 36,
+          borderLeftWidth: 36,
+          borderRightWidth: 0,
+          borderStyle: "solid",
+          borderTopColor: "transparent",
+          borderLeftColor: "#fef08a", // Tailwind yellow-200
+          borderRightColor: "transparent",
+        }}
+      />
     </View>
   );
 };
