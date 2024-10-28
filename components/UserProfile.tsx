@@ -25,11 +25,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import { UserNicknamePair } from "@/types/type";
-
+import ColorGallery from "./ColorGallery";
 
 const UserProfile: React.FC<UserProfileProps> = ({
   userId,
-  isEditable,
   onSignOut,
 }) => {
   const { user } = useUser();
@@ -42,6 +41,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const route = useRoute();
   const router = useRouter();
   const currentScreen = route.name as string;
+
+  const isEditable = user!.id === userId;
   
   function findUserNickname(userArray: UserNicknamePair[], userId: string): number {
     const index = userArray.findIndex(pair => pair[0] === userId);
@@ -146,7 +147,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   return (
     <View className="flex-1 mt-3">
-      <View className="mx-7 mb-7">
+      <View className="mx-7 mb-2">
         <View className="flex flex-row items-center justify-between">
           {!isEditable && (
             <View className="mr-2">
@@ -178,19 +179,55 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </View>
 
         <View>
+        {isEditable ? (
           <Pressable disabled={!isEditable} onPress={handleNavigateToCountry}>
             <TextInput
-              className="text-base mt-3"
+              className="text-base font-Jakarta mt-3"
               value={`📍${profileUser?.city}, ${profileUser?.state}, ${profileUser?.country}`}
               editable={false}
               onPressIn={handleNavigateToCountry}
             />
           </Pressable>
+        ) : (
+          <Text className="text-gray-500 font-Jakarta text-base mt-3">
+            📍{profileUser?.city}, {profileUser?.state}, {profileUser?.country}
+          </Text>
+        )}
         </View>
       </View>
-      <View className="flex-grow items-center">
+      <View/>
+      <View className="mx-4 my-4">
+        <View className="border-t border-gray-200" /> 
+      </View>
+      <View className="flex-row justify-between mx-6">
+        <View className="flex-1 items-center">
+          <Text className="text-gray-500 font-Jakarta">Liked Posts</Text>
+          <Text className="text-lg font-JakartaBold">0</Text>
+        </View>
+
+        <View className="flex-1 items-center">
+          <Text className="text-gray-500 font-Jakarta">Friends</Text>
+          <Text className="text-lg font-JakartaBold">0</Text>
+        </View>
+
+        <View className="flex-1 items-center">
+          <Text className="text-gray-500 font-Jakarta">Posts</Text>
+          <Text className="text-lg font-JakartaBold">{userPosts.length}</Text>
+        </View>
+      </View>
+      <View className="mx-4 my-4">
+        <View className="border-t border-gray-200" /> 
+      </View>
+      <View className="items-center">
+        <ColorGallery />
+      </View>
+      <View className="mx-4 my-4">
+        <View className="border-t border-gray-200" /> 
+      </View>
+      <View className="items-center flex-1">
         <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
       </View>
+      {currentScreen === "profile"&& <View className="min-h-[80px]"/>}
     </View>
   );
 };

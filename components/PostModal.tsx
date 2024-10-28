@@ -34,7 +34,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
   const fetchCurrentNickname = async () => {
     try {
-        console.log("user: ", user!.id);
+        // console.log("user: ", user!.id);
         const response = await fetchAPI(
           `/(api)/(users)/getUserInfo?id=${user!.id}`,
           {

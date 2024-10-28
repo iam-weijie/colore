@@ -50,6 +50,13 @@ declare interface PostWithPosition extends Post {
   };
 }
 
+declare interface PostItColor {
+  name: string;
+  id: number;
+  hex: string;
+  rarity: string;
+}
+
 declare interface NavigationContextType {
   stateVars: any;
   setStateVars: (state: any) => void;
@@ -73,7 +80,6 @@ declare interface UserPostsGalleryProps {
 
 declare interface UserProfileProps {
   userId: string;
-  isEditable: boolean;
   onSignOut?: () => void;
 }
 
