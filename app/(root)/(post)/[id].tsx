@@ -14,6 +14,7 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -235,7 +236,7 @@ const PostScreen = () => {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
+        {/* <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}> */}
         <View className="flex flex-row justify-center items-center mt-3 mx-4">
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
             <AntDesign name="caretleft" size={18} />
@@ -311,7 +312,7 @@ const PostScreen = () => {
               onSubmitEditing={handleCommentSubmit}
               style={{
                 paddingTop: 10,
-                paddingBottom: 0,
+                paddingBottom: Platform.OS === "android" ? 0 : 10,
                 maxHeight: screenHeight * 0.35,
                 textAlignVertical: "top",
               }}
@@ -325,7 +326,7 @@ const PostScreen = () => {
               padding="0"
             />
           </View>
-        </KeyboardAvoidingView>
+        {/* </KeyboardAvoidingView> */}
       </SignedIn>
     </SafeAreaView>
   );
