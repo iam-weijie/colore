@@ -26,10 +26,12 @@ export async function GET(request: Request) {
   
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
-      WHERE p.user_id = ${id}  -- I HARD CODED THIS FOR TESTING. IS SHOULD BE "!=" NOT "=" -- (original comment:) Exclude posts from the current user 
+      WHERE p.user_id != ${id} -- Exclude posts from the current user 
       ORDER BY RANDOM()
       LIMIT ${number};
     `;
+
+    
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });

@@ -15,7 +15,6 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({
   onColorSelect,
 }) => {
   const handleColorSelect = (color: PostItColor) => {
-    console.log('Color selected:', color); // Debug log
     onColorSelect(color);
   };
 

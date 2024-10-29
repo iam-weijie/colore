@@ -28,12 +28,6 @@ const NewPost = () => {
   const maxCharacters = 3000;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(temporaryColors[0]);
 
-  // Debug
-  const handleColorSelect = (color: PostItColor) => {
-    console.log('New Post - Color selected:', color); // Debug log
-    setSelectedColor(color);
-  };
-
 
   // need to get user's screen size to set a min height
   const screenHeight = Dimensions.get("screen").height;

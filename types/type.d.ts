@@ -11,7 +11,7 @@ declare interface Post {
   country: string;
   like_count: number;
   report_count: number;
-  color: PostItColor
+  color:  string; // A string rather than a PostItColor because the database only takes strings
 }
 
 declare interface PostComment {
