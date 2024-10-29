@@ -14,6 +14,7 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -56,7 +57,7 @@ const PostScreen = () => {
   }
   const fetchNicknames = async () => {
     try {
-        console.log("user: ", user!.id);
+        // console.log("user: ", user!.id);
         const response = await fetchAPI(
           `/(api)/(users)/getUserInfo?id=${user!.id}`,
           {
@@ -300,7 +301,7 @@ const PostScreen = () => {
           </View>
         </ScrollView>
         
-          <View className="flex-row justify-between items-center absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+          <View className="flex-row justify-between items-center bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
             <TextInput
               className="flex-1 border border-gray-300 rounded-md p-2 max-h-30 mr-16"
               placeholder="Write a comment..."
@@ -311,7 +312,7 @@ const PostScreen = () => {
               onSubmitEditing={handleCommentSubmit}
               style={{
                 paddingTop: 10,
-                paddingBottom: 0,
+                paddingBottom: Platform.OS === "android" ? 0 : 10,
                 maxHeight: screenHeight * 0.35,
                 textAlignVertical: "top",
               }}
@@ -320,7 +321,7 @@ const PostScreen = () => {
               title="Send"
               onPress={handleCommentSubmit}
               disabled={newComment.length === 0}
-              className="absolute bottom-4 ml-3 w-14 h-8 rounded-md absolute bottom-4 right-4"
+              className="absolute bottom-4 ml-3 w-14 h-9 rounded-md absolute bottom-4 right-4"
               fontSize="sm"
               padding="0"
             />
