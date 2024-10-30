@@ -155,8 +155,13 @@ export default function Page()  {
     <SafeAreaView className="flex-1">
       <SignedIn>
         <View className="flex-row justify-between items-center mx-7 mt-3">
-          <Text className="text-2xl font-JakartaBold">Coloré</Text>
-        </View>
+          <Image 
+            source={require('@/assets/colore-word-logo.png')} 
+            style={{ width: 330, height: 50 }}
+            resizeMode="contain"
+            accessibilityLabel="Colore logo"
+          />
+      </View>
 
         {loading ? (
           <View className="flex-[0.8] justify-center items-center">
