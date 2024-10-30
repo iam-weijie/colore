@@ -23,6 +23,7 @@ type DraggablePostItProps = {
 };
 
 const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress}) => {
+
   const position = useRef(new Animated.ValueXY()).current;
   const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -77,14 +78,14 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress}) => {
       }
     >
       <TouchableOpacity onPress={onPress}>
-        <PostIt />
+        <PostIt color={post.color|| "yellow" } /> 
       </TouchableOpacity>
     </Animated.View>
   )
 
 }
 
-export default function Page() {
+export default function Page()  {
   //const { user } = useUser();
   //console.log(user);
   //const { isLoaded, isSignedIn, session } = useSession();
@@ -101,6 +102,7 @@ export default function Page() {
     try {
       const response = await fetch(
         `/(api)/(posts)/getRandomPosts?number=${3}&id=${user!.id}`
+
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
@@ -110,6 +112,7 @@ export default function Page() {
         position: {
           top: Math.random() * 150,
           left: Math.random() * 200,
+        
         },
       }));
       setPosts(postsWithPositions);
@@ -146,8 +149,13 @@ export default function Page() {
     <SafeAreaView className="flex-1">
       <SignedIn>
         <View className="flex-row justify-between items-center mx-7 mt-3">
-          <Text className="text-2xl font-JakartaBold">Coloré</Text>
-        </View>
+          <Image 
+            source={require('@/assets/colore-word-logo.png')} 
+            style={{ width: 330, height: 50 }}
+            resizeMode="contain"
+            accessibilityLabel="Colore logo"
+          />
+      </View>
 
         {loading ? (
           <View className="flex-[0.8] justify-center items-center">
