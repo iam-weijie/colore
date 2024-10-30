@@ -106,21 +106,15 @@ export default function Page()  {
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
-
-      console.log("Raw post data:", result.data);
-      // console.log("Posts received in home:", result.data);
       // set positions of posts
-      const postsWithPositions = result.data.map((post: Post) => {
-        console.log("Processing post color:", post.color);
-        return {
-          ...post,
+      const postsWithPositions = result.data.map((post: Post) => ({
+        ...post,
         position: {
           top: Math.random() * 150,
           left: Math.random() * 200,
         
         },
-      };
-      });
+      }));
       setPosts(postsWithPositions);
     } catch (error) {
       setError("Failed to fetch random posts.");
