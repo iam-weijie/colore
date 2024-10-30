@@ -14,19 +14,15 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({
   selectedColor,
   onColorSelect,
 }) => {
-  const handleColorSelect = (color: PostItColor) => {
-    onColorSelect(color);
-  };
-
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 12 }}>
+    <View>
       {colors.map((color) => (
         <Circle
           key={color.id}
           color={color.hex}
           size={30}
           selected={selectedColor.id === color.id}
-          onPress={() => handleColorSelect(color)}
+          onPress={() => onColorSelect(color)}
         />
       ))}
     </View>

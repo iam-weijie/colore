@@ -11,18 +11,7 @@ declare interface Post {
   country: string;
   like_count: number;
   report_count: number;
-  color:  string; // A string rather than a PostItColor because the database only takes strings
-}
-
-declare interface PostComment {
-  id: number;
-  post_id: number;
-  user_id: string;
-  content: string;
-  firstname: string;
-  created_at: string;
-  like_count: number;
-  report_count: number;
+  color:  string
 }
 
 declare interface UserProfileType {

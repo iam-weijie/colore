@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { temporaryColors } from "@/constants";
-import { PostItColor } from "@/types/type";
+import { Post, PostItColor } from "@/types/type";
 
 
 const NewPost = () => {
@@ -27,6 +27,10 @@ const NewPost = () => {
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(temporaryColors[0]);
+
+  const handleColorSelect = (color: PostItColor) => {
+    setSelectedColor(color);
+  };
 
 
   // need to get user's screen size to set a min height

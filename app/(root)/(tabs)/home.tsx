@@ -78,14 +78,14 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress}) => {
       }
     >
       <TouchableOpacity onPress={onPress}>
-        <PostIt color={post.color || "yellow" } />  {/*Default colour is yellow*/}
+        <PostIt color={post.color|| "yellow" } /> 
       </TouchableOpacity>
     </Animated.View>
   )
 
 }
 
-export default function Page() {
+export default function Page()  {
   //const { user } = useUser();
   //console.log(user);
   //const { isLoaded, isSignedIn, session } = useSession();
@@ -106,16 +106,21 @@ export default function Page() {
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
+
+      console.log("Raw post data:", result.data);
       // console.log("Posts received in home:", result.data);
       // set positions of posts
-      const postsWithPositions = result.data.map((post: Post) => ({
-        ...post,
+      const postsWithPositions = result.data.map((post: Post) => {
+        console.log("Processing post color:", post.color);
+        return {
+          ...post,
         position: {
           top: Math.random() * 150,
           left: Math.random() * 200,
         
         },
-      }));
+      };
+      });
       setPosts(postsWithPositions);
     } catch (error) {
       setError("Failed to fetch random posts.");
