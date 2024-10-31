@@ -66,24 +66,26 @@ export const countries = [
     ],
   },
 ];
-
 export const temporaryColors: PostItColor[] = [
   {
       name: "yellow",
       id: 0,
       hex: "#ffe640",
       rarity: "default",
+      foldcolorhex: "#fef08a"
   },
   {
       name: "pink",
       id: 1,
       hex: "#fbb1d6",
       rarity: "default",
+      foldcolorhex: "#ffc7e2"
   },
   {
       name: "light-blue",
       id: 2,
       hex: "#93c5fd",
       rarity: "default",
+      foldcolorhex: "#b8e1ff"
   },
 ];
