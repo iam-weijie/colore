@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { ReactNativeModal } from "react-native-modal";
+import Circle from "@/components/Circle";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
@@ -98,139 +99,82 @@ const SignUp = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="flex-1 bg-white ">
-        <View className="relative w-full h-[250px]">
-          <Image source={images.signup} className="z-0 w-full h-[250px] " />
-          <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5">
-            Create Your Account
-          </Text>
-        </View>
-
-        <View className="p-5">
-          <InputField
-            label="Email"
-            placeholder="Enter your email"
-            icon={icons.email}
-            textContentType="emailAddress"
-            value={form.email}
-            onChangeText={(value) => setForm({ ...form, email: value })}
-          />
-
-          <InputField
-            label="Password"
-            placeholder="Enter your password"
-            icon={icons.lock}
-            value={form.password}
-            secureTextEntry={true}
-            textContentType="password"
-            onChangeText={(value) => setForm({ ...form, password: value })}
-          />
-
-          <InputField
-            label=""
-            placeholder="Confirm your password"
-            icon={icons.lock}
-            secureTextEntry={true}
-            textContentType="password"
-            onChangeText={handleConfirmPassword}
-            containerStyle="mt-[-20px]"
-          />
-          {error ? (
-            <Text className="text-red-500 text-sm mt-1">{error}</Text>
-          ) : null}
-
-          <CustomButton
-            title="Sign Up"
-            onPress={onSignUpPress}
-            className="mt-6"
-          />
-
-          <OAuth />
-
-          <Text className="text-base text-center text-general-200 mt-10">
-            Already have an account?{" "}
-            <Link href="/log-in">
-              <Text className="text-primary-500">Log In</Text>
-            </Link>
-          </Text>
-        </View>
-
-        <ReactNativeModal
-          isVisible={verification.state === "pending"}
-          onModalHide={() => {
-            if (verification.state === "success") {
-              setShowSuccessModal(true);
-            }
+    <ScrollView className="bg-white">
+      <View className="relative overflow-hidden">
+        <Circle
+          color="#FFDB5C"
+          size={300}
+          style={{
+            position: "relative",
+            top: -100,  
+            left: -30,
           }}
-        >
-          <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
-            <TouchableOpacity
-              onPress={() =>
-                setVerification({ ...verification, state: "default" })
-              }
-              className="absolute right-0 p-4"
-            >
-              <Image source={icons.close} className="w-5 h-5" />
-            </TouchableOpacity>
-            <Text className="text-2xl font-JakartaExtraBold mb-2">
-              Verification
-            </Text>
-            <Text className=" font-Jakarta mb-5">
-              We've sent a verification code to {form.email}
-            </Text>
-
-            <InputField
-              label="Code"
-              icon={icons.lock}
-              placeholder="12345"
-              value={verification.code}
-              keyboardType="numeric"
-              onChangeText={(code) =>
-                setVerification({ ...verification, code })
-              }
-            />
-
-            {verification.error && (
-              <Text className="text-red-500 text-sm mt-1">
-                {verification.error}
-              </Text>
-            )}
-
-            <CustomButton
-              title="Verify Email"
-              onPress={onPressVerify}
-              className="mt-5 bg-success-500"
-            />
-          </View>
-        </ReactNativeModal>
-
-        <ReactNativeModal isVisible={showSuccessModal}>
-          <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
-            <Image
-              source={icons.check}
-              className="w-[110px] h-[110px] mx-auto my-5"
-            />
-
-            <Text className="text-3xl font-JakartaBold text-center">
-              Verified
-            </Text>
-
-            <Text className="text-base text-gray-400 font-Jakarta text-center mt-2">
-              You have been successfully verified.
-            </Text>
-
-            <CustomButton
-              title="Continue"
-              onPress={() => {
-                setShowSuccessModal(false);
-                router.push("/(root)/user-info");
-              }}
-              className="mt-5"
-            />
-          </View>
-        </ReactNativeModal>
+        />
+        <Circle
+          color="#FFD158"
+          size={200}
+          style={{
+            position: "absolute",
+            top: -50,
+            right: -50,
+          }}
+        />
       </View>
+      <View className="relative w-full">
+        <Text className="text-2xl font-JakartaSemiBold absolute bottom-5 left-5">
+          Welcome 👋
+        </Text>
+      </View>
+
+      <View className="p-5">
+        <InputField
+          label="Email"
+          placeholder="Enter your email"
+          icon={icons.email}
+          textContentType="emailAddress"
+          value={form.email}
+          onChangeText={(value) => setForm({ ...form, email: value })}
+        />
+
+        <InputField
+          label="Password"
+          placeholder="Enter your password"
+          icon={icons.lock}
+          value={form.password}
+          secureTextEntry={true}
+          textContentType="password"
+          onChangeText={(value) => setForm({ ...form, password: value })}
+        />
+
+        <InputField
+          label=""
+          placeholder="Confirm your password"
+          icon={icons.lock}
+          secureTextEntry={true}
+          textContentType="password"
+          onChangeText={handleConfirmPassword}
+          containerStyle="mt-[-20px]"
+        />
+        {error ? (
+          <Text className="text-red-500 text-sm mt-1">{error}</Text>
+        ) : null}
+
+        <CustomButton
+          title="Sign Up"
+          onPress={onSignUpPress}
+          className="mt-6 bg-gradient-to-r from-yellow-400 to-orange-400"
+        />
+
+        <OAuth />
+
+        <Text className="text-base text-center text-general-200 mt-10">
+          Already have an account?{" "}
+          <Link href="/log-in">
+            <Text className="text-primary-500">Log In</Text>
+          </Link>
+        </Text>
+      </View>
+
     </ScrollView>
   );
 };
