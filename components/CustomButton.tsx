@@ -19,7 +19,7 @@ const getBgVariantStyle = (variant: ButtonProps["bgVariant"], disabled: boolean)
     case "gradient":
       return ["#ffd12b", "#ff9f45"];
     case "oauth":
-      return "bg-[#f4f9fa]";
+      return "bg-neutral-100";
     default:
       return "bg-[#333333]";
   }

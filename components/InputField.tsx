@@ -23,9 +23,7 @@ const InputField = ({
   variant,
   ...props
 }: InputFieldProps) => {
-  const containerVariantStyle = variant === "signup"
-    ? "bg-[#f4f9fa] border border-neutral-300 rounded-xl"
-    : "bg-neutral-100 rounded-full border border-neutral-100";
+  const containerVariantStyle = variant === "signup" ? "rounded-xl" : "rounded-full";
 
   const inputVariantStyle = variant === "signup" ? "h-full" : "h-auto";
 
@@ -37,7 +35,7 @@ const InputField = ({
             {label}
           </Text>
           <View
-            className={`flex flex-row justify-start items-center relative ${containerVariantStyle} ${containerStyle}`}
+            className={`flex flex-row justify-start items-center relative bg-neutral-100 ${containerVariantStyle} ${containerStyle}`}
           >
             {icon && (
               <Image source={icon} className={`w-6 h-6 ml-4 ${iconStyle}`} />
