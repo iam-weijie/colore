@@ -20,30 +20,39 @@ const InputField = ({
   inputStyle,
   iconStyle,
   className,
+  variant,
   ...props
-}: InputFieldProps) => (
-  <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="my-2 w-full">
-        <Text className={`text-lg font-JakartaSemiBold mb-3 ${labelStyle}`}>
-          {label}
-        </Text>
-        <View
-          className={`flex flex-row justify-start items-center relative bg-[#f4f9fa] border border-gray-300 rounded-md ${containerStyle}`}
-        >
-          {icon && (
-            <Image source={icon} className={`w-6 h-6 ml-4 ${iconStyle}`} />
-          )}
-          <TextInput
-            placeholderTextColor={"silver"}
-            className={`rounded-full p-3 font-JakartaSemiBold text-[15px] flex-1 ${inputStyle} text-left`}
-            secureTextEntry={secureTextEntry}
-            {...props}
-          />
+}: InputFieldProps) => {
+  const containerVariantStyle = variant === "signup"
+    ? "bg-[#f4f9fa] border border-neutral-300 rounded-xl"
+    : "bg-neutral-100 rounded-full border border-neutral-100";
+
+  const inputVariantStyle = variant === "signup" ? "h-full" : "h-auto";
+
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View className="my-2 w-full">
+          <Text className={`text-lg font-JakartaSemiBold mb-3 ${labelStyle}`}>
+            {label}
+          </Text>
+          <View
+            className={`flex flex-row justify-start items-center relative ${containerVariantStyle} ${containerStyle}`}
+          >
+            {icon && (
+              <Image source={icon} className={`w-6 h-6 ml-4 ${iconStyle}`} />
+            )}
+            <TextInput
+              placeholderTextColor={"silver"}
+              className={`rounded-full p-${variant === "signup" ? "3" : "4"} font-JakartaSemiBold text-[15px] flex-1 ${inputVariantStyle} ${inputStyle} text-left`}
+              secureTextEntry={secureTextEntry}
+              {...props}
+            />
+          </View>
         </View>
-      </View>
-    </TouchableWithoutFeedback>
-  </KeyboardAvoidingView>
-);
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  );
+};
 
 export default InputField;

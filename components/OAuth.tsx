@@ -41,6 +41,7 @@ const OAuth = () => {
         )}
         bgVariant="oauth"
         textVariant="oauth"
+        padding="2"
         onPress={handleGoogleLogIn}
       />
     </View>

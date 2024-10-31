@@ -56,7 +56,7 @@ const CustomButton = ({
   className,
   disabled = false,
   fontSize = "lg",
-  padding = "2",
+  padding = "4",
   ...props
 }: ButtonProps) => {
   const bgStyle = getBgVariantStyle(bgVariant, disabled);
@@ -65,7 +65,7 @@ const CustomButton = ({
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      className={`w-full  rounded-xl ${bgVariant === "gradient" ? "" : bgStyle} p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}
+      className={`w-full rounded-${bgVariant === "oauth" ? "xl" : "full"} ${bgVariant === "gradient" ? "" : bgStyle} p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}
       {...props}
     >
       {bgVariant === "gradient" && Array.isArray(bgStyle) ? (
