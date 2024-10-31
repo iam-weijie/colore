@@ -100,28 +100,30 @@ const SignUp = () => {
 
   return (
     <ScrollView className="bg-white">
-      <View className="relative overflow-hidden">
+      <View className="relative">
         <Circle
-          color="#FFDB5C"
-          size={300}
+          color="#ffd640"
+          size={420}
           style={{
-            position: "relative",
-            top: -100,  
+            position: "absolute",
+            top: -170,  
             left: -30,
+            opacity: 0.7,
           }}
         />
         <Circle
-          color="#FFD158"
-          size={200}
+          color="#ffa647"
+          size={350}
           style={{
             position: "absolute",
-            top: -50,
-            right: -50,
+            top: -130,
+            right: -140,
+            opacity: 0.5,
           }}
         />
       </View>
       <View className="relative w-full">
-        <Text className="text-2xl font-JakartaSemiBold absolute bottom-5 left-5">
+        <Text className="text-2xl font-JakartaBold relative ml-5 mt-[290]">
           Welcome 👋
         </Text>
       </View>
