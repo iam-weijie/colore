@@ -64,7 +64,7 @@ declare interface NavigationContextType {
 
 declare interface ButtonProps extends TouchableOpacityProps {
   title: string;
-  bgVariant?: "primary" | "secondary" | "danger" | "outline" | "success";
+  bgVariant?: "primary" | "secondary" | "danger" | "outline" | "success" | "gradient" | "oauth" ;
   textVariant?: "primary" | "default" | "secondary" | "danger" | "success";
   fontSize?: "sm" | "md" | "lg" | "xl";
   padding?: string;

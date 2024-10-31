@@ -103,11 +103,11 @@ const SignUp = () => {
       <View className="relative">
         <Circle
           color="#ffd640"
-          size={420}
+          size={500}
           style={{
             position: "absolute",
-            top: -170,  
-            left: -30,
+            top: -240,  
+            right: -40,
             opacity: 0.7,
           }}
         />
@@ -164,7 +164,8 @@ const SignUp = () => {
         <CustomButton
           title="Sign Up"
           onPress={onSignUpPress}
-          className="mt-6 bg-gradient-to-r from-yellow-400 to-orange-400"
+          bgVariant="gradient"
+          className="mt-8 bg-gradient-to-r from-yellow-400 to-orange-400"
         />
 
         <OAuth />

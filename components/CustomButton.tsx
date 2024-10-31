@@ -1,11 +1,8 @@
-import { Text, TouchableOpacity } from "react-native";
-
+import { Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { ButtonProps } from "@/types/type";
 
-const getBgVariantStyle = (
-  variant: ButtonProps["bgVariant"],
-  disabled: boolean
-) => {
+const getBgVariantStyle = (variant: ButtonProps["bgVariant"], disabled: boolean) => {
   if (disabled) {
     return "bg-gray-400";
   }
@@ -19,15 +16,16 @@ const getBgVariantStyle = (
       return "bg-green-500";
     case "outline":
       return "bg-transparent border-neutral-300 border-[0.5px]";
+    case "gradient":
+      return ["#ffd12b", "#ff9f45"];
+    case "oauth":
+      return "bg-gray-200";
     default:
       return "bg-[#333333]";
   }
 };
 
-const getTextVariantStyle = (
-  variant: ButtonProps["textVariant"],
-  disabled: boolean
-) => {
+const getTextVariantStyle = (variant: ButtonProps["textVariant"], disabled: boolean) => {
   if (disabled) {
     return "text-gray-300";
   }
@@ -56,23 +54,40 @@ const CustomButton = ({
   className,
   disabled = false,
   fontSize = "lg",
-  padding = "4",
+  padding = "2",
   ...props
 }: ButtonProps) => {
+  const bgStyle = getBgVariantStyle(bgVariant, disabled);
+
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      className={`w-full rounded-full p-${padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${getBgVariantStyle(bgVariant, disabled)} ${className}`}
+      className={`w-full rounded-full ${bgVariant === "gradient" ? "" : bgStyle} p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}
       {...props}
     >
-      {IconLeft && <IconLeft />}
-      <Text
-        className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}
-      >
-        {title}
-      </Text>
-      {IconRight && <IconRight />}
+      {bgVariant === "gradient" && Array.isArray(bgStyle) ? (
+        <LinearGradient
+          colors={bgStyle}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className={`flex flex-row justify-center items-center w-full h-full p-${padding} rounded-lg`}
+        >
+          {IconLeft && <IconLeft />}
+          <Text className={`text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}>
+            {title}
+          </Text>
+          {IconRight && <IconRight />}
+        </LinearGradient>
+      ) : (
+        <>
+          {IconLeft && <IconLeft />}
+          <Text className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}>
+            {title}
+          </Text>
+          {IconRight && <IconRight />}
+        </>
+      )}
     </TouchableOpacity>
   );
 };
