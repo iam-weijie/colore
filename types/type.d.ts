@@ -57,6 +57,7 @@ declare interface PostItColor {
   id: number;
   hex: string;
   rarity: string;
+  foldcolorhex: string;
 }
 
 declare interface NavigationContextType {
