@@ -11,7 +11,9 @@ declare interface Post {
   country: string;
   like_count: number;
   report_count: number;
+  color:  string; //String for now. Should be changed to PostItColor 
 }
+
 
 declare interface PostComment {
   id: number;
@@ -55,6 +57,7 @@ declare interface PostItColor {
   id: number;
   hex: string;
   rarity: string;
+  foldcolorhex: string;
 }
 
 declare interface NavigationContextType {
