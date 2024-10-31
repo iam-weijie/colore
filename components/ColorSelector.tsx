@@ -1,7 +1,7 @@
-import React from 'react';
-import { View } from 'react-native';
-import Circle from './Circle';
-import { PostItColor } from '@/types/type';
+import { PostItColor } from "@/types/type";
+import React from "react";
+import { View } from "react-native";
+import Circle from "./Circle";
 
 interface ColorSelectorProps {
   colors: PostItColor[];
