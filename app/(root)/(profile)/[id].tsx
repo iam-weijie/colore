@@ -7,7 +7,7 @@ const Profile = () => {
 
   return (
     <SafeAreaView className="flex-1">
-      {id && <UserProfile userId={id as string}/>}
+      {id && <UserProfile userId={id as string} />}
     </SafeAreaView>
   );
 };
