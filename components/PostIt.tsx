@@ -23,7 +23,7 @@ const PostIt: React.FC<PostItProps> = ({ color }) => {
   };
 
   const baseColor = getColorHex(color);
-  const foldColor = getFoldColorHex(baseColor);
+  const foldColor = getFoldColorHex(color);
   
   return (
     <View className="w-40 h-40 shadow">
