@@ -167,7 +167,7 @@ const SignUp = () => {
         <CustomButton
           title="Sign Up"
           onPress={onSignUpPress}
-          padding="2"
+          padding="3"
           bgVariant="gradient"
           className="mt-8 bg-gradient-to-r from-yellow-400 to-orange-400"
         />

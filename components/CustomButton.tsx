@@ -18,8 +18,6 @@ const getBgVariantStyle = (variant: ButtonProps["bgVariant"], disabled: boolean)
       return "bg-transparent border-neutral-300 border-[0.5px]";
     case "gradient":
       return ["#ffd12b", "#ff9f45"];
-    case "oauth":
-      return "bg-neutral-100";
     default:
       return "bg-[#333333]";
   }
@@ -39,8 +37,6 @@ const getTextVariantStyle = (variant: ButtonProps["textVariant"], disabled: bool
       return "text-red-100";
     case "success":
       return "text-green-100";
-    case "oauth":
-      return "text-[#585c74]"
     default:
       return "text-white";
   }
@@ -65,7 +61,7 @@ const CustomButton = ({
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      className={`w-full rounded-${bgVariant === "oauth" ? "xl" : "full"} ${bgVariant === "gradient" ? "" : bgStyle} p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}
+      className={`w-full rounded-full ${bgVariant === "gradient" ? "" : bgStyle} p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}
       {...props}
     >
       {bgVariant === "gradient" && Array.isArray(bgStyle) ? (
@@ -73,10 +69,10 @@ const CustomButton = ({
           colors={bgStyle}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className={`flex flex-row justify-center items-center w-full h-full p-${padding} rounded-xl`}
+          className={`flex flex-row justify-center items-center w-full h-full p-${padding} rounded-full`}
         >
           {IconLeft && <IconLeft />}
-          <Text className={`text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}>
+          <Text className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}>
             {title}
           </Text>
           {IconRight && <IconRight />}
