@@ -1,30 +1,27 @@
+import { temporaryColors } from "@/constants";
 import { View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { temporaryColors } from "@/constants";
-import { PostItColor } from "@/types/type";
 
 interface PostItProps {
   color?: string;
 }
 
 const PostIt: React.FC<PostItProps> = ({ color }) => {
-
-
   // Used instead of color.hex incase colour is undefined or NULL in database and Post object
   // Should be changed later to color.hex when color is changed from a string to a PostItColor
   const getColorHex = (colorName: string | undefined) => {
-    const foundColor = temporaryColors.find(c => c.name === colorName);
+    const foundColor = temporaryColors.find((c) => c.name === colorName);
     return foundColor?.hex || "#ffe640"; // Default colour it yellow
   };
 
   const getFoldColorHex = (colorName: string | undefined) => {
-    const foundColor = temporaryColors.find(c => c.name === colorName);
-    return foundColor?.foldcolorhex || "#fef08a"; // Default colour it yellow 
+    const foundColor = temporaryColors.find((c) => c.name === colorName);
+    return foundColor?.foldcolorhex || "#fef08a"; // Default colour it yellow
   };
 
   const baseColor = getColorHex(color);
-  const foldColor = getFoldColorHex(baseColor);
-  
+  const foldColor = getFoldColorHex(color);
+
   return (
     <View className="w-40 h-40 shadow">
       {/* Post-it Shape */}
