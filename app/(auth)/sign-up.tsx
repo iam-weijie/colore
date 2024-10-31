@@ -124,7 +124,7 @@ const SignUp = () => {
       </View>
       <View className="relative w-full">
         <Text className="text-2xl font-JakartaBold relative ml-5 mt-[260]">
-          Sign up 
+          Create Your Account
         </Text>
       </View>
 
