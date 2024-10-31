@@ -16,6 +16,7 @@ export async function GET(request: Request) {
       p.created_at,
       p.like_count, 
       p.report_count,
+      p.color
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       WHERE u.clerk_id = ${clerkId}
