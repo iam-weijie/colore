@@ -106,7 +106,7 @@ const SignUp = () => {
           size={500}
           style={{
             position: "absolute",
-            top: -240,  
+            top: -270,  
             right: -40,
             opacity: 0.7,
           }}
@@ -116,14 +116,14 @@ const SignUp = () => {
           size={350}
           style={{
             position: "absolute",
-            top: -130,
+            top: -150,
             right: -140,
             opacity: 0.5,
           }}
         />
       </View>
       <View className="relative w-full">
-        <Text className="text-2xl font-JakartaBold relative ml-5 mt-[290]">
+        <Text className="text-2xl font-JakartaBold relative ml-5 mt-[260]">
           Welcome 👋
         </Text>
       </View>

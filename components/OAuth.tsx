@@ -30,17 +30,17 @@ const OAuth = () => {
       </View>
 
       <CustomButton
-        title="Log In with Google"
+        title="Google"
         className="mt-5 w-full shadow-none"
         IconLeft={() => (
           <Image
             source={icons.google}
             resizeMode="contain"
-            className="w-5 h-5 mx-2"
+            className="w-5 h-5 mr-3"
           />
         )}
-        bgVariant="outline"
-        textVariant="primary"
+        bgVariant="oauth"
+        textVariant="oauth"
         onPress={handleGoogleLogIn}
       />
     </View>
