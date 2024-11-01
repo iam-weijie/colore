@@ -1,8 +1,12 @@
-import { Text, TouchableOpacity, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { ButtonProps } from "@/types/type";
+import { LinearGradient } from "expo-linear-gradient";
+import React from "react";
+import { Text, TouchableOpacity } from "react-native";
 
-const getBgVariantStyle = (variant: ButtonProps["bgVariant"], disabled: boolean) => {
+const getBgVariantStyle = (
+  variant: ButtonProps["bgVariant"],
+  disabled: boolean
+) => {
   if (disabled) {
     return "bg-gray-400";
   }
@@ -23,7 +27,10 @@ const getBgVariantStyle = (variant: ButtonProps["bgVariant"], disabled: boolean)
   }
 };
 
-const getTextVariantStyle = (variant: ButtonProps["textVariant"], disabled: boolean) => {
+const getTextVariantStyle = (
+  variant: ButtonProps["textVariant"],
+  disabled: boolean
+) => {
   if (disabled) {
     return "text-gray-300";
   }
@@ -72,7 +79,9 @@ const CustomButton = ({
           className={`flex flex-row justify-center items-center w-full h-full p-${padding} rounded-full`}
         >
           {IconLeft && <IconLeft />}
-          <Text className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}>
+          <Text
+            className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}
+          >
             {title}
           </Text>
           {IconRight && <IconRight />}
@@ -80,7 +89,9 @@ const CustomButton = ({
       ) : (
         <>
           {IconLeft && <IconLeft />}
-          <Text className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}>
+          <Text
+            className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}
+          >
             {title}
           </Text>
           {IconRight && <IconRight />}

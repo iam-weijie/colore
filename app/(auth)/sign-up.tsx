@@ -1,21 +1,13 @@
-import { useSignUp } from "@clerk/clerk-expo";
-import { Link, router } from "expo-router";
-import { useState } from "react";
-import {
-  Alert,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { ReactNativeModal } from "react-native-modal";
 import Circle from "@/components/Circle";
+import { useSignUp } from "@clerk/clerk-expo";
+import { Link } from "expo-router";
+import { useState } from "react";
+import { Alert, ScrollView, Text, View } from "react-native";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
-import { icons, images } from "@/constants";
+import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 
 const SignUp = () => {
@@ -106,7 +98,7 @@ const SignUp = () => {
           size={500}
           style={{
             position: "absolute",
-            top: -350,  
+            top: -350,
             right: -40,
             opacity: 0.7,
           }}
@@ -181,7 +173,6 @@ const SignUp = () => {
           </Link>
         </Text>
       </View>
-
     </ScrollView>
   );
 };

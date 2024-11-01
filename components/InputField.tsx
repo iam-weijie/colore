@@ -28,7 +28,9 @@ const InputField = ({
   const inputVariantStyle = variant === "signup" ? "h-full" : "h-auto";
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className="my-2 w-full">
           <Text className={`text-lg font-JakartaSemiBold mb-3 ${labelStyle}`}>

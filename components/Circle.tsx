@@ -6,10 +6,15 @@ interface CircleProps {
   selected?: boolean;
   onPress?: () => void;
   style?: ViewStyle;
-
 }
 
-const Circle: React.FC<CircleProps> = ({ color, size = 50, selected = false, onPress, style }) => {
+const Circle: React.FC<CircleProps> = ({
+  color,
+  size = 50,
+  selected = false,
+  onPress,
+  style,
+}) => {
   const circle = (
     <View
       style={{

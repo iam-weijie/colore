@@ -83,7 +83,7 @@ const LogIn = () => {
             textContentType="password"
             onChangeText={(value) => setForm({ ...form, password: value })}
           />
-          
+
           <CustomButton
             title="Log In"
             onPress={onLogInPress}
@@ -103,8 +103,6 @@ const LogIn = () => {
               <Text className="text-primary-500">Sign Up</Text>
             </Link>
           </Text>
-
-          
         </View>
       </View>
     </ScrollView>
