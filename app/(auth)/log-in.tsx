@@ -61,7 +61,7 @@ const LogIn = () => {
             resizeMode="cover"
           />
           <Text className="text-2xl font-JakartaBold relative ml-5 mt-[180]">
-            Log In
+            Welcome 👋
           </Text>
         </View>
 
