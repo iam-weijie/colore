@@ -20,12 +20,11 @@ const InputField = ({
   inputStyle,
   iconStyle,
   className,
-  variant,
+  // variant,
   ...props
 }: InputFieldProps) => {
   // const containerVariantStyle = variant === "signup" ? "rounded-xl" : "rounded-full";
-
-  const inputVariantStyle = variant === "signup" ? "h-full" : "h-auto";
+  // const inputVariantStyle = variant === "signup" ? "h-full" : "h-auto";
 
   return (
     <KeyboardAvoidingView
@@ -44,7 +43,7 @@ const InputField = ({
             )}
             <TextInput
               placeholderTextColor={"silver"}
-              className={`rounded-full p-${variant === "signup" ? "3" : "4"} font-JakartaSemiBold text-[15px] flex-1 ${inputVariantStyle} ${inputStyle} text-left`}
+              className={`rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 ${inputStyle} text-left`}
               secureTextEntry={secureTextEntry}
               {...props}
             />

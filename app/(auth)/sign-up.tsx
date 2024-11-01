@@ -130,7 +130,7 @@ const SignUp = () => {
 
       <View className="p-5">
         <InputField
-          variant="signup"
+          // variant="signup"
           label="Email"
           placeholder="Enter your email"
           icon={icons.email}
@@ -140,7 +140,7 @@ const SignUp = () => {
         />
 
         <InputField
-          variant="signup"
+          // variant="signup"
           label="Password"
           placeholder="Enter your password"
           icon={icons.lock}
@@ -151,7 +151,7 @@ const SignUp = () => {
         />
 
         <InputField
-          variant="signup"
+          // variant="signup"
           label=""
           placeholder="Confirm your password"
           icon={icons.lock}
@@ -169,7 +169,7 @@ const SignUp = () => {
           onPress={onSignUpPress}
           padding="3"
           bgVariant="gradient"
-          className="mt-6 bg-gradient-to-r from-yellow-400 to-orange-400"
+          className="mt-8 bg-gradient-to-r from-yellow-400 to-orange-400"
         />
 
         <OAuth />

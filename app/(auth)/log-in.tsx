@@ -89,7 +89,7 @@ const LogIn = () => {
             onPress={onLogInPress}
             padding="3"
             bgVariant="gradient"
-            className="mt-6"
+            className="mt-8"
           />
           <Text className="text-base text-center text-general-200 mt-6">
             <Link href="/reset">Forgot your password?</Link>
