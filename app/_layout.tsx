@@ -1,12 +1,14 @@
 import { NavigationProvider } from "@/components/NavigationContext";
+import SplashVideo from "@/components/SplashVideo";
 import { tokenCache } from "@/lib/auth";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LogBox } from "react-native";
 import "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -16,6 +18,9 @@ LogBox.ignoreLogs(["Clerk:"]);
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
 export default function RootLayout() {
+  const [appReady, setAppReady] = useState(false);
+  const [isSplashVideoComplete, setSplashVideoComplete] = useState(false);
+
   const [loaded] = useFonts({
     "Jakarta-Bold": require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
     "Jakarta-ExtraBold": require("../assets/fonts/PlusJakartaSans-ExtraBold.ttf"),
@@ -29,11 +34,22 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      setAppReady(true);
     }
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
+  const showSplashVideo = !appReady || !isSplashVideoComplete//appReady
+
+  if (showSplashVideo) { 
+    // render animation while app is still loaded
+    return (
+    <SplashVideo onAnimationFinish={(isCancelled) => {
+      if (!isCancelled) {
+        setSplashVideoComplete(true) 
+      }
+    }}
+    />
+    );
   }
 
   if (!publishableKey) {
@@ -46,12 +62,14 @@ export default function RootLayout() {
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <ClerkLoaded>
         <NavigationProvider>
+        <Animated.View style={{flex: 1}} entering={FadeIn}>
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(root)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
+          </Animated.View>
         </NavigationProvider>
       </ClerkLoaded>
     </ClerkProvider>
