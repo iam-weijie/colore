@@ -1,29 +1,27 @@
 import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
 import { icons } from "@/constants";
-import { Post } from "@/types/type";
+import { Post, PostWithPosition } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Image,
+  PanResponder,
   Text,
   TouchableOpacity,
   View,
-  PanResponder,
-  Animated
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { PostWithPosition } from "@/types/type";
 
 type DraggablePostItProps = {
   post: PostWithPosition;
   onPress: () => void;
 };
 
-const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress}) => {
-
+const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
   const position = useRef(new Animated.ValueXY()).current;
   const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -44,11 +42,11 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress}) => {
           {
             dx: position.x,
             dy: position.y,
-          }
+          },
         ],
         { useNativeDriver: false }
       ),
-      onPanResponderRelease: (event, gestureState) => {   
+      onPanResponderRelease: (event, gestureState) => {
         const dx = gestureState.dx;
         const dy = gestureState.dy;
         // console.log(dx, dy);
@@ -56,36 +54,31 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress}) => {
 
         if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
           onPress();
-        } 
+        }
         setIsDragging(false);
-
       },
     })
   ).current;
-  
 
   return (
     <Animated.View
       {...panResponder.panHandlers}
-      style={
-        {
-          transform: position.getTranslateTransform(),
-          opacity: isDragging ? 0.8 : 1,
-          position: "absolute",
-          top: post.position.top,
-          left: post.position.left,
-        }
-      }
+      style={{
+        transform: position.getTranslateTransform(),
+        opacity: isDragging ? 0.8 : 1,
+        position: "absolute",
+        top: post.position.top,
+        left: post.position.left,
+      }}
     >
       <TouchableOpacity onPress={onPress}>
-        <PostIt color={post.color|| "yellow" } /> 
+        <PostIt color={post.color || "yellow"} />
       </TouchableOpacity>
     </Animated.View>
-  )
+  );
+};
 
-}
-
-export default function Page()  {
+export default function Page() {
   //const { user } = useUser();
   //console.log(user);
   //const { isLoaded, isSignedIn, session } = useSession();
@@ -102,7 +95,6 @@ export default function Page()  {
     try {
       const response = await fetch(
         `/(api)/(posts)/getRandomPosts?number=${3}&id=${user!.id}`
-
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
@@ -112,7 +104,6 @@ export default function Page()  {
         position: {
           top: Math.random() * 150,
           left: Math.random() * 200,
-        
         },
       }));
       setPosts(postsWithPositions);
@@ -149,13 +140,13 @@ export default function Page()  {
     <SafeAreaView className="flex-1">
       <SignedIn>
         <View className="flex-row justify-between items-center mx-7 mt-3">
-          <Image 
-            source={require('@/assets/colore-word-logo.png')} 
+          <Image
+            source={require("@/assets/colore-word-logo.png")}
             style={{ width: 330, height: 50 }}
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
-      </View>
+        </View>
 
         {loading ? (
           <View className="flex-[0.8] justify-center items-center">
@@ -178,7 +169,7 @@ export default function Page()  {
                 // >
                 //   <DraggablePostIt />
                 // </TouchableOpacity>
-                <DraggablePostIt 
+                <DraggablePostIt
                   key={post.id}
                   post={post}
                   onPress={() => handlePostPress(post)}

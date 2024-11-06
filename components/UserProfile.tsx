@@ -1,14 +1,16 @@
-import { useNavigationContext } from "@/components/NavigationContext";
 import CustomButton from "@/components/CustomButton";
+import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import {
   Post,
   UserData,
+  UserNicknamePair,
   UserProfileProps,
   UserProfileType,
 } from "@/types/type";
+import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -23,14 +25,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "@clerk/clerk-expo";
-import { UserNicknamePair } from "@/types/type";
 import ColorGallery from "./ColorGallery";
 
-const UserProfile: React.FC<UserProfileProps> = ({
-  userId,
-  onSignOut,
-}) => {
+const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -43,42 +40,47 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const currentScreen = route.name as string;
 
   const isEditable = user!.id === userId;
-  
-  function findUserNickname(userArray: UserNicknamePair[], userId: string): number {
-    const index = userArray.findIndex(pair => pair[0] === userId);
+
+  function findUserNickname(
+    userArray: UserNicknamePair[],
+    userId: string
+  ): number {
+    const index = userArray.findIndex((pair) => pair[0] === userId);
     return index;
   }
 
   const fetchCurrentNickname = async () => {
     try {
-        // console.log("user: ", user!.id);
-        const response = await fetchAPI(
-          `/(api)/(users)/getUserInfo?id=${user!.id}`,
-          {
-            method: "GET",
-          }
-        );
-        if (response.error) {
-          console.log("Error fetching user data");
-          console.log("response data: ", response.data);
-          console.log("response status: ", response.status);
-          // console.log("response: ", response);
-          throw new Error(response.error);
+      // console.log("user: ", user!.id);
+      const response = await fetchAPI(
+        `/(api)/(users)/getUserInfo?id=${user!.id}`,
+        {
+          method: "GET",
         }
-        // console.log("response: ", response.data[0].nicknames);
-        const nicknames = response.data[0].nicknames || [];
-        return findUserNickname(nicknames, userId) === -1 ? "" : nicknames[findUserNickname(nicknames, userId)][1];
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
+      );
+      if (response.error) {
+        console.log("Error fetching user data");
+        console.log("response data: ", response.data);
+        console.log("response status: ", response.status);
+        // console.log("response: ", response);
+        throw new Error(response.error);
       }
+      // console.log("response: ", response.data[0].nicknames);
+      const nicknames = response.data[0].nicknames || [];
+      return findUserNickname(nicknames, userId) === -1
+        ? ""
+        : nicknames[findUserNickname(nicknames, userId)][1];
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    }
+  };
+  useEffect(() => {
+    const getData = async () => {
+      const data = await fetchCurrentNickname();
+      setNickname(data);
     };
-    useEffect(() => {
-        const getData = async () => {
-            const data = await fetchCurrentNickname();
-            setNickname(data);
-          };
-          getData();
-    }, [stateVars]);
+    getData();
+  }, [stateVars]);
 
   const handleNavigateToCountry = () => {
     if (isEditable) {
@@ -123,7 +125,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
     });
     router.push("/(root)/(profile)/nickname");
   };
-
 
   useEffect(() => {
     fetchUserData();
@@ -179,25 +180,26 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </View>
 
         <View>
-        {isEditable ? (
-          <Pressable disabled={!isEditable} onPress={handleNavigateToCountry}>
-            <TextInput
-              className="text-base font-Jakarta mt-3"
-              value={`📍${profileUser?.city}, ${profileUser?.state}, ${profileUser?.country}`}
-              editable={false}
-              onPressIn={handleNavigateToCountry}
-            />
-          </Pressable>
-        ) : (
-          <Text className="text-gray-500 font-Jakarta text-base mt-3">
-            📍{profileUser?.city}, {profileUser?.state}, {profileUser?.country}
-          </Text>
-        )}
+          {isEditable ? (
+            <Pressable disabled={!isEditable} onPress={handleNavigateToCountry}>
+              <TextInput
+                className="text-base font-Jakarta mt-3"
+                value={`📍${profileUser?.city}, ${profileUser?.state}, ${profileUser?.country}`}
+                editable={false}
+                onPressIn={handleNavigateToCountry}
+              />
+            </Pressable>
+          ) : (
+            <Text className="text-gray-500 font-Jakarta text-base mt-3">
+              📍{profileUser?.city}, {profileUser?.state},{" "}
+              {profileUser?.country}
+            </Text>
+          )}
         </View>
       </View>
-      <View/>
+      <View />
       <View className="mx-4 my-4">
-        <View className="border-t border-gray-200" /> 
+        <View className="border-t border-gray-200" />
       </View>
       <View className="flex-row justify-between mx-6">
         <View className="flex-1 items-center">
@@ -216,18 +218,18 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </View>
       </View>
       <View className="mx-4 my-4">
-        <View className="border-t border-gray-200" /> 
+        <View className="border-t border-gray-200" />
       </View>
       <View className="items-center">
         <ColorGallery />
       </View>
       <View className="mx-4 my-4">
-        <View className="border-t border-gray-200" /> 
+        <View className="border-t border-gray-200" />
       </View>
       <View className="items-center flex-1">
         <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
       </View>
-      {currentScreen === "profile"&& <View className="min-h-[80px]"/>}
+      {currentScreen === "profile" && <View className="min-h-[80px]" />}
     </View>
   );
 };
