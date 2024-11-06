@@ -1,5 +1,8 @@
 import CustomButton from "@/components/CustomButton";
 import React, { useEffect, useState } from "react";
+import { fetchAPI } from "@/lib/fetch";
+import { SignedIn, useUser } from "@clerk/clerk-expo";
+import { useRouter } from "expo-router";
 import {
   FlatList,
   Text,
@@ -7,40 +10,74 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { User } from "../../../types/type";
+import { UserProfileType, UserNicknamePair} from "@/types/type";
 
 const NewConversation = (): React.ReactElement => {
   const [searchText, setSearchText] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserNicknamePair[]>([]);
+  const [nicknames, setNicknames] = useState<UserNicknamePair[]>([]);
+  const { user } = useUser();
+  const router = useRouter();
+
+  const fetchNicknames = async () => {
+    try {
+        // console.log("user: ", user!.id);
+        const response = await fetchAPI(
+          `/(api)/(users)/getUserInfo?id=${user!.id}`,
+          {
+            method: "GET",
+          }
+        );
+        if (response.error) {
+          console.log("Error fetching user data");
+          console.log("response data: ", response.data);
+          console.log("response status: ", response.status);
+          // console.log("response: ", response);
+          throw new Error(response.error);
+        }
+        // console.log("response: ", response.data[0].nicknames);
+        const nicknames = response.data[0].nicknames || [];
+        setNicknames(nicknames);
+        return;
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+    useEffect(() => {
+        fetchNicknames();
+        console.log("nicknames: ", nicknames);
+        setUsers(nicknames);
+    }, []);
 
   const filteredUsers = users.filter((user) =>
-    (
-      user.first_name.toLowerCase() +
-      " " +
-      user.last_name.toLowerCase()
-    ).includes(searchText.toLowerCase())
+    user[1].includes(searchText.toLowerCase())
   );
 
-  const startChat = (user: User): void => {
-    console.log(`Starting chat with ${user.first_name} ${user.last_name}`);
+  const startChat = (user: UserNicknamePair): void => {
+    console.log(`Starting chat with ${user[1]}`);
     // TODO: Add your logic for initiating a chat here
   };
-  const showProfile = (user: User): void => {
-    console.log(`Showing profile of ${user.first_name} ${user.last_name}`);
+  const showProfile = (user: UserProfileType): void => {
+    
     // TODO: Actually show the profile
   };
 
-  const renderUser = ({ item }: { item: User }): React.ReactElement => (
+  const renderUser = ({ item }: { item: UserNicknamePair }): React.ReactElement => (
     <View className="flex flex-row justify-between items-center p-4 border-b border-gray-200">
-      <TouchableOpacity onPress={() => showProfile(item)}>
+      <TouchableOpacity onPress={() => {
+              router.push({
+                pathname: "/(root)/(profile)/[id]",
+                params: { id: item[0] },
+              });
+              }}>
         <Text className="text-lg text-black">
-          {item.first_name + " " + item.last_name}
+          {item[1]}
         </Text>
       </TouchableOpacity>
       <CustomButton
         title="Chat"
         onPress={() => startChat(item)}
-        disabled={!item.id || !item.first_name || !item.last_name}
+        disabled={!item[1]}
         className="w-14 h-8 rounded-md"
         fontSize="sm"
         padding="0"
@@ -49,19 +86,6 @@ const NewConversation = (): React.ReactElement => {
   );
 
   // Simulating API call to fetch users
-  useEffect(() => {
-    const fetchUsers = async (): Promise<void> => {
-      const fetchedUsers: User[] = [
-        { id: 1, first_name: "John", last_name: "Doe" },
-        { id: 2, first_name: "Jane", last_name: "Smith" },
-        { id: 3, first_name: "This", last_name: "is" },
-        { id: 4, first_name: "a", last_name: "placeholder" },
-        //TODO: actually get users from db
-      ];
-      setUsers(fetchedUsers);
-    };
-    fetchUsers();
-  }, []);
 
   return (
     <View className="flex-1 bg-gray-100 pt-16">
