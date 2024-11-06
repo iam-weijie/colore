@@ -5,12 +5,15 @@ import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import {
   FlatList,
+  ActivityIndicator,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { UserProfileType, UserNicknamePair} from "@/types/type";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 const NewConversation = (): React.ReactElement => {
   const [searchText, setSearchText] = useState("");
@@ -18,8 +21,12 @@ const NewConversation = (): React.ReactElement => {
   const [nicknames, setNicknames] = useState<UserNicknamePair[]>([]);
   const { user } = useUser();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [conversationExists, setConversationExists] = useState<boolean>(true);
 
   const fetchNicknames = async () => {
+    setLoading(true);
     try {
         // console.log("user: ", user!.id);
         const response = await fetchAPI(
@@ -38,28 +45,56 @@ const NewConversation = (): React.ReactElement => {
         // console.log("response: ", response.data[0].nicknames);
         const nicknames = response.data[0].nicknames || [];
         setNicknames(nicknames);
+        console.log("nicknames: ", nicknames);
+        setUsers(nicknames);
         return;
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
+      } catch (err) {
+        console.error("Failed to fetch user data:", err);
+        setError("Failed to fetch nicknames.");
+      } finally {
+        setLoading(false);
       }
     };
     useEffect(() => {
         fetchNicknames();
-        console.log("nicknames: ", nicknames);
-        setUsers(nicknames);
+        
     }, []);
 
   const filteredUsers = users.filter((user) =>
     user[1].includes(searchText.toLowerCase())
   );
-
+  const checkIfChatExists = async (user2: UserNicknamePair) => {
+    try {
+      // console.log("user: ", user!.id);
+      const response = await fetchAPI(
+        `/(api)/(chat)/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.error) {
+        console.log("Error fetching user data");
+        console.log("response data: ", response.data);
+        console.log("response status: ", response.status);
+        // console.log("response: ", response);
+        throw new Error(response.error);
+      }
+      console.log("response: ", response.data.length);
+      if (response.data.length > 0) {
+        setConversationExists(true);
+      } else {
+        setConversationExists(false);
+      }
+    } catch (err) {
+      console.error("Failed to fetch user data:", err);
+      setError("Failed to fetch nicknames.");
+    } 
+  }
   const startChat = (user: UserNicknamePair): void => {
     console.log(`Starting chat with ${user[1]}`);
+    checkIfChatExists(user);
+    console.log("conversationExists: ", conversationExists);
     // TODO: Add your logic for initiating a chat here
-  };
-  const showProfile = (user: UserProfileType): void => {
-    
-    // TODO: Actually show the profile
   };
 
   const renderUser = ({ item }: { item: UserNicknamePair }): React.ReactElement => (
@@ -88,20 +123,32 @@ const NewConversation = (): React.ReactElement => {
   // Simulating API call to fetch users
 
   return (
-    <View className="flex-1 bg-gray-100 pt-16">
-      <TextInput
-        className="h-11 mx-4 px-4 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-        placeholder="Search users..."
-        placeholderTextColor="#4a4a4a"
-        value={searchText}
-        onChangeText={(text): void => setSearchText(text)}
-      />
-      <FlatList
-        data={filteredUsers}
-        renderItem={renderUser}
-        keyExtractor={(item): string => String(item.id)}
-      />
-    </View>
+    <SafeAreaView className="flex-1">
+      <SignedIn>
+        <View className="flex-1 bg-gray-100 pt-16">
+          <TextInput
+            className="h-11 mx-4 px-4 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Search users..."
+            placeholderTextColor="#4a4a4a"
+            value={searchText}
+            onChangeText={(text): void => setSearchText(text)}
+          />
+          {loading ? (
+            <View className="flex-[0.8] justify-center items-center">
+            <ActivityIndicator size="large" color="black" />
+          </View>
+        ) : error ? (
+          <Text>{error}</Text>
+        ) : (
+          <FlatList
+            data={filteredUsers}
+            renderItem={renderUser}
+            keyExtractor={(item): string => String(item[0])}
+          />)
+        }
+        </View>
+      </SignedIn>
+    </SafeAreaView>
   );
 };
 
