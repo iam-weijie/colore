@@ -4,14 +4,11 @@ import { tokenCache } from "@/lib/auth";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { LogBox } from "react-native";
 import "react-native-reanimated";
 import Animated, { FadeIn } from "react-native-reanimated";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
 
 LogBox.ignoreLogs(["Clerk:"]);
 
@@ -33,7 +30,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
       setAppReady(true);
     }
   }, [loaded]);
