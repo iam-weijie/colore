@@ -4,7 +4,7 @@ export async function POST(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     console.log("Received POST request.");
-    const { content, clerkId, color = "yellow"} = await request.json();
+    const { content, clerkId, color = "yellow" } = await request.json();
 
     const response = await sql`
       INSERT INTO posts (user_id, content, like_count, report_count, color)

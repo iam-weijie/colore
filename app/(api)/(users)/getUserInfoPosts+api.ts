@@ -61,16 +61,16 @@ export async function GET(request: Request) {
 
     const userPosts = response.map((post) => ({
       id: post.post_id,
-      clerk_id: post.clerk_id, 
+      clerk_id: post.clerk_id,
       firstname: post.firstname,
       content: post.content,
-      created_at: post.created_at, 
+      created_at: post.created_at,
       city: post.city,
       state: post.state,
-      country: post.country, 
+      country: post.country,
       like_count: post.like_count,
       report_count: post.report_count,
-      color: post.color
+      color: post.color,
     }));
 
     return new Response(JSON.stringify({ userInfo, posts: userPosts }), {
