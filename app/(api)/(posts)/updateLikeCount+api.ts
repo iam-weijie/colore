@@ -8,16 +8,8 @@ async function wait(ms: number) {
 }
 
 async function executeWithRetry(operation: () => Promise<any>, retries = MAX_RETRIES): Promise<any> {
-  try {
+  //Removed the retry for now
     return await operation();
-  } catch (error) {
-    if (retries > 0 && (error as any)?.code === "ECONNRESET") {
-      console.log(`Retrying operation, ${retries} attempts remaining...`);
-      await wait(RETRY_DELAY);
-      return executeWithRetry(operation, retries - 1);
-    }
-    throw error;
-  }
 }
 
 export async function PATCH(request: Request) {
