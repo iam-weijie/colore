@@ -16,7 +16,7 @@ import profile from "@/assets/icons/profile.png";
 import refresh from "@/assets/icons/refresh.png";
 import search from "@/assets/icons/search.png";
 import trash from "@/assets/icons/trash.png";
-import login from "@/assets/images/login.png";
+import login from "@/assets/images/login_squares.png";
 import signup from "@/assets/images/signup.png";
 import { PostItColor } from "@/types/type";
 
@@ -44,6 +44,7 @@ export const icons = {
 export const images = {
   signup,
   login,
+
 };
 
 export const countries = [

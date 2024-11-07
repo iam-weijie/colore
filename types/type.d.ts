@@ -11,9 +11,8 @@ declare interface Post {
   country: string;
   like_count: number;
   report_count: number;
-  color:  string; //String for now. Should be changed to PostItColor 
+  color: string; //String for now. Should be changed to PostItColor
 }
-
 
 declare interface PostComment {
   id: number;
@@ -67,8 +66,21 @@ declare interface NavigationContextType {
 
 declare interface ButtonProps extends TouchableOpacityProps {
   title: string;
-  bgVariant?: "primary" | "secondary" | "danger" | "outline" | "success";
-  textVariant?: "primary" | "default" | "secondary" | "danger" | "success";
+  bgVariant?:
+    | "primary"
+    | "secondary"
+    | "danger"
+    | "outline"
+    | "success"
+    | "gradient"
+    | "oauth";
+  textVariant?:
+    | "primary"
+    | "default"
+    | "secondary"
+    | "danger"
+    | "success"
+    | "oauth";
   fontSize?: "sm" | "md" | "lg" | "xl";
   padding?: string;
   IconLeft?: React.ComponentType<any>;
@@ -106,6 +118,7 @@ declare interface InputFieldProps extends TextInputProps {
   inputStyle?: string;
   iconStyle?: string;
   className?: string;
+  variant?: string;
 }
 
 declare interface PaymentProps {
