@@ -38,23 +38,101 @@ const PostScreen = () => {
     report_count,
     created_at,
   } = useLocalSearchParams();
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [postComments, setPostComments] = useState<PostComment[]>([]);
-  const [likedPost, setLikedPost] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>("");
   const [likedComment, setLikedComment] = useState<boolean>(false);
   const [nicknames, setNicknames] = useState<UserNicknamePair[]>([]);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [likeCount, setLikeCount] = useState<number>(
+    typeof like_count === 'string' ? parseInt(like_count) : 0
+  );
+  const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
 
   const maxCharacters = 6000;
-  const displayName = Array.isArray(firstname) ? firstname[0] : firstname; // to correct type warning
+  const displayName = Array.isArray(firstname) ? firstname[0] : firstname;
   const userId = Array.isArray(clerk_id) ? clerk_id[0] : clerk_id;
   const screenHeight = Dimensions.get("screen").height;
+  
+  useEffect(() => {
+    const fetchLikeStatus = async () => {
+      if (!id || !user?.id) return;
+      
+      try {
+        const response = await fetchAPI(
+          `/(api)/(posts)/updateLikeCount?postId=${id}&userId=${user.id}`,
+          { method: 'GET' }
+        );
 
+        if (response.error) {
+          console.error('Error fetching like status:', response.error);
+          return;
+        }
+
+        setIsLiked(response.data.liked);
+        setLikeCount(response.data.likeCount);
+      } catch (error) {
+        console.error('Failed to fetch like status:', error);
+      }
+    };
+
+    fetchLikeStatus();
+  }, [id, user?.id]);
+
+  // Updated like handler
+  const handleLikePress = async () => {
+    if (!id || !user?.id || isLoadingLike) return;
+
+    try {
+      setIsLoadingLike(true);
+      const increment = !isLiked;
+      
+      // Optimistically update UI
+      setIsLiked(!isLiked);
+      setLikeCount(prev => increment ? prev + 1 : prev - 1);
+
+      const response = await fetchAPI(`/(api)/(posts)/updateLikeCount`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          postId: id,
+          userId: user.id,
+          increment
+        })
+      });
+
+      if (response.error) {
+        // Revert optimistic update if failed
+        setIsLiked(isLiked);
+        setLikeCount(prev => increment ? prev - 1 : prev + 1);
+        Alert.alert('Error', 'Unable to update like status. Please try again.');
+        return;
+      }
+
+      // Update with actual server values
+      setLikeCount(response.data.likeCount);
+      setIsLiked(response.data.liked);
+
+    } catch (error) {
+      console.error('Failed to update like status:', error);
+      // Revert optimistic update
+      setIsLiked(isLiked);
+      setLikeCount(prev => !isLiked ? prev - 1 : prev + 1);
+      Alert.alert('Error', 'Unable to update like status. Please check your connection.');
+    } finally {
+      setIsLoadingLike(false);
+    }
+  };
+
+
+  
   function findUserNickname(userArray: UserNicknamePair[], userId: string): number {
     const index = userArray.findIndex(pair => pair[0] === userId);
     return index;
   }
+
+
   const fetchNicknames = async () => {
     try {
         // console.log("user: ", user!.id);
@@ -261,32 +339,34 @@ const PostScreen = () => {
             onPressIn={() => Keyboard.dismiss()}
           >
           {/* Post information */}
-            <View className="p-4 border-b border-gray-200 relative">
-              <View className="absolute top-4 right-4 items-center mt-2">
+          <View className="p-4 border-b border-gray-200 relative">
+                <View className="absolute top-4 right-4 items-center mt-2">
+                  <View className="flex-row items-center">
+                    <TouchableOpacity 
+                      onPress={handleLikePress}
+                      disabled={isLoadingLike}
+                    >
+                      <MaterialCommunityIcons
+                        name={isLiked ? "heart" : "heart-outline"}
+                        size={32}
+                        color={isLiked ? "red" : "black"}
+                      />
+                    </TouchableOpacity>
+                    {/* Only show like count to post creator */}
+                    {clerk_id === user?.id && (
+                      <Text className="ml-1 text-gray-600">{likeCount}</Text>
+                    )}
+                  </View>
 
-              <View className="flex-row items-center">
-                  <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
-                    <MaterialCommunityIcons
-                      name={likedPost ? "heart" : "heart-outline"}
-                      size={32}
-                      color={likedPost ? "red" : "black"}
-                    />
-                  </TouchableOpacity>
-                  {/* Only show like count to post creator */}
                   {clerk_id === user?.id && (
-                    <Text className="ml-1 text-gray-600">{like_count}</Text>
+                    <TouchableOpacity onPress={handleDeletePostPress} className="mt-4">
+                      <Image source={icons.trash} className="w-7 h-7" />
+                    </TouchableOpacity>
                   )}
                 </View>
-
-                {clerk_id === user?.id && (
-                  <TouchableOpacity onPress={handleDeletePostPress} className="mt-4">
-                    <Image source={icons.trash} className="w-7 h-7" />
-                  </TouchableOpacity>
-                )}
+                <Text className="mt-2 ml-2 mr-10 min-h-[80]">{content}</Text>
               </View>
-              <Text className="mt-2 ml-2 mr-10 min-h-[80]">{content}</Text>
-            </View>
-          </TouchableWithoutFeedback>
+            </TouchableWithoutFeedback>
 
 
           {/* Comment section */}

@@ -26,7 +26,84 @@ const PostModal: React.FC<PostModalProps> = ({
   const router = useRouter();
   const [nickname, setNickname] = useState<string>("");
   const [likeCount, setLikeCount] = useState<number>(post?.like_count || 0);
-  //const [isLiked, setIsLiked] = useState<boolean>(false);  // I'll update this later to check if user has liked a post
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
+
+  // Fetch initial like status when modal opens
+  useEffect(() => {
+    const fetchLikeStatus = async () => {
+      if (!post?.id || !user?.id) return;
+      
+      try {
+        const response = await fetchAPI(
+          `/(api)/(posts)/updateLikeCount?postId=${post.id}&userId=${user.id}`,
+          { method: 'GET' }
+        );
+
+        if (response.error) {
+          console.error('Error fetching like status:', response.error);
+          return;
+        }
+
+        setIsLiked(response.data.liked);
+        setLikeCount(response.data.likeCount);
+      } catch (error) {
+        console.error('Failed to fetch like status:', error);
+      }
+    };
+
+    fetchLikeStatus();
+  }, [post?.id, user?.id]);
+
+  // Handle like/unlike action
+  const handleLikePress = async () => {
+    if (!post?.id || !user?.id || isLoadingLike) return;
+
+    try {
+      setIsLoadingLike(true);
+      const increment = !isLiked;
+      
+      // Optimistically update UI
+      setIsLiked(!isLiked);
+      setLikeCount(prev => increment ? prev + 1 : prev - 1);
+
+      const response = await fetchAPI(`/(api)/(posts)/updateLikeCount`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          postId: post.id,
+          userId: user.id,
+          increment
+        })
+      });
+
+      if (response.error) {
+        // Revert optimistic update if failed
+        setIsLiked(isLiked);
+        setLikeCount(prev => increment ? prev - 1 : prev + 1);
+        
+        Alert.alert('Error', 'Unable to update like status. Please try again.');
+        return;
+      }
+
+      // Update with actual server values
+      setLikeCount(response.data.likeCount);
+      setIsLiked(response.data.liked);
+
+    } catch (error) {
+      console.error('Failed to update like status:', error);
+      // Revert optimistic update
+      setIsLiked(isLiked);
+      setLikeCount(prev => !isLiked ? prev - 1 : prev + 1);
+      
+      Alert.alert('Error', 'Unable to update like status. Please check your connection.');
+    } finally {
+      setIsLoadingLike(false);
+    }
+  };
+
+
+
+
 
 
   function findUserNickname(
@@ -71,8 +148,8 @@ const PostModal: React.FC<PostModalProps> = ({
   }, [user]);
 
   useEffect(() => {
-    console.log("Post data:", post); // Add this
-    console.log("Initial like count:", post?.like_count); // Add this
+    console.log("Post data:", post);
+    console.log("Initial like count:", post?.like_count);
   }, [post]);
 
   const handleDeletePress = async () => {
@@ -116,115 +193,100 @@ const PostModal: React.FC<PostModalProps> = ({
       },
     });
   };
-  const handleLikePress = async () => {
+  
+
+
+useEffect(() => {
+  const fetchLikeStatus = async () => {
     try {
-      const increment = !likedPost;
-      
-      // Optimistically update UI
-      setLikedPost(!likedPost);
-      setLikeCount(prev => increment ? prev + 1 : prev - 1);
-  
-      const response = await fetchAPI(`/(api)/(posts)/updateLikeCount`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          postId: post!.id,
-          increment
-        })
-      });
-  
+      const response = await fetchAPI(
+        `/(api)/(posts)/updateLikeCount?postId=${post!.id}&userId=${user!.id}`,
+        { method: 'GET' }
+      );
+
       if (response.error) {
-        // Revert optimistic update if failed
-        setLikedPost(likedPost);
-        setLikeCount(prev => increment ? prev - 1 : prev + 1);
-        
-        console.error('Like update failed:', response.error);
-        Alert.alert(
-          'Error',
-          'Unable to update like count. Please try again.',
-          [{ text: 'OK' }]
-        );
+        console.error('Error fetching like status:', response.error);
         return;
       }
-  
-      // Update the like count with the actual value from server
-      if (response.data?.likeCount !== undefined) {
-        setLikeCount(response.data.likeCount);
-      }
-  
+
+      setLikedPost(response.data.liked);
+      setLikeCount(response.data.likeCount);
     } catch (error) {
-      console.error('Failed to update like count:', error);
-      // Revert optimistic update
-      setLikedPost(likedPost);
-      setLikeCount(prev => !likedPost ? prev - 1 : prev + 1);
-      
-      Alert.alert(
-        'Error',
-        'Unable to update like count. Please check your connection.',
-        [{ text: 'OK' }]
-      );
+      console.error('Failed to fetch like status:', error);
     }
   };
 
+  if (post && user) {
+    fetchLikeStatus();
+  }
+}, [post, user]);
 
-
-
-  return (
-    <ReactNativeModal isVisible={isVisible}>
-      <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
-        <TouchableOpacity onPress={handleCloseModal}>
-          <Image className="w-6 h-6 self-end left-3" source={icons.close} />
+ 
+return (
+  <ReactNativeModal isVisible={isVisible}>
+    <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
+      <TouchableOpacity onPress={handleCloseModal}>
+        <Image className="w-6 h-6 self-end left-3" source={icons.close} />
+      </TouchableOpacity>
+      
+      {/* User info section */}
+      {post && post.firstname && user!.id !== post.clerk_id && (
+        <TouchableOpacity
+          onPress={() => {
+            handleCloseModal();
+            router.push({
+              pathname: "/(root)/(profile)/[id]",
+              params: { id: post!.clerk_id },
+            });
+          }}
+        >
+          <Text className="text-[16px] mb-2 font-Jakarta font-bold">
+            {nickname ? nickname : `${post?.firstname?.charAt(0)}.`}
+          </Text>
         </TouchableOpacity>
-        {post && post.firstname && user!.id !== post.clerk_id && (
-          <TouchableOpacity
-            onPress={() => {
-              handleCloseModal();
-              router.push({
-                pathname: "/(root)/(profile)/[id]",
-                params: { id: post!.clerk_id },
-              });
-            }}
-          >
-            <Text className="text-[16px] mb-2 font-Jakarta font-bold">
-              {nickname ? nickname : `${post?.firstname?.charAt(0)}.`}
-            </Text>
+      )}
+
+      {/* Post content */}
+      <ScrollView>
+        <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
+      </ScrollView>
+
+      {/* Action buttons */}
+      <View className="my-2 flex-row justify-between items-center">
+        <View className="flex flex-row items-center">
+          <TouchableOpacity onPress={handleCommentsPress}>
+            <Image source={icons.comment} className="w-8 h-8" />
+          </TouchableOpacity>
+
+          <View className="flex-row items-center">
+            <TouchableOpacity
+              onPress={handleLikePress}
+              disabled={isLoadingLike}
+              className="ml-2"
+            >
+              <MaterialCommunityIcons
+                name={isLiked ? "heart" : "heart-outline"}
+                size={32}
+                color={isLiked ? "red" : "black"}
+              />
+            </TouchableOpacity>
+            {/* Show like count only to post creator */}
+            {post && post.clerk_id === user?.id && (
+              <Text className="ml-1 text-gray-600">{likeCount}</Text>
+            )}
+          </View>
+        </View>
+
+        {/* Delete button for post owner */}
+        {post && post.clerk_id === user?.id && (
+          <TouchableOpacity onPress={handleDeletePress}>
+            <Image source={icons.trash} className="w-7 h-7" />
           </TouchableOpacity>
         )}
-        <ScrollView>
-          <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
-        </ScrollView>
-        <View className="my-2 flex-row justify-between items-center">
-          <View className="flex flex-row items-center">
-            <TouchableOpacity onPress={handleCommentsPress}>
-              <Image source={icons.comment} className="w-8 h-8" />
-            </TouchableOpacity>
-  
-            <View className="flex-row items-center">
-              <TouchableOpacity
-                onPress={handleLikePress} 
-                className="ml-2"
-              >
-                <MaterialCommunityIcons
-                  name={likedPost ? "heart" : "heart-outline"}
-                  size={32}
-                  color={likedPost ? "red" : "black"}
-                />
-              </TouchableOpacity>
-              {/* Add like count only visible to post creator */}
-              {post && post.clerk_id === user?.id && (
-                <Text className="ml-1 text-gray-600">{likeCount}</Text>
-              )}
-            </View>
-          </View>
-          {post && post.clerk_id === user?.id && (
-            <TouchableOpacity onPress={handleDeletePress}>
-              <Image source={icons.trash} className="w-7 h-7" />
-            </TouchableOpacity>
-          )}
-        </View>
       </View>
-    </ReactNativeModal>
-  );
-
+    </View>
+  </ReactNativeModal>
+);
 };
 
 export default PostModal;
