@@ -26,7 +26,7 @@ export async function GET(request: Request) {
   
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
-      WHERE p.user_id != ${id} -- Exclude posts from the current user 
+      WHERE p.user_id = ${id} -- EDITED FOR DEBUG: CURRENTLY YOU ONLY SEE YOUR OWN POSTS. MUST BE CHNAGED BEFORE PULLING!!!!! Exclude posts from the current user 
       ORDER BY RANDOM()
       LIMIT ${number};
     `;

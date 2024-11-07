@@ -263,13 +263,21 @@ const PostScreen = () => {
           {/* Post information */}
             <View className="p-4 border-b border-gray-200 relative">
               <View className="absolute top-4 right-4 items-center mt-2">
-                <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
-                  <MaterialCommunityIcons
-                    name={likedPost ? "heart" : "heart-outline"}
-                    size={32}
-                    color={likedPost ? "red" : "black"}
-                  />
-                </TouchableOpacity>
+
+              <View className="flex-row items-center">
+                  <TouchableOpacity onPress={() => setLikedPost(!likedPost)}>
+                    <MaterialCommunityIcons
+                      name={likedPost ? "heart" : "heart-outline"}
+                      size={32}
+                      color={likedPost ? "red" : "black"}
+                    />
+                  </TouchableOpacity>
+                  {/* Only show like count to post creator */}
+                  {clerk_id === user?.id && (
+                    <Text className="ml-1 text-gray-600">{like_count}</Text>
+                  )}
+                </View>
+
                 {clerk_id === user?.id && (
                   <TouchableOpacity onPress={handleDeletePostPress} className="mt-4">
                     <Image source={icons.trash} className="w-7 h-7" />

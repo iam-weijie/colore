@@ -25,6 +25,9 @@ const PostModal: React.FC<PostModalProps> = ({
   const { user } = useUser();
   const router = useRouter();
   const [nickname, setNickname] = useState<string>("");
+  const [likeCount, setLikeCount] = useState<number>(post?.like_count || 0);
+  //const [isLiked, setIsLiked] = useState<boolean>(false);  // I'll update this later to check if user has liked a post
+
 
   function findUserNickname(
     userArray: UserNicknamePair[],
@@ -67,6 +70,11 @@ const PostModal: React.FC<PostModalProps> = ({
     getData();
   }, [user]);
 
+  useEffect(() => {
+    console.log("Post data:", post); // Add this
+    console.log("Initial like count:", post?.like_count); // Add this
+  }, [post]);
+
   const handleDeletePress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
       { text: "Cancel" },
@@ -108,6 +116,57 @@ const PostModal: React.FC<PostModalProps> = ({
       },
     });
   };
+  const handleLikePress = async () => {
+    try {
+      const increment = !likedPost;
+      
+      // Optimistically update UI
+      setLikedPost(!likedPost);
+      setLikeCount(prev => increment ? prev + 1 : prev - 1);
+  
+      const response = await fetchAPI(`/(api)/(posts)/updateLikeCount`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          postId: post!.id,
+          increment
+        })
+      });
+  
+      if (response.error) {
+        // Revert optimistic update if failed
+        setLikedPost(likedPost);
+        setLikeCount(prev => increment ? prev - 1 : prev + 1);
+        
+        console.error('Like update failed:', response.error);
+        Alert.alert(
+          'Error',
+          'Unable to update like count. Please try again.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+  
+      // Update the like count with the actual value from server
+      if (response.data?.likeCount !== undefined) {
+        setLikeCount(response.data.likeCount);
+      }
+  
+    } catch (error) {
+      console.error('Failed to update like count:', error);
+      // Revert optimistic update
+      setLikedPost(likedPost);
+      setLikeCount(prev => !likedPost ? prev - 1 : prev + 1);
+      
+      Alert.alert(
+        'Error',
+        'Unable to update like count. Please check your connection.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+
+
 
   return (
     <ReactNativeModal isVisible={isVisible}>
@@ -138,16 +197,23 @@ const PostModal: React.FC<PostModalProps> = ({
             <TouchableOpacity onPress={handleCommentsPress}>
               <Image source={icons.comment} className="w-8 h-8" />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setLikedPost(!likedPost)}
-              className="ml-2"
-            >
-              <MaterialCommunityIcons
-                name={likedPost ? "heart" : "heart-outline"}
-                size={32}
-                color={likedPost ? "red" : "black"}
-              />
-            </TouchableOpacity>
+  
+            <View className="flex-row items-center">
+              <TouchableOpacity
+                onPress={handleLikePress} 
+                className="ml-2"
+              >
+                <MaterialCommunityIcons
+                  name={likedPost ? "heart" : "heart-outline"}
+                  size={32}
+                  color={likedPost ? "red" : "black"}
+                />
+              </TouchableOpacity>
+              {/* Add like count only visible to post creator */}
+              {post && post.clerk_id === user?.id && (
+                <Text className="ml-1 text-gray-600">{likeCount}</Text>
+              )}
+            </View>
           </View>
           {post && post.clerk_id === user?.id && (
             <TouchableOpacity onPress={handleDeletePress}>
@@ -158,6 +224,7 @@ const PostModal: React.FC<PostModalProps> = ({
       </View>
     </ReactNativeModal>
   );
+
 };
 
 export default PostModal;
