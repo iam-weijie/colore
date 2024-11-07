@@ -3,7 +3,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useRoute } from "@react-navigation/native";
-import { router } from "expo-router";
+import { router, useRootNavigationState } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -24,7 +24,6 @@ import { calculateAge, formatDate } from "@/lib/utils";
 
 const UserInfo = () => {
   const { user } = useUser();
-  console.log(user);
   const [userData, setUserData] = useState({
     city: "",
     state: "",
@@ -32,6 +31,7 @@ const UserInfo = () => {
     email: "",
     firstname: "",
     lastname: "",
+    username: "", 
     date_of_birth: "",
   });
 
@@ -76,6 +76,7 @@ const UserInfo = () => {
         email: data.email,
         firstname: data.firstname,
         lastname: data.lastname,
+        username: data.username,
         date_of_birth: data.date_of_birth,
       });
     };
@@ -88,9 +89,11 @@ const UserInfo = () => {
     userData.email &&
     userData.firstname &&
     userData.lastname &&
+    userData.username &&
     userData.date_of_birth
   ) {
-    router.replace("/(root)/(tabs)/home");
+    console.log("User data already exists");
+    //router.replace("/(root)/(tabs)/home");
   }
 
   const route = useRoute();
@@ -107,6 +110,7 @@ const UserInfo = () => {
   const [form, setForm] = useState({
     firstName: stateVars.firstName || user?.firstName || "",
     lastName: stateVars.lastName || user?.lastName || "",
+    username: stateVars.username || user?.username || "",
     dateOfBirth: stateVars.dateOfBirth || "",
     userLocation: stateVars.userLocation || "",
   });
@@ -136,6 +140,7 @@ const UserInfo = () => {
       previousScreen: currentScreen,
       firstName: form.firstName,
       lastName: form.lastName,
+      username: form.username,
       dateOfBirth: dateOfBirth,
       city: stateVars.city || "",
       state: stateVars.state || "",
@@ -148,6 +153,7 @@ const UserInfo = () => {
     if (
       !form.firstName ||
       !form.lastName ||
+      !form.username ||
       !form.dateOfBirth ||
       !form.userLocation
     ) {
@@ -164,21 +170,36 @@ const UserInfo = () => {
       );
       return;
     }
-
-    await fetchAPI("/(api)/(users)/newUserInfo", {
-      method: "POST",
-      body: JSON.stringify({
-        firstName: form.firstName,
-        lastName: form.lastName,
-        dateOfBirth: form.dateOfBirth,
-        city: stateVars.city,
-        state: stateVars.state,
-        country: stateVars.country,
-        clerkId: user!.id,
-      }),
-    });
-
-    router.push("/(root)/(tabs)/home");
+    try {
+      const response = await fetchAPI("/(api)/(users)/newUserInfo", {
+        method: "POST",
+        body: JSON.stringify({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          username: form.username,
+          dateOfBirth: form.dateOfBirth,
+          city: stateVars.city,
+          state: stateVars.state,
+          country: stateVars.country,
+          clerkId: user!.id,
+        }),
+      });
+      if (response.error) {
+        console.log("Error posting user data: ", response.error);
+        if (response.error.detail === `Key (username)=(${form.username}) already exists.`) {
+          console.log("Username already exists");
+          Alert.alert("Username taken", `Username ${form.username} already exists. Please try another one.`);
+        }
+        else {
+          throw new Error(response.error);
+        }
+      }
+      else {
+        router.push("/(root)/(tabs)/home");
+      }
+    } catch (error) {
+      console.error("Failed to post user data:", error);
+    }
   };
 
   return (
@@ -207,6 +228,15 @@ const UserInfo = () => {
               value={form.lastName}
               onChangeText={(value) => setForm({ ...form, lastName: value })}
             />
+
+            <InputField
+              label="Username"
+              placeholder="Your Username"
+              containerStyle="w-full"
+              inputStyle="p-3.5"
+              value={form.username}
+              onChangeText={(value) => setForm({ ...form, username: value })}
+            />  
 
             <View className="my-2 w-full">
               <Text className="text-lg font-JakartaSemiBold mb-3">
