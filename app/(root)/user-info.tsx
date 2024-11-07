@@ -54,10 +54,6 @@ const UserInfo = () => {
               }),
             });
           } else {
-            console.log("Error fetching user data");
-            console.log("response data: ", response.data);
-            console.log("response status: ", response.status);
-            // console.log("response: ", response);
             throw new Error(response.error);
           }
         }
@@ -92,8 +88,7 @@ const UserInfo = () => {
     userData.username &&
     userData.date_of_birth
   ) {
-    console.log("User data already exists");
-    //router.replace("/(root)/(tabs)/home");
+    router.replace("/(root)/(tabs)/home");
   }
 
   const route = useRoute();
@@ -185,9 +180,7 @@ const UserInfo = () => {
         }),
       });
       if (response.error) {
-        console.log("Error posting user data: ", response.error);
         if (response.error.detail === `Key (username)=(${form.username}) already exists.`) {
-          console.log("Username already exists");
           Alert.alert("Username taken", `Username ${form.username} already exists. Please try another one.`);
         }
         else {
