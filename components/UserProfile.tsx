@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  ImageSourcePropType,
   Pressable,
   Text,
   TextInput,
@@ -38,9 +39,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const route = useRoute();
   const router = useRouter();
   const currentScreen = route.name as string;
+  const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
 
   const isEditable = user!.id === userId;
-
+  
   function findUserNickname(
     userArray: UserNicknamePair[],
     userId: string
@@ -220,14 +222,49 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       <View className="mx-4 my-4">
         <View className="border-t border-gray-200" />
       </View>
-      <View className="items-center">
-        <ColorGallery />
-      </View>
-      <View className="mx-4 my-4">
+      <View
+      className="flex flex-row justify-around bg-gray-600 rounded-full p-2"
+      style={{ width: '90%', alignSelf: 'center' }}
+    >
+      <TouchableOpacity
+        onPress={() => setCurrentSubscreen('posts')}
+        className={`py-2 px-4 rounded-full ${
+          currentSubscreen === 'posts' ? 'bg-blue-600' : ''
+        }`}
+      >
+        <Text className={`text-white ${currentSubscreen === 'posts' ? 'font-bold' : ''}`}>
+          Posts
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setCurrentSubscreen('colors')}
+        className={`py-2 px-4 rounded-full ${
+          currentSubscreen === 'colors' ? 'bg-blue-600' : ''
+        }`}
+      >
+        <Text className={`text-white ${currentSubscreen === 'colors' ? 'font-bold' : ''}`}>
+          Colors
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View className="mx-4 my-4">
         <View className="border-t border-gray-200" />
       </View>
       <View className="items-center flex-1">
-        <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
+        {currentSubscreen === "colors" ? (
+          <View className="items-center">
+            <ColorGallery />
+          </View>
+        ) : currentSubscreen === "posts" ? (
+          <View className="items-center flex-1">
+            <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
+          </View>
+        ) : (
+          <View className="items-center flex-1">
+            <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
+          </View>
+        )
+        }
       </View>
       {currentScreen === "profile" && <View className="min-h-[80px]" />}
     </View>
