@@ -1,6 +1,5 @@
 import { neon } from "@neondatabase/serverless";
 
-
 // TODO: update this route to be able to only update properties
 // that the user specifies - for example, updating email
 // if only the email parameter is non-empty
@@ -12,7 +11,7 @@ export async function PATCH(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const { clerkId, country, state, city } = await request.json();
 
-    if ( !clerkId) {
+    if (!clerkId) {
       return Response.json(
         { error: "Missing required fields" },
         { status: 400 }
