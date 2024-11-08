@@ -207,7 +207,7 @@ const PostScreen = () => {
         }}
       >
         <Text className="font-JakartaSemiBold">
-          {findUserNickname(nicknames, item.user_id)===-1 ? `${item.firstname.charAt(0)}.`:nicknames[findUserNickname(nicknames, item.user_id)][1]}
+          {findUserNickname(nicknames, item.user_id)===-1 ? item.username ? `${item.username}` : `${item.firstname.charAt(0)}.`:nicknames[findUserNickname(nicknames, item.user_id)][1]}
         </Text>
       </TouchableOpacity>
       <Text className="text-sm text-gray-500">

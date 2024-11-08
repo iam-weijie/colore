@@ -3,6 +3,7 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+
 const Profile = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
