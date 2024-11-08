@@ -1,4 +1,5 @@
 import CustomButton from "@/components/CustomButton";
+import Circle from "@/components/Circle";
 import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants/index";
@@ -224,27 +225,28 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       </View>
       <View
       className="flex flex-row justify-around bg-gray-600 rounded-full p-2"
-      style={{ width: '90%', alignSelf: 'center' }}
+      style={{ width: '60%', alignSelf: 'center' }}
     >
       <TouchableOpacity
         onPress={() => setCurrentSubscreen('posts')}
-        className={`py-2 px-4 rounded-full ${
-          currentSubscreen === 'posts' ? 'bg-blue-600' : ''
+        className={`py-2.5 px-4 rounded-full ${
+          currentSubscreen === 'posts' ? 'bg-gray-400' : ''
         }`}
       >
-        <Text className={`text-white ${currentSubscreen === 'posts' ? 'font-bold' : ''}`}>
-          Posts
-        </Text>
+        <Image
+          source={icons.home}
+          tintColor= {currentSubscreen==="posts" ? "#ffe640" : "#ffffff"}
+          resizeMode="contain"
+          className="w-6 h-6"
+        />
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => setCurrentSubscreen('colors')}
-        className={`py-2 px-4 rounded-full ${
-          currentSubscreen === 'colors' ? 'bg-blue-600' : ''
+        className={`p-2 rounded-full ${
+          currentSubscreen === 'colors' ? 'bg-gray-400' : ''
         }`}
       >
-        <Text className={`text-white ${currentSubscreen === 'colors' ? 'font-bold' : ''}`}>
-          Colors
-        </Text>
+        <Circle color = {currentSubscreen === "colors" ? "#ffe640" : "#ffffff"} size={20}/>
       </TouchableOpacity>
     </View>
     <View className="mx-4 my-4">
