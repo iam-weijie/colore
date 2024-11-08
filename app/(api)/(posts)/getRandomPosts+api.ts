@@ -20,6 +20,7 @@ export async function GET(request: Request) {
         u.clerk_id,
         u.firstname, 
         u.lastname, 
+        u.username,
         u.country, 
         u.state, 
         u.city
