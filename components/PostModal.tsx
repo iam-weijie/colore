@@ -102,6 +102,7 @@ const PostModal: React.FC<PostModalProps> = ({
         content: post!.content,
         nickname: nickname,
         firstname: post!.firstname,
+        username: post!.username,
         like_count: post!.like_count,
         report_count: post!.report_count,
         created_at: post!.created_at,
@@ -126,7 +127,7 @@ const PostModal: React.FC<PostModalProps> = ({
             }}
           >
             <Text className="text-[16px] mb-2 font-Jakarta font-bold">
-              {nickname ? nickname : `${post?.firstname?.charAt(0)}.`}
+              {nickname ? nickname : post?.username ? `${post?.username}` : `${post?.firstname?.charAt(0)}.`}
             </Text>
           </TouchableOpacity>
         )}

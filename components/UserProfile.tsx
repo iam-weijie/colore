@@ -158,7 +158,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             </View>
           )}
           <Text className={`text-2xl font-JakartaBold flex-1`}>
-            {nickname ? nickname : `${profileUser?.firstname?.charAt(0)}.`}
+            {nickname ? nickname : profileUser?.username ? `${profileUser?.username}`:`${profileUser?.firstname?.charAt(0)}.`}
           </Text>
 
           <View className="flex flex-row items-center">

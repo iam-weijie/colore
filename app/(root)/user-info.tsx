@@ -7,6 +7,7 @@ import { router, useRootNavigationState } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
+  ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
@@ -34,10 +35,12 @@ const UserInfo = () => {
     username: "", 
     date_of_birth: "",
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        setLoading(true);
         const response = await fetchAPI(
           `/(api)/(users)/getUserInfo?id=${user!.id}`,
           {
@@ -60,6 +63,9 @@ const UserInfo = () => {
         return response.data[0];
       } catch (error) {
         console.error("Failed to fetch user data:", error);
+      }
+      finally {
+        setLoading(false);
       }
     };
 
@@ -103,10 +109,10 @@ const UserInfo = () => {
   const [showPicker, setShowPicker] = useState(false);
 
   const [form, setForm] = useState({
-    firstName: stateVars.firstName || user?.firstName || "",
-    lastName: stateVars.lastName || user?.lastName || "",
-    username: stateVars.username || user?.username || "",
-    dateOfBirth: stateVars.dateOfBirth || "",
+    firstName: userData.firstname || stateVars.firstName || user?.firstName || "",
+    lastName: userData.lastname || stateVars.lastName || user?.lastName || "",
+    username: userData.username || stateVars.username || user?.username || "",
+    dateOfBirth: userData.date_of_birth || stateVars.dateOfBirth || "",
     userLocation: stateVars.userLocation || "",
   });
 
@@ -144,6 +150,11 @@ const UserInfo = () => {
     router.push("/(root)/(location)/country");
   };
 
+  const verifyValidUsername = (username: string): boolean => {
+    const usernameRegex = /^[\w\-]{1,20}$/;
+    return usernameRegex.test(username);
+  }
+
   const handleGetStarted = async () => {
     if (
       !form.firstName ||
@@ -162,6 +173,14 @@ const UserInfo = () => {
       Alert.alert(
         "Age Restriction",
         "You must be over 13 years old to use this app."
+      );
+      return;
+    }
+
+    if (!verifyValidUsername(form.username)) {
+      Alert.alert(
+        "Invalid Username",
+        "Username can only contain alphanumeric characters, '_', and '-', and must be at most 20 characters long"
       );
       return;
     }
@@ -197,108 +216,116 @@ const UserInfo = () => {
 
   return (
     <SafeAreaView className="flex-1">
-      <ScrollView
-        className="px-5"
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
-        <Text className="text-2xl font-JakartaBold my-5">Who are you 👀</Text>
-        <View className="flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3">
-          <View className="flex flex-col items-start justify-start w-full">
-            <InputField
-              label="First name"
-              placeholder="Your First Name"
-              containerStyle="w-full"
-              inputStyle="p-3.5"
-              value={form.firstName}
-              onChangeText={(value) => setForm({ ...form, firstName: value })}
-            />
-
-            <InputField
-              label="Last name"
-              placeholder="Your Last Name"
-              containerStyle="w-full"
-              inputStyle="p-3.5"
-              value={form.lastName}
-              onChangeText={(value) => setForm({ ...form, lastName: value })}
-            />
-
-            <InputField
-              label="Username"
-              placeholder="Your Username"
-              containerStyle="w-full"
-              inputStyle="p-3.5"
-              value={form.username}
-              onChangeText={(value) => setForm({ ...form, username: value })}
-            />  
-
-            <View className="my-2 w-full">
-              <Text className="text-lg font-JakartaSemiBold mb-3">
-                Date of Birth
-              </Text>
-              <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
-                <Pressable onPress={toggleDatePicker}>
-                  <TextInput
-                    className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
-                    placeholder="MM/DD/YYYY"
-                    placeholderTextColor="#c0c0c0"
-                    value={dateOfBirth}
-                    onChangeText={(value) =>
-                      setForm({ ...form, dateOfBirth: value })
-                    }
-                    editable={false}
-                    onPressIn={toggleDatePicker}
-                  />
-                </Pressable>
-              </View>
-            </View>
-
-            {showPicker && (
-              <DateTimePicker
-                value={date}
-                display="spinner"
-                mode="date"
-                onChange={onChange}
-                style={{ height: 150 }}
-                maximumDate={tenYearsAgo}
+      {
+      loading ? (
+        <View className="flex-[0.8] justify-center items-center">
+          <ActivityIndicator size="large" color="black" />
+        </View>
+      ) : (
+        <ScrollView
+          className="px-5"
+          contentContainerStyle={{ paddingBottom: 120 }}
+        >
+          <Text className="text-2xl font-JakartaBold my-5">Who are you 👀</Text>
+          <View className="flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3">
+            <View className="flex flex-col items-start justify-start w-full">
+              <InputField
+                label="First name"
+                placeholder="Your First Name"
+                containerStyle="w-full"
+                inputStyle="p-3.5"
+                value={form.firstName}
+                onChangeText={(value) => setForm({ ...form, firstName: value })}
               />
-            )}
 
-            <View className="my-2 w-full">
-              <Text className="text-lg font-JakartaSemiBold mb-3">
-                Location
-              </Text>
-              <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
-                <Pressable onPress={handleNavigateToCountry}>
-                  <TextInput
-                    className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
-                    placeholder="Your Location"
-                    placeholderTextColor="#c0c0c0"
-                    value={form.userLocation}
-                    editable={false}
-                    onPressIn={handleNavigateToCountry}
-                  />
-                </Pressable>
-              </View>
-            </View>
-
-            <View className="mt-4 w-full">
-              <CustomButton
-                title="Get Started"
-                onPress={() => {
-                  handleGetStarted();
-                }}
-                className="my-5 "
-                disabled={
-                  !form.firstName ||
-                  !form.lastName ||
-                  !dateOfBirth ||
-                  !form.userLocation
-                }
+              <InputField
+                label="Last name"
+                placeholder="Your Last Name"
+                containerStyle="w-full"
+                inputStyle="p-3.5"
+                value={form.lastName}
+                onChangeText={(value) => setForm({ ...form, lastName: value })}
               />
+
+              <InputField
+                label="Username"
+                placeholder="Your Username"
+                containerStyle="w-full"
+                inputStyle="p-3.5"
+                value={form.username}
+                onChangeText={(value) => setForm({ ...form, username: value })}
+              />  
+
+              <View className="my-2 w-full">
+                <Text className="text-lg font-JakartaSemiBold mb-3">
+                  Date of Birth
+                </Text>
+                <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
+                  <Pressable onPress={toggleDatePicker}>
+                    <TextInput
+                      className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
+                      placeholder="MM/DD/YYYY"
+                      placeholderTextColor="#c0c0c0"
+                      value={dateOfBirth}
+                      onChangeText={(value) =>
+                        setForm({ ...form, dateOfBirth: value })
+                      }
+                      editable={false}
+                      onPressIn={toggleDatePicker}
+                    />
+                  </Pressable>
+                </View>
+              </View>
+
+              {showPicker && (
+                <DateTimePicker
+                  value={date}
+                  display="spinner"
+                  mode="date"
+                  onChange={onChange}
+                  style={{ height: 150 }}
+                  maximumDate={tenYearsAgo}
+                />
+              )}
+
+              <View className="my-2 w-full">
+                <Text className="text-lg font-JakartaSemiBold mb-3">
+                  Location
+                </Text>
+                <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
+                  <Pressable onPress={handleNavigateToCountry}>
+                    <TextInput
+                      className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
+                      placeholder="Your Location"
+                      placeholderTextColor="#c0c0c0"
+                      value={form.userLocation}
+                      editable={false}
+                      onPressIn={handleNavigateToCountry}
+                    />
+                  </Pressable>
+                </View>
+              </View>
+
+              <View className="mt-4 w-full">
+                <CustomButton
+                  title="Get Started"
+                  onPress={() => {
+                    handleGetStarted();
+                  }}
+                  className="my-5 "
+                  disabled={
+                    !form.firstName ||
+                    !form.lastName ||
+                    !dateOfBirth ||
+                    !form.userLocation
+                  }
+                />
+              </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )
+    }
     </SafeAreaView>
   );
 };
