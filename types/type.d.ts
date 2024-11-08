@@ -4,6 +4,7 @@ declare interface Post {
   id: string;
   clerk_id: string;
   firstname: string;
+  username: string;
   content: string;
   created_at: string;
   city: string;
@@ -20,6 +21,7 @@ declare interface PostComment {
   user_id: string;
   content: string;
   firstname: string;
+  username: string;
   created_at: string;
   like_count: number;
   report_count: number;
@@ -30,6 +32,7 @@ declare interface UserProfileType {
   clerk_id: string;
   firstname: string;
   lastname: string;
+  username: string;
   email: string;
   date_of_birth: string;
   city: string;
