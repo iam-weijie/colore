@@ -11,7 +11,7 @@ const ColorGallery = () => {
       <Text className="text-lg font-JakartaSemiBold">Colors</Text>
       <View className="flex-row">
         {temporaryColors.slice(0, 5).map((item: PostItColor) => (
-          <Circle key={item.id} color={item.hex} size={100} />
+          <Circle key={item.id} color={item.hex} size={50} />
         ))}
       </View>
     </View>

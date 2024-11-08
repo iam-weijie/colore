@@ -246,7 +246,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           currentSubscreen === 'colors' ? 'bg-gray-400' : ''
         }`}
       >
-        <Circle color = {currentSubscreen === "colors" ? "#ffe640" : "#ffffff"} size={20}/>
+        <Image
+          source={icons.palette}
+          tintColor= {currentSubscreen==="colors" ? undefined : "#ffffff"}
+          resizeMode="contain"
+          className="w-6 h-6"
+        />
       </TouchableOpacity>
     </View>
     <View className="mx-4 my-4">
