@@ -224,18 +224,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         <View className="border-t border-gray-200" />
       </View>
       <View
-      className="flex flex-row justify-around bg-gray-600 rounded-full p-2"
+      className="flex flex-row justify-around bg-transparent rounded-full p-2"
       style={{ width: '60%', alignSelf: 'center' }}
     >
       <TouchableOpacity
         onPress={() => setCurrentSubscreen('posts')}
         className={`py-2.5 px-4 rounded-full ${
-          currentSubscreen === 'posts' ? 'bg-gray-400' : ''
+          currentSubscreen === 'posts' ? 'bg-gray-300' : ''
         }`}
       >
         <Image
           source={icons.home}
-          tintColor= {currentSubscreen==="posts" ? "#ffe640" : "#ffffff"}
+          tintColor= {currentSubscreen==="posts" ? "#ffe640" : "#e0e0e0"}
           resizeMode="contain"
           className="w-6 h-6"
         />
@@ -243,12 +243,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       <TouchableOpacity
         onPress={() => setCurrentSubscreen('colors')}
         className={`p-2 rounded-full ${
-          currentSubscreen === 'colors' ? 'bg-gray-400' : ''
+          currentSubscreen === 'colors' ? 'bg-gray-300' : ''
         }`}
       >
         <Image
           source={icons.palette}
-          tintColor= {currentSubscreen==="colors" ? undefined : "#ffffff"}
+          tintColor= {currentSubscreen==="colors" ? undefined : "#e0e0e0"}
           resizeMode="contain"
           className="w-6 h-6"
         />
