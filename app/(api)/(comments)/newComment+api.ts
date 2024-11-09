@@ -8,6 +8,13 @@ export async function POST(request: Request) {
 
     let response;
 
+    if (!clerkId || !postId || !postClerkId || !content) {
+      return Response.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
     if (clerkId !== postClerkId) {
       response = await sql`
         WITH insert_comment AS (
