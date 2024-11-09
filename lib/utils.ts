@@ -10,6 +10,33 @@ export function formatTime(minutes: number): string {
   }
 }
 
+export function formatDateTruncatedMonth(rawDate: Date): string {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const month = months[rawDate.getMonth()];
+  const day = String(rawDate.getDate());
+  const year = rawDate.getFullYear();
+
+  // let hours = rawDate.getHours();
+  // const minutes = String(rawDate.getMinutes());
+  // const amOrPm = hours >= 12 ? "pm" : "am";
+  // hours = hours % 12 || 12; // display 12am instead of 0
+
+  return `${month}. ${day}, ${year}`;
+}
+
 export function formatDate(rawDate: Date): string {
   let date = new Date(rawDate);
 

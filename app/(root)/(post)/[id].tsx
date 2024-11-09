@@ -24,6 +24,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { UserNicknamePair } from "@/types/type";
+import { formatDateTruncatedMonth } from "@/lib/utils";
 
 const PostScreen = () => {
   const { user } = useUser();
@@ -211,10 +212,10 @@ const PostScreen = () => {
         </Text>
       </TouchableOpacity>
       <Text className="text-sm text-gray-500">
-        {new Date(item.created_at).toLocaleDateString()}
+        {formatDateTruncatedMonth(new Date(item.created_at))}
       </Text>
       <View className="flex flex-row mr-2">
-        <Text className="flex-1">{item.content}</Text>
+        <Text className="flex-1 font-Jakarta">{item.content}</Text>
         <View className="flex flex-col items-center">
           <TouchableOpacity onPress={() => setLikedComment(!likedComment)}>
             <MaterialCommunityIcons
@@ -250,7 +251,7 @@ const PostScreen = () => {
             </TouchableOpacity>
               <Text className="text-sm text-gray-500">
                 {typeof created_at === "string"
-                  ? new Date(created_at).toLocaleDateString()
+                  ? formatDateTruncatedMonth(new Date(created_at))
                   : "No date"}
               </Text>
           </View>
@@ -276,7 +277,7 @@ const PostScreen = () => {
                   </TouchableOpacity>
                 )}
               </View>
-              <Text className="mt-2 ml-2 mr-10 min-h-[80]">{content}</Text>
+              <Text className="font-Jakarta mt-2 ml-2 mr-10 min-h-[80]">{content}</Text>
             </View>
           </TouchableWithoutFeedback>
 
