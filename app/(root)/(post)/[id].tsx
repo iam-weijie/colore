@@ -116,6 +116,7 @@ const PostScreen = () => {
         body: JSON.stringify({
           content: newComment,
           postId: id,
+          postClerkId: clerk_id,
           clerkId: user?.id,
         }),
       });
