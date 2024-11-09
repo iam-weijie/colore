@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { formatDateTruncatedMonth } from "@/lib/utils";
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   posts,
@@ -37,8 +38,9 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
         <Text className="font-JakartaSemiBold">
           {truncateText(item.content, 100)}
         </Text>
-        <View className="flex-row justify-end">
-          <Text className="text-gray-500">Likes: {item.like_count}</Text>
+        <View className="flex-row justify-between">
+          <Text className="font-Jakarta text-gray-500">{formatDateTruncatedMonth(new Date(item.created_at))}</Text>
+          <Text className="font-Jakarta text-gray-500">Likes: {item.like_count}</Text>
         </View>
       </View>
     </TouchableOpacity>
