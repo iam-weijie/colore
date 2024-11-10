@@ -24,7 +24,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { UserNicknamePair } from "@/types/type";
-import { formatDateTruncatedMonth } from "@/lib/utils";
+import { formatDateTruncatedMonth, convertToLocal } from "@/lib/utils";
 
 const PostScreen = () => {
   const { user } = useUser();
@@ -238,7 +238,7 @@ const PostScreen = () => {
         </Text>
       </TouchableOpacity>
       <Text className="text-sm text-gray-500">
-        {formatDateTruncatedMonth(new Date(item.created_at))}
+        {formatDateTruncatedMonth(convertToLocal(new Date(item.created_at)))}
       </Text>
       <View className="flex flex-row mr-2">
         <Text className="flex-1 font-Jakarta">{item.content}</Text>
@@ -277,7 +277,7 @@ const PostScreen = () => {
             </TouchableOpacity>
               <Text className="text-sm text-gray-500">
                 {typeof created_at === "string"
-                  ? formatDateTruncatedMonth(new Date(created_at))
+                  ? formatDateTruncatedMonth(convertToLocal(new Date(created_at)))
                   : "No date"}
               </Text>
           </View>

@@ -10,6 +10,12 @@ export function formatTime(minutes: number): string {
   }
 }
 
+export function convertToLocal(rawDate: Date): Date {
+  const offset = new Date().getTimezoneOffset() * 60000;
+  const localDate = new Date(rawDate.getTime() - offset);
+  return localDate;
+}
+
 export function formatDateTruncatedMonth(rawDate: Date): string {
   const months = [
     "Jan",

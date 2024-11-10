@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
-import { formatDateTruncatedMonth } from "@/lib/utils";
+import { formatDateTruncatedMonth, convertToLocal } from "@/lib/utils";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -26,7 +26,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const { user } = useUser();
   const router = useRouter();
   const [nickname, setNickname] = useState<string>("");
-  const dateCreated = new Date(post!.created_at);
+  const dateCreated = convertToLocal(new Date(post!.created_at));
   const formattedDate = formatDateTruncatedMonth(dateCreated);
 
   function findUserNickname(
