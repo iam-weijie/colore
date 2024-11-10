@@ -29,7 +29,7 @@ import { formatDateTruncatedMonth } from "@/lib/utils";
 const PostScreen = () => {
   const { user } = useUser();
   const router = useRouter();
-  const navgiation = useNavigation();
+  const navigation = useNavigation();
   const {
     id = "",
     clerk_id = "",
@@ -122,9 +122,6 @@ const PostScreen = () => {
         }),
       });
 
-      if (response.error) {
-        throw new Error(response.error);
-      }
       setNewComment("");
       fetchNicknames();
       fetchComments();
@@ -203,7 +200,8 @@ const PostScreen = () => {
   }, [id]);
 
   useEffect(() => {
-    navgiation.addListener("beforeRemove", (e) => {
+    navigation.addListener("beforeRemove", (e) => {
+      handleReadComments();
       console.log("User goes back from post screen");
     });
     
@@ -211,7 +209,7 @@ const PostScreen = () => {
 
   // before returning user to screen, update unread_comments to 0
   // only if the user is viewing their own post
-  const handleBack = async () => {
+  const handleReadComments = async () => {
     if (clerk_id === user!.id) {
       try {
         const response = await fetchAPI(`/(api)/(posts)/updateUnreadComments`, {
@@ -226,7 +224,6 @@ const PostScreen = () => {
         console.error("Failed to update unread comments:", error);
       }
     }
-    router.back();
   }
 
   const renderComment = ({ item }: { item: PostComment }) => (
@@ -268,7 +265,7 @@ const PostScreen = () => {
       <SignedIn>
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
         <View className="flex flex-row justify-center items-center mt-3 mx-4">
-          <TouchableOpacity onPress={handleBack} className="mr-4">
+          <TouchableOpacity onPress={() => router.back()} className="mr-4">
             <AntDesign name="caretleft" size={18} />
           </TouchableOpacity>
 
