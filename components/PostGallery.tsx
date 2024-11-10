@@ -1,6 +1,7 @@
 import PostModal from "@/components/PostModal";
 import { Post, UserPostsGalleryProps } from "@/types/type";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-expo";
 import {
   Dimensions,
   FlatList,
@@ -12,9 +13,35 @@ import { formatDateTruncatedMonth } from "@/lib/utils";
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   posts,
+  profileUserId,
   handleUpdate,
 }) => {
+  const { user } = useUser();
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [sortedPosts, setSortedPosts] = useState<Post[]>([]);
+
+  // comparator function
+  const sortByUnread = (a: Post, b: Post) => {
+    if ((a.unread_comments > 0 && b.unread_comments === 0)) {
+      return -1; // a comes first if has comments
+    } else if (a.unread_comments === 0 && b.unread_comments > 0) {
+      return 1; // b comes first if has comments
+    } else { // otherwise equal
+      return 0;
+    }
+  }
+
+  // order posts (in-place) upon mounting so that posts with unread comments 
+  // are pushed to the top, regardless of date posted
+  // force an update if the user selects a post
+  useEffect(() => {
+    if (user!.id === profileUserId) {
+      const sorted = [...posts].sort(sortByUnread);
+      setSortedPosts(sorted);
+    } else {
+      setSortedPosts(posts);
+    }
+  }, [posts]);
 
   const screenWidth = Dimensions.get("window").width;
 
@@ -26,7 +53,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   };
 
   if (!posts) {
-    return <Text>AN error occurred.</Text>;
+    return <Text>An error occurred.</Text>;
   }
 
   const renderItem = ({ item }: { item: Post }) => (
@@ -55,7 +82,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       <Text className="text-lg font-JakartaSemiBold">Posts</Text>
       <FlatList
         className="flex-1"
-        data={posts}
+        data={sortedPosts}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         numColumns={1}

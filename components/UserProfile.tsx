@@ -264,11 +264,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           </View>
         ) : currentSubscreen === "posts" ? (
           <View className="items-center flex-1">
-            <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
+            <PostGallery 
+              posts={userPosts} 
+              profileUserId={profileUser?.clerk_id} 
+              handleUpdate={fetchUserData} 
+            />
           </View>
         ) : (
           <View className="items-center flex-1">
-            <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
+            <PostGallery 
+              posts={userPosts} 
+              profileUserId={profileUser?.clerk_id} 
+              handleUpdate={fetchUserData} 
+            />
           </View>
         )
         }
