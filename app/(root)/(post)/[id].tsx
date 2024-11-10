@@ -5,7 +5,7 @@ import { PostComment } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -29,6 +29,7 @@ import { formatDateTruncatedMonth } from "@/lib/utils";
 const PostScreen = () => {
   const { user } = useUser();
   const router = useRouter();
+  const navgiation = useNavigation();
   const {
     id = "",
     clerk_id = "",
@@ -201,6 +202,33 @@ const PostScreen = () => {
     fetchComments();
   }, [id]);
 
+  useEffect(() => {
+    navgiation.addListener("beforeRemove", (e) => {
+      console.log("User goes back from post screen");
+    });
+    
+  }, []);
+
+  // before returning user to screen, update unread_comments to 0
+  // only if the user is viewing their own post
+  const handleBack = async () => {
+    if (clerk_id === user!.id) {
+      try {
+        const response = await fetchAPI(`/(api)/(posts)/updateUnreadComments`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            clerkId: user?.id,
+            postId: id,
+            postClerkId: clerk_id,
+          }),
+        })
+      } catch (error) {
+        console.error("Failed to update unread comments:", error);
+      }
+    }
+    router.back();
+  }
+
   const renderComment = ({ item }: { item: PostComment }) => (
     <View key={item.id} className="p-4 border-b border-gray-200">
       <TouchableOpacity
@@ -240,7 +268,7 @@ const PostScreen = () => {
       <SignedIn>
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
         <View className="flex flex-row justify-center items-center mt-3 mx-4">
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
+          <TouchableOpacity onPress={handleBack} className="mr-4">
             <AntDesign name="caretleft" size={18} />
           </TouchableOpacity>
 
