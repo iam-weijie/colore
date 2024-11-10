@@ -78,11 +78,10 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
         </Text>
         <View className="flex-row justify-between">
           <Text className="font-Jakarta text-gray-500">{formatDateTruncatedMonth(new Date(item.created_at))}</Text>
-          <Text className="font-Jakarta text-gray-500">Likes: {item.like_count}</Text>
         </View>
         {isOwnProfile && item.unread_comments > 0 && 
           <Text className="text-xs font-Jakarta text-red-500">
-              New comments: {item.unread_comments}
+              New comments
           </Text>}
       </View>
     </TouchableOpacity>
