@@ -20,6 +20,7 @@ export async function GET(request: Request) {
         u.clerk_id,
         u.firstname, 
         u.lastname, 
+        u.username,
         u.country, 
         u.state, 
         u.city
@@ -31,7 +32,6 @@ export async function GET(request: Request) {
       LIMIT ${number};
     `;
 
-    
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
