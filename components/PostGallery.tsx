@@ -21,7 +21,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   const isOwnProfile = user!.id === profileUserId;
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [sortedPosts, setSortedPosts] = useState<Post[]>([]);
-  const [isReadingUnread, setIsReadingUnread] = useState(false);
+  const [queueRefresh, setQueueRefresh] = useState(false);
   const [hasNavigatedAway, setHasNavigatedAway] = useState(false);
 
   // comparator function
@@ -64,7 +64,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     <TouchableOpacity onPress={() => {
         setSelectedPost(item);
         if (isOwnProfile && item.unread_comments > 0) {
-          setIsReadingUnread(true);
+          setQueueRefresh(true);
           console.log("set isReadingUnread to truee");
         }
         setHasNavigatedAway(false);
@@ -94,10 +94,11 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
   useFocusEffect(
     useCallback(() => {
-      if (isReadingUnread && hasNavigatedAway && isOwnProfile && handleUpdate) {
+      console.log(queueRefresh, hasNavigatedAway, handleUpdate);
+      if (queueRefresh && hasNavigatedAway && isOwnProfile && handleUpdate) {
         handleUpdate();
       };
-    }, [hasNavigatedAway, isReadingUnread, handleUpdate])
+    }, [hasNavigatedAway, queueRefresh, handleUpdate])
   );
 
   // when user navigates away, set a "trigger"
