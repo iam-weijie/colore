@@ -109,6 +109,7 @@ const PostModal: React.FC<PostModalProps> = ({
         like_count: post!.like_count,
         report_count: post!.report_count,
         created_at: post!.created_at,
+        unread_comments: post!.unread_comments,
       },
     });
   };

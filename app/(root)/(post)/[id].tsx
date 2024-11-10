@@ -39,6 +39,7 @@ const PostScreen = () => {
     like_count,
     report_count,
     created_at,
+    unread_comments = 0,
   } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -201,7 +202,9 @@ const PostScreen = () => {
 
   useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
-      handleReadComments();
+      if (Number(unread_comments) > 0) {
+        handleReadComments();
+      }
       console.log("User goes back from post screen");
     });
     
