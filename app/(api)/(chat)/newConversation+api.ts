@@ -7,8 +7,8 @@ export async function POST(request: Request) {
     const { clerkId_1, clerkId_2 } = await request.json();
 
     const response = await sql`
-      INSERT INTO conversations (clerk_id_1, clerk_id_2, last_message, messages)
-      VALUES (${clerkId_1}, ${clerkId_2}, ${""}, ${[]})
+      INSERT INTO conversations (clerk_id_1, clerk_id_2, messages)
+      VALUES (${clerkId_1}, ${clerkId_2}, ${[]})
       ;
     `;
 

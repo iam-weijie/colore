@@ -10,6 +10,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { UserProfileType, UserNicknamePair} from "@/types/type";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,19 +19,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const NewConversation = (): React.ReactElement => {
   const [searchText, setSearchText] = useState("");
   const [users, setUsers] = useState<UserNicknamePair[]>([]);
-  const [nicknames, setNicknames] = useState<UserNicknamePair[]>([]);
   const { user } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [conversationExists, setConversationExists] = useState<boolean>(true);
 
-  const fetchNicknames = async () => {
+  const fetchUsers = async () => {
     setLoading(true);
     try {
         // console.log("user: ", user!.id);
         const response = await fetchAPI(
-          `/(api)/(users)/getUserInfo?id=${user!.id}`,
+          `/(api)/(chat)/searchUsers?id=${user!.id}`,
           {
             method: "GET",
           }
@@ -42,9 +41,8 @@ const NewConversation = (): React.ReactElement => {
           // console.log("response: ", response);
           throw new Error(response.error);
         }
-        // console.log("response: ", response.data[0].nicknames);
-        const nicknames = response.data[0].nicknames || [];
-        setNicknames(nicknames);
+        console.log("response: ", response.data);
+        const nicknames = response.data;
         console.log("nicknames: ", nicknames);
         setUsers(nicknames);
         return;
@@ -56,7 +54,7 @@ const NewConversation = (): React.ReactElement => {
       }
     };
     useEffect(() => {
-        fetchNicknames();
+        fetchUsers();
         
     }, []);
 
@@ -80,20 +78,46 @@ const NewConversation = (): React.ReactElement => {
         throw new Error(response.error);
       }
       console.log("response: ", response.data.length);
-      if (response.data.length > 0) {
-        setConversationExists(true);
-      } else {
-        setConversationExists(false);
-      }
+      return response.data.length > 0;
     } catch (err) {
       console.error("Failed to fetch user data:", err);
       setError("Failed to fetch nicknames.");
+      return false;
     } 
   }
-  const startChat = (user: UserNicknamePair): void => {
-    console.log(`Starting chat with ${user[1]}`);
-    checkIfChatExists(user);
-    console.log("conversationExists: ", conversationExists);
+  const startChat = async (otherUser: UserNicknamePair) => {
+    console.log(`Starting chat with ${otherUser[1]}`);
+    const exists = await checkIfChatExists(otherUser);
+    console.log("conversationExists: ", exists);
+    if (exists) {
+      Alert.alert("CHANGE THIS BEFORE MAKING A PR", "Chat already exists, with this user");
+    }
+    else {
+      try {
+        const response = await fetchAPI(
+          `/(api)/(chat)/newConversation`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              clerkId_1: user!.id,
+              clerkId_2: otherUser[0],
+            }),
+          }
+        );
+        if (response.error) {
+          console.log("Error fetching user data");
+          console.log("response data: ", response.data);
+          console.log("response status: ", response.status);
+          // console.log("response: ", response);
+          throw new Error(response.error);
+        }
+        console.log("response: ", response.data);
+        Alert.alert("CHANGE THIS BEFORE MAKING A PR", "Chat created successfully");
+      } catch (err) {
+        console.error("Failed to create new conversation:", err);
+        setError("Failed to create new conversation");
+      } 
+    }
     // TODO: Add your logic for initiating a chat here
   };
 
@@ -125,7 +149,7 @@ const NewConversation = (): React.ReactElement => {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <View className="flex-1 bg-gray-100 pt-16">
+        <View className="flex-1 bg-gray-100">
           <TextInput
             className="h-11 mx-4 px-4 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
             placeholder="Search users..."

@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { ConversationItem } from "@/types/type";
 
 export async function GET(request: Request) {
   try {
@@ -8,15 +9,53 @@ export async function GET(request: Request) {
 
     console.log("Received GET request for conversations for user with ID: ", userId);
 
-    const response = await sql`
-      SELECT * FROM conversations WHERE clerk_id_1 = ${userId} OR clerk_id_2 = ${userId};      `;
-    return new Response(JSON.stringify({ data: response }), {
+  
+    const rawResponse = await sql`
+      SELECT 
+        c.id::text,
+        CASE 
+          WHEN c.clerk_id_1 = ${userId} THEN u2.username
+          ELSE u1.username
+        END AS username,
+        CASE 
+          WHEN c.clerk_id_1 = ${userId} THEN c.clerk_id_2
+          ELSE c.clerk_id_1
+        END AS other_clerk_id,
+        c.last_message as "lastMessageContent",
+        c.last_message_timestamp as "lastMessageTimestamp",
+        u_self.nicknames as nicknames
+      FROM conversations c
+      LEFT JOIN users u1 ON c.clerk_id_1 = u1.clerk_id
+      LEFT JOIN users u2 ON c.clerk_id_2 = u2.clerk_id
+      LEFT JOIN users u_self ON u_self.clerk_id = ${userId}
+      WHERE c.clerk_id_1 = ${userId} 
+      OR c.clerk_id_2 = ${userId}
+    `;
+
+    // Transform the raw response to match the interface
+    const conversations: ConversationItem[] = rawResponse.map(row => {
+      // Find nickname for the other user if it exists
+      const nicknames: string[][] = row.nicknames || [];
+      const nickname = nicknames.find(([clerkId]) => clerkId === row.other_clerk_id)?.[1];
+
+      return {
+        id: row.id,
+        name: nickname || row.username, // Use nickname if exists, otherwise use username
+        lastMessageContent: row.lastMessageContent || null,
+        lastMessageTimestamp: row.lastMessageTimestamp ? 
+          row.lastMessageTimestamp.toISOString() : null,
+        nickname: row.nicknames
+      };
+    });
+
+    return new Response(JSON.stringify({ data: conversations }), {
       status: 200,
     });
+    
   } catch (error) {
     console.error(error);
     return new Response(
-      JSON.stringify({ error: "Failed to fetch user posts." }),
+      JSON.stringify({ error: "Failed to fetch user conversations." }),
       {
         status: 500,
       }
