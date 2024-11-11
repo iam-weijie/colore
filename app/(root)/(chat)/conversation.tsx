@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
+  TouchableOpacity,
   SafeAreaView,
   Text,
   TextInput,
@@ -12,8 +13,8 @@ import {
 } from "react-native";
 import { fetchAPI } from "@/lib/fetch";
 import { useUser } from "@clerk/clerk-expo";
-
-
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { router } from "expo-router";
 
 const Conversation = () => {
   const {
@@ -24,8 +25,8 @@ const Conversation = () => {
   const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
+  const flatListRef = useRef<FlatList<Message>>(null);
 
-  const flatListRef = useRef<FlatList>(null);
   
   const fetchMessages = async () => {
     const response = await fetchAPI(
@@ -34,17 +35,14 @@ const Conversation = () => {
         method: 'GET'}
       );
     setMessages(response.data);
+    flatListRef.current?.scrollToEnd({ animated: true })
+    console.log("Messages:", response.data);
     
   }
 
   useEffect(() => {
     fetchMessages();
   }, [conversationId]);
-  const scrollToBottom = useCallback(() => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ offset: 0, animated: true });
-    }
-  }, []);
 
   const updateMessages = async (messageContent:string) => {
     await fetchAPI(`/(api)/(chat)/newMessage`,
@@ -54,6 +52,17 @@ const Conversation = () => {
           conversationId: conversationId,
           message: messageContent,
           senderId: user!.id,
+          timestamp: new Date(),
+        })
+      });
+  };
+  const patchConversation = async (messageContent:string) => {
+    await fetchAPI(`/(api)/(chat)/patchConversations`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          conversationId: conversationId,
+          message: messageContent,
           timestamp: new Date(),
         })
       });
@@ -71,11 +80,11 @@ const Conversation = () => {
     // Update the state to include the new message
     setMessages((prevMessages) => [...prevMessages, newMessageObj]);
     updateMessages(newMessage);
+    flatListRef.current?.scrollToEnd({ animated: true })
+    patchConversation(newMessage);
+    flatListRef.current?.scrollToEnd({ animated: true })
     setNewMessage("");
 
-    setTimeout(() => {
-      scrollToBottom();
-    }, 100);
   };
   const renderMessageItem = ({
     item,
@@ -84,18 +93,18 @@ const Conversation = () => {
   }): React.ReactElement => (
     <View
       className={`p-2 my-1 rounded-lg ${
-        item.senderId === user!.id
+        item.senderId === user?.id
           ? "bg-black text-white ml-auto max-w-[70%]"
           : "bg-gray-200 mr-auto max-w-[70%]"
       }`}
     >
       <Text
-        className={`font-bold ${item.senderId === user!.id ? "text-white" : "text-black"}`}
+        className={`font-bold ${item.senderId == user?.id ? "text-white" : "text-black"}`}
       >
-        {item.senderId}
+        {item.senderId === user?.id ? "You" : otherName}
       </Text>
       <Text
-        className={`${item.senderId === user!.id ? "text-white" : "text-black"}`}
+        className={`${item.senderId === user?.id ? "text-white" : "text-black"}`}
       >
         {item.content}
       </Text>
@@ -108,6 +117,16 @@ const Conversation = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
+      <View className="flex flex-row items-center justify-between px-4 pt-2 pr-9">        
+          <View className="mr-2">
+            <TouchableOpacity onPress={() => router.replace("/(root)/(tabs)/chat")}>
+              <AntDesign name="caretleft" size={18} color="0076e3" />
+            </TouchableOpacity>
+          </View>
+          <Text className={`text-2xl font-JakartaBold flex-1 text-center`}>
+            {otherName}
+          </Text>
+          </View>
         <View className="flex-1 bg-gray-100">
           {messages.length === 0 ? 
           ( <View className="flex-1 justify-center items-center">
@@ -115,9 +134,10 @@ const Conversation = () => {
             </View>
           ) : (
           <FlatList
+            ref = {flatListRef}
             data={messages}
             renderItem={renderMessageItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id as unknown as string}
             contentContainerStyle={{ padding: 16 }}
             style={{ flexGrow: 1 }}
             extraData={messages}

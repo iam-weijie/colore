@@ -45,9 +45,9 @@ const Chat: React.FC<ChatTabProps> = () => {
   );
   
 
-  const handleOpenChat = (conversationId: string): void => {
-    console.log(`Opening chat with conversation ID: ${conversationId}`);
-    router.push(`/(root)/(chat)/conversation?conversationId=${conversationId}`);
+  const handleOpenChat = (conversation: ConversationItem): void => {
+    console.log(`Opening chat with conversation ID: ${conversation.id}`);
+    router.push(`/(root)/(chat)/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`);
   };
 
   const renderConversationItem = ({
@@ -55,7 +55,7 @@ const Chat: React.FC<ChatTabProps> = () => {
   }: {
     item: ConversationItem;
   }): React.ReactElement => (
-    <TouchableOpacity onPress={() => handleOpenChat(item.id)}>
+    <TouchableOpacity onPress={() => handleOpenChat(item)}>
       <View className="flex flex-row justify-between items-center p-4 border-b border-gray-200">
         <View>
           <Text className="text-lg font-bold mb-2">{item.name}</Text>

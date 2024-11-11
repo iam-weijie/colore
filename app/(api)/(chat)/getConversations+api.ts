@@ -41,6 +41,7 @@ export async function GET(request: Request) {
       return {
         id: row.id,
         name: nickname || row.username, // Use nickname if exists, otherwise use username
+        clerk_id: row.other_clerk_id,
         lastMessageContent: row.lastMessageContent || null,
         lastMessageTimestamp: row.lastMessageTimestamp ? 
           row.lastMessageTimestamp.toISOString() : null,

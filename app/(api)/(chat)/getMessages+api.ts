@@ -11,13 +11,13 @@ export async function GET(request: Request) {
 
   
     const rawResponse = await sql`
-      SELECT id::int, message, timestamp, senderId FROM messages WHERE conversationid = ${conversationId}`;
+      SELECT id, message, timestamp, senderid FROM messages WHERE conversationid = ${conversationId}`;
 
     // Transform the raw response to match the interface
     const conversation: Message[] = rawResponse.map(row => {
       return {
         id: row.id,
-        senderId: row.senderId,
+        senderId: row.senderid,
         content: row.message,
         timestamp: row.timestamp.toISOString()
       };

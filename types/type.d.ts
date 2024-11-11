@@ -133,6 +133,7 @@ declare interface PaymentProps {
 declare interface ConversationItem {
   id: string;
   name: string;
+  clerk_id: string;
   lastMessageContent: string | null;
   lastMessageTimestamp: Date | null;
 }
