@@ -14,11 +14,9 @@ const SplashVideo = ({onAnimationFinish = (isCancelled) => {}}: {onAnimationFini
           loop={false}
           autoPlay
           style={{
-            width:"100%",
+            width: "100%",
             height:"100%",
-            minWidth: 500,
-            minHeight: 500,
-            backgroundColor: '#eee',
+            backgroundColor: '#ffffff',
           }}
           source={require('../assets/splash.json')}
       />
