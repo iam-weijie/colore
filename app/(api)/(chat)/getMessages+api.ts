@@ -5,22 +5,21 @@ export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const Id = url.searchParams.get("id");
+    const conversationId = url.searchParams.get("id");
 
-    console.log("Received GET request for messages from conversation with ID: ", Id);
+    console.log("Received GET request for messages from conversation with ID: ", conversationId);
 
   
     const rawResponse = await sql`
-      SELECT 
-        c.messages WHERE c.id = ${Id}`;
+      SELECT id::int, message, timestamp, senderId FROM messages WHERE conversationid = ${conversationId}`;
 
     // Transform the raw response to match the interface
     const conversation: Message[] = rawResponse.map(row => {
       return {
-        id: row.messages[0],
-        senderId: row.messages[1],
-        content: row.messages[2],
-        timestamp: row.messages[3]
+        id: row.id,
+        senderId: row.senderId,
+        content: row.message,
+        timestamp: row.timestamp.toISOString()
       };
     });
 
