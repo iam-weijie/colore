@@ -15,6 +15,7 @@ export async function GET(request: Request) {
       u.clerk_id AS user_id,
       c.content, 
       u.firstname,
+      u.username,
       c.created_at,
       c.like_count, 
       c.report_count

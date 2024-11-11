@@ -47,9 +47,20 @@ const LogIn = () => {
   return (
     <ScrollView className="flex-1 bg-white">
       <View className="flex-1 bg-white ">
-        <View className="relative w-full h-[250px]">
-          <Image source={images.login} className="z-0 w-full h-[250px] " />
-          <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5">
+        <View className="relative w-full">
+          <Image
+            source={images.login}
+            style={{
+              position: "absolute",
+              top: -90,
+              right: 0,
+              width: "100%",
+              height: undefined,
+              aspectRatio: 1.5,
+            }}
+            resizeMode="cover"
+          />
+          <Text className="text-2xl font-JakartaBold relative ml-5 mt-[180]">
             Welcome 👋
           </Text>
         </View>
@@ -76,7 +87,9 @@ const LogIn = () => {
           <CustomButton
             title="Log In"
             onPress={onLogInPress}
-            className="mt-6"
+            padding="3"
+            bgVariant="gradient"
+            className="mt-8"
           />
           <Text className="text-base text-center text-general-200 mt-6">
             <Link href="/reset">Forgot your password?</Link>

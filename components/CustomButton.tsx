@@ -1,6 +1,7 @@
-import { Text, TouchableOpacity } from "react-native";
-
 import { ButtonProps } from "@/types/type";
+import { LinearGradient } from "expo-linear-gradient";
+import React from "react";
+import { Text, TouchableOpacity } from "react-native";
 
 const getBgVariantStyle = (
   variant: ButtonProps["bgVariant"],
@@ -19,6 +20,8 @@ const getBgVariantStyle = (
       return "bg-green-500";
     case "outline":
       return "bg-transparent border-neutral-300 border-[0.5px]";
+    case "gradient":
+      return ["#ffd12b", "#ff9f45"];
     default:
       return "bg-[#333333]";
   }
@@ -59,20 +62,41 @@ const CustomButton = ({
   padding = "4",
   ...props
 }: ButtonProps) => {
+  const bgStyle = getBgVariantStyle(bgVariant, disabled);
+
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      className={`w-full rounded-full p-${padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${getBgVariantStyle(bgVariant, disabled)} ${className}`}
+      className={`w-full rounded-full ${bgVariant === "gradient" ? "" : bgStyle} p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}
       {...props}
     >
-      {IconLeft && <IconLeft />}
-      <Text
-        className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}
-      >
-        {title}
-      </Text>
-      {IconRight && <IconRight />}
+      {bgVariant === "gradient" && Array.isArray(bgStyle) ? (
+        <LinearGradient
+          colors={bgStyle}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className={`flex flex-row justify-center items-center w-full h-full p-${padding} rounded-full`}
+        >
+          {IconLeft && <IconLeft />}
+          <Text
+            className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}
+          >
+            {title}
+          </Text>
+          {IconRight && <IconRight />}
+        </LinearGradient>
+      ) : (
+        <>
+          {IconLeft && <IconLeft />}
+          <Text
+            className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}
+          >
+            {title}
+          </Text>
+          {IconRight && <IconRight />}
+        </>
+      )}
     </TouchableOpacity>
   );
 };

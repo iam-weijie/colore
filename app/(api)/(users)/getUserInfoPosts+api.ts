@@ -21,6 +21,7 @@ export async function GET(request: Request) {
         u.email,
         u.firstname, 
         u.lastname,
+        u.username,
         u.country,
         u.state,
         u.city, 
@@ -47,6 +48,7 @@ export async function GET(request: Request) {
       date_of_birth: response[0].clerk_id,
       firstname: response[0].firstname,
       lastname: response[0].lastname,
+      username: response[0].username,
       country: response[0].country,
       state: response[0].state,
       city: response[0].city,
@@ -61,16 +63,16 @@ export async function GET(request: Request) {
 
     const userPosts = response.map((post) => ({
       id: post.post_id,
-      clerk_id: post.clerk_id, 
+      clerk_id: post.clerk_id,
       firstname: post.firstname,
       content: post.content,
-      created_at: post.created_at, 
+      created_at: post.created_at,
       city: post.city,
       state: post.state,
-      country: post.country, 
+      country: post.country,
       like_count: post.like_count,
       report_count: post.report_count,
-      color: post.color
+      color: post.color,
     }));
 
     return new Response(JSON.stringify({ userInfo, posts: userPosts }), {
