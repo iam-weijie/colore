@@ -11,9 +11,12 @@ import {
   View,
 } from "react-native";
 
-const Conversation: React.FC = () => {
-  const searchParams = useLocalSearchParams();
-  const conversationId = searchParams.conversationId;
+const Conversation = () => {
+  const {
+    conversationId,
+    otherClerkId,
+    otherName
+  } = useLocalSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
 
@@ -25,19 +28,19 @@ const Conversation: React.FC = () => {
       // Mock messages
       const fetchedMessages: Message[] = [
         {
-          id: "msg1",
+          id: 1,
           content: "Hello!",
           senderId: "John Doe",
           timestamp: new Date("2023-09-30T10:00:00Z"),
         },
         {
-          id: "msg2",
+          id: 2,
           content: "How are you?",
           senderId: "You",
           timestamp: new Date("2023-09-30T10:01:00Z"),
         },
         {
-          id: "msg3",
+          id: 3,
           content: "I'm doing great, thanks!",
           senderId: "John Doe",
           timestamp: new Date("2023-09-30T10:02:00Z"),
@@ -58,7 +61,7 @@ const Conversation: React.FC = () => {
 
     // Create new message object generate an ID in a normal way later
     const newMessageObj: Message = {
-      id: `msg${messages.length + 1}`,
+      id: messages.length + 1,
       content: newMessage,
       senderId: "You", //TODO: set sender to user ID eventually
       timestamp: new Date(),

@@ -140,7 +140,7 @@ declare interface ConversationItem {
 declare interface ChatTabProps {}
 
 declare interface Message {
-  id: string;
+  id: number;
   senderId: string;
   content: string;
   timestamp: Date;
