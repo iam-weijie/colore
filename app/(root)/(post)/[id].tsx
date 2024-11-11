@@ -36,6 +36,7 @@ const PostScreen = () => {
     content = "",
     nickname,
     firstname,
+    username,
     like_count,
     report_count,
     created_at,
@@ -275,7 +276,7 @@ const PostScreen = () => {
           <View className="flex-1">
             <TouchableOpacity onPress={() => handleUserProfile(userId)}>
               <Text className="font-JakartaSemiBold text-lg">
-                {nickname || displayName.charAt(0) + "."}
+                {nickname || username || displayName.charAt(0) + "."}
               </Text>
             </TouchableOpacity>
               <Text className="text-sm text-gray-500">
