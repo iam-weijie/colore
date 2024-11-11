@@ -18,8 +18,6 @@ export async function GET(request: Request) {
       );
     }
 
-    console.log("Fetching comments for:", { postId, userId });
-
     const response = await sql`
       SELECT 
         c.id, 

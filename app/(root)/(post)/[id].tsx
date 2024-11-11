@@ -234,8 +234,7 @@ const PostScreen = () => {
       }
     
       try {
-        console.log("Fetching comments for post:", { postId: id, userId: user.id });
-        
+
         const response = await fetchAPI(
           `/(api)/(comments)/getComments?postId=${id}&userId=${user.id}`,
           { method: "GET" }
@@ -246,8 +245,7 @@ const PostScreen = () => {
           throw new Error(response.error);
         }
         
-        console.log("Comments response:", response);
-        
+
         if (!Array.isArray(response.data)) {
           console.error("Invalid response format:", response);
           throw new Error("Invalid response format");
