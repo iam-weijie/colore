@@ -187,6 +187,7 @@ const PostModal: React.FC<PostModalProps> = ({
         content: post!.content,
         nickname: nickname,
         firstname: post!.firstname,
+        username: post!.username,
         like_count: post!.like_count,
         report_count: post!.report_count,
         created_at: post!.created_at,
