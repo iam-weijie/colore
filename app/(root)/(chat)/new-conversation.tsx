@@ -181,19 +181,21 @@ const NewConversation = (): React.ReactElement => {
       <SignedIn>
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
           <View className="flex-1 bg-gray-100">
-            <View className="flex flex-row items-center justify-between px-4 pt-2 pr-9">
+            <View className="flex flex-row items-center justify-between px-4 pt-2">
               <View className="mr-2">
                 <TouchableOpacity onPress={() => router.replace("/(root)/(tabs)/chat")}>
                   <AntDesign name="caretleft" size={18} color="0076e3" />
                 </TouchableOpacity>
               </View>
-              <TextInput
-                className="h-11 mx-4 px-4 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Search users..."
-                placeholderTextColor="#4a4a4a"
-                value={searchText}
-                onChangeText={(text): void => setSearchText(text)}
-              />
+              <View className="flex-grow">
+                <TextInput
+                  className="w-full h-11 px-4 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Search users..."
+                  placeholderTextColor="#4a4a4a"
+                  value={searchText}
+                  onChangeText={(text): void => setSearchText(text)}
+                />
+              </View>
             </View>
             {loading ? (
               <View className="flex-[0.8] justify-center items-center">

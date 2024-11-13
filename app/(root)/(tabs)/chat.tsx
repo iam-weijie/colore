@@ -64,7 +64,7 @@ const Chat: React.FC<ChatTabProps> = () => {
           </Text>
         </View>
         <Text className="text-xs text-gray-400">
-          {item.lastMessageTimestamp ? new Date(item.lastMessageTimestamp).toLocaleString() : ""}
+          {item.lastMessageTimestamp ? new Date(item.lastMessageTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' , timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone}) : ""}
         </Text>
       </View>
     </TouchableOpacity>

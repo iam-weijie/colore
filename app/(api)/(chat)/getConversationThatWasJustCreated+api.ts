@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const userId1 = url.searchParams.get("id1");
     const userId2 = url.searchParams.get("id2");
 
-    console.log("Received GET request for conversations for user with ID: ", userId);
+    console.log("Received GET request for conversation between ", userId1, " and ", userId2);
 
   
     const rawResponse = await sql`
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
         c.clerk_id_2 as other_clerk_id,
         c.last_message as "lastMessageContent", 
         c.last_message_timestamp as "lastMessageTimestamp",
-        u_self.nicknames as nicknames
+        u_self.nicknames as nicknames,
         u2.username
       FROM conversations c
       LEFT JOIN users u2 ON c.clerk_id_2 = u2.clerk_id

@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
+  ActivityIndicator,
   TouchableOpacity,
   SafeAreaView,
   Text,
@@ -16,6 +17,7 @@ import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
 
+
 const Conversation = () => {
   const {
     conversationId,
@@ -26,6 +28,7 @@ const Conversation = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const flatListRef = useRef<FlatList<Message>>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   
   const fetchMessages = async () => {
@@ -37,11 +40,22 @@ const Conversation = () => {
     setMessages(response.data);
     flatListRef.current?.scrollToEnd({ animated: true })
     console.log("Messages:", response.data);
-    
+  }
+  const fetchMessagesFirst = async () => {
+    setLoading(true);
+    try {
+      await fetchMessages();
+    } catch (error) {
+      console.log("Error fetching messages", error);
+    } finally {
+      setLoading(false);
+      flatListRef.current?.scrollToEnd({ animated: true })
+    }
   }
 
   useEffect(() => {
-    fetchMessages();
+    fetchMessagesFirst();
+    flatListRef.current?.scrollToEnd({ animated: true })
   }, [conversationId]);
 
   const updateMessages = async (messageContent:string) => {
@@ -79,6 +93,7 @@ const Conversation = () => {
 
     // Update the state to include the new message
     setMessages((prevMessages) => [...prevMessages, newMessageObj]);
+    flatListRef.current?.scrollToEnd({ animated: true })
     updateMessages(newMessage);
     flatListRef.current?.scrollToEnd({ animated: true })
     patchConversation(newMessage);
@@ -128,20 +143,27 @@ const Conversation = () => {
           </Text>
           </View>
         <View className="flex-1 bg-gray-100">
-          {messages.length === 0 ? 
+          {loading ? 
+          ( <View className="flex-[0.8] justify-center items-center">
+              <ActivityIndicator size="large" color="black" />
+            </View> 
+          ) : messages.length === 0 ? 
           ( <View className="flex-1 justify-center items-center">
               <Text className="text-lg text-gray-400">No messages yet</Text>
             </View>
           ) : (
-          <FlatList
-            ref = {flatListRef}
-            data={messages}
-            renderItem={renderMessageItem}
-            keyExtractor={(item) => item.id as unknown as string}
-            contentContainerStyle={{ padding: 16 }}
-            style={{ flexGrow: 1 }}
-            extraData={messages}
-          />)}
+            <FlatList
+              ref = {flatListRef}
+              data={messages}
+              renderItem={renderMessageItem}
+              keyExtractor={(item) => item.id as unknown as string}
+              contentContainerStyle={{ padding: 16 }}
+              style={{ flexGrow: 1 }}
+              extraData={messages}
+              onContentSizeChange={() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+              }}
+            />)}
           <View className="flex-row items-center p-4 border-t border-gray-200">
             <TextInput
               className="flex-1 border border-gray-300 rounded-lg px-4 py-2"

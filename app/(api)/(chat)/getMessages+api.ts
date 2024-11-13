@@ -19,7 +19,7 @@ export async function GET(request: Request) {
         id: row.id,
         senderId: row.senderid,
         content: row.message,
-        timestamp: row.timestamp.toISOString()
+        timestamp: row.timestamp.toISOString(),
       };
     });
 
