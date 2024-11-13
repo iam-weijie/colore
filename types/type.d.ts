@@ -12,6 +12,7 @@ declare interface Post {
   country: string;
   like_count: number;
   report_count: number;
+  unread_comments: number;
   color: string; //String for now. Should be changed to PostItColor
 }
 
@@ -93,6 +94,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
 
 declare interface UserPostsGalleryProps {
   posts: Post[];
+  profileUserId: string;
   handleUpdate?: () => void | undefined | Promise<void>;
 }
 

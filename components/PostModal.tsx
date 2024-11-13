@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
+import { formatDateTruncatedMonth, convertToLocal } from "@/lib/utils";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -25,6 +26,8 @@ const PostModal: React.FC<PostModalProps> = ({
   const { user } = useUser();
   const router = useRouter();
   const [nickname, setNickname] = useState<string>("");
+  const dateCreated = convertToLocal(new Date(post!.created_at));
+  const formattedDate = formatDateTruncatedMonth(dateCreated);
 
   function findUserNickname(
     userArray: UserNicknamePair[],
@@ -106,6 +109,7 @@ const PostModal: React.FC<PostModalProps> = ({
         like_count: post!.like_count,
         report_count: post!.report_count,
         created_at: post!.created_at,
+        unread_comments: post!.unread_comments,
       },
     });
   };
@@ -126,11 +130,13 @@ const PostModal: React.FC<PostModalProps> = ({
               });
             }}
           >
-            <Text className="text-[16px] mb-2 font-Jakarta font-bold">
+            <Text className="text-[16px] font-Jakarta font-bold">
               {nickname ? nickname : post?.username ? `${post?.username}` : `${post?.firstname?.charAt(0)}.`}
             </Text>
           </TouchableOpacity>
         )}
+        <Text className="text-[16xp] text-gray-500 font-Jakarta">{formattedDate}</Text>
+
         <ScrollView>
           <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
         </ScrollView>
