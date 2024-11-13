@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
+import { formatDateTruncatedMonth, convertToLocal } from "@/lib/utils";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -28,6 +29,8 @@ const PostModal: React.FC<PostModalProps> = ({
   const [likeCount, setLikeCount] = useState<number>(post?.like_count || 0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
+  const dateCreated = convertToLocal(new Date(post!.created_at));
+  const formattedDate = formatDateTruncatedMonth(dateCreated);
 
   // Fetch initial like status when modal opens
   useEffect(() => {
@@ -100,10 +103,6 @@ const PostModal: React.FC<PostModalProps> = ({
       setIsLoadingLike(false);
     }
   };
-
-
-
-
 
 
   function findUserNickname(
@@ -191,6 +190,7 @@ const PostModal: React.FC<PostModalProps> = ({
         like_count: post!.like_count,
         report_count: post!.report_count,
         created_at: post!.created_at,
+        unread_comments: post!.unread_comments,
       },
     });
   };
@@ -231,35 +231,32 @@ return (
       </TouchableOpacity>
       
       {/* User info section */}
-      {post && post.firstname && user!.id !== post.clerk_id && (
-        <TouchableOpacity
-          onPress={() => {
-            handleCloseModal();
-            router.push({
-              pathname: "/(root)/(profile)/[id]",
-              params: { id: post!.clerk_id },
-            });
-          }}
-        >
-          <Text className="text-[16px] mb-2 font-Jakarta font-bold">
-            {nickname ? nickname : `${post?.firstname?.charAt(0)}.`}
-          </Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Post content */}
-      <ScrollView>
-        <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
-      </ScrollView>
-
-      {/* Action buttons */}
-      <View className="my-2 flex-row justify-between items-center">
-        <View className="flex flex-row items-center">
-          <TouchableOpacity onPress={handleCommentsPress}>
-            <Image source={icons.comment} className="w-8 h-8" />
+      
+        {post && post.firstname && user!.id !== post.clerk_id && (
+          <TouchableOpacity
+            onPress={() => {
+              handleCloseModal();
+              router.push({
+                pathname: "/(root)/(profile)/[id]",
+                params: { id: post!.clerk_id },
+              });
+            }}
+          >
+            <Text className="text-[16px] font-Jakarta font-bold">
+              {nickname ? nickname : post?.username ? `${post?.username}` : `${post?.firstname?.charAt(0)}.`}
+            </Text>
           </TouchableOpacity>
+        )}
+        <Text className="text-[16xp] text-gray-500 font-Jakarta">{formattedDate}</Text>
 
-          <View className="flex-row items-center">
+        <ScrollView>
+          <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
+        </ScrollView>
+        <View className="my-2 flex-row justify-between items-center">
+          <View className="flex flex-row items-center">
+            <TouchableOpacity onPress={handleCommentsPress}>
+              <Image source={icons.comment} className="w-8 h-8" />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={handleLikePress}
               disabled={isLoadingLike}
@@ -285,7 +282,6 @@ return (
           </TouchableOpacity>
         )}
       </View>
-    </View>
   </ReactNativeModal>
 );
 };
