@@ -30,6 +30,7 @@ export async function GET(request: Request) {
         p.created_at, 
         p.like_count, 
         p.report_count,
+        p.unread_comments,
         p.color
       FROM users u
       LEFT JOIN posts p ON u.clerk_id = p.user_id
@@ -73,6 +74,7 @@ export async function GET(request: Request) {
       country: post.country,
       like_count: post.like_count,
       report_count: post.report_count,
+      unread_comments: post.unread_comments,
       color: post.color,
     }));
 
