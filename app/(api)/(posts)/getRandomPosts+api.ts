@@ -16,10 +16,12 @@ export async function GET(request: Request) {
         p.like_count, 
         p.report_count, 
         p.created_at,
+        p.unread_comments,
         p.color,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
+        u.username,
         u.country, 
         u.state, 
         u.city

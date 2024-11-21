@@ -4,25 +4,13 @@ export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const clerkId = url.searchParams.get("id");
+    const userId1 = url.searchParams.get("id1");
+    const userId2 = url.searchParams.get("id2");
 
-    console.log("Received GET request for user posts.");
+    console.log("Received GET request for conversations between: ", userId1, " and ", userId2); 
 
     const response = await sql`
-      SELECT 
-      p.id, 
-      p.content, 
-      u.firstname,
-      p.created_at,
-      p.like_count, 
-      p.report_count,
-      p.unread_comments,
-      p.color
-      FROM posts p
-      JOIN users u ON p.user_id = u.clerk_id
-      WHERE u.clerk_id = ${clerkId}
-      ORDER BY p.created_at ASC;
-      `;
+      SELECT * FROM conversations WHERE (clerk_id_1 = ${userId1} AND clerk_id_2 = ${userId2}) OR (clerk_id_2 = ${userId1} AND clerk_id_1 = ${userId2});`;
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });

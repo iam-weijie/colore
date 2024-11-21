@@ -15,6 +15,7 @@ export async function POST(request: Request) {
       const {
         firstName,
         lastName,
+        username,
         dateOfBirth,
         city,
         state,
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
         !firstName ||
         !lastName ||
         !dateOfBirth ||
+        !username ||
         !city ||
         !state ||
         !country ||
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
         SET
           firstname = ${firstName},
           lastname = ${lastName},
+          username = ${username},
           date_of_birth = ${dateOfBirth},
           city = ${city},
           state = ${state},

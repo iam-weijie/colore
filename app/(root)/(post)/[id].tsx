@@ -5,7 +5,7 @@ import { PostComment } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -24,19 +24,23 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { UserNicknamePair } from "@/types/type";
+import { formatDateTruncatedMonth, convertToLocal } from "@/lib/utils";
 
 const PostScreen = () => {
   const { user } = useUser();
   const router = useRouter();
+  const navigation = useNavigation();
   const {
     id = "",
     clerk_id = "",
     content = "",
     nickname,
     firstname,
+    username,
     like_count,
     report_count,
     created_at,
+    unread_comments = 0,
   } = useLocalSearchParams();
   
   const [loading, setLoading] = useState(true);
@@ -379,22 +383,51 @@ const PostScreen = () => {
     fetchComments();
   }, [id]);
 
+  useEffect(() => {
+    navigation.addListener("beforeRemove", (e) => {
+      if (Number(unread_comments) > 0) {
+        handleReadComments();
+      }
+      console.log("User goes back from post screen");
+    });
+    
+  }, []);
+
+  // before returning user to screen, update unread_comments to 0
+  // only if the user is viewing their own post
+  const handleReadComments = async () => {
+    if (clerk_id === user!.id) {
+      try {
+        const response = await fetchAPI(`/(api)/(posts)/updateUnreadComments`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            clerkId: user?.id,
+            postId: id,
+            postClerkId: clerk_id,
+          }),
+        })
+      } catch (error) {
+        console.error("Failed to update unread comments:", error);
+      }
+    }
+  }
+
   const renderComment = ({ item }: { item: PostComment }) => (
     <View key={item.id} className="p-4 border-b border-gray-200">
       <TouchableOpacity onPress={() => handleUserProfile(item.user_id)}>
         <Text className="font-JakartaSemiBold">
           {findUserNickname(nicknames, item.user_id) === -1 
-            ? `${item.firstname.charAt(0)}.`
+            ? item.username ? `${item.username}` : `${item.firstname.charAt(0)}.`
             : nicknames[findUserNickname(nicknames, item.user_id)][1]}
         </Text>
       </TouchableOpacity>
       
       <Text className="text-sm text-gray-500">
-        {new Date(item.created_at).toLocaleDateString()}
+        {formatDateTruncatedMonth(convertToLocal(new Date(item.created_at)))}
       </Text>
       
       <View className="flex flex-row mr-2">
-        <Text className="flex-1">{item.content}</Text>
+        <Text className="flex-1 font-Jakarta">{item.content}</Text>
         <View className="flex flex-col items-center">
           <TouchableOpacity 
             onPress={() => handleCommentLike(item.id)}
@@ -435,12 +468,12 @@ const PostScreen = () => {
           <View className="flex-1">
             <TouchableOpacity onPress={() => handleUserProfile(userId)}>
               <Text className="font-JakartaSemiBold text-lg">
-                {nickname || displayName.charAt(0) + "."}
+                {nickname || username || displayName.charAt(0) + "."}
               </Text>
             </TouchableOpacity>
               <Text className="text-sm text-gray-500">
                 {typeof created_at === "string"
-                  ? new Date(created_at).toLocaleDateString()
+                  ? formatDateTruncatedMonth(convertToLocal(new Date(created_at)))
                   : "No date"}
               </Text>
           </View>
@@ -476,7 +509,7 @@ const PostScreen = () => {
                     </TouchableOpacity>
                   )}
                 </View>
-                <Text className="mt-2 ml-2 mr-10 min-h-[80]">{content}</Text>
+                <Text className="font-Jakarta mt-2 ml-2 mr-10 min-h-[80]">{content}</Text>
               </View>
             </TouchableWithoutFeedback>
 

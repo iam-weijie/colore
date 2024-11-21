@@ -21,6 +21,7 @@ export async function GET(request: Request) {
         u.email,
         u.firstname, 
         u.lastname,
+        u.username,
         u.country,
         u.state,
         u.city, 
@@ -29,6 +30,7 @@ export async function GET(request: Request) {
         p.created_at, 
         p.like_count, 
         p.report_count,
+        p.unread_comments,
         p.color
       FROM users u
       LEFT JOIN posts p ON u.clerk_id = p.user_id
@@ -47,6 +49,7 @@ export async function GET(request: Request) {
       date_of_birth: response[0].clerk_id,
       firstname: response[0].firstname,
       lastname: response[0].lastname,
+      username: response[0].username,
       country: response[0].country,
       state: response[0].state,
       city: response[0].city,
@@ -63,6 +66,7 @@ export async function GET(request: Request) {
       id: post.post_id,
       clerk_id: post.clerk_id,
       firstname: post.firstname,
+      username: post.username,
       content: post.content,
       created_at: post.created_at,
       city: post.city,
@@ -70,6 +74,7 @@ export async function GET(request: Request) {
       country: post.country,
       like_count: post.like_count,
       report_count: post.report_count,
+      unread_comments: post.unread_comments,
       color: post.color,
     }));
 

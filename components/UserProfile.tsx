@@ -1,4 +1,5 @@
 import CustomButton from "@/components/CustomButton";
+import Circle from "@/components/Circle";
 import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants/index";
@@ -18,6 +19,7 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  ImageSourcePropType,
   Pressable,
   Text,
   TextInput,
@@ -38,9 +40,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const route = useRoute();
   const router = useRouter();
   const currentScreen = route.name as string;
+  const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
 
   const isEditable = user!.id === userId;
-
+  
   function findUserNickname(
     userArray: UserNicknamePair[],
     userId: string
@@ -158,7 +161,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             </View>
           )}
           <Text className={`text-2xl font-JakartaBold flex-1`}>
-            {nickname ? nickname : `${profileUser?.firstname?.charAt(0)}.`}
+            {nickname ? nickname : profileUser?.username ? `${profileUser?.username}`:`${profileUser?.firstname?.charAt(0)}.`}
           </Text>
 
           <View className="flex flex-row items-center">
@@ -220,14 +223,63 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       <View className="mx-4 my-4">
         <View className="border-t border-gray-200" />
       </View>
-      <View className="items-center">
-        <ColorGallery />
-      </View>
-      <View className="mx-4 my-4">
+      <View
+      className="flex flex-row justify-around bg-transparent rounded-full p-2"
+      style={{ width: '60%', alignSelf: 'center' }}
+    >
+      <TouchableOpacity
+        onPress={() => setCurrentSubscreen('posts')}
+        className={`py-2.5 px-4 rounded-full ${
+          currentSubscreen === 'posts' ? 'bg-gray-300' : ''
+        }`}
+      >
+        <Image
+          source={icons.home}
+          tintColor= {currentSubscreen==="posts" ? "#ffe640" : "#e0e0e0"}
+          resizeMode="contain"
+          className="w-6 h-6"
+        />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setCurrentSubscreen('colors')}
+        className={`p-2 rounded-full ${
+          currentSubscreen === 'colors' ? 'bg-gray-300' : ''
+        }`}
+      >
+        <Image
+          source={icons.palette}
+          tintColor= {currentSubscreen==="colors" ? undefined : "#e0e0e0"}
+          resizeMode="contain"
+          className="w-6 h-6"
+        />
+      </TouchableOpacity>
+    </View>
+    <View className="mx-4 my-4">
         <View className="border-t border-gray-200" />
       </View>
       <View className="items-center flex-1">
-        <PostGallery posts={userPosts} handleUpdate={fetchUserData} />
+        {currentSubscreen === "colors" ? (
+          <View className="items-center">
+            <ColorGallery />
+          </View>
+        ) : currentSubscreen === "posts" ? (
+          <View className="items-center flex-1">
+            <PostGallery 
+              posts={userPosts} 
+              profileUserId={profileUser?.clerk_id} 
+              handleUpdate={fetchUserData} 
+            />
+          </View>
+        ) : (
+          <View className="items-center flex-1">
+            <PostGallery 
+              posts={userPosts} 
+              profileUserId={profileUser?.clerk_id} 
+              handleUpdate={fetchUserData} 
+            />
+          </View>
+        )
+        }
       </View>
       {currentScreen === "profile" && <View className="min-h-[80px]" />}
     </View>

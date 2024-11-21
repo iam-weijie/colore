@@ -4,6 +4,7 @@ declare interface Post {
   id: string;
   clerk_id: string;
   firstname: string;
+  username: string;
   content: string;
   created_at: string;
   city: string;
@@ -11,6 +12,7 @@ declare interface Post {
   country: string;
   like_count: number;
   report_count: number;
+  unread_comments: number;
   color: string; //String for now. Should be changed to PostItColor
 }
 
@@ -20,6 +22,7 @@ declare interface PostComment {
   user_id: string;
   content: string;
   firstname: string;
+  username: string;
   created_at: string;
   like_count: number;
   report_count: number;
@@ -30,6 +33,7 @@ declare interface UserProfileType {
   clerk_id: string;
   firstname: string;
   lastname: string;
+  username: string;
   email: string;
   date_of_birth: string;
   city: string;
@@ -90,6 +94,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
 
 declare interface UserPostsGalleryProps {
   posts: Post[];
+  profileUserId: string;
   handleUpdate?: () => void | undefined | Promise<void>;
 }
 
@@ -130,14 +135,15 @@ declare interface PaymentProps {
 declare interface ConversationItem {
   id: string;
   name: string;
-  lastMessageContent: string;
-  lastMessageTimestamp: Date;
+  clerk_id: string;
+  lastMessageContent: string | null;
+  lastMessageTimestamp: Date | null;
 }
 
 declare interface ChatTabProps {}
 
 declare interface Message {
-  id: string;
+  id: number;
   senderId: string;
   content: string;
   timestamp: Date;
