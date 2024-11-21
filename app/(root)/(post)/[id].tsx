@@ -58,7 +58,6 @@ const PostScreen = () => {
   const [isLoadingCommentLike, setIsLoadingCommentLike] = useState<boolean>(false);
 
 
-
   const maxCharacters = 6000;
   const displayName = Array.isArray(firstname) ? firstname[0] : firstname;
   const userId = Array.isArray(clerk_id) ? clerk_id[0] : clerk_id;
@@ -134,8 +133,6 @@ const PostScreen = () => {
     }
   };
 
-
-
   const handleCommentLike = async (commentId: number) => {
     if (!user || isLoadingCommentLike) return;
     
@@ -187,10 +184,7 @@ const PostScreen = () => {
       setIsLoadingCommentLike(false);
     }
   };
-  
-
-
-
+ 
   
   function findUserNickname(userArray: UserNicknamePair[], userId: string): number {
     const index = userArray.findIndex(pair => pair[0] === userId);
@@ -479,29 +473,29 @@ const PostScreen = () => {
           </View>
         </View>
         <ScrollView>
-          <TouchableWithoutFeedback
-            onPress={() => Keyboard.dismiss()}
-            onPressIn={() => Keyboard.dismiss()}
-          >
+        <TouchableWithoutFeedback
+          onPress={() => Keyboard.dismiss()}
+          onPressIn={() => Keyboard.dismiss()}
+        >
           {/* Post information */}
           <View className="p-4 border-b border-gray-200 relative">
-                <View className="absolute top-4 right-4 items-center mt-2">
-                  <View className="flex-row items-center">
-                    <TouchableOpacity 
-                      onPress={handleLikePress}
-                      disabled={isLoadingLike}
-                    >
-                      <MaterialCommunityIcons
-                        name={isLiked ? "heart" : "heart-outline"}
-                        size={32}
-                        color={isLiked ? "red" : "black"}
-                      />
-                    </TouchableOpacity>
-                    {/* Only show like count to post creator */}
-                    {clerk_id === user?.id && (
-                      <Text className="ml-1 text-gray-600">{likeCount}</Text>
-                    )}
-                  </View>
+            <View className="absolute top-4 right-4 items-center mt-2">
+              <View className="flex-row items-center">
+                <TouchableOpacity 
+                  onPress={handleLikePress}
+                  disabled={isLoadingLike}
+                >
+                  <MaterialCommunityIcons
+                    name={isLiked ? "heart" : "heart-outline"}
+                    size={32}
+                    color={isLiked ? "red" : "black"}
+                  />
+                </TouchableOpacity>
+                {/* Only show like count to post creator */}
+                {clerk_id === user?.id && (
+                  <Text className="ml-1 text-gray-600">{likeCount}</Text>
+                )}
+              </View>
 
                   {clerk_id === user?.id && (
                     <TouchableOpacity onPress={handleDeletePostPress} className="mt-4">
