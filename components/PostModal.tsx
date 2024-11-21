@@ -105,15 +105,7 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
 
-<<<<<<< HEAD
 
-
-
-  const dateCreated = convertToLocal(new Date(post!.created_at));
-  const formattedDate = formatDateTruncatedMonth(dateCreated);
-
-=======
->>>>>>> 9eb1bc5143853b7ce55fdb59ecbb3c19e46929eb
   function findUserNickname(
     userArray: UserNicknamePair[],
     userId: string
@@ -155,10 +147,6 @@ const PostModal: React.FC<PostModalProps> = ({
     getData();
   }, [user]);
 
-  useEffect(() => {
-    console.log("Post data:", post);
-    console.log("Initial like count:", post?.like_count);
-  }, [post]);
 
   const handleDeletePress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
@@ -240,39 +228,6 @@ return (
       </TouchableOpacity>
       
       {/* User info section */}
-<<<<<<< HEAD
-      {post && post.firstname && user!.id !== post.clerk_id && (
-        <TouchableOpacity
-          onPress={() => {
-            handleCloseModal();
-            router.push({
-              pathname: "/(root)/(profile)/[id]",
-              params: { id: post!.clerk_id },
-            });
-          }}
-        >
-          <Text className="text-[16px] font-Jakarta font-bold">
-            {nickname ? nickname : post?.username ? `${post?.username}` : `${post?.firstname?.charAt(0)}.`}
-          </Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Post content */}
-        <Text className="text-[16xp] text-gray-500 font-Jakarta">{formattedDate}</Text>
-
-      <ScrollView>
-        <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
-      </ScrollView>
-
-      {/* Action buttons */}
-      <View className="my-2 flex-row justify-between items-center">
-        <View className="flex flex-row items-center">
-          <TouchableOpacity onPress={handleCommentsPress}>
-            <Image source={icons.comment} className="w-8 h-8" />
-          </TouchableOpacity>
-
-          <View className="flex-row items-center">
-=======
       
         {post && post.firstname && user!.id !== post.clerk_id && (
           <TouchableOpacity
@@ -299,7 +254,6 @@ return (
             <TouchableOpacity onPress={handleCommentsPress}>
               <Image source={icons.comment} className="w-8 h-8" />
             </TouchableOpacity>
->>>>>>> 9eb1bc5143853b7ce55fdb59ecbb3c19e46929eb
             <TouchableOpacity
               onPress={handleLikePress}
               disabled={isLoadingLike}
