@@ -135,14 +135,15 @@ declare interface PaymentProps {
 declare interface ConversationItem {
   id: string;
   name: string;
-  lastMessageContent: string;
-  lastMessageTimestamp: Date;
+  clerk_id: string;
+  lastMessageContent: string | null;
+  lastMessageTimestamp: Date | null;
 }
 
 declare interface ChatTabProps {}
 
 declare interface Message {
-  id: string;
+  id: number;
   senderId: string;
   content: string;
   timestamp: Date;

@@ -66,6 +66,7 @@ export async function GET(request: Request) {
       id: post.post_id,
       clerk_id: post.clerk_id,
       firstname: post.firstname,
+      username: post.username,
       content: post.content,
       created_at: post.created_at,
       city: post.city,

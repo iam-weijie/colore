@@ -27,7 +27,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-    [  "expo-router", {"origin":"https://colore.ca/"}]
+      [
+        "expo-router",
+        {
+          "origin": "https://colore.ca/"
+        }
+      ],
+      "expo-font",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

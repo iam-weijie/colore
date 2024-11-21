@@ -1,5 +1,4 @@
 import { Stack } from "expo-router";
-import { ConversationProvider } from "@/components/ConversationContext";
 
 const Layout = () => {
   return (

@@ -5,72 +5,101 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
+  ActivityIndicator,
+  TouchableOpacity,
   SafeAreaView,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { fetchAPI } from "@/lib/fetch";
+import { useUser } from "@clerk/clerk-expo";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { router } from "expo-router";
 
-const Conversation: React.FC = () => {
-  const searchParams = useLocalSearchParams();
-  const conversationId = searchParams.conversationId;
+
+const Conversation = () => {
+  const {
+    conversationId,
+    otherClerkId,
+    otherName
+  } = useLocalSearchParams();
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
+  const flatListRef = useRef<FlatList<Message>>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const flatListRef = useRef<FlatList>(null);
+  
+  const fetchMessages = async () => {
+    const response = await fetchAPI(
+      `/(api)/(chat)/getMessages?id=${conversationId}`, 
+      {
+        method: 'GET'}
+      );
+    setMessages(response.data);
+    flatListRef.current?.scrollToEnd({ animated: true })
+    console.log("Messages:", response.data);
+  }
+  const fetchMessagesFirst = async () => {
+    setLoading(true);
+    try {
+      await fetchMessages();
+    } catch (error) {
+      console.log("Error fetching messages", error);
+    } finally {
+      setLoading(false);
+      flatListRef.current?.scrollToEnd({ animated: true })
+    }
+  }
 
   useEffect(() => {
-    // Simulating fetching messages for the conversation
-    const fetchMessages = async (): Promise<void> => {
-      // Mock messages
-      const fetchedMessages: Message[] = [
-        {
-          id: "msg1",
-          content: "Hello!",
-          senderId: "John Doe",
-          timestamp: new Date("2023-09-30T10:00:00Z"),
-        },
-        {
-          id: "msg2",
-          content: "How are you?",
-          senderId: "You",
-          timestamp: new Date("2023-09-30T10:01:00Z"),
-        },
-        {
-          id: "msg3",
-          content: "I'm doing great, thanks!",
-          senderId: "John Doe",
-          timestamp: new Date("2023-09-30T10:02:00Z"),
-        },
-      ];
-      setMessages(fetchedMessages);
-    };
-    fetchMessages();
+    fetchMessagesFirst();
+    flatListRef.current?.scrollToEnd({ animated: true })
   }, [conversationId]);
-  const scrollToBottom = useCallback(() => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ offset: 0, animated: true });
-    }
-  }, []);
 
+  const updateMessages = async (messageContent:string) => {
+    await fetchAPI(`/(api)/(chat)/newMessage`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          conversationId: conversationId,
+          message: messageContent,
+          senderId: user!.id,
+          timestamp: new Date(),
+        })
+      });
+  };
+  const patchConversation = async (messageContent:string) => {
+    await fetchAPI(`/(api)/(chat)/patchConversations`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          conversationId: conversationId,
+          message: messageContent,
+          timestamp: new Date(),
+        })
+      });
+  };
   const handleSendMessage = (): void => {
     if (newMessage.trim().length === 0) return;
 
-    // Create new message object generate an ID in a normal way later
     const newMessageObj: Message = {
-      id: `msg${messages.length + 1}`,
+      id: messages.length + 1,
       content: newMessage,
-      senderId: "You", //TODO: set sender to user ID eventually
+      senderId: user!.id,
       timestamp: new Date(),
     };
 
     // Update the state to include the new message
     setMessages((prevMessages) => [...prevMessages, newMessageObj]);
+    flatListRef.current?.scrollToEnd({ animated: true })
+    updateMessages(newMessage);
+    flatListRef.current?.scrollToEnd({ animated: true })
+    patchConversation(newMessage);
+    flatListRef.current?.scrollToEnd({ animated: true })
     setNewMessage("");
 
-    setTimeout(() => {
-      scrollToBottom();
-    }, 100);
   };
   const renderMessageItem = ({
     item,
@@ -79,18 +108,18 @@ const Conversation: React.FC = () => {
   }): React.ReactElement => (
     <View
       className={`p-2 my-1 rounded-lg ${
-        item.senderId === "You"
+        item.senderId === user?.id
           ? "bg-black text-white ml-auto max-w-[70%]"
           : "bg-gray-200 mr-auto max-w-[70%]"
       }`}
     >
       <Text
-        className={`font-bold ${item.senderId === "You" ? "text-white" : "text-black"}`}
+        className={`font-bold ${item.senderId == user?.id ? "text-white" : "text-black"}`}
       >
-        {item.senderId}
+        {item.senderId === user?.id ? "You" : otherName}
       </Text>
       <Text
-        className={`${item.senderId === "You" ? "text-white" : "text-black"}`}
+        className={`${item.senderId === user?.id ? "text-white" : "text-black"}`}
       >
         {item.content}
       </Text>
@@ -103,15 +132,38 @@ const Conversation: React.FC = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
+      <View className="flex flex-row items-center justify-between px-4 pt-2 pr-9">        
+          <View className="mr-2">
+            <TouchableOpacity onPress={() => router.replace("/(root)/(tabs)/chat")}>
+              <AntDesign name="caretleft" size={18} color="0076e3" />
+            </TouchableOpacity>
+          </View>
+          <Text className={`text-2xl font-JakartaBold flex-1 text-center`}>
+            {otherName}
+          </Text>
+          </View>
         <View className="flex-1 bg-gray-100">
-          <FlatList
-            data={messages}
-            renderItem={renderMessageItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ padding: 16 }}
-            style={{ flexGrow: 1 }}
-            extraData={messages}
-          />
+          {loading ? 
+          ( <View className="flex-[0.8] justify-center items-center">
+              <ActivityIndicator size="large" color="black" />
+            </View> 
+          ) : messages.length === 0 ? 
+          ( <View className="flex-1 justify-center items-center">
+              <Text className="text-lg text-gray-400">No messages yet</Text>
+            </View>
+          ) : (
+            <FlatList
+              ref = {flatListRef}
+              data={messages}
+              renderItem={renderMessageItem}
+              keyExtractor={(item) => item.id as unknown as string}
+              contentContainerStyle={{ padding: 16 }}
+              style={{ flexGrow: 1 }}
+              extraData={messages}
+              onContentSizeChange={() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+              }}
+            />)}
           <View className="flex-row items-center p-4 border-t border-gray-200">
             <TextInput
               className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
