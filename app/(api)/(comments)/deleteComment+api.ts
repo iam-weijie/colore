@@ -16,7 +16,16 @@ export async function DELETE(request: Request) {
     }
 
     const response = await sql`
-      WITH delete_comment AS (
+      WITH comment_to_delete AS (
+        SELECT id, post_id, user_id 
+        FROM comments 
+        WHERE id = ${commentId}
+      ),
+      delete_likes AS (
+        DELETE FROM comment_likes
+        WHERE comment_id = ${commentId}
+      ),
+      delete_comment AS (
         DELETE FROM comments
         WHERE id = ${commentId}
         RETURNING id, post_id, user_id
