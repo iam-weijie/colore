@@ -11,8 +11,8 @@ import {
   UserProfileType,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -24,6 +24,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
+
+
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -83,7 +85,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       router.push("/(root)/(location)/country");
     }
   };
-
   const fetchUserData = async () => {
     setLoading(true);
     setError(null);
@@ -108,6 +109,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserData();
+    }, [userId])  
+  );
+
   const handleAddNickname = () => {
     setStateVars({
       ...stateVars,
@@ -117,9 +124,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     router.push("/(root)/(profile)/nickname");
   };
 
-  useEffect(() => {
-    fetchUserData();
-  }, [userId]);
 
   if (loading)
     return (
