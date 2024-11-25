@@ -62,7 +62,7 @@ const PostScreen = () => {
   const displayName = Array.isArray(firstname) ? firstname[0] : firstname;
   const userId = Array.isArray(clerk_id) ? clerk_id[0] : clerk_id;
   const screenHeight = Dimensions.get("screen").height;
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
@@ -270,6 +270,11 @@ const PostScreen = () => {
 
 
     const handleCommentSubmit = async () => {
+      // Prevent submission if already submitting
+      if (isSubmitting) {
+        return;
+      }
+    
       const trimmedComment = newComment.trim();
       
       if (!trimmedComment || !id || !user?.id || !clerk_id) {
@@ -284,13 +289,9 @@ const PostScreen = () => {
       }
     
       try {
-        console.log("Submitting comment:", {
-          content: trimmedComment,
-          postId: id,
-          clerkId: user.id,
-          postClerkId: clerk_id
-        });
-    
+        setIsSubmitting(true);  // Start submission
+        setNewComment("");      // Clear input immediately to prevent double submission
+        
         const response = await fetchAPI(`/(api)/(comments)/newComment`, {
           method: "POST",
           body: JSON.stringify({
@@ -305,8 +306,6 @@ const PostScreen = () => {
           console.error("API Error:", response.error);
           throw new Error(response.error);
         }
-    
-        setNewComment("");
         
         // Fetch updated comments with like status
         await fetchComments();
@@ -314,9 +313,11 @@ const PostScreen = () => {
       } catch (error) {
         console.error("Failed to submit comment:", error);
         Alert.alert("Error", "Failed to submit comment. Please try again.");
+      } finally {
+        setIsSubmitting(false);  // End submission regardless of success/failure
       }
     };
- 
+    
 
   const handleDeletePostPress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
@@ -545,7 +546,8 @@ const PostScreen = () => {
               multiline
               scrollEnabled
               onChangeText={handleChangeText}
-              onSubmitEditing={handleCommentSubmit}
+              onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
+              editable={!isSubmitting}
               style={{
                 paddingTop: 10,
                 paddingBottom: Platform.OS === "android" ? 0 : 10,
@@ -554,9 +556,9 @@ const PostScreen = () => {
               }}
             />
             <CustomButton
-              title="Send"
+              title={isSubmitting ? "Sending..." : "Send"}
               onPress={handleCommentSubmit}
-              disabled={newComment.length === 0}
+              disabled={newComment.length === 0 || isSubmitting}
               className="absolute bottom-4 ml-3 w-14 h-9 rounded-md absolute bottom-4 right-4"
               fontSize="sm"
               padding="0"
