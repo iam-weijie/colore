@@ -288,6 +288,7 @@ const PostScreen = () => {
           body: JSON.stringify({
             content: newComment.trim(),
             postId: id,
+            postClerkId: clerk_id,
             clerkId: user.id,
           }),
         });
