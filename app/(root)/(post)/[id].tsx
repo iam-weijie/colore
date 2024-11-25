@@ -270,26 +270,34 @@ const PostScreen = () => {
 
 
     const handleCommentSubmit = async () => {
-      if (!newComment.trim() || !id || !user?.id) {
-        console.log("Missing required data:", { content: newComment, postId: id, userId: user?.id });
+      const trimmedComment = newComment.trim();
+      
+      if (!trimmedComment || !id || !user?.id || !clerk_id) {
+        console.log("Missing required data:", { 
+          content: trimmedComment, 
+          postId: id, 
+          clerkId: user?.id,
+          postClerkId: clerk_id 
+        });
         Alert.alert("Error", "Unable to submit comment. Missing required data.");
         return;
       }
     
       try {
         console.log("Submitting comment:", {
-          content: newComment,
+          content: trimmedComment,
           postId: id,
-          userId: user.id
+          clerkId: user.id,
+          postClerkId: clerk_id
         });
     
         const response = await fetchAPI(`/(api)/(comments)/newComment`, {
           method: "POST",
           body: JSON.stringify({
-            content: newComment.trim(),
+            content: trimmedComment,
             postId: id,
-            postClerkId: clerk_id,
             clerkId: user.id,
+            postClerkId: clerk_id
           }),
         });
     
