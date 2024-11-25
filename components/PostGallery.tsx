@@ -89,6 +89,10 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
   const handleCloseModal = () => {
     setSelectedPost(null);
+    // Check if we need to refresh the posts after modal closes
+    if (queueRefresh && hasNavigatedAway && isOwnProfile && handleUpdate) {
+      handleUpdate();
+    }
   };
 
   useFocusEffect(

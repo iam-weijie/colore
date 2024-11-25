@@ -155,22 +155,30 @@ const PostModal: React.FC<PostModalProps> = ({
     ]);
   };
 
+  
   const handleDelete = async () => {
-    await fetchAPI(`/(api)/(posts)/deletePostComments?id=${post!.id}`, {
-      method: "DELETE",
-    });
+    try {
+      const response = await fetchAPI(`/(api)/(posts)/deletePost?id=${post!.id}`, {
+        method: "DELETE",
+      });
 
-    await fetchAPI(`/(api)/(posts)/deletePost?id=${post!.id}`, {
-      method: "DELETE",
-    });
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
-    Alert.alert("Post deleted.");
-    handleCloseModal();
-    // call only if defined (aka refresh needed after deleting post)
-    if (typeof handleUpdate === "function") {
-      await handleUpdate();
+      Alert.alert("Post deleted successfully");
+      handleCloseModal();
+      
+      if (typeof handleUpdate === "function") {
+        // call only if defined (aka refresh needed after deleting post)
+        await handleUpdate();
+      }
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+      Alert.alert("Error", "Failed to delete post. Please try again.");
     }
   };
+
 
   const handleCommentsPress = () => {
     handleCloseModal();
