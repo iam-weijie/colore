@@ -3,20 +3,21 @@ import { neon } from "@neondatabase/serverless";
 export async function POST(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
-    console.log("Received POST request.");
+    console.log("Received POST request for new comment.");
+    
     const { clerkId, postId, postClerkId, content } = await request.json();
-
-    let response;
-
+    
     if (!clerkId || !postId || !postClerkId || !content) {
+      console.log("Missing required fields:", { clerkId, postId, postClerkId, content });
       return Response.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
+    // Only increment unread_comments if the comment is from another user
     if (clerkId !== postClerkId) {
-      response = await sql`
+      const response = await sql`
         WITH insert_comment AS (
           INSERT INTO comments (user_id, post_id, content)
           VALUES (${clerkId}, ${postId}, ${content})
@@ -27,25 +28,26 @@ export async function POST(request: Request) {
         WHERE id = ${postId}
         RETURNING (SELECT id FROM insert_comment) AS comment_id;
       `;
+      return new Response(JSON.stringify({ data: response }), {
+        status: 201,
+      });
     } else {
-      response = await sql`
+      // If the post owner is commenting, don't increment unread_comments
+      const response = await sql`
         INSERT INTO comments (user_id, post_id, content)
         VALUES (${clerkId}, ${postId}, ${content})
-        ;
+        RETURNING id;
       `;
+      return new Response(JSON.stringify({ data: response }), {
+        status: 201,
+      });
     }
 
-    // const response = await sql`
-    //   INSERT INTO comments (user_id, post_id, content)
-    //   VALUES (${clerkId}, ${postId}, ${content})
-    //   ;
-    // `;
-
-    return new Response(JSON.stringify({ data: response }), {
-      status: 201,
-    });
   } catch (error) {
-    console.log(error);
-    return Response.json({ error: error }, { status: 500 });
+    console.error("Error creating comment:", error);
+    return Response.json({ 
+      error: "Failed to create comment",
+      details: error instanceof Error ? error.message : "Unknown error"
+    }, { status: 500 });
   }
 }

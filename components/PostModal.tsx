@@ -26,8 +26,85 @@ const PostModal: React.FC<PostModalProps> = ({
   const { user } = useUser();
   const router = useRouter();
   const [nickname, setNickname] = useState<string>("");
+  const [likeCount, setLikeCount] = useState<number>(post?.like_count || 0);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
   const dateCreated = convertToLocal(new Date(post!.created_at));
   const formattedDate = formatDateTruncatedMonth(dateCreated);
+
+  // Fetch initial like status when modal opens
+  useEffect(() => {
+    const fetchLikeStatus = async () => {
+      if (!post?.id || !user?.id) return;
+      
+      try {
+        const response = await fetchAPI(
+          `/(api)/(posts)/updateLikeCount?postId=${post.id}&userId=${user.id}`,
+          { method: 'GET' }
+        );
+
+        if (response.error) {
+          console.error('Error fetching like status:', response.error);
+          return;
+        }
+
+        setIsLiked(response.data.liked);
+        setLikeCount(response.data.likeCount);
+      } catch (error) {
+        console.error('Failed to fetch like status:', error);
+      }
+    };
+
+    fetchLikeStatus();
+  }, [post?.id, user?.id]);
+
+  // Handle like/unlike action
+  const handleLikePress = async () => {
+    if (!post?.id || !user?.id || isLoadingLike) return;
+
+    try {
+      setIsLoadingLike(true);
+      const increment = !isLiked;
+      
+      // Optimistically update UI
+      setIsLiked(!isLiked);
+      setLikeCount(prev => increment ? prev + 1 : prev - 1);
+
+      const response = await fetchAPI(`/(api)/(posts)/updateLikeCount`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          postId: post.id,
+          userId: user.id,
+          increment
+        })
+      });
+
+      if (response.error) {
+        // Revert optimistic update if failed
+        setIsLiked(isLiked);
+        setLikeCount(prev => increment ? prev - 1 : prev + 1);
+        
+        Alert.alert('Error', 'Unable to update like status. Please try again.');
+        return;
+      }
+
+      // Update with actual server values
+      setLikeCount(response.data.likeCount);
+      setIsLiked(response.data.liked);
+
+    } catch (error) {
+      console.error('Failed to update like status:', error);
+      // Revert optimistic update
+      setIsLiked(isLiked);
+      setLikeCount(prev => !isLiked ? prev - 1 : prev + 1);
+      
+      Alert.alert('Error', 'Unable to update like status. Please check your connection.');
+    } finally {
+      setIsLoadingLike(false);
+    }
+  };
+
+
 
   function findUserNickname(
     userArray: UserNicknamePair[],
@@ -70,6 +147,7 @@ const PostModal: React.FC<PostModalProps> = ({
     getData();
   }, [user]);
 
+
   const handleDeletePress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
       { text: "Cancel" },
@@ -77,22 +155,30 @@ const PostModal: React.FC<PostModalProps> = ({
     ]);
   };
 
+  
   const handleDelete = async () => {
-    await fetchAPI(`/(api)/(posts)/deletePostComments?id=${post!.id}`, {
-      method: "DELETE",
-    });
+    try {
+      const response = await fetchAPI(`/(api)/(posts)/deletePost?id=${post!.id}`, {
+        method: "DELETE",
+      });
 
-    await fetchAPI(`/(api)/(posts)/deletePost?id=${post!.id}`, {
-      method: "DELETE",
-    });
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
-    Alert.alert("Post deleted.");
-    handleCloseModal();
-    // call only if defined (aka refresh needed after deleting post)
-    if (typeof handleUpdate === "function") {
-      await handleUpdate();
+      Alert.alert("Post deleted successfully");
+      handleCloseModal();
+      
+      if (typeof handleUpdate === "function") {
+        // call only if defined (aka refresh needed after deleting post)
+        await handleUpdate();
+      }
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+      Alert.alert("Error", "Failed to delete post. Please try again.");
     }
   };
+
 
   const handleCommentsPress = () => {
     handleCloseModal();
@@ -113,13 +199,44 @@ const PostModal: React.FC<PostModalProps> = ({
       },
     });
   };
+  
 
-  return (
-    <ReactNativeModal isVisible={isVisible}>
-      <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
-        <TouchableOpacity onPress={handleCloseModal}>
-          <Image className="w-6 h-6 self-end left-3" source={icons.close} />
-        </TouchableOpacity>
+
+useEffect(() => {
+  const fetchLikeStatus = async () => {
+    try {
+      const response = await fetchAPI(
+        `/(api)/(posts)/updateLikeCount?postId=${post!.id}&userId=${user!.id}`,
+        { method: 'GET' }
+      );
+
+      if (response.error) {
+        console.error('Error fetching like status:', response.error);
+        return;
+      }
+
+      setLikedPost(response.data.liked);
+      setLikeCount(response.data.likeCount);
+    } catch (error) {
+      console.error('Failed to fetch like status:', error);
+    }
+  };
+
+  if (post && user) {
+    fetchLikeStatus();
+  }
+}, [post, user]);
+
+ 
+return (
+  <ReactNativeModal isVisible={isVisible}>
+    <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
+      <TouchableOpacity onPress={handleCloseModal}>
+        <Image className="w-6 h-6 self-end left-3" source={icons.close} />
+      </TouchableOpacity>
+      
+      {/* User info section */}
+      
         {post && post.firstname && user!.id !== post.clerk_id && (
           <TouchableOpacity
             onPress={() => {
@@ -146,25 +263,32 @@ const PostModal: React.FC<PostModalProps> = ({
               <Image source={icons.comment} className="w-8 h-8" />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setLikedPost(!likedPost)}
+              onPress={handleLikePress}
+              disabled={isLoadingLike}
               className="ml-2"
             >
               <MaterialCommunityIcons
-                name={likedPost ? "heart" : "heart-outline"}
+                name={isLiked ? "heart" : "heart-outline"}
                 size={32}
-                color={likedPost ? "red" : "black"}
+                color={isLiked ? "red" : "black"}
               />
             </TouchableOpacity>
+            {/* Show like count only to post creator */}
+            {post && post.clerk_id === user?.id && (
+              <Text className="ml-1 text-gray-600">{likeCount}</Text>
+            )}
           </View>
-          {post && post.clerk_id === user?.id && (
-            <TouchableOpacity onPress={handleDeletePress}>
-              <Image source={icons.trash} className="w-7 h-7" />
-            </TouchableOpacity>
-          )}
         </View>
+
+        {/* Delete button for post owner */}
+        {post && post.clerk_id === user?.id && (
+          <TouchableOpacity onPress={handleDeletePress}>
+            <Image source={icons.trash} className="w-7 h-7" />
+          </TouchableOpacity>
+        )}
       </View>
-    </ReactNativeModal>
-  );
+  </ReactNativeModal>
+);
 };
 
 export default PostModal;
