@@ -1,6 +1,6 @@
 import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
-import { PostModalProps, UserNicknamePair } from "@/types/type";
+import { PostModalProps, UserNicknamePair, PostItColor } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
 import { formatDateTruncatedMonth, convertToLocal } from "@/lib/utils";
+import { temporaryColors } from "@/constants/index";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -31,6 +32,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
   const dateCreated = convertToLocal(new Date(post!.created_at));
   const formattedDate = formatDateTruncatedMonth(dateCreated);
+  const postColor = temporaryColors.find((color) => color.name === post.color) as PostItColor;
 
   // Fetch initial like status when modal opens
   useEffect(() => {
@@ -229,7 +231,7 @@ useEffect(() => {
 
  
 return (
-  <ReactNativeModal isVisible={isVisible}>
+  <ReactNativeModal isVisible={isVisible} backdropColor={postColor.hex || 'rgba(0,0,0,0.5)'} backdropOpacity={1}>
     <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
       <TouchableOpacity onPress={handleCloseModal}>
         <Image className="w-6 h-6 self-end left-3" source={icons.close} />
