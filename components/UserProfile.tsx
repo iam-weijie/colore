@@ -191,8 +191,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       </View>
       <View className="flex-row justify-between mx-6">
         <View className="flex-1 items-center">
-          <Text className="text-gray-500 font-Jakarta">Liked Posts</Text>
-          <Text className="text-lg font-JakartaBold">0</Text>
+          <Text className="text-gray-500 font-Jakarta">Colors</Text>
+          <Text className="text-lg font-JakartaBold">3</Text>
         </View>
 
         <View className="flex-1 items-center">

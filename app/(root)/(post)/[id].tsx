@@ -436,27 +436,29 @@ const PostScreen = () => {
       <View className="flex flex-row mr-2">
         <Text className="flex-1 font-Jakarta">{item.content}</Text>
         <View className="flex flex-col items-center">
-          <TouchableOpacity 
-            onPress={() => handleCommentLike(item.id)}
-            disabled={isLoadingCommentLike}
-          >
-            <MaterialCommunityIcons
-              name={commentLikes[item.id] ? "heart" : "heart-outline"}
-              size={24}
-              color={commentLikes[item.id] ? "red" : "black"}
-            />
-          </TouchableOpacity>
-          
-          {/* Show like count for all comments, not just owned ones */}
-          <Text className="text-xs text-gray-500">
-            {commentLikeCounts[item.id] || 0}
-          </Text>
-          
-          {item.user_id === user?.id && (
-            <TouchableOpacity onPress={() => handleDeleteCommentPress(item.id)}>
-              <Image source={icons.trash} className="mt-3 w-5 h-5" />
-            </TouchableOpacity>
-          )}
+              <View className="flex-row items-center">
+                <TouchableOpacity 
+                  onPress={() => handleCommentLike(item.id)}
+                  disabled={isLoadingCommentLike}
+                >
+                  <MaterialCommunityIcons
+                    name={commentLikes[item.id] ? "heart" : "heart-outline"}
+                    size={24}
+                    color={commentLikes[item.id] ? "red" : "black"}
+                  />
+                </TouchableOpacity>
+                {/* Show like count to post creator and comment creator*/}
+                {(clerk_id === user?.id || item.user_id === user?.id) && (
+                  <Text className="ml-1 text-xs text-gray-500 w-6 text-center mr-">100</Text>
+                )}
+                
+              </View>
+
+                  {item.user_id === user?.id && (
+                    <TouchableOpacity onPress={() => handleDeleteComment(item.id)} className="mt-3 mr-7">
+                      <Image source={icons.trash} className="w-5 h-5" />
+                    </TouchableOpacity>
+                  )}
         </View>
       </View>
     </View>
@@ -506,12 +508,12 @@ const PostScreen = () => {
                 </TouchableOpacity>
                 {/* Only show like count to post creator */}
                 {clerk_id === user?.id && (
-                  <Text className="ml-1 text-gray-600">{likeCount}</Text>
+                  <Text className="ml-1 text-gray-600 w-6 text-center">{likeCount}</Text>
                 )}
               </View>
 
                   {clerk_id === user?.id && (
-                    <TouchableOpacity onPress={handleDeletePostPress} className="mt-4">
+                    <TouchableOpacity onPress={handleDeletePostPress} className="mt-3 mr-7">
                       <Image source={icons.trash} className="w-7 h-7" />
                     </TouchableOpacity>
                   )}

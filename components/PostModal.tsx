@@ -278,14 +278,15 @@ return (
               <Text className="ml-1 text-gray-600">{likeCount}</Text>
             )}
           </View>
+          {/* Delete button for post owner */}
+          {post && post.clerk_id === user?.id && (
+            <TouchableOpacity onPress={handleDeletePress}>
+              <Image source={icons.trash} className="w-7 h-7" />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Delete button for post owner */}
-        {post && post.clerk_id === user?.id && (
-          <TouchableOpacity onPress={handleDeletePress}>
-            <Image source={icons.trash} className="w-7 h-7" />
-          </TouchableOpacity>
-        )}
+        
       </View>
   </ReactNativeModal>
 );
