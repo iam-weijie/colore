@@ -149,14 +149,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             {nickname ? nickname : profileUser?.username ? `${profileUser?.username}` : `${profileUser?.firstname?.charAt(0)}.`}
           </Text>
 
-          <View className="flex flex-row items-center">
+          <View className="flex flex-row items-right">
             {!isEditable && (
               <CustomButton
-                title="Nickname"
+                title="Alias"
                 onPress={handleAddNickname}
-                className="mr-3 w-[100px] h-11 rounded-md"
+                className="mr-3 w-[55px] h-8 rounded-md"
                 fontSize="sm"
-                padding="2"
+                padding="0"
               />
             )}
           </View>
@@ -234,9 +234,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         >
           <Image
             source={icons.palette}
-            tintColor={currentSubscreen === "colors" ? undefined : "#e0e0e0"}
+            tintColor={currentSubscreen === "colors" ? "#93c5fd" : "#e0e0e0"}
             resizeMode="contain"
-            className="w-6 h-6"
+            className="w-6 h-6 pt-1"
           />
         </TouchableOpacity>
       </View>

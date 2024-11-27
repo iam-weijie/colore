@@ -503,6 +503,7 @@ const PostScreen = () => {
                 <TouchableOpacity 
                   onPress={handleLikePress}
                   disabled={isLoadingLike}
+                  className="ml-2"
                 >
                   <MaterialCommunityIcons
                     name={isLiked ? "heart" : "heart-outline"}
@@ -512,7 +513,7 @@ const PostScreen = () => {
                 </TouchableOpacity>
                 {/* Only show like count to post creator */}
                 {clerk_id === user?.id && (
-                  <Text className="ml-1 text-gray-600 w-6 text-center">{likeCount}</Text>
+                  <Text className="ml-1 text-gray-600">{likeCount}</Text>
                 )}
               </View>
 
