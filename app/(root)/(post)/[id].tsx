@@ -63,6 +63,7 @@ const PostScreen = () => {
   const userId = Array.isArray(clerk_id) ? clerk_id[0] : clerk_id;
   const screenHeight = Dimensions.get("screen").height;
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPostDeleted, setIsPostDeleted] = useState(false);
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
@@ -327,18 +328,20 @@ const PostScreen = () => {
   };
 
   const handleDeletePost = async () => {
-    await fetchAPI(`/(api)/(posts)/deletePostComments?id=${id}`, {
-      method: "DELETE",
-    });
-
-    await fetchAPI(`/(api)/(posts)/deletePost?id=${id}`, {
-      method: "DELETE",
-    });
-
-    Alert.alert("Post deleted.");
-    router.back();
+    try {
+      setIsPostDeleted(true);
+  
+      await fetchAPI(`/(api)/(posts)/deletePost?id=${id}`, {
+        method: "DELETE", 
+      });
+  
+      Alert.alert("Post deleted.");
+      router.back();
+    } catch (error) {
+      setIsPostDeleted(false);
+      Alert.alert("Error deleting post");
+    }
   };
-
   const handleDeleteCommentPress = async (id: number) => {
     Alert.alert(
       "Delete Comment",
@@ -547,7 +550,7 @@ const PostScreen = () => {
               scrollEnabled
               onChangeText={handleChangeText}
               onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
-              editable={!isSubmitting}
+              editable={!isSubmitting && !isSubmitting}
               style={{
                 paddingTop: 10,
                 paddingBottom: Platform.OS === "android" ? 0 : 10,
@@ -558,7 +561,7 @@ const PostScreen = () => {
             <CustomButton
               title={isSubmitting ? "Sending..." : "Send"}
               onPress={handleCommentSubmit}
-              disabled={newComment.length === 0 || isSubmitting}
+              disabled={newComment.length === 0 || isSubmitting || isPostDeleted}
               className="absolute bottom-4 ml-3 w-14 h-9 rounded-md absolute bottom-4 right-4"
               fontSize="sm"
               padding="0"
