@@ -5,15 +5,6 @@ import Animated, { FadeOut } from 'react-native-reanimated';
 const SplashVideo = ({onAnimationFinish}: {onAnimationFinish: (isCancelled: boolean) => void}) => {
     const animation = useRef<LottieView>(null)
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            console.log('Animation forcibly completed');
-            onAnimationFinish(false);
-        }, 5000); // Fallback timeout after 5 seconds
-
-        return () => clearTimeout(timer);
-    }, [onAnimationFinish]);
-
     return (
       <Animated.View style={{alignItems: 'center', justifyContent: 'center'}} exiting={FadeOut.duration(300)}>
          <LottieView
