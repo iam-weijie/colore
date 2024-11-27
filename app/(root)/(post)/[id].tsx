@@ -447,18 +447,18 @@ const PostScreen = () => {
                     color={commentLikes[item.id] ? "red" : "black"}
                   />
                 </TouchableOpacity>
-                {/* Show like count to post creator and comment creator*/}
-                {(clerk_id === user?.id || item.user_id === user?.id) && (
-                  <Text className="ml-1 text-xs text-gray-500 w-6 text-center mr-">100</Text>
-                )}
-                
-              </View>
-
-                  {item.user_id === user?.id && (
-                    <TouchableOpacity onPress={() => handleDeleteComment(item.id)} className="mt-3 mr-7">
+                {item.user_id === user?.id && (
+                    <TouchableOpacity onPress={() => handleDeleteCommentPress(item.id)} className="mt-30 mr-70 pl-2">
                       <Image source={icons.trash} className="w-5 h-5" />
                     </TouchableOpacity>
                   )}
+              </View>
+              {/* Show like count to post creator and comment creator*/}
+              {(clerk_id === user?.id || item.user_id === user?.id) && item.user_id === user?.id ? (
+                  <Text className="text-xs text-gray-500 w-6 text-center mr-7">{commentLikeCounts[item.id] || 0}</Text>
+                ) : (
+                  <Text className="ml-1 text-xs text-gray-500 w-6 text-center mr-1">{commentLikeCounts[item.id] || 0}</Text>
+                )}
         </View>
       </View>
     </View>
@@ -512,11 +512,11 @@ const PostScreen = () => {
                 )}
               </View>
 
-                  {clerk_id === user?.id && (
+                  {/*clerk_id === user?.id && (
                     <TouchableOpacity onPress={handleDeletePostPress} className="mt-3 mr-7">
                       <Image source={icons.trash} className="w-7 h-7" />
                     </TouchableOpacity>
-                  )}
+                  )*/}
                 </View>
                 <Text className="font-Jakarta mt-2 ml-2 mr-10 min-h-[80]">{content}</Text>
               </View>
