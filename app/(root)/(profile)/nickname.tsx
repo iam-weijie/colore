@@ -5,6 +5,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 const Nickname = () => {
   const router = useRouter();
@@ -76,9 +77,13 @@ const Nickname = () => {
     <View className="flex-1 bg-gray-100">
       <View className="flex-1 pt-16">
         <View className="flex flex-row items-center mx-4 mb-4">
+          <TouchableOpacity onPress={() => router.back()} className="mr-4">
+              <AntDesign name="caretleft" size={18} />
+          </TouchableOpacity>
           <TextInput
-            className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-            placeholder="Search conversations..."
+            className="flex-1 px-4 w-full py-2 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Add an alias..."
+            placeholderTextColor="#4a4a4a"
             value={nicknameText}
             onChangeText={(text): void => setNicknameText(text)}
           />

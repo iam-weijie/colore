@@ -25,6 +25,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
+import AntDesign from "@expo/vector-icons/AntDesign";
+
 
 
 
@@ -235,25 +237,30 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   return (
     <View className="flex-1 mt-3">
       <View className="mx-7 mb-2">
-        <View className="flex flex-row items-center justify-between">
-          <Text className={`text-2xl font-JakartaBold flex-1`}>
-            {nickname ? nickname : profileUser?.username ? `${profileUser?.username}` : `${profileUser?.firstname?.charAt(0)}.`}
-          </Text>
-
-          <View className="flex flex-row items-right">
-            {!isEditable && (
+        {!isEditable && (
+          <View className="flex flex-row items-center justify-between pb-3">
+            <TouchableOpacity onPress={() => router.back()} className="mr-4">
+              <AntDesign name="caretleft" size={18} />
+            </TouchableOpacity>
+            <View className="flex flex-row items-right">
               <DropdownMenu 
-                onAlias={handleAddNickname}
+                onAlias={() => handleAddNickname()}
                 onChat={() => startChat([profileUser.clerk_id, nickname || profileUser.username] as UserNicknamePair)}
               />
-            )}
+            </View>
+          </View>)}
+          <View className="flex flex-row items-center justify-between">
+            <Text className={`text-2xl font-JakartaBold flex-1`}>
+                {nickname ? nickname : profileUser?.username ? `${profileUser?.username}` : `${profileUser?.firstname?.charAt(0)}.`}
+            </Text>
+            <View className="flex flex-row items-right">
+              {isEditable && onSignOut && (
+                <TouchableOpacity onPress={onSignOut}>
+                  <Image source={icons.logout} className="w-5 h-5" />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-          {isEditable && onSignOut && (
-            <TouchableOpacity onPress={onSignOut}>
-              <Image source={icons.logout} className="w-5 h-5" />
-            </TouchableOpacity>
-          )}
-        </View>
 
         <View>
           {isEditable ? (

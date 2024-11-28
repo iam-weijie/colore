@@ -14,9 +14,9 @@ const DropdownMenu = ({ onAlias, onChat }) => {
   return (
     <View>
       <TouchableOpacity onPress={() => setVisible(true)}>
-        <View className="flex flex-col justify-center items-center h-6 w-6">
-          <View className="w-1 h-1 bg-gray-600 rounded-full mb-1" />
-          <View className="w-1 h-1 bg-gray-600 rounded-full mb-1" />
+        <View className="flex flex-row justify-center items-center h-6 w-6">
+          <View className="w-1 h-1 bg-gray-600 rounded-full mr-1" />
+          <View className="w-1 h-1 bg-gray-600 rounded-full mr-1" />
           <View className="w-1 h-1 bg-gray-600 rounded-full" />
         </View>
       </TouchableOpacity>

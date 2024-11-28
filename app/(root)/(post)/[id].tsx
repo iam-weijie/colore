@@ -473,11 +473,12 @@ const PostScreen = () => {
     <SafeAreaView className="flex-1">
       <SignedIn>
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-        <View className="flex flex-row justify-center items-center mt-3 mx-4">
+        <View className="flex flex-row justify-left items-center mt-3 mx-4 pb-3">
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
             <AntDesign name="caretleft" size={18} />
           </TouchableOpacity>
-
+        </View>
+        <View className="flex flex-row justify-center items-center mt-3 mx-4">
           <View className="flex-1">
             <TouchableOpacity onPress={() => handleUserProfile(userId)}>
               <Text className="font-JakartaSemiBold text-lg">
