@@ -77,12 +77,14 @@ const PwReset = () => {
             textContentType="emailAddress"
             value={form.email}
             onChangeText={(value) => setForm({ ...form, email: value })}
+            style={{ height: 60}}
           />
 
           <CustomButton
             title="Continue"
             onPress={onRequestReset}
             className="mt-10"
+            style={{ height: 60}}
           />
         </View>
 
