@@ -24,6 +24,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
+import DropdownMenu from "./DropdownMenu";
+import AntDesign from "@expo/vector-icons/AntDesign";
+
 
 
 
@@ -37,6 +40,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { stateVars, setStateVars } = useNavigationContext();
   const router = useRouter();
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
+  const [convId, setConvId] = useState<string | null>(null);
 
   const isEditable = user!.id === userId;
   
@@ -140,32 +144,123 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         </View>
       </SafeAreaView>
     );
+    const checkIfChatExists = async (user2: UserNicknamePair) => {
+      try {
+        // console.log("user: ", user!.id);
+        const response = await fetchAPI(
+          `/(api)/(chat)/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
+          {
+            method: "GET",
+          }
+        );
+        if (response.error) {
+          console.log("Error fetching user data");
+          console.log("response data: ", response.data);
+          console.log("response status: ", response.status);
+          // console.log("response: ", response);
+          throw new Error(response.error);
+        }
+        console.log("response: ", response.data.length);
+        if (response.data.length > 0){
+          setConvId(response.data[0].id);
+          router.push(`/(root)/(chat)/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`);
+        }
+        return response.data.length > 0;
+      } catch (err) {
+        console.error("Failed to fetch user data:", err);
+        setError("Failed to fetch nicknames.");
+        return false;
+      } 
+    }
+    const startChat = async (otherUser: UserNicknamePair) => {
+      console.log(`Starting chat with ${otherUser[1]}`);
+      const exists = await checkIfChatExists(otherUser);
+      console.log("conversationExists: ", exists);
+      if (exists) {
+        console.log("Chat already exists, sending user to conversation with Id: ", convId);
+      }
+      else {
+        setLoading(true);
+        try {
+          const response = await fetchAPI(
+            `/(api)/(chat)/newConversation`,
+            {
+              method: "POST",
+              body: JSON.stringify({
+                clerkId_1: user!.id,
+                clerkId_2: otherUser[0],
+              }),
+            }
+          );
+          if (response.error) {
+            console.log("Error creating conversation");
+            console.log("response data: ", response.data);
+            console.log("response status: ", response.status);
+            // console.log("response: ", response);
+            throw new Error(response.error);
+          }
+          console.log("Chat was successfully created, attempting to get conversation information to push user there");
+          try {
+            const result = await fetchAPI(
+              `/(api)/(chat)/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
+              {
+                method: "GET",
+              }
+            );
+            if (result.error) {
+              console.log("Error fetching conversation data");
+              console.log("response data: ", result.data);
+              console.log("response status: ", result.status);
+              // console.log("response: ", response);
+              throw new Error(result.error);
+            }
+            else {
+              const conversation = result.data[0];
+              console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
+              router.push(`/(root)/(chat)/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`);
+            }
+          }
+          catch (err) {
+            console.error("Failed to fetch conversation data:", err);
+            setError("Chat was successfully created, but failed to send user to conversation.");
+          }
+        } catch (err) {
+          console.error("Failed to create new conversation:", err);
+          setError("Failed to create new conversation");
+        } 
+        finally {
+          setLoading(false);
+        }
+      }
+    };
 
   return (
     <View className="flex-1 mt-3">
       <View className="mx-7 mb-2">
-        <View className="flex flex-row items-center justify-between">
-          <Text className={`text-2xl font-JakartaBold flex-1`}>
-            {nickname ? nickname : profileUser?.username ? `${profileUser?.username}` : `${profileUser?.firstname?.charAt(0)}.`}
-          </Text>
-
-          <View className="flex flex-row items-center">
-            {!isEditable && (
-              <CustomButton
-                title="Nickname"
-                onPress={handleAddNickname}
-                className="mr-3 w-[100px] h-11 rounded-md"
-                fontSize="sm"
-                padding="2"
-              />
-            )}
-          </View>
-          {isEditable && onSignOut && (
-            <TouchableOpacity onPress={onSignOut}>
-              <Image source={icons.logout} className="w-5 h-5" />
+        {!isEditable && (
+          <View className="flex flex-row items-center justify-between pb-3">
+            <TouchableOpacity onPress={() => router.back()} className="mr-4">
+              <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
-          )}
-        </View>
+            <View className="flex flex-row items-right">
+              <DropdownMenu 
+                onAlias={() => handleAddNickname()}
+                onChat={() => startChat([profileUser.clerk_id, nickname || profileUser.username] as UserNicknamePair)}
+              />
+            </View>
+          </View>)}
+          <View className="flex flex-row items-center justify-between">
+            <Text className={`text-2xl font-JakartaBold flex-1`}>
+                {nickname ? nickname : profileUser?.username ? `${profileUser?.username}` : `${profileUser?.firstname?.charAt(0)}.`}
+            </Text>
+            <View className="flex flex-row items-right">
+              {isEditable && onSignOut && (
+                <TouchableOpacity onPress={onSignOut}>
+                  <Image source={icons.logout} className="w-5 h-5" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
 
         <View>
           {isEditable ? (
@@ -191,8 +286,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       </View>
       <View className="flex-row justify-between mx-6">
         <View className="flex-1 items-center">
-          <Text className="text-gray-500 font-Jakarta">Liked Posts</Text>
-          <Text className="text-lg font-JakartaBold">0</Text>
+          <Text className="text-gray-500 font-Jakarta">Colors</Text>
+          <Text className="text-lg font-JakartaBold">3</Text>
         </View>
 
         <View className="flex-1 items-center">
@@ -234,9 +329,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         >
           <Image
             source={icons.palette}
-            tintColor={currentSubscreen === "colors" ? undefined : "#e0e0e0"}
+            tintColor={currentSubscreen === "colors" ? "#93c5fd" : "#e0e0e0"}
             resizeMode="contain"
-            className="w-6 h-6"
+            className="w-6 h-6 pt-1"
           />
         </TouchableOpacity>
       </View>
