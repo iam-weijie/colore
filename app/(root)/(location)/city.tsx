@@ -46,7 +46,7 @@ const City = () => {
       });
     }
 
-    router.replace(`/(root)/${stateVars.previousScreen}` as Href<string>);
+    router.replace(`/(root)/${stateVars.previousScreen}` as Href);
   };
 
   return (

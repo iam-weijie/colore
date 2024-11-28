@@ -3,7 +3,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useRoute } from "@react-navigation/native";
-import { router, useRootNavigationState } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -98,7 +98,7 @@ const UserInfo = () => {
   }
 
   const route = useRoute();
-  const currentScreen = route.name as string;
+  const currentScreen = usePathname().replace("/", "");
   const { stateVars, setStateVars } = useNavigationContext();
 
   const tenYearsAgo = new Date();
