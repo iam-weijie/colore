@@ -83,6 +83,7 @@ const PwReset = () => {
             title="Continue"
             onPress={onRequestReset}
             className="mt-10"
+            padding="3"
           />
         </View>
 
@@ -153,6 +154,7 @@ const PwReset = () => {
             <CustomButton
               title="Reset Password"
               onPress={onReset}
+              padding="3"
               className="mt-5 bg-success-500"
             />
           </View>

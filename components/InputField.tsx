@@ -43,7 +43,7 @@ const InputField = ({
             )}
             <TextInput
               placeholderTextColor={"silver"}
-              className={`rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 ${inputStyle} text-left`}
+              className={`rounded-full p-4 font-JakartaSemiBold text-[17px] flex-1 ${inputStyle} text-left`}
               secureTextEntry={secureTextEntry}
               {...props}
             />
