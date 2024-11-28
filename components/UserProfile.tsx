@@ -245,7 +245,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             <View className="flex flex-row items-right">
               <DropdownMenu 
                 onAlias={() => handleAddNickname()}
-                onChat={() => startChat([profileUser.clerk_id, nickname || profileUser.username] as UserNicknamePair)}
+                onChat={() => startChat([profileUser!.clerk_id, nickname || profileUser!.username] as UserNicknamePair)}
               />
             </View>
           </View>)}
