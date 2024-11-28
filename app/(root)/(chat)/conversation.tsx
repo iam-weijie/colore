@@ -132,17 +132,19 @@ const Conversation = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-      <View className="flex flex-row items-center justify-between px-4 pt-2 pr-9">        
+        <View className="flex flex-row items-center justify-between px-4 pt-2 pr-9" style={{ height: 50}}>        
           <View className="mr-2">
-            <TouchableOpacity onPress={() => router.replace("/(root)/(tabs)/chat")}>
+            <TouchableOpacity onPress={() => router.back()}>
               <AntDesign name="caretleft" size={18} color="0076e3" />
             </TouchableOpacity>
           </View>
-          <Text className={`text-2xl font-JakartaBold flex-1 text-center`}>
-            {otherName}
-          </Text>
-          </View>
-        <View className="flex-1 bg-gray-100">
+          <TouchableOpacity className = "flex-1" onPress={() => router.push({pathname:"/(root)/(profile)/[id]", params:{ id: otherClerkId }})}>
+            <Text className={`text-2xl font-JakartaBold flex-1 text-center`}>
+              {otherName}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View className="flex-1 bg-gray-100 ">
           {loading ? 
           ( <View className="flex-[0.8] justify-center items-center">
               <ActivityIndicator size="large" color="black" />

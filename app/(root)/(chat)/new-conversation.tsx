@@ -61,9 +61,9 @@ const NewConversation = (): React.ReactElement => {
         
     }, []);
 
-  const filteredUsers = users.filter((user) => 
-    user[1].includes(searchText.toLowerCase())
-  );
+  const filteredUsers = searchText.length > 0 
+    ? users.filter((user) => user[1].toLowerCase().includes(searchText.toLowerCase()))
+    : [];
   const checkIfChatExists = async (user2: UserNicknamePair) => {
     try {
       // console.log("user: ", user!.id);
@@ -82,6 +82,7 @@ const NewConversation = (): React.ReactElement => {
       }
       console.log("response: ", response.data.length);
       if (response.data.length > 0){
+        setConvId(response.data[0].id);
         router.push(`/(root)/(chat)/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`);
       }
       return response.data.length > 0;

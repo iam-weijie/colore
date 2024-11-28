@@ -63,6 +63,7 @@ const PostScreen = () => {
   const userId = Array.isArray(clerk_id) ? clerk_id[0] : clerk_id;
   const screenHeight = Dimensions.get("screen").height;
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPostDeleted, setIsPostDeleted] = useState(false);
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
@@ -327,18 +328,20 @@ const PostScreen = () => {
   };
 
   const handleDeletePost = async () => {
-    await fetchAPI(`/(api)/(posts)/deletePostComments?id=${id}`, {
-      method: "DELETE",
-    });
-
-    await fetchAPI(`/(api)/(posts)/deletePost?id=${id}`, {
-      method: "DELETE",
-    });
-
-    Alert.alert("Post deleted.");
-    router.back();
+    try {
+      setIsPostDeleted(true);
+  
+      await fetchAPI(`/(api)/(posts)/deletePost?id=${id}`, {
+        method: "DELETE", 
+      });
+  
+      Alert.alert("Post deleted.");
+      router.back();
+    } catch (error) {
+      setIsPostDeleted(false);
+      Alert.alert("Error deleting post");
+    }
   };
-
   const handleDeleteCommentPress = async (id: number) => {
     Alert.alert(
       "Delete Comment",
@@ -433,27 +436,33 @@ const PostScreen = () => {
       <View className="flex flex-row mr-2">
         <Text className="flex-1 font-Jakarta">{item.content}</Text>
         <View className="flex flex-col items-center">
-          <TouchableOpacity 
-            onPress={() => handleCommentLike(item.id)}
-            disabled={isLoadingCommentLike}
-          >
-            <MaterialCommunityIcons
-              name={commentLikes[item.id] ? "heart" : "heart-outline"}
-              size={24}
-              color={commentLikes[item.id] ? "red" : "black"}
-            />
-          </TouchableOpacity>
-          
-          {/* Show like count for all comments, not just owned ones */}
-          <Text className="text-xs text-gray-500">
-            {commentLikeCounts[item.id] || 0}
-          </Text>
-          
-          {item.user_id === user?.id && (
-            <TouchableOpacity onPress={() => handleDeleteCommentPress(item.id)}>
-              <Image source={icons.trash} className="mt-3 w-5 h-5" />
-            </TouchableOpacity>
-          )}
+              <View className="flex-row items-center">
+                <TouchableOpacity 
+                  onPress={() => handleCommentLike(item.id)}
+                  disabled={isLoadingCommentLike}
+                >
+                  <MaterialCommunityIcons
+                    name={commentLikes[item.id] ? "heart" : "heart-outline"}
+                    size={24}
+                    color={commentLikes[item.id] ? "red" : "black"}
+                  />
+                </TouchableOpacity>
+                {item.user_id === user?.id ? (
+                    <TouchableOpacity onPress={() => handleDeleteCommentPress(item.id)} className="mt-30 mr-70 pl-2">
+                      <Image source={icons.trash} className="w-5 h-5" />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity onPress={() => console.log("")} disabled={true} className="mt-30 mr-70 pl-2">
+                      <Image source={icons.trash} className="w-5 h-5" style={{opacity: 0.0}} />
+                    </TouchableOpacity>
+                  )}
+              </View>
+              {/* Show like count to post creator and comment creator*/}
+              {(clerk_id === user?.id || item.user_id === user?.id) && /*item.user_id === user?.id ?*/ (
+                  <Text className="text-xs text-gray-500 w-6 text-center mr-7">{commentLikeCounts[item.id] || 0}</Text>
+                ) /*: (
+                  <Text className="ml-1 text-xs text-gray-500 w-6 text-center mr-1">{commentLikeCounts[item.id] || 0}</Text>
+                )*/}
         </View>
       </View>
     </View>
@@ -464,11 +473,12 @@ const PostScreen = () => {
     <SafeAreaView className="flex-1">
       <SignedIn>
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-        <View className="flex flex-row justify-center items-center mt-3 mx-4">
+        <View className="flex flex-row justify-left items-center mt-3 mx-4 pl-2 pb-3">
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
             <AntDesign name="caretleft" size={18} />
           </TouchableOpacity>
-
+        </View>
+        <View className="flex flex-row justify-center items-center mt-3 mx-4 pl-2">
           <View className="flex-1">
             <TouchableOpacity onPress={() => handleUserProfile(userId)}>
               <Text className="font-JakartaSemiBold text-lg">
@@ -488,12 +498,13 @@ const PostScreen = () => {
           onPressIn={() => Keyboard.dismiss()}
         >
           {/* Post information */}
-          <View className="p-4 border-b border-gray-200 relative">
+          <View className="p-4 pl-8 border-b border-gray-200 relative">
             <View className="absolute top-4 right-4 items-center mt-2">
               <View className="flex-row items-center">
                 <TouchableOpacity 
                   onPress={handleLikePress}
                   disabled={isLoadingLike}
+                  className="ml-2 pr-4"
                 >
                   <MaterialCommunityIcons
                     name={isLiked ? "heart" : "heart-outline"}
@@ -507,11 +518,11 @@ const PostScreen = () => {
                 )}
               </View>
 
-                  {clerk_id === user?.id && (
-                    <TouchableOpacity onPress={handleDeletePostPress} className="mt-4">
+                  {/*clerk_id === user?.id && (
+                    <TouchableOpacity onPress={handleDeletePostPress} className="mt-3 mr-7">
                       <Image source={icons.trash} className="w-7 h-7" />
                     </TouchableOpacity>
-                  )}
+                  )*/}
                 </View>
                 <Text className="font-Jakarta mt-2 ml-2 mr-10 min-h-[80]">{content}</Text>
               </View>
@@ -520,16 +531,16 @@ const PostScreen = () => {
 
           {/* Comment section */}
           <View className="mt-4 mb-24">
-            <Text className="font-JakartaSemiBold text-lg mx-4">Comments</Text>
+            <Text className="font-JakartaSemiBold text-lg mx-4 pl-2">Comments</Text>
             {loading && <ActivityIndicator size="large" color="#0076e3" />}
             {error && <Text className="text-red-500 mx-4">{error}</Text>}
             {!loading && !error && postComments.length === 0 && (
-              <Text className="text-gray-500 mx-4 min-h-[30px]">
+              <Text className="text-gray-500 mx-4 min-h-[30px] pl-2">
                 No comments yet.
               </Text>
             )}
             {!loading && !error && postComments.length > 0 && (
-              <View className="mx-2">
+              <View className="mx-2 pl-4">
                 {postComments.map((comment) =>
                   renderComment({ item: comment })
                 )}
@@ -547,7 +558,7 @@ const PostScreen = () => {
               scrollEnabled
               onChangeText={handleChangeText}
               onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
-              editable={!isSubmitting}
+              editable={!isSubmitting && !isSubmitting}
               style={{
                 paddingTop: 10,
                 paddingBottom: Platform.OS === "android" ? 0 : 10,
@@ -558,7 +569,7 @@ const PostScreen = () => {
             <CustomButton
               title={isSubmitting ? "Sending..." : "Send"}
               onPress={handleCommentSubmit}
-              disabled={newComment.length === 0 || isSubmitting}
+              disabled={newComment.length === 0 || isSubmitting || isPostDeleted}
               className="absolute bottom-4 ml-3 w-14 h-9 rounded-md absolute bottom-4 right-4"
               fontSize="sm"
               padding="0"
