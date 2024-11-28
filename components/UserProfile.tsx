@@ -349,7 +349,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           <View className="items-center flex-1">
             <PostGallery 
               posts={userPosts} 
-              profileUserId={profileUser?.clerk_id} 
+              profileUserId={profileUser!.clerk_id} 
               handleUpdate={fetchUserData} 
             />
           </View>
@@ -357,7 +357,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           <View className="items-center flex-1">
             <PostGallery 
               posts={userPosts} 
-              profileUserId={profileUser?.clerk_id} 
+              profileUserId={profileUser!.clerk_id} 
               handleUpdate={fetchUserData} 
             />
           </View>
