@@ -473,12 +473,12 @@ const PostScreen = () => {
     <SafeAreaView className="flex-1">
       <SignedIn>
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-        <View className="flex flex-row justify-left items-center mt-3 mx-4 pb-3">
+        <View className="flex flex-row justify-left items-center mt-3 mx-4 pl-2 pb-3">
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
             <AntDesign name="caretleft" size={18} />
           </TouchableOpacity>
         </View>
-        <View className="flex flex-row justify-center items-center mt-3 mx-4">
+        <View className="flex flex-row justify-center items-center mt-3 mx-4 pl-2">
           <View className="flex-1">
             <TouchableOpacity onPress={() => handleUserProfile(userId)}>
               <Text className="font-JakartaSemiBold text-lg">
@@ -498,13 +498,13 @@ const PostScreen = () => {
           onPressIn={() => Keyboard.dismiss()}
         >
           {/* Post information */}
-          <View className="p-4 border-b border-gray-200 relative">
+          <View className="p-4 pl-8 border-b border-gray-200 relative">
             <View className="absolute top-4 right-4 items-center mt-2">
               <View className="flex-row items-center">
                 <TouchableOpacity 
                   onPress={handleLikePress}
                   disabled={isLoadingLike}
-                  className="ml-2"
+                  className="ml-2 pr-4"
                 >
                   <MaterialCommunityIcons
                     name={isLiked ? "heart" : "heart-outline"}
@@ -531,16 +531,16 @@ const PostScreen = () => {
 
           {/* Comment section */}
           <View className="mt-4 mb-24">
-            <Text className="font-JakartaSemiBold text-lg mx-4">Comments</Text>
+            <Text className="font-JakartaSemiBold text-lg mx-4 pl-2">Comments</Text>
             {loading && <ActivityIndicator size="large" color="#0076e3" />}
             {error && <Text className="text-red-500 mx-4">{error}</Text>}
             {!loading && !error && postComments.length === 0 && (
-              <Text className="text-gray-500 mx-4 min-h-[30px]">
+              <Text className="text-gray-500 mx-4 min-h-[30px] pl-2">
                 No comments yet.
               </Text>
             )}
             {!loading && !error && postComments.length > 0 && (
-              <View className="mx-2">
+              <View className="mx-2 pl-4">
                 {postComments.map((comment) =>
                   renderComment({ item: comment })
                 )}
