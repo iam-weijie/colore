@@ -82,6 +82,7 @@ const NewConversation = (): React.ReactElement => {
       }
       console.log("response: ", response.data.length);
       if (response.data.length > 0){
+        setConvId(response.data[0].id);
         router.push(`/(root)/(chat)/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`);
       }
       return response.data.length > 0;
