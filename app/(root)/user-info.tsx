@@ -71,33 +71,33 @@ const UserInfo = () => {
 
     const getData = async () => {
       const data = await fetchUserData();
-      setUserData({
-        city: data.city,
-        state: data.state,
-        country: data.country,
-        email: data.email,
-        firstname: data.firstname,
-        lastname: data.lastname,
-        username: data.username,
-        date_of_birth: data.date_of_birth,
-      });
+      if (
+        data.city &&
+        data.state &&
+        data.country &&
+        data.email &&
+        data.firstname &&
+        data.lastname &&
+        data.username &&
+        data.date_of_birth
+      ) {
+        router.replace("/(root)/(tabs)/home");
+      } else {
+        setUserData({
+          city: data.city,
+          state: data.state,
+          country: data.country,
+          email: data.email,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          username: data.username,
+          date_of_birth: data.date_of_birth,
+        });
+      }
     };
     getData();
   }, [user]);
-  if (
-    userData.city &&
-    userData.state &&
-    userData.country &&
-    userData.email &&
-    userData.firstname &&
-    userData.lastname &&
-    userData.username &&
-    userData.date_of_birth
-  ) {
-    router.replace("/(root)/(tabs)/home");
-  }
 
-  const route = useRoute();
   const currentScreen = usePathname().replace("/", "");
   const { stateVars, setStateVars } = useNavigationContext();
 
