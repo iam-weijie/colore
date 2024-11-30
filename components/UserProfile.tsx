@@ -141,6 +141,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       <SafeAreaView className="flex-1">
         <View className="flex flex-row items-center justify-between">
           <Text>An error occurred. Please try again Later.</Text>
+          <View className="flex flex-row items-right">
+              {isEditable && onSignOut && (
+                <TouchableOpacity onPress={onSignOut}>
+                  <Image source={icons.logout} className="w-5 h-5" />
+                </TouchableOpacity>
+              )}
+            </View>
         </View>
       </SafeAreaView>
     );
