@@ -20,7 +20,7 @@ import { fetchAPI } from "@/lib/fetch";
 
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
@@ -54,7 +54,6 @@ const SignUp = () => {
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-
       setVerification({ ...verification, state: "pending" });
     } catch (err: any) {
       Alert.alert("Error", err.errors[0].longMessage);
@@ -81,7 +80,8 @@ const SignUp = () => {
         });
 
         await setActive({ session: completeSignUp.createdSessionId });
-        setVerification({ ...verification, state: "success" });
+        setVerification({ ...verification, state: "default" });
+        setShowSuccess(true);
       } else {
         setVerification({
           ...verification,
@@ -98,9 +98,34 @@ const SignUp = () => {
     }
   };
 
+  if (showSuccess) {
+    return (
+      <View className="flex-1 bg-white justify-center items-center px-7">
+        <Image
+          source={icons.check}
+          className="w-[110px] h-[110px] mb-5"
+        />
+
+        <Text className="text-3xl font-JakartaBold text-center">
+          Verified
+        </Text>
+
+        <Text className="text-base text-gray-400 font-Jakarta text-center mt-2 mb-5">
+          You have been successfully verified.
+        </Text>
+
+        <CustomButton
+          title="Continue"
+          onPress={() => router.push("/(root)/user-info")}
+          className="w-full"
+        />
+      </View>
+    );
+  }
+
   return (
     <ScrollView className="bg-white">
-      <View className="relative ">
+      <View className="relative">
         <Circle
           color="#ffd640"
           size={500}
@@ -122,6 +147,7 @@ const SignUp = () => {
           }}
         />
       </View>
+
       <View className="relative w-full">
         <Text className="text-2xl font-JakartaBold relative ml-5 mt-[180]">
           Create Your Account
@@ -130,7 +156,6 @@ const SignUp = () => {
 
       <View className="p-5">
         <InputField
-          // variant="signup"
           label="Email"
           placeholder="Enter your email"
           icon={icons.email}
@@ -140,7 +165,6 @@ const SignUp = () => {
         />
 
         <InputField
-          // variant="signup"
           label="Password"
           placeholder="Enter your password"
           icon={icons.lock}
@@ -151,7 +175,6 @@ const SignUp = () => {
         />
 
         <InputField
-          // variant="signup"
           label=""
           placeholder="Confirm your password"
           icon={icons.lock}
@@ -184,25 +207,23 @@ const SignUp = () => {
 
       <ReactNativeModal
         isVisible={verification.state === "pending"}
-        onModalHide={() => {
-          if (verification.state === "success") {
-            setShowSuccessModal(true);
-          }
-        }}
+        onBackdropPress={() => setVerification({ ...verification, state: "default" })}
+        animationIn="fadeIn"
+        animationOut="fadeOut"
       >
         <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
           <TouchableOpacity
-            onPress={() =>
-              setVerification({ ...verification, state: "default" })
-            }
+            onPress={() => setVerification({ ...verification, state: "default" })}
             className="absolute right-0 p-4"
           >
             <Image source={icons.close} className="w-5 h-5" />
           </TouchableOpacity>
+          
           <Text className="text-2xl font-JakartaExtraBold mb-2">
             Verification
           </Text>
-          <Text className=" font-Jakarta mb-5">
+          
+          <Text className="font-Jakarta mb-5">
             We've sent a verification code to {form.email}
           </Text>
 
@@ -225,32 +246,6 @@ const SignUp = () => {
             title="Verify Email"
             onPress={onPressVerify}
             className="mt-5 bg-success-500"
-          />
-        </View>
-      </ReactNativeModal>
-
-      <ReactNativeModal isVisible={showSuccessModal}>
-        <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
-          <Image
-            source={icons.check}
-            className="w-[110px] h-[110px] mx-auto my-5"
-          />
-
-          <Text className="text-3xl font-JakartaBold text-center">
-            Verified
-          </Text>
-
-          <Text className="text-base text-gray-400 font-Jakarta text-center mt-2">
-            You have been successfully verified.
-          </Text>
-
-          <CustomButton
-            title="Continue"
-            onPress={() => {
-              setShowSuccessModal(false);
-              router.push("/(root)/user-info");
-            }}
-            className="mt-5"
           />
         </View>
       </ReactNativeModal>
