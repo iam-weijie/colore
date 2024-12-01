@@ -24,10 +24,10 @@ const Nickname = () => {
         }
       );
       if (response.error) {
-        console.log("Error fetching user data");
-        console.log("response data: ", response.data);
-        console.log("response status: ", response.status);
-        // console.log("response: ", response);
+        //console.log("Error fetching user data");
+        //console.log("response data: ", response.data);
+        //console.log("response status: ", response.status);
+        // //console.log("response: ", response);
         throw new Error(response.error);
       }
       return response.data[0].nicknames || [];
@@ -52,7 +52,7 @@ const Nickname = () => {
   }
 
   const updateNicknames = async () => {
-    // console.log("Updating nicknames to: ", nicknames);
+    // //console.log("Updating nicknames to: ", nicknames);
     await fetchAPI("/(api)/(users)/patchUserNicknames", {
       method: "PATCH",
       body: JSON.stringify({

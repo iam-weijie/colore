@@ -6,7 +6,7 @@ export async function DELETE(request: Request) {
     const url = new URL(request.url);
     const commentId = url.searchParams.get("id");
 
-    console.log("Received DELETE request for comment.");
+    //console.log("Received DELETE request for comment.");
 
     if (!commentId) {
       return Response.json(

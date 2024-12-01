@@ -195,7 +195,7 @@ const PostScreen = () => {
 
   const fetchNicknames = async () => {
     try {
-        // console.log("user: ", user!.id);
+        // //console.log("user: ", user!.id);
         const response = await fetchAPI(
           `/(api)/(users)/getUserInfo?id=${user!.id}`,
           {
@@ -203,13 +203,13 @@ const PostScreen = () => {
           }
         );
         if (response.error) {
-          console.log("Error fetching user data");
-          console.log("response data: ", response.data);
-          console.log("response status: ", response.status);
-          // console.log("response: ", response);
+          //console.log("Error fetching user data");
+          //console.log("response data: ", response.data);
+          //console.log("response status: ", response.status);
+          // //console.log("response: ", response);
           throw new Error(response.error);
         }
-        // console.log("response: ", response.data[0].nicknames);
+        // //console.log("response: ", response.data[0].nicknames);
         const nicknames = response.data[0].nicknames || [];
         setNicknames(nicknames);
         return;
@@ -279,7 +279,7 @@ const PostScreen = () => {
       const trimmedComment = newComment.trim();
       
       if (!trimmedComment || !id || !user?.id || !clerk_id) {
-        console.log("Missing required data:", { 
+        //console.log("Missing required data:", { 
           content: trimmedComment, 
           postId: id, 
           clerkId: user?.id,
@@ -395,7 +395,7 @@ const PostScreen = () => {
       if (Number(unread_comments) > 0) {
         handleReadComments();
       }
-      console.log("User goes back from post screen");
+      //console.log("User goes back from post screen");
     });
     
   }, []);
@@ -452,7 +452,7 @@ const PostScreen = () => {
                       <Image source={icons.trash} className="w-5 h-5" />
                     </TouchableOpacity>
                   ) : (
-                    <TouchableOpacity onPress={() => console.log("")} disabled={true} className="mt-30 mr-70 pl-2">
+                    <TouchableOpacity onPress={() => //console.log("")} disabled={true} className="mt-30 mr-70 pl-2">
                       <Image source={icons.trash} className="w-5 h-5" style={{opacity: 0.0}} />
                     </TouchableOpacity>
                   )}

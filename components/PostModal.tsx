@@ -118,7 +118,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
   const fetchCurrentNickname = async () => {
     try {
-      // console.log("user: ", user!.id);
+      // //console.log("user: ", user!.id);
       const response = await fetchAPI(
         `/(api)/(users)/getUserInfo?id=${user!.id}`,
         {
@@ -126,13 +126,13 @@ const PostModal: React.FC<PostModalProps> = ({
         }
       );
       if (response.error) {
-        console.log("Error fetching user data");
-        console.log("response data: ", response.data);
-        console.log("response status: ", response.status);
-        // console.log("response: ", response);
+        //console.log("Error fetching user data");
+        ////console.log("response data: ", response.data);
+        //console.log("response status: ", response.status);
+        // //console.log("response: ", response);
         throw new Error(response.error);
       }
-      // console.log("response: ", response.data[0].nicknames);
+      // //console.log("response: ", response.data[0].nicknames);
       const nicknames = response.data[0].nicknames || [];
       return findUserNickname(nicknames, post!.clerk_id) === -1
         ? ""

@@ -7,7 +7,7 @@ import { neon } from "@neondatabase/serverless";
 // For now, it will only take the location
 export async function PATCH(request: Request) {
   try {
-    console.log("Received PATCH request for conversations");
+    //console.log("Received PATCH request for conversations");
     const sql = neon(`${process.env.DATABASE_URL}`);
     const { conversationId, message, timestamp} = await request.json();
 
@@ -29,7 +29,7 @@ export async function PATCH(request: Request) {
       status: 200, // successful update
     });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     return Response.json({ error: error }, { status: 500 });
   }
 }

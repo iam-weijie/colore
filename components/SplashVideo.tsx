@@ -10,7 +10,7 @@ const SplashVideo = ({onAnimationFinish}: {onAnimationFinish: (isCancelled: bool
          <LottieView
           ref={animation}
           onAnimationFinish={(isCancelled) => {
-            console.log('Native onAnimationFinish called', { isCancelled });
+            //console.log('Native onAnimationFinish called', { isCancelled });
             onAnimationFinish(isCancelled);
           }}
           loop={false}

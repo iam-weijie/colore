@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const userId = url.searchParams.get("id");
 
-    console.log("Received GET request for users from user:", userId);
+    //console.log("Received GET request for users from user:", userId);
 
     const rawResponse = await sql`
       SELECT 
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
         nickname || row.username // Use nickname if exists, otherwise use username
       ]
      });
-     console.log("Response: ", response)
+     //console.log("Response: ", response)
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,

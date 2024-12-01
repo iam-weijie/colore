@@ -65,7 +65,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
         setSelectedPost(item);
         if (isOwnProfile && item.unread_comments > 0) {
           setQueueRefresh(true);
-          console.log("set isReadingUnread to truee");
+          //console.log("set isReadingUnread to truee");
         }
         setHasNavigatedAway(false);
       }}>
@@ -97,7 +97,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
   useFocusEffect(
     useCallback(() => {
-      console.log(queueRefresh, hasNavigatedAway, handleUpdate);
+      //console.log(queueRefresh, hasNavigatedAway, handleUpdate);
       if (queueRefresh && hasNavigatedAway && isOwnProfile && handleUpdate) {
         handleUpdate();
       };

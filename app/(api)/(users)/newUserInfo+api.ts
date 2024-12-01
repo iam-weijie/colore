@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
 
     if (request.method === "POST") {
-      console.log("Received POST request.");
+      //console.log("Received POST request.");
       const {
         firstName,
         lastName,
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       });
     }
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     return Response.json({ error: error }, { status: 500 });
   }
 }

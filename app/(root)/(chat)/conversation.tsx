@@ -39,14 +39,14 @@ const Conversation = () => {
       );
     setMessages(response.data);
     flatListRef.current?.scrollToEnd({ animated: true })
-    console.log("Messages:", response.data);
+    //console.log("Messages:", response.data);
   }
   const fetchMessagesFirst = async () => {
     setLoading(true);
     try {
       await fetchMessages();
     } catch (error) {
-      console.log("Error fetching messages", error);
+      //console.log("Error fetching messages", error);
     } finally {
       setLoading(false);
       flatListRef.current?.scrollToEnd({ animated: true })

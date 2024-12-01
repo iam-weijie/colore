@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 export async function POST(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
-    console.log("Received POST request.");
+    //console.log("Received POST request.");
     const { clerkId_1, clerkId_2 } = await request.json();
 
     const response = await sql`
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       status: 201,
     });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     return Response.json({ error: error }, { status: 500 });
   }
 }

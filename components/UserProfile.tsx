@@ -146,7 +146,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     );
     const checkIfChatExists = async (user2: UserNicknamePair) => {
       try {
-        // console.log("user: ", user!.id);
+        // //console.log("user: ", user!.id);
         const response = await fetchAPI(
           `/(api)/(chat)/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
           {
@@ -154,13 +154,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           }
         );
         if (response.error) {
-          console.log("Error fetching user data");
-          console.log("response data: ", response.data);
-          console.log("response status: ", response.status);
-          // console.log("response: ", response);
+          //console.log("Error fetching user data");
+          //console.log("response data: ", response.data);
+          //console.log("response status: ", response.status);
+          // //console.log("response: ", response);
           throw new Error(response.error);
         }
-        console.log("response: ", response.data.length);
+        //console.log("response: ", response.data.length);
         if (response.data.length > 0){
           setConvId(response.data[0].id);
           router.push(`/(root)/(chat)/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`);
@@ -173,11 +173,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       } 
     }
     const startChat = async (otherUser: UserNicknamePair) => {
-      console.log(`Starting chat with ${otherUser[1]}`);
+      //console.log(`Starting chat with ${otherUser[1]}`);
       const exists = await checkIfChatExists(otherUser);
-      console.log("conversationExists: ", exists);
+      //console.log("conversationExists: ", exists);
       if (exists) {
-        console.log("Chat already exists, sending user to conversation with Id: ", convId);
+        //console.log("Chat already exists, sending user to conversation with Id: ", convId);
       }
       else {
         setLoading(true);
@@ -193,13 +193,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             }
           );
           if (response.error) {
-            console.log("Error creating conversation");
-            console.log("response data: ", response.data);
-            console.log("response status: ", response.status);
-            // console.log("response: ", response);
+            //console.log("Error creating conversation");
+            //console.log("response data: ", response.data);
+            //console.log("response status: ", response.status);
+            // //console.log("response: ", response);
             throw new Error(response.error);
           }
-          console.log("Chat was successfully created, attempting to get conversation information to push user there");
+          //console.log("Chat was successfully created, attempting to get conversation information to push user there");
           try {
             const result = await fetchAPI(
               `/(api)/(chat)/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
@@ -208,15 +208,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               }
             );
             if (result.error) {
-              console.log("Error fetching conversation data");
-              console.log("response data: ", result.data);
-              console.log("response status: ", result.status);
-              // console.log("response: ", response);
+              //console.log("Error fetching conversation data");
+              //console.log("response data: ", result.data);
+              //console.log("response status: ", result.status);
+              // //console.log("response: ", response);
               throw new Error(result.error);
             }
             else {
               const conversation = result.data[0];
-              console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
+              //console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
               router.push(`/(root)/(chat)/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`);
             }
           }

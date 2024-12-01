@@ -6,7 +6,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
 
-    console.log("Received GET request for user posts.");
+    //console.log("Received GET request for user posts.");
 
     const response = await sql`
       SELECT 

@@ -11,9 +11,9 @@ const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
   //const { isLoaded1, isSignedIn, session } = useSession();
-  //console.log("isLoggedIn: ", isSignedIn);
-  //console.log("isLoaded: ", isLoaded1);
-  //console.log("session: ", session);
+  ////console.log("isLoggedIn: ", isSignedIn);
+  ////console.log("isLoaded: ", isLoaded1);
+  ////console.log("session: ", session);
   //session?.end();
   const [form, setForm] = useState({
     email: "",

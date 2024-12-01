@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const userId = url.searchParams.get("id");
 
-    console.log("Received GET request for conversations for user with ID: ", userId);
+    ////console.log("Received GET request for conversations for user with ID: ", userId);
 
   
     const rawResponse = await sql`

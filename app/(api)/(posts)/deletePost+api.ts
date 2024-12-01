@@ -6,7 +6,7 @@ export async function DELETE(request: Request) {
     const url = new URL(request.url);
     const postId = url.searchParams.get("id");
 
-    console.log("Received DELETE request for post:", postId);
+    //console.log("Received DELETE request for post:", postId);
 
     if (!postId) {
       return new Response(JSON.stringify({ error: "Missing post ID" }), {
