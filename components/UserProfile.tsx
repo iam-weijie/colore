@@ -1,4 +1,3 @@
-import CustomButton from "@/components/CustomButton";
 import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants/index";
@@ -11,8 +10,9 @@ import {
   UserProfileType,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -25,10 +25,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
-import AntDesign from "@expo/vector-icons/AntDesign";
-
-
-
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -43,7 +39,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [convId, setConvId] = useState<string | null>(null);
 
   const isEditable = user!.id === userId;
-  
+
   function findUserNickname(
     userArray: UserNicknamePair[],
     userId: string
@@ -116,7 +112,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   useFocusEffect(
     React.useCallback(() => {
       fetchUserData();
-    }, [userId])  
+    }, [userId])
   );
 
   const handleAddNickname = () => {
@@ -127,7 +123,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     });
     router.push("/(root)/(profile)/nickname");
   };
-
 
   if (loading)
     return (
@@ -142,104 +137,103 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         <View className="flex flex-row items-center justify-between">
           <Text>An error occurred. Please try again Later.</Text>
           <View className="flex flex-row items-right">
-              {isEditable && onSignOut && (
-                <TouchableOpacity onPress={onSignOut}>
-                  <Image source={icons.logout} className="w-5 h-5" />
-                </TouchableOpacity>
-              )}
-            </View>
+            {isEditable && onSignOut && (
+              <TouchableOpacity onPress={onSignOut}>
+                <Image source={icons.logout} className="w-5 h-5" />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </SafeAreaView>
     );
-    const checkIfChatExists = async (user2: UserNicknamePair) => {
-      try {
-        // //console.log("user: ", user!.id);
-        const response = await fetchAPI(
-          `/(api)/(chat)/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
-          {
-            method: "GET",
-          }
+  const checkIfChatExists = async (user2: UserNicknamePair) => {
+    try {
+      // //console.log("user: ", user!.id);
+      const response = await fetchAPI(
+        `/(api)/(chat)/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.error) {
+        //console.log("Error fetching user data");
+        //console.log("response data: ", response.data);
+        //console.log("response status: ", response.status);
+        // //console.log("response: ", response);
+        throw new Error(response.error);
+      }
+      //console.log("response: ", response.data.length);
+      if (response.data.length > 0) {
+        setConvId(response.data[0].id);
+        router.push(
+          `/(root)/(chat)/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`
         );
+      }
+      return response.data.length > 0;
+    } catch (err) {
+      console.error("Failed to fetch user data:", err);
+      setError("Failed to fetch nicknames.");
+      return false;
+    }
+  };
+  const startChat = async (otherUser: UserNicknamePair) => {
+    //console.log(`Starting chat with ${otherUser[1]}`);
+    const exists = await checkIfChatExists(otherUser);
+    //console.log("conversationExists: ", exists);
+    if (exists) {
+      //console.log("Chat already exists, sending user to conversation with Id: ", convId);
+    } else {
+      setLoading(true);
+      try {
+        const response = await fetchAPI(`/(api)/(chat)/newConversation`, {
+          method: "POST",
+          body: JSON.stringify({
+            clerkId_1: user!.id,
+            clerkId_2: otherUser[0],
+          }),
+        });
         if (response.error) {
-          //console.log("Error fetching user data");
+          //console.log("Error creating conversation");
           //console.log("response data: ", response.data);
           //console.log("response status: ", response.status);
           // //console.log("response: ", response);
           throw new Error(response.error);
         }
-        //console.log("response: ", response.data.length);
-        if (response.data.length > 0){
-          setConvId(response.data[0].id);
-          router.push(`/(root)/(chat)/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`);
-        }
-        return response.data.length > 0;
-      } catch (err) {
-        console.error("Failed to fetch user data:", err);
-        setError("Failed to fetch nicknames.");
-        return false;
-      } 
-    }
-    const startChat = async (otherUser: UserNicknamePair) => {
-      //console.log(`Starting chat with ${otherUser[1]}`);
-      const exists = await checkIfChatExists(otherUser);
-      //console.log("conversationExists: ", exists);
-      if (exists) {
-        //console.log("Chat already exists, sending user to conversation with Id: ", convId);
-      }
-      else {
-        setLoading(true);
+        //console.log("Chat was successfully created, attempting to get conversation information to push user there");
         try {
-          const response = await fetchAPI(
-            `/(api)/(chat)/newConversation`,
+          const result = await fetchAPI(
+            `/(api)/(chat)/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
             {
-              method: "POST",
-              body: JSON.stringify({
-                clerkId_1: user!.id,
-                clerkId_2: otherUser[0],
-              }),
+              method: "GET",
             }
           );
-          if (response.error) {
-            //console.log("Error creating conversation");
-            //console.log("response data: ", response.data);
-            //console.log("response status: ", response.status);
+          if (result.error) {
+            //console.log("Error fetching conversation data");
+            //console.log("response data: ", result.data);
+            //console.log("response status: ", result.status);
             // //console.log("response: ", response);
-            throw new Error(response.error);
-          }
-          //console.log("Chat was successfully created, attempting to get conversation information to push user there");
-          try {
-            const result = await fetchAPI(
-              `/(api)/(chat)/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
-              {
-                method: "GET",
-              }
+            throw new Error(result.error);
+          } else {
+            const conversation = result.data[0];
+            //console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
+            router.push(
+              `/(root)/(chat)/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
             );
-            if (result.error) {
-              //console.log("Error fetching conversation data");
-              //console.log("response data: ", result.data);
-              //console.log("response status: ", result.status);
-              // //console.log("response: ", response);
-              throw new Error(result.error);
-            }
-            else {
-              const conversation = result.data[0];
-              //console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
-              router.push(`/(root)/(chat)/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`);
-            }
-          }
-          catch (err) {
-            console.error("Failed to fetch conversation data:", err);
-            setError("Chat was successfully created, but failed to send user to conversation.");
           }
         } catch (err) {
-          console.error("Failed to create new conversation:", err);
-          setError("Failed to create new conversation");
-        } 
-        finally {
-          setLoading(false);
+          console.error("Failed to fetch conversation data:", err);
+          setError(
+            "Chat was successfully created, but failed to send user to conversation."
+          );
         }
+      } catch (err) {
+        console.error("Failed to create new conversation:", err);
+        setError("Failed to create new conversation");
+      } finally {
+        setLoading(false);
       }
-    };
+    }
+  };
 
   return (
     <View className="flex-1 mt-3">
@@ -250,24 +244,34 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
             <View className="flex flex-row items-right">
-              <DropdownMenu 
+              <DropdownMenu
                 onAlias={() => handleAddNickname()}
-                onChat={() => startChat([profileUser!.clerk_id, nickname || profileUser!.username] as UserNicknamePair)}
+                onChat={() =>
+                  startChat([
+                    profileUser!.clerk_id,
+                    nickname || profileUser!.username,
+                  ] as UserNicknamePair)
+                }
               />
             </View>
-          </View>)}
-          <View className="flex flex-row items-center justify-between">
-            <Text className={`text-2xl font-JakartaBold flex-1`}>
-                {nickname ? nickname : profileUser?.username ? `${profileUser?.username}` : `${profileUser?.firstname?.charAt(0)}.`}
-            </Text>
-            <View className="flex flex-row items-right">
-              {isEditable && onSignOut && (
-                <TouchableOpacity onPress={onSignOut}>
-                  <Image source={icons.logout} className="w-5 h-5" />
-                </TouchableOpacity>
-              )}
-            </View>
           </View>
+        )}
+        <View className="flex flex-row items-center justify-between">
+          <Text className={`text-2xl font-JakartaBold flex-1`}>
+            {nickname
+              ? nickname
+              : profileUser?.username
+                ? `${profileUser?.username}`
+                : `${profileUser?.firstname?.charAt(0)}.`}
+          </Text>
+          <View className="flex flex-row items-right">
+            {isEditable && onSignOut && (
+              <TouchableOpacity onPress={onSignOut}>
+                <Image source={icons.logout} className="w-5 h-5" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
 
         <View>
           {isEditable ? (
@@ -281,7 +285,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             </Pressable>
           ) : (
             <Text className="text-gray-500 font-Jakarta text-base mt-3">
-              📍{profileUser?.city}, {profileUser?.state}, {" "}
+              📍{profileUser?.city}, {profileUser?.state},{" "}
               {profileUser?.country}
             </Text>
           )}
@@ -310,15 +314,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       <View className="mx-4 my-4">
         <View className="border-t border-gray-200" />
       </View>
-      
+
       <View
         className="flex flex-row justify-around bg-transparent rounded-full p-2"
-        style={{ width: '60%', alignSelf: 'center' }}
+        style={{ width: "60%", alignSelf: "center" }}
       >
         <TouchableOpacity
-          onPress={() => setCurrentSubscreen('posts')}
+          onPress={() => setCurrentSubscreen("posts")}
           className={`py-2.5 px-4 rounded-full ${
-            currentSubscreen === 'posts' ? 'bg-gray-300' : ''
+            currentSubscreen === "posts" ? "bg-gray-300" : ""
           }`}
         >
           <Image
@@ -329,9 +333,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => setCurrentSubscreen('colors')}
+          onPress={() => setCurrentSubscreen("colors")}
           className={`p-2 rounded-full ${
-            currentSubscreen === 'colors' ? 'bg-gray-300' : ''
+            currentSubscreen === "colors" ? "bg-gray-300" : ""
           }`}
         >
           <Image
@@ -342,11 +346,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           />
         </TouchableOpacity>
       </View>
-      
+
       <View className="mx-4 my-4">
         <View className="border-t border-gray-200" />
       </View>
-      
+
       <View className="items-center flex-1">
         {currentSubscreen === "colors" ? (
           <View className="items-center">
@@ -354,23 +358,23 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           </View>
         ) : currentSubscreen === "posts" ? (
           <View className="items-center flex-1">
-            <PostGallery 
-              posts={userPosts} 
-              profileUserId={profileUser!.clerk_id} 
-              handleUpdate={fetchUserData} 
+            <PostGallery
+              posts={userPosts}
+              profileUserId={profileUser!.clerk_id}
+              handleUpdate={fetchUserData}
             />
           </View>
         ) : (
           <View className="items-center flex-1">
-            <PostGallery 
-              posts={userPosts} 
-              profileUserId={profileUser!.clerk_id} 
-              handleUpdate={fetchUserData} 
+            <PostGallery
+              posts={userPosts}
+              profileUserId={profileUser!.clerk_id}
+              handleUpdate={fetchUserData}
             />
           </View>
         )}
       </View>
-      
+
       <View className="min-h-[80px]" />
     </View>
   );

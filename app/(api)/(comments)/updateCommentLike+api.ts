@@ -9,10 +9,9 @@ export async function GET(request: Request) {
     const commentIdNum = parseInt(commentId!, 10);
 
     if (!commentIdNum || !userId) {
-      return new Response(
-        JSON.stringify({ error: "Invalid input" }),
-        { status: 400 }
-      );
+      return new Response(JSON.stringify({ error: "Invalid input" }), {
+        status: 400,
+      });
     }
 
     const result = await sql`
@@ -29,28 +28,26 @@ export async function GET(request: Request) {
     `;
 
     if (result.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "Comment not found" }),
-        { status: 404 }
-      );
+      return new Response(JSON.stringify({ error: "Comment not found" }), {
+        status: 404,
+      });
     }
 
     return new Response(
       JSON.stringify({
         data: {
           likeCount: result[0].like_count,
-          liked: result[0].is_liked
-        }
+          liked: result[0].is_liked,
+        },
       }),
       { status: 200 }
     );
-
   } catch (error) {
     console.error("Comment like status check error:", error);
     return new Response(
       JSON.stringify({
         error: "Failed to check like status",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       }),
       { status: 500 }
     );
@@ -64,14 +61,13 @@ export async function PATCH(request: Request) {
     const commentIdNum = parseInt(commentId, 10);
 
     if (!commentIdNum || !userId) {
-      return new Response(
-        JSON.stringify({ error: "Invalid input" }),
-        { status: 400 }
-      );
+      return new Response(JSON.stringify({ error: "Invalid input" }), {
+        status: 400,
+      });
     }
 
     let result;
-    
+
     if (increment) {
       // Like the comment
       result = await sql`
@@ -123,18 +119,17 @@ export async function PATCH(request: Request) {
       JSON.stringify({
         data: {
           likeCount: result[0].like_count,
-          liked: result[0].is_liked
-        }
+          liked: result[0].is_liked,
+        },
       }),
       { status: 200 }
     );
-
   } catch (error) {
     console.error("Comment like update error:", error);
     return new Response(
       JSON.stringify({
         error: "Failed to update like status",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       }),
       { status: 500 }
     );

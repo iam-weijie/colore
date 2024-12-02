@@ -2,7 +2,7 @@ import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
 import { icons, images } from "@/constants";
-import { useSignIn, useAuth } from "@clerk/clerk-expo";
+import { useAuth, useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
@@ -31,7 +31,7 @@ const LogIn = () => {
       }
 
       // Wait a brief moment for the signOut to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const logInAttempt = await signIn.create({
         identifier: form.email,
@@ -42,12 +42,15 @@ const LogIn = () => {
         await setActive({ session: logInAttempt.createdSessionId });
         router.replace("/(root)/user-info");
       } else {
-        console.error("Incomplete login:", JSON.stringify(logInAttempt, null, 2));
+        console.error(
+          "Incomplete login:",
+          JSON.stringify(logInAttempt, null, 2)
+        );
         Alert.alert("Error", "Log in failed. Please try again.");
       }
     } catch (err) {
       console.error("Login error:", JSON.stringify(err, null, 2));
-      
+
       if (err.errors?.[0]?.code === "session_exists") {
         Alert.alert(
           "Error",
@@ -55,12 +58,15 @@ const LogIn = () => {
           [
             {
               text: "OK",
-              style: "default"
-            }
+              style: "default",
+            },
           ]
         );
       } else {
-        Alert.alert("Error", err.errors?.[0]?.longMessage || "An error occurred during login");
+        Alert.alert(
+          "Error",
+          err.errors?.[0]?.longMessage || "An error occurred during login"
+        );
       }
     }
   }, [isLoaded, form, signIn, setActive, router, signOut]);

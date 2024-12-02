@@ -9,7 +9,7 @@ export async function PATCH(request: Request) {
   try {
     //console.log("Received PATCH request for conversations");
     const sql = neon(`${process.env.DATABASE_URL}`);
-    const { conversationId, message, timestamp} = await request.json();
+    const { conversationId, message, timestamp } = await request.json();
 
     if (!conversationId) {
       return Response.json(

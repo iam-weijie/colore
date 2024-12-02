@@ -1,6 +1,7 @@
-import { icons } from "@/constants/index";
+import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
-import { PostModalProps, UserNicknamePair, PostItColor } from "@/types/type";
+import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { PostItColor, PostModalProps, UserNicknamePair } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -14,8 +15,6 @@ import {
   View,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
-import { formatDateTruncatedMonth, convertToLocal } from "@/lib/utils";
-import { temporaryColors } from "@/constants/index";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -32,28 +31,30 @@ const PostModal: React.FC<PostModalProps> = ({
   const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
   const dateCreated = convertToLocal(new Date(post!.created_at));
   const formattedDate = formatDateTruncatedMonth(dateCreated);
-  const postColor = temporaryColors.find((color) => color.name === post.color) as PostItColor;
+  const postColor = temporaryColors.find(
+    (color) => color.name === post.color
+  ) as PostItColor;
 
   // Fetch initial like status when modal opens
   useEffect(() => {
     const fetchLikeStatus = async () => {
       if (!post?.id || !user?.id) return;
-      
+
       try {
         const response = await fetchAPI(
           `/(api)/(posts)/updateLikeCount?postId=${post.id}&userId=${user.id}`,
-          { method: 'GET' }
+          { method: "GET" }
         );
 
         if (response.error) {
-          console.error('Error fetching like status:', response.error);
+          console.error("Error fetching like status:", response.error);
           return;
         }
 
         setIsLiked(response.data.liked);
         setLikeCount(response.data.likeCount);
       } catch (error) {
-        console.error('Failed to fetch like status:', error);
+        console.error("Failed to fetch like status:", error);
       }
     };
 
@@ -67,46 +68,46 @@ const PostModal: React.FC<PostModalProps> = ({
     try {
       setIsLoadingLike(true);
       const increment = !isLiked;
-      
+
       // Optimistically update UI
       setIsLiked(!isLiked);
-      setLikeCount(prev => increment ? prev + 1 : prev - 1);
+      setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
 
       const response = await fetchAPI(`/(api)/(posts)/updateLikeCount`, {
-        method: 'PATCH',
+        method: "PATCH",
         body: JSON.stringify({
           postId: post.id,
           userId: user.id,
-          increment
-        })
+          increment,
+        }),
       });
 
       if (response.error) {
         // Revert optimistic update if failed
         setIsLiked(isLiked);
-        setLikeCount(prev => increment ? prev - 1 : prev + 1);
-        
-        Alert.alert('Error', 'Unable to update like status. Please try again.');
+        setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
+
+        Alert.alert("Error", "Unable to update like status. Please try again.");
         return;
       }
 
       // Update with actual server values
       setLikeCount(response.data.likeCount);
       setIsLiked(response.data.liked);
-
     } catch (error) {
-      console.error('Failed to update like status:', error);
+      console.error("Failed to update like status:", error);
       // Revert optimistic update
       setIsLiked(isLiked);
-      setLikeCount(prev => !isLiked ? prev - 1 : prev + 1);
-      
-      Alert.alert('Error', 'Unable to update like status. Please check your connection.');
+      setLikeCount((prev) => (!isLiked ? prev - 1 : prev + 1));
+
+      Alert.alert(
+        "Error",
+        "Unable to update like status. Please check your connection."
+      );
     } finally {
       setIsLoadingLike(false);
     }
   };
-
-
 
   function findUserNickname(
     userArray: UserNicknamePair[],
@@ -149,7 +150,6 @@ const PostModal: React.FC<PostModalProps> = ({
     getData();
   }, [user]);
 
-
   const handleDeletePress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
       { text: "Cancel" },
@@ -157,12 +157,14 @@ const PostModal: React.FC<PostModalProps> = ({
     ]);
   };
 
-  
   const handleDelete = async () => {
     try {
-      const response = await fetchAPI(`/(api)/(posts)/deletePost?id=${post!.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetchAPI(
+        `/(api)/(posts)/deletePost?id=${post!.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.error) {
         throw new Error(response.error);
@@ -170,7 +172,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
       Alert.alert("Post deleted successfully");
       handleCloseModal();
-      
+
       if (typeof handleUpdate === "function") {
         // call only if defined (aka refresh needed after deleting post)
         await handleUpdate();
@@ -180,7 +182,6 @@ const PostModal: React.FC<PostModalProps> = ({
       Alert.alert("Error", "Failed to delete post. Please try again.");
     }
   };
-
 
   const handleCommentsPress = () => {
     handleCloseModal();
@@ -201,44 +202,45 @@ const PostModal: React.FC<PostModalProps> = ({
       },
     });
   };
-  
 
+  useEffect(() => {
+    const fetchLikeStatus = async () => {
+      try {
+        const response = await fetchAPI(
+          `/(api)/(posts)/updateLikeCount?postId=${post!.id}&userId=${user!.id}`,
+          { method: "GET" }
+        );
 
-useEffect(() => {
-  const fetchLikeStatus = async () => {
-    try {
-      const response = await fetchAPI(
-        `/(api)/(posts)/updateLikeCount?postId=${post!.id}&userId=${user!.id}`,
-        { method: 'GET' }
-      );
+        if (response.error) {
+          console.error("Error fetching like status:", response.error);
+          return;
+        }
 
-      if (response.error) {
-        console.error('Error fetching like status:', response.error);
-        return;
+        setLikedPost(response.data.liked);
+        setLikeCount(response.data.likeCount);
+      } catch (error) {
+        console.error("Failed to fetch like status:", error);
       }
+    };
 
-      setLikedPost(response.data.liked);
-      setLikeCount(response.data.likeCount);
-    } catch (error) {
-      console.error('Failed to fetch like status:', error);
+    if (post && user) {
+      fetchLikeStatus();
     }
-  };
+  }, [post, user]);
 
-  if (post && user) {
-    fetchLikeStatus();
-  }
-}, [post, user]);
+  return (
+    <ReactNativeModal
+      isVisible={isVisible}
+      backdropColor={postColor.hex || "rgba(0,0,0,0.5)"}
+      backdropOpacity={1}
+    >
+      <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
+        <TouchableOpacity onPress={handleCloseModal}>
+          <Image className="w-6 h-6 self-end left-3" source={icons.close} />
+        </TouchableOpacity>
 
- 
-return (
-  <ReactNativeModal isVisible={isVisible} backdropColor={postColor.hex || 'rgba(0,0,0,0.5)'} backdropOpacity={1}>
-    <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
-      <TouchableOpacity onPress={handleCloseModal}>
-        <Image className="w-6 h-6 self-end left-3" source={icons.close} />
-      </TouchableOpacity>
-      
-      {/* User info section */}
-      
+        {/* User info section */}
+
         {post && post.firstname && user!.id !== post.clerk_id && (
           <TouchableOpacity
             onPress={() => {
@@ -250,11 +252,17 @@ return (
             }}
           >
             <Text className="text-[16px] font-Jakarta font-bold">
-              {nickname ? nickname : post?.username ? `${post?.username}` : `${post?.firstname?.charAt(0)}.`}
+              {nickname
+                ? nickname
+                : post?.username
+                  ? `${post?.username}`
+                  : `${post?.firstname?.charAt(0)}.`}
             </Text>
           </TouchableOpacity>
         )}
-        <Text className="text-[16xp] text-gray-500 font-Jakarta">{formattedDate}</Text>
+        <Text className="text-[16xp] text-gray-500 font-Jakarta">
+          {formattedDate}
+        </Text>
 
         <ScrollView>
           <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
@@ -287,11 +295,9 @@ return (
             </TouchableOpacity>
           )}
         </View>
-
-        
       </View>
-  </ReactNativeModal>
-);
+    </ReactNativeModal>
+  );
 };
 
 export default PostModal;

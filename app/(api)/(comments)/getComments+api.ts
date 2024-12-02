@@ -4,15 +4,15 @@ export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const postId = url.searchParams.get("postId");  // Changed from "id" to "postId"
+    const postId = url.searchParams.get("postId"); // Changed from "id" to "postId"
     const userId = url.searchParams.get("userId");
 
     if (!postId) {
       console.error("Missing postId parameter");
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Missing postId parameter",
-          debug: { postId, userId }
+          debug: { postId, userId },
         }),
         { status: 400 }
       );
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
           (SELECT TRUE 
            FROM comment_likes cl 
            WHERE cl.comment_id = c.id 
-           AND cl.user_id = ${userId || ''}),
+           AND cl.user_id = ${userId || ""}),
           FALSE
         ) as is_liked
       FROM comments c
@@ -48,9 +48,9 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Error fetching comments:", error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: "Failed to fetch comments",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       }),
       { status: 500 }
     );

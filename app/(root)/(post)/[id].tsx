@@ -1,7 +1,8 @@
 import CustomButton from "@/components/CustomButton";
 import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
-import { PostComment } from "@/types/type";
+import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { PostComment, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -23,8 +24,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { UserNicknamePair } from "@/types/type";
-import { formatDateTruncatedMonth, convertToLocal } from "@/lib/utils";
 
 const PostScreen = () => {
   const { user } = useUser();
@@ -42,7 +41,7 @@ const PostScreen = () => {
     created_at,
     unread_comments = 0,
   } = useLocalSearchParams();
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [postComments, setPostComments] = useState<PostComment[]>([]);
@@ -50,13 +49,17 @@ const PostScreen = () => {
   const [nicknames, setNicknames] = useState<UserNicknamePair[]>([]);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(
-    typeof like_count === 'string' ? parseInt(like_count) : 0
+    typeof like_count === "string" ? parseInt(like_count) : 0
   );
   const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
-  const [commentLikes, setCommentLikes] = useState<{[key: string]: boolean}>({});
-  const [commentLikeCounts, setCommentLikeCounts] = useState<{[key: string]: number}>({});
-  const [isLoadingCommentLike, setIsLoadingCommentLike] = useState<boolean>(false);
-
+  const [commentLikes, setCommentLikes] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+  const [commentLikeCounts, setCommentLikeCounts] = useState<{
+    [key: string]: number;
+  }>({});
+  const [isLoadingCommentLike, setIsLoadingCommentLike] =
+    useState<boolean>(false);
 
   const maxCharacters = 6000;
   const displayName = Array.isArray(firstname) ? firstname[0] : firstname;
@@ -68,22 +71,22 @@ const PostScreen = () => {
   useEffect(() => {
     const fetchLikeStatus = async () => {
       if (!id || !user?.id) return;
-      
+
       try {
         const response = await fetchAPI(
           `/(api)/(posts)/updateLikeCount?postId=${id}&userId=${user.id}`,
-          { method: 'GET' }
+          { method: "GET" }
         );
 
         if (response.error) {
-          console.error('Error fetching like status:', response.error);
+          console.error("Error fetching like status:", response.error);
           return;
         }
 
         setIsLiked(response.data.liked);
         setLikeCount(response.data.likeCount);
       } catch (error) {
-        console.error('Failed to fetch like status:', error);
+        console.error("Failed to fetch like status:", error);
       }
     };
 
@@ -97,38 +100,40 @@ const PostScreen = () => {
     try {
       setIsLoadingLike(true);
       const increment = !isLiked;
-      
+
       // Optimistically update UI
       setIsLiked(!isLiked);
-      setLikeCount(prev => increment ? prev + 1 : prev - 1);
+      setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
 
       const response = await fetchAPI(`/(api)/(posts)/updateLikeCount`, {
-        method: 'PATCH',
+        method: "PATCH",
         body: JSON.stringify({
           postId: id,
           userId: user.id,
-          increment
-        })
+          increment,
+        }),
       });
 
       if (response.error) {
         // Revert optimistic update if failed
         setIsLiked(isLiked);
-        setLikeCount(prev => increment ? prev - 1 : prev + 1);
-        Alert.alert('Error', 'Unable to update like status. Please try again.');
+        setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
+        Alert.alert("Error", "Unable to update like status. Please try again.");
         return;
       }
 
       // Update with actual server values
       setLikeCount(response.data.likeCount);
       setIsLiked(response.data.liked);
-
     } catch (error) {
-      console.error('Failed to update like status:', error);
+      console.error("Failed to update like status:", error);
       // Revert optimistic update
       setIsLiked(isLiked);
-      setLikeCount(prev => !isLiked ? prev - 1 : prev + 1);
-      Alert.alert('Error', 'Unable to update like status. Please check your connection.');
+      setLikeCount((prev) => (!isLiked ? prev - 1 : prev + 1));
+      Alert.alert(
+        "Error",
+        "Unable to update like status. Please check your connection."
+      );
     } finally {
       setIsLoadingLike(false);
     }
@@ -136,189 +141,193 @@ const PostScreen = () => {
 
   const handleCommentLike = async (commentId: number) => {
     if (!user || isLoadingCommentLike) return;
-    
+
     try {
       setIsLoadingCommentLike(true);
       const isCurrentlyLiked = commentLikes[commentId];
-      
+
       // Optimistic update
-      setCommentLikes(prev => ({...prev, [commentId]: !isCurrentlyLiked}));
-      setCommentLikeCounts(prev => ({
-        ...prev, 
-        [commentId]: prev[commentId] + (isCurrentlyLiked ? -1 : 1)
+      setCommentLikes((prev) => ({ ...prev, [commentId]: !isCurrentlyLiked }));
+      setCommentLikeCounts((prev) => ({
+        ...prev,
+        [commentId]: prev[commentId] + (isCurrentlyLiked ? -1 : 1),
       }));
-  
-      const response = await fetchAPI('/(api)/(comments)/updateCommentLike', {
-        method: 'PATCH',
+
+      const response = await fetchAPI("/(api)/(comments)/updateCommentLike", {
+        method: "PATCH",
         body: JSON.stringify({
           commentId,
           userId: user.id,
-          increment: !isCurrentlyLiked
-        })
+          increment: !isCurrentlyLiked,
+        }),
       });
-  
+
       if (response.error) {
         // Revert optimistic update
-        setCommentLikes(prev => ({...prev, [commentId]: isCurrentlyLiked}));
-        setCommentLikeCounts(prev => ({
-          ...prev, 
-          [commentId]: prev[commentId] + (isCurrentlyLiked ? 1 : -1)
+        setCommentLikes((prev) => ({ ...prev, [commentId]: isCurrentlyLiked }));
+        setCommentLikeCounts((prev) => ({
+          ...prev,
+          [commentId]: prev[commentId] + (isCurrentlyLiked ? 1 : -1),
         }));
-        Alert.alert('Error', 'Unable to update like status');
+        Alert.alert("Error", "Unable to update like status");
         return;
       }
-  
+
       // Update with server values
-      setCommentLikes(prev => ({...prev, [commentId]: response.data.liked}));
-      setCommentLikeCounts(prev => ({...prev, [commentId]: response.data.likeCount}));
-  
+      setCommentLikes((prev) => ({
+        ...prev,
+        [commentId]: response.data.liked,
+      }));
+      setCommentLikeCounts((prev) => ({
+        ...prev,
+        [commentId]: response.data.likeCount,
+      }));
     } catch (error) {
-      console.error('Failed to update comment like:', error);
+      console.error("Failed to update comment like:", error);
       // Revert optimistic update on error
       const isCurrentlyLiked = commentLikes[commentId];
-      setCommentLikes(prev => ({...prev, [commentId]: isCurrentlyLiked}));
-      setCommentLikeCounts(prev => ({
-        ...prev, 
-        [commentId]: prev[commentId] + (isCurrentlyLiked ? 1 : -1)
+      setCommentLikes((prev) => ({ ...prev, [commentId]: isCurrentlyLiked }));
+      setCommentLikeCounts((prev) => ({
+        ...prev,
+        [commentId]: prev[commentId] + (isCurrentlyLiked ? 1 : -1),
       }));
     } finally {
       setIsLoadingCommentLike(false);
     }
   };
- 
-  
-  function findUserNickname(userArray: UserNicknamePair[], userId: string): number {
-    const index = userArray.findIndex(pair => pair[0] === userId);
+
+  function findUserNickname(
+    userArray: UserNicknamePair[],
+    userId: string
+  ): number {
+    const index = userArray.findIndex((pair) => pair[0] === userId);
     return index;
   }
 
-
   const fetchNicknames = async () => {
     try {
-        // //console.log("user: ", user!.id);
-        const response = await fetchAPI(
-          `/(api)/(users)/getUserInfo?id=${user!.id}`,
-          {
-            method: "GET",
-          }
-        );
-        if (response.error) {
-          //console.log("Error fetching user data");
-          //console.log("response data: ", response.data);
-          //console.log("response status: ", response.status);
-          // //console.log("response: ", response);
-          throw new Error(response.error);
+      // //console.log("user: ", user!.id);
+      const response = await fetchAPI(
+        `/(api)/(users)/getUserInfo?id=${user!.id}`,
+        {
+          method: "GET",
         }
-        // //console.log("response: ", response.data[0].nicknames);
-        const nicknames = response.data[0].nicknames || [];
-        setNicknames(nicknames);
-        return;
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
+      );
+      if (response.error) {
+        //console.log("Error fetching user data");
+        //console.log("response data: ", response.data);
+        //console.log("response status: ", response.status);
+        // //console.log("response: ", response);
+        throw new Error(response.error);
       }
-    };
-    useEffect(() => {
-        fetchNicknames();
-    }, []);
+      // //console.log("response: ", response.data[0].nicknames);
+      const nicknames = response.data[0].nicknames || [];
+      setNicknames(nicknames);
+      return;
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    }
+  };
+  useEffect(() => {
+    fetchNicknames();
+  }, []);
 
-    const fetchComments = async () => {
-      setLoading(true);
-      setError(null);
-    
-      if (!id || !user?.id) {
-        console.error("Missing required parameters:", { postId: id, userId: user?.id });
-        setError("Missing required parameters");
-        setLoading(false);
-        return;
+  const fetchComments = async () => {
+    setLoading(true);
+    setError(null);
+
+    if (!id || !user?.id) {
+      console.error("Missing required parameters:", {
+        postId: id,
+        userId: user?.id,
+      });
+      setError("Missing required parameters");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetchAPI(
+        `/(api)/(comments)/getComments?postId=${id}&userId=${user.id}`,
+        { method: "GET" }
+      );
+
+      if (response.error) {
+        console.error("API Error:", response.error);
+        throw new Error(response.error);
       }
-    
-      try {
 
-        const response = await fetchAPI(
-          `/(api)/(comments)/getComments?postId=${id}&userId=${user.id}`,
-          { method: "GET" }
-        );
-        
-        if (response.error) {
-          console.error("API Error:", response.error);
-          throw new Error(response.error);
-        }
-        
-
-        if (!Array.isArray(response.data)) {
-          console.error("Invalid response format:", response);
-          throw new Error("Invalid response format");
-        }
-    
-        // Initialize like states from the response
-        const likeStatuses = {};
-        const likeCounts = {};
-        response.data.forEach(comment => {
-          likeStatuses[comment.id] = comment.is_liked || false;
-          likeCounts[comment.id] = comment.like_count || 0;
-        });
-    
-        setPostComments(response.data);
-        setCommentLikes(likeStatuses);
-        setCommentLikeCounts(likeCounts);
-      } catch (error) {
-        console.error("Failed to fetch comments:", error);
-        setError("Failed to fetch comments.");
-      } finally {
-        setLoading(false);
+      if (!Array.isArray(response.data)) {
+        console.error("Invalid response format:", response);
+        throw new Error("Invalid response format");
       }
-    };
 
+      // Initialize like states from the response
+      const likeStatuses = {};
+      const likeCounts = {};
+      response.data.forEach((comment) => {
+        likeStatuses[comment.id] = comment.is_liked || false;
+        likeCounts[comment.id] = comment.like_count || 0;
+      });
 
-    const handleCommentSubmit = async () => {
-      // Prevent submission if already submitting
-      if (isSubmitting) {
-        return;
-      }
-    
-      const trimmedComment = newComment.trim();
-      
-      if (!trimmedComment || !id || !user?.id || !clerk_id) {
-        /*console.log("Missing required data:", { 
+      setPostComments(response.data);
+      setCommentLikes(likeStatuses);
+      setCommentLikeCounts(likeCounts);
+    } catch (error) {
+      console.error("Failed to fetch comments:", error);
+      setError("Failed to fetch comments.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCommentSubmit = async () => {
+    // Prevent submission if already submitting
+    if (isSubmitting) {
+      return;
+    }
+
+    const trimmedComment = newComment.trim();
+
+    if (!trimmedComment || !id || !user?.id || !clerk_id) {
+      /*console.log("Missing required data:", { 
           content: trimmedComment, 
           postId: id, 
           clerkId: user?.id,
           postClerkId: clerk_id 
         });*/
-        Alert.alert("Error", "Unable to submit comment. Missing required data.");
-        return;
+      Alert.alert("Error", "Unable to submit comment. Missing required data.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true); // Start submission
+      setNewComment(""); // Clear input immediately to prevent double submission
+
+      const response = await fetchAPI(`/(api)/(comments)/newComment`, {
+        method: "POST",
+        body: JSON.stringify({
+          content: trimmedComment,
+          postId: id,
+          clerkId: user.id,
+          postClerkId: clerk_id,
+        }),
+      });
+
+      if (response.error) {
+        console.error("API Error:", response.error);
+        throw new Error(response.error);
       }
-    
-      try {
-        setIsSubmitting(true);  // Start submission
-        setNewComment("");      // Clear input immediately to prevent double submission
-        
-        const response = await fetchAPI(`/(api)/(comments)/newComment`, {
-          method: "POST",
-          body: JSON.stringify({
-            content: trimmedComment,
-            postId: id,
-            clerkId: user.id,
-            postClerkId: clerk_id
-          }),
-        });
-    
-        if (response.error) {
-          console.error("API Error:", response.error);
-          throw new Error(response.error);
-        }
-        
-        // Fetch updated comments with like status
-        await fetchComments();
-        
-      } catch (error) {
-        console.error("Failed to submit comment:", error);
-        Alert.alert("Error", "Failed to submit comment. Please try again.");
-      } finally {
-        setIsSubmitting(false);  // End submission regardless of success/failure
-      }
-    };
-    
+
+      // Fetch updated comments with like status
+      await fetchComments();
+    } catch (error) {
+      console.error("Failed to submit comment:", error);
+      Alert.alert("Error", "Failed to submit comment. Please try again.");
+    } finally {
+      setIsSubmitting(false); // End submission regardless of success/failure
+    }
+  };
 
   const handleDeletePostPress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
@@ -330,11 +339,11 @@ const PostScreen = () => {
   const handleDeletePost = async () => {
     try {
       setIsPostDeleted(true);
-  
+
       await fetchAPI(`/(api)/(posts)/deletePost?id=${id}`, {
-        method: "DELETE", 
+        method: "DELETE",
       });
-  
+
       Alert.alert("Post deleted.");
       router.back();
     } catch (error) {
@@ -397,7 +406,6 @@ const PostScreen = () => {
       }
       //console.log("User goes back from post screen");
     });
-    
   }, []);
 
   // before returning user to screen, update unread_comments to 0
@@ -412,111 +420,129 @@ const PostScreen = () => {
             postId: id,
             postClerkId: clerk_id,
           }),
-        })
+        });
       } catch (error) {
         console.error("Failed to update unread comments:", error);
       }
     }
-  }
+  };
 
   const renderComment = ({ item }: { item: PostComment }) => (
     <View key={item.id} className="p-4 border-b border-gray-200">
       <TouchableOpacity onPress={() => handleUserProfile(item.user_id)}>
         <Text className="font-JakartaSemiBold">
-          {findUserNickname(nicknames, item.user_id) === -1 
-            ? item.username ? `${item.username}` : `${item.firstname.charAt(0)}.`
+          {findUserNickname(nicknames, item.user_id) === -1
+            ? item.username
+              ? `${item.username}`
+              : `${item.firstname.charAt(0)}.`
             : nicknames[findUserNickname(nicknames, item.user_id)][1]}
         </Text>
       </TouchableOpacity>
-      
+
       <Text className="text-sm text-gray-500">
         {formatDateTruncatedMonth(convertToLocal(new Date(item.created_at)))}
       </Text>
-      
+
       <View className="flex flex-row mr-2">
         <Text className="flex-1 font-Jakarta">{item.content}</Text>
         <View className="flex flex-col items-center">
-              <View className="flex-row items-center">
-                <TouchableOpacity 
-                  onPress={() => handleCommentLike(item.id)}
-                  disabled={isLoadingCommentLike}
-                >
-                  <MaterialCommunityIcons
-                    name={commentLikes[item.id] ? "heart" : "heart-outline"}
-                    size={24}
-                    color={commentLikes[item.id] ? "red" : "black"}
-                  />
-                </TouchableOpacity>
-                {item.user_id === user?.id ? (
-                    <TouchableOpacity onPress={() => handleDeleteCommentPress(item.id)} className="mt-30 mr-70 pl-2">
-                      <Image source={icons.trash} className="w-5 h-5" />
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity onPress={() => console.log("")} disabled={true} className="mt-30 mr-70 pl-2">
-                      <Image source={icons.trash} className="w-5 h-5" style={{opacity: 0.0}} />
-                    </TouchableOpacity>
-                  )}
-              </View>
-              {/* Show like count to post creator and comment creator*/}
-              {(clerk_id === user?.id || item.user_id === user?.id) && /*item.user_id === user?.id ?*/ (
-                  <Text className="text-xs text-gray-500 w-6 text-center mr-7">{commentLikeCounts[item.id] || 0}</Text>
-                ) /*: (
+          <View className="flex-row items-center">
+            <TouchableOpacity
+              onPress={() => handleCommentLike(item.id)}
+              disabled={isLoadingCommentLike}
+            >
+              <MaterialCommunityIcons
+                name={commentLikes[item.id] ? "heart" : "heart-outline"}
+                size={24}
+                color={commentLikes[item.id] ? "red" : "black"}
+              />
+            </TouchableOpacity>
+            {item.user_id === user?.id ? (
+              <TouchableOpacity
+                onPress={() => handleDeleteCommentPress(item.id)}
+                className="mt-30 mr-70 pl-2"
+              >
+                <Image source={icons.trash} className="w-5 h-5" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => console.log("")}
+                disabled={true}
+                className="mt-30 mr-70 pl-2"
+              >
+                <Image
+                  source={icons.trash}
+                  className="w-5 h-5"
+                  style={{ opacity: 0.0 }}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+          {/* Show like count to post creator and comment creator*/}
+          {
+            (clerk_id === user?.id || item.user_id === user?.id) && (
+              /*item.user_id === user?.id ?*/ <Text className="text-xs text-gray-500 w-6 text-center mr-7">
+                {commentLikeCounts[item.id] || 0}
+              </Text>
+            ) /*: (
                   <Text className="ml-1 text-xs text-gray-500 w-6 text-center mr-1">{commentLikeCounts[item.id] || 0}</Text>
-                )*/}
+                )*/
+          }
         </View>
       </View>
     </View>
   );
 
-
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-        <View className="flex flex-row justify-left items-center mt-3 mx-4 pl-2 pb-3">
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <AntDesign name="caretleft" size={18} />
-          </TouchableOpacity>
-        </View>
-        <View className="flex flex-row justify-center items-center mt-3 mx-4 pl-2">
-          <View className="flex-1">
-            <TouchableOpacity onPress={() => handleUserProfile(userId)}>
-              <Text className="font-JakartaSemiBold text-lg">
-                {nickname || username || displayName.charAt(0) + "."}
-              </Text>
+          <View className="flex flex-row justify-left items-center mt-3 mx-4 pl-2 pb-3">
+            <TouchableOpacity onPress={() => router.back()} className="mr-4">
+              <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
+          </View>
+          <View className="flex flex-row justify-center items-center mt-3 mx-4 pl-2">
+            <View className="flex-1">
+              <TouchableOpacity onPress={() => handleUserProfile(userId)}>
+                <Text className="font-JakartaSemiBold text-lg">
+                  {nickname || username || displayName.charAt(0) + "."}
+                </Text>
+              </TouchableOpacity>
               <Text className="text-sm text-gray-500">
                 {typeof created_at === "string"
-                  ? formatDateTruncatedMonth(convertToLocal(new Date(created_at)))
+                  ? formatDateTruncatedMonth(
+                      convertToLocal(new Date(created_at))
+                    )
                   : "No date"}
               </Text>
+            </View>
           </View>
-        </View>
-        <ScrollView>
-        <TouchableWithoutFeedback
-          onPress={() => Keyboard.dismiss()}
-          onPressIn={() => Keyboard.dismiss()}
-        >
-          {/* Post information */}
-          <View className="p-4 pl-8 border-b border-gray-200 relative">
-            <View className="absolute top-4 right-4 items-center mt-2">
-              <View className="flex-row items-center">
-                <TouchableOpacity 
-                  onPress={handleLikePress}
-                  disabled={isLoadingLike}
-                  className="ml-2 pr-4"
-                >
-                  <MaterialCommunityIcons
-                    name={isLiked ? "heart" : "heart-outline"}
-                    size={32}
-                    color={isLiked ? "red" : "black"}
-                  />
-                </TouchableOpacity>
-                {/* Only show like count to post creator */}
-                {clerk_id === user?.id && (
-                  <Text className="ml-1 text-gray-600">{likeCount}</Text>
-                )}
-              </View>
+          <ScrollView>
+            <TouchableWithoutFeedback
+              onPress={() => Keyboard.dismiss()}
+              onPressIn={() => Keyboard.dismiss()}
+            >
+              {/* Post information */}
+              <View className="p-4 pl-8 border-b border-gray-200 relative">
+                <View className="absolute top-4 right-4 items-center mt-2">
+                  <View className="flex-row items-center">
+                    <TouchableOpacity
+                      onPress={handleLikePress}
+                      disabled={isLoadingLike}
+                      className="ml-2 pr-4"
+                    >
+                      <MaterialCommunityIcons
+                        name={isLiked ? "heart" : "heart-outline"}
+                        size={32}
+                        color={isLiked ? "red" : "black"}
+                      />
+                    </TouchableOpacity>
+                    {/* Only show like count to post creator */}
+                    {clerk_id === user?.id && (
+                      <Text className="ml-1 text-gray-600">{likeCount}</Text>
+                    )}
+                  </View>
 
                   {/*clerk_id === user?.id && (
                     <TouchableOpacity onPress={handleDeletePostPress} className="mt-3 mr-7">
@@ -524,31 +550,34 @@ const PostScreen = () => {
                     </TouchableOpacity>
                   )*/}
                 </View>
-                <Text className="font-Jakarta mt-2 ml-2 mr-10 min-h-[80]">{content}</Text>
+                <Text className="font-Jakarta mt-2 ml-2 mr-10 min-h-[80]">
+                  {content}
+                </Text>
               </View>
             </TouchableWithoutFeedback>
 
-
-          {/* Comment section */}
-          <View className="mt-4 mb-24">
-            <Text className="font-JakartaSemiBold text-lg mx-4 pl-2">Comments</Text>
-            {loading && <ActivityIndicator size="large" color="#0076e3" />}
-            {error && <Text className="text-red-500 mx-4">{error}</Text>}
-            {!loading && !error && postComments.length === 0 && (
-              <Text className="text-gray-500 mx-4 min-h-[30px] pl-2">
-                No comments yet.
+            {/* Comment section */}
+            <View className="mt-4 mb-24">
+              <Text className="font-JakartaSemiBold text-lg mx-4 pl-2">
+                Comments
               </Text>
-            )}
-            {!loading && !error && postComments.length > 0 && (
-              <View className="mx-2 pl-4">
-                {postComments.map((comment) =>
-                  renderComment({ item: comment })
-                )}
-              </View>
-            )}
-          </View>
-        </ScrollView>
-        
+              {loading && <ActivityIndicator size="large" color="#0076e3" />}
+              {error && <Text className="text-red-500 mx-4">{error}</Text>}
+              {!loading && !error && postComments.length === 0 && (
+                <Text className="text-gray-500 mx-4 min-h-[30px] pl-2">
+                  No comments yet.
+                </Text>
+              )}
+              {!loading && !error && postComments.length > 0 && (
+                <View className="mx-2 pl-4">
+                  {postComments.map((comment) =>
+                    renderComment({ item: comment })
+                  )}
+                </View>
+              )}
+            </View>
+          </ScrollView>
+
           <View className="flex-row justify-between items-center bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
             <TextInput
               className="flex-1 border border-gray-300 rounded-md p-2 max-h-30 mr-16"
@@ -569,7 +598,9 @@ const PostScreen = () => {
             <CustomButton
               title={isSubmitting ? "Sending..." : "Send"}
               onPress={handleCommentSubmit}
-              disabled={newComment.length === 0 || isSubmitting || isPostDeleted}
+              disabled={
+                newComment.length === 0 || isSubmitting || isPostDeleted
+              }
               className="absolute bottom-4 ml-3 w-14 h-9 rounded-md absolute bottom-4 right-4"
               fontSize="sm"
               padding="0"
