@@ -580,7 +580,7 @@ const PostScreen = () => {
 
           <View className="flex-row items-center p-4 border-t border-gray-200">
             <TextInput
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-3"
               placeholder="Write a comment..."
               value={newComment}
               multiline
@@ -588,7 +588,6 @@ const PostScreen = () => {
               onChangeText={handleChangeText}
               onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
               editable={!isSubmitting && !isSubmitting}
-              style={{  height: 44  }}
             />
             <CustomButton
               title={isSubmitting ? "Sending..." : "Send"}
@@ -596,7 +595,7 @@ const PostScreen = () => {
               disabled={
                 newComment.length === 0 || isSubmitting || isPostDeleted
               }
-              className="ml-3 w-14 h-11 rounded-md"
+              className="ml-3 w-14 h-10 rounded-md"
               fontSize="sm"
               padding="0"
             />
