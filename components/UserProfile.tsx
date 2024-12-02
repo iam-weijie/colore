@@ -141,6 +141,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       <SafeAreaView className="flex-1">
         <View className="flex flex-row items-center justify-between">
           <Text>An error occurred. Please try again Later.</Text>
+          <View className="flex flex-row items-right">
+              {isEditable && onSignOut && (
+                <TouchableOpacity onPress={onSignOut}>
+                  <Image source={icons.logout} className="w-5 h-5" />
+                </TouchableOpacity>
+              )}
+            </View>
         </View>
       </SafeAreaView>
     );
@@ -245,7 +252,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             <View className="flex flex-row items-right">
               <DropdownMenu 
                 onAlias={() => handleAddNickname()}
-                onChat={() => startChat([profileUser.clerk_id, nickname || profileUser.username] as UserNicknamePair)}
+                onChat={() => startChat([profileUser!.clerk_id, nickname || profileUser!.username] as UserNicknamePair)}
               />
             </View>
           </View>)}
@@ -349,7 +356,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           <View className="items-center flex-1">
             <PostGallery 
               posts={userPosts} 
-              profileUserId={profileUser?.clerk_id} 
+              profileUserId={profileUser!.clerk_id} 
               handleUpdate={fetchUserData} 
             />
           </View>
@@ -357,7 +364,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           <View className="items-center flex-1">
             <PostGallery 
               posts={userPosts} 
-              profileUserId={profileUser?.clerk_id} 
+              profileUserId={profileUser!.clerk_id} 
               handleUpdate={fetchUserData} 
             />
           </View>

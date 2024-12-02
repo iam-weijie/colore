@@ -114,11 +114,24 @@ const LogIn = () => {
             <Link href="/reset">Forgot your password?</Link>
           </Text>
           <OAuth />
-          <Text className="text-base text-center text-general-200 mt-10">
+
+          <Text className="text-base text-center text-general-200 mt-5">
             Don't have an account?{" "}
             <Link href="/sign-up">
               <Text className="text-primary-500">Sign Up</Text>
             </Link>
+          </Text>
+
+          <Text className="text-base text-center text-general-200 mt-3">
+            By continuing, you agree to our{" "}
+            <Link href="https://www.termsfeed.com/live/6e904e78-161a-46ce-b707-7dc6462d1422">
+              <Text className="text-primary-500">Terms of Service</Text>
+            </Link>{" "}
+            and{" "}
+            <Link href="https://www.termsfeed.com/live/83f5c527-834f-4373-88d0-4428498b6537">
+              <Text className="text-primary-500">Privacy Policy</Text>
+            </Link>
+            .
           </Text>
         </View>
       </View>
