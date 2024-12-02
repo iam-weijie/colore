@@ -171,17 +171,17 @@ const Conversation = () => {
           )}
           <View className="flex-row items-center p-4 border-t border-gray-200">
             <TextInput
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-3"
               placeholder="Type a message..."
               value={newMessage}
+              multiline
               onChangeText={(text) => setNewMessage(text)}
-              style={{ height: 44 }}
             />
             <CustomButton
               title="Send"
               onPress={handleSendMessage}
               disabled={!newMessage.trim()}
-              className="ml-3 w-14 h-11 rounded-md"
+              className="ml-3 w-14 h-10 rounded-md"
               fontSize="sm"
               padding="0"
             />
