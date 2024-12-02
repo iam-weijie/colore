@@ -64,7 +64,6 @@ const NewPost = () => {
     } finally {
       setIsPosting(false);
     }
-    
 
     router.back();
   };
