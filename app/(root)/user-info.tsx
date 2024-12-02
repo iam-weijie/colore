@@ -297,7 +297,7 @@ const UserInfo = () => {
                 <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
                   <Pressable onPress={handleNavigateToCountry}>
                     <TextInput
-                      className="rounded-full p-4 font-JakartaSemiBold text-[15px] flex-1 text-left"
+                      className="rounded-full p-4 font-JakartaSemiBold text-[17px] flex-1 text-left"
                       placeholder="Your Location"
                       placeholderTextColor="#c0c0c0"
                       value={form.userLocation}
