@@ -2,19 +2,16 @@ import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
 import { icons, images } from "@/constants";
-import { useSignIn } from "@clerk/clerk-expo";
+import { useSignIn, useAuth } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { signOut } = useAuth();
   const router = useRouter();
-  //const { isLoaded1, isSignedIn, session } = useSession();
-  ////console.log("isLoggedIn: ", isSignedIn);
-  ////console.log("isLoaded: ", isLoaded1);
-  ////console.log("session: ", session);
-  //session?.end();
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -26,6 +23,16 @@ const LogIn = () => {
     }
 
     try {
+      // First try to sign out of any existing session
+      try {
+        await signOut();
+      } catch (signOutError) {
+        console.log("No active session to sign out from:", signOutError);
+      }
+
+      // Wait a brief moment for the signOut to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const logInAttempt = await signIn.create({
         identifier: form.email,
         password: form.password,
@@ -35,14 +42,28 @@ const LogIn = () => {
         await setActive({ session: logInAttempt.createdSessionId });
         router.replace("/(root)/user-info");
       } else {
-        console.error(JSON.stringify(logInAttempt, null, 2));
+        console.error("Incomplete login:", JSON.stringify(logInAttempt, null, 2));
         Alert.alert("Error", "Log in failed. Please try again.");
       }
-    } catch (err: any) {
-      console.error(JSON.stringify(err, null, 2));
-      Alert.alert("Error", err.errors[0].longMessage);
+    } catch (err) {
+      console.error("Login error:", JSON.stringify(err, null, 2));
+      
+      if (err.errors?.[0]?.code === "session_exists") {
+        Alert.alert(
+          "Error",
+          "There seems to be an existing session. Please close the app completely and try again.",
+          [
+            {
+              text: "OK",
+              style: "default"
+            }
+          ]
+        );
+      } else {
+        Alert.alert("Error", err.errors?.[0]?.longMessage || "An error occurred during login");
+      }
     }
-  }, [isLoaded, form, signIn, setActive, router]);
+  }, [isLoaded, form, signIn, setActive, router, signOut]);
 
   return (
     <ScrollView className="flex-1 bg-white">
@@ -64,7 +85,6 @@ const LogIn = () => {
             Welcome 👋
           </Text>
         </View>
-
         <View className="p-5">
           <InputField
             label="Email"
@@ -83,7 +103,6 @@ const LogIn = () => {
             textContentType="password"
             onChangeText={(value) => setForm({ ...form, password: value })}
           />
-
           <CustomButton
             title="Log In"
             onPress={onLogInPress}
@@ -94,9 +113,7 @@ const LogIn = () => {
           <Text className="text-base text-center text-general-200 mt-6">
             <Link href="/reset">Forgot your password?</Link>
           </Text>
-
           <OAuth />
-
           <Text className="text-base text-center text-general-200 mt-10">
             Don't have an account?{" "}
             <Link href="/sign-up">

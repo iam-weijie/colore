@@ -279,12 +279,12 @@ const PostScreen = () => {
       const trimmedComment = newComment.trim();
       
       if (!trimmedComment || !id || !user?.id || !clerk_id) {
-        //console.log("Missing required data:", { 
+        /*console.log("Missing required data:", { 
           content: trimmedComment, 
           postId: id, 
           clerkId: user?.id,
           postClerkId: clerk_id 
-        });
+        });*/
         Alert.alert("Error", "Unable to submit comment. Missing required data.");
         return;
       }
@@ -452,7 +452,7 @@ const PostScreen = () => {
                       <Image source={icons.trash} className="w-5 h-5" />
                     </TouchableOpacity>
                   ) : (
-                    <TouchableOpacity onPress={() => //console.log("")} disabled={true} className="mt-30 mr-70 pl-2">
+                    <TouchableOpacity onPress={() => console.log("")} disabled={true} className="mt-30 mr-70 pl-2">
                       <Image source={icons.trash} className="w-5 h-5" style={{opacity: 0.0}} />
                     </TouchableOpacity>
                   )}
