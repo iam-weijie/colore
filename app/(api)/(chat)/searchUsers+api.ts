@@ -1,5 +1,5 @@
-import { neon } from "@neondatabase/serverless";
 import { UserNicknamePair } from "@/types/type";
+import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
@@ -20,22 +20,22 @@ export async function GET(request: Request) {
     `;
 
     // Transform to array of [clerk_id, nickname] pairs
-    const response: UserNicknamePair[] = rawResponse.map(row => {
+    const response: UserNicknamePair[] = rawResponse.map((row) => {
       //Find nicknames
       const nicknames: string[][] = row.nicknames || [];
-      const nickname = nicknames.find(([clerkId]) => clerkId === row.clerk_id)?.[1];
+      const nickname = nicknames.find(
+        ([clerkId]) => clerkId === row.clerk_id
+      )?.[1];
       return [
         row.clerk_id,
-        nickname || row.username // Use nickname if exists, otherwise use username
-      ]
-     });
-     //console.log("Response: ", response)
+        nickname || row.username, // Use nickname if exists, otherwise use username
+      ];
+    });
+    //console.log("Response: ", response)
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
-
-    
   } catch (error) {
     console.error(error);
     return new Response(

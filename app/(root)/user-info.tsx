@@ -2,12 +2,11 @@ import { useUser } from "@clerk/clerk-expo";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { useRoute } from "@react-navigation/native";
 import { router, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Alert,
   ActivityIndicator,
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -32,7 +31,7 @@ const UserInfo = () => {
     email: "",
     firstname: "",
     lastname: "",
-    username: "", 
+    username: "",
     date_of_birth: "",
   });
   const [loading, setLoading] = useState(false);
@@ -63,8 +62,7 @@ const UserInfo = () => {
         return response.data[0];
       } catch (error) {
         console.error("Failed to fetch user data:", error);
-      }
-      finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -109,7 +107,8 @@ const UserInfo = () => {
   const [showPicker, setShowPicker] = useState(false);
 
   const [form, setForm] = useState({
-    firstName: userData.firstname || stateVars.firstName || user?.firstName || "",
+    firstName:
+      userData.firstname || stateVars.firstName || user?.firstName || "",
     lastName: userData.lastname || stateVars.lastName || user?.lastName || "",
     username: userData.username || stateVars.username || user?.username || "",
     dateOfBirth: userData.date_of_birth || stateVars.dateOfBirth || "",
@@ -153,7 +152,7 @@ const UserInfo = () => {
   const verifyValidUsername = (username: string): boolean => {
     const usernameRegex = /^[\w\-]{1,20}$/;
     return usernameRegex.test(username);
-  }
+  };
 
   const handleGetStarted = async () => {
     if (
@@ -199,14 +198,18 @@ const UserInfo = () => {
         }),
       });
       if (response.error) {
-        if (response.error.detail === `Key (username)=(${form.username}) already exists.`) {
-          Alert.alert("Username taken", `Username ${form.username} already exists. Please try another one.`);
-        }
-        else {
+        if (
+          response.error.detail ===
+          `Key (username)=(${form.username}) already exists.`
+        ) {
+          Alert.alert(
+            "Username taken",
+            `Username ${form.username} already exists. Please try another one.`
+          );
+        } else {
           throw new Error(response.error);
         }
-      }
-      else {
+      } else {
         router.push("/(root)/(tabs)/home");
       }
     } catch (error) {
@@ -216,8 +219,7 @@ const UserInfo = () => {
 
   return (
     <SafeAreaView className="flex-1">
-      {
-      loading ? (
+      {loading ? (
         <View className="flex-[0.8] justify-center items-center">
           <ActivityIndicator size="large" color="black" />
         </View>
@@ -254,7 +256,7 @@ const UserInfo = () => {
                 inputStyle="p-3.5"
                 value={form.username}
                 onChangeText={(value) => setForm({ ...form, username: value })}
-              />  
+              />
 
               <View className="my-2 w-full">
                 <Text className="text-lg font-JakartaSemiBold mb-3">
@@ -324,8 +326,7 @@ const UserInfo = () => {
             </View>
           </View>
         </ScrollView>
-      )
-    }
+      )}
     </SafeAreaView>
   );
 };

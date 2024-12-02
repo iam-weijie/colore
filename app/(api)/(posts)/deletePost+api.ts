@@ -21,19 +21,16 @@ export async function DELETE(request: Request) {
       )
     `;
 
-  
     await sql`
       DELETE FROM post_likes
       WHERE post_id = ${postId}
     `;
-
 
     await sql`
       DELETE FROM comments
       WHERE post_id = ${postId}
     `;
 
-  
     const response = await sql`
       DELETE FROM posts
       WHERE id = ${postId}
@@ -46,9 +43,9 @@ export async function DELETE(request: Request) {
   } catch (error) {
     console.error("Error deleting post:", error);
     return new Response(
-      JSON.stringify({ 
-        error: "Failed to delete post.", 
-        details: error instanceof Error ? error.message : "Unknown error" 
+      JSON.stringify({
+        error: "Failed to delete post.",
+        details: error instanceof Error ? error.message : "Unknown error",
       }),
       { status: 500 }
     );

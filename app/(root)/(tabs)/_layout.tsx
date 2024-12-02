@@ -12,7 +12,7 @@ const TabIcon = ({
   <View
     className={`items-center justify-center ${focused ? "bg-general-300 rounded-full" : ""}`}
   >
-    <View 
+    <View
       className={`w-12 h-12 items-center justify-center rounded-full ${focused ? "bg-gray-500" : ""}`}
     >
       <Image

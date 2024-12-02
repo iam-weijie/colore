@@ -4,9 +4,9 @@ export async function POST(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     //console.log("Received POST request for new comment.");
-    
+
     const { clerkId, postId, postClerkId, content } = await request.json();
-    
+
     if (!clerkId || !postId || !postClerkId || !content) {
       //console.log("Missing required fields:", { clerkId, postId, postClerkId, content });
       return Response.json(
@@ -42,12 +42,14 @@ export async function POST(request: Request) {
         status: 201,
       });
     }
-
   } catch (error) {
     console.error("Error creating comment:", error);
-    return Response.json({ 
-      error: "Failed to create comment",
-      details: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 });
+    return Response.json(
+      {
+        error: "Failed to create comment",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }

@@ -70,7 +70,7 @@ const PwReset = () => {
     // Check if we have an active session before routing
     if (!signIn?.createdSessionId) {
       Alert.alert(
-        "Error", 
+        "Error",
         "No active session found. Please try resetting your password again."
       );
       setShowSuccess(false);
@@ -82,14 +82,9 @@ const PwReset = () => {
   if (showSuccess) {
     return (
       <View className="flex-1 bg-white justify-center items-center px-7">
-        <Image
-          source={icons.check}
-          className="w-[110px] h-[110px] mb-5"
-        />
+        <Image source={icons.check} className="w-[110px] h-[110px] mb-5" />
 
-        <Text className="text-3xl font-JakartaBold text-center">
-          Success
-        </Text>
+        <Text className="text-3xl font-JakartaBold text-center">Success</Text>
 
         <Text className="text-base text-gray-400 font-Jakarta text-center mt-2 mb-5">
           Password reset successfully.
@@ -110,7 +105,7 @@ const PwReset = () => {
         <Text className="text-2xl font-JakartaExtraBold mb-2">
           Verification
         </Text>
-        
+
         <Text className="font-Jakarta mb-5">
           We've sent a verification code to {form.email}
         </Text>

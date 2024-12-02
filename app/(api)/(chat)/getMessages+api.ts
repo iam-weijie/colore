@@ -1,5 +1,5 @@
-import { neon } from "@neondatabase/serverless";
 import { Message } from "@/types/type";
+import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
@@ -9,12 +9,11 @@ export async function GET(request: Request) {
 
     //console.log("Received GET request for messages from conversation with ID: ", conversationId);
 
-  
     const rawResponse = await sql`
       SELECT id, message, timestamp, senderid FROM messages WHERE conversationid = ${conversationId}`;
 
     // Transform the raw response to match the interface
-    const conversation: Message[] = rawResponse.map(row => {
+    const conversation: Message[] = rawResponse.map((row) => {
       return {
         id: row.id,
         senderId: row.senderid,
@@ -26,7 +25,6 @@ export async function GET(request: Request) {
     return new Response(JSON.stringify({ data: conversation }), {
       status: 200,
     });
-    
   } catch (error) {
     console.error(error);
     return new Response(
