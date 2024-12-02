@@ -578,9 +578,9 @@ const PostScreen = () => {
             </View>
           </ScrollView>
 
-          <View className="flex-row justify-between items-center bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+          <View className="flex-row items-center p-4 border-t border-gray-200">
             <TextInput
-              className="flex-1 border border-gray-300 rounded-md p-2 max-h-30 mr-16"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
               placeholder="Write a comment..."
               value={newComment}
               multiline
@@ -588,12 +588,7 @@ const PostScreen = () => {
               onChangeText={handleChangeText}
               onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
               editable={!isSubmitting && !isSubmitting}
-              style={{
-                paddingTop: 10,
-                paddingBottom: Platform.OS === "android" ? 0 : 10,
-                maxHeight: screenHeight * 0.35,
-                textAlignVertical: "top",
-              }}
+              style={{  height: 44  }}
             />
             <CustomButton
               title={isSubmitting ? "Sending..." : "Send"}
@@ -601,7 +596,7 @@ const PostScreen = () => {
               disabled={
                 newComment.length === 0 || isSubmitting || isPostDeleted
               }
-              className="absolute bottom-4 ml-3 w-14 h-9 rounded-md absolute bottom-4 right-4"
+              className="ml-3 w-14 h-11 rounded-md"
               fontSize="sm"
               padding="0"
             />
