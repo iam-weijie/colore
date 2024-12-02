@@ -206,7 +206,7 @@ const SignUp = () => {
           secureTextEntry={true}
           textContentType="password"
           onChangeText={handleConfirmPassword}
-          containerStyle="mt-[-20px]"
+          containerStyle="mt-[-30px]"
         />
         {error ? (
           <Text className="text-red-500 text-sm mt-1">{error}</Text>
