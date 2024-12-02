@@ -1,16 +1,25 @@
-import { useSignIn } from "@clerk/clerk-expo";
-import { router } from "expo-router";
+import { useSignUp } from "@clerk/clerk-expo";
+import { Link, router } from "expo-router";
 import { useState } from "react";
-import { Alert, Image, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
+import Circle from "@/components/Circle";
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
+import OAuth from "@/components/OAuth";
 import { icons } from "@/constants";
+import { fetchAPI } from "@/lib/fetch";
 
-const PwReset = () => {
-  const { signIn, setActive } = useSignIn();
-  const [showVerification, setShowVerification] = useState(false);
+const SignUp = () => {
+  const { isLoaded, signUp, setActive } = useSignUp();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
@@ -31,52 +40,57 @@ const PwReset = () => {
     }
   };
 
-  // Request a password reset code by email
-  const onRequestReset = async () => {
-    try {
-      await signIn!.create({
-        strategy: "reset_password_email_code",
-        identifier: form.email,
-      });
-      setShowVerification(true);
-    } catch (err: any) {
-      Alert.alert("Error", err.errors[0].message);
+  const onSignUpPress = async () => {
+    if (!isLoaded || error) {
+      return;
     }
-  };
 
-  // Reset the password with the code and create a session
-  const onReset = async () => {
     try {
-      const result = await signIn!.attemptFirstFactor({
-        strategy: "reset_password_email_code",
-        code: verification.code,
+      await signUp.create({
+        emailAddress: form.email,
         password: form.password,
       });
 
-      if (result.status === "complete") {
-        // Create and set the active session
-        await setActive({ session: result.createdSessionId });
-        setShowSuccess(true);
-      } else {
-        Alert.alert("Error", "Password reset not complete. Please try again.");
-      }
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setShowVerification(true);
     } catch (err: any) {
-      Alert.alert("Error", err.errors[0].message);
+      Alert.alert("Error", err.errors[0].longMessage);
     }
   };
 
-  // Handle navigation after successful reset
-  const handleContinue = () => {
-    // Check if we have an active session before routing
-    if (!signIn?.createdSessionId) {
-      Alert.alert(
-        "Error", 
-        "No active session found. Please try resetting your password again."
-      );
-      setShowSuccess(false);
+  const onPressVerify = async () => {
+    if (!isLoaded) {
       return;
     }
-    router.push("/(root)/user-info");
+
+    try {
+      const completeSignUp = await signUp.attemptEmailAddressVerification({
+        code: verification.code,
+      });
+
+      if (completeSignUp.status === "complete") {
+        await fetchAPI("/(api)/(users)/newUser", {
+          method: "POST",
+          body: JSON.stringify({
+            email: form.email,
+            clerkId: completeSignUp.createdUserId,
+          }),
+        });
+
+        await setActive({ session: completeSignUp.createdSessionId });
+        setShowSuccess(true);
+      } else {
+        setVerification({
+          ...verification,
+          error: "Verification failed. Please try again.",
+        });
+      }
+    } catch (err: any) {
+      setVerification({
+        ...verification,
+        error: err.errors[0].longMessage,
+      });
+    }
   };
 
   if (showSuccess) {
@@ -88,16 +102,16 @@ const PwReset = () => {
         />
 
         <Text className="text-3xl font-JakartaBold text-center">
-          Success
+          Verified
         </Text>
 
         <Text className="text-base text-gray-400 font-Jakarta text-center mt-2 mb-5">
-          Password reset successfully.
+          You have been successfully verified.
         </Text>
 
         <CustomButton
           title="Continue"
-          onPress={handleContinue}
+          onPress={() => router.push("/(root)/user-info")}
           className="w-full"
         />
       </View>
@@ -124,9 +138,71 @@ const PwReset = () => {
           onChangeText={(code) => setVerification({ ...verification, code })}
         />
 
+        {verification.error && (
+          <Text className="text-red-500 text-sm mt-1">
+            {verification.error}
+          </Text>
+        )}
+
+        <CustomButton
+          title="Verify Email"
+          onPress={onPressVerify}
+          className="mt-5 bg-success-500"
+        />
+
+        <CustomButton
+          title="Back"
+          onPress={() => setShowVerification(false)}
+          className="mt-3"
+        />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView className="bg-white">
+      <View className="relative">
+        <Circle
+          color="#ffd640"
+          size={500}
+          style={{
+            position: "absolute",
+            top: -350,
+            right: -40,
+            opacity: 0.7,
+          }}
+        />
+        <Circle
+          color="#ffa647"
+          size={350}
+          style={{
+            position: "absolute",
+            top: -220,
+            right: -140,
+            opacity: 0.5,
+          }}
+        />
+      </View>
+
+      <View className="relative w-full">
+        <Text className="text-2xl font-JakartaBold relative ml-5 mt-[180]">
+          Create Your Account
+        </Text>
+      </View>
+
+      <View className="p-5">
+        <InputField
+          label="Email"
+          placeholder="Enter your email"
+          icon={icons.email}
+          textContentType="emailAddress"
+          value={form.email}
+          onChangeText={(value) => setForm({ ...form, email: value })}
+        />
+
         <InputField
           label="Password"
-          placeholder="Enter new password"
+          placeholder="Enter your password"
           icon={icons.lock}
           value={form.password}
           secureTextEntry={true}
@@ -143,62 +219,29 @@ const PwReset = () => {
           onChangeText={handleConfirmPassword}
           containerStyle="mt-[-20px]"
         />
-
         {error ? (
           <Text className="text-red-500 text-sm mt-1">{error}</Text>
         ) : null}
 
-        {verification.error && (
-          <Text className="text-red-500 text-sm mt-1">
-            {verification.error}
-          </Text>
-        )}
-
         <CustomButton
-          title="Reset Password"
-          onPress={onReset}
-          className="mt-5 bg-success-500"
+          title="Sign Up"
+          onPress={onSignUpPress}
+          padding="3"
+          bgVariant="gradient"
+          className="mt-8 bg-gradient-to-r from-yellow-400 to-orange-400"
         />
 
-        <CustomButton
-          title="Back"
-          onPress={() => setShowVerification(false)}
-          className="mt-3"
-        />
-      </View>
-    );
-  }
+        <OAuth />
 
-  return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="flex-1 bg-white">
-        <View className="relative w-full h-[250px]">
-          <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5">
-            Reset Your Password
-          </Text>
-        </View>
-
-        <View className="p-5">
-          <InputField
-            label="Email"
-            placeholder="Enter your email"
-            icon={icons.email}
-            textContentType="emailAddress"
-            value={form.email}
-            onChangeText={(value) => setForm({ ...form, email: value })}
-            style={{ height: 60 }}
-          />
-
-          <CustomButton
-            title="Continue"
-            onPress={onRequestReset}
-            className="mt-10"
-            style={{ height: 60 }}
-          />
-        </View>
+        <Text className="text-base text-center text-general-200 mt-10">
+          Already have an account?{" "}
+          <Link href="/log-in">
+            <Text className="text-primary-500">Log In</Text>
+          </Link>
+        </Text>
       </View>
     </ScrollView>
   );
 };
 
-export default PwReset;
+export default SignUp;
