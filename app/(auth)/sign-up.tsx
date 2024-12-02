@@ -1,13 +1,7 @@
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import {
-  Alert,
-  Image,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Image, ScrollView, Text, View } from "react-native";
 
 import Circle from "@/components/Circle";
 import CustomButton from "@/components/CustomButton";
@@ -98,9 +92,7 @@ const SignUp = () => {
       <View className="flex-1 bg-white justify-center items-center px-7">
         <Image source={icons.check} className="w-[110px] h-[110px] mb-5" />
 
-        <Text className="text-3xl font-JakartaBold text-center">
-          Verified
-        </Text>
+        <Text className="text-3xl font-JakartaBold text-center">Verified</Text>
 
         <Text className="text-base text-gray-400 font-Jakarta text-center mt-2 mb-5">
           You have been successfully verified.
@@ -230,11 +222,23 @@ const SignUp = () => {
 
         <OAuth />
 
-        <Text className="text-base text-center text-general-200 mt-10">
+        <Text className="text-base text-center text-general-200 mt-5">
           Already have an account?{" "}
           <Link href="/log-in">
             <Text className="text-primary-500">Log In</Text>
           </Link>
+        </Text>
+
+        <Text className="text-base text-center text-general-200 mt-3">
+          By continuing, you agree to our{" "}
+          <Link href="https://www.termsfeed.com/live/6e904e78-161a-46ce-b707-7dc6462d1422">
+            <Text className="text-primary-500">Terms of Service</Text>
+          </Link>{" "}
+          and{" "}
+          <Link href="https://www.termsfeed.com/live/83f5c527-834f-4373-88d0-4428498b6537">
+            <Text className="text-primary-500">Privacy Policy</Text>
+          </Link>
+          .
         </Text>
       </View>
     </ScrollView>
