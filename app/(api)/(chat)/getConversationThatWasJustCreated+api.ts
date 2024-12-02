@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const userId1 = url.searchParams.get("id1");
     const userId2 = url.searchParams.get("id2");
 
-    console.log("Received GET request for conversation between ", userId1, " and ", userId2);
+    //console.log("Received GET request for conversation between ", userId1, " and ", userId2);
 
   
     const rawResponse = await sql`

@@ -38,17 +38,18 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  const showSplashVideo = !appReady || !isSplashVideoComplete//appReady
+  const showSplashVideo = !appReady || !isSplashVideoComplete; //appReady
 
-  if (showSplashVideo) { 
+  if (showSplashVideo) {
     // render animation while app is still loaded
     return (
-    <SplashVideo onAnimationFinish={(isCancelled) => {
-      if (!isCancelled) {
-        setSplashVideoComplete(true) 
-      }
-    }}
-    />
+      <SplashVideo
+        onAnimationFinish={(isCancelled) => {
+          if (!isCancelled) {
+            setSplashVideoComplete(true);
+          }
+        }}
+      />
     );
   }
 
@@ -62,13 +63,13 @@ export default function RootLayout() {
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <ClerkLoaded>
         <NavigationProvider>
-        <Animated.View style={{flex: 1}} entering={FadeIn}>
-          <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(root)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
+          <Animated.View style={{ flex: 1 }} entering={FadeIn}>
+            <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(root)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
           </Animated.View>
         </NavigationProvider>
       </ClerkLoaded>

@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const userId1 = url.searchParams.get("id1");
     const userId2 = url.searchParams.get("id2");
 
-    console.log("Received GET request for conversations between: ", userId1, " and ", userId2); 
+    ////console.log("Received GET request for conversations between: ", userId1, " and ", userId2);
 
     const response = await sql`
       SELECT * FROM conversations WHERE (clerk_id_1 = ${userId1} AND clerk_id_2 = ${userId2}) OR (clerk_id_2 = ${userId1} AND clerk_id_1 = ${userId2});`;

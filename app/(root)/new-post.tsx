@@ -1,11 +1,13 @@
+import ColorSelector from "@/components/ColorSelector";
 import CustomButton from "@/components/CustomButton";
 import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import ColorSelector from "@/components/ColorSelector";
 
+import { temporaryColors } from "@/constants";
+import { PostItColor } from "@/types/type";
 import {
   Alert,
   Dimensions,
@@ -17,21 +19,20 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { temporaryColors } from "@/constants";
-import { Post, PostItColor } from "@/types/type";
-
 
 const NewPost = () => {
   const { user } = useUser();
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
-  const [selectedColor, setSelectedColor] = useState<PostItColor>(temporaryColors[0]);
+  const [selectedColor, setSelectedColor] = useState<PostItColor>(
+    temporaryColors[0]
+  );
+  const [isPosting, setIsPosting] = useState(false);
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
   };
-
 
   // need to get user's screen size to set a min height
   const screenHeight = Dimensions.get("screen").height;
@@ -41,24 +42,28 @@ const NewPost = () => {
   };
 
   const handlePostSubmit = async () => {
+    setIsPosting(true);
     const cleanedContent = postContent.trim();
     if (cleanedContent === "") {
       Alert.alert("Error", "Post content cannot be empty.");
       return;
     }
-
-    await fetchAPI("/(api)/(posts)/newPost", {
-      method: "POST",
-      body: JSON.stringify({
-        content: cleanedContent,
-        clerkId: user!.id,
-        color: selectedColor.name
-  
-      }),
-    });
-
-    setPostContent("");
-    Alert.alert("Post published.");
+    try {
+      await fetchAPI("/(api)/(posts)/newPost", {
+        method: "POST",
+        body: JSON.stringify({
+          content: cleanedContent,
+          clerkId: user!.id,
+          color: selectedColor.name,
+        }),
+      });
+      setPostContent("");
+      Alert.alert("Post created.");
+    } catch (error) {
+      Alert.alert("Error", "An error occurred. Please try again.");
+    } finally {
+      setIsPosting(false);
+    }
 
     router.back();
   };
@@ -98,7 +103,7 @@ const NewPost = () => {
                 title="Post"
                 padding="0"
                 onPress={handlePostSubmit}
-                disabled={!postContent}
+                disabled={!postContent || isPosting}
               />
             </View>
 
@@ -119,8 +124,8 @@ const NewPost = () => {
                   maxHeight: screenHeight * 0.45,
                   textAlignVertical: "top",
                 }}
-                />
-                <ColorSelector 
+              />
+              <ColorSelector
                 colors={temporaryColors}
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect} // Debug

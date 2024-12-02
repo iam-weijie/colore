@@ -1,15 +1,7 @@
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import {
-  Alert,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { ReactNativeModal } from "react-native-modal";
+import { Alert, Image, ScrollView, Text, View } from "react-native";
 
 import Circle from "@/components/Circle";
 import CustomButton from "@/components/CustomButton";
@@ -20,7 +12,8 @@ import { fetchAPI } from "@/lib/fetch";
 
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
@@ -29,7 +22,6 @@ const SignUp = () => {
   });
 
   const [verification, setVerification] = useState({
-    state: "default",
     error: "",
     code: "",
   });
@@ -54,8 +46,7 @@ const SignUp = () => {
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-
-      setVerification({ ...verification, state: "pending" });
+      setShowVerification(true);
     } catch (err: any) {
       Alert.alert("Error", err.errors[0].longMessage);
     }
@@ -81,26 +72,88 @@ const SignUp = () => {
         });
 
         await setActive({ session: completeSignUp.createdSessionId });
-        setVerification({ ...verification, state: "success" });
+        setShowSuccess(true);
       } else {
         setVerification({
           ...verification,
-          state: "pending",
           error: "Verification failed. Please try again.",
         });
       }
     } catch (err: any) {
       setVerification({
         ...verification,
-        state: "pending",
         error: err.errors[0].longMessage,
       });
     }
   };
 
+  if (showSuccess) {
+    return (
+      <View className="flex-1 bg-white justify-center items-center px-7">
+        <Image source={icons.check} className="w-[110px] h-[110px] mb-5" />
+
+        <Text className="text-3xl font-JakartaBold text-center">Verified</Text>
+
+        <Text className="text-base text-gray-400 font-Jakarta text-center mt-2 mb-5">
+          You have been successfully verified.
+        </Text>
+
+        <CustomButton
+          title="Continue"
+          onPress={() => router.push("/(root)/user-info")}
+          className="w-full"
+          padding="3"
+        />
+      </View>
+    );
+  }
+
+  if (showVerification) {
+    return (
+      <View className="flex-1 bg-white px-7 justify-center">
+        <Text className="text-2xl font-JakartaExtraBold mb-2">
+          Verification
+        </Text>
+
+        <Text className="font-Jakarta mb-5">
+          We've sent a verification code to {form.email}
+        </Text>
+
+        <InputField
+          label="Code"
+          icon={icons.lock}
+          placeholder="12345"
+          value={verification.code}
+          keyboardType="numeric"
+          onChangeText={(code) => setVerification({ ...verification, code })}
+        />
+
+        {verification.error && (
+          <Text className="text-red-500 text-sm mt-1">
+            {verification.error}
+          </Text>
+        )}
+
+        <CustomButton
+          title="Verify Email"
+          onPress={onPressVerify}
+          className="mt-5 bg-success-500"
+          padding="3"
+        />
+
+        <CustomButton
+          title="Back"
+          onPress={() => setShowVerification(false)}
+          className="mt-5"
+          padding="3"
+        />
+      </View>
+    );
+  }
+
   return (
     <ScrollView className="bg-white">
-      <View className="relative ">
+      <View className="relative">
         <Circle
           color="#ffd640"
           size={500}
@@ -122,6 +175,7 @@ const SignUp = () => {
           }}
         />
       </View>
+
       <View className="relative w-full">
         <Text className="text-2xl font-JakartaBold relative ml-5 mt-[180]">
           Create Your Account
@@ -130,7 +184,6 @@ const SignUp = () => {
 
       <View className="p-5">
         <InputField
-          // variant="signup"
           label="Email"
           placeholder="Enter your email"
           icon={icons.email}
@@ -140,7 +193,6 @@ const SignUp = () => {
         />
 
         <InputField
-          // variant="signup"
           label="Password"
           placeholder="Enter your password"
           icon={icons.lock}
@@ -151,14 +203,13 @@ const SignUp = () => {
         />
 
         <InputField
-          // variant="signup"
           label=""
           placeholder="Confirm your password"
           icon={icons.lock}
           secureTextEntry={true}
           textContentType="password"
           onChangeText={handleConfirmPassword}
-          containerStyle="mt-[-20px]"
+          containerStyle="mt-[-30px]"
         />
         {error ? (
           <Text className="text-red-500 text-sm mt-1">{error}</Text>
@@ -193,79 +244,6 @@ const SignUp = () => {
           .
         </Text>
       </View>
-
-      <ReactNativeModal
-        isVisible={verification.state === "pending"}
-        onModalHide={() => {
-          if (verification.state === "success") {
-            setShowSuccessModal(true);
-          }
-        }}
-      >
-        <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
-          <TouchableOpacity
-            onPress={() =>
-              setVerification({ ...verification, state: "default" })
-            }
-            className="absolute right-0 p-4"
-          >
-            <Image source={icons.close} className="w-5 h-5" />
-          </TouchableOpacity>
-          <Text className="text-2xl font-JakartaExtraBold mb-2">
-            Verification
-          </Text>
-          <Text className=" font-Jakarta mb-5">
-            We've sent a verification code to {form.email}
-          </Text>
-
-          <InputField
-            label="Code"
-            icon={icons.lock}
-            placeholder="12345"
-            value={verification.code}
-            keyboardType="numeric"
-            onChangeText={(code) => setVerification({ ...verification, code })}
-          />
-
-          {verification.error && (
-            <Text className="text-red-500 text-sm mt-1">
-              {verification.error}
-            </Text>
-          )}
-
-          <CustomButton
-            title="Verify Email"
-            onPress={onPressVerify}
-            className="mt-5 bg-success-500"
-          />
-        </View>
-      </ReactNativeModal>
-
-      <ReactNativeModal isVisible={showSuccessModal}>
-        <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
-          <Image
-            source={icons.check}
-            className="w-[110px] h-[110px] mx-auto my-5"
-          />
-
-          <Text className="text-3xl font-JakartaBold text-center">
-            Verified
-          </Text>
-
-          <Text className="text-base text-gray-400 font-Jakarta text-center mt-2">
-            You have been successfully verified.
-          </Text>
-
-          <CustomButton
-            title="Continue"
-            onPress={() => {
-              setShowSuccessModal(false);
-              router.push("/(root)/user-info");
-            }}
-            className="mt-5"
-          />
-        </View>
-      </ReactNativeModal>
     </ScrollView>
   );
 };

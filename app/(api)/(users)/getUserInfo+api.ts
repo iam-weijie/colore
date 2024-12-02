@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
-  console.log("received GET request for user information");
+  //console.log("received GET request for user information");
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
