@@ -49,7 +49,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
       onPanResponderRelease: (event, gestureState) => {
         const dx = gestureState.dx;
         const dy = gestureState.dy;
-        // console.log(dx, dy);
+        // //console.log(dx, dy);
         position.extractOffset(); // reset the offset so transformations don't accumulate
 
         if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
@@ -80,9 +80,9 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
 
 export default function Page() {
   //const { user } = useUser();
-  //console.log(user);
+  ////console.log(user);
   //const { isLoaded, isSignedIn, session } = useSession();
-  //console.log("session: ", session);
+  ////console.log("session: ", session);
   //useAuth();
   //router.replace("/(auth)/log-in");
   const [posts, setPosts] = useState<any[]>([]);

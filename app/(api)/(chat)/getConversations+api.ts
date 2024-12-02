@@ -1,5 +1,5 @@
-import { neon } from "@neondatabase/serverless";
 import { ConversationItem } from "@/types/type";
+import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
@@ -7,9 +7,8 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const userId = url.searchParams.get("id");
 
-    console.log("Received GET request for conversations for user with ID: ", userId);
+    ////console.log("Received GET request for conversations for user with ID: ", userId);
 
-  
     const rawResponse = await sql`
       SELECT 
         c.id::text,
@@ -33,26 +32,28 @@ export async function GET(request: Request) {
     `;
 
     // Transform the raw response to match the interface
-    const conversations: ConversationItem[] = rawResponse.map(row => {
+    const conversations: ConversationItem[] = rawResponse.map((row) => {
       // Find nickname for the other user if it exists
       const nicknames: string[][] = row.nicknames || [];
-      const nickname = nicknames.find(([clerkId]) => clerkId === row.other_clerk_id)?.[1];
+      const nickname = nicknames.find(
+        ([clerkId]) => clerkId === row.other_clerk_id
+      )?.[1];
 
       return {
         id: row.id,
         name: nickname || row.username, // Use nickname if exists, otherwise use username
         clerk_id: row.other_clerk_id,
         lastMessageContent: row.lastMessageContent || null,
-        lastMessageTimestamp: row.lastMessageTimestamp ? 
-          row.lastMessageTimestamp.toISOString() : null,
-        nickname: row.nicknames
+        lastMessageTimestamp: row.lastMessageTimestamp
+          ? row.lastMessageTimestamp.toISOString()
+          : null,
+        nickname: row.nicknames,
       };
     });
 
     return new Response(JSON.stringify({ data: conversations }), {
       status: 200,
     });
-    
   } catch (error) {
     console.error(error);
     return new Response(

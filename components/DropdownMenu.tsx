@@ -1,12 +1,5 @@
-import React, { useState } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Modal,
-  Text,
-  Pressable,
-  Image
-} from 'react-native';
+import React, { useState } from "react";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 const DropdownMenu = ({ onAlias, onChat }) => {
   const [visible, setVisible] = useState(false);
@@ -26,12 +19,12 @@ const DropdownMenu = ({ onAlias, onChat }) => {
         visible={visible}
         onRequestClose={() => setVisible(false)}
       >
-        <Pressable 
+        <Pressable
           className="flex-1 bg-black/30"
           onPress={() => setVisible(false)}
         >
           <View className="absolute top-16 right-8 bg-white rounded-lg shadow-lg">
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => {
                 setVisible(false);
                 onAlias();
@@ -40,8 +33,8 @@ const DropdownMenu = ({ onAlias, onChat }) => {
             >
               <Text className="font-Jakarta text-base">Alias</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               onPress={() => {
                 setVisible(false);
                 onChat();

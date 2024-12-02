@@ -2,10 +2,10 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { UserNicknamePair } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import AntDesign from "@expo/vector-icons/AntDesign";
 
 const Nickname = () => {
   const router = useRouter();
@@ -24,10 +24,10 @@ const Nickname = () => {
         }
       );
       if (response.error) {
-        console.log("Error fetching user data");
-        console.log("response data: ", response.data);
-        console.log("response status: ", response.status);
-        // console.log("response: ", response);
+        //console.log("Error fetching user data");
+        //console.log("response data: ", response.data);
+        //console.log("response status: ", response.status);
+        // //console.log("response: ", response);
         throw new Error(response.error);
       }
       return response.data[0].nicknames || [];
@@ -52,7 +52,7 @@ const Nickname = () => {
   }
 
   const updateNicknames = async () => {
-    // console.log("Updating nicknames to: ", nicknames);
+    // //console.log("Updating nicknames to: ", nicknames);
     await fetchAPI("/(api)/(users)/patchUserNicknames", {
       method: "PATCH",
       body: JSON.stringify({
@@ -78,7 +78,7 @@ const Nickname = () => {
       <View className="flex-1 pt-16">
         <View className="flex flex-row items-center mx-4 mb-4">
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
-              <AntDesign name="caretleft" size={18} />
+            <AntDesign name="caretleft" size={18} />
           </TouchableOpacity>
           <TextInput
             className="flex-1 px-4 w-full py-2 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
