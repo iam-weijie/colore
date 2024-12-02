@@ -61,7 +61,7 @@ const NewConversation = (): React.ReactElement => {
   const filteredUsers =
     searchText.length > 0
       ? users.filter((user) =>
-          user && user[1].toLowerCase().includes(searchText.toLowerCase())
+          user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
         )
       : [];
   const checkIfChatExists = async (user2: UserNicknamePair) => {
