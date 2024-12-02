@@ -28,6 +28,7 @@ const NewPost = () => {
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
     temporaryColors[0]
   );
+  const [isPosting, setIsPosting] = useState(false);
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -41,23 +42,29 @@ const NewPost = () => {
   };
 
   const handlePostSubmit = async () => {
+    setIsPosting(true);
     const cleanedContent = postContent.trim();
     if (cleanedContent === "") {
       Alert.alert("Error", "Post content cannot be empty.");
       return;
     }
-
-    await fetchAPI("/(api)/(posts)/newPost", {
-      method: "POST",
-      body: JSON.stringify({
-        content: cleanedContent,
-        clerkId: user!.id,
-        color: selectedColor.name,
-      }),
-    });
-
-    setPostContent("");
-    Alert.alert("Post published.");
+    try {
+      await fetchAPI("/(api)/(posts)/newPost", {
+        method: "POST",
+        body: JSON.stringify({
+          content: cleanedContent,
+          clerkId: user!.id,
+          color: selectedColor.name,
+        }),
+      });
+      setPostContent("");
+      Alert.alert("Post created.");
+    } catch (error) {
+      Alert.alert("Error", "An error occurred. Please try again.");
+    } finally {
+      setIsPosting(false);
+    }
+    
 
     router.back();
   };
@@ -97,7 +104,7 @@ const NewPost = () => {
                 title="Post"
                 padding="0"
                 onPress={handlePostSubmit}
-                disabled={!postContent}
+                disabled={!postContent || isPosting}
               />
             </View>
 

@@ -24,21 +24,16 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   const [queueRefresh, setQueueRefresh] = useState(false);
   const [hasNavigatedAway, setHasNavigatedAway] = useState(false);
 
-  // comparator function
   const sortByUnread = (a: Post, b: Post) => {
     if (a.unread_comments > 0 && b.unread_comments === 0) {
-      return -1; // a comes first if has comments
+      return -1;
     } else if (a.unread_comments === 0 && b.unread_comments > 0) {
-      return 1; // b comes first if has comments
+      return 1;
     } else {
-      // otherwise equal
       return 0;
     }
   };
 
-  // order posts (in-place) upon mounting so that posts with unread comments
-  // are pushed to the top, regardless of date posted
-  // force an update if the user selects a post
   useEffect(() => {
     if (isOwnProfile) {
       const sorted = [...posts].sort(sortByUnread);
@@ -67,7 +62,6 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
         setSelectedPost(item);
         if (isOwnProfile && item.unread_comments > 0) {
           setQueueRefresh(true);
-          //console.log("set isReadingUnread to truee");
         }
         setHasNavigatedAway(false);
       }}
@@ -95,7 +89,6 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
   const handleCloseModal = () => {
     setSelectedPost(null);
-    // Check if we need to refresh the posts after modal closes
     if (queueRefresh && hasNavigatedAway && isOwnProfile && handleUpdate) {
       handleUpdate();
     }
@@ -103,15 +96,12 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
   useFocusEffect(
     useCallback(() => {
-      //console.log(queueRefresh, hasNavigatedAway, handleUpdate);
       if (queueRefresh && hasNavigatedAway && isOwnProfile && handleUpdate) {
         handleUpdate();
       }
     }, [hasNavigatedAway, queueRefresh, handleUpdate])
   );
 
-  // when user navigates away, set a "trigger"
-  // to perform actions upon return
   useFocusEffect(
     useCallback(() => {
       return () => setHasNavigatedAway(true);
@@ -121,14 +111,25 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   return (
     <View className="absolute max-h-[100%]">
       <Text className="text-lg font-JakartaSemiBold">Posts</Text>
-      <FlatList
-        className="flex-1"
-        data={sortedPosts}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        numColumns={1}
-        showsVerticalScrollIndicator={false}
-      />
+      {posts.length === 0 ? (
+        <View 
+          className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent mx-auto" 
+          style={{ width: screenWidth * 0.85 }}
+        >
+          <Text className="font-Jakarta text-gray-500">
+            Create a post to see it here
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          className="flex-1"
+          data={sortedPosts}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          numColumns={1}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
       {selectedPost && (
         <PostModal
           isVisible={!!selectedPost}

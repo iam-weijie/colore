@@ -150,7 +150,7 @@ const UserInfo = () => {
   };
 
   const verifyValidUsername = (username: string): boolean => {
-    const usernameRegex = /^[\w\-]{1,20}$/;
+    const usernameRegex = /^[\w\-]{1,20}\.$/;
     return usernameRegex.test(username);
   };
 
