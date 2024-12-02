@@ -74,6 +74,7 @@ const PwReset = () => {
           title="Start"
           onPress={() => router.push("/(auth)/log-in")}
           className="w-full"
+          padding="3"
         />
       </View>
     );
@@ -116,7 +117,7 @@ const PwReset = () => {
           secureTextEntry={true}
           textContentType="password"
           onChangeText={handleConfirmPassword}
-          containerStyle="mt-[-20px]"
+          containerStyle="mt-[-30px]"
         />
 
         {error ? (
@@ -133,12 +134,14 @@ const PwReset = () => {
           title="Reset Password"
           onPress={onReset}
           className="mt-5 bg-success-500"
+          padding="3"
         />
 
         <CustomButton
           title="Back"
           onPress={() => setShowVerification(false)}
-          className="mt-3"
+          className="mt-5"
+          padding="3"
         />
       </View>
     );
@@ -169,6 +172,7 @@ const PwReset = () => {
             onPress={onRequestReset}
             className="mt-10"
             style={{ height: 60 }}
+            padding="3"
           />
         </View>
       </View>

@@ -102,6 +102,7 @@ const SignUp = () => {
           title="Continue"
           onPress={() => router.push("/(root)/user-info")}
           className="w-full"
+          padding="3"
         />
       </View>
     );
@@ -137,12 +138,14 @@ const SignUp = () => {
           title="Verify Email"
           onPress={onPressVerify}
           className="mt-5 bg-success-500"
+          padding="3"
         />
 
         <CustomButton
           title="Back"
           onPress={() => setShowVerification(false)}
-          className="mt-3"
+          className="mt-5"
+          padding="3"
         />
       </View>
     );

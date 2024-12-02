@@ -321,6 +321,7 @@ const UserInfo = () => {
                     !dateOfBirth ||
                     !form.userLocation
                   }
+                  padding="3"
                 />
               </View>
             </View>
