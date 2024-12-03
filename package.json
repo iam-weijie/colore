@@ -19,6 +19,7 @@
     "@expo/metro-runtime": "~4.0.0",
     "@expo/vector-icons": "^14.0.0",
     "@gorhom/bottom-sheet": "^4.6.4",
+    "@lottiefiles/dotlottie-react": "^0.6.5",
     "@neondatabase/serverless": "^0.9.4",
     "@react-native-community/clipboard": "^1.5.1",
     "@react-native-community/datetimepicker": "8.2.0",
