@@ -65,7 +65,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
       {...panResponder.panHandlers}
       style={{
         transform: position.getTranslateTransform(),
-        opacity: isDragging ? 0.8 : 1,
+        opacity: 1,
         position: "absolute",
         top: post.position.top,
         left: post.position.left,
