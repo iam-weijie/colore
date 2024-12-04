@@ -179,7 +179,7 @@ const UserInfo = () => {
     if (!verifyValidUsername(form.username)) {
       Alert.alert(
         "Invalid Username",
-        "Username can only contain alphanumeric characters, '_', and '-', and must be at most 20 characters long"
+        "Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long"
       );
       return;
     }
