@@ -63,7 +63,7 @@ const SignUp = () => {
       });
 
       if (completeSignUp.status === "complete") {
-        await fetchAPI("/(api)/(users)/newUser", {
+        await fetchAPI("/api/users/newUser", {
           method: "POST",
           body: JSON.stringify({
             email: form.email,
@@ -100,7 +100,7 @@ const SignUp = () => {
 
         <CustomButton
           title="Continue"
-          onPress={() => router.push("/(root)/user-info")}
+          onPress={() => router.push("/root/user-info")}
           className="w-full"
           padding="3"
         />

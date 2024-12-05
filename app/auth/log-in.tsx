@@ -40,7 +40,7 @@ const LogIn = () => {
 
       if (logInAttempt.status === "complete") {
         await setActive({ session: logInAttempt.createdSessionId });
-        router.replace("/(root)/user-info");
+        router.replace("/root/user-info");
       } else {
         console.error(
           "Incomplete login:",

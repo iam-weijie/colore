@@ -84,7 +84,7 @@ export default function Page() {
   //const { isLoaded, isSignedIn, session } = useSession();
   ////console.log("session: ", session);
   //useAuth();
-  //router.replace("/(auth)/log-in");
+  //router.replace("/auth/log-in");
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,7 +94,7 @@ export default function Page() {
   const fetchRandomPosts = async () => {
     try {
       const response = await fetch(
-        `/(api)/(posts)/getRandomPosts?number=${3}&id=${user!.id}`
+        `/api/posts/getRandomPosts?number=${3}&id=${user!.id}`
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
@@ -124,7 +124,7 @@ export default function Page() {
   };
 
   const handleNewPostPress = () => {
-    router.push("/(root)/new-post");
+    router.push("/root/new-post");
   };
 
   const handleCloseModal = () => {

@@ -27,7 +27,7 @@ const Chat: React.FC<ChatTabProps> = () => {
     setLoading(true);
     try {
       const response = await fetchAPI(
-        `/(api)/(chat)/getConversations?id=${user!.id}`,
+        `/api/chat/getConversations?id=${user!.id}`,
         {
           method: "GET",
         }
@@ -48,7 +48,7 @@ const Chat: React.FC<ChatTabProps> = () => {
   const handleOpenChat = (conversation: ConversationItem): void => {
     //console.log(`Opening chat with conversation ID: ${conversation.id}`);
     router.push(
-      `/(root)/(chat)/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
+      `/root/chat/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
     );
   };
 
@@ -81,7 +81,7 @@ const Chat: React.FC<ChatTabProps> = () => {
   );
 
   const handleCreateNewConversation = (): void => {
-    router.push("/(root)/(chat)/new-conversation");
+    router.push("/root/chat/new-conversation");
   };
 
   return (

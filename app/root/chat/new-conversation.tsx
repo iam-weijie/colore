@@ -29,12 +29,9 @@ const NewConversation = (): React.ReactElement => {
     setLoading(true);
     try {
       // //console.log("user: ", user!.id);
-      const response = await fetchAPI(
-        `/(api)/(chat)/searchUsers?id=${user!.id}`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetchAPI(`/api/chat/searchUsers?id=${user!.id}`, {
+        method: "GET",
+      });
       if (response.error) {
         //console.log("Error fetching user data");
         //console.log("response data: ", response.data);
@@ -68,7 +65,7 @@ const NewConversation = (): React.ReactElement => {
     try {
       // //console.log("user: ", user!.id);
       const response = await fetchAPI(
-        `/(api)/(chat)/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
+        `/api/chat/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
         {
           method: "GET",
         }
@@ -84,7 +81,7 @@ const NewConversation = (): React.ReactElement => {
       if (response.data.length > 0) {
         setConvId(response.data[0].id);
         router.push(
-          `/(root)/(chat)/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`
+          `/root/chat/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`
         );
       }
       return response.data.length > 0;
@@ -103,7 +100,7 @@ const NewConversation = (): React.ReactElement => {
     } else {
       setLoading(true);
       try {
-        const response = await fetchAPI(`/(api)/(chat)/newConversation`, {
+        const response = await fetchAPI(`/api/chat/newConversation`, {
           method: "POST",
           body: JSON.stringify({
             clerkId_1: user!.id,
@@ -120,7 +117,7 @@ const NewConversation = (): React.ReactElement => {
         //console.log("Chat was successfully created, attempting to get conversation information to push user there");
         try {
           const result = await fetchAPI(
-            `/(api)/(chat)/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
+            `/api/chat/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
             {
               method: "GET",
             }
@@ -135,7 +132,7 @@ const NewConversation = (): React.ReactElement => {
             const conversation = result.data[0];
             //console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
             router.push(
-              `/(root)/(chat)/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
+              `/root/chat/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
             );
           }
         } catch (err) {
@@ -162,7 +159,7 @@ const NewConversation = (): React.ReactElement => {
       <TouchableOpacity
         onPress={() => {
           router.push({
-            pathname: "/(root)/(profile)/[id]",
+            pathname: "/root/profile/[id]",
             params: { id: item[0] },
           });
         }}
@@ -188,7 +185,7 @@ const NewConversation = (): React.ReactElement => {
             <View className="flex flex-row items-center justify-between px-4 pt-2">
               <View className="mr-2">
                 <TouchableOpacity
-                  onPress={() => router.replace("/(root)/(tabs)/chat")}
+                  onPress={() => router.replace("/root/tabs/chat")}
                 >
                   <AntDesign name="caretleft" size={18} color="0076e3" />
                 </TouchableOpacity>

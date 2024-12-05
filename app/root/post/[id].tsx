@@ -15,7 +15,6 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -74,7 +73,7 @@ const PostScreen = () => {
 
       try {
         const response = await fetchAPI(
-          `/(api)/(posts)/updateLikeCount?postId=${id}&userId=${user.id}`,
+          `/api/posts/updateLikeCount?postId=${id}&userId=${user.id}`,
           { method: "GET" }
         );
 
@@ -105,7 +104,7 @@ const PostScreen = () => {
       setIsLiked(!isLiked);
       setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
 
-      const response = await fetchAPI(`/(api)/(posts)/updateLikeCount`, {
+      const response = await fetchAPI(`/api/posts/updateLikeCount`, {
         method: "PATCH",
         body: JSON.stringify({
           postId: id,
@@ -153,7 +152,7 @@ const PostScreen = () => {
         [commentId]: prev[commentId] + (isCurrentlyLiked ? -1 : 1),
       }));
 
-      const response = await fetchAPI("/(api)/(comments)/updateCommentLike", {
+      const response = await fetchAPI("/api/comments/updateCommentLike", {
         method: "PATCH",
         body: JSON.stringify({
           commentId,
@@ -207,12 +206,9 @@ const PostScreen = () => {
   const fetchNicknames = async () => {
     try {
       // //console.log("user: ", user!.id);
-      const response = await fetchAPI(
-        `/(api)/(users)/getUserInfo?id=${user!.id}`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
+        method: "GET",
+      });
       if (response.error) {
         //console.log("Error fetching user data");
         //console.log("response data: ", response.data);
@@ -248,7 +244,7 @@ const PostScreen = () => {
 
     try {
       const response = await fetchAPI(
-        `/(api)/(comments)/getComments?postId=${id}&userId=${user.id}`,
+        `/api/comments/getComments?postId=${id}&userId=${user.id}`,
         { method: "GET" }
       );
 
@@ -304,7 +300,7 @@ const PostScreen = () => {
       setIsSubmitting(true); // Start submission
       setNewComment(""); // Clear input immediately to prevent double submission
 
-      const response = await fetchAPI(`/(api)/(comments)/newComment`, {
+      const response = await fetchAPI(`/api/comments/newComment`, {
         method: "POST",
         body: JSON.stringify({
           content: trimmedComment,
@@ -340,7 +336,7 @@ const PostScreen = () => {
     try {
       setIsPostDeleted(true);
 
-      await fetchAPI(`/(api)/(posts)/deletePost?id=${id}`, {
+      await fetchAPI(`/api/posts/deletePost?id=${id}`, {
         method: "DELETE",
       });
 
@@ -364,7 +360,7 @@ const PostScreen = () => {
 
   const handleDeleteComment = async (id: number) => {
     try {
-      await fetchAPI(`/(api)/(comments)/deleteComment?id=${id}`, {
+      await fetchAPI(`/api/comments/deleteComment?id=${id}`, {
         method: "DELETE",
       });
 
@@ -378,7 +374,7 @@ const PostScreen = () => {
 
   const handleUserProfile = async (id: string) => {
     router.push({
-      pathname: "/(root)/(profile)/[id]",
+      pathname: "/root/profile/[id]",
       params: { id },
     });
   };
@@ -413,7 +409,7 @@ const PostScreen = () => {
   const handleReadComments = async () => {
     if (clerk_id === user!.id) {
       try {
-        const response = await fetchAPI(`/(api)/(posts)/updateUnreadComments`, {
+        const response = await fetchAPI(`/api/posts/updateUnreadComments`, {
           method: "PATCH",
           body: JSON.stringify({
             clerkId: user?.id,
