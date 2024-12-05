@@ -117,13 +117,14 @@ const LogIn = () => {
             className="mt-8"
           />
           <Text className="text-base text-center text-general-200 mt-6">
-            <Link href="/reset">Forgot your password?</Link>
+            <Link href="/auth/reset">Forgot your password?</Link>
           </Text>
+
           <OAuth />
 
           <Text className="text-base text-center text-general-200 mt-5">
             Don't have an account?{" "}
-            <Link href="/sign-up">
+            <Link href="/auth/sign-up">
               <Text className="text-primary-500">Sign Up</Text>
             </Link>
           </Text>

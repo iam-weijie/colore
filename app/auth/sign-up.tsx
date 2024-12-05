@@ -227,7 +227,7 @@ const SignUp = () => {
 
         <Text className="text-base text-center text-general-200 mt-5">
           Already have an account?{" "}
-          <Link href="/log-in">
+          <Link href="/auth/log-in">
             <Text className="text-primary-500">Log In</Text>
           </Link>
         </Text>
