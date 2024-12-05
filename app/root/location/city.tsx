@@ -44,9 +44,10 @@ const City = () => {
           city: selectedCity,
         }),
       });
+      router.replace(`/root/tabs/${stateVars.previousScreen}` as Href);
+    } else {
+      router.replace(`/${stateVars.previousScreen}` as Href);
     }
-
-    router.replace(`/root/${stateVars.previousScreen}` as Href);
   };
 
   return (
