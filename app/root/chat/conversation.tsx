@@ -128,7 +128,7 @@ const Conversation = () => {
           style={{ height: 50 }}
         >
           <View className="mr-2">
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity onPress={() => router.replace("/root/tabs/chat")}>
               <AntDesign name="caretleft" size={18} color="0076e3" />
             </TouchableOpacity>
           </View>

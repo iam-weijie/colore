@@ -24,6 +24,7 @@ const NewConversation = (): React.ReactElement => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [convId, setConvId] = useState<string | null>(null);
+  const [creatingChat, setCreatingChat] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -92,6 +93,7 @@ const NewConversation = (): React.ReactElement => {
     }
   };
   const startChat = async (otherUser: UserNicknamePair) => {
+    setCreatingChat(true);
     //console.log(`Starting chat with ${otherUser[1]}`);
     const exists = await checkIfChatExists(otherUser);
     //console.log("conversationExists: ", exists);
@@ -140,12 +142,15 @@ const NewConversation = (): React.ReactElement => {
           setError(
             "Chat was successfully created, but failed to send user to conversation."
           );
+        } finally {
+          setCreatingChat(false);
         }
       } catch (err) {
         console.error("Failed to create new conversation:", err);
         setError("Failed to create new conversation");
       } finally {
         setLoading(false);
+        setCreatingChat(false);
       }
     }
   };
@@ -163,6 +168,7 @@ const NewConversation = (): React.ReactElement => {
             params: { id: item[0] },
           });
         }}
+        disabled={creatingChat}
       >
         <Text className="text-lg text-black">{item[1]}</Text>
       </TouchableOpacity>
