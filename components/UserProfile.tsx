@@ -50,12 +50,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
   const fetchCurrentNickname = async () => {
     try {
-      const response = await fetchAPI(
-        `/(api)/(users)/getUserInfo?id=${user!.id}`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
+        method: "GET",
+      });
       if (response.error) {
         throw new Error(response.error);
       }
@@ -82,7 +79,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         ...stateVars,
         previousScreen: "profile",
       });
-      router.push("/(root)/(location)/country");
+      router.push("/root/location/country");
     }
   };
   const fetchUserData = async () => {
@@ -90,7 +87,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     setError(null);
     try {
       const response = await fetchAPI(
-        `/(api)/(users)/getUserInfoPosts?id=${userId}`,
+        `/api/users/getUserInfoPosts?id=${userId}`,
         {
           method: "GET",
         }
@@ -121,7 +118,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       previousScreen: "profile",
       userId,
     });
-    router.push("/(root)/(profile)/nickname");
+    router.push("/root/profile/nickname");
   };
 
   if (loading)
@@ -150,7 +147,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     try {
       // //console.log("user: ", user!.id);
       const response = await fetchAPI(
-        `/(api)/(chat)/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
+        `/api/chat/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
         {
           method: "GET",
         }
@@ -166,7 +163,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       if (response.data.length > 0) {
         setConvId(response.data[0].id);
         router.push(
-          `/(root)/(chat)/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`
+          `/root/chat/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`
         );
       }
       return response.data.length > 0;
@@ -185,7 +182,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     } else {
       setLoading(true);
       try {
-        const response = await fetchAPI(`/(api)/(chat)/newConversation`, {
+        const response = await fetchAPI(`/api/chat/newConversation`, {
           method: "POST",
           body: JSON.stringify({
             clerkId_1: user!.id,
@@ -202,7 +199,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         //console.log("Chat was successfully created, attempting to get conversation information to push user there");
         try {
           const result = await fetchAPI(
-            `/(api)/(chat)/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
+            `/api/chat/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
             {
               method: "GET",
             }
@@ -217,7 +214,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             const conversation = result.data[0];
             //console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
             router.push(
-              `/(root)/(chat)/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
+              `/root/chat/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
             );
           }
         } catch (err) {

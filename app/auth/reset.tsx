@@ -72,7 +72,7 @@ const PwReset = () => {
 
         <CustomButton
           title="Start"
-          onPress={() => router.push("/(auth)/log-in")}
+          onPress={() => router.push("/auth/log-in")}
           className="w-full"
           padding="3"
         />

@@ -17,12 +17,9 @@ const Nickname = () => {
 
   const fetchCurrentNicknames = async () => {
     try {
-      const response = await fetchAPI(
-        `/(api)/(users)/getUserInfo?id=${user!.id}`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
+        method: "GET",
+      });
       if (response.error) {
         //console.log("Error fetching user data");
         //console.log("response data: ", response.data);
@@ -53,7 +50,7 @@ const Nickname = () => {
 
   const updateNicknames = async () => {
     // //console.log("Updating nicknames to: ", nicknames);
-    await fetchAPI("/(api)/(users)/patchUserNicknames", {
+    await fetchAPI("/api/users/patchUserNicknames", {
       method: "PATCH",
       body: JSON.stringify({
         clerkId: user!.id,

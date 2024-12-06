@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 
 export const fetchAPI = async (url: string, options?: RequestInit) => {
+  const API_BASE_URL = __DEV__
+    ? "http://localhost:3000" // Development API (use your local dev server URL)
+    : "https://colore-app.vercel.app/";
+
   try {
-    const response = await fetch(url, options);
+    const fullUrl = `${API_BASE_URL}${url}`;
+    const response = await fetch(fullUrl, options);
 
     if (!response.ok) {
       new Error(`HTTP error! status: ${response.status}`);

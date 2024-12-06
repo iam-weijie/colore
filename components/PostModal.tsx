@@ -42,7 +42,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
       try {
         const response = await fetchAPI(
-          `/(api)/(posts)/updateLikeCount?postId=${post.id}&userId=${user.id}`,
+          `/api/posts/updateLikeCount?postId=${post.id}&userId=${user.id}`,
           { method: "GET" }
         );
 
@@ -73,7 +73,7 @@ const PostModal: React.FC<PostModalProps> = ({
       setIsLiked(!isLiked);
       setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
 
-      const response = await fetchAPI(`/(api)/(posts)/updateLikeCount`, {
+      const response = await fetchAPI(`/api/posts/updateLikeCount`, {
         method: "PATCH",
         body: JSON.stringify({
           postId: post.id,
@@ -120,12 +120,9 @@ const PostModal: React.FC<PostModalProps> = ({
   const fetchCurrentNickname = async () => {
     try {
       // //console.log("user: ", user!.id);
-      const response = await fetchAPI(
-        `/(api)/(users)/getUserInfo?id=${user!.id}`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
+        method: "GET",
+      });
       if (response.error) {
         //console.log("Error fetching user data");
         ////console.log("response data: ", response.data);
@@ -159,12 +156,9 @@ const PostModal: React.FC<PostModalProps> = ({
 
   const handleDelete = async () => {
     try {
-      const response = await fetchAPI(
-        `/(api)/(posts)/deletePost?id=${post!.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetchAPI(`/api/posts/deletePost?id=${post!.id}`, {
+        method: "DELETE",
+      });
 
       if (response.error) {
         throw new Error(response.error);
@@ -186,7 +180,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const handleCommentsPress = () => {
     handleCloseModal();
     router.push({
-      pathname: "/(root)/(post)/[id]",
+      pathname: "/root/post/[id]",
       // send through params to avoid doing another API call for post
       params: {
         id: post!.id,
@@ -207,7 +201,7 @@ const PostModal: React.FC<PostModalProps> = ({
     const fetchLikeStatus = async () => {
       try {
         const response = await fetchAPI(
-          `/(api)/(posts)/updateLikeCount?postId=${post!.id}&userId=${user!.id}`,
+          `/api/posts/updateLikeCount?postId=${post!.id}&userId=${user!.id}`,
           { method: "GET" }
         );
 
@@ -246,7 +240,7 @@ const PostModal: React.FC<PostModalProps> = ({
             onPress={() => {
               handleCloseModal();
               router.push({
-                pathname: "/(root)/(profile)/[id]",
+                pathname: "/root/profile/[id]",
                 params: { id: post!.clerk_id },
               });
             }}

@@ -30,7 +30,7 @@ export const tokenCache = {
 export const googleOAuth = async (startOAuthFlow: any) => {
   try {
     const { createdSessionId, signUp, setActive } = await startOAuthFlow({
-      redirectUrl: Linking.createURL("/(root)/(tabs)/home"),
+      redirectUrl: Linking.createURL("/root/tabs/home"),
     });
 
     if (createdSessionId) {
@@ -38,7 +38,7 @@ export const googleOAuth = async (startOAuthFlow: any) => {
         await setActive!({ session: createdSessionId });
 
         if (signUp.createdUserId) {
-          await fetchAPI("/(api)/(user)/newUser", {
+          await fetchAPI("/api/user/newUser", {
             method: "POST",
             body: JSON.stringify({
               email: signUp.emailAddress,

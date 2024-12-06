@@ -14,7 +14,7 @@ const OAuth = () => {
       const result = await googleOAuth(startOAuthFlow);
 
       if (result.code === "session_exists" || result.code === "success") {
-        router.push("/(root)/user-info");
+        router.push("/root/user-info");
       }
     } catch (err) {
       console.error("OAuth error", err);
