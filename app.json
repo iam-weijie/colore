@@ -2,6 +2,7 @@
   "expo": {
     "name": "Coloré",
     "slug": "colore",
+    "owner": "colore_dev",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -32,7 +33,7 @@
       [
         "expo-router",
         {
-          "origin": "https://colore.ca/"
+          "origin": "https://colore.expo.app"
         }
       ],
       "expo-font",
@@ -43,10 +44,10 @@
     },
     "extra": {
       "router": {
-        "origin": "https://colore.ca/"
+        "origin": "https://colore.expo.app"
       },
       "eas": {
-        "projectId": "c9270a94-8ee3-453c-81e5-4c5022fe54f8"
+        "projectId": "69dfadaa-849f-4d31-950e-83ffbf90be7f"
       }
     }
   }
