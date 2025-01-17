@@ -157,38 +157,39 @@ export default function Page() {
         ) : error ? (
           <Text>{error}</Text>
         ) : (
-          <ScrollView
-            refreshControl={
-              <RefreshControl
-                refreshing={loading}
-                onRefresh={handleReloadPosts}
-              />
-            }
-          ></ScrollView>
-        )}
-
-        {!loading && (
-          <View className="relative flex-1">
-            {posts.map((post, index) => {
-              return (
-                // <TouchableOpacity
-                //   key={post.id}
-                //   onPress={() => handlePostPress(post)}
-                //   style={{
-                //     position: "absolute",
-                //     top: post.position.top,
-                //     left: post.position.left,
-                //   }}
-                // >
-                //   <DraggablePostIt />
-                // </TouchableOpacity>
-                <DraggablePostIt
-                  key={post.id}
-                  post={post}
-                  onPress={() => handlePostPress(post)}
+          <View style={{ flex: 1 }}>
+            <ScrollView
+              refreshControl={
+                <RefreshControl
+                  refreshing={loading}
+                  onRefresh={handleReloadPosts}
                 />
-              );
-            })}
+              }
+              style={{ position: "absolute", width: "100%", height: "100%" }}
+            />
+
+            <View className="relative flex-1">
+              {posts.map((post, index) => {
+                return (
+                  // <TouchableOpacity
+                  //   key={post.id}
+                  //   onPress={() => handlePostPress(post)}
+                  //   style={{
+                  //     position: "absolute",
+                  //     top: post.position.top,
+                  //     left: post.position.left,
+                  //   }}
+                  // >
+                  //   <DraggablePostIt />
+                  // </TouchableOpacity>
+                  <DraggablePostIt
+                    key={post.id}
+                    post={post}
+                    onPress={() => handlePostPress(post)}
+                  />
+                );
+              })}
+            </View>
 
             {selectedPost && (
               <PostModal
