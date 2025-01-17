@@ -10,6 +10,8 @@ import {
   Animated,
   Image,
   PanResponder,
+  RefreshControl,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -94,7 +96,7 @@ export default function Page() {
   const fetchRandomPosts = async () => {
     try {
       const response = await fetch(
-        `/api/posts/getRandomPosts?number=${3}&id=${user!.id}`
+        `/api/posts/getRandomPosts?number=${4}&id=${user!.id}`
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
@@ -102,8 +104,8 @@ export default function Page() {
       const postsWithPositions = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 150,
-          left: Math.random() * 200,
+          top: Math.random() * 500,
+          left: Math.random() * 250,
         },
       }));
       setPosts(postsWithPositions);
@@ -155,27 +157,39 @@ export default function Page() {
         ) : error ? (
           <Text>{error}</Text>
         ) : (
-          <View className="relative flex-1">
-            {posts.map((post, index) => {
-              return (
-                // <TouchableOpacity
-                //   key={post.id}
-                //   onPress={() => handlePostPress(post)}
-                //   style={{
-                //     position: "absolute",
-                //     top: post.position.top,
-                //     left: post.position.left,
-                //   }}
-                // >
-                //   <DraggablePostIt />
-                // </TouchableOpacity>
-                <DraggablePostIt
-                  key={post.id}
-                  post={post}
-                  onPress={() => handlePostPress(post)}
+          <View className="flex-1">
+            <ScrollView
+              refreshControl={
+                <RefreshControl
+                  refreshing={loading}
+                  onRefresh={handleReloadPosts}
                 />
-              );
-            })}
+              }
+              style={{ position: "absolute", width: "100%", height: "100%" }}
+            />
+
+            <View className="relative flex-1">
+              {posts.map((post, index) => {
+                return (
+                  // <TouchableOpacity
+                  //   key={post.id}
+                  //   onPress={() => handlePostPress(post)}
+                  //   style={{
+                  //     position: "absolute",
+                  //     top: post.position.top,
+                  //     left: post.position.left,
+                  //   }}
+                  // >
+                  //   <DraggablePostIt />
+                  // </TouchableOpacity>
+                  <DraggablePostIt
+                    key={post.id}
+                    post={post}
+                    onPress={() => handlePostPress(post)}
+                  />
+                );
+              })}
+            </View>
 
             {selectedPost && (
               <PostModal
@@ -188,9 +202,9 @@ export default function Page() {
         )}
 
         <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8 z-10">
-          <TouchableOpacity onPress={handleReloadPosts}>
+          {/* <TouchableOpacity onPress={handleReloadPosts}>
             <Image source={icons.refresh} className="w-8 h-8" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity onPress={handleNewPostPress}>
             <Image source={icons.pencil} className="w-7 h-7" />
