@@ -10,6 +10,8 @@ import {
   Animated,
   Image,
   PanResponder,
+  RefreshControl,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -155,6 +157,17 @@ export default function Page() {
         ) : error ? (
           <Text>{error}</Text>
         ) : (
+          <ScrollView
+            refreshControl={
+              <RefreshControl
+                refreshing={loading}
+                onRefresh={handleReloadPosts}
+              />
+            }
+          ></ScrollView>
+        )}
+
+        {!loading && (
           <View className="relative flex-1">
             {posts.map((post, index) => {
               return (
@@ -188,9 +201,9 @@ export default function Page() {
         )}
 
         <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8 z-10">
-          <TouchableOpacity onPress={handleReloadPosts}>
+          {/* <TouchableOpacity onPress={handleReloadPosts}>
             <Image source={icons.refresh} className="w-8 h-8" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity onPress={handleNewPostPress}>
             <Image source={icons.pencil} className="w-7 h-7" />
