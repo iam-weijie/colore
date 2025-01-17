@@ -94,7 +94,7 @@ export default function Page() {
   const fetchRandomPosts = async () => {
     try {
       const response = await fetch(
-        `/api/posts/getRandomPosts?number=${3}&id=${user!.id}`
+        `/api/posts/getRandomPosts?number=${4}&id=${user!.id}`
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
@@ -102,8 +102,8 @@ export default function Page() {
       const postsWithPositions = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 150,
-          left: Math.random() * 200,
+          top: Math.random() * 500,
+          left: Math.random() * 250,
         },
       }));
       setPosts(postsWithPositions);
