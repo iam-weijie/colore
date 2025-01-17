@@ -453,24 +453,12 @@ const PostScreen = () => {
                 color={commentLikes[item.id] ? "red" : "black"}
               />
             </TouchableOpacity>
-            {item.user_id === user?.id ? (
+            {item.user_id === user?.id && (
               <TouchableOpacity
                 onPress={() => handleDeleteCommentPress(item.id)}
                 className="mt-30 mr-70 pl-2"
               >
                 <Image source={icons.trash} className="w-5 h-5" />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={() => console.log("")}
-                disabled={true}
-                className="mt-30 mr-70 pl-2"
-              >
-                <Image
-                  source={icons.trash}
-                  className="w-5 h-5"
-                  style={{ opacity: 0.0 }}
-                />
               </TouchableOpacity>
             )}
           </View>
@@ -520,13 +508,13 @@ const PostScreen = () => {
               onPressIn={() => Keyboard.dismiss()}
             >
               {/* Post information */}
-              <View className="p-4 pl-8 border-b border-gray-200 relative">
+              <View className="p-4 border-b border-gray-200 relative">
                 <View className="absolute top-4 right-4 items-center mt-2">
                   <View className="flex-row items-center">
                     <TouchableOpacity
                       onPress={handleLikePress}
                       disabled={isLoadingLike}
-                      className="ml-2 pr-4"
+                      className="ml-2"
                     >
                       <MaterialCommunityIcons
                         name={isLiked ? "heart" : "heart-outline"}
@@ -535,9 +523,11 @@ const PostScreen = () => {
                       />
                     </TouchableOpacity>
                     {/* Only show like count to post creator */}
-                    {clerk_id === user?.id && (
-                      <Text className="ml-1 text-gray-600">{likeCount}</Text>
-                    )}
+                    <Text
+                      className={`ml-1 ${clerk_id === user?.id ? "text-gray-600" : "text-transparent"}`}
+                    >
+                      {clerk_id === user?.id ? likeCount : "0"}
+                    </Text>
                   </View>
 
                   {/*clerk_id === user?.id && (
@@ -586,7 +576,7 @@ const PostScreen = () => {
               editable={!isSubmitting && !isSubmitting}
             />
             <CustomButton
-              title={isSubmitting ? "Sending..." : "Send"}
+              title={isSubmitting ? "..." : "Send"}
               onPress={handleCommentSubmit}
               disabled={
                 newComment.length === 0 || isSubmitting || isPostDeleted
