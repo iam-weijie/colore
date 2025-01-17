@@ -144,10 +144,14 @@ export default function Page() {
         <View className="flex-row justify-between items-center mx-7 mt-3">
           <Image
             source={require("@/assets/colore-word-logo.png")}
-            style={{ width: 330, height: 50 }}
+            style={{ width: 120, height: 50 }}
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
+
+          <TouchableOpacity onPress={handleNewPostPress}>
+            <Image source={icons.pencil} className="w-7 h-7" />
+          </TouchableOpacity>
         </View>
 
         {loading ? (
@@ -200,16 +204,6 @@ export default function Page() {
             )}
           </View>
         )}
-
-        <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8 z-10">
-          {/* <TouchableOpacity onPress={handleReloadPosts}>
-            <Image source={icons.refresh} className="w-8 h-8" />
-          </TouchableOpacity> */}
-
-          <TouchableOpacity onPress={handleNewPostPress}>
-            <Image source={icons.pencil} className="w-7 h-7" />
-          </TouchableOpacity>
-        </View>
       </SignedIn>
     </SafeAreaView>
   );
