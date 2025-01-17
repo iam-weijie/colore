@@ -227,6 +227,7 @@ const PostModal: React.FC<PostModalProps> = ({
       isVisible={isVisible}
       backdropColor={postColor.hex || "rgba(0,0,0,0.5)"}
       backdropOpacity={1}
+      onBackdropPress={handleCloseModal}
     >
       <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
         <TouchableOpacity onPress={handleCloseModal}>
