@@ -157,7 +157,7 @@ export default function Page() {
         ) : error ? (
           <Text>{error}</Text>
         ) : (
-          <View style={{ flex: 1 }}>
+          <View className="flex-1">
             <ScrollView
               refreshControl={
                 <RefreshControl
