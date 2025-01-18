@@ -1,13 +1,7 @@
-import ColorSelector from "@/components/ColorSelector";
-import CustomButton from "@/components/CustomButton";
-import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
 import React, { useState } from "react";
-
-import { temporaryColors } from "@/constants";
-import { PostItColor } from "@/types/type";
 import {
   Alert,
   Dimensions,
@@ -19,6 +13,12 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import ColorSelector from "@/components/ColorSelector";
+import CustomButton from "@/components/CustomButton";
+import { temporaryColors } from "@/constants";
+import { fetchAPI } from "@/lib/fetch";
+import { PostItColor } from "@/types/type";
 
 const NewPost = () => {
   const { user } = useUser();
@@ -88,7 +88,7 @@ const NewPost = () => {
           onPressIn={() => Keyboard.dismiss()}
         >
           <View>
-            <View className="flex flex-row justify-center items-center mt-3 mx-4">
+            <View className="flex flex-row justify-center items-center mt-3 mx-6">
               <View className="flex-1">
                 <TouchableOpacity onPress={() => router.back()}>
                   <AntDesign name="caretleft" size={18} color="0076e3" />
@@ -109,7 +109,7 @@ const NewPost = () => {
 
             <View className="mx-3">
               <TextInput
-                className="font-Jakarta mx-2 my-5"
+                className="font-Jakarta mx-10 my-5"
                 placeholder="Type something..."
                 value={postContent}
                 onChangeText={handleChangeText}
@@ -125,10 +125,11 @@ const NewPost = () => {
                   textAlignVertical: "top",
                 }}
               />
+
               <ColorSelector
                 colors={temporaryColors}
                 selectedColor={selectedColor}
-                onColorSelect={handleColorSelect} // Debug
+                onColorSelect={handleColorSelect}
                 //onColorSelect={setSelectedColor}
               />
             </View>
