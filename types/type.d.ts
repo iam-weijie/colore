@@ -53,6 +53,7 @@ declare interface PostWithPosition extends Post {
     top: number;
     left: number;
   };
+  emoji: string;
 }
 
 declare interface PostItColor {
