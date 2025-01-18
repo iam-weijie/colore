@@ -89,7 +89,7 @@ const NewPost = () => {
 
   const toggleEmojiSelector = () => {
     setIsEmojiSelectorVisible((prev) => !prev);
-    console.log(selectedEmoji);
+    // console.log(selectedEmoji);
   };
 
   useEffect(() => {
@@ -155,15 +155,17 @@ const NewPost = () => {
 
               <TouchableOpacity onPress={toggleEmojiSelector}>
                 {selectedEmoji ? (
-                  <Text style={{ fontSize: 36 }}>{selectedEmoji}</Text>
+                  <Text style={{ fontSize: 35, margin: 1 }}>
+                    {selectedEmoji}
+                  </Text>
                 ) : (
-                  <Image source={icons.album} className="w-9 h-9 m-1" />
+                  <Image source={icons.wink} className="w-8 h-9 m-1" />
                 )}
               </TouchableOpacity>
             </View>
 
             {isEmojiSelectorVisible && (
-              <View className="w-full h-full bg-white">
+              <View className="w-full h-screen bg-white">
                 <EmojiSelector
                   onEmojiSelected={(emoji) => {
                     setSelectedEmoji(emoji);
