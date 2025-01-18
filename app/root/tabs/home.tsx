@@ -24,8 +24,7 @@ type DraggablePostItProps = {
 };
 
 const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
-  const position = useRef(new Animated.ValueXY()).current; // Post-it position
-  const emojiPosition = useRef(new Animated.ValueXY()).current; // Emoji position
+  const position = useRef(new Animated.ValueXY()).current;
   const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
