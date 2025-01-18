@@ -217,7 +217,7 @@ export default function Page() {
               style={{ position: "absolute", width: "100%", height: "100%" }}
             />
 
-            <View className="relative flex-1">
+            <View className="relative">
               {posts.map((post, index) => {
                 return (
                   // <TouchableOpacity
