@@ -508,8 +508,8 @@ const PostScreen = () => {
               onPressIn={() => Keyboard.dismiss()}
             >
               {/* Post information */}
-              <View className="p-4 border-b border-gray-200 relative">
-                <View className="absolute top-4 right-4 items-center mt-2">
+              <View className="px-4 border-b border-gray-200 relative">
+                <View className="absolute right-4 items-center mt-2">
                   <View className="flex-row items-center">
                     <TouchableOpacity
                       onPress={handleLikePress}

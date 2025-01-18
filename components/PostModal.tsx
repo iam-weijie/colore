@@ -227,6 +227,7 @@ const PostModal: React.FC<PostModalProps> = ({
       isVisible={isVisible}
       backdropColor={postColor.hex || "rgba(0,0,0,0.5)"}
       backdropOpacity={1}
+      onBackdropPress={handleCloseModal}
     >
       <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
         <TouchableOpacity onPress={handleCloseModal}>
@@ -245,21 +246,23 @@ const PostModal: React.FC<PostModalProps> = ({
               });
             }}
           >
-            <Text className="text-[16px] font-Jakarta font-bold">
+            {/* <Text className="text-[16px] font-Jakarta font-bold ">
               {nickname
                 ? nickname
                 : post?.username
                   ? `${post?.username}`
                   : `${post?.firstname?.charAt(0)}.`}
-            </Text>
+            </Text> */}
           </TouchableOpacity>
         )}
-        <Text className="text-[16xp] text-gray-500 font-Jakarta">
+        {/* <Text className="text-[16xp] text-gray-500 font-Jakarta">
           {formattedDate}
-        </Text>
+        </Text> */}
 
         <ScrollView>
-          <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
+          <Text className="text-[16px] p-1 my-4 font-Jakarta">
+            {post!.content}
+          </Text>
         </ScrollView>
         <View className="my-2 flex-row justify-between items-center">
           <View className="flex flex-row items-center">
