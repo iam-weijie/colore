@@ -1,10 +1,11 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
+  Image,
   Keyboard,
   Text,
   TextInput,
@@ -12,11 +13,12 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import EmojiSelector from "react-native-emoji-selector";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import ColorSelector from "@/components/ColorSelector";
 import CustomButton from "@/components/CustomButton";
-import { temporaryColors } from "@/constants";
+import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
 
@@ -28,10 +30,13 @@ const NewPost = () => {
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
     temporaryColors[0]
   );
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
+    setIsEmojiSelectorVisible(false);
   };
 
   // need to get user's screen size to set a min height
@@ -55,9 +60,11 @@ const NewPost = () => {
           content: cleanedContent,
           clerkId: user!.id,
           color: selectedColor.name,
+          emoji: selectedEmoji,
         }),
       });
       setPostContent("");
+      setSelectedEmoji(null);
       Alert.alert("Post created.");
     } catch (error) {
       Alert.alert("Error", "An error occurred. Please try again.");
@@ -79,6 +86,17 @@ const NewPost = () => {
       );
     }
   };
+
+  const toggleEmojiSelector = () => {
+    setIsEmojiSelectorVisible((prev) => !prev);
+    console.log(selectedEmoji);
+  };
+
+  useEffect(() => {
+    if (selectedEmoji) {
+      toggleEmojiSelector();
+    }
+  }, [selectedEmoji]);
 
   return (
     <SafeAreaView className="flex-1">
@@ -108,23 +126,25 @@ const NewPost = () => {
             </View>
 
             <View className="mx-3">
-              <TextInput
-                className="font-Jakarta mx-10 my-5"
-                placeholder="Type something..."
-                value={postContent}
-                onChangeText={handleChangeText}
-                onContentSizeChange={handleContentSizeChange}
-                autoFocus
-                multiline
-                scrollEnabled
-                style={{
-                  paddingTop: 10,
-                  paddingBottom: 0,
-                  minHeight: screenHeight * 0.2,
-                  maxHeight: screenHeight * 0.45,
-                  textAlignVertical: "top",
-                }}
-              />
+              {!isEmojiSelectorVisible && (
+                <TextInput
+                  className="font-Jakarta mx-10 my-5"
+                  placeholder="Type something..."
+                  value={postContent}
+                  onChangeText={handleChangeText}
+                  onContentSizeChange={handleContentSizeChange}
+                  autoFocus
+                  multiline
+                  scrollEnabled
+                  style={{
+                    paddingTop: 10,
+                    paddingBottom: 0,
+                    minHeight: screenHeight * 0.2,
+                    maxHeight: screenHeight * 0.45,
+                    textAlignVertical: "top",
+                  }}
+                />
+              )}
 
               <ColorSelector
                 colors={temporaryColors}
@@ -132,7 +152,25 @@ const NewPost = () => {
                 onColorSelect={handleColorSelect}
                 //onColorSelect={setSelectedColor}
               />
+
+              <TouchableOpacity onPress={toggleEmojiSelector}>
+                {selectedEmoji ? (
+                  <Text style={{ fontSize: 36 }}>{selectedEmoji}</Text>
+                ) : (
+                  <Image source={icons.album} className="w-9 h-9 m-1" />
+                )}
+              </TouchableOpacity>
             </View>
+
+            {isEmojiSelectorVisible && (
+              <View className="w-full h-full bg-white">
+                <EmojiSelector
+                  onEmojiSelected={(emoji) => {
+                    setSelectedEmoji(emoji);
+                  }}
+                />
+              </View>
+            )}
           </View>
         </TouchableWithoutFeedback>
       </SignedIn>
