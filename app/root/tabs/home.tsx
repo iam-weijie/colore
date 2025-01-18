@@ -110,15 +110,48 @@ export default function Page() {
       }));
       setPosts(postsWithPositions);
     } catch (error) {
-      setError("Failed to fetch random posts.");
+      setError("Failed to fetch new posts.");
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchNewPost = async () => {
+    try {
+      const response = await fetch(
+        `/api/posts/getRandomPosts?number=${1}&id=${user!.id}`
+      );
+      if (!response.ok) throw new Error("Network response was not ok");
+      const result = await response.json();
+      // Add position to the new post
+      const newPostWithPosition = result.data.map((post: Post) => ({
+        ...post,
+        position: {
+          top: Math.random() * 500,
+          left: Math.random() * 250,
+        },
+      }));
+      return newPostWithPosition[0];
+    } catch (error) {
+      setError("Failed to fetch new post.");
+      console.error(error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     fetchRandomPosts();
+
+    // Fetch the first post (one random post)
+    const fetchAndSetNewPost = async () => {
+      const newPost = await fetchNewPost();
+      if (newPost) {
+        setPosts((prevPosts) => [...prevPosts, newPost]); // Add the new post to the list
+      }
+    };
+
+    fetchAndSetNewPost();
   }, []);
 
   const handlePostPress = (post: any) => {
@@ -129,8 +162,20 @@ export default function Page() {
     router.push("/root/new-post");
   };
 
-  const handleCloseModal = () => {
-    setSelectedPost(null);
+  const handleCloseModal = async () => {
+    if (selectedPost) {
+      setPosts((prevPosts) =>
+        prevPosts.filter((post) => post.id !== selectedPost.id)
+      );
+
+      // Fetch a new post to replace the removed one
+      const newPost = await fetchNewPost();
+      if (newPost) {
+        setPosts((prevPosts) => [...prevPosts, newPost]);
+      }
+
+      setSelectedPost(null);
+    }
   };
 
   const handleReloadPosts = () => {
