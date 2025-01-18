@@ -63,37 +63,6 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
     })
   ).current;
 
-  // Function to update emoji position with inertia
-  const updateEmojiPosition = (dx: number, dy: number) => {
-    // Maximum width and height for the emoji's movement inside the post-it
-    const maxWidth = 160; // Assuming post-it width is 160px
-    const maxHeight = 160; // Assuming post-it height is 160px
-
-    // Constrain the emoji inside the post-it's bounds
-    const constrainedX = Math.max(0, Math.min(dx, maxWidth - 50)); // Emoji width is about 50px
-    const constrainedY = Math.max(0, Math.min(dy, maxHeight - 50)); // Emoji height is about 50px
-
-    // Apply spring animation to the emoji, with inertia
-    Animated.spring(emojiPosition, {
-      toValue: { x: constrainedX, y: constrainedY }, // Constrained emoji position
-      useNativeDriver: true,
-      damping: 20, // Controls the amount of "bounciness" (inertia)
-      stiffness: 500, // Controls how fast the emoji moves to the target position
-    }).start();
-  };
-
-  useEffect(() => {
-    position.addListener((value) => {
-      if (isDragging) {
-        updateEmojiPosition(value.x, value.y); // Update emoji position with inertia
-      }
-    });
-
-    return () => {
-      position.removeAllListeners();
-    };
-  }, [isDragging]);
-
   return (
     <Animated.View
       {...panResponder.panHandlers}
@@ -109,20 +78,16 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
         <PostIt color={post.color || "yellow"} />
       </TouchableOpacity>
 
-      {/* Animated emoji */}
-      <Animated.Text
+      <Text
         style={{
           position: "absolute",
-          // Use translateX and translateY for the emoji's animation
-          transform: [
-            { translateX: emojiPosition.x },
-            { translateY: emojiPosition.y },
-          ],
+          left: Math.random() * 100,
+          top: Math.random() * 100,
           fontSize: 50,
         }}
       >
         {post.emoji}
-      </Animated.Text>
+      </Text>
     </Animated.View>
   );
 };
