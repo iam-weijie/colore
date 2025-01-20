@@ -465,7 +465,8 @@ const PostScreen = () => {
           {/* Show like count to post creator and comment creator*/}
           {
             (clerk_id === user?.id || item.user_id === user?.id) && (
-              /*item.user_id === user?.id ?*/ <Text className="text-xs text-gray-500 w-6 text-center mr-7">
+              /*item.user_id === user?.id ?*/
+              <Text className="text-xs text-gray-500 text-center">
                 {commentLikeCounts[item.id] || 0}
               </Text>
             ) /*: (
