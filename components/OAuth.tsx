@@ -11,13 +11,47 @@ const OAuth = () => {
 
   const handleGoogleLogIn = useCallback(async () => {
     try {
+      console.log('Starting Google OAuth flow...');
+      
+      // Log the startOAuthFlow function to see its structure
+      console.log('OAuth flow details:', JSON.stringify(startOAuthFlow, null, 2));
+      
+      // Wrap the OAuth call in a try-catch to catch pre-redirect errors
+      try {
+        const { createdSessionId, setActive, signIn, signUp } = await startOAuthFlow();
+        console.log('Initial OAuth response:', {
+          createdSessionId,
+          setActive: !!setActive,
+          signIn: !!signIn,
+          signUp: !!signUp
+        });
+      } catch (oauthError) {
+        console.error('Pre-redirect OAuth error:', {
+          message: oauthError.message,
+          stack: oauthError.stack,
+          // Log additional error properties that might contain the redirect URL
+          ...oauthError
+        });
+        throw oauthError;
+      }
+
       const result = await googleOAuth(startOAuthFlow);
+      console.log('OAuth result:', {
+        code: result.code,
+        fullResult: JSON.stringify(result, null, 2)
+      });
 
       if (result.code === "session_exists" || result.code === "success") {
+        console.log('OAuth successful, redirecting to user-info');
         router.push("/root/user-info");
       }
     } catch (err) {
-      console.error("OAuth error", err);
+      console.error('OAuth error:', {
+        message: err.message,
+        stack: err.stack,
+        // Log any additional error properties
+        errorDetails: JSON.stringify(err, null, 2)
+      });
     }
   }, [startOAuthFlow]);
 
@@ -28,7 +62,6 @@ const OAuth = () => {
         <Text className="font-JakartaBold color-[#898f91]">Or</Text>
         <View className="flex-1 h-[1px] bg-general-100" />
       </View>
-
       <CustomButton
         title="Google"
         className="mt-5 w-full shadow-none"
