@@ -2,56 +2,33 @@ import { icons } from "@/constants";
 import { googleOAuth } from "@/lib/auth";
 import { useOAuth } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Image, Text, View } from "react-native";
 import CustomButton from "./CustomButton";
 
 const OAuth = () => {
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+  const [error, setError] = useState("");
 
   const handleGoogleLogIn = useCallback(async () => {
     try {
-      console.log('Starting Google OAuth flow...');
+      setError(""); // Clear any previous errors
       
-      // Log the startOAuthFlow function to see its structure
-      console.log('OAuth flow details:', JSON.stringify(startOAuthFlow, null, 2));
-      
-      // Wrap the OAuth call in a try-catch to catch pre-redirect errors
       try {
         const { createdSessionId, setActive, signIn, signUp } = await startOAuthFlow();
-        console.log('Initial OAuth response:', {
-          createdSessionId,
-          setActive: !!setActive,
-          signIn: !!signIn,
-          signUp: !!signUp
-        });
+        console.log('Initial OAuth response received');
       } catch (oauthError) {
-        console.error('Pre-redirect OAuth error:', {
-          message: oauthError.message,
-          stack: oauthError.stack,
-          // Log additional error properties that might contain the redirect URL
-          ...oauthError
-        });
-        throw oauthError;
+        setError(JSON.stringify(oauthError, null, 2));
+        return;
       }
 
       const result = await googleOAuth(startOAuthFlow);
-      console.log('OAuth result:', {
-        code: result.code,
-        fullResult: JSON.stringify(result, null, 2)
-      });
-
+      
       if (result.code === "session_exists" || result.code === "success") {
-        console.log('OAuth successful, redirecting to user-info');
         router.push("/root/user-info");
       }
     } catch (err) {
-      console.error('OAuth error:', {
-        message: err.message,
-        stack: err.stack,
-        // Log any additional error properties
-        errorDetails: JSON.stringify(err, null, 2)
-      });
+      setError(JSON.stringify(err, null, 2));
     }
   }, [startOAuthFlow]);
 
@@ -62,6 +39,14 @@ const OAuth = () => {
         <Text className="font-JakartaBold color-[#898f91]">Or</Text>
         <View className="flex-1 h-[1px] bg-general-100" />
       </View>
+      
+      {error && (
+        <View className="mt-4 p-4 bg-red-100 rounded-lg">
+          <Text className="text-red-600 font-medium">Error Details:</Text>
+          <Text className="text-red-500 mt-2">{error}</Text>
+        </View>
+      )}
+
       <CustomButton
         title="Google"
         className="mt-5 w-full shadow-none"
