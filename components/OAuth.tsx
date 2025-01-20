@@ -25,7 +25,7 @@ const OAuth = () => {
       const result = await googleOAuth(startOAuthFlow);
       console.log('Google OAuth response received:', result);
       console.log('Google OAuth response code:', result.code);      
-      if (result.code === "session_exists" || result.code === "success") {
+      if (result.code === "session_exists" || result.code === "success" || result.message === 'You\'re currently in single session mode. You can only be signed into one account at a time.') {
 
         router.push("/root/user-info");
       }
