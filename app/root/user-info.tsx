@@ -41,14 +41,14 @@ const UserInfo = () => {
       try {
         setLoading(true);
         const response = await fetchAPI(
-          `/(api)/(users)/getUserInfo?id=${user!.id}`,
+          `/api/users/getUserInfo?id=${user!.id}`,
           {
             method: "GET",
           }
         );
         if (response.error) {
           if (response.error === "User not found") {
-            await fetchAPI("/(api)/(users)/newUser", {
+            await fetchAPI("/api/users/newUser", {
               method: "POST",
               body: JSON.stringify({
                 email: user!.emailAddresses[0]?.emailAddress,
@@ -79,7 +79,7 @@ const UserInfo = () => {
         data.username &&
         data.date_of_birth
       ) {
-        router.replace("/(root)/(tabs)/home");
+        router.replace("/root/tabs/home");
       } else {
         setUserData({
           city: data.city,
@@ -146,7 +146,7 @@ const UserInfo = () => {
       state: stateVars.state || "",
       country: stateVars.country || "",
     });
-    router.push("/(root)/(location)/country");
+    router.push("/root/location/country");
   };
 
   const verifyValidUsername = (username: string): boolean => {
@@ -179,12 +179,12 @@ const UserInfo = () => {
     if (!verifyValidUsername(form.username)) {
       Alert.alert(
         "Invalid Username",
-        "Username can only contain alphanumeric characters, '_', and '-', and must be at most 20 characters long"
+        "Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long"
       );
       return;
     }
     try {
-      const response = await fetchAPI("/(api)/(users)/newUserInfo", {
+      const response = await fetchAPI("/api/users/newUserInfo", {
         method: "POST",
         body: JSON.stringify({
           firstName: form.firstName,
@@ -210,7 +210,7 @@ const UserInfo = () => {
           throw new Error(response.error);
         }
       } else {
-        router.push("/(root)/(tabs)/home");
+        router.push("/root/tabs/home");
       }
     } catch (error) {
       console.error("Failed to post user data:", error);

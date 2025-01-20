@@ -3,21 +3,26 @@ import { router, useLocalSearchParams } from "expo-router";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const Country = () => {
-  const { previousScreen } = useLocalSearchParams();
+const State = () => {
+  const { country, previousScreen } = useLocalSearchParams();
+
+  const selectedCountry = countries.find((c) => c.name === country);
+  const states = selectedCountry ? selectedCountry.states : [];
 
   return (
     <SafeAreaView className="flex-1">
-      <Text className="text-lg font-JakartaSemiBold m-3">Select a Country</Text>
+      <Text className="text-lg font-JakartaSemiBold m-3">
+        Select a State in {country}
+      </Text>
       <FlatList
-        data={countries}
-        keyExtractor={(item) => item.id}
+        data={states}
+        keyExtractor={(item) => item.name}
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() =>
               router.push({
-                pathname: "/(root)/(location)/state",
-                params: { country: item.name, previousScreen },
+                pathname: "/root/location/city",
+                params: { state: item.name, country, previousScreen },
               })
             }
           >
@@ -31,4 +36,4 @@ const Country = () => {
   );
 };
 
-export default Country;
+export default State;

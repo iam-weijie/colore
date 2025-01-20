@@ -63,7 +63,7 @@ const SignUp = () => {
       });
 
       if (completeSignUp.status === "complete") {
-        await fetchAPI("/(api)/(users)/newUser", {
+        await fetchAPI("/api/users/newUser", {
           method: "POST",
           body: JSON.stringify({
             email: form.email,
@@ -100,7 +100,7 @@ const SignUp = () => {
 
         <CustomButton
           title="Continue"
-          onPress={() => router.push("/(root)/user-info")}
+          onPress={() => router.push("/root/user-info")}
           className="w-full"
           padding="3"
         />
@@ -227,7 +227,7 @@ const SignUp = () => {
 
         <Text className="text-base text-center text-general-200 mt-5">
           Already have an account?{" "}
-          <Link href="/log-in">
+          <Link href="/auth/log-in">
             <Text className="text-primary-500">Log In</Text>
           </Link>
         </Text>

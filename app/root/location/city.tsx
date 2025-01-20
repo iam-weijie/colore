@@ -35,7 +35,7 @@ const City = () => {
     // send them back to the user info page
     // without updating the database
     if (stateVars.previousScreen === "profile") {
-      await fetchAPI("/(api)/(users)/patchUserInfo", {
+      await fetchAPI("/api/users/patchUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
@@ -44,9 +44,10 @@ const City = () => {
           city: selectedCity,
         }),
       });
+      router.replace(`/root/tabs/${stateVars.previousScreen}` as Href);
+    } else {
+      router.replace(`/${stateVars.previousScreen}` as Href);
     }
-
-    router.replace(`/(root)/${stateVars.previousScreen}` as Href);
   };
 
   return (

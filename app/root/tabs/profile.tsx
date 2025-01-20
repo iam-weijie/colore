@@ -9,7 +9,7 @@ const Profile = () => {
 
   const handleSignOut = async () => {
     signOut();
-    router.replace("/(auth)/log-in");
+    router.replace("/auth/log-in");
   };
 
   return (

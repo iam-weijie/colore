@@ -49,7 +49,7 @@ const NewPost = () => {
       return;
     }
     try {
-      await fetchAPI("/(api)/(posts)/newPost", {
+      await fetchAPI("/api/posts/newPost", {
         method: "POST",
         body: JSON.stringify({
           content: cleanedContent,

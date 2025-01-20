@@ -26,7 +26,7 @@ const Conversation = () => {
 
   const fetchMessages = async () => {
     const response = await fetchAPI(
-      `/(api)/(chat)/getMessages?id=${conversationId}`,
+      `/api/chat/getMessages?id=${conversationId}`,
       {
         method: "GET",
       }
@@ -53,7 +53,7 @@ const Conversation = () => {
   }, [conversationId]);
 
   const updateMessages = async (messageContent: string) => {
-    await fetchAPI(`/(api)/(chat)/newMessage`, {
+    await fetchAPI(`/api/chat/newMessage`, {
       method: "POST",
       body: JSON.stringify({
         conversationId: conversationId,
@@ -64,7 +64,7 @@ const Conversation = () => {
     });
   };
   const patchConversation = async (messageContent: string) => {
-    await fetchAPI(`/(api)/(chat)/patchConversations`, {
+    await fetchAPI(`/api/chat/patchConversations`, {
       method: "PATCH",
       body: JSON.stringify({
         conversationId: conversationId,
@@ -128,7 +128,7 @@ const Conversation = () => {
           style={{ height: 50 }}
         >
           <View className="mr-2">
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity onPress={() => router.replace("/root/tabs/chat")}>
               <AntDesign name="caretleft" size={18} color="0076e3" />
             </TouchableOpacity>
           </View>
@@ -136,7 +136,7 @@ const Conversation = () => {
             className="flex-1"
             onPress={() =>
               router.push({
-                pathname: "/(root)/(profile)/[id]",
+                pathname: "/root/profile/[id]",
                 params: { id: otherClerkId },
               })
             }

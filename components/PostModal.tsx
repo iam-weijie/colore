@@ -42,7 +42,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
       try {
         const response = await fetchAPI(
-          `/(api)/(posts)/updateLikeCount?postId=${post.id}&userId=${user.id}`,
+          `/api/posts/updateLikeCount?postId=${post.id}&userId=${user.id}`,
           { method: "GET" }
         );
 
@@ -73,7 +73,7 @@ const PostModal: React.FC<PostModalProps> = ({
       setIsLiked(!isLiked);
       setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
 
-      const response = await fetchAPI(`/(api)/(posts)/updateLikeCount`, {
+      const response = await fetchAPI(`/api/posts/updateLikeCount`, {
         method: "PATCH",
         body: JSON.stringify({
           postId: post.id,
@@ -120,12 +120,9 @@ const PostModal: React.FC<PostModalProps> = ({
   const fetchCurrentNickname = async () => {
     try {
       // //console.log("user: ", user!.id);
-      const response = await fetchAPI(
-        `/(api)/(users)/getUserInfo?id=${user!.id}`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
+        method: "GET",
+      });
       if (response.error) {
         //console.log("Error fetching user data");
         ////console.log("response data: ", response.data);
@@ -159,12 +156,9 @@ const PostModal: React.FC<PostModalProps> = ({
 
   const handleDelete = async () => {
     try {
-      const response = await fetchAPI(
-        `/(api)/(posts)/deletePost?id=${post!.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetchAPI(`/api/posts/deletePost?id=${post!.id}`, {
+        method: "DELETE",
+      });
 
       if (response.error) {
         throw new Error(response.error);
@@ -186,7 +180,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const handleCommentsPress = () => {
     handleCloseModal();
     router.push({
-      pathname: "/(root)/(post)/[id]",
+      pathname: "/root/post/[id]",
       // send through params to avoid doing another API call for post
       params: {
         id: post!.id,
@@ -207,7 +201,7 @@ const PostModal: React.FC<PostModalProps> = ({
     const fetchLikeStatus = async () => {
       try {
         const response = await fetchAPI(
-          `/(api)/(posts)/updateLikeCount?postId=${post!.id}&userId=${user!.id}`,
+          `/api/posts/updateLikeCount?postId=${post!.id}&userId=${user!.id}`,
           { method: "GET" }
         );
 
@@ -233,6 +227,7 @@ const PostModal: React.FC<PostModalProps> = ({
       isVisible={isVisible}
       backdropColor={postColor.hex || "rgba(0,0,0,0.5)"}
       backdropOpacity={1}
+      onBackdropPress={handleCloseModal}
     >
       <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
         <TouchableOpacity onPress={handleCloseModal}>
@@ -246,26 +241,28 @@ const PostModal: React.FC<PostModalProps> = ({
             onPress={() => {
               handleCloseModal();
               router.push({
-                pathname: "/(root)/(profile)/[id]",
+                pathname: "/root/profile/[id]",
                 params: { id: post!.clerk_id },
               });
             }}
           >
-            <Text className="text-[16px] font-Jakarta font-bold">
+            {/* <Text className="text-[16px] font-Jakarta font-bold ">
               {nickname
                 ? nickname
                 : post?.username
                   ? `${post?.username}`
                   : `${post?.firstname?.charAt(0)}.`}
-            </Text>
+            </Text> */}
           </TouchableOpacity>
         )}
-        <Text className="text-[16xp] text-gray-500 font-Jakarta">
+        {/* <Text className="text-[16xp] text-gray-500 font-Jakarta">
           {formattedDate}
-        </Text>
+        </Text> */}
 
         <ScrollView>
-          <Text className="text-[16px] mb-2 font-Jakarta">{post!.content}</Text>
+          <Text className="text-[16px] p-1 my-4 font-Jakarta">
+            {post!.content}
+          </Text>
         </ScrollView>
         <View className="my-2 flex-row justify-between items-center">
           <View className="flex flex-row items-center">

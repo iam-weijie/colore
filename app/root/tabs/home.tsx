@@ -10,6 +10,8 @@ import {
   Animated,
   Image,
   PanResponder,
+  RefreshControl,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -65,7 +67,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
       {...panResponder.panHandlers}
       style={{
         transform: position.getTranslateTransform(),
-        opacity: isDragging ? 0.8 : 1,
+        opacity: 1,
         position: "absolute",
         top: post.position.top,
         left: post.position.left,
@@ -84,7 +86,7 @@ export default function Page() {
   //const { isLoaded, isSignedIn, session } = useSession();
   ////console.log("session: ", session);
   //useAuth();
-  //router.replace("/(auth)/log-in");
+  //router.replace("/auth/log-in");
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,7 +96,7 @@ export default function Page() {
   const fetchRandomPosts = async () => {
     try {
       const response = await fetch(
-        `/(api)/(posts)/getRandomPosts?number=${3}&id=${user!.id}`
+        `/api/posts/getRandomPosts?number=${4}&id=${user!.id}`
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
@@ -102,21 +104,54 @@ export default function Page() {
       const postsWithPositions = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 150,
-          left: Math.random() * 200,
+          top: Math.random() * 500,
+          left: Math.random() * 250,
         },
       }));
       setPosts(postsWithPositions);
     } catch (error) {
-      setError("Failed to fetch random posts.");
+      setError("Failed to fetch new posts.");
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchNewPost = async () => {
+    try {
+      const response = await fetch(
+        `/api/posts/getRandomPosts?number=${1}&id=${user!.id}`
+      );
+      if (!response.ok) throw new Error("Network response was not ok");
+      const result = await response.json();
+      // Add position to the new post
+      const newPostWithPosition = result.data.map((post: Post) => ({
+        ...post,
+        position: {
+          top: Math.random() * 500,
+          left: Math.random() * 250,
+        },
+      }));
+      return newPostWithPosition[0];
+    } catch (error) {
+      setError("Failed to fetch new post.");
+      console.error(error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     fetchRandomPosts();
+
+    // Fetch the first post (one random post)
+    const fetchAndSetNewPost = async () => {
+      const newPost = await fetchNewPost();
+      if (newPost) {
+        setPosts((prevPosts) => [...prevPosts, newPost]); // Add the new post to the list
+      }
+    };
+
+    fetchAndSetNewPost();
   }, []);
 
   const handlePostPress = (post: any) => {
@@ -124,11 +159,23 @@ export default function Page() {
   };
 
   const handleNewPostPress = () => {
-    router.push("/(root)/new-post");
+    router.push("/root/new-post");
   };
 
-  const handleCloseModal = () => {
-    setSelectedPost(null);
+  const handleCloseModal = async () => {
+    if (selectedPost) {
+      setPosts((prevPosts) =>
+        prevPosts.filter((post) => post.id !== selectedPost.id)
+      );
+
+      // Fetch a new post to replace the removed one
+      const newPost = await fetchNewPost();
+      if (newPost) {
+        setPosts((prevPosts) => [...prevPosts, newPost]);
+      }
+
+      setSelectedPost(null);
+    }
   };
 
   const handleReloadPosts = () => {
@@ -142,10 +189,14 @@ export default function Page() {
         <View className="flex-row justify-between items-center mx-7 mt-3">
           <Image
             source={require("@/assets/colore-word-logo.png")}
-            style={{ width: 330, height: 50 }}
+            style={{ width: 120, height: 50 }}
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
+
+          <TouchableOpacity onPress={handleNewPostPress}>
+            <Image source={icons.pencil} className="w-7 h-7" />
+          </TouchableOpacity>
         </View>
 
         {loading ? (
@@ -155,27 +206,39 @@ export default function Page() {
         ) : error ? (
           <Text>{error}</Text>
         ) : (
-          <View className="relative flex-1">
-            {posts.map((post, index) => {
-              return (
-                // <TouchableOpacity
-                //   key={post.id}
-                //   onPress={() => handlePostPress(post)}
-                //   style={{
-                //     position: "absolute",
-                //     top: post.position.top,
-                //     left: post.position.left,
-                //   }}
-                // >
-                //   <DraggablePostIt />
-                // </TouchableOpacity>
-                <DraggablePostIt
-                  key={post.id}
-                  post={post}
-                  onPress={() => handlePostPress(post)}
+          <View className="flex-1">
+            <ScrollView
+              refreshControl={
+                <RefreshControl
+                  refreshing={loading}
+                  onRefresh={handleReloadPosts}
                 />
-              );
-            })}
+              }
+              style={{ position: "absolute", width: "100%", height: "100%" }}
+            />
+
+            <View className="relative flex-1">
+              {posts.map((post, index) => {
+                return (
+                  // <TouchableOpacity
+                  //   key={post.id}
+                  //   onPress={() => handlePostPress(post)}
+                  //   style={{
+                  //     position: "absolute",
+                  //     top: post.position.top,
+                  //     left: post.position.left,
+                  //   }}
+                  // >
+                  //   <DraggablePostIt />
+                  // </TouchableOpacity>
+                  <DraggablePostIt
+                    key={post.id}
+                    post={post}
+                    onPress={() => handlePostPress(post)}
+                  />
+                );
+              })}
+            </View>
 
             {selectedPost && (
               <PostModal
@@ -186,16 +249,6 @@ export default function Page() {
             )}
           </View>
         )}
-
-        <View className="absolute bottom-32 right-6 flex flex-col items-center space-y-8 z-10">
-          <TouchableOpacity onPress={handleReloadPosts}>
-            <Image source={icons.refresh} className="w-8 h-8" />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleNewPostPress}>
-            <Image source={icons.pencil} className="w-7 h-7" />
-          </TouchableOpacity>
-        </View>
       </SignedIn>
     </SafeAreaView>
   );
