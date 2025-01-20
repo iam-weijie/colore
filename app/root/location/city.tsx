@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const City = () => {
   const { user } = useUser();
   const { stateVars, setStateVars } = useNavigationContext();
-  const { state, country } = useLocalSearchParams();
+  const { state, country, previousScreen } = useLocalSearchParams();
 
   const selectedCountry = countries.find((c) => c.name === country);
   const selectedState = selectedCountry?.states.find((s) => s.name === state);
@@ -22,6 +22,7 @@ const City = () => {
   const handleCityPress = (city: string) => {
     setSelectedCity(city);
   };
+
   const handleConfirmPress = async () => {
     setStateVars({
       ...stateVars,
@@ -31,28 +32,27 @@ const City = () => {
       userLocation: `${selectedCity}, ${state}, ${country}`,
     });
 
-    // update user info if they're coming from profile, otherwise
-    // send them back to the user info page
-    // without updating the database
-    if (stateVars.previousScreen === "profile") {
-      await fetchAPI("/api/users/patchUserInfo", {
-        method: "PATCH",
-        body: JSON.stringify({
-          clerkId: user!.id,
-          country: country,
-          state: state,
-          city: selectedCity,
-        }),
-      });
-      router.replace(`/root/tabs/${stateVars.previousScreen}` as Href);
+    // update user info
+    await fetchAPI("/api/users/patchUserInfo", {
+      method: "PATCH",
+      body: JSON.stringify({
+        clerkId: user!.id,
+        country: country,
+        state: state,
+        city: selectedCity,
+      }),
+    });
+
+    if (previousScreen === "settings") {
+      router.push("/root/settings");
     } else {
-      router.replace(`/${stateVars.previousScreen}` as Href);
+      router.replace(`/${previousScreen}` as Href);
     }
   };
 
   return (
     <SafeAreaView className="flex-1">
-      <View className="flex flex-row justify-between items-center ">
+      <View className="flex flex-row justify-between items-center">
         <Text className="text-lg font-JakartaSemiBold m-3">
           Select a City in {state}
         </Text>

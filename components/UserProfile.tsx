@@ -26,6 +26,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
 
+
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
@@ -128,20 +129,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       </View>
     );
 
-  if (error)
-    return (
-      <SafeAreaView className="flex-1">
-        <View className="flex flex-row items-center justify-between">
-          <Text>An error occurred. Please try again Later.</Text>
-          <View className="flex flex-row items-right">
-            {isEditable && onSignOut && (
-              <TouchableOpacity onPress={onSignOut}>
-                <Image source={icons.logout} className="w-5 h-5" />
-              </TouchableOpacity>
-            )}
-          </View>
+if (error)
+  return (
+    <SafeAreaView className="flex-1">
+      <View className="flex flex-row items-center justify-between">
+        <Text>An error occurred. Please try again Later.</Text>
+        <View className="flex flex-row items-right">
+        {isEditable && (
+          <TouchableOpacity 
+            onPress={() => router.push("/root/settings")}
+            className="p-2"
+          >
+            <Image 
+              source={icons.settings} 
+              className="w-6 h-6"
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        )}
         </View>
-      </SafeAreaView>
+      </View>
+    </SafeAreaView>
     );
   const checkIfChatExists = async (user2: UserNicknamePair) => {
     try {
@@ -262,9 +270,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 : `${profileUser?.firstname?.charAt(0)}.`}
           </Text>
           <View className="flex flex-row items-right">
-            {isEditable && onSignOut && (
-              <TouchableOpacity onPress={onSignOut}>
-                <Image source={icons.logout} className="w-5 h-5" />
+            {isEditable && (
+              <TouchableOpacity onPress={() => router.push("/root/settings")}>
+                <Image source={icons.settings} className="w-8 h-8" />
               </TouchableOpacity>
             )}
           </View>
