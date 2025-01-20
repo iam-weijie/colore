@@ -452,6 +452,17 @@ const PostScreen = () => {
                 size={24}
                 color={commentLikes[item.id] ? "red" : "black"}
               />
+              {/* Show like count to post creator and comment creator*/}
+              {
+                (clerk_id === user?.id || item.user_id === user?.id) && (
+                  /*item.user_id === user?.id ?*/
+                  <Text className="text-xs text-gray-500 text-center">
+                    {commentLikeCounts[item.id] || 0}
+                  </Text>
+                ) /*: (
+                  <Text className="ml-1 text-xs text-gray-500 w-6 text-center mr-1">{commentLikeCounts[item.id] || 0}</Text>
+                )*/
+              }
             </TouchableOpacity>
             {item.user_id === user?.id && (
               <TouchableOpacity
@@ -462,17 +473,6 @@ const PostScreen = () => {
               </TouchableOpacity>
             )}
           </View>
-          {/* Show like count to post creator and comment creator*/}
-          {
-            (clerk_id === user?.id || item.user_id === user?.id) && (
-              /*item.user_id === user?.id ?*/
-              <Text className="text-xs text-gray-500 text-center">
-                {commentLikeCounts[item.id] || 0}
-              </Text>
-            ) /*: (
-                  <Text className="ml-1 text-xs text-gray-500 w-6 text-center mr-1">{commentLikeCounts[item.id] || 0}</Text>
-                )*/
-          }
         </View>
       </View>
     </View>
