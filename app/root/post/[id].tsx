@@ -1,4 +1,5 @@
 import CustomButton from "@/components/CustomButton";
+import DropdownMenu from "@/components/DropdownMenu";
 import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
@@ -454,12 +455,9 @@ const PostScreen = () => {
               />
             </TouchableOpacity>
             {item.user_id === user?.id && (
-              <TouchableOpacity
-                onPress={() => handleDeleteCommentPress(item.id)}
-                className="mt-30 mr-70 pl-2"
-              >
-                <Image source={icons.trash} className="w-5 h-5" />
-              </TouchableOpacity>
+              <View className="flex flex-row items-right">
+                <DropdownMenu menuItems={[ {label: "Delete", onPress: () => {handleDeleteCommentPress(item.id)}} ]}/>
+              </View>
             )}
           </View>
           {/* Show like count to post creator and comment creator*/}
