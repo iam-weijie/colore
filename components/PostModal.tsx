@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
+import DropdownMenu from "./DropdownMenu";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -287,9 +288,9 @@ const PostModal: React.FC<PostModalProps> = ({
           </View>
           {/* Delete button for post owner */}
           {post && post.clerk_id === user?.id && (
-            <TouchableOpacity onPress={handleDeletePress}>
-              <Image source={icons.trash} className="w-7 h-7" />
-            </TouchableOpacity>
+            <DropdownMenu 
+              menuItems={[ {label: "Delete", onPress: handleDeletePress} ]}
+            />
           )}
         </View>
       </View>
