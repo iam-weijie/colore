@@ -441,44 +441,10 @@ const PostScreen = () => {
           {formatDateTruncatedMonth(convertToLocal(new Date(item.created_at)))}
         </Text>
 
-      <View className="flex flex-row mr-2">
-        <Text className="flex-1 font-Jakarta">{item.content}</Text>
-        <View className="flex flex-col items-center">
-          <View className="flex-row items-center">
-            <TouchableOpacity
-              onPress={() => handleCommentLike(item.id)}
-              disabled={isLoadingCommentLike}
-            >
-              <MaterialCommunityIcons
-                name={commentLikes[item.id] ? "heart" : "heart-outline"}
-                size={24}
-                color={commentLikes[item.id] ? "red" : "black"}
-              />
-              {/* Show like count to post creator and comment creator*/}
-              {
-                (clerk_id === user?.id || item.user_id === user?.id) && (
-                  /*item.user_id === user?.id ?*/
-                  <Text className="text-xs text-gray-500 text-center">
-                    {commentLikeCounts[item.id] || 0}
-                  </Text>
-                ) /*: (
-                  <Text className="ml-1 text-xs text-gray-500 w-6 text-center mr-1">{commentLikeCounts[item.id] || 0}</Text>
-                )*/
-              }
-            </TouchableOpacity>
-            {item.user_id === user?.id && (
-              <TouchableOpacity
-                onPress={() => handleDeleteCommentPress(item.id)}
-                className="mt-30 mr-70 pl-2"
-              >
-                <Image source={icons.trash} className="w-5 h-5" />
-              </TouchableOpacity>
-            )}
-          </View>
+        <View className="flex flex-row mr-2">
+          <Text className="flex-1 font-Jakarta">{item.content}</Text>
         </View>
-        <Text className="font-Jakarta mt-2">{item.content}</Text>
-      </View>
-
+    </View>
       <View className="flex flex-col items-center ml-4">
         {item.user_id === user?.id && (
           <DropdownMenu
@@ -495,11 +461,17 @@ const PostScreen = () => {
             size={24}
             color={commentLikes[item.id] ? "red" : "black"}
           />
-          {(clerk_id === user?.id || item.user_id === user?.id) && (
-            <Text className="text-xs text-gray-500 w-6 text-center">
-              {commentLikeCounts[item.id] || 0}
-            </Text>
-          )}
+          {/* Show like count to post creator and comment creator*/}
+          {
+            (clerk_id === user?.id || item.user_id === user?.id) && (
+              /*item.user_id === user?.id ?*/
+              <Text className="text-xs text-gray-500 text-center">
+                {commentLikeCounts[item.id] || 0}
+              </Text>
+            ) /*: (
+              <Text className="ml-1 text-xs text-gray-500 w-6 text-center mr-1">{commentLikeCounts[item.id] || 0}</Text>
+            )*/
+          }
         </TouchableOpacity>
       </View>
     </View>
