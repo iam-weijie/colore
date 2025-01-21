@@ -93,14 +93,11 @@ export default function Page() {
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const { user } = useUser();
 
-  console.log(posts);
-
   const fetchRandomPosts = async () => {
     try {
       const response = await fetch(
         `/api/posts/getRandomPosts?number=${4}&id=${user!.id}`
       );
-      console.log("is there a refresh");
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
       // set positions of posts
@@ -170,12 +167,8 @@ export default function Page() {
       setPosts((prevPosts) =>
         prevPosts.filter((post) => post.id !== selectedPost.id)
       );
-
-      console.log("SELECTED POST!!!!!!!!!!", selectedPost);
-
       // Fetch a new post to replace the removed one
       const newPost = await fetchNewPost();
-      console.log("NEW POST!!!!!!!!!!!!!!!!!!!!", newPost);
       if (newPost) {
         setPosts((prevPosts) => [...prevPosts, newPost]);
       }
