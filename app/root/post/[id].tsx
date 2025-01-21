@@ -486,7 +486,7 @@ const PostScreen = () => {
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
           </View>
-          <View className="flex flex-row justify-center items-center mt-3 mx-4 pl-2">
+          <View className="flex flex-row justify-center items-center mx-4 pl-2">
             <View className="flex-1">
               <TouchableOpacity onPress={() => handleUserProfile(userId)}>
                 <Text className="font-JakartaSemiBold text-lg">
@@ -507,12 +507,17 @@ const PostScreen = () => {
                   menuItems={[{ label: "Delete", onPress: handleDeletePostPress }]}
                 />
               )}
-              <View className="flex items-center">
-                <MaterialCommunityIcons
-                  name={isLiked ? "heart" : "heart-outline"}
-                  size={32}
-                  color={isLiked ? "red" : "black"}
-                />
+              <View className="flex items-center">  
+                <TouchableOpacity
+                  onPress={handleLikePress}
+                  disabled={isLoadingLike}
+                >
+                  <MaterialCommunityIcons
+                    name={isLiked ? "heart" : "heart-outline"}
+                    size={32}
+                    color={isLiked ? "red" : "black"}
+                  />
+                </TouchableOpacity>
                 {/* Only show like count to post creator */}
                 <Text
                   className={`${clerk_id === user?.id ? "text-gray-600" : "text-transparent"} text-center`}
