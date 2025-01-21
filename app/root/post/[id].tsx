@@ -501,44 +501,38 @@ const PostScreen = () => {
                   : "No date"}
               </Text>
             </View>
+            <View className="flex flex-col items-center">
+              {clerk_id === user?.id && (
+                <DropdownMenu
+                  menuItems={[{ label: "Delete", onPress: handleDeletePostPress }]}
+                />
+              )}
+              <View className="flex items-center">
+                <MaterialCommunityIcons
+                  name={isLiked ? "heart" : "heart-outline"}
+                  size={32}
+                  color={isLiked ? "red" : "black"}
+                />
+                {/* Only show like count to post creator */}
+                <Text
+                  className={`${clerk_id === user?.id ? "text-gray-600" : "text-transparent"} text-center`}
+                >
+                  {clerk_id === user?.id ? likeCount : "0"}
+                </Text>
+              </View>
+            </View>
           </View>
           <ScrollView>
             <TouchableWithoutFeedback
               onPress={() => Keyboard.dismiss()}
               onPressIn={() => Keyboard.dismiss()}
             >
-              {/* Post information */}
-              <View className="px-4 border-b border-gray-200 relative">
-                <View className="absolute right-4 items-center mt-2">
-                  <View className="flex-row items-center">
-                    <TouchableOpacity
-                      onPress={handleLikePress}
-                      disabled={isLoadingLike}
-                      className="ml-2"
-                    >
-                      <MaterialCommunityIcons
-                        name={isLiked ? "heart" : "heart-outline"}
-                        size={32}
-                        color={isLiked ? "red" : "black"}
-                      />
-                    </TouchableOpacity>
-                    {/* Only show like count to post creator */}
-                    <Text
-                      className={`ml-1 ${clerk_id === user?.id ? "text-gray-600" : "text-transparent"}`}
-                    >
-                      {clerk_id === user?.id ? likeCount : "0"}
-                    </Text>
-                  </View>
-
-                  {/*clerk_id === user?.id && (
-                    <TouchableOpacity onPress={handleDeletePostPress} className="mt-3 mr-7">
-                      <Image source={icons.trash} className="w-7 h-7" />
-                    </TouchableOpacity>
-                  )*/}
+              <View className="px-4 border-b border-gray-200 flex flex-row justify-between">
+                <View className="flex-1">
+                  <Text className="font-Jakarta mt-2 ml-2 mr-10 min-h-[80]">
+                    {content}
+                  </Text>
                 </View>
-                <Text className="font-Jakarta mt-2 ml-2 mr-10 min-h-[80]">
-                  {content}
-                </Text>
               </View>
             </TouchableWithoutFeedback>
 
