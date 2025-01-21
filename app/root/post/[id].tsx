@@ -425,52 +425,47 @@ const PostScreen = () => {
   };
 
   const renderComment = ({ item }: { item: PostComment }) => (
-    <View key={item.id} className="p-4 border-b border-gray-200">
-      <TouchableOpacity onPress={() => handleUserProfile(item.user_id)}>
-        <Text className="font-JakartaSemiBold">
-          {findUserNickname(nicknames, item.user_id) === -1
-            ? item.username
-              ? `${item.username}`
-              : `${item.firstname.charAt(0)}.`
-            : nicknames[findUserNickname(nicknames, item.user_id)][1]}
+    <View key={item.id} className="p-4 border-b border-gray-200 flex flex-row justify-between">
+      <View className="flex-1">
+        <TouchableOpacity onPress={() => handleUserProfile(item.user_id)}>
+          <Text className="font-JakartaSemiBold">
+            {findUserNickname(nicknames, item.user_id) === -1
+              ? item.username
+                ? `${item.username}`
+                : `${item.firstname.charAt(0)}.`
+              : nicknames[findUserNickname(nicknames, item.user_id)][1]}
+          </Text>
+        </TouchableOpacity>
+
+        <Text className="text-sm text-gray-500">
+          {formatDateTruncatedMonth(convertToLocal(new Date(item.created_at)))}
         </Text>
-      </TouchableOpacity>
 
-      <Text className="text-sm text-gray-500">
-        {formatDateTruncatedMonth(convertToLocal(new Date(item.created_at)))}
-      </Text>
+        <Text className="font-Jakarta mt-2">{item.content}</Text>
+      </View>
 
-      <View className="flex flex-row mr-2">
-        <Text className="flex-1 font-Jakarta">{item.content}</Text>
-        <View className="flex flex-col items-center">
-          <View className="flex-row items-center">
-            <TouchableOpacity
-              onPress={() => handleCommentLike(item.id)}
-              disabled={isLoadingCommentLike}
-            >
-              <MaterialCommunityIcons
-                name={commentLikes[item.id] ? "heart" : "heart-outline"}
-                size={24}
-                color={commentLikes[item.id] ? "red" : "black"}
-              />
-            </TouchableOpacity>
-            {item.user_id === user?.id && (
-              <View className="flex flex-row items-right">
-                <DropdownMenu menuItems={[ {label: "Delete", onPress: () => {handleDeleteCommentPress(item.id)}} ]}/>
-              </View>
-            )}
-          </View>
-          {/* Show like count to post creator and comment creator*/}
-          {
-            (clerk_id === user?.id || item.user_id === user?.id) && (
-              /*item.user_id === user?.id ?*/ <Text className="text-xs text-gray-500 w-6 text-center mr-7">
-                {commentLikeCounts[item.id] || 0}
-              </Text>
-            ) /*: (
-                  <Text className="ml-1 text-xs text-gray-500 w-6 text-center mr-1">{commentLikeCounts[item.id] || 0}</Text>
-                )*/
-          }
-        </View>
+      <View className="flex flex-col items-center ml-4">
+        {item.user_id === user?.id && (
+          <DropdownMenu
+            menuItems={[{ label: "Delete", onPress: () => handleDeleteCommentPress(item.id) }]}
+          />
+        )}
+        <TouchableOpacity
+          onPress={() => handleCommentLike(item.id)}
+          disabled={isLoadingCommentLike}
+          className="mt-2"
+        >
+          <MaterialCommunityIcons
+            name={commentLikes[item.id] ? "heart" : "heart-outline"}
+            size={24}
+            color={commentLikes[item.id] ? "red" : "black"}
+          />
+          {(clerk_id === user?.id || item.user_id === user?.id) && (
+            <Text className="text-xs text-gray-500 w-6 text-center">
+              {commentLikeCounts[item.id] || 0}
+            </Text>
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );
