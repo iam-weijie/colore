@@ -12,21 +12,9 @@ export async function POST(request: Request) {
 
     if (request.method === "POST") {
       //console.log("Received POST request.");
-      const {
-        username,
-        city,
-        state,
-        country,
-        clerkId,
-      } = await request.json();
+      const { username, city, state, country, clerkId } = await request.json();
 
-      if (
-        !username ||
-        !city ||
-        !state ||
-        !country ||
-        !clerkId
-      ) {
+      if (!username || !city || !state || !country || !clerkId) {
         return Response.json(
           { error: "Missing required fields" },
           { status: 400 }
