@@ -481,10 +481,17 @@ const PostScreen = () => {
     <SafeAreaView className="flex-1">
       <SignedIn>
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-          <View className="flex flex-row justify-left items-center mt-3 mx-4 pl-2 pb-3">
+          <View className="flex flex-row justify-between items-center mt-3 mx-4 pl-2 pb-3 relative">
             <TouchableOpacity onPress={() => router.back()} className="mr-4">
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
+            {clerk_id === user?.id && (
+              <View className="absolute top-0 right-1">
+                <DropdownMenu
+                  menuItems={[{ label: "Delete", onPress: handleDeletePostPress }]}
+                />
+              </View>
+            )}
           </View>
           <View className="flex flex-row justify-center items-center mx-4 pl-2">
             <View className="flex-1">
@@ -502,11 +509,6 @@ const PostScreen = () => {
               </Text>
             </View>
             <View className="flex flex-col items-center">
-              {clerk_id === user?.id && (
-                <DropdownMenu
-                  menuItems={[{ label: "Delete", onPress: handleDeletePostPress }]}
-                />
-              )}
               <View className="flex items-center">  
                 <TouchableOpacity
                   onPress={handleLikePress}
