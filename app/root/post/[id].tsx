@@ -1,5 +1,6 @@
 import CustomButton from "@/components/CustomButton";
 import DropdownMenu from "@/components/DropdownMenu";
+import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
 import { PostComment, UserNicknamePair } from "@/types/type";
@@ -12,6 +13,7 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   ScrollView,
@@ -428,10 +430,7 @@ const PostScreen = () => {
   };
 
   const renderComment = ({ item }: { item: PostComment }) => (
-    <View
-      key={item.id}
-      className="p-4 border-b border-gray-200 flex flex-row justify-between"
-    >
+    <View key={item.id} className="p-4 border-b border-gray-200 flex flex-row justify-between">
       <View className="flex-1">
         <TouchableOpacity onPress={() => handleUserProfile(item.user_id)}>
           <Text className="font-JakartaSemiBold">
@@ -450,16 +449,11 @@ const PostScreen = () => {
         <View className="flex flex-row mr-2">
           <Text className="flex-1 font-Jakarta">{item.content}</Text>
         </View>
-      </View>
+    </View>
       <View className="flex flex-col items-center ml-4">
         {item.user_id === user?.id ? (
           <DropdownMenu
-            menuItems={[
-              {
-                label: "Delete",
-                onPress: () => handleDeleteCommentPress(item.id),
-              },
-            ]}
+            menuItems={[{ label: "Delete", onPress: () => handleDeleteCommentPress(item.id) }]}
           />
         ) : (
           <DropdownMenu
@@ -528,14 +522,7 @@ const PostScreen = () => {
               </Text>
             </View>
             <View className="flex flex-col items-center">
-              {clerk_id === user?.id && (
-                <DropdownMenu
-                  menuItems={[
-                    { label: "Delete", onPress: handleDeletePostPress },
-                  ]}
-                />
-              )}
-              <View className="flex items-center">
+              <View className="flex items-center">  
                 <TouchableOpacity
                   onPress={handleLikePress}
                   disabled={isLoadingLike}
