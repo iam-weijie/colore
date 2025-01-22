@@ -24,6 +24,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Linking from "expo-linking";
 
 const PostScreen = () => {
   const { user } = useUser();
@@ -424,6 +425,10 @@ const PostScreen = () => {
     }
   };
 
+  const handleReportPress = () => {
+    Linking.openURL("mailto:support@colore.ca")
+  };
+
   const renderComment = ({ item }: { item: PostComment }) => (
     <View key={item.id} className="p-4 border-b border-gray-200 flex flex-row justify-between">
       <View className="flex-1">
@@ -446,9 +451,13 @@ const PostScreen = () => {
         </View>
     </View>
       <View className="flex flex-col items-center ml-4">
-        {item.user_id === user?.id && (
+        {item.user_id === user?.id ? (
           <DropdownMenu
             menuItems={[{ label: "Delete", onPress: () => handleDeleteCommentPress(item.id) }]}
+          />
+        ) : (
+          <DropdownMenu
+            menuItems={[{ label: "Report", onPress: handleReportPress }]}
           />
         )}
         <TouchableOpacity
@@ -485,13 +494,17 @@ const PostScreen = () => {
             <TouchableOpacity onPress={() => router.back()} className="mr-4">
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
-            {clerk_id === user?.id && (
-              <View className="absolute top-0 right-1">
+            <View className="absolute top-0 right-1">
+              {clerk_id === user?.id ? (
                 <DropdownMenu
                   menuItems={[{ label: "Delete", onPress: handleDeletePostPress }]}
                 />
-              </View>
-            )}
+              ) : (
+                <DropdownMenu
+                  menuItems={[{ label: "Report", onPress: handleReportPress }]}
+                />
+              )}
+            </View>
           </View>
           <View className="flex flex-row justify-center items-center mx-4 pl-2">
             <View className="flex-1">
