@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -25,7 +24,7 @@ const UserInfo = () => {
     state: "",
     country: "",
     email: "",
-    username: ""
+    username: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -76,7 +75,7 @@ const UserInfo = () => {
           state: data.state,
           country: data.country,
           email: data.email,
-          username: data.username
+          username: data.username,
         });
       }
     };
@@ -89,7 +88,7 @@ const UserInfo = () => {
   const [form, setForm] = useState({
     username: userData.username || stateVars.username || user?.username || "",
     userLocation: stateVars.userLocation || "",
-  }); 
+  });
 
   const handleNavigateToCountry = () => {
     setStateVars({
@@ -109,10 +108,7 @@ const UserInfo = () => {
   };
 
   const handleGetStarted = async () => {
-    if (
-      !form.username ||
-      !form.userLocation
-    ) {
+    if (!form.username || !form.userLocation) {
       Alert.alert("Error", "Please fill out all fields.");
       return;
     }
@@ -169,7 +165,6 @@ const UserInfo = () => {
           <Text className="text-2xl font-JakartaBold my-5">Who are you 👀</Text>
           <View className="flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3">
             <View className="flex flex-col items-start justify-start w-full">
-
               <InputField
                 label="Username"
                 placeholder="Your Username"
@@ -204,10 +199,7 @@ const UserInfo = () => {
                     handleGetStarted();
                   }}
                   className="my-5 "
-                  disabled={
-                    !form.username ||
-                    !form.userLocation
-                  }
+                  disabled={!form.username || !form.userLocation}
                   padding="3"
                 />
               </View>
