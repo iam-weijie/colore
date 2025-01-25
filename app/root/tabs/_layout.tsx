@@ -1,3 +1,5 @@
+import NotificationBubble from "@/components/NotificationBubble";
+import { NotificationBubbleProps } from "@/types/type";
 import { icons } from "@/constants";
 import { Tabs } from "expo-router";
 import { Image, ImageSourcePropType, View } from "react-native";
@@ -5,9 +7,11 @@ import { Image, ImageSourcePropType, View } from "react-native";
 const TabIcon = ({
   source,
   focused,
+  notifications
 }: {
   source: ImageSourcePropType;
   focused: boolean;
+  notifications: NotificationBubbleProps;
 }) => (
   <View
     className={`items-center justify-center ${focused ? "bg-general-300 rounded-full" : ""}`}
@@ -21,6 +25,8 @@ const TabIcon = ({
         resizeMode="contain"
         className="w-7 h-7"
       />
+     <NotificationBubble type = {notifications} ></NotificationBubble>
+    
     </View>
   </View>
 );
@@ -53,7 +59,7 @@ const Layout = () => (
         title: "Home",
         headerShown: false,
         tabBarIcon: ({ focused }) => (
-          <TabIcon focused={focused} source={icons.home} />
+          <TabIcon focused={focused} source={icons.home} notifications="likes"/>
         ),
       }}
     />
@@ -63,7 +69,7 @@ const Layout = () => (
         title: "Chat",
         headerShown: false,
         tabBarIcon: ({ focused }) => (
-          <TabIcon focused={focused} source={icons.chat} />
+          <TabIcon focused={focused} source={icons.chat} notifications="messages"/>
         ),
       }}
     />
@@ -73,7 +79,7 @@ const Layout = () => (
         title: "Profile",
         headerShown: false,
         tabBarIcon: ({ focused }) => (
-          <TabIcon focused={focused} source={icons.profile} />
+          <TabIcon focused={focused} source={icons.profile} notifications="comments" />
         ),
       }}
     />

@@ -126,6 +126,10 @@ declare interface InputFieldProps extends TextInputProps {
   variant?: string;
 }
 
+declare interface NotificationBubbleProps {
+  type: string
+}
+
 declare interface PaymentProps {
   fullName: string;
   email: string;
