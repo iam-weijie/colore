@@ -6,6 +6,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
+import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
 import {
   Alert,
   Image,
@@ -229,7 +230,7 @@ const PostModal: React.FC<PostModalProps> = ({
       backdropOpacity={1}
       onBackdropPress={handleCloseModal}
     >
-      <View className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
+      <Animated.View entering={FadeInUp.duration(400)} exiting={FadeOutDown.duration(250)} className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto">
         <TouchableOpacity onPress={handleCloseModal}>
           <Image className="w-6 h-6 self-end left-3" source={icons.close} />
         </TouchableOpacity>
@@ -292,7 +293,7 @@ const PostModal: React.FC<PostModalProps> = ({
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </Animated.View>
     </ReactNativeModal>
   );
 };
