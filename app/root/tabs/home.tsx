@@ -1,5 +1,6 @@
 import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
+//import { DeviceToken } from '@/components/DeviceToken';
 import { useGlobalContext } from "@/app/globalcontext";
 import { icons } from "@/constants";
 import { Post, PostWithPosition } from "@/types/type";

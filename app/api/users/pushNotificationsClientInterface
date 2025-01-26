@@ -1,0 +1,54 @@
+import { neon } from "@neondatabase/serverless";
+import { axios } from "axios";
+import jwt from 'jsonwebtoken';
+import fs from 'fs';
+
+
+// Database connection
+const db = neon(`${process.env.DATABASE_URL}`);
+
+// APNs configuration
+const apnsKeyPath = '@/ios/AuthKey_826NG7LKC9';
+const teamId = '6272V3865X';
+const bundleId = 'com.arthur1235.colore';
+const keyId = '826NG7LKC9';
+
+// Generate JWT for APNs authentication
+const generateJwtToken = (): string => {
+  const secret = fs.readFileSync(apnsKeyPath, 'utf8');
+  return jwt.sign({ iss: teamId, iat: Math.floor(Date.now() / 1000) }, secret, {
+    algorithm: 'ES256',
+    header: {
+      kid: keyId,
+    },
+  });
+};
+
+// Send notification via APNs
+const sendPushNotification = async (deviceToken: string, message: string) => {
+  const jwtToken = generateJwtToken();
+
+  try {
+    const response = await axios.post(
+      `https://api.push.apple.com/3/device/${deviceToken}`,
+      {
+        aps: {
+          alert: message,
+          badge: 1,
+          sound: 'default',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+          'apns-topic': bundleId,
+        },
+      }
+    );
+    console.log('Notification sent:', response.status);
+  } catch (error) {
+    console.error('Error sending notification:', error);
+  }
+};
+
+export default sendPushNotification;

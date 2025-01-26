@@ -1,0 +1,30 @@
+import { neon } from "@neondatabase/serverless";
+
+export async function PATCH(request: Request) {
+    try {
+      //console.log("Received PATCH request for user info");
+      const sql = neon(`${process.env.DATABASE_URL}`);
+      const { userId, deviceToken } = await request.json();
+  
+      if (!clerkId || !deviceToken) {
+        return Response.json(
+          { error: "Missing required fields" },
+          { status: 400 }
+        );
+      }
+  
+      const response = await sql`
+        UPDATE users
+        SET device_token = ${deviceToken}
+        WHERE clerk_id = ${userId}
+      
+      `;
+  
+      return new Response(JSON.stringify({ data: response }), {
+        status: 200, // successful update
+      });
+    } catch (error) {
+      //console.log(error);
+      return Response.json({ error: error }, { status: 500 });
+    }
+  }
