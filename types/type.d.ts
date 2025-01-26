@@ -1,5 +1,6 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
+
 declare interface Post {
   id: string;
   clerk_id: string;
@@ -39,6 +40,7 @@ declare interface UserProfileType {
   city: string;
   state: string;
   country: string;
+  device_token: string;
   is_paid_user: boolean;
   report_count: number;
 }
@@ -105,7 +107,7 @@ declare interface UserProfileProps {
 
 declare interface PostModalProps {
   isVisible: boolean;
-  post: Post | null;
+  selectedPost: Post;
   handleCloseModal: () => void;
   handleUpdate?: () => void | Promise<void>;
 }
@@ -129,6 +131,8 @@ declare interface InputFieldProps extends TextInputProps {
 declare interface NotificationBubbleProps {
   type: string
 }
+
+
 
 declare interface PaymentProps {
   fullName: string;
@@ -154,3 +158,8 @@ declare interface Message {
 }
 
 type UserNicknamePair = [string, string];
+
+type Stacks = {
+  ids: [];
+  elements: [];
+};

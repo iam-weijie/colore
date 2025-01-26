@@ -1,5 +1,7 @@
 import { NavigationProvider } from "@/components/NavigationContext";
 import SplashVideo from "@/components/SplashVideo";
+//import PushNotificationIOS from '@react-native-community/push-notification-ios';
+import { GlobalProvider } from "@/app/globalcontext";
 import { tokenCache } from "@/lib/auth";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
 import { useFonts } from "expo-font";
@@ -36,7 +38,27 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
       setAppReady(true);
     }
+/*
+     // Request permissions on iOS
+     PushNotificationIOS.requestPermissions().then((data) => {
+      console.log('PushNotificationIOS.requestPermissions', data);
+    });
+
+    // Handle notification when the app is in the foreground
+    const onNotification = (notification) => {
+      console.log('Notification received: ', notification);
+      notification.finish(PushNotificationIOS.FetchResult.NoData);
+    };
+
+    PushNotificationIOS.addEventListener('notification', onNotification);
+
+    return () => {
+      PushNotificationIOS.removeEventListener('notification', onNotification);
+    };
+    */
   }, [loaded]);
+
+  
 
   const showSplashVideo = !appReady || !isSplashVideoComplete; //appReady
 
@@ -60,6 +82,7 @@ export default function RootLayout() {
   }
 
   return (
+  <GlobalProvider>
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <ClerkLoaded>
         <NavigationProvider>
@@ -74,5 +97,6 @@ export default function RootLayout() {
         </NavigationProvider>
       </ClerkLoaded>
     </ClerkProvider>
+  </GlobalProvider>
   );
 }
