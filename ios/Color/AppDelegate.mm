@@ -1,8 +1,14 @@
 #import "AppDelegate.h"
 #import <UserNotifications/UserNotifications.h>
-
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
+
+@interface AppDelegate () <UNUserNotificationCenterDelegate>  // Declare delegate conformance here
+
+// You can add any properties that you want to use in your implementation
+// For example, if you have a property for the notification center, it could be declared here.
+
+@end
 
 @implementation AppDelegate
 
@@ -12,7 +18,7 @@
   
   // Request permission to show notifications
   UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-  center.delegate = self;
+  center.delegate = self;  // Setting delegate to self
   [center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert + UNAuthorizationOptionSound + UNAuthorizationOptionBadge)
                         completionHandler:^(BOOL granted, NSError * _Nullable error) {
       if (!error) {
@@ -24,7 +30,6 @@
   [application registerForRemoteNotifications];
   
   return YES;
-
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
@@ -56,10 +61,10 @@
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
 {
   // Convert device token to string
-      NSString *deviceTokenString = [self deviceTokenStringFromData:deviceToken];
-      NSLog(@"Device Token: %@", deviceTokenString);
-      
-      // Here you can send the device token to your backend server
+  NSString *deviceTokenString = [self deviceTokenStringFromData:deviceToken];
+  NSLog(@"Device Token: %@", deviceTokenString);
+  
+  // Here you can send the device token to your backend server
 }
 
 - (NSString *)deviceTokenStringFromData:(NSData *)deviceToken {
@@ -70,11 +75,11 @@
     }
     return tokenString;
 }
+
 // Explicitly define remote notification delegates to ensure compatibility with some third-party libraries
 - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
     NSLog(@"Failed to register for remote notifications: %@", error);
 }
-
 
 // Explicitly define remote notification delegates to ensure compatibility with some third-party libraries
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
@@ -100,6 +105,5 @@
     NSLog(@"Notification tapped: %@", response.notification.request.content.body);
     completionHandler();
 }
-
 
 @end

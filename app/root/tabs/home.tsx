@@ -399,7 +399,7 @@ export default function Page() {
         <View className="flex-row justify-between items-center mx-7 mt-3">
           <Image
             source={require("@/assets/colore-word-logo.png")}
-            style={{ width: 120, height: 50 }}
+            style={{ width: 140, height: 70 }}
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
