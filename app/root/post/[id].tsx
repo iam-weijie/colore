@@ -446,7 +446,7 @@ const PostScreen = () => {
           {formatDateTruncatedMonth(convertToLocal(new Date(item.created_at)))}
         </Text>
 
-        <View className="flex flex-row mr-2">
+        <View className="flex flex-row">
           <Text className="flex-1 font-Jakarta">{item.content}</Text>
         </View>
     </View>
@@ -490,23 +490,12 @@ const PostScreen = () => {
     <SafeAreaView className="flex-1">
       <SignedIn>
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-          <View className="flex flex-row justify-between items-center mt-3 mx-4 pl-2 pb-3 relative">
+          <View className="flex-row items-center ml-6 mt-6">
             <TouchableOpacity onPress={() => router.back()} className="mr-4">
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
-            <View className="absolute top-0 right-1">
-              {clerk_id === user?.id ? (
-                <DropdownMenu
-                  menuItems={[{ label: "Delete", onPress: handleDeletePostPress }]}
-                />
-              ) : (
-                <DropdownMenu
-                  menuItems={[{ label: "Report", onPress: handleReportPress }]}
-                />
-              )}
-            </View>
           </View>
-          <View className="flex flex-row justify-center items-center mx-4 pl-2">
+          <View className="border-b border-gray-200 mr-4 ml-6 mt-4 flex flex-row justify-between">
             <View className="flex-1">
               <TouchableOpacity onPress={() => handleUserProfile(userId)}>
                 <Text className="font-JakartaSemiBold text-lg">
@@ -520,9 +509,30 @@ const PostScreen = () => {
                     )
                   : "No date"}
               </Text>
+              <TouchableWithoutFeedback
+              onPress={() => Keyboard.dismiss()}
+              onPressIn={() => Keyboard.dismiss()}
+              >
+                <View className="border-b border-gray-200 flex flex-row justify-between">
+                  <View className="flex-1">
+                    <Text className="font-Jakarta min-h-[80]">
+                      {content}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
             </View>
-            <View className="flex flex-col items-center">
-              <View className="flex items-center">  
+            <View className="flex flex-col items-center ml-4">
+              {clerk_id === user?.id ? (
+                <DropdownMenu
+                  menuItems={[{ label: "Delete", onPress: handleDeletePostPress }]}
+                />
+              ) : (
+                <DropdownMenu
+                  menuItems={[{ label: "Report", onPress: handleReportPress }]}
+                />
+              )}
+              <View className="mt-2">  
                 <TouchableOpacity
                   onPress={handleLikePress}
                   disabled={isLoadingLike}
@@ -543,18 +553,6 @@ const PostScreen = () => {
             </View>
           </View>
           <ScrollView>
-            <TouchableWithoutFeedback
-              onPress={() => Keyboard.dismiss()}
-              onPressIn={() => Keyboard.dismiss()}
-            >
-              <View className="px-4 border-b border-gray-200 flex flex-row justify-between">
-                <View className="flex-1">
-                  <Text className="font-Jakarta mt-2 ml-2 mr-10 min-h-[80]">
-                    {content}
-                  </Text>
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
 
             {/* Comment section */}
             <View className="mt-4 mb-24">
