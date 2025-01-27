@@ -74,15 +74,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     getData();
   }, [stateVars]);
 
-  const handleNavigateToCountry = () => {
-    if (isEditable) {
-      setStateVars({
-        ...stateVars,
-        previousScreen: "profile",
-      });
-      router.push("/root/location/country");
-    }
-  };
+
+
   const fetchUserData = async () => {
     setLoading(true);
     setError(null);
@@ -279,21 +272,10 @@ if (error)
         </View>
 
         <View>
-          {isEditable ? (
-            <Pressable disabled={!isEditable} onPress={handleNavigateToCountry}>
-              <TextInput
-                className="text-base font-Jakarta mt-3"
-                value={`📍${profileUser?.city}, ${profileUser?.state}, ${profileUser?.country}`}
-                editable={false}
-                onPressIn={handleNavigateToCountry}
-              />
-            </Pressable>
-          ) : (
-            <Text className="text-gray-500 font-Jakarta text-base mt-3">
-              📍{profileUser?.city}, {profileUser?.state},{" "}
-              {profileUser?.country}
-            </Text>
-          )}
+        <Text className="text-gray-500 font-Jakarta text-base mt-3">
+          📍{profileUser?.city}, {profileUser?.state}, {profileUser?.country}
+        </Text>
+
         </View>
       </View>
       <View />
