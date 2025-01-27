@@ -22,7 +22,11 @@ const State = () => {
             onPress={() =>
               router.push({
                 pathname: "/root/location/city",
-                params: { state: item.name, country, previousScreen },
+                params: { 
+                  state: item.name, 
+                  country: country, 
+                  previousScreen: previousScreen 
+                }
               })
             }
           >

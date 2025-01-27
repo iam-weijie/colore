@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 declare interface ChatScreenProps {}
 
@@ -88,42 +89,44 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   };
 
   return (
-    <View className="flex-1 bg-gray-100">
-      {loading ? (
-        <View className="flex-[0.8] justify-center items-center">
-          <ActivityIndicator size="large" color="black" />
-        </View>
-      ) : (
-        <View className="flex-1">
-          <View className="ml-4 mt-6">
-            <TouchableOpacity onPress={() => router.back()}>
-              <AntDesign name="caretleft" size={18} color="0076e3" />
-            </TouchableOpacity>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View className="flex-1 bg-gray-100">
+        {loading ? (
+          <View className="flex-[0.8] justify-center items-center">
+            <ActivityIndicator size="large" color="black" />
           </View>
-          <View className="flex flex-row items-center mx-4 mb-4 mt-4">
-            <TextInput
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Search conversations..."
-              value={searchText}
-              onChangeText={(text): void => setSearchText(text)}
-            />
-            <TouchableOpacity
-              onPress={handleCreateNewConversation}
-              className="w-10 h-10 ml-2 flex justify-center items-center bg-black rounded-full"
-            >
-              <View className="flex justify-center items-center w-full h-full">
-                <Text className="text-white text-3xl -mt-[3px]">+</Text>
+        ) : (
+          <View className="flex-1">
+            <View className="flex flex-row items-center mx-4 mb-4 mt-4">
+              <View className="mr-2">
+                <TouchableOpacity onPress={() => router.replace("/root/tabs/personal-board")}>
+                  <AntDesign name="caretleft" size={18} color="0076e3" />
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
+              <TextInput
+                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                placeholder="Search conversations..."
+                value={searchText}
+                onChangeText={(text): void => setSearchText(text)}
+              />
+              <TouchableOpacity
+                onPress={handleCreateNewConversation}
+                className="w-10 h-10 ml-2 flex justify-center items-center bg-black rounded-full"
+              >
+                <View className="flex justify-center items-center w-full h-full">
+                  <Text className="text-white text-3xl -mt-[3px]">+</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={filteredConversations}
+              renderItem={renderConversationItem}
+              keyExtractor={(item): string => item.id}
+            />
           </View>
-          <FlatList
-            data={filteredConversations}
-            renderItem={renderConversationItem}
-            keyExtractor={(item): string => item.id}
-          />
-        </View>
-      )}
-    </View>
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
