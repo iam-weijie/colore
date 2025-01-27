@@ -167,7 +167,6 @@ export default function Page() {
       setPosts((prevPosts) =>
         prevPosts.filter((post) => post.id !== selectedPost.id)
       );
-
       // Fetch a new post to replace the removed one
       const newPost = await fetchNewPost();
       if (newPost) {
