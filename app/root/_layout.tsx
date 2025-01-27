@@ -10,6 +10,7 @@ const Layout = () => {
       <Stack.Screen name="personal-board" options={{ headerShown: false }} />
       <Stack.Screen name="profile" options={{ headerShown: false }} />
       <Stack.Screen name="post" options={{ headerShown: false }} />
+      <Stack.Screen name="chat" options={{ headerShown: false}}/>
     </Stack>
   );
 };
