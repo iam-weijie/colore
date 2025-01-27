@@ -2,7 +2,7 @@
   "expo": {
     "name": "Coloré",
     "slug": "colore",
-    "owner": "colore_dev",
+    "owner": "colore_backend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

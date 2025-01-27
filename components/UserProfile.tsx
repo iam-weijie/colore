@@ -233,6 +233,18 @@ if (error)
     }
   };
 
+  const menuItems = [
+    { label: "Alias", onPress: handleAddNickname },
+    {
+      label: "Chat",
+      onPress: () =>
+        startChat([
+          profileUser!.clerk_id,
+          nickname || profileUser!.username,
+        ] as UserNicknamePair),
+    },
+  ];
+
   return (
     <View className="flex-1 mt-3">
       <View className="mx-7 mb-2">
@@ -242,15 +254,7 @@ if (error)
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
             <View className="flex flex-row items-right">
-              <DropdownMenu
-                onAlias={() => handleAddNickname()}
-                onChat={() =>
-                  startChat([
-                    profileUser!.clerk_id,
-                    nickname || profileUser!.username,
-                  ] as UserNicknamePair)
-                }
-              />
+              <DropdownMenu menuItems={menuItems} />
             </View>
           </View>
         )}
