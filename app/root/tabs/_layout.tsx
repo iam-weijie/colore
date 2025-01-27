@@ -57,6 +57,7 @@ const Layout = () => (
         ),
       }}
     />
+    
     <Tabs.Screen
       name="home"
       options={{
