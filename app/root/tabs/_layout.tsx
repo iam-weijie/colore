@@ -48,22 +48,23 @@ const Layout = () => (
     }}
   >
     <Tabs.Screen
+      name="personal-board"
+      options={{
+        title: "Personal Board",
+        headerShown: false,
+        tabBarIcon: ({ focused }) => (
+          <TabIcon focused={focused} source={icons.chat} />
+        ),
+      }}
+    />
+    
+    <Tabs.Screen
       name="home"
       options={{
         title: "Home",
         headerShown: false,
         tabBarIcon: ({ focused }) => (
           <TabIcon focused={focused} source={icons.home} />
-        ),
-      }}
-    />
-    <Tabs.Screen
-      name="chat"
-      options={{
-        title: "Chat",
-        headerShown: false,
-        tabBarIcon: ({ focused }) => (
-          <TabIcon focused={focused} source={icons.chat} />
         ),
       }}
     />
