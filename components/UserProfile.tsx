@@ -142,7 +142,7 @@ if (error)
           >
             <Image 
               source={icons.settings} 
-              className="w-6 h-6"
+              className="w-8 h-8"
               resizeMode="contain"
             />
           </TouchableOpacity>
