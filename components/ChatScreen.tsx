@@ -1,5 +1,5 @@
 import { fetchAPI } from "@/lib/fetch";
-import { ChatTabProps, ConversationItem } from "@/types/type";
+import { ConversationItem } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -12,7 +12,9 @@ import {
   View,
 } from "react-native";
 
-const Chat: React.FC<ChatTabProps> = () => {
+declare interface ChatScreenProps {}
+
+const ChatScreen: React.FC<ChatScreenProps> = () => {
   const { user } = useUser();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,4 +121,4 @@ const Chat: React.FC<ChatTabProps> = () => {
   );
 };
 
-export default Chat;
+export default ChatScreen;
