@@ -1,7 +1,8 @@
 import { fetchAPI } from "@/lib/fetch";
+import { UserProfileType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -19,9 +20,25 @@ import { useNavigationContext } from "@/components/NavigationContext";
 const Settings = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
-  const [username, setUsername] = useState(user?.username || "");
+  const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
+  const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetchAPI(`/api/users/getUserInfoPosts?id=${user!.id}`);
+      const { userInfo } = response;
+      setProfileUser(userInfo);
+      setUsername(userInfo.username || '');
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   const verifyValidUsername = (username: string): boolean => {
     const usernameRegex = /^[\w\-\.]{1,20}$/;
@@ -58,6 +75,7 @@ const Settings = () => {
         }
       } else {
         Alert.alert("Success", "Username updated successfully");
+        await fetchUserData(); // Refresh user data after successful update
       }
     } catch (error) {
       console.error("Failed to update username:", error);
@@ -88,18 +106,22 @@ const Settings = () => {
     }
   };
 
+  const currentLocation = profileUser 
+    ? `${profileUser.city}, ${profileUser.state}, ${profileUser.country}`
+    : "No location set";
+
   return (
     <SafeAreaView className="flex-1">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView className="flex-1">
-            <View className="flex flex-row items-center justify-between px-4 pt-2">
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => router.push("/root/tabs/profile")}>
-                    <AntDesign name="caretleft" size={18} color="0076e3" />
-                    </TouchableOpacity>
-                    <Text className="text-2xl font-JakartaBold ml-4">Settings</Text>
-                </View>
+          <View className="flex flex-row items-center justify-between px-4 pt-2">
+            <View className="flex-row items-center">
+              <TouchableOpacity onPress={() => router.push("/root/tabs/profile")}>
+                <AntDesign name="caretleft" size={18} color="0076e3" />
+              </TouchableOpacity>
+              <Text className="text-2xl font-JakartaBold ml-4">Settings</Text>
             </View>
+          </View>
 
           <View className="p-4">
             <View className="mb-6">
@@ -108,6 +130,7 @@ const Settings = () => {
                 label="Username"
                 value={username}
                 onChangeText={setUsername}
+                placeholder={profileUser?.username || "Enter username"}
                 containerStyle="mb-4"
               />
               <CustomButton
@@ -120,6 +143,7 @@ const Settings = () => {
 
             <View className="mb-6">
               <Text className="text-xl font-JakartaSemiBold mb-4">Location</Text>
+              <Text className="text-gray-500 mb-2">Current location: {currentLocation}</Text>
               <CustomButton
                 title="Change Location"
                 onPress={handleLocationUpdate}
