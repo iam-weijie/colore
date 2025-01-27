@@ -495,7 +495,7 @@ const PostScreen = () => {
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
           </View>
-          <View className="border-b border-gray-200 mr-4 ml-6 mt-4 flex flex-row justify-between">
+          <View className="border-b border-gray-200 pb-8 mr-4 ml-6 mt-4 flex flex-row justify-between">
             <View className="flex-1">
               <TouchableOpacity onPress={() => handleUserProfile(userId)}>
                 <Text className="font-JakartaSemiBold text-lg">
@@ -513,7 +513,7 @@ const PostScreen = () => {
               onPress={() => Keyboard.dismiss()}
               onPressIn={() => Keyboard.dismiss()}
               >
-                <View className="border-b border-gray-200 flex flex-row justify-between">
+                <View className="flex flex-row justify-between">
                   <View className="flex-1">
                     <Text className="font-Jakarta min-h-[80]">
                       {content}
