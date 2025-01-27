@@ -17,10 +17,7 @@ export async function GET(request: Request) {
     const response = await sql`
       SELECT 
         u.clerk_id, 
-        u.date_of_birth,
         u.email,
-        u.firstname, 
-        u.lastname,
         u.username,
         u.country,
         u.state,
@@ -46,9 +43,6 @@ export async function GET(request: Request) {
 
     const userInfo = {
       clerk_id: response[0].clerk_id,
-      date_of_birth: response[0].clerk_id,
-      firstname: response[0].firstname,
-      lastname: response[0].lastname,
       username: response[0].username,
       country: response[0].country,
       state: response[0].state,
@@ -65,7 +59,6 @@ export async function GET(request: Request) {
     const userPosts = response.map((post) => ({
       id: post.post_id,
       clerk_id: post.clerk_id,
-      firstname: post.firstname,
       username: post.username,
       content: post.content,
       created_at: post.created_at,
