@@ -532,7 +532,7 @@ const PostScreen = () => {
                   menuItems={[{ label: "Report", onPress: handleReportPress }]}
                 />
               )}
-              <View className="mt-2">  
+              <View className="mt-4">  
                 <TouchableOpacity
                   onPress={handleLikePress}
                   disabled={isLoadingLike}
