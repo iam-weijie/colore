@@ -14,6 +14,7 @@ declare interface Post {
   report_count: number;
   unread_comments: number;
   color: string; //String for now. Should be changed to PostItColor
+  emoji: string;
 }
 
 declare interface PostComment {
