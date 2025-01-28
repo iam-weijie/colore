@@ -8,7 +8,6 @@ import google from "@/assets/icons/google.png";
 import heart from "@/assets/icons/heart.png";
 import home from "@/assets/icons/home.png";
 import lock from "@/assets/icons/lock.png";
-import logout from "@/assets/icons/logout.png";
 import palette from "@/assets/icons/palette.png";
 import pencil from "@/assets/icons/pencil.png";
 import person from "@/assets/icons/person.png";
@@ -21,6 +20,7 @@ import wink from "@/assets/icons/wink.png";
 import login from "@/assets/images/login_squares.png";
 import signup from "@/assets/images/signup.png";
 import { PostItColor } from "@/types/type";
+import settings from "@/assets/icons/settings.png";
 
 export const icons = {
   person,
@@ -34,7 +34,6 @@ export const icons = {
   close,
   profile,
   album,
-  logout,
   search,
   trash,
   pencil,
@@ -42,6 +41,7 @@ export const icons = {
   heart,
   comment,
   palette,
+  settings,
   wink,
 };
 

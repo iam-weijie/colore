@@ -12,27 +12,9 @@ export async function POST(request: Request) {
 
     if (request.method === "POST") {
       //console.log("Received POST request.");
-      const {
-        firstName,
-        lastName,
-        username,
-        dateOfBirth,
-        city,
-        state,
-        country,
-        clerkId,
-      } = await request.json();
+      const { username, city, state, country, clerkId } = await request.json();
 
-      if (
-        !firstName ||
-        !lastName ||
-        !dateOfBirth ||
-        !username ||
-        !city ||
-        !state ||
-        !country ||
-        !clerkId
-      ) {
+      if (!username || !city || !state || !country || !clerkId) {
         return Response.json(
           { error: "Missing required fields" },
           { status: 400 }
@@ -52,10 +34,7 @@ export async function POST(request: Request) {
       const response = await sql`
         UPDATE users
         SET
-          firstname = ${firstName},
-          lastname = ${lastName},
           username = ${username},
-          date_of_birth = ${dateOfBirth},
           city = ${city},
           state = ${state},
           country = ${country}

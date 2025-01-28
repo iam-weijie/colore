@@ -7,9 +7,8 @@ import { neon } from "@neondatabase/serverless";
 // For now, it will only take the location
 export async function PATCH(request: Request) {
   try {
-    //console.log("Received PATCH request for user info");
-    const sql = neon(`${process.env.DATABASE_URL}`);
-    const { clerkId, country, state, city } = await request.json();
+    const sql = neon(process.env.DATABASE_URL!);
+    const { clerkId, country, state, city, username } = await request.json();
 
     if (!clerkId) {
       return Response.json(
@@ -18,18 +17,45 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const response = await sql`
-      UPDATE users
-      SET country=${country}, state=${state}, city=${city}
-      WHERE clerk_id=${clerkId}
+    // Handle each update case separately to ensure proper SQL syntax
+    let response;
     
-    `;
+    if (username !== undefined) {
+      response = await sql`
+        UPDATE users
+        SET username = ${username}
+        WHERE clerk_id = ${clerkId}
+        RETURNING *
+      `;
+    } else if (country !== undefined && state !== undefined && city !== undefined) {
+      response = await sql`
+        UPDATE users
+        SET 
+          country = ${country},
+          state = ${state},
+          city = ${city}
+        WHERE clerk_id = ${clerkId}
+        RETURNING *
+      `;
+    } else {
+      return Response.json(
+        { error: "Invalid update parameters" },
+        { status: 400 }
+      );
+    }
 
     return new Response(JSON.stringify({ data: response }), {
-      status: 200, // successful update
+      status: 200,
     });
-  } catch (error) {
-    //console.log(error);
-    return Response.json({ error: error }, { status: 500 });
+  } catch (error: any) {
+    console.error("Error updating user info:", error);
+    // Check for username uniqueness violation
+    if (error.code === '23505' && error.constraint === 'users_username_key') {
+      return Response.json(
+        { error: "Username already taken" },
+        { status: 409 }
+      );
+    }
+    return Response.json({ error: error.message }, { status: 500 });
   }
 }

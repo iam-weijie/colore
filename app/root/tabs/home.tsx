@@ -14,16 +14,18 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type DraggablePostItProps = {
   post: PostWithPosition;
+  updateIndex: () => void;
   onPress: () => void;
 };
 
-const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
+const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, onPress}) => {
   const position = useRef(new Animated.ValueXY()).current;
   const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -35,8 +37,9 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        // when gesture starts, set to dragging
+        // when gesture starts, set to dragging and moves it the the front
         setIsDragging(true);
+        updateIndex()
       },
       // this is called when the user moves finger
       // to initiate component movement
@@ -75,9 +78,9 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, onPress }) => {
         left: post.position.left,
       }}
     >
-      <TouchableOpacity onPress={onPress}>
-        <PostIt color={post.color || "yellow"} />
-      </TouchableOpacity>
+      <TouchableWithoutFeedback onPress={onPress}>
+        <PostIt color={post.color || "yellow"}/>
+      </TouchableWithoutFeedback>
 
       <Text
         style={{
@@ -153,6 +156,14 @@ export default function Page() {
     }
   };
 
+  const reorderPost = (topPost) => {
+    setPosts((prevPosts) => [
+      ...prevPosts.filter((post) => post.id !== topPost.id), // Remove the moved post
+      topPost, // Add the moved post to the end
+    ]);
+
+  };
+
   useEffect(() => {
     fetchRandomPosts();
 
@@ -180,7 +191,6 @@ export default function Page() {
       setPosts((prevPosts) =>
         prevPosts.filter((post) => post.id !== selectedPost.id)
       );
-
       // Fetch a new post to replace the removed one
       const newPost = await fetchNewPost();
       if (newPost) {
@@ -244,10 +254,12 @@ export default function Page() {
                   // >
                   //   <DraggablePostIt />
                   // </TouchableOpacity>
-                  <DraggablePostIt
+                  <DraggablePostIt 
                     key={post.id}
+                    updateIndex={() => reorderPost(post)}
                     post={post}
-                    onPress={() => handlePostPress(post)}
+                    onPress={() => handlePostPress(post)
+                    }
                   />
                 );
               })}

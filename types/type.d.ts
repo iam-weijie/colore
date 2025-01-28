@@ -141,8 +141,6 @@ declare interface ConversationItem {
   lastMessageTimestamp: Date | null;
 }
 
-declare interface ChatTabProps {}
-
 declare interface Message {
   id: number;
   senderId: string;
