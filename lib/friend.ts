@@ -1,5 +1,6 @@
 /**
- * Methods that have to do with fetching friends and friend requests
+ * Reusable methods that have to do with fetching friends and friend requests.
+ * Returns FriendStatus objects (enum) to indicate the status of the friendship.
  */
 
 import { fetchAPI } from "@/lib/fetch";
@@ -24,7 +25,7 @@ export const acceptFriendRequest = async (
     }
     return FriendStatus.NONE;
   } catch (error) {
-    console.error("Failed to fetch user data:", error);
+    console.error("Failed to accept friend:", error);
     return FriendStatus.UNKNOWN;
   }
 };

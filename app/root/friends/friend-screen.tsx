@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   FlatList,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -13,6 +12,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RawFriendRequest, FriendRequest } from "@/types/type";
+import { formatDateTruncatedMonth, convertToLocal } from "@/lib/utils";
 
 declare interface FriendScreenProps {}
 
@@ -65,11 +65,15 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     return friendRequests;
   }
 
-  console.log(allFriendRequests);
-
   useEffect(() => {
     fetchFriendRequests();
   }, []);
+
+  const renderFriendRequest = ({ item }: { item: FriendRequest }) => (
+    <View className="p-4 border-b border-gray-200">
+      <Text className="font-JakartaSemiBold">{item.senderId}</Text>
+    </View>
+  );
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -80,13 +84,20 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
           </View>
         ) : (
           <View className="flex-1">
-            <View className="flex flex-row items-center mx-4 mb-4 mt-4">
-              <View className="mr-2">
-                <TouchableOpacity onPress={() => router.replace("/root/tabs/personal-board")}>
-                  <AntDesign name="caretleft" size={18} color="0076e3" />
-                </TouchableOpacity>
-              </View>
+            <View className="flex-row justify-center items-center mx-4 mb-4 mt-4 relative">
+              <TouchableOpacity onPress={() => router.back()} className="absolute left-0">
+                <AntDesign name="caretleft" size={18} color="0076e3" />
+              </TouchableOpacity>
+              <Text className="text-xl font-JakartaSemiBold">
+                Friend list
+              </Text>
             </View>
+            <FlatList
+              data={allFriendRequests?.received}
+              renderItem={renderFriendRequest}
+              keyExtractor={(item) => item.id.toString()}
+              ListEmptyComponent={<Text className="text-center text-gray-500">No friend requests</Text>}
+            />
           </View>
         )}
       </View>
