@@ -86,6 +86,8 @@ export const fetchFriendRequestStatus = async (
     if (response.data.length > 0) {
       // check if the requestor is the user or the friend
       // the smaller userId is always UID1
+      // if the current user id > userId, then UID2 would indicate
+      // that the current user sent the request
       if (response.data[0].requestor === (user.id > userId ? "UID2" : "UID1")) {
         return FriendStatus.SENT;
       } else {
