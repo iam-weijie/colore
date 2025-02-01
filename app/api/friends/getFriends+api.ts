@@ -35,7 +35,7 @@ export async function GET(request: Request) {
         fr.created_at,
         u1.username AS friend_username
       FROM friendships fr
-      JOIN users u1 ON fr.user_id = u1.clerk_id
+      JOIN users u1 ON fr.friend_id = u1.clerk_id
       WHERE fr.user_id = ${userId}
     `;
 
