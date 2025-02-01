@@ -489,116 +489,119 @@ const PostScreen = () => {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-          <View className="flex-row items-center ml-6 mt-6">
-            <TouchableOpacity onPress={() => router.back()} className="mr-4">
-              <AntDesign name="caretleft" size={18} />
-            </TouchableOpacity>
-          </View>
-          <View className="border-b border-gray-200 pb-8 mr-4 ml-6 mt-4 flex flex-row justify-between">
-            <View className="flex-1">
-              <TouchableOpacity onPress={() => handleUserProfile(userId)}>
-                <Text className="font-JakartaSemiBold text-lg">
-                  {nickname || username || displayName.charAt(0) + "."}
-                </Text>
+        <ScrollView>
+          <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
+            <View className="flex-row items-center ml-6 mt-6">
+              <TouchableOpacity onPress={() => router.back()} className="mr-4">
+                <AntDesign name="caretleft" size={18} />
               </TouchableOpacity>
-              <Text className="text-sm text-gray-500">
-                {typeof created_at === "string"
-                  ? formatDateTruncatedMonth(
-                      convertToLocal(new Date(created_at))
-                    )
-                  : "No date"}
-              </Text>
-              <TouchableWithoutFeedback
-              onPress={() => Keyboard.dismiss()}
-              onPressIn={() => Keyboard.dismiss()}
-              >
-                <View className="flex flex-row justify-between">
-                  <View className="flex-1">
-                    <Text className="font-Jakarta min-h-[80]">
-                      {content}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
             </View>
-            <View className="flex flex-col items-center ml-4">
-              {clerk_id === user?.id ? (
-                <DropdownMenu
-                  menuItems={[{ label: "Delete", onPress: handleDeletePostPress }]}
-                />
-              ) : (
-                <DropdownMenu
-                  menuItems={[{ label: "Report", onPress: handleReportPress }]}
-                />
-              )}
-              <View className="mt-4">  
-                <TouchableOpacity
-                  onPress={handleLikePress}
-                  disabled={isLoadingLike}
-                >
-                  <MaterialCommunityIcons
-                    name={isLiked ? "heart" : "heart-outline"}
-                    size={32}
-                    color={isLiked ? "red" : "black"}
-                  />
+            <View className="border-b border-gray-200 pb-8 mr-4 ml-6 mt-4 flex flex-row justify-between">
+              <View className="flex-1">
+                <TouchableOpacity onPress={() => handleUserProfile(userId)}>
+                  <Text className="font-JakartaSemiBold text-lg">
+                    {nickname || username || displayName.charAt(0) + "."}
+                  </Text>
                 </TouchableOpacity>
-                {/* Only show like count to post creator */}
-                <Text
-                  className={`${clerk_id === user?.id ? "text-gray-600" : "text-transparent"} text-center`}
-                >
-                  {clerk_id === user?.id ? likeCount : "0"}
+                <Text className="text-sm text-gray-500">
+                  {typeof created_at === "string"
+                    ? formatDateTruncatedMonth(
+                        convertToLocal(new Date(created_at))
+                      )
+                    : "No date"}
                 </Text>
+                <TouchableWithoutFeedback
+                onPress={() => Keyboard.dismiss()}
+                onPressIn={() => Keyboard.dismiss()}
+                >
+                  <View className="flex flex-row justify-between">
+                    <View className="flex-1">
+                      <Text className="font-Jakarta min-h-[80]">
+                        {content}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+              <View className="flex flex-col items-center ml-4">
+                {clerk_id === user?.id ? (
+                  <DropdownMenu
+                    menuItems={[{ label: "Delete", onPress: handleDeletePostPress }]}
+                  />
+                ) : (
+                  <DropdownMenu
+                    menuItems={[{ label: "Report", onPress: handleReportPress }]}
+                  />
+                )}
+                <View className="mt-4">  
+                  <TouchableOpacity
+                    onPress={handleLikePress}
+                    disabled={isLoadingLike}
+                  >
+                    <MaterialCommunityIcons
+                      name={isLiked ? "heart" : "heart-outline"}
+                      size={32}
+                      color={isLiked ? "red" : "black"}
+                    />
+                  </TouchableOpacity>
+                  {/* Only show like count to post creator */}
+                  <Text
+                    className={`${clerk_id === user?.id ? "text-gray-600" : "text-transparent"} text-center`}
+                  >
+                    {clerk_id === user?.id ? likeCount : "0"}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
-          <ScrollView>
+            <View>
 
-            {/* Comment section */}
-            <View className="mt-4 mb-24">
-              <Text className="font-JakartaSemiBold text-lg mx-4 pl-2">
-                Comments
-              </Text>
-              {loading && <ActivityIndicator size="large" color="#0076e3" />}
-              {error && <Text className="text-red-500 mx-4">{error}</Text>}
-              {!loading && !error && postComments.length === 0 && (
-                <Text className="text-gray-500 mx-4 min-h-[30px] pl-2">
-                  No comments yet.
+              {/* Comment section */}
+              <View className="mt-4 mb-24">
+                <Text className="font-JakartaSemiBold text-lg mx-4 pl-2">
+                  Comments
                 </Text>
-              )}
-              {!loading && !error && postComments.length > 0 && (
-                <View className="mx-2 pl-4">
-                  {postComments.map((comment) =>
-                    renderComment({ item: comment })
-                  )}
-                </View>
-              )}
+                {loading && <ActivityIndicator size="large" color="#0076e3" />}
+                {error && <Text className="text-red-500 mx-4">{error}</Text>}
+                {!loading && !error && postComments.length === 0 && (
+                  <Text className="text-gray-500 mx-4 min-h-[30px] pl-2">
+                    No comments yet.
+                  </Text>
+                )}
+                {!loading && !error && postComments.length > 0 && (
+                  <View className="mx-2 pl-4">
+                    {postComments.map((comment) =>
+                      renderComment({ item: comment })
+                    )}
+                  </View>
+                )}
+              </View>
             </View>
-          </ScrollView>
 
-          <View className="flex-row items-center p-4 border-t border-gray-200">
-            <TextInput
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3"
-              placeholder="Write a comment..."
-              value={newComment}
-              multiline
-              scrollEnabled
-              onChangeText={handleChangeText}
-              onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
-              editable={!isSubmitting && !isSubmitting}
-            />
-            <CustomButton
-              title={isSubmitting ? "..." : "Send"}
-              onPress={handleCommentSubmit}
-              disabled={
-                newComment.length === 0 || isSubmitting || isPostDeleted
-              }
-              className="ml-3 w-14 h-10 rounded-md"
-              fontSize="sm"
-              padding="0"
-            />
-          </View>
-        </KeyboardAvoidingView>
+            <View className="flex-row items-center p-4 border-t border-gray-200">
+              <TextInput
+                className="flex-1 border border-gray-300 rounded-lg px-4 py-3"
+                placeholder="Write a comment..."
+                value={newComment}
+                multiline
+                scrollEnabled
+                onChangeText={handleChangeText}
+                onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
+                editable={!isSubmitting && !isSubmitting}
+              />
+              <CustomButton
+                title={isSubmitting ? "..." : "Send"}
+                onPress={handleCommentSubmit}
+                disabled={
+                  newComment.length === 0 || isSubmitting || isPostDeleted
+                }
+                className="ml-3 w-14 h-10 rounded-md"
+                fontSize="sm"
+                padding="0"
+              />
+            </View>
+          </KeyboardAvoidingView>
+        </ScrollView>
+
       </SignedIn>
     </SafeAreaView>
   );
