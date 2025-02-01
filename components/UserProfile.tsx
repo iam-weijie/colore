@@ -21,11 +21,19 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
 
+const FriendStatus = Object.freeze({
+  UNKNOWN: {name: "unknown"},
+  NONE: {name: "none"},
+  SENT: {name: "sent"},
+  RECEIVED: {name: "received"},
+  FRIENDS: {name: "friends"},
+})
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -38,6 +46,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const router = useRouter();
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
+  const [friendStatus, setFriendStatus] = useState(FriendStatus.UNKNOWN); // initialize to this state
+  const [isSendingFriendRequest, setIsSendingFriendRequest] = useState(false);
 
   const isEditable = user!.id === userId;
 
@@ -66,6 +76,69 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
+  // if the user has received a friend request (aka FriendStatus.RECEIVED)
+  const acceptFriendRequest = async () => {
+
+  }
+
+  // returns FriendStatus.FRIENDS if two users are friends, otherwise FriendStatus.NONE
+  const fetchFriendship = async () => {
+    try {
+      const response = await fetchAPI(
+        `/api/friends/getFriendForUser?user_id=${user!.id}&friend_id=${userId}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      if (response.data.length > 0) {
+        return FriendStatus.FRIENDS;
+      }
+      return FriendStatus.NONE;
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+      return FriendStatus.UNKNOWN;
+    }
+  };
+
+  // returns FriendStatus.SENT if friend request sent, otherwise FriendStatus.RECEIVED if received, otherwise FriendStatus.NONE
+  const fetchFriendRequestStatus = async () => {
+    try {
+      const response = await fetchAPI(
+        `/api/friends/getFriendRequestsForUser?user_id=${user!.id}&request_id=${userId}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      if (response.data.length > 0) {
+        if (response.data[0].requestor === user!.id) {
+          return FriendStatus.SENT;
+        } else {
+          return FriendStatus.RECEIVED;
+        }
+      }
+      return FriendStatus.NONE;
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+      return FriendStatus.UNKNOWN;
+    }
+  };
+
+  const fetchFriendStatus = async () => {
+    if (user!.id === userId) {
+      return FriendStatus.UNKNOWN;
+    }
+    let friendStatus = await fetchFriendship();
+    if (friendStatus !== FriendStatus.FRIENDS) 
+      friendStatus = await fetchFriendRequestStatus();
+    return friendStatus;
+  }
+
   useEffect(() => {
     const getData = async () => {
       const data = await fetchCurrentNickname();
@@ -74,7 +147,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     getData();
   }, [stateVars]);
 
-
+  useEffect(() => {
+    const getFriendStatus = async () => {
+      let status = await fetchFriendStatus();
+      if (status == FriendStatus.NONE) {
+        status = await fetchFriendRequestStatus();
+      }
+      console.log("Friend status:", friendStatus.name);
+      setFriendStatus(status);
+    };
+    getFriendStatus();
+  }, []);
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -233,7 +316,42 @@ if (error)
     }
   };
 
-  const menuItems = [
+  const handleSendFriendRequest = async () => {
+    try {
+      setIsSendingFriendRequest(true);
+      await fetchAPI(`/api/friends/newFriendRequest`, {
+        method: "POST",
+        body: JSON.stringify({
+          clerkId: user!.id,
+          friendId: userId,
+        }),
+      });
+      Alert.alert("Friend request sent!");
+      setFriendStatus(FriendStatus.SENT);
+      setIsSendingFriendRequest(false);
+
+    } catch (error) { 
+      console.error("Failed to send friend request:", error);
+      Alert.alert("Error sending friend request.");
+    }
+  }
+
+  // to prevent database errors, 
+  // don't load the "send friend request"
+  // option if the friend status can't be determined
+  const menuItems_unloaded = [
+    { label: "Alias", onPress: handleAddNickname },
+    {
+      label: "Chat",
+      onPress: () =>
+        startChat([
+          profileUser!.clerk_id,
+          nickname || profileUser!.username,
+        ] as UserNicknamePair),
+    }
+  ]
+
+  const menuItems_default = [
     { label: "Alias", onPress: handleAddNickname },
     {
       label: "Chat",
@@ -243,7 +361,69 @@ if (error)
           nickname || profileUser!.username,
         ] as UserNicknamePair),
     },
+    {
+      label: "Send friend request",
+      onPress: () => {
+        if (friendStatus === FriendStatus.NONE) {
+          handleSendFriendRequest(); // only send if checked for sure not friends, and no request exists
+        }
+      }
+    }
   ];
+
+  const menuItems_friend = [
+    { label: "Alias", onPress: handleAddNickname },
+    {
+      label: "Chat",
+      onPress: () =>
+        startChat([
+          profileUser!.clerk_id,
+          nickname || profileUser!.username,
+        ] as UserNicknamePair),
+    },
+    {
+      label: "Unfriend",
+      onPress: () => {
+        // send request to unfriend, TBA
+      }
+    }
+  ]
+
+  const menuItems_sent = [
+    { label: "Alias", onPress: handleAddNickname },
+    {
+      label: "Chat",
+      onPress: () =>
+        startChat([
+          profileUser!.clerk_id,
+          nickname || profileUser!.username,
+        ] as UserNicknamePair),
+    },
+    {
+      label: "Your friend request is pending",
+      onPress: () => {
+        // doesn't do anything, ability to cancel friend request TBA
+      }
+    }
+  ]
+
+  const menuItems_received = [
+    { label: "Alias", onPress: handleAddNickname },
+    {
+      label: "Chat",
+      onPress: () =>
+        startChat([
+          profileUser!.clerk_id,
+          nickname || profileUser!.username,
+        ] as UserNicknamePair),
+    },
+    {
+      label: "Accept friend request",
+      onPress: () => {
+        acceptFriendRequest();
+      }
+    }
+  ]
 
   return (
     <View className="flex-1 mt-3">
@@ -254,7 +434,30 @@ if (error)
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
             <View className="flex flex-row items-right">
-              <DropdownMenu menuItems={menuItems} />
+              {friendStatus === FriendStatus.FRIENDS && (
+                <DropdownMenu menuItems={menuItems_friend} customMenuWidth={150}/>
+              )
+              }
+              {
+                friendStatus === FriendStatus.SENT && (
+                  <DropdownMenu menuItems={menuItems_sent} customMenuWidth={150}/>
+                )
+              }
+              {
+                friendStatus === FriendStatus.RECEIVED && (
+                  <DropdownMenu menuItems={menuItems_received} customMenuWidth={150}/>
+                )
+              }
+              {
+                friendStatus === FriendStatus.NONE && (
+                  <DropdownMenu menuItems={menuItems_default} customMenuWidth={150}/>
+                )
+              }
+              {
+                friendStatus === FriendStatus.UNKNOWN && (
+                  <DropdownMenu menuItems={menuItems_unloaded} customMenuWidth={150}/>
+                )
+              }
             </View>
           </View>
         )}

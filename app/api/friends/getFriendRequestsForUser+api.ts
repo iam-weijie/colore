@@ -4,18 +4,29 @@ export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const userId = url.searchParams.get("userId");
+    const id_1 = url.searchParams.get("user_id");
+    const id_2 = url.searchParams.get("request_id");
 
-    if (!userId) {
+    if (!id_1 || !id_2) {
       return Response.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // return friend requests involving user (sent or receiving)
-    // if they exist as array of responses
-    // the response is of the form:
+    // i mean why would you do this
+    if (id_1 === id_2) {
+      return Response.json({ error: "Unauthorized action." }, { status: 403 });
+    }
+
+    // pick the smaller id to use as user_id1
+    // to optimize sql query/ensure uniformity
+    // of returned data
+    const smallerId = id_1 < id_2 ? id_1 : id_2;
+    const largerId = id_1 > id_2 ? id_1 : id_2;
+
+    // return friend request (UNIQUE) if it exists
+    // the response is of the form )
     /**
      * {
      *  id,
@@ -27,18 +38,17 @@ export async function GET(request: Request) {
      */
     const response = await sql`
         SELECT * FROM friend_requests
-        WHERE (user_id1 = ${userId})
-        OR (user_id2 = ${userId}) 
+        WHERE (user_id1 = ${smallerId} AND user_id2 = ${largerId}) 
     `;
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
   } catch (error) {
-    console.error("Error fetching comments:", error);
+    console.error("Error fetching friend requests:", error);
     return new Response(
       JSON.stringify({
-        error: "Failed to fetch comments",
+        error: "Failed to fetch friend requests for user",
         details: error instanceof Error ? error.message : "Unknown error",
       }),
       { status: 500 }

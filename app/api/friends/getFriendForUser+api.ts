@@ -4,41 +4,43 @@ export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const userId = url.searchParams.get("userId");
+    const user_id = url.searchParams.get("user_id");
+    const friend_id = url.searchParams.get("friend_id");
 
-    if (!userId) {
+    if (!user_id || !friend_id) {
       return Response.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // return friend requests involving user (sent or receiving)
-    // if they exist as array of responses
-    // the response is of the form:
+    // i mean why would you do this
+    if (user_id === friend_id) {
+      return Response.json({ error: "Unauthorized action." }, { status: 403 });
+    }
+
+    // return friend relationship (UNIQUE) if it exists
     /**
      * {
      *  id,
-     *  user_id1,
-     *  user_id2,
-     *  requestor = 'UID1' or 'UID2',
+     *  user_id,
+     *  friend_id,
      *  created_at
      * }
      */
     const response = await sql`
-        SELECT * FROM friend_requests
-        WHERE (user_id1 = ${userId})
-        OR (user_id2 = ${userId}) 
+        SELECT * FROM friendships
+        WHERE (user_id = ${user_id} AND friend_id = ${friend_id})
     `;
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
   } catch (error) {
-    console.error("Error fetching comments:", error);
+    console.error("Error fetching friend for user:", error);
     return new Response(
       JSON.stringify({
-        error: "Failed to fetch comments",
+        error: "Failed to fetch friend for user",
         details: error instanceof Error ? error.message : "Unknown error",
       }),
       { status: 500 }

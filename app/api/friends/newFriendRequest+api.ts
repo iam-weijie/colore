@@ -35,7 +35,6 @@ export async function POST(request: Request) {
     const response = await sql`
       INSERT INTO friend_requests (user_id1, user_id2, requestor)
       VALUES (${smallerId}, ${largerId}, ${sending_id})
-      RETURNING id, user_id1, user_id2;
     `;
 
     return new Response(JSON.stringify({ data: response }), {
@@ -45,7 +44,7 @@ export async function POST(request: Request) {
     console.error("Error creating friend request:", error);
     return Response.json(
       {
-        error: "Failed to create comment",
+        error: "Failed to create friend request",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
