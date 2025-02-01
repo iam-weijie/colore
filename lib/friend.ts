@@ -84,7 +84,9 @@ export const fetchFriendRequestStatus = async (
       throw new Error(response.error);
     }
     if (response.data.length > 0) {
-      if (response.data[0].requestor === user.id) {
+      // check if the requestor is the user or the friend
+      // the smaller userId is always UID1
+      if (response.data[0].requestor === (user.id > userId ? "UID2" : "UID1")) {
         return FriendStatus.SENT;
       } else {
         return FriendStatus.RECEIVED;
