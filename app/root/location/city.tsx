@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const City = () => {
   const { user } = useUser();
   const { stateVars, setStateVars } = useNavigationContext();
-  const { state, country, previousScreen } = useLocalSearchParams();
+  const { state, country } = useLocalSearchParams();
 
   const selectedCountry = countries.find((c) => c.name === country);
   const selectedState = selectedCountry?.states.find((s) => s.name === state);
@@ -43,10 +43,10 @@ const City = () => {
       }),
     });
 
-    if (previousScreen === "settings") {
+    if (stateVars.previousScreen === "settings") {
       router.push("/root/settings");
     } else {
-      router.replace(`/${previousScreen}` as Href);
+      router.replace(`/${stateVars.previousScreen}` as Href);
     }
   };
 
