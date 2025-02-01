@@ -8,6 +8,7 @@ import {
   UserNicknamePair,
   UserProfileProps,
   UserProfileType,
+  FriendStatusType
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -26,14 +27,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
-
-const FriendStatus = Object.freeze({
-  UNKNOWN: {name: "unknown"},
-  NONE: {name: "none"},
-  SENT: {name: "sent"},
-  RECEIVED: {name: "received"},
-  FRIENDS: {name: "friends"},
-})
+import { 
+  fetchFriendStatus,
+  acceptFriendRequest
+} from "@/lib/friend";
+import { FriendStatus } from "@/lib/enum";
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -46,7 +44,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const router = useRouter();
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
-  const [friendStatus, setFriendStatus] = useState(FriendStatus.UNKNOWN); // initialize to this state
+  const [friendStatus, setFriendStatus] = useState<FriendStatusType>(FriendStatus.UNKNOWN);
   const [isSendingFriendRequest, setIsSendingFriendRequest] = useState(false);
 
   const isEditable = user!.id === userId;
@@ -76,69 +74,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
-  // if the user has received a friend request (aka FriendStatus.RECEIVED)
-  const acceptFriendRequest = async () => {
-
-  }
-
-  // returns FriendStatus.FRIENDS if two users are friends, otherwise FriendStatus.NONE
-  const fetchFriendship = async () => {
-    try {
-      const response = await fetchAPI(
-        `/api/friends/getFriendForUser?user_id=${user!.id}&friend_id=${userId}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      if (response.data.length > 0) {
-        return FriendStatus.FRIENDS;
-      }
-      return FriendStatus.NONE;
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-      return FriendStatus.UNKNOWN;
-    }
-  };
-
-  // returns FriendStatus.SENT if friend request sent, otherwise FriendStatus.RECEIVED if received, otherwise FriendStatus.NONE
-  const fetchFriendRequestStatus = async () => {
-    try {
-      const response = await fetchAPI(
-        `/api/friends/getFriendRequestsForUser?user_id=${user!.id}&request_id=${userId}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      if (response.data.length > 0) {
-        if (response.data[0].requestor === user!.id) {
-          return FriendStatus.SENT;
-        } else {
-          return FriendStatus.RECEIVED;
-        }
-      }
-      return FriendStatus.NONE;
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-      return FriendStatus.UNKNOWN;
-    }
-  };
-
-  const fetchFriendStatus = async () => {
-    if (user!.id === userId) {
-      return FriendStatus.UNKNOWN;
-    }
-    let friendStatus = await fetchFriendship();
-    if (friendStatus !== FriendStatus.FRIENDS) 
-      friendStatus = await fetchFriendRequestStatus();
-    return friendStatus;
-  }
-
   useEffect(() => {
     const getData = async () => {
       const data = await fetchCurrentNickname();
@@ -149,11 +84,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
   useEffect(() => {
     const getFriendStatus = async () => {
-      let status = await fetchFriendStatus();
-      if (status == FriendStatus.NONE) {
-        status = await fetchFriendRequestStatus();
-      }
-      console.log("Friend status:", friendStatus.name);
+      let status = await fetchFriendStatus(userId, user!);
+      console.log("Friend status:", status);
       setFriendStatus(status);
     };
     getFriendStatus();

@@ -149,3 +149,22 @@ declare interface Message {
 }
 
 type UserNicknamePair = [string, string];
+
+declare interface RawFriendRequest {
+  id: number;
+  user_id1: string;
+  user_id2: string;
+  requestor: "UID1" | "UID2";
+  createdAt: Date;
+}
+
+declare interface FriendRequest {
+  id: number;
+  senderId: string;
+  receiverId: string;
+  createdAt: Date;
+}
+
+declare interface FriendStatusType {
+  name: string;
+}

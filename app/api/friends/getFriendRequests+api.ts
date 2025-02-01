@@ -27,8 +27,7 @@ export async function GET(request: Request) {
      */
     const response = await sql`
         SELECT * FROM friend_requests
-        WHERE (user_id1 = ${userId})
-        OR (user_id2 = ${userId}) 
+        WHERE user_id1 = ${userId} OR user_id2 = ${userId}
     `;
 
     return new Response(JSON.stringify({ data: response }), {
