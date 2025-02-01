@@ -11,11 +11,14 @@ import {
 import { fetchAPI } from "@/lib/fetch";
 import { AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { RawFriendRequest, FriendRequest } from "@/types/type";
+import { RawFriendRequest, FriendRequest, Friendship} from "@/types/type";
 import { FriendStatus } from "@/lib/enum";
-import { acceptFriendRequest } from "@/lib/friend";
+import { 
+  acceptFriendRequest,
+  rejectFriendRequest,
+  fetchFriends
+} from "@/lib/friend";
 import DropdownMenu from "@/components/DropdownMenu";
-import CustomButton from "@/components/CustomButton";
 
 declare interface FriendScreenProps {}
 
@@ -31,9 +34,9 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
   const [allFriendRequests, setAllFriendRequests] = useState<FriendRequestList>();
   const [selectedTab, setSelectedTab] = useState<string>('friends');
   const [handlingFriendRequest, setHandlingFriendRequest] = useState<boolean>(false);
+  const [friendList, setFriendList] = useState<Friendship[]>([]);
 
   const fetchFriendRequests = async () => {
-    setLoading(true);
     try {
       const response = await fetchAPI(
         `/api/friends/getFriendRequests?userId=${user!.id}`,
@@ -52,9 +55,19 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     } catch (error) {
       console.error("Failed to fetch friend requests: ", error);
       setError("Failed to fetch friend requests.");
-    } finally {
-      setLoading(false);
     }
+  }
+
+  const fetchFriendList = async () => {
+    const data = await fetchFriends(user!.id);
+    setFriendList(data);
+  }
+
+  const fetchFriendData = async () => {
+    setLoading(true);
+    fetchFriendList();
+    fetchFriendRequests();
+    setLoading(false);
   };
 
   const processFriendRequests = (friendRequestData: RawFriendRequest[]) => {
@@ -70,16 +83,26 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
       } as FriendRequest;
     });
     return friendRequests;
-  }
+  };
+
+  const handleUserProfile = async (id: string) => {
+    router.push({
+      pathname: "/root/profile/[id]",
+      params: { id },
+    });
+  };
+
 
   useEffect(() => {
-    fetchFriendRequests();
+    fetchFriendData();
   }, []);
 
   const renderIncomingRequest = ({ item }: { item: FriendRequest }) => (
     <View className="p-4 border-b border-gray-200">
       <View className="flex-row justify-between items-center mx-4">
-        <Text className="font-JakartaSemiBold">{item.senderUsername}</Text>
+        <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
+          <Text className="font-JakartaSemiBold">{item.senderUsername}</Text>
+        </TouchableOpacity>
           <DropdownMenu
             menuItems={[
               {
@@ -93,6 +116,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                     alert("Error when trying to accept friend request.")
                   }
                   fetchFriendRequests();
+                  fetchFriendList();
                   setHandlingFriendRequest(false);
                 }
               },
@@ -100,7 +124,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                 label: "Reject",
                 onPress: async () => {
                   setHandlingFriendRequest(true);
-                  const returnStats = await acceptFriendRequest(item.senderId, item.receiverId);
+                  const returnStats = await rejectFriendRequest(item.senderId, item.receiverId);
                   if (returnStats === FriendStatus.NONE) {
                     alert("Friend request rejected!");
                   } else {
@@ -118,21 +142,27 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
 
   const renderOutgoingRequest = ({ item }: { item: FriendRequest }) => (
     <View className="p-4 border-b border-gray-200">
-      <View className="flex-row justify-between items-center">
-        <Text className="font-JakartaSemiBold">{item.receiverUsername}</Text>
+      <View className="flex-row justify-between items-center mx-4">
+        <TouchableOpacity onPress={() => handleUserProfile(item.receiverId)}>
+          <Text className="font-JakartaSemiBold">{item.receiverUsername}</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+  </View>
   );
 
-  const renderFriend = ({ item }: { item: FriendRequest }) => (
-    <View>
-      <Text>{item.senderUsername}</Text>
+  const renderFriend = ({ item }: { item: Friendship }) => (
+    <View className="p-4 border-b border-gray-200">
+      <View className="flex-row justify-between items-center mx-4">
+        <TouchableOpacity onPress={() => handleUserProfile(item.friend_id)}>
+          <Text className="font-JakartaSemiBold">{item.friend_username}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
   const renderFriendsList = () => (
     <FlatList
-      data={allFriendRequests?.received}
+      data={friendList}
       renderItem={renderFriend}
       keyExtractor={(item) => item.id.toString()}
       ListEmptyComponent={<Text className="text-center text-gray-500">No friends</Text>}

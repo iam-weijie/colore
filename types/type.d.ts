@@ -172,3 +172,11 @@ declare interface FriendRequest {
 declare interface FriendStatusType {
   name: string;
 }
+
+declare interface Friendship {
+  id: number;
+  user_id: string;
+  friend_id: string;
+  created_at: Date;
+  friend_username: string;
+}
