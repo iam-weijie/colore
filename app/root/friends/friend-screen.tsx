@@ -1,4 +1,14 @@
+import DropdownMenu from "@/components/DropdownMenu";
+import { FriendStatus } from "@/lib/enum";
+import { fetchAPI } from "@/lib/fetch";
+import {
+  acceptFriendRequest,
+  fetchFriends,
+  rejectFriendRequest,
+} from "@/lib/friend";
+import { FriendRequest, Friendship, RawFriendRequest } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
+import { AntDesign } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
@@ -8,17 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { fetchAPI } from "@/lib/fetch";
-import { AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { RawFriendRequest, FriendRequest, Friendship} from "@/types/type";
-import { FriendStatus } from "@/lib/enum";
-import { 
-  acceptFriendRequest,
-  rejectFriendRequest,
-  fetchFriends
-} from "@/lib/friend";
-import DropdownMenu from "@/components/DropdownMenu";
 
 declare interface FriendScreenProps {}
 
@@ -31,9 +31,11 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
   const { user } = useUser();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [allFriendRequests, setAllFriendRequests] = useState<FriendRequestList>();
-  const [selectedTab, setSelectedTab] = useState<string>('friends');
-  const [handlingFriendRequest, setHandlingFriendRequest] = useState<boolean>(false);
+  const [allFriendRequests, setAllFriendRequests] =
+    useState<FriendRequestList>();
+  const [selectedTab, setSelectedTab] = useState<string>("friends");
+  const [handlingFriendRequest, setHandlingFriendRequest] =
+    useState<boolean>(false);
   const [friendList, setFriendList] = useState<Friendship[]>([]);
 
   const fetchFriendRequests = async () => {
@@ -44,9 +46,15 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
           method: "GET",
         }
       );
-      const processedFriendRequests: FriendRequest[] = processFriendRequests(response.data);
-      const sentFriendRequests = processedFriendRequests.filter((friendRequest) => friendRequest.senderId === user!.id);
-      const receivedFriendRequests = processedFriendRequests.filter((friendRequest) => friendRequest.receiverId === user!.id);
+      const processedFriendRequests: FriendRequest[] = processFriendRequests(
+        response.data
+      );
+      const sentFriendRequests = processedFriendRequests.filter(
+        (friendRequest) => friendRequest.senderId === user!.id
+      );
+      const receivedFriendRequests = processedFriendRequests.filter(
+        (friendRequest) => friendRequest.receiverId === user!.id
+      );
       const allFriendRequests = {
         sent: sentFriendRequests,
         received: receivedFriendRequests,
@@ -56,12 +64,12 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
       console.error("Failed to fetch friend requests: ", error);
       setError("Failed to fetch friend requests.");
     }
-  }
+  };
 
   const fetchFriendList = async () => {
     const data = await fetchFriends(user!.id);
     setFriendList(data);
-  }
+  };
 
   const fetchFriendData = async () => {
     setLoading(true);
@@ -75,11 +83,19 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
       const isRequestorUID1 = friendRequest.requestor === "UID1";
       return {
         id: friendRequest.id,
-        senderId: isRequestorUID1 ? friendRequest.user_id1 : friendRequest.user_id2,
-        receiverId: isRequestorUID1 ? friendRequest.user_id2 : friendRequest.user_id1,
+        senderId: isRequestorUID1
+          ? friendRequest.user_id1
+          : friendRequest.user_id2,
+        receiverId: isRequestorUID1
+          ? friendRequest.user_id2
+          : friendRequest.user_id1,
         createdAt: friendRequest.createdAt,
-        senderUsername: isRequestorUID1 ? friendRequest.user1_username : friendRequest.user2_username,
-        receiverUsername: isRequestorUID1 ? friendRequest.user2_username : friendRequest.user1_username,
+        senderUsername: isRequestorUID1
+          ? friendRequest.user1_username
+          : friendRequest.user2_username,
+        receiverUsername: isRequestorUID1
+          ? friendRequest.user2_username
+          : friendRequest.user1_username,
       } as FriendRequest;
     });
     return friendRequests;
@@ -91,7 +107,6 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
       params: { id },
     });
   };
-
 
   useFocusEffect(
     useCallback(() => {
@@ -105,39 +120,45 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
         <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
           <Text className="font-JakartaSemiBold">{item.senderUsername}</Text>
         </TouchableOpacity>
-          <DropdownMenu
-            menuItems={[
-              {
-                label: "Accept",
-                onPress: async () => {
-                  setHandlingFriendRequest(true);
-                  const returnStats = await acceptFriendRequest(item.senderId, item.receiverId);
-                  if (returnStats === FriendStatus.FRIENDS) {
-                    alert("Friend request accepted!");
-                  } else {
-                    alert("Error when trying to accept friend request.")
-                  }
-                  fetchFriendRequests();
-                  fetchFriendList();
-                  setHandlingFriendRequest(false);
+        <DropdownMenu
+          menuItems={[
+            {
+              label: "Accept",
+              onPress: async () => {
+                setHandlingFriendRequest(true);
+                const returnStats = await acceptFriendRequest(
+                  item.senderId,
+                  item.receiverId
+                );
+                if (returnStats === FriendStatus.FRIENDS) {
+                  alert("Friend request accepted!");
+                } else {
+                  alert("Error when trying to accept friend request.");
                 }
+                fetchFriendRequests();
+                fetchFriendList();
+                setHandlingFriendRequest(false);
               },
-              {
-                label: "Reject",
-                onPress: async () => {
-                  setHandlingFriendRequest(true);
-                  const returnStats = await rejectFriendRequest(item.senderId, item.receiverId);
-                  if (returnStats === FriendStatus.NONE) {
-                    alert("Friend request rejected!");
-                  } else {
-                    alert("Error when trying to reject friend request.")
-                  }
-                  fetchFriendRequests();
-                  setHandlingFriendRequest(false);
+            },
+            {
+              label: "Reject",
+              onPress: async () => {
+                setHandlingFriendRequest(true);
+                const returnStats = await rejectFriendRequest(
+                  item.senderId,
+                  item.receiverId
+                );
+                if (returnStats === FriendStatus.NONE) {
+                  alert("Friend request rejected!");
+                } else {
+                  alert("Error when trying to reject friend request.");
                 }
-              }
-            ]}
-          />
+                fetchFriendRequests();
+                setHandlingFriendRequest(false);
+              },
+            },
+          ]}
+        />
       </View>
     </View>
   );
@@ -149,7 +170,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
           <Text className="font-JakartaSemiBold">{item.receiverUsername}</Text>
         </TouchableOpacity>
       </View>
-  </View>
+    </View>
   );
 
   const renderFriend = ({ item }: { item: Friendship }) => (
@@ -167,7 +188,9 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
       data={friendList}
       renderItem={renderFriend}
       keyExtractor={(item) => item.id.toString()}
-      ListEmptyComponent={<Text className="text-center text-gray-500">No friends</Text>}
+      ListEmptyComponent={
+        <Text className="text-center text-gray-500">No friends</Text>
+      }
     />
   );
 
@@ -176,7 +199,9 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
       data={allFriendRequests?.received}
       renderItem={renderIncomingRequest}
       keyExtractor={(item) => item.id.toString()}
-      ListEmptyComponent={<Text className="text-center text-gray-500">No friend requests</Text>}
+      ListEmptyComponent={
+        <Text className="text-center text-gray-500">No friend requests</Text>
+      }
     />
   );
 
@@ -185,7 +210,11 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
       data={allFriendRequests?.sent}
       renderItem={renderOutgoingRequest}
       keyExtractor={(item) => item.id.toString()}
-      ListEmptyComponent={<Text className="text-center text-gray-500">No outgoing friend requests</Text>}
+      ListEmptyComponent={
+        <Text className="text-center text-gray-500">
+          No outgoing friend requests
+        </Text>
+      }
     />
   );
 
@@ -199,33 +228,46 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
         ) : (
           <View className="flex-1">
             <View className="flex-row justify-center items-center mx-4 mb-4 mt-4 relative">
-              <TouchableOpacity onPress={() => router.back()} className="absolute left-0">
+              <TouchableOpacity
+                onPress={() => router.back()}
+                className="absolute left-0"
+              >
                 <AntDesign name="caretleft" size={18} color="0076e3" />
               </TouchableOpacity>
-              <Text className="text-xl font-JakartaSemiBold">
-                Friend list
-              </Text>
+              <Text className="text-xl font-JakartaSemiBold">Friend list</Text>
             </View>
             <View className="flex-row justify-between mb-4 mx-8">
               <View className="max-w-[120px] flex-row justify-around">
-                <TouchableOpacity onPress={() => setSelectedTab('friends')}>
-                  <Text className={`text-lg ${selectedTab === 'friends' ? 'font-bold' : ''}`}>Friends</Text>
+                <TouchableOpacity onPress={() => setSelectedTab("friends")}>
+                  <Text
+                    className={`text-lg ${selectedTab === "friends" ? "font-bold" : ""}`}
+                  >
+                    Friends
+                  </Text>
                 </TouchableOpacity>
               </View>
               <View className="max-w-[120px] flex-row justify-around">
-                <TouchableOpacity onPress={() => setSelectedTab('incoming')}>
-                  <Text className={`text-lg ${selectedTab === 'incoming' ? 'font-bold' : ''}`}>Incoming requests</Text>
+                <TouchableOpacity onPress={() => setSelectedTab("incoming")}>
+                  <Text
+                    className={`text-lg ${selectedTab === "incoming" ? "font-bold" : ""}`}
+                  >
+                    Requests received
+                  </Text>
                 </TouchableOpacity>
               </View>
               <View className="max-w-[120px] flex-row justify-around">
-                <TouchableOpacity onPress={() => setSelectedTab('outgoing')}>
-                  <Text className={`text-lg ${selectedTab === 'outgoing' ? 'font-bold' : ''}`}>Outgoing Requests</Text>
+                <TouchableOpacity onPress={() => setSelectedTab("outgoing")}>
+                  <Text
+                    className={`text-lg ${selectedTab === "outgoing" ? "font-bold" : ""}`}
+                  >
+                    Requests sent
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
-            {selectedTab === 'incoming' && renderIncomingFriendRequests()}
-            {selectedTab === 'outgoing' && renderOutgoingFriendRequests()}
-            {selectedTab === 'friends' && renderFriendsList()}
+            {selectedTab === "incoming" && renderIncomingFriendRequests()}
+            {selectedTab === "outgoing" && renderOutgoingFriendRequests()}
+            {selectedTab === "friends" && renderFriendsList()}
           </View>
         )}
       </View>
