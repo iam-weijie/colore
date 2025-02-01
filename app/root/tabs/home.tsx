@@ -30,7 +30,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, on
   const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  console.log(post);
+  // console.log(post);
 
   const panResponder = useRef(
     PanResponder.create({
