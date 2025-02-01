@@ -84,9 +84,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
   useEffect(() => {
     const getFriendStatus = async () => {
-      let status = await fetchFriendStatus(userId, user!);
-      console.log("Friend status:", status);
-      setFriendStatus(status);
+      let status;
+      if (user!.id !== userId) {
+        status = await fetchFriendStatus(userId, user!);
+        console.log("Friend status:", status);
+        setFriendStatus(status);
+      }
     };
     getFriendStatus();
   }, []);
