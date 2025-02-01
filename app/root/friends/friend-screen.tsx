@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -50,7 +50,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
       const allFriendRequests = {
         sent: sentFriendRequests,
         received: receivedFriendRequests,
-      }
+      };
       setAllFriendRequests(allFriendRequests);
     } catch (error) {
       console.error("Failed to fetch friend requests: ", error);
@@ -65,21 +65,21 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
 
   const fetchFriendData = async () => {
     setLoading(true);
-    fetchFriendList();
-    fetchFriendRequests();
+    await fetchFriendList();
+    await fetchFriendRequests();
     setLoading(false);
   };
 
   const processFriendRequests = (friendRequestData: RawFriendRequest[]) => {
     const friendRequests = friendRequestData.map((friendRequest) => {
-      const requestor = friendRequest.requestor === "UID1" ? friendRequest.user_id1 : friendRequest
+      const isRequestorUID1 = friendRequest.requestor === "UID1";
       return {
         id: friendRequest.id,
-        senderId: requestor,
-        receiverId: requestor === friendRequest.user_id1 ? friendRequest.user_id2 : friendRequest.user_id1,
+        senderId: isRequestorUID1 ? friendRequest.user_id1 : friendRequest.user_id2,
+        receiverId: isRequestorUID1 ? friendRequest.user_id2 : friendRequest.user_id1,
         createdAt: friendRequest.createdAt,
-        senderUsername: requestor === friendRequest.user_id1 ? friendRequest.user1_username : friendRequest.user2_username,
-        receiverUsername: requestor === friendRequest.user_id1 ? friendRequest.user2_username : friendRequest.user1_username,
+        senderUsername: isRequestorUID1 ? friendRequest.user1_username : friendRequest.user2_username,
+        receiverUsername: isRequestorUID1 ? friendRequest.user2_username : friendRequest.user1_username,
       } as FriendRequest;
     });
     return friendRequests;
@@ -93,9 +93,11 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
   };
 
 
-  useEffect(() => {
-    fetchFriendData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchFriendData();
+    }, [])
+  );
 
   const renderIncomingRequest = ({ item }: { item: FriendRequest }) => (
     <View className="p-4 border-b border-gray-200">
