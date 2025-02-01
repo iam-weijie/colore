@@ -17,13 +17,27 @@ export async function PATCH(request: Request) {
       return Response.json({ error: "Invalid option" }, { status: 403 });
     }
 
+    // pick the smaller id to use as user_id1
+    // to optimize sql query/ensure uniformity
+    // of returned data
+    const smallerId = sender_id < receiver_id ? sender_id : receiver_id;
+    const largerId = sender_id > receiver_id ? sender_id : receiver_id;
+
     let response;
 
     if (option === "accept") {
       response = await sql`
-            INSERT INTO friendships (user_id, friend_id) VALUES (${sender_id}, ${receiver_id})
-            INSERT INTO friendships (user_id, friend_id) VALUES (${receiver_id}, ${sender_id})
-        `;
+        INSERT INTO friendships (user_id, friend_id) VALUES (${sender_id}, ${receiver_id})
+        INSERT INTO friendships (user_id, friend_id) VALUES (${receiver_id}, ${sender_id})
+
+        DELETE FROM friend_requests
+          WHERE (user_id1 = ${smallerId} AND user_id2 = ${largerId})
+      `;
+    } else if (option === "reject") {
+      response = await sql`
+        DELETE FROM friend_requests
+          WHERE (user_id1 = ${smallerId} AND user_id2 = ${largerId})
+      `;
     }
 
     return new Response(JSON.stringify({ data: response }), {

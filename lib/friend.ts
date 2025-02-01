@@ -1,31 +1,49 @@
 /**
  * Reusable methods that have to do with fetching friends and friend requests.
  * Returns FriendStatus objects (enum) to indicate the status of the friendship.
+ *
+ * OR returns the requested data.
  */
 
 import { fetchAPI } from "@/lib/fetch";
 import { FriendStatus } from "@/lib/enum";
 
 export const acceptFriendRequest = async (
-  userId: string,
-  user: { id: string }
+  sender_id: string,
+  receiver_id: string
 ) => {
   try {
-    const response = await fetchAPI(
-      `/api/friends/getFriendForUser?user_id=${user.id}&friend_id=${userId}`,
-      {
-        method: "GET",
-      }
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    if (response.data.length > 0) {
-      return FriendStatus.FRIENDS;
-    }
-    return FriendStatus.NONE;
+    await fetchAPI(`/api/friends/handleFriendRequest`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        sender_id: sender_id,
+        receiver_id: receiver_id,
+        option: "accept",
+      }),
+    });
+    return FriendStatus.FRIENDS;
   } catch (error) {
     console.error("Failed to accept friend:", error);
+    return FriendStatus.UNKNOWN;
+  }
+};
+
+export const rejectFriendRequest = async (
+  sender_id: string,
+  receiver_id: string
+) => {
+  try {
+    await fetchAPI(`/api/friends/handleFriendRequest`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        sender_id: sender_id,
+        receiver_id: receiver_id,
+        option: "reject",
+      }),
+    });
+    return FriendStatus.NONE;
+  } catch (error) {
+    console.error("Failed to reject friend:", error);
     return FriendStatus.UNKNOWN;
   }
 };
@@ -91,4 +109,19 @@ export const fetchFriendStatus = async (
     friendStatus = await fetchFriendRequestStatus(userId, user);
   }
   return friendStatus;
+};
+
+export const fetchFriends = async (userId: string) => {
+  try {
+    const response = await fetchAPI(
+      `/api/friends/getFriends?userId=${userId}`,
+      {
+        method: "GET",
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch friends:", error);
+    return [];
+  }
 };

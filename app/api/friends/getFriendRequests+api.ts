@@ -23,11 +23,23 @@ export async function GET(request: Request) {
      *  user_id2,
      *  requestor = 'UID1' or 'UID2',
      *  created_at,
+     *  user1_username,
+     *  user2_username
      * }
      */
     const response = await sql`
-        SELECT * FROM friend_requests
-        WHERE user_id1 = ${userId} OR user_id2 = ${userId}
+      SELECT 
+        fr.id,
+        fr.user_id1,
+        fr.user_id2,
+        fr.requestor,
+        fr.created_at,
+        u1.username AS user1_username,
+        u2.username AS user2_username
+      FROM friend_requests fr
+      JOIN users u1 ON fr.user_id1 = u1.clerk_id
+      JOIN users u2 ON fr.user_id2 = u2.clerk_id
+      WHERE fr.user_id1 = ${userId} OR fr.user_id2 = ${userId}
     `;
 
     return new Response(JSON.stringify({ data: response }), {

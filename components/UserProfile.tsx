@@ -45,7 +45,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(FriendStatus.UNKNOWN);
-  const [isSendingFriendRequest, setIsSendingFriendRequest] = useState(false);
+  const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
 
   const isEditable = user!.id === userId;
 
@@ -250,7 +250,7 @@ if (error)
 
   const handleSendFriendRequest = async () => {
     try {
-      setIsSendingFriendRequest(true);
+      setIsHandlingFriendRequest(true);
       await fetchAPI(`/api/friends/newFriendRequest`, {
         method: "POST",
         body: JSON.stringify({
@@ -260,7 +260,7 @@ if (error)
       });
       Alert.alert("Friend request sent!");
       setFriendStatus(FriendStatus.SENT);
-      setIsSendingFriendRequest(false);
+      setIsHandlingFriendRequest(false);
 
     } catch (error) { 
       console.error("Failed to send friend request:", error);
@@ -351,8 +351,16 @@ if (error)
     },
     {
       label: "Accept friend request",
-      onPress: () => {
-        acceptFriendRequest();
+      onPress: async () => {
+        setIsHandlingFriendRequest(true);
+        const response = await acceptFriendRequest(profileUser!.clerk_id, user!.id);
+        if (response === FriendStatus.FRIENDS) {
+          Alert.alert("Friend request accepted!");
+        }
+        else {
+          Alert.alert("Error accepting friend request.");
+        }
+        setIsHandlingFriendRequest(false);
       }
     }
   ]

@@ -12,7 +12,10 @@ import { fetchAPI } from "@/lib/fetch";
 import { AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RawFriendRequest, FriendRequest } from "@/types/type";
-import { formatDateTruncatedMonth, convertToLocal } from "@/lib/utils";
+import { FriendStatus } from "@/lib/enum";
+import { acceptFriendRequest } from "@/lib/friend";
+import DropdownMenu from "@/components/DropdownMenu";
+import CustomButton from "@/components/CustomButton";
 
 declare interface FriendScreenProps {}
 
@@ -26,6 +29,8 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [allFriendRequests, setAllFriendRequests] = useState<FriendRequestList>();
+  const [selectedTab, setSelectedTab] = useState<string>('friends');
+  const [handlingFriendRequest, setHandlingFriendRequest] = useState<boolean>(false);
 
   const fetchFriendRequests = async () => {
     setLoading(true);
@@ -60,6 +65,8 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
         senderId: requestor,
         receiverId: requestor === friendRequest.user_id1 ? friendRequest.user_id2 : friendRequest.user_id1,
         createdAt: friendRequest.createdAt,
+        senderUsername: requestor === friendRequest.user_id1 ? friendRequest.user1_username : friendRequest.user2_username,
+        receiverUsername: requestor === friendRequest.user_id1 ? friendRequest.user2_username : friendRequest.user1_username,
       } as FriendRequest;
     });
     return friendRequests;
@@ -69,10 +76,85 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     fetchFriendRequests();
   }, []);
 
-  const renderFriendRequest = ({ item }: { item: FriendRequest }) => (
+  const renderIncomingRequest = ({ item }: { item: FriendRequest }) => (
     <View className="p-4 border-b border-gray-200">
-      <Text className="font-JakartaSemiBold">{item.senderId}</Text>
+      <View className="flex-row justify-between items-center mx-4">
+        <Text className="font-JakartaSemiBold">{item.senderUsername}</Text>
+          <DropdownMenu
+            menuItems={[
+              {
+                label: "Accept",
+                onPress: async () => {
+                  setHandlingFriendRequest(true);
+                  const returnStats = await acceptFriendRequest(item.senderId, item.receiverId);
+                  if (returnStats === FriendStatus.FRIENDS) {
+                    alert("Friend request accepted!");
+                  } else {
+                    alert("Error when trying to accept friend request.")
+                  }
+                  fetchFriendRequests();
+                  setHandlingFriendRequest(false);
+                }
+              },
+              {
+                label: "Reject",
+                onPress: async () => {
+                  setHandlingFriendRequest(true);
+                  const returnStats = await acceptFriendRequest(item.senderId, item.receiverId);
+                  if (returnStats === FriendStatus.NONE) {
+                    alert("Friend request rejected!");
+                  } else {
+                    alert("Error when trying to reject friend request.")
+                  }
+                  fetchFriendRequests();
+                  setHandlingFriendRequest(false);
+                }
+              }
+            ]}
+          />
+      </View>
     </View>
+  );
+
+  const renderOutgoingRequest = ({ item }: { item: FriendRequest }) => (
+    <View className="p-4 border-b border-gray-200">
+      <View className="flex-row justify-between items-center">
+        <Text className="font-JakartaSemiBold">{item.receiverUsername}</Text>
+      </View>
+    </View>
+  );
+
+  const renderFriend = ({ item }: { item: FriendRequest }) => (
+    <View>
+      <Text>{item.senderUsername}</Text>
+    </View>
+  );
+
+  const renderFriendsList = () => (
+    <FlatList
+      data={allFriendRequests?.received}
+      renderItem={renderFriend}
+      keyExtractor={(item) => item.id.toString()}
+      ListEmptyComponent={<Text className="text-center text-gray-500">No friends</Text>}
+    />
+  );
+
+  const renderIncomingFriendRequests = () => (
+    <FlatList
+      data={allFriendRequests?.received}
+      renderItem={renderIncomingRequest}
+      keyExtractor={(item) => item.id.toString()}
+      ListEmptyComponent={<Text className="text-center text-gray-500">No friend requests</Text>}
+    />
+  );
+
+  const renderOutgoingFriendRequests = () => (
+    <FlatList
+      data={allFriendRequests?.sent}
+      renderItem={renderOutgoingRequest}
+      keyExtractor={(item) => item.id.toString()}
+      ListEmptyComponent={<Text className="text-center text-gray-500">No outgoing friend requests</Text>}
+    />
   );
 
   return (
@@ -92,12 +174,26 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                 Friend list
               </Text>
             </View>
-            <FlatList
-              data={allFriendRequests?.received}
-              renderItem={renderFriendRequest}
-              keyExtractor={(item) => item.id.toString()}
-              ListEmptyComponent={<Text className="text-center text-gray-500">No friend requests</Text>}
-            />
+            <View className="flex-row justify-between mb-4 mx-8">
+              <View className="max-w-[120px] flex-row justify-around">
+                <TouchableOpacity onPress={() => setSelectedTab('friends')}>
+                  <Text className={`text-lg ${selectedTab === 'friends' ? 'font-bold' : ''}`}>Friends</Text>
+                </TouchableOpacity>
+              </View>
+              <View className="max-w-[120px] flex-row justify-around">
+                <TouchableOpacity onPress={() => setSelectedTab('incoming')}>
+                  <Text className={`text-lg ${selectedTab === 'incoming' ? 'font-bold' : ''}`}>Incoming requests</Text>
+                </TouchableOpacity>
+              </View>
+              <View className="max-w-[120px] flex-row justify-around">
+                <TouchableOpacity onPress={() => setSelectedTab('outgoing')}>
+                  <Text className={`text-lg ${selectedTab === 'outgoing' ? 'font-bold' : ''}`}>Outgoing Requests</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            {selectedTab === 'incoming' && renderIncomingFriendRequests()}
+            {selectedTab === 'outgoing' && renderOutgoingFriendRequests()}
+            {selectedTab === 'friends' && renderFriendsList()}
           </View>
         )}
       </View>
