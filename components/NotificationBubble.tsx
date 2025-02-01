@@ -2,8 +2,9 @@ import { fetchAPI } from "@/lib/fetch";
 import React, { useEffect, useState, useRef } from "react";
 import { useUser } from "@clerk/clerk-expo";
 import { NotificationBubbleProps } from "@/types/type";
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View } from "react-native";
 import Animated, { BounceIn, FadeOut } from "react-native-reanimated";
+import tailwind from 'tailwind-rn';  // Import tailwind
 
 // Memoize the component to prevent unnecessary re-renders
 const NotificationBubble: React.FC<NotificationBubbleProps> = React.memo(({ type }) => {
@@ -45,15 +46,12 @@ const NotificationBubble: React.FC<NotificationBubbleProps> = React.memo(({ type
           return { unread: 0, color: "gray" };
       }
     } catch (error) {
-      console.error("Failed to fetch user data:", error);
       return { unread: 0, color: "gray" }; // Return defaults on error
     }
   };
 
   useEffect(() => {
-
     const fetchData = async () => {
-      
       const data = await fetchUserPostsNotifications();
 
       // Only update state if unread count has changed
@@ -62,55 +60,34 @@ const NotificationBubble: React.FC<NotificationBubbleProps> = React.memo(({ type
         setColor(data.color);
         setUnRead(data.unread);
       }
-     
     };
 
     fetchData();
 
     // Set up polling every 5 seconds
-   
     const interval = setInterval(fetchData, 5000);
-   console.log("polling happended.")
-   
-    
-    // Cleanup on unmount
-    
-  }, []); // Empty dependency array ensures effect runs once on mount
+    console.log("polling happened.");
 
+    // Cleanup on unmount
+    return () => clearInterval(interval);
+  }, []); // Empty dependency array ensures effect runs once on mount
 
   // Hide the bubble if no notifications or if not the right type
   if (unRead === 0) return null;
-  console.log("and it re-rendered")
+
+
   return (
-  
     <Animated.View
       exiting={FadeOut.duration(200)}
       entering={BounceIn}
+      className="absolute items-center justify-center w-6 h-6 rounded-full left-1/2 -top-[2px]"
       style={[
-        styles.bubble,
-        { backgroundColor: color },
+        { backgroundColor: color }, // Dynamically set background color
       ]}
     >
-      <Text style={styles.text}>{unRead}</Text>
+      <Text className="text-white font-bold">{unRead}</Text>
     </Animated.View>
   );
-});
-
-const styles = StyleSheet.create({
-  bubble: {
-    position: "absolute",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    left: "55%",
-    top: "-3%",
-  },
-  text: {
-    color: "white",
-    fontWeight: "bold",
-  }
 });
 
 export default NotificationBubble;
