@@ -206,7 +206,7 @@ const PostModal: React.FC<PostModalProps> = ({
                   />
                 </TouchableOpacity>
               </Animated.View>
-              <Text>{likeCount}</Text>
+              <Text>{formattedDate}</Text>
             </View>
           </Animated.View>
         </PanGestureHandler>

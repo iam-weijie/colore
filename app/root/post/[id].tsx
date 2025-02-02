@@ -545,7 +545,7 @@ const PostScreen = () => {
             {/* Comment section */}
             <View className="mt-4 mb-24">
               <Text className="font-JakartaSemiBold text-lg mx-4 pl-2">
-                {postComments.length} Comments
+                {postComments.length > 0 ? `${postComments.length} Comments`  : "Comments"}
               </Text>
               {loading && <ActivityIndicator size="large" color="#0076e3" />}
               {error && <Text className="text-red-500 mx-4">{error}</Text>}
