@@ -67,7 +67,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       }}
     >
       <View
-        className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent mx-auto"
+        className="flex-1 m-2 p-5  shadow-xs rounded-[24px] bg-[#fafafa] mx-auto"
         style={{ width: screenWidth * 0.85 }}
       >
         <Text className="font-JakartaSemiBold">

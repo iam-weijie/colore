@@ -220,7 +220,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1 bg-gray-100 flex flex-col">
         {loading ? (
           <View className="flex-[0.8] justify-center items-center">
             <ActivityIndicator size="large" color="black" />
@@ -251,7 +251,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                   <Text
                     className={`text-lg ${selectedTab === "incoming" ? "font-bold" : ""}`}
                   >
-                    Requests received
+                    Requests
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -260,7 +260,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                   <Text
                     className={`text-lg ${selectedTab === "outgoing" ? "font-bold" : ""}`}
                   >
-                    Requests sent
+                    Sent
                   </Text>
                 </TouchableOpacity>
               </View>

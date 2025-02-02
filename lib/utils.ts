@@ -91,3 +91,4 @@ export function calculateAge(birthday: Date): number {
 
   return age;
 }
+
