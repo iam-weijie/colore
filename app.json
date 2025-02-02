@@ -2,12 +2,13 @@
   "expo": {
     "name": "Coloré",
     "slug": "colore",
-    "owner": "colore_dev",
+    "owner": "colore_backend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.jpg",
       "resizeMode": "contain",
@@ -15,31 +16,44 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.arthur1235.colore"
+      "bundleIdentifier": "com.arthur1235.colore",
+      "infoPlist": {
+        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized notifications."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.arthur1235.colore"
+      "package": "com.arthur1235.colore",
+      "permissions": ["NOTIFICATIONS"],
+      "useNextNotificationsApi": true
     },
     "web": {
       "bundler": "metro",
       "output": "server",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "expo-router",
-        {
-          "origin": "https://colore.expo.app"
-        }
-      ],
-      "expo-font",
-      "expo-secure-store"
+   "plugins": [
+    [
+      "expo-notifications",
+      {
+        "icon": "./assets/icon.png",
+        "color": "#000000"
+      }
     ],
-    "experiments": {
+    [
+      "expo-router",
+      {
+        "origin": "https://colore.expo.app"
+      }
+    ],
+    "expo-font",
+    "expo-secure-store"
+  ],
+      "experiments": {
       "typedRoutes": true
     },
     "extra": {

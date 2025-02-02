@@ -2,11 +2,14 @@ import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
 import { icons } from "@/constants";
 import { Post, PostWithPosition } from "@/types/type";
+import { useNotification } from '@/notifications/NotificationContext';
+import { sendPushNotification } from '@/notifications/PushNotificationService';
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   Image,
   PanResponder,
@@ -90,6 +93,7 @@ export default function Page() {
   ////console.log("session: ", session);
   //useAuth();
   //router.replace("/auth/log-in");
+  const { pushToken } = useNotification();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -164,6 +168,15 @@ export default function Page() {
 
     fetchAndSetNewPost();
   }, []);
+
+  const handleSendNotification = async () => {
+    if (!pushToken) {
+      Alert.alert('Error', 'Push token not available. Make sure permissions are granted.');
+      return;
+    }
+
+   // await sendPushNotification(pushToken, 'Hello from Expo!!!!', 'This is a test push notification.');
+  };
 
   const handlePostPress = (post: any) => {
     setSelectedPost(post);
