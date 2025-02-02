@@ -169,6 +169,7 @@ export default function Page() {
     fetchAndSetNewPost();
   }, []);
 
+  /* HANDLES SEND NOTIFICATION
   const handleSendNotification = async () => {
     if (!pushToken) {
       Alert.alert('Error', 'Push token not available. Make sure permissions are granted.');
@@ -177,7 +178,7 @@ export default function Page() {
 
    // await sendPushNotification(pushToken, 'Hello from Expo!!!!', 'This is a test push notification.');
   };
-
+*/
   const handlePostPress = (post: any) => {
     setSelectedPost(post);
   };

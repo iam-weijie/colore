@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
+import { router } from "expo-router";
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 
@@ -58,6 +59,33 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     // Listener for when a notification is tapped (this works even in background)
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       console.log('Notification Clicked:', response);
+      const { notification } = response;
+      const { data } = notification.request.content; // Get the custom data
+
+      // Handle different actions based on notification data
+      if (data) {
+        if (data.type === 'comment') {
+          // Example: Navigate to a specific screen, passing the data (e.g., postId)
+          console.log('Navigating to post:', data.path.params.id, data.path.params.content, data.path.route);
+          router.push({
+            pathname: data.path.route,
+            // send through params to avoid doing another API call for post
+            params: {
+              id: data.path.params!.id,
+              clerk_id: data.path.params!.clerk_id,
+              content: data.path.params!.content,
+              nickname: data.path.params!.nickname,
+              firstname: data.path.params!.firstname,
+              username: data.path.params!.username,
+              like_count: data.path.params!.like_count,
+              report_count: data.path.params!.report_count,
+              created_at: data.path.params!.created_at,
+              unread_comments: data.path.params!.unread_comments,
+            },
+          });
+          
+        }
+      }
     });
 
     // Cleanup listeners on unmount

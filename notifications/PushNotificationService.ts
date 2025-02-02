@@ -1,11 +1,14 @@
 
-export const sendPushNotification = async (pushToken: string, title: string, message: string) => {
+export const sendPushNotification = async (pushToken: string, title: string, message: string, type: string, path: {route: string, params: object}) => {
   const messagePayload = {
     to: pushToken,
     sound: 'default',
     title,
     body: message,
-    data: { someData: 'goes here' },
+    data: { 
+      type: type,
+      path: path
+   },
   };
 
   try {
