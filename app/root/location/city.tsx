@@ -1,21 +1,33 @@
+import { useEffect, useState } from "react";
 import CustomButton from "@/components/CustomButton";
 import { useNavigationContext } from "@/components/NavigationContext";
-import { countries } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import { useUser } from "@clerk/clerk-expo";
 import { Href, router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// Interface for City and State
+interface City {
+  name: string; // City name
+}
+
+interface State {
+  name: string; // State name
+  cities: City[]; // List of cities
+}
 
 const City = () => {
   const { user } = useUser();
   const { stateVars, setStateVars } = useNavigationContext();
-  const { state, country, previousScreen } = useLocalSearchParams();
+  const { state, cities, country, previousScreen } = useLocalSearchParams();
 
-  const selectedCountry = countries.find((c) => c.name === country);
-  const selectedState = selectedCountry?.states.find((s) => s.name === state);
-  const cities = selectedState ? selectedState.cities : [];
+  // Check if cities is a string, if so parse it; otherwise, assume it is already an array
+  const cityData: City[] = typeof cities === "string" ? JSON.parse(cities) : cities || [];
+
+  // Sort cities alphabetically
+  const cityNames = cityData.map((city: City) => city.name);
+  const sortedCities = cityNames.sort((a, b) => a.localeCompare(b));
 
   const [selectedCity, setSelectedCity] = useState("");
 
@@ -32,7 +44,7 @@ const City = () => {
       userLocation: `${selectedCity}, ${state}, ${country}`,
     });
 
-    // update user info
+    // Update user info
     await fetchAPI("/api/users/patchUserInfo", {
       method: "PATCH",
       body: JSON.stringify({
@@ -43,6 +55,7 @@ const City = () => {
       }),
     });
 
+    // Navigate based on previous screen
     if (previousScreen === "settings") {
       router.push("/root/settings");
     } else {
@@ -68,8 +81,8 @@ const City = () => {
       </View>
 
       <FlatList
-        data={cities}
-        keyExtractor={(item) => item}
+        data={sortedCities} // Use sorted cities
+        keyExtractor={(item, index) => `${item}-${index}`}  // Using both city name and index to ensure uniqueness
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => handleCityPress(item)}>
             <Text className="font-JakartaSemiBold text-[15px] ml-3 my-2">
