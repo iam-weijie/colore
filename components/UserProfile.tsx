@@ -46,6 +46,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     FriendStatus.UNKNOWN
   );
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const isEditable = user!.id === userId;
 
@@ -59,7 +60,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
   const fetchCurrentNickname = async () => {
     try {
-      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, { //Fetch User Color Collected
         method: "GET",
       });
       if (response.error) {
@@ -75,6 +76,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   };
 
   useEffect(() => {
+    setIsCollapsed(user!.id != userId)
     const getData = async () => {
       const data = await fetchCurrentNickname();
       setNickname(data);
@@ -447,11 +449,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         <TouchableOpacity onPress={() => {
           if (currentSubscreen !== "colors") setCurrentSubscreen("colors")
           if (currentSubscreen === "colors") setCurrentSubscreen("posts")
-          }} className="flex-1 max-w-1/3 h-[160px] p-5 rounded-[32px] bg-gray-200 items-center justify-between" >
+          }} className="flex-1 max-w-[135px] p-5  bg-gray-200 items-center justify-between" 
+        style={{height: isCollapsed ? 60 : 150, 
+                borderRadius: isCollapsed ? 24 : 32}}>
+              { !isCollapsed &&
               <View  className="w-full flex flex-row items-start">
                 <Text className="text-[#333333] font-JakartaBold text-3xl">{currentSubscreen !== "colors" ? temporaryColors.length : userPosts.length}</Text>
-              </View>
-              <View>
+              </View>}
+              { !isCollapsed && <View>
                {currentSubscreen !== "colors" &&
               <Image
                 source={icons.palette}
@@ -468,10 +473,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 className="w-10 h-10 -mt-4"
               />
                }
-              </View>
+              </View>}
               
               <View>
-              {currentSubscreen !== "colors" && <Text className="text-[#333333] font-JakartaBold text-[16px]">Colors</Text>}
+              {currentSubscreen !== "colors" && <Text className="text-[#333333] font-JakartaBold text-[16px]">{isCollapsed ? `Colors (${temporaryColors.length})` : "Colors"}</Text>}
               {currentSubscreen !== "posts" && <Text className="text-[#333333] font-JakartaBold text-[16px]">Posts</Text>}
               </View>
         </TouchableOpacity>
@@ -482,20 +487,22 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           if(user!.id != userId && friendStatus.name == "unknown") {
             handleSendFriendRequest()
           }
-        }} className="flex-1 max-w-1/3 h-[160px] p-5 rounded-[32px] items-center justify-between" style={{backgroundColor: user!.id == userId ? "#93c5fd" :  friendStatus.name != "unknown" ? "#FF6B6B" : "#7cf54c" }}>
-              <View  className="w-full flex flex-row items-start">
+        }} className="flex-1 max-w-[135px] p-5  items-center justify-between" 
+        style={{backgroundColor: user!.id == userId ? "#93c5fd" :  friendStatus.name != "unknown" ? "#FF6B6B" : "#000", 
+        height: isCollapsed ? 60 : 150, 
+        borderRadius: isCollapsed ? 24 : 32 }}>
+              { !isCollapsed &&<View  className="w-full flex flex-row items-start">
               {user!.id == userId && <View>
                 <Text className="text-white font-JakartaBold text-3xl">0</Text>
               </View>}
               {user!.id !== userId && <View>
                 <Text className="text-white font-JakartaBold text-4xl">+</Text>
               </View>}
+              </View>}
 
-  
-              </View>
-              <View>
+              { !isCollapsed &&<View>
               <FontAwesome5 name="user-friends" size={30} color="white" marginTop={-20}/>
-              </View>
+              </View>}
               {user!.id == userId && <View>
                 <Text className="text-white font-JakartaBold text-[16px]">Friends</Text>
               </View>}
@@ -529,6 +536,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               posts={userPosts}
               profileUserId={profileUser!.clerk_id}
               handleUpdate={fetchUserData}
+              query={query}
             />
           </View>
           </View>
