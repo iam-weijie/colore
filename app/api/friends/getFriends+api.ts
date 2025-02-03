@@ -23,8 +23,7 @@ export async function GET(request: Request) {
      *  user_id2,
      *  requestor = 'UID1' or 'UID2',
      *  created_at,
-     *  user1_username,
-     *  user2_username
+     *  user2_username,
      * }
      */
     const response = await sql`

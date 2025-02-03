@@ -6,7 +6,7 @@ import {
   fetchFriends,
   rejectFriendRequest,
 } from "@/lib/friend";
-import { FriendRequest, Friendship, RawFriendRequest } from "@/types/type";
+import { FriendRequest, Friendship, RawFriendRequest, UserNicknamePair } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { AntDesign } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
@@ -37,6 +37,31 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
   const [handlingFriendRequest, setHandlingFriendRequest] =
     useState<boolean>(false);
   const [friendList, setFriendList] = useState<Friendship[]>([]);
+  const [nicknames, setNicknames] = useState<Record<string, string>>();
+
+  const fetchNicknames = async () => {
+    try {
+      const response = await fetchAPI(
+        `/api/users/getUserInfo?id=${user!.id}`,
+        {
+          method: "GET",
+        }
+      );
+      const nicknames: UserNicknamePair[] = response.data[0].nicknames;
+      const nicknameMap: Record<string, string> = convertNicknameDictionary(nicknames);
+      setNicknames(nicknameMap);
+    } catch (error) {
+      console.error("Failed to fetch nicknames: ", error);
+      setError("Failed to fetch nicknames.");
+    }
+  };
+
+  const convertNicknameDictionary = (userNicknameArray: UserNicknamePair[] ) => {
+    const map = Object.fromEntries(
+      userNicknameArray.map(e => [e[0], e[1]])
+    );
+    return map;
+  }
 
   const fetchFriendRequests = async () => {
     try {
@@ -75,6 +100,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     setLoading(true);
     await fetchFriendList();
     await fetchFriendRequests();
+    await fetchNicknames();
     setLoading(false);
   };
 
@@ -177,7 +203,11 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     <View className="p-4 border-b border-gray-200">
       <View className="flex-row justify-between items-center mx-4">
         <TouchableOpacity onPress={() => handleUserProfile(item.friend_id)}>
-          <Text className="font-JakartaSemiBold">{item.friend_username}</Text>
+          <Text className="font-JakartaSemiBold">
+            {(nicknames && item.friend_id in nicknames) 
+              ? nicknames[item.friend_id] :
+              item.friend_username}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -271,6 +301,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
           </View>
         )}
       </View>
+      {error && <Text>An error occurred. </Text>}
     </SafeAreaView>
   );
 };
