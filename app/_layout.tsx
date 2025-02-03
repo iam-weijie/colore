@@ -1,4 +1,5 @@
 import { NavigationProvider } from "@/components/NavigationContext";
+import { NotificationProvider } from '../notifications/NotificationContext';
 import SplashVideo from "@/components/SplashVideo";
 import { tokenCache } from "@/lib/auth";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
@@ -60,19 +61,21 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <ClerkLoaded>
-        <NavigationProvider>
-          <Animated.View style={{ flex: 1 }} entering={FadeIn}>
-            <Stack>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="auth" options={{ headerShown: false }} />
-              <Stack.Screen name="root" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </Animated.View>
-        </NavigationProvider>
-      </ClerkLoaded>
-    </ClerkProvider>
+    <NotificationProvider>
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <ClerkLoaded>
+          <NavigationProvider>
+            <Animated.View style={{ flex: 1 }} entering={FadeIn}>
+              <Stack>
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="auth" options={{ headerShown: false }} />
+                <Stack.Screen name="root" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </Animated.View>
+          </NavigationProvider>
+        </ClerkLoaded>
+      </ClerkProvider>
+    </NotificationProvider>
   );
 }

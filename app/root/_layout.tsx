@@ -12,6 +12,7 @@ const Layout = () => {
       <Stack.Screen name="post" options={{ headerShown: false }} />
       <Stack.Screen name="friends" options={{ headerShown: false }} />
       <Stack.Screen name="settings" options={{ headerShown: false }} />
+      <Stack.Screen name="chat" options={{ headerShown: false }} />
     </Stack>
   );
 };
