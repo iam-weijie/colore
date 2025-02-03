@@ -16,6 +16,8 @@ import {
   View,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
+import DropdownMenu from "./DropdownMenu";
+import * as Linking from "expo-linking";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -155,6 +157,10 @@ const PostModal: React.FC<PostModalProps> = ({
     ]);
   };
 
+  const handleReportPress = () => {
+    Linking.openURL("mailto:support@colore.ca");
+  }
+
   const handleDelete = async () => {
     try {
       const response = await fetchAPI(`/api/posts/deletePost?id=${post!.id}`, {
@@ -287,10 +293,14 @@ const PostModal: React.FC<PostModalProps> = ({
             )}
           </View>
           {/* Delete button for post owner */}
-          {post && post.clerk_id === user?.id && (
-            <TouchableOpacity onPress={handleDeletePress}>
-              <Image source={icons.trash} className="w-7 h-7" />
-            </TouchableOpacity>
+          {post && post.clerk_id === user?.id ? (
+            <DropdownMenu 
+              menuItems={[ {label: "Delete", onPress: handleDeletePress} ]}
+            />
+          ) : (
+            <DropdownMenu 
+              menuItems={[ {label: "Report", onPress: handleReportPress} ]}
+            />
           )}
         </View>
       </Animated.View>

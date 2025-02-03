@@ -33,6 +33,8 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, on
   const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
+  // console.log(post);
+
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -82,6 +84,17 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, on
       <TouchableWithoutFeedback onPress={onPress}>
         <PostIt color={post.color || "yellow"}/>
       </TouchableWithoutFeedback>
+
+      <Text
+        style={{
+          position: "absolute",
+          left: Math.random() * 100,
+          top: Math.random() * 100,
+          fontSize: 50,
+        }}
+      >
+        {post.emoji && post.emoji}
+      </Text>
     </Animated.View>
   );
 };
@@ -192,7 +205,6 @@ export default function Page() {
       setPosts((prevPosts) =>
         prevPosts.filter((post) => post.id !== selectedPost.id)
       );
-
       // Fetch a new post to replace the removed one
       const newPost = await fetchNewPost();
       if (newPost) {
@@ -242,7 +254,7 @@ export default function Page() {
               style={{ position: "absolute", width: "100%", height: "100%" }}
             />
 
-            <View className="relative flex-1">
+            <View className="relative">
               {posts.map((post, index) => {
                 return (
                   // <TouchableOpacity

@@ -1,6 +1,6 @@
 import CustomButton from "@/components/CustomButton";
 import { fetchAPI } from "@/lib/fetch";
-import { UserNicknamePair } from "@/types/type";
+import { UserNicknamePair, UserProfileType } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useRouter } from "expo-router";
@@ -59,7 +59,7 @@ const NewConversation = (): React.ReactElement => {
   const filteredUsers =
     searchText.length > 0
       ? users.filter((user) =>
-          user[1].toLowerCase().includes(searchText.toLowerCase())
+          user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
         )
       : [];
   const checkIfChatExists = async (user2: UserNicknamePair) => {

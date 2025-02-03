@@ -179,7 +179,7 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="personal-board"
         options={{
           title: "Chat",
           headerShown: false,
