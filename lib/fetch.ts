@@ -5,6 +5,7 @@ export const fetchAPI = async (url: string, options?: RequestInit) => {
     const response = await fetch(url, options);
 
     if (!response.ok) {
+      //console.log("Response:", response)
       new Error(`HTTP error! status: ${response.status}`);
     }
     return await response.json();
