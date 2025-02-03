@@ -1,14 +1,16 @@
 import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants/index";
+import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
+import { acceptFriendRequest, fetchFriendStatus } from "@/lib/friend";
 import {
+  FriendStatusType,
   Post,
   UserData,
   UserNicknamePair,
   UserProfileProps,
   UserProfileType,
-  FriendStatusType
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -16,22 +18,15 @@ import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
-  Pressable,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
-import { 
-  fetchFriendStatus,
-  acceptFriendRequest
-} from "@/lib/friend";
-import { FriendStatus } from "@/lib/enum";
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -44,7 +39,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const router = useRouter();
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
-  const [friendStatus, setFriendStatus] = useState<FriendStatusType>(FriendStatus.UNKNOWN);
+  const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
+    FriendStatus.UNKNOWN
+  );
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
 
   const isEditable = user!.id === userId;
@@ -140,27 +137,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       </View>
     );
 
-if (error)
-  return (
-    <SafeAreaView className="flex-1">
-      <View className="flex flex-row items-center justify-between">
-        <Text>An error occurred. Please try again Later.</Text>
-        <View className="flex flex-row items-right">
-        {isEditable && (
-          <TouchableOpacity 
-            onPress={() => router.push("/root/settings")}
-            className="p-2"
-          >
-            <Image 
-              source={icons.settings} 
-              className="w-8 h-8"
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        )}
+  if (error)
+    return (
+      <SafeAreaView className="flex-1">
+        <View className="flex flex-row items-center justify-between">
+          <Text>An error occurred. Please try again Later.</Text>
+          <View className="flex flex-row items-right">
+            {isEditable && (
+              <TouchableOpacity
+                onPress={() => router.push("/root/settings")}
+                className="p-2"
+              >
+                <Image
+                  source={icons.settings}
+                  className="w-8 h-8"
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
     );
   const checkIfChatExists = async (user2: UserNicknamePair) => {
     try {
@@ -264,14 +261,13 @@ if (error)
       Alert.alert("Friend request sent!");
       setFriendStatus(FriendStatus.SENT);
       setIsHandlingFriendRequest(false);
-
-    } catch (error) { 
+    } catch (error) {
       console.error("Failed to send friend request:", error);
       Alert.alert("Error sending friend request.");
     }
-  }
+  };
 
-  // to prevent database errors, 
+  // to prevent database errors,
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
@@ -283,8 +279,8 @@ if (error)
           profileUser!.clerk_id,
           nickname || profileUser!.username,
         ] as UserNicknamePair),
-    }
-  ]
+    },
+  ];
 
   const menuItems_default = [
     { label: "Alias", onPress: handleAddNickname },
@@ -302,8 +298,8 @@ if (error)
         if (friendStatus === FriendStatus.NONE) {
           handleSendFriendRequest(); // only send if checked for sure not friends, and no request exists
         }
-      }
-    }
+      },
+    },
   ];
 
   const menuItems_friend = [
@@ -320,9 +316,9 @@ if (error)
       label: "Unfriend",
       onPress: () => {
         // send request to unfriend, TBA
-      }
-    }
-  ]
+      },
+    },
+  ];
 
   const menuItems_sent = [
     { label: "Alias", onPress: handleAddNickname },
@@ -335,12 +331,12 @@ if (error)
         ] as UserNicknamePair),
     },
     {
-      label: "Your friend request is pending",
+      label: "Request pending",
       onPress: () => {
         // doesn't do anything, ability to cancel friend request TBA
-      }
-    }
-  ]
+      },
+    },
+  ];
 
   const menuItems_received = [
     { label: "Alias", onPress: handleAddNickname },
@@ -356,17 +352,19 @@ if (error)
       label: "Accept friend request",
       onPress: async () => {
         setIsHandlingFriendRequest(true);
-        const response = await acceptFriendRequest(profileUser!.clerk_id, user!.id);
+        const response = await acceptFriendRequest(
+          profileUser!.clerk_id,
+          user!.id
+        );
         if (response === FriendStatus.FRIENDS) {
           Alert.alert("Friend request accepted!");
-        }
-        else {
+        } else {
           Alert.alert("Error accepting friend request.");
         }
         setIsHandlingFriendRequest(false);
-      }
-    }
-  ]
+      },
+    },
+  ];
 
   return (
     <View className="flex-1 mt-3">
@@ -378,29 +376,35 @@ if (error)
             </TouchableOpacity>
             <View className="flex flex-row items-right">
               {friendStatus === FriendStatus.FRIENDS && (
-                <DropdownMenu menuItems={menuItems_friend} customMenuWidth={150}/>
-              )
-              }
-              {
-                friendStatus === FriendStatus.SENT && (
-                  <DropdownMenu menuItems={menuItems_sent} customMenuWidth={150}/>
-                )
-              }
-              {
-                friendStatus === FriendStatus.RECEIVED && (
-                  <DropdownMenu menuItems={menuItems_received} customMenuWidth={150}/>
-                )
-              }
-              {
-                friendStatus === FriendStatus.NONE && (
-                  <DropdownMenu menuItems={menuItems_default} customMenuWidth={150}/>
-                )
-              }
-              {
-                friendStatus === FriendStatus.UNKNOWN && (
-                  <DropdownMenu menuItems={menuItems_unloaded} customMenuWidth={150}/>
-                )
-              }
+                <DropdownMenu
+                  menuItems={menuItems_friend}
+                  customMenuWidth={150}
+                />
+              )}
+              {friendStatus === FriendStatus.SENT && (
+                <DropdownMenu
+                  menuItems={menuItems_sent}
+                  customMenuWidth={150}
+                />
+              )}
+              {friendStatus === FriendStatus.RECEIVED && (
+                <DropdownMenu
+                  menuItems={menuItems_received}
+                  customMenuWidth={150}
+                />
+              )}
+              {friendStatus === FriendStatus.NONE && (
+                <DropdownMenu
+                  menuItems={menuItems_default}
+                  customMenuWidth={150}
+                />
+              )}
+              {friendStatus === FriendStatus.UNKNOWN && (
+                <DropdownMenu
+                  menuItems={menuItems_unloaded}
+                  customMenuWidth={150}
+                />
+              )}
             </View>
           </View>
         )}
@@ -422,10 +426,9 @@ if (error)
         </View>
 
         <View>
-        <Text className="text-gray-500 font-Jakarta text-base mt-3">
-          📍{profileUser?.city}, {profileUser?.state}, {profileUser?.country}
-        </Text>
-
+          <Text className="text-gray-500 font-Jakarta text-base mt-3">
+            📍{profileUser?.city}, {profileUser?.state}, {profileUser?.country}
+          </Text>
         </View>
       </View>
       <View />
