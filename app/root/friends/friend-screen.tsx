@@ -144,11 +144,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     <View className="p-4 border-b border-gray-200">
       <View className="flex-row justify-between items-center mx-4">
         <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
-          <Text className="font-JakartaSemiBold">
-            {(nicknames && item.senderId in nicknames) 
-            ? nicknames[item.senderId] :
-            item.senderUsername}
-          </Text>
+          <Text className="font-JakartaSemiBold">{item.senderUsername}</Text>
         </TouchableOpacity>
         <DropdownMenu
           menuItems={[
@@ -197,11 +193,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     <View className="p-4 border-b border-gray-200">
       <View className="flex-row justify-between items-center mx-4">
         <TouchableOpacity onPress={() => handleUserProfile(item.receiverId)}>
-          <Text className="font-JakartaSemiBold">
-            {(nicknames && item.receiverId in nicknames) 
-              ? nicknames[item.receiverId] : 
-              item.receiverUsername}
-          </Text>
+          <Text className="font-JakartaSemiBold">{item.receiverUsername}</Text>
         </TouchableOpacity>
       </View>
     </View>
