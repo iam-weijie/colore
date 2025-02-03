@@ -17,7 +17,8 @@ export async function GET(request: Request) {
       p.like_count, 
       p.report_count,
       p.unread_comments,
-      p.color
+      p.color,
+      p.emoji
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       WHERE u.clerk_id = ${clerkId}
