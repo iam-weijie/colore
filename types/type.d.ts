@@ -27,6 +27,7 @@ declare interface PostComment {
   created_at: string;
   like_count: number;
   report_count: number;
+
 }
 
 declare interface UserProfileType {
@@ -125,6 +126,12 @@ declare interface InputFieldProps extends TextInputProps {
   iconStyle?: string;
   className?: string;
   variant?: string;
+}
+
+declare interface NotificationBubbleProps {
+  like: "Likes";
+  comment: "Comments";
+  message: "Messages";
 }
 
 declare interface PaymentProps {

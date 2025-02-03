@@ -26,9 +26,10 @@ export async function GET(request: Request) {
         c.content, 
         u.firstname,
         u.username,
-      c.created_at,
+        c.created_at,
         c.like_count, 
         c.report_count,
+        c.notified,
         COALESCE(
           (SELECT TRUE 
            FROM comment_likes cl 
