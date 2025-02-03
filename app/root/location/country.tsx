@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { router, useLocalSearchParams } from "expo-router";
-import { FlatList, Text, TouchableOpacity } from "react-native";
+import { FlatList, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Define the State and Country interfaces
@@ -20,6 +20,7 @@ interface Country {
 const Country = () => {
   const { previousScreen } = useLocalSearchParams();
   const [countries, setCountries] = useState<Country[]>([]);
+  const [loading, setLoading] = useState<boolean>(true); // Loading state to manage the loading view
 
   // Fetch the entire dataset only once
   useEffect(() => {
@@ -46,11 +47,22 @@ const Country = () => {
         setCountries(sortedCountries);
       } catch (error) {
         console.error("Error fetching countries:", error);
+      } finally {
+        setLoading(false);  // Set loading to false when the data is loaded or if an error occurs
       }
     };
 
     fetchCountries();
   }, []);  // Empty dependency array, so this runs only once on component mount
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#0000ff"  />
+        <Text className="mt-4">Loading countries...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1">
@@ -60,7 +72,7 @@ const Country = () => {
         keyExtractor={(item) => item.cca2}  // Use country code as the key
         renderItem={({ item }) => (
           <TouchableOpacity
-          className="flex flex-row items-center justify-between px-4 relative h-[60px]"
+            className="flex flex-row items-center justify-between px-4 relative h-[60px]"
             onPress={() =>
               router.push({
                 pathname: "/root/location/state",
@@ -79,7 +91,6 @@ const Country = () => {
             <Text className="font-JakartaSemiBold text-[15px] text-gray-400 ml-3 my-2">
               {item.cca2} {/* Display the country name */}
             </Text>
-
           </TouchableOpacity>
         )}
       />
