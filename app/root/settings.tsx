@@ -75,7 +75,7 @@ const Settings = () => {
         }
       } else {
         Alert.alert("Success", "Username updated successfully");
-        await fetchUserData(); // Refresh user data after successful update
+        await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to update username:", error);
@@ -111,21 +111,19 @@ const Settings = () => {
     : "No location set";
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView className="flex-1">
-          <View className="flex flex-row items-center justify-between px-4 pt-2">
-            <View className="flex-row items-center">
-              <TouchableOpacity onPress={() => router.push("/root/tabs/profile")}>
-                <AntDesign name="caretleft" size={18} color="0076e3" />
-              </TouchableOpacity>
-              <Text className="text-2xl font-JakartaBold ml-4">Settings</Text>
-            </View>
+          <View className="flex flex-row items-center px-4 pt-2">
+            <TouchableOpacity onPress={() => router.push("/root/tabs/profile")} className="mr-4">
+              <AntDesign name="caretleft" size={18} />
+            </TouchableOpacity>
           </View>
 
-          <View className="p-4">
-            <View className="mb-6">
-              <Text className="text-xl font-JakartaSemiBold mb-4">Account</Text>
+          <View className="px-7">
+            <Text className="text-2xl font-JakartaBold mb-8">Settings</Text>
+            
+            <View className="mb-8">
               <InputField
                 label="Username"
                 value={username}
@@ -137,27 +135,31 @@ const Settings = () => {
                 title="Update Username"
                 onPress={handleUsernameUpdate}
                 disabled={loading || !username}
-                className="mt-2"
+                bgVariant="gradient"
+                className="w-full"
+                padding="3"
               />
             </View>
 
-            <View className="mb-6">
-              <Text className="text-xl font-JakartaSemiBold mb-4">Location</Text>
-              <Text className="text-gray-500 mb-2">Current location: {currentLocation}</Text>
+            <View className="mb-8">
+              <Text className="text-lg font-JakartaSemiBold mb-2">Current Location</Text>
+              <Text className="text-gray-500 mb-4">{currentLocation}</Text>
               <CustomButton
                 title="Change Location"
                 onPress={handleLocationUpdate}
-                className="mt-2"
+                bgVariant="gradient"
+                className="w-full"
+                padding="3"
               />
             </View>
 
-            <View className="mt-8">
-              <CustomButton
-                title="Sign Out"
-                onPress={handleSignOut}
-                bgVariant="danger"
-              />
-            </View>
+            <CustomButton
+              title="Sign Out"
+              onPress={handleSignOut}
+              bgVariant="danger"
+              className="w-full"
+              padding="3"
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
