@@ -66,7 +66,7 @@ const City = () => {
   return (
     <SafeAreaView className="flex-1">
       <View className="flex flex-row justify-between items-center">
-        <Text className="text-lg font-JakartaSemiBold m-3">
+        <Text className="text-xl font-JakartaBold m-3">
           Select a City in {state}
         </Text>
 
@@ -84,8 +84,10 @@ const City = () => {
         data={sortedCities} // Use sorted cities
         keyExtractor={(item, index) => `${item}-${index}`}  // Using both city name and index to ensure uniqueness
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleCityPress(item)}>
-            <Text className="font-JakartaSemiBold text-[15px] ml-3 my-2">
+          <TouchableOpacity onPress={() => handleCityPress(item)} 
+           className="flex flex-row items-center justify-between px-4 relative h-[50px]"
+          >
+            <Text className="font-JakartaSemiBold text-[16px] ml-3 my-2">
               {item}
             </Text>
 

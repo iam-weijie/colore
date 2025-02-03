@@ -13,6 +13,7 @@ interface State {
 interface Country {
   cca2: string;  // Country code (ISO alpha-2)
   name: string;   // Country name
+  emoji: string;  // Country flag emoji
   states: State[]; // List of states
 }
 
@@ -32,6 +33,7 @@ const Country = () => {
         const countryData = response.data.map((country: any) => ({
           cca2: country.iso2,  // ISO country code
           name: country.name || "Unknown",  // Country name (if available)
+          emoji: country.emoji || "",  // Country flag emoji (if available)
           states: country.states || []  // States data
         }));
 
@@ -52,12 +54,13 @@ const Country = () => {
 
   return (
     <SafeAreaView className="flex-1">
-      <Text className="text-lg font-JakartaSemiBold m-3">Select a Country</Text>
+      <Text className="text-xl font-JakartaBold m-3">Select a Country</Text>
       <FlatList
         data={countries}
         keyExtractor={(item) => item.cca2}  // Use country code as the key
         renderItem={({ item }) => (
           <TouchableOpacity
+          className="flex flex-row items-center justify-between px-4 relative h-[60px]"
             onPress={() =>
               router.push({
                 pathname: "/root/location/state",
@@ -70,9 +73,13 @@ const Country = () => {
               })
             }
           >
-            <Text className="font-JakartaSemiBold text-[16px] h-[18px] ml-3 my-2">
-              {item.name} {/* Display the country name */}
+            <Text className="font-JakartaSemiBold text-[16px] ml-3 my-2">
+              {item.emoji} {item.name} {/* Display the country name */}
             </Text>
+            <Text className="font-JakartaSemiBold text-[15px] text-gray-400 ml-3 my-2">
+              {item.cca2} {/* Display the country name */}
+            </Text>
+
           </TouchableOpacity>
         )}
       />

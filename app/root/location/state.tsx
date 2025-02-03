@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // Define the State interface
 interface State {
   name: string;
+  cca2: string;  // Country code (ISO alpha-2)
   cities: string[];  // List of cities in the state
 }
 
@@ -17,7 +18,7 @@ const State = () => {
 
   return (
     <SafeAreaView className="flex-1">
-      <Text className="text-lg font-JakartaSemiBold m-3">
+      <Text className="text-xl font-JakartaBold m-3">
         Select a State in {country}
       </Text>
 
@@ -26,6 +27,7 @@ const State = () => {
         keyExtractor={(item) => item.name}  // Use state name as the key
         renderItem={({ item }) => (
           <TouchableOpacity
+          className="flex flex-row items-center justify-between px-4 relative h-[50px]"
             onPress={() =>
               router.push({
                 pathname: "/root/location/city",
@@ -39,7 +41,7 @@ const State = () => {
               })
             }
           >
-            <Text className="font-JakartaSemiBold text-[16px] h-[18px] ml-3 my-2">
+            <Text className="font-JakartaSemiBold text-[16px] ml-3 my-2">
               {item.name} {/* Display the state name */}
             </Text>
           </TouchableOpacity>
