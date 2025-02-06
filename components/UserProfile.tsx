@@ -3,11 +3,11 @@ import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants/index";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
-import { 
-  acceptFriendRequest, 
+import {
+  acceptFriendRequest,
+  cancelFriendRequest,
   fetchFriendStatus,
-  cancelFriendRequest, 
-  unfriend
+  unfriend,
 } from "@/lib/friend";
 import {
   FriendStatusType,
@@ -347,7 +347,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       label: "Cancel friend request",
       onPress: async () => {
         setIsHandlingFriendRequest(true);
-        const response: FriendStatusType = await cancelFriendRequest(user!.id, userId);
+        const response: FriendStatusType = await cancelFriendRequest(
+          user!.id,
+          userId
+        );
         if (response === FriendStatus.NONE) {
           Alert.alert("Friend request cancelled.");
         } else {
