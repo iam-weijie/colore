@@ -1,4 +1,5 @@
 import { NavigationProvider } from "@/components/NavigationContext";
+import { NotificationProvider } from '../notifications/NotificationContext';
 import SplashVideo from "@/components/SplashVideo";
 //import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import { GlobalProvider } from "@/app/globalcontext";
@@ -82,21 +83,21 @@ export default function RootLayout() {
   }
 
   return (
-  <GlobalProvider>
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <ClerkLoaded>
-        <NavigationProvider>
-          <Animated.View style={{ flex: 1 }} entering={FadeIn}>
-            <Stack>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="auth" options={{ headerShown: false }} />
-              <Stack.Screen name="root" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </Animated.View>
-        </NavigationProvider>
-      </ClerkLoaded>
-    </ClerkProvider>
-  </GlobalProvider>
+    <NotificationProvider>
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <ClerkLoaded>
+          <NavigationProvider>
+            <Animated.View style={{ flex: 1 }} entering={FadeIn}>
+              <Stack>
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="auth" options={{ headerShown: false }} />
+                <Stack.Screen name="root" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </Animated.View>
+          </NavigationProvider>
+        </ClerkLoaded>
+      </ClerkProvider>
+    </NotificationProvider>
   );
 }

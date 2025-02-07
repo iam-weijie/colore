@@ -28,6 +28,8 @@ import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
 import { Post, PostItColor, PostModalProps } from "@/types/type";
 import { icons, temporaryColors } from "@/constants/index";
+import DropdownMenu from "./DropdownMenu";
+import * as Linking from "expo-linking";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -148,6 +150,78 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   };
 
+  function findUserNickname(
+    userArray: UserNicknamePair[],
+    userId: string
+  ): number {
+    const index = userArray.findIndex((pair) => pair[0] === userId);
+    return index;
+  }
+
+  const fetchCurrentNickname = async () => {
+    try {
+      // //console.log("user: ", user!.id);
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
+        method: "GET",
+      });
+      if (response.error) {
+        //console.log("Error fetching user data");
+        ////console.log("response data: ", response.data);
+        //console.log("response status: ", response.status);
+        // //console.log("response: ", response);
+        throw new Error(response.error);
+      }
+      // //console.log("response: ", response.data[0].nicknames);
+      const nicknames = response.data[0].nicknames || [];
+      return findUserNickname(nicknames, post!.clerk_id) === -1
+        ? ""
+        : nicknames[findUserNickname(nicknames, post!.clerk_id)][1];
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    }
+  };
+  useEffect(() => {
+    const getData = async () => {
+      const data = await fetchCurrentNickname();
+      setNickname(data);
+    };
+    getData();
+  }, [user]);
+
+  const handleDeletePress = async () => {
+    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
+      { text: "Cancel" },
+      { text: "Delete", onPress: handleDelete },
+    ]);
+  };
+
+  const handleReportPress = () => {
+    Linking.openURL("mailto:support@colore.ca");
+  }
+
+  const handleDelete = async () => {
+    try {
+      const response = await fetchAPI(`/api/posts/deletePost?id=${post!.id}`, {
+        method: "DELETE",
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      Alert.alert("Post deleted successfully");
+      handleCloseModal();
+
+      if (typeof handleUpdate === "function") {
+        // call only if defined (aka refresh needed after deleting post)
+        await handleUpdate();
+      }
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+      Alert.alert("Error", "Failed to delete post. Please try again.");
+    }
+  };
+
   const handleCommentsPress = () => {
     handleCloseModal();
     router.push({
@@ -211,6 +285,44 @@ const PostModal: React.FC<PostModalProps> = ({
           </Animated.View>
         </PanGestureHandler>
       </GestureHandlerRootView>
+        <ScrollView>
+          <Text className="text-[16px] p-1 my-4 font-Jakarta">
+            {post!.content}
+          </Text>
+        </ScrollView>
+        <View className="my-2 flex-row justify-between items-center">
+          <View className="flex flex-row items-center">
+            <TouchableOpacity onPress={handleCommentsPress}>
+              <Image source={icons.comment} className="w-8 h-8" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleLikePress}
+              disabled={isLoadingLike}
+              className="ml-2"
+            >
+              <MaterialCommunityIcons
+                name={isLiked ? "heart" : "heart-outline"}
+                size={32}
+                color={isLiked ? "red" : "black"}
+              />
+            </TouchableOpacity>
+            {/* Show like count only to post creator */}
+            {post && post.clerk_id === user?.id && (
+              <Text className="ml-1 text-gray-600">{likeCount}</Text>
+            )}
+          </View>
+          {/* Delete button for post owner */}
+          {post && post.clerk_id === user?.id ? (
+            <DropdownMenu 
+              menuItems={[ {label: "Delete", onPress: handleDeletePress} ]}
+            />
+          ) : (
+            <DropdownMenu 
+              menuItems={[ {label: "Report", onPress: handleReportPress} ]}
+            />
+          )}
+        </View>
+      </Animated.View>
     </ReactNativeModal>
   );
 };

@@ -2,7 +2,7 @@ import PostModal from "@/components/PostModal";
 import { formatDateTruncatedMonth } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
-import { useFocusEffect } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
@@ -112,13 +112,15 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     <View className="absolute max-h-[100%]">
       <Text className="text-lg font-JakartaSemiBold">Posts</Text>
       {posts.length === 0 ? (
-        <View 
-          className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent mx-auto" 
+        <View
+          className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent mx-auto"
           style={{ width: screenWidth * 0.85 }}
         >
-          <Text className="font-Jakarta text-gray-500">
-            Create a post to see it here
-          </Text>
+          <Link href="/root/new-post">
+            <Text className="font-Jakarta text-gray-500">
+              Create a post to see it here
+            </Text>
+          </Link>
         </View>
       ) : (
         <FlatList

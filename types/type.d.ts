@@ -15,6 +15,7 @@ declare interface Post {
   report_count: number;
   unread_comments: number;
   color: string; //String for now. Should be changed to PostItColor
+  emoji: string;
 }
 
 declare interface PostComment {
@@ -27,6 +28,7 @@ declare interface PostComment {
   created_at: string;
   like_count: number;
   report_count: number;
+
 }
 
 declare interface UserProfileType {
@@ -129,7 +131,9 @@ declare interface InputFieldProps extends TextInputProps {
 }
 
 declare interface NotificationBubbleProps {
-  type: string
+  like: "Likes";
+  comment: "Comments";
+  message: "Messages";
 }
 
 
@@ -147,8 +151,6 @@ declare interface ConversationItem {
   lastMessageContent: string | null;
   lastMessageTimestamp: Date | null;
 }
-
-declare interface ChatTabProps {}
 
 declare interface Message {
   id: number;
