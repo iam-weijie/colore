@@ -16,14 +16,6 @@ const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 
 
-// Functions
-
-
-
-
-
-
-
 // Exporting GlobalContext
 
 export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
