@@ -4,7 +4,6 @@ import { useGlobalContext } from "@/app/globalcontext";
 import { icons } from "@/constants";
 import { Post, PostWithPosition } from "@/types/type";
 import { useNotification } from '@/notifications/NotificationContext';
-import { sendPushNotification } from '@/notifications/PushNotificationService';
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -128,7 +127,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, up
 export default function Page() {
   //const { user } = useUser();
   ////console.log(user);
-  //const { isLoaded, isSignedIn, session } = useSession();
+  //// const { isLoaded, isSignedIn, session } = useSession();
   ////console.log("session: ", session);
   //useAuth();
   //router.replace("/auth/log-in");
@@ -329,39 +328,6 @@ export default function Page() {
 
   }, [maps]);
   
-
-  /*
-  useEffect(() => {
-
-    if ( maps.length > 1) {
-
-    const newPostID = maps[maps.length - 1].id
-    const newPostScreenCoordinates = maps[maps.length - 1].coordinates
-    const distances = distanceBetweenPosts(newPostScreenCoordinates.x_coordinate, newPostScreenCoordinates.y_coordinate, maps.filter((post) => post.id !== newPostID))
-    
-    console.log(distances)
-    const newStack = []
-
-    distances.forEach((dist, index) => {
-
-      if (dist < 15) {
-        if (stacks.length > 0 && !stacks.includes(newPostID)) {
-          const matchingPost = posts.find((post) => post.id === maps[index].id) 
-          const matchingStack = stacks.find((post) => post.ids.includes(maps[index].id))
-         //r matchingStack.ids.push(matchingPost.id)
-          //newStack = matchingStack.ids
-          console.log(matchingPost.id)
-          console.log(matchingStack.ids)
-        }
-     
-      }
-    }
-)
-    //setStacks(() => [Stack({ids: newStack, elements:[]})]);
-  };
-
-  }, [maps])
-*/
   useEffect(() => {
     fetchRandomPosts();
 

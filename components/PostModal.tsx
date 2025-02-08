@@ -39,6 +39,7 @@ const PostModal: React.FC<PostModalProps> = ({
 }) => {
   const { stacks } = useGlobalContext();
   const { user } = useUser();
+  const [nickname, setNickname] = useState<string>("");
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
   const [posts, setPosts] = useState<Post[]>([]);
   const [likeCount, setLikeCount] = useState<number>(0);
@@ -242,52 +243,30 @@ const PostModal: React.FC<PostModalProps> = ({
 
   return (
     <ReactNativeModal
-      isVisible={isVisible}
-      backdropColor={postColor?.hex || "rgba(0,0,0,0.5)"}
-      backdropOpacity={1}
-      onBackdropPress={handleCloseModal}
-    >
-      <TouchableWithoutFeedback onPress={handleCloseModal}>
-        <View />
-      </TouchableWithoutFeedback>
+    isVisible={isVisible}
+    backdropColor={postColor?.hex || "rgba(0,0,0,0.5)"}
+    backdropOpacity={1}
+    onBackdropPress={handleCloseModal}
+  >
+    <TouchableWithoutFeedback onPress={handleCloseModal}>
+      <View />
+    </TouchableWithoutFeedback>
 
-      <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
-        <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View
-            entering={FadeInUp.duration(400)}
-            exiting={FadeOutDown.duration(250)}
-            className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto"
-            style={[animatedStyle]}
-          >
-            <TouchableOpacity onPress={handleCloseModal}>
-              <Image source={icons.close} style={{ width: 24, height: 24, alignSelf: "flex-end" }} />
-            </TouchableOpacity>
+    <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
+      <PanGestureHandler onGestureEvent={gestureHandler}>
+        <Animated.View
+          entering={FadeInUp.duration(400)}
+          exiting={FadeOutDown.duration(250)}
+          className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto"
+          style={[animatedStyle]}
+        >
+          <TouchableOpacity onPress={handleCloseModal}>
+            <Image source={icons.close} style={{ width: 24, height: 24, alignSelf: "flex-end" }} />
+          </TouchableOpacity>
 
-            <ScrollView>
-              <Text style={{ fontSize: 16, marginVertical: 16 }}>{post[currentPostIndex]?.content}</Text>
-            </ScrollView>
-
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>
-              <Animated.View entering={FadeInUp.duration(200)} className="flex-flex flex-row">
-                <TouchableOpacity onPress={handleCommentsPress}>
-                  <Image source={icons.comment} className="w-8 h-8" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleLikePress} className="ml-2">
-                  <MaterialCommunityIcons
-                    name={isLiked ? "heart" : "heart-outline"}
-                    size={32}
-                    color={isLiked ? "red" : "black"}
-                  />
-                </TouchableOpacity>
-              </Animated.View>
-              <Text>{formattedDate}</Text>
-            </View>
-          </Animated.View>
-        </PanGestureHandler>
-      </GestureHandlerRootView>
-        <ScrollView>
+          <ScrollView>
           <Text className="text-[16px] p-1 my-4 font-Jakarta">
-            {post!.content}
+            {post[currentPostIndex]?.content}
           </Text>
         </ScrollView>
         <View className="my-2 flex-row justify-between items-center">
@@ -322,7 +301,11 @@ const PostModal: React.FC<PostModalProps> = ({
             />
           )}
         </View>
-    </ReactNativeModal>
+
+        </Animated.View>
+      </PanGestureHandler>
+    </GestureHandlerRootView>
+  </ReactNativeModal>
   );
 };
 
