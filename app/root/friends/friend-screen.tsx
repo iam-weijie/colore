@@ -47,8 +47,11 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
           method: "GET",
         }
       );
-      const nicknames: UserNicknamePair[] = response.data[0].nicknames;
+  
+      // Ensure response data exists and contains nicknames
+      const nicknames: UserNicknamePair[] = response.data?.[0]?.nicknames || [];
       const nicknameMap: Record<string, string> = convertNicknameDictionary(nicknames);
+  
       setNicknames(nicknameMap);
     } catch (error) {
       console.error("Failed to fetch nicknames: ", error);
@@ -309,7 +312,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
           </View>
         )}
       </View>
-      {error && <Text>An error occurred. </Text>}
+      {error && <Text className="self-center">An error occurred. </Text>}
     </SafeAreaView>
   );
 };
