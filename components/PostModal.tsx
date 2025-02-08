@@ -322,7 +322,6 @@ const PostModal: React.FC<PostModalProps> = ({
             />
           )}
         </View>
-      </Animated.View>
     </ReactNativeModal>
   );
 };

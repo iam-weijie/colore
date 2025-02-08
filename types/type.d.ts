@@ -150,6 +150,8 @@ declare interface ConversationItem {
   clerk_id: string;
   lastMessageContent: string | null;
   lastMessageTimestamp: Date | null;
+  active_participants: number;
+  unread_messages: number;
 }
 
 declare interface Message {
@@ -157,6 +159,8 @@ declare interface Message {
   senderId: string;
   content: string;
   timestamp: Date;
+  unread: boolean;
+  notified: boolean;
 }
 
 type UserNicknamePair = [string, string];
