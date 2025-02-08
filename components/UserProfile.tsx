@@ -8,6 +8,7 @@ import {
   UserNicknamePair,
   UserProfileProps,
   UserProfileType,
+
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
