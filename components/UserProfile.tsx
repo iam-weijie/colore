@@ -1,8 +1,16 @@
 import { useNavigationContext } from "@/components/NavigationContext";
 import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants/index";
+import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
 import {
+  acceptFriendRequest,
+  cancelFriendRequest,
+  fetchFriendStatus,
+  unfriend,
+} from "@/lib/friend";
+import {
+  FriendStatusType,
   Post,
   UserData,
   UserNicknamePair,
@@ -16,17 +24,15 @@ import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
-  Pressable,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
-
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -39,6 +45,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const router = useRouter();
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
+  const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
+    FriendStatus.UNKNOWN
+  );
+  const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
 
   const isEditable = user!.id === userId;
 
@@ -75,7 +85,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     getData();
   }, [stateVars]);
 
-
+  useEffect(() => {
+    const getFriendStatus = async () => {
+      let status;
+      if (user!.id !== userId) {
+        status = await fetchFriendStatus(userId, user!);
+        console.log("Friend status:", status.name);
+        setFriendStatus(status);
+      }
+    };
+    getFriendStatus();
+  }, []);
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -123,27 +143,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       </View>
     );
 
-if (error)
-  return (
-    <SafeAreaView className="flex-1">
-      <View className="flex flex-row items-center justify-between">
-        <Text>An error occurred. Please try again Later.</Text>
-        <View className="flex flex-row items-right">
-        {isEditable && (
-          <TouchableOpacity 
-            onPress={() => router.push("/root/settings")}
-            className="p-2"
-          >
-            <Image 
-              source={icons.settings} 
-              className="w-8 h-8"
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        )}
+  if (error)
+    return (
+      <SafeAreaView className="flex-1">
+        <View className="flex flex-row items-center justify-between">
+          <Text>An error occurred. Please try again Later.</Text>
+          <View className="flex flex-row items-right">
+            {isEditable && (
+              <TouchableOpacity
+                onPress={() => router.push("/root/settings")}
+                className="p-2"
+              >
+                <Image
+                  source={icons.settings}
+                  className="w-8 h-8"
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
     );
   const checkIfChatExists = async (user2: UserNicknamePair) => {
     try {
@@ -234,7 +254,29 @@ if (error)
     }
   };
 
-  const menuItems = [
+  const handleSendFriendRequest = async () => {
+    try {
+      setIsHandlingFriendRequest(true);
+      await fetchAPI(`/api/friends/newFriendRequest`, {
+        method: "POST",
+        body: JSON.stringify({
+          clerkId: user!.id,
+          friendId: userId,
+        }),
+      });
+      Alert.alert("Friend request sent!");
+      setFriendStatus(FriendStatus.SENT);
+      setIsHandlingFriendRequest(false);
+    } catch (error) {
+      console.error("Failed to send friend request:", error);
+      Alert.alert("Error sending friend request.");
+    }
+  };
+
+  // to prevent database errors,
+  // don't load the "send friend request"
+  // option if the friend status can't be determined
+  const menuItems_unloaded = [
     { label: "Alias", onPress: handleAddNickname },
     {
       label: "Chat",
@@ -243,6 +285,110 @@ if (error)
           profileUser!.clerk_id,
           nickname || profileUser!.username,
         ] as UserNicknamePair),
+    },
+  ];
+
+  const menuItems_default = [
+    { label: "Alias", onPress: handleAddNickname },
+    {
+      label: "Chat",
+      onPress: () =>
+        startChat([
+          profileUser!.clerk_id,
+          nickname || profileUser!.username,
+        ] as UserNicknamePair),
+    },
+    {
+      label: "Send friend request",
+      onPress: () => {
+        if (friendStatus === FriendStatus.NONE) {
+          handleSendFriendRequest(); // only send if checked for sure not friends, and no request exists
+        }
+      },
+    },
+  ];
+
+  const menuItems_friend = [
+    { label: "Alias", onPress: handleAddNickname },
+    {
+      label: "Chat",
+      onPress: () =>
+        startChat([
+          profileUser!.clerk_id,
+          nickname || profileUser!.username,
+        ] as UserNicknamePair),
+    },
+    {
+      label: "Unfriend",
+      onPress: async () => {
+        setIsHandlingFriendRequest(true);
+        const response: FriendStatusType = await unfriend(user!.id, userId);
+        if (response === FriendStatus.NONE) {
+          Alert.alert("You have unfriended this user.");
+        } else {
+          Alert.alert("Error unfriending this user.");
+        }
+        setFriendStatus(response);
+        setIsHandlingFriendRequest(false);
+      },
+    },
+  ];
+
+  const menuItems_sent = [
+    { label: "Alias", onPress: handleAddNickname },
+    {
+      label: "Chat",
+      onPress: () =>
+        startChat([
+          profileUser!.clerk_id,
+          nickname || profileUser!.username,
+        ] as UserNicknamePair),
+    },
+    {
+      label: "Cancel friend request",
+      onPress: async () => {
+        setIsHandlingFriendRequest(true);
+        const response: FriendStatusType = await cancelFriendRequest(
+          user!.id,
+          userId
+        );
+        if (response === FriendStatus.NONE) {
+          Alert.alert("Friend request cancelled.");
+        } else {
+          Alert.alert("Error cancelling friend request.");
+        }
+        setFriendStatus(response);
+        setIsHandlingFriendRequest(false);
+      },
+    },
+  ];
+
+  const menuItems_received = [
+    { label: "Alias", onPress: handleAddNickname },
+    {
+      label: "Chat",
+      onPress: () =>
+        startChat([
+          profileUser!.clerk_id,
+          nickname || profileUser!.username,
+        ] as UserNicknamePair),
+    },
+    {
+      label: "Accept friend request",
+      onPress: async () => {
+        setIsHandlingFriendRequest(true);
+        const response = await acceptFriendRequest(
+          profileUser!.clerk_id,
+          user!.id
+        );
+        if (response === FriendStatus.FRIENDS) {
+          Alert.alert("Friend request accepted!");
+        } else {
+          Alert.alert("Error accepting friend request.");
+        }
+        setFriendStatus(response);
+        setIsHandlingFriendRequest(false);
+      },
     },
   ];
 
@@ -255,7 +401,36 @@ if (error)
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
             <View className="flex flex-row items-right">
-              <DropdownMenu menuItems={menuItems} />
+              {friendStatus === FriendStatus.FRIENDS && (
+                <DropdownMenu
+                  menuItems={menuItems_friend}
+                  customMenuWidth={150}
+                />
+              )}
+              {friendStatus === FriendStatus.SENT && (
+                <DropdownMenu
+                  menuItems={menuItems_sent}
+                  customMenuWidth={150}
+                />
+              )}
+              {friendStatus === FriendStatus.RECEIVED && (
+                <DropdownMenu
+                  menuItems={menuItems_received}
+                  customMenuWidth={150}
+                />
+              )}
+              {friendStatus === FriendStatus.NONE && (
+                <DropdownMenu
+                  menuItems={menuItems_default}
+                  customMenuWidth={150}
+                />
+              )}
+              {friendStatus === FriendStatus.UNKNOWN && (
+                <DropdownMenu
+                  menuItems={menuItems_unloaded}
+                  customMenuWidth={150}
+                />
+              )}
             </View>
           </View>
         )}
@@ -277,10 +452,9 @@ if (error)
         </View>
 
         <View>
-        <Text className="text-gray-500 font-Jakarta text-base mt-3">
-          📍{profileUser?.city}, {profileUser?.state}, {profileUser?.country}
-        </Text>
-
+          <Text className="text-gray-500 font-Jakarta text-base mt-3">
+            📍{profileUser?.city}, {profileUser?.state}, {profileUser?.country}
+          </Text>
         </View>
       </View>
       <View />
