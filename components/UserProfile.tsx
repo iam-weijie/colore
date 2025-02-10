@@ -8,6 +8,7 @@ import {
   cancelFriendRequest,
   fetchFriendStatus,
   unfriend,
+  fetchFriends
 } from "@/lib/friend";
 import {
   FriendStatusType,
@@ -51,6 +52,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
     FriendStatus.UNKNOWN
   );
+  const [friendCount, setFriendCount] = useState<number>(0);
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -80,6 +82,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       console.error("Failed to fetch user data:", error);
     }
   };
+  const fetchFriendCount = async () => {
+    if (user!.id === userId) {
+      const data = await fetchFriends(user!.id);
+      setFriendCount(data.length);
+    }
+  };
 
   useEffect(() => {
     setIsCollapsed(user!.id != userId)
@@ -100,6 +108,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       }
     };
     getFriendStatus();
+    fetchFriendCount();
   }, []);
 
   const fetchUserData = async () => {
@@ -519,7 +528,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         borderRadius: isCollapsed ? 24 : 32 }}>
               { !isCollapsed &&<View  className="w-full flex flex-row items-start">
               {user!.id == userId && <View>
-                <Text className="text-white font-JakartaBold text-3xl">0</Text>
+                <Text className="text-white font-JakartaBold text-3xl">{friendCount}</Text>
               </View>}
               {user!.id !== userId && <View>
                 <Text className="text-white font-JakartaBold text-4xl">+</Text>
