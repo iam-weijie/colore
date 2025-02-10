@@ -515,12 +515,51 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               {currentSubscreen !== "posts" && <Text className="text-[#333333] font-JakartaBold text-[16px]">Posts</Text>}
               </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => {
+        <TouchableOpacity onPress={async () => {
           if (user!.id == userId) {
           router.push("/root/friends/friend-screen")
           }
-          if(user!.id != userId && friendStatus.name == "unknown") {
+          if(user!.id != userId && friendStatus.name == "unknown" || friendStatus.name == "none") {
             handleSendFriendRequest()
+          }
+          if(user!.id != userId && friendStatus.name == "received") {
+            setIsHandlingFriendRequest(true);
+            const response = await acceptFriendRequest(
+              profileUser!.clerk_id,
+              user!.id
+            );
+            if (response === FriendStatus.FRIENDS) {
+              Alert.alert("Friend request accepted!");
+            } else {
+              Alert.alert("Error accepting friend request.");
+            }
+            setFriendStatus(response);
+            setIsHandlingFriendRequest(false);
+          }
+          if(user!.id != userId && friendStatus.name == "sent") {
+              setIsHandlingFriendRequest(true);
+              const response: FriendStatusType = await cancelFriendRequest(
+              user!.id,
+              userId
+            );
+            if (response === FriendStatus.NONE) {
+              Alert.alert("Friend request cancelled.");
+            } else {
+              Alert.alert("Error cancelling friend request.");
+            }
+            setFriendStatus(response);
+            setIsHandlingFriendRequest(false);
+          }
+          if(user!.id != userId && friendStatus.name == "friends") {
+            setIsHandlingFriendRequest(true);
+            const response: FriendStatusType = await unfriend(user!.id, userId);
+            if (response === FriendStatus.NONE) {
+              Alert.alert("You have unfriended this user.");
+            } else {
+              Alert.alert("Error unfriending this user.");
+            }
+            setFriendStatus(response);
+            setIsHandlingFriendRequest(false);
           }
         }} className="flex-1 max-w-[135px] p-5  items-center justify-between" 
         style={{backgroundColor: user!.id == userId ? "#93c5fd" :  friendStatus.name != "unknown" ? "#FF6B6B" : "#000", 
@@ -544,8 +583,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               {user!.id !== userId && friendStatus.name == "unknown" && <View>
                 <Text className="text-white font-JakartaBold text-[16px]">Add Friend</Text>
               </View>}
-              {user!.id !== userId && friendStatus.name != "friends" && friendStatus.name != "unknown" && <View>
-                <Text className="text-white font-JakartaBold text-[16px]">Requested</Text>
+              {user!.id !== userId && friendStatus.name != "friends" && friendStatus.name == "none" && <View>
+                <Text className="text-white font-JakartaBold text-[16px]">Add friend</Text>
+              </View>}
+              {user!.id !== userId && friendStatus.name != "friends" && friendStatus.name == "sent" && <View>
+                <Text className="text-white font-JakartaBold text-[12px]">Cancel request</Text>
+              </View>}
+              {user!.id !== userId && friendStatus.name != "friends" && friendStatus.name == "received" && <View>
+                <Text className="text-white font-JakartaBold text-[12px]">Accept request</Text>
+              </View>}
+              {user!.id !== userId && friendStatus.name == "friends" && <View>
+                <Text className="text-white font-JakartaBold text-[16px]">Unfriend</Text>
               </View>}
         </TouchableOpacity>
       </View>

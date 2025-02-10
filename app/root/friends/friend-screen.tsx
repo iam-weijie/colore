@@ -17,7 +17,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -165,9 +164,9 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                   item.receiverId
                 );
                 if (returnStats === FriendStatus.FRIENDS) {
-                  Alert.alert("Success", "Friend request accepted!");
+                  alert("Friend request accepted!");
                 } else {
-                  Alert.alert("Error", "Error when trying to accept friend request.");
+                  alert("Error when trying to accept friend request.");
                 }
                 fetchFriendRequests();
                 fetchFriendList();
@@ -183,9 +182,9 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                   item.receiverId
                 );
                 if (returnStats === FriendStatus.NONE) {
-                  Alert.alert("Success", "Friend request rejected!");
+                  alert("Friend request rejected!");
                 } else {
-                  Alert.alert("Error", "Error when trying to reject friend request.");
+                  alert("Error when trying to reject friend request.");
                 }
                 fetchFriendRequests();
                 setHandlingFriendRequest(false);
@@ -262,7 +261,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View className="flex-1 bg-gray-100 flex flex-col">
+      <View className="flex-1 bg-gray-100">
         {loading ? (
           <View className="flex-[0.8] justify-center items-center">
             <ActivityIndicator size="large" color="black" />
@@ -293,7 +292,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                   <Text
                     className={`text-lg ${selectedTab === "incoming" ? "font-bold" : ""}`}
                   >
-                    Requests
+                    Requests received
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -302,7 +301,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                   <Text
                     className={`text-lg ${selectedTab === "outgoing" ? "font-bold" : ""}`}
                   >
-                    Sent
+                    Requests sent
                   </Text>
                 </TouchableOpacity>
               </View>
