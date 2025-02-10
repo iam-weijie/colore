@@ -10,7 +10,7 @@ export const fetchAPI = async (url: string, options?: RequestInit) => {
     }
     return await response.json();
   } catch (error) {
-    console.error("Fetch error:", error);
+    //console.error("Fetch error:", error);
     throw error;
   }
 };

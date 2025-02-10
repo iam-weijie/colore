@@ -1,5 +1,6 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
+
 declare interface Post {
   id: string;
   clerk_id: string;
@@ -27,6 +28,7 @@ declare interface PostComment {
   created_at: string;
   like_count: number;
   report_count: number;
+
 }
 
 declare interface UserProfileType {
@@ -40,6 +42,7 @@ declare interface UserProfileType {
   city: string;
   state: string;
   country: string;
+  device_token: string;
   is_paid_user: boolean;
   report_count: number;
 }
@@ -106,7 +109,7 @@ declare interface UserProfileProps {
 
 declare interface PostModalProps {
   isVisible: boolean;
-  post: Post | null;
+  selectedPost: Post;
   handleCloseModal: () => void;
   handleUpdate?: () => void | Promise<void>;
 }
@@ -126,6 +129,14 @@ declare interface InputFieldProps extends TextInputProps {
   className?: string;
   variant?: string;
 }
+
+declare interface NotificationBubbleProps {
+  like: "Likes";
+  comment: "Comments";
+  message: "Messages";
+}
+
+
 
 declare interface PaymentProps {
   fullName: string;
@@ -149,3 +160,39 @@ declare interface Message {
 }
 
 type UserNicknamePair = [string, string];
+
+declare interface RawFriendRequest {
+  id: number;
+  user_id1: string;
+  user_id2: string;
+  requestor: "UID1" | "UID2";
+  createdAt: Date;
+  user1_username: string;
+  user2_username: string;
+}
+
+declare interface FriendRequest {
+  id: number;
+  senderId: string;
+  receiverId: string;
+  createdAt: Date;
+  senderUsername: string;
+  receiverUsername: string;
+}
+
+declare interface FriendStatusType {
+  name: string;
+}
+
+declare interface Friendship {
+  id: number;
+  user_id: string;
+  friend_id: string;
+  created_at: Date;
+  friend_username: string;
+}
+
+type Stacks = {
+  ids: [];
+  elements: [];
+};

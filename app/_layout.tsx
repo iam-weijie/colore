@@ -1,5 +1,8 @@
 import { NavigationProvider } from "@/components/NavigationContext";
+import { NotificationProvider } from '../notifications/NotificationContext';
 import SplashVideo from "@/components/SplashVideo";
+//import PushNotificationIOS from '@react-native-community/push-notification-ios';
+import { GlobalProvider } from "@/app/globalcontext";
 import { tokenCache } from "@/lib/auth";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
 import { useFonts } from "expo-font";
@@ -36,7 +39,27 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
       setAppReady(true);
     }
+/*
+     // Request permissions on iOS
+     PushNotificationIOS.requestPermissions().then((data) => {
+      console.log('PushNotificationIOS.requestPermissions', data);
+    });
+
+    // Handle notification when the app is in the foreground
+    const onNotification = (notification) => {
+      console.log('Notification received: ', notification);
+      notification.finish(PushNotificationIOS.FetchResult.NoData);
+    };
+
+    PushNotificationIOS.addEventListener('notification', onNotification);
+
+    return () => {
+      PushNotificationIOS.removeEventListener('notification', onNotification);
+    };
+    */
   }, [loaded]);
+
+  
 
   const showSplashVideo = !appReady || !isSplashVideoComplete; //appReady
 
@@ -60,19 +83,23 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <ClerkLoaded>
-        <NavigationProvider>
-          <Animated.View style={{ flex: 1 }} entering={FadeIn}>
-            <Stack>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="auth" options={{ headerShown: false }} />
-              <Stack.Screen name="root" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </Animated.View>
-        </NavigationProvider>
-      </ClerkLoaded>
-    </ClerkProvider>
+    <NotificationProvider>
+      <GlobalProvider>
+        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+          <ClerkLoaded>
+            <NavigationProvider>
+              <Animated.View style={{ flex: 1 }} entering={FadeIn}>
+                <Stack>
+                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                  <Stack.Screen name="auth" options={{ headerShown: false }} />
+                  <Stack.Screen name="root" options={{ headerShown: false }} />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+              </Animated.View>
+            </NavigationProvider>
+          </ClerkLoaded>
+        </ClerkProvider>
+      </GlobalProvider>
+    </NotificationProvider>
   );
 }

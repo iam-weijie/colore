@@ -99,7 +99,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           <View className="flex-1">
             <View className="flex flex-row items-center mx-4 mb-4 mt-4">
               <View className="mr-2">
-                <TouchableOpacity onPress={() => router.replace("/root/tabs/personal-board")}>
+                <TouchableOpacity onPress={() => router.back()}>
                   <AntDesign name="caretleft" size={18} color="0076e3" />
                 </TouchableOpacity>
               </View>
