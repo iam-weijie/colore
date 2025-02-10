@@ -100,6 +100,7 @@ declare interface UserPostsGalleryProps {
   posts: Post[];
   profileUserId: string;
   handleUpdate?: () => void | undefined | Promise<void>;
+  query: string;
 }
 
 declare interface UserProfileProps {
