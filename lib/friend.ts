@@ -64,7 +64,46 @@ export const fetchFriendship = async (userId: string, user: { id: string }) => {
     }
     return FriendStatus.NONE;
   } catch (error) {
-    console.error("Failed to fetch user data:", error);
+    console.error("Failed to fetch friendship:", error);
+    return FriendStatus.UNKNOWN;
+  }
+};
+
+export const unfriend = async (userId: string, friendId: string) => {
+  try {
+    const response = await fetchAPI(
+      `/api/friends/deleteFriendForUser?user_id=${userId}&friend_id=${friendId}`,
+      {
+        method: "DELETE",
+      }
+    );
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return FriendStatus.NONE;
+  } catch (error) {
+    console.error("Failed to delete friendship:", error);
+    return FriendStatus.UNKNOWN;
+  }
+};
+
+export const cancelFriendRequest = async (
+  userId: string,
+  requestId: string
+) => {
+  try {
+    const response = await fetchAPI(
+      `/api/friends/deleteFriendRequest?user_id=${userId}&request_id=${requestId}`,
+      {
+        method: "DELETE",
+      }
+    );
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return FriendStatus.NONE;
+  } catch (error) {
+    console.error("Failed to cancel friend request:", error);
     return FriendStatus.UNKNOWN;
   }
 };
@@ -96,7 +135,7 @@ export const fetchFriendRequestStatus = async (
     }
     return FriendStatus.NONE;
   } catch (error) {
-    console.error("Failed to fetch user data:", error);
+    console.error("Failed to fetch friendship status:", error);
     return FriendStatus.UNKNOWN;
   }
 };

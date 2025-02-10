@@ -6,7 +6,7 @@ import {
   fetchFriends,
   rejectFriendRequest,
 } from "@/lib/friend";
-import { FriendRequest, Friendship, RawFriendRequest } from "@/types/type";
+import { FriendRequest, Friendship, RawFriendRequest, UserNicknamePair } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { AntDesign } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
@@ -17,6 +17,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -37,6 +38,34 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
   const [handlingFriendRequest, setHandlingFriendRequest] =
     useState<boolean>(false);
   const [friendList, setFriendList] = useState<Friendship[]>([]);
+  const [nicknames, setNicknames] = useState<Record<string, string>>();
+
+  const fetchNicknames = async () => {
+    try {
+      const response = await fetchAPI(
+        `/api/users/getUserInfo?id=${user!.id}`,
+        {
+          method: "GET",
+        }
+      );
+  
+      // Ensure response data exists and contains nicknames
+      const nicknames: UserNicknamePair[] = response.data?.[0]?.nicknames || [];
+      const nicknameMap: Record<string, string> = convertNicknameDictionary(nicknames);
+  
+      setNicknames(nicknameMap);
+    } catch (error) {
+      console.error("Failed to fetch nicknames: ", error);
+      setError("Failed to fetch nicknames.");
+    }
+  };
+
+  const convertNicknameDictionary = (userNicknameArray: UserNicknamePair[] ) => {
+    const map = Object.fromEntries(
+      userNicknameArray.map(e => [e[0], e[1]])
+    );
+    return map;
+  }
 
   const fetchFriendRequests = async () => {
     try {
@@ -75,6 +104,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     setLoading(true);
     await fetchFriendList();
     await fetchFriendRequests();
+    await fetchNicknames();
     setLoading(false);
   };
 
@@ -118,7 +148,11 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     <View className="p-4 border-b border-gray-200">
       <View className="flex-row justify-between items-center mx-4">
         <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
-          <Text className="font-JakartaSemiBold">{item.senderUsername}</Text>
+          <Text className="font-JakartaSemiBold">
+            {(nicknames && item.senderId in nicknames) 
+            ? nicknames[item.senderId] :
+            item.senderUsername}
+          </Text>
         </TouchableOpacity>
         <DropdownMenu
           menuItems={[
@@ -131,9 +165,9 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                   item.receiverId
                 );
                 if (returnStats === FriendStatus.FRIENDS) {
-                  alert("Friend request accepted!");
+                  Alert.alert("Success", "Friend request accepted!");
                 } else {
-                  alert("Error when trying to accept friend request.");
+                  Alert.alert("Error", "Error when trying to accept friend request.");
                 }
                 fetchFriendRequests();
                 fetchFriendList();
@@ -149,9 +183,9 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                   item.receiverId
                 );
                 if (returnStats === FriendStatus.NONE) {
-                  alert("Friend request rejected!");
+                  Alert.alert("Success", "Friend request rejected!");
                 } else {
-                  alert("Error when trying to reject friend request.");
+                  Alert.alert("Error", "Error when trying to reject friend request.");
                 }
                 fetchFriendRequests();
                 setHandlingFriendRequest(false);
@@ -167,7 +201,11 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     <View className="p-4 border-b border-gray-200">
       <View className="flex-row justify-between items-center mx-4">
         <TouchableOpacity onPress={() => handleUserProfile(item.receiverId)}>
-          <Text className="font-JakartaSemiBold">{item.receiverUsername}</Text>
+          <Text className="font-JakartaSemiBold">
+            {(nicknames && item.receiverId in nicknames) 
+              ? nicknames[item.receiverId] : 
+              item.receiverUsername}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -177,7 +215,11 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
     <View className="p-4 border-b border-gray-200">
       <View className="flex-row justify-between items-center mx-4">
         <TouchableOpacity onPress={() => handleUserProfile(item.friend_id)}>
-          <Text className="font-JakartaSemiBold">{item.friend_username}</Text>
+          <Text className="font-JakartaSemiBold">
+            {(nicknames && item.friend_id in nicknames) 
+              ? nicknames[item.friend_id] :
+              item.friend_username}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -271,6 +313,7 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
           </View>
         )}
       </View>
+      {error && <Text className="self-center">An error occurred. </Text>}
     </SafeAreaView>
   );
 };

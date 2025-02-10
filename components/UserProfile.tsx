@@ -3,7 +3,12 @@ import PostGallery from "@/components/PostGallery";
 import { icons, temporaryColors } from "@/constants/index";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
-import { acceptFriendRequest, fetchFriendStatus } from "@/lib/friend";
+import {
+  acceptFriendRequest,
+  cancelFriendRequest,
+  fetchFriendStatus,
+  unfriend,
+} from "@/lib/friend";
 import {
   FriendStatusType,
   Post,
@@ -11,6 +16,7 @@ import {
   UserNicknamePair,
   UserProfileProps,
   UserProfileType,
+
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -89,7 +95,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       let status;
       if (user!.id !== userId) {
         status = await fetchFriendStatus(userId, user!);
-        console.log("Friend status:", status);
+        console.log("Friend status:", status.name);
         setFriendStatus(status);
       }
     };
@@ -319,8 +325,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     },
     {
       label: "Unfriend",
-      onPress: () => {
-        // send request to unfriend, TBA
+      onPress: async () => {
+        setIsHandlingFriendRequest(true);
+        const response: FriendStatusType = await unfriend(user!.id, userId);
+        if (response === FriendStatus.NONE) {
+          Alert.alert("You have unfriended this user.");
+        } else {
+          Alert.alert("Error unfriending this user.");
+        }
+        setFriendStatus(response);
+        setIsHandlingFriendRequest(false);
       },
     },
   ];
@@ -336,9 +350,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         ] as UserNicknamePair),
     },
     {
-      label: "Request pending",
-      onPress: () => {
-        // doesn't do anything, ability to cancel friend request TBA
+      label: "Cancel friend request",
+      onPress: async () => {
+        setIsHandlingFriendRequest(true);
+        const response: FriendStatusType = await cancelFriendRequest(
+          user!.id,
+          userId
+        );
+        if (response === FriendStatus.NONE) {
+          Alert.alert("Friend request cancelled.");
+        } else {
+          Alert.alert("Error cancelling friend request.");
+        }
+        setFriendStatus(response);
+        setIsHandlingFriendRequest(false);
       },
     },
   ];
@@ -366,6 +391,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         } else {
           Alert.alert("Error accepting friend request.");
         }
+        setFriendStatus(response);
         setIsHandlingFriendRequest(false);
       },
     },

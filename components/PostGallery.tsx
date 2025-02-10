@@ -139,7 +139,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       {selectedPost && (
         <PostModal
           isVisible={!!selectedPost}
-          post={selectedPost}
+          selectedPost={selectedPost}
           handleCloseModal={handleCloseModal}
           handleUpdate={handleUpdate}
         />
