@@ -17,6 +17,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -164,9 +165,9 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                   item.receiverId
                 );
                 if (returnStats === FriendStatus.FRIENDS) {
-                  alert("Friend request accepted!");
+                  Alert.alert("Success", "Friend request accepted!");
                 } else {
-                  alert("Error when trying to accept friend request.");
+                  Alert.alert("Error", "Error when trying to accept friend request.");
                 }
                 fetchFriendRequests();
                 fetchFriendList();
@@ -182,9 +183,9 @@ const FriendScreen: React.FC<FriendScreenProps> = () => {
                   item.receiverId
                 );
                 if (returnStats === FriendStatus.NONE) {
-                  alert("Friend request rejected!");
+                  Alert.alert("Success", "Friend request rejected!");
                 } else {
-                  alert("Error when trying to reject friend request.");
+                  Alert.alert("Error", "Error when trying to reject friend request.");
                 }
                 fetchFriendRequests();
                 setHandlingFriendRequest(false);
