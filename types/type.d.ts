@@ -1,5 +1,6 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
+
 declare interface Post {
   id: string;
   clerk_id: string;
@@ -14,6 +15,7 @@ declare interface Post {
   report_count: number;
   unread_comments: number;
   color: string; //String for now. Should be changed to PostItColor
+  emoji: string;
 }
 
 declare interface PostComment {
@@ -26,6 +28,7 @@ declare interface PostComment {
   created_at: string;
   like_count: number;
   report_count: number;
+
 }
 
 declare interface UserProfileType {
@@ -39,6 +42,7 @@ declare interface UserProfileType {
   city: string;
   state: string;
   country: string;
+  device_token: string;
   is_paid_user: boolean;
   report_count: number;
 }
@@ -105,7 +109,7 @@ declare interface UserProfileProps {
 
 declare interface PostModalProps {
   isVisible: boolean;
-  post: Post | null;
+  selectedPost: Post;
   handleCloseModal: () => void;
   handleUpdate?: () => void | Promise<void>;
 }
@@ -127,8 +131,12 @@ declare interface InputFieldProps extends TextInputProps {
 }
 
 declare interface NotificationBubbleProps {
-  type: string
+  like: "Likes";
+  comment: "Comments";
+  message: "Messages";
 }
+
+
 
 declare interface PaymentProps {
   fullName: string;
@@ -144,8 +152,6 @@ declare interface ConversationItem {
   lastMessageTimestamp: Date | null;
 }
 
-declare interface ChatTabProps {}
-
 declare interface Message {
   id: number;
   senderId: string;
@@ -154,3 +160,8 @@ declare interface Message {
 }
 
 type UserNicknamePair = [string, string];
+
+type Stacks = {
+  ids: [];
+  elements: [];
+};

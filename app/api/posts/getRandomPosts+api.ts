@@ -18,6 +18,7 @@ export async function GET(request: Request) {
         p.created_at,
         p.unread_comments,
         p.color,
+        p.emoji,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
