@@ -124,7 +124,6 @@ const Settings = () => {
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
           </View>
-
           <View className=" m-4">
           <View className="bg-[#fafafa] rounded-[32px] p-5 mb-4">
               <Text className="text-xl font-JakartaSemiBold mb-4 text-[#bfbfbf]">Profile</Text>
@@ -173,7 +172,6 @@ const Settings = () => {
                 placeholder={profileUser?.email || "Enter email address"}
                 containerStyle="mb-4"
               />
-
             <View className="mb-6 mx-2">
               <View className="flex flex-row items-center justify-between mb-4">
               <Text className="text-lg font-JakartaSemiBold ">Location</Text>
