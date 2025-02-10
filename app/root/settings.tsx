@@ -79,7 +79,7 @@ const Settings = () => {
         }
       } else {
         Alert.alert("Success", "Username updated successfully");
-        await fetchUserData(); // Refresh user data after successful update
+        await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to update username:", error);
@@ -116,18 +116,14 @@ const Settings = () => {
 
     console.log(profileUser)
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView className="flex-1">
-          <View className="flex flex-row items-center justify-between px-4 pt-2">
-            <View className="flex-row items-center">
-              <TouchableOpacity onPress={() => router.push("/root/tabs/profile")}>
-                <AntDesign name="caretleft" size={18} color="0076e3" />
-              </TouchableOpacity>
-              <Text className="text-2xl font-JakartaBold ml-4">Settings</Text>
-            </View>
+          <View className="flex flex-row items-center px-4 pt-2">
+            <TouchableOpacity onPress={() => router.push("/root/tabs/profile")} className="mr-4">
+              <AntDesign name="caretleft" size={18} />
+            </TouchableOpacity>
           </View>
-
           <View className=" m-4">
           <View className="bg-[#fafafa] rounded-[32px] p-5 mb-4">
               <Text className="text-xl font-JakartaSemiBold mb-4 text-[#bfbfbf]">Profile</Text>
@@ -176,7 +172,6 @@ const Settings = () => {
                 placeholder={profileUser?.email || "Enter email address"}
                 containerStyle="mb-4"
               />
-
             <View className="mb-6 mx-2">
               <View className="flex flex-row items-center justify-between mb-4">
               <Text className="text-lg font-JakartaSemiBold ">Location</Text>

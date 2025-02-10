@@ -55,11 +55,11 @@ const City = () => {
       }),
     });
 
-    // Navigate based on previous screen
-    if (previousScreen === "settings") {
+
+    if (stateVars.previousScreen === "settings") {
       router.push("/root/settings");
     } else {
-      router.replace(`/${previousScreen}` as Href);
+      router.replace(`/${stateVars.previousScreen}` as Href);
     }
   };
 
