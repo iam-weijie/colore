@@ -55,7 +55,7 @@ const City = () => {
       }),
     });
 
-    if (stateVars.previousScreen === "settings") {
+    if (previousScreen === "settings") {
       router.push("/root/settings");
     } else {
       router.replace(`/${stateVars.previousScreen}` as Href);
