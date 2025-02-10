@@ -1,24 +1,17 @@
 import NotificationBubble from "@/components/NotificationBubble";
-import { fetchAPI } from "@/lib/fetch";
+import { NotificationBubbleProps } from "@/types/type";
 import { icons } from "@/constants";
 import { Tabs } from "expo-router";
-import { Alert, Image, ImageSourcePropType, View } from "react-native";
-import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-expo";
-import { useNotification } from '@/notifications/NotificationContext'; // Assuming you have a notification context to manage global state
-import { sendPushNotification } from '@/notifications/PushNotificationService'; // Assuming this handles the push notification
-
+import { Image, ImageSourcePropType, View } from "react-native";
 
 const TabIcon = ({
   source,
   focused,
-  unread,
-  color
+  notifications
 }: {
   source: ImageSourcePropType;
   focused: boolean;
-  unread: number;
-  color: string;
+  notifications: NotificationBubbleProps;
 }) => (
   <View
     className={`items-center justify-center ${focused ? "bg-general-600 rounded-full" : ""}`}
@@ -39,6 +32,7 @@ const TabIcon = ({
         className="w-9 h-9"
       />)}
      <NotificationBubble type = {notifications} ></NotificationBubble>
+    
     </View>
   </View>
 );
@@ -98,54 +92,8 @@ const Layout = () => (
           <TabIcon focused={focused} source={icons.profile} notifications="comments" />
         ),
       }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: "Home",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              source={icons.home}
-              unread={0}
-              color={"#FF7272"} // Needs to be changed with like notifications
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="personal-board"
-        options={{
-          title: "Chat",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              source={icons.chat}
-              unread={0}
-              color={"#FF7272"} // Needs to be changed with message notifications
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              source={icons.profile}
-              unread={unreadComments}
-              color={"#72B2FF"}
-            />
-          ),
-        }}
-      />
-    </Tabs>
-  );
-};
+    />
+  </Tabs>
+);
 
 export default Layout;
