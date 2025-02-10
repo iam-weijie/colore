@@ -63,16 +63,6 @@ const Layout = () => (
       },
     }}
   >
-      <Tabs.Screen
-      name="chat"
-      options={{
-        title: "Chat",
-        headerShown: false,
-        tabBarIcon: ({ focused }) => (
-          <TabIcon focused={focused} source={icons.chat} notifications="messages"/>
-        ),
-      }}
-    />
     <Tabs.Screen
       name="home"
       options={{
@@ -80,6 +70,16 @@ const Layout = () => (
         headerShown: false,
         tabBarIcon: ({ focused }) => (
           <TabIcon focused={focused} source={icons.home} notifications="likes"/>
+        ),
+      }}
+    />
+    <Tabs.Screen
+      name="personal-board"
+      options={{
+        title: "Personal board",
+        headerShown: false,
+        tabBarIcon: ({ focused }) => (
+          <TabIcon focused={focused} source={icons.chat} notifications="messages"/>
         ),
       }}
     />
