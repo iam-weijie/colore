@@ -26,7 +26,7 @@ import { useRouter } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
-import { Post, PostItColor, PostModalProps } from "@/types/type";
+import { Post, PostItColor, PostModalProps, UserNicknamePair } from "@/types/type";
 import { icons, temporaryColors } from "@/constants/index";
 import DropdownMenu from "./DropdownMenu";
 import * as Linking from "expo-linking";
@@ -161,7 +161,6 @@ const PostModal: React.FC<PostModalProps> = ({
 
   const fetchCurrentNickname = async () => {
     try {
-      // //console.log("user: ", user!.id);
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
         method: "GET",
       });
