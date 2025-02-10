@@ -1,215 +1,99 @@
 import NotificationBubble from "@/components/NotificationBubble";
-import { fetchAPI } from "@/lib/fetch";
+import { NotificationBubbleProps } from "@/types/type";
 import { icons } from "@/constants";
 import { Tabs } from "expo-router";
-import { Alert, Image, ImageSourcePropType, View } from "react-native";
-import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-expo";
-import { useNotification } from '@/notifications/NotificationContext'; // Assuming you have a notification context to manage global state
-import { sendPushNotification } from '@/notifications/PushNotificationService'; // Assuming this handles the push notification
-
+import { Image, ImageSourcePropType, View } from "react-native";
 
 const TabIcon = ({
   source,
   focused,
-  unread,
-  color
+  notifications
 }: {
   source: ImageSourcePropType;
   focused: boolean;
-  unread: number;
-  color: string;
+  notifications: NotificationBubbleProps;
 }) => (
-  <View className={`items-center justify-center ${focused ? "bg-general-300 rounded-full" : ""}`}>
-    <View className={`w-12 h-12 items-center justify-center rounded-full ${focused ? "bg-gray-500" : ""}`}>
-      <Image source={source} tintColor="white" resizeMode="contain" className="w-7 h-7" />
-      {/* Display NotificationBubble only when there are notifications */}
-      {unread > 0 && <NotificationBubble unread={unread} color={color} />}
+  <View
+    className={`items-center justify-center ${focused ? "bg-general-600 rounded-full" : ""}`}
+  >
+    <View
+      className={`w-14 h-14 items-center justify-center rounded-full ${focused ? "bg-[#000000]" : ""}`}
+    >
+      {focused && (<Image
+        source={source}
+        tintColor="#ffffff"
+        resizeMode="contain"
+        className="w-10 h-10"
+      />)}
+      {!focused && (<Image
+        source={source}
+        tintColor="#000000"
+        resizeMode="contain"
+        className="w-9 h-9"
+      />)}
+     <NotificationBubble type = {notifications} ></NotificationBubble>
+    
     </View>
   </View>
 );
 
-const Layout = () => {
-  const [notifications, setNotifications] = useState<any[]>([]); // State to hold notifications for each tab
-  const { pushToken } = useNotification();
-  const [unreadComments, setUnreadComments] = useState<number>(0); // Assuming you have a notification context that provides pushToken
-  const { user } = useUser();
-
-  // Function to fetch notifications for each tab
-  const fetchNotifications = async (type: string) => {
-    if (!user?.id) return; // Make sure user ID is available
-
-    // Fetch notifications based on type (comments, likes, etc.)
-    try {
-      // Example: Fetch notifications for the "comments" type (can be modified to handle others)
-      const response = await fetch(`/api/notifications/get${type}?id=${user.id}`);
-      if (!response) {
-        throw new Error("Response is undefined.");
-      }
-      const responseData = await response.json();
-      const data = responseData.data;
-
-      const unread_comments = data.reduce((sum, entry) => sum + entry.unread_comments, 0);
-      setUnreadComments(unread_comments);
-      setNotifications(data); // Update notifications state
-    } catch (error) {
-      console.error(error);
-      return new Response(
-        JSON.stringify({ error: "Failed to update notificaiton comments" }),
-        {
-          status: 500,
-        }
-      );
-    }
-  };
-
-  const handleSendNotification = async (post, comment) => {
-    if (!pushToken) {
-      Alert.alert('Error', 'Push token or data not available. Make sure permissions are granted.');
-      return;
-    }
-
-    const commentContent = comment.comment_content.slice(0, 120); // Truncate comment to first 120 characters
-
-    
-    // Send the push notification
-    const notificationSent = await sendPushNotification(
-      pushToken,
-      `${comment.commenter_username} responded to your post`, // Title
-      `${commentContent}`, // Body (truncated content)
-      `comment`, // Type of notification
-      {
-        route: `/root/post/${post.id}`,
-        params: {
-          id: post.post_id,
-          clerk_id: post.clerk_id,
-          content: post.content,
-          nickname: post.nickname,
-          firstname: post.firstname,
-          username: post.username,
-          like_count: post.like_count,
-          report_count: post.report_count,
-          created_at: post.created_at,
-          unread_comments: post.unread_comments,
-        }
-      }
-    );
-
-    // If notification was successfully sent, update the 'notified' status in the database. 
-    if (notifications) {
-      try {
-        const response = await fetchAPI(`/api/notifications/updateNotifiedComments`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            commentId: comment.comment_id
-          }),
-        });
-
-        if(response.error) {
-          throw new Error(response.error);
-        }
-      } catch (error) {
-        //console.error("Failed to fetch comment data:", error);
-        return new Response(
-          JSON.stringify({ error: "Failed to update notificaiton comments" }),
-          {
-            status: 500,
-          }
-        );
-      }
-    }
-
-    setNotifications([])
-  };
-
-
-  useEffect(() => {
-    // Polling notifications when the app loads
-    if (notifications) {
-      notifications.forEach((post) => {
-        post.comments.forEach((comment) => {
-          handleSendNotification(post, comment);
-        });
-      });
-    }
-
-    // Polling notifications every 5 seconds
-    const interval = setInterval(() => {
-      fetchNotifications("Comments"); // Poll comments notifications
-    }, 5000);
-
-    return () => clearInterval(interval); // Cleanup interval when the component unmounts
-  }, [notifications]);
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: "white",
-        tabBarInactiveTintColor: "white",
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: "#333333",
-          borderRadius: 50,
-          paddingBottom: 25,
-          overflow: "hidden",
-          marginHorizontal: 20,
-          marginBottom: 20,
-          height: 70,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "row",
-          position: "absolute",
-        },
+const Layout = () => (
+  <Tabs
+    screenOptions={{
+      tabBarActiveTintColor: "white",
+      tabBarInactiveTintColor: "white",
+      tabBarShowLabel: false,
+      tabBarStyle: {
+        backgroundColor: "#fafafa",
+        borderRadius: 50,
+        paddingRight: 15,
+        paddingLeft: 15,
+        paddingBottom: 30,
+        overflow: "hidden",
+        marginHorizontal: 30,
+        marginBottom: 35,
+        height: 80,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "row",
+        position: "absolute",
+        boxShadow: "0 0px 0px 3px rgba(0,0,0,1)"
+       // boxShadow: "-4px 0px 25px 5px rgba(243,255,0, 0.17), 10px 0px 20px 8px rgba(255,0,221, 0.17)"
+      },
+    }}
+  >
+    <Tabs.Screen
+      name="home"
+      options={{
+        title: "Home",
+        headerShown: false,
+        tabBarIcon: ({ focused }) => (
+          <TabIcon focused={focused} source={icons.home} notifications="likes"/>
+        ),
       }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: "Home",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              source={icons.home}
-              unread={0}
-              color={"#FF7272"} // Needs to be changed with like notifications
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="personal-board"
-        options={{
-          title: "Chat",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              source={icons.chat}
-              unread={0}
-              color={"#FF7272"} // Needs to be changed with message notifications
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              source={icons.profile}
-              unread={unreadComments}
-              color={"#72B2FF"}
-            />
-          ),
-        }}
-      />
-    </Tabs>
-  );
-};
+    />
+    <Tabs.Screen
+      name="personal-board"
+      options={{
+        title: "Personal board",
+        headerShown: false,
+        tabBarIcon: ({ focused }) => (
+          <TabIcon focused={focused} source={icons.chat} notifications="messages"/>
+        ),
+      }}
+    />
+    <Tabs.Screen
+      name="profile"
+      options={{
+        title: "Profile",
+        headerShown: false,
+        tabBarIcon: ({ focused }) => (
+          <TabIcon focused={focused} source={icons.profile} notifications="comments" />
+        ),
+      }}
+    />
+  </Tabs>
+);
 
 export default Layout;
