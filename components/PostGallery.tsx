@@ -1,4 +1,5 @@
 import PostModal from "@/components/PostModal";
+import { temporaryColors } from "@/constants";
 import { formatDateTruncatedMonth } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
@@ -16,6 +17,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   posts,
   profileUserId,
   handleUpdate,
+  query
 }) => {
   const { user } = useUser();
   const isOwnProfile = user!.id === profileUserId;
@@ -33,6 +35,8 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       return 0;
     }
   };
+
+  const filteredPosts = posts.filter((post) => post.content.toLowerCase().includes(query.toLowerCase()));
 
   useEffect(() => {
     if (isOwnProfile) {
@@ -67,10 +71,10 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       }}
     >
       <View
-        className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent mx-auto"
-        style={{ width: screenWidth * 0.85 }}
+        className="flex-1 m-2 p-5  shadow-xs rounded-[24px] mx-auto"
+        style={{ width: screenWidth * 0.85, backgroundColor: temporaryColors.find((c) => c.name === item.color)?.hex }}
       >
-        <Text className="font-JakartaSemiBold">
+        <Text className="font-JakartaSemiBold text-black">
           {truncateText(item.content, 100)}
         </Text>
         <View className="flex-row justify-between">
@@ -125,7 +129,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       ) : (
         <FlatList
           className="flex-1"
-          data={sortedPosts}
+          data={filteredPosts}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
           numColumns={1}
