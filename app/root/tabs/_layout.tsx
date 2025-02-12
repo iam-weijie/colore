@@ -33,7 +33,9 @@ const Layout = () => {
   const [notifications, setNotifications] = useState<any[]>([]); // State to hold notifications for each tab
   const { pushToken } = useNotification();
   const [unreadComments, setUnreadComments] = useState<number>(0); // Assuming you have a notification context that provides pushToken
+  const [unreadMessages, setUnreadMessages] = useState<number>(0); // Assuming you have a notification context that provides pushToken
   const { user } = useUser();
+
 
   // Function to fetch notifications for each tab
   const fetchNotifications = async (type: string) => {
@@ -47,11 +49,23 @@ const Layout = () => {
         throw new Error("Response is undefined.");
       }
       const responseData = await response.json();
-      const data = responseData.data;
+      const data = responseData.toNotify;
+      const unread_count = responseData.unread_count;
 
-      const unread_comments = data.reduce((sum, entry) => sum + entry.unread_comments, 0);
-      setUnreadComments(unread_comments);
-      setNotifications(data); // Update notifications state
+      console.log("data", data, "unread_count", unread_count)
+     
+
+      if (type == "Comments") {
+      setUnreadComments(unread_count);
+      }
+      if (type == "Messages") {
+  
+      console.log("unread_message", unread_count)
+      setUnreadMessages(unread_count);
+      }
+      if (data.length > 0) {
+        setNotifications((prev) => [...prev, ...data]);
+      }
     } catch (error) {
       console.error(error);
       return new Response(
@@ -63,83 +77,169 @@ const Layout = () => {
     }
   };
 
-  const handleSendNotification = async (post, comment) => {
+  const handleSendNotification = async (n, content, type) => {
     if (!pushToken) {
       Alert.alert('Error', 'Push token or data not available. Make sure permissions are granted.');
       return;
     }
 
-    const commentContent = comment.comment_content.slice(0, 120); // Truncate comment to first 120 characters
 
-    
+
     // Send the push notification
-    const notificationSent = await sendPushNotification(
+    if (type == "Comments") {    
+      const notificationContent = content.comment_content.slice(0, 120); // Truncate comment to first 120 characters
+      const notificationSent = await sendPushNotification(
       pushToken,
-      `${comment.commenter_username} responded to your post`, // Title
-      `${commentContent}`, // Body (truncated content)
+      `${content.commenter_username} responded to your post`, // Title
+      `${notificationContent}`, // Body (truncated content)
       `comment`, // Type of notification
       {
-        route: `/root/post/${post.id}`,
+        route: `/root/post/${n.id}`,
         params: {
-          id: post.post_id,
-          clerk_id: post.clerk_id,
-          content: post.content,
-          nickname: post.nickname,
-          firstname: post.firstname,
-          username: post.username,
-          like_count: post.like_count,
-          report_count: post.report_count,
-          created_at: post.created_at,
-          unread_comments: post.unread_comments,
+          id: n.post_id,
+          clerk_id: n.clerk_id,
+          content: n.content,
+          nickname: n.nickname,
+          firstname: n.firstname,
+          username: n.username,
+          like_count: n.like_count,
+          report_count: n.report_count,
+          created_at: n.created_at,
+          unread_comments: n.unread_comments,
         }
       }
     );
 
-    // If notification was successfully sent, update the 'notified' status in the database. 
-    if (notifications) {
-      try {
-        const response = await fetchAPI(`/api/notifications/updateNotifiedComments`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            commentId: comment.comment_id
-          }),
-        });
+    try {
+      const response = await fetchAPI(`/api/notifications/updateNotifiedComments`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          commentId: content.comment_id
+        }),
+      });
 
-        if(response.error) {
-          throw new Error(response.error);
-        }
-      } catch (error) {
-        //console.error("Failed to fetch comment data:", error);
-        return new Response(
-          JSON.stringify({ error: "Failed to update notificaiton comments" }),
-          {
-            status: 500,
-          }
-        );
+      if(response.error) {
+        throw new Error(response.error);
       }
+    } catch (error) {
+      //console.error("Failed to fetch comment data:", error);
+      return new Response(
+        JSON.stringify({ error: "Failed to update notificaiton comments" }),
+        {
+          status: 500,
+        }
+      );
     }
+  }
 
+  if (type == "Messages") {
+    // Pre-processing
+    const notificationContent = content.message.slice(0, 120); // Truncate comment to first 120 characters
+    const fetchUsername = async (id: string) => {
+        try {
+          const response = await fetchAPI(`/api/users/getUserInfo?id=${id}`);
+          const userInfo = response.data[0];
+
+          return userInfo.username || ""
+          
+        } catch (error) {
+          console.error("Failed to fetch user data:", error);
+        }
+      };
+
+      const fetchConversation = async (id: string) => {
+        try {
+          const response = await fetchAPI(`/api/chat/getConversations?id=${content.senderId}`);
+          
+          const conversationInfo = response.data.filter((c) => c.id == id);
+
+          console.log("conversationInfo", conversationInfo)
+          if (conversationInfo.length === 0) return null; // Handle empty results
+
+          return {
+            conversationId: conversationInfo[0].id,
+            conversationOtherClerk: conversationInfo[0].clerk_id,
+            conversationOtherName: conversationInfo[0].name
+          };
+          
+        } catch (error) {
+          console.error("Failed to fetch conversation data:", error);
+        }
+      };  
+
+    const username = await fetchUsername(content.senderId)
+    const conversation = await fetchConversation(n.conversationid)
+    
+
+    const notificationSent = await sendPushNotification(
+      pushToken,
+      `${username} sent you a message`, // Title
+      `${notificationContent}`, // Body (truncated content)
+      `comment`, // Type of notification
+      {
+        route: `/root/chat/conversation?conversationId=${n.conversationid}&otherClerkId=${conversation.conversationOtherClerk}&otherName=${conversation.conversationOtherName}`,
+        params: {}
+      }
+    );
+
+
+    try {
+      console.log(content.id)
+      const response = await fetchAPI(`/api/notifications/updateNotifiedMessages`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          messageId: content.id
+        }),
+      });
+
+      if(response.error) {
+        throw new Error(response.error);
+      }
+    } catch (error) {
+      //console.error("Failed to fetch comment data:", error);
+      return new Response(
+        JSON.stringify({ error: "Failed to update notificaiton messages" }),
+        {
+          status: 500,
+        }
+      );
+    }
+   }
+
+    // When notification was successfully sent and  the 'notified' status is updated in the database. 
     setNotifications([])
-  };
+  
+  ;}
 
 
   useEffect(() => {
+    
     // Polling notifications when the app loads
-    if (notifications) {
-      notifications.forEach((post) => {
-        post.comments.forEach((comment) => {
-          handleSendNotification(post, comment);
+    if (notifications.length > 0) {
+      
+      notifications.forEach((n) => {
+        if(n.messages) {
+          n.messages.forEach((message) => {
+            handleSendNotification(n, message, "Messages");
+          });
+        } else {
+        n.comments.forEach((comment) => {
+          handleSendNotification(n, comment, "Comments");
         });
+      }
       });
+    
     }
 
     // Polling notifications every 5 seconds
     const interval = setInterval(() => {
       fetchNotifications("Comments"); // Poll comments notifications
+      fetchNotifications("Messages"); // Poll comments notifications
     }, 5000);
 
     return () => clearInterval(interval); // Cleanup interval when the component unmounts
-  }, [notifications]);
+  }, [notifications, user]);
+
 
   return (
     <Tabs
@@ -187,7 +287,7 @@ const Layout = () => {
             <TabIcon
               focused={focused}
               source={icons.chat}
-              unread={0}
+              unread={unreadMessages}
               color={"#FF7272"} // Needs to be changed with message notifications
             />
           ),

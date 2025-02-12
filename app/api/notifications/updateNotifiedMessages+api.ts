@@ -3,9 +3,10 @@ import { neon } from "@neondatabase/serverless";
 export async function PATCH(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
-    const url = new URL(request.url);
-    const messageId = url.searchParams.get("id");
+    const message = await request.json()
+    const messageId = message.messageId;
 
+    console.log("patching rn...")
     if (!messageId) {
       return new Response(
         JSON.stringify({ error: "Missing messageId field" }),

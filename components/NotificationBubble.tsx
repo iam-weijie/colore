@@ -16,7 +16,7 @@ const NotificationBubble: React.FC<NotificationBubbleProps> = ({ unread, color }
     <Animated.View
       exiting={FadeOut.duration(200)}
       entering={BounceIn}
-      className="absolute items-center justify-center w-6 h-6 rounded-full left-1/2 -top-[2px]"
+      className="absolute items-center font-JakartaBold justify-center w-6 h-6 rounded-full left-1/2 -top-[2px]"
       style={[{ backgroundColor: color }]}
     >
       <Text className="text-white font-bold">{unread}</Text>
