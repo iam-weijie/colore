@@ -1,38 +1,30 @@
 import NotificationBubble from "@/components/NotificationBubble";
-import { NotificationBubbleProps } from "@/types/type";
+import { fetchAPI } from "@/lib/fetch";
 import { icons } from "@/constants";
 import { Tabs } from "expo-router";
-import { Image, ImageSourcePropType, View } from "react-native";
+import { Alert, Image, ImageSourcePropType, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-expo";
+import { useNotification } from '@/notifications/NotificationContext'; // Assuming you have a notification context to manage global state
+import { sendPushNotification } from '@/notifications/PushNotificationService'; // Assuming this handles the push notification
+
 
 const TabIcon = ({
   source,
   focused,
-  notifications
+  unread,
+  color
 }: {
   source: ImageSourcePropType;
   focused: boolean;
-  notifications: NotificationBubbleProps;
+  unread: number;
+  color: string;
 }) => (
-  <View
-    className={`items-center justify-center ${focused ? "bg-general-600 rounded-full" : ""}`}
-  >
-    <View
-      className={`w-14 h-14 items-center justify-center rounded-full ${focused ? "bg-[#000000]" : ""}`}
-    >
-      {focused && (<Image
-        source={source}
-        tintColor="#ffffff"
-        resizeMode="contain"
-        className="w-10 h-10"
-      />)}
-      {!focused && (<Image
-        source={source}
-        tintColor="#000000"
-        resizeMode="contain"
-        className="w-9 h-9"
-      />)}
-     <NotificationBubble type = {notifications} ></NotificationBubble>
-    
+  <View className={`items-center justify-center ${focused ? "bg-general-300 rounded-full" : ""}`}>
+    <View className={`w-12 h-12 items-center justify-center rounded-full ${focused ? "bg-gray-500" : ""}`}>
+      <Image source={source} tintColor="white" resizeMode="contain" className="w-7 h-7" />
+      {/* Display NotificationBubble only when there are notifications */}
+      {unread > 0 && <NotificationBubble unread={unread} color={color} />}
     </View>
   </View>
 );
