@@ -213,9 +213,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
           style={{ height: 50 }}
         >
           <View className="mr-2">
-            <TouchableOpacity onPress={() => {
-              router.replace("/root/chat/chat-screen")
-              }}>
+            <TouchableOpacity onPress={() => router.back()}>
               <AntDesign name="caretleft" size={18} color="0076e3" />
             </TouchableOpacity>
           </View>

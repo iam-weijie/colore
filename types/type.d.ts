@@ -100,6 +100,7 @@ declare interface UserPostsGalleryProps {
   posts: Post[];
   profileUserId: string;
   handleUpdate?: () => void | undefined | Promise<void>;
+  query: string;
 }
 
 declare interface UserProfileProps {
@@ -164,6 +165,37 @@ declare interface Message {
 }
 
 type UserNicknamePair = [string, string];
+
+declare interface RawFriendRequest {
+  id: number;
+  user_id1: string;
+  user_id2: string;
+  requestor: "UID1" | "UID2";
+  createdAt: Date;
+  user1_username: string;
+  user2_username: string;
+}
+
+declare interface FriendRequest {
+  id: number;
+  senderId: string;
+  receiverId: string;
+  createdAt: Date;
+  senderUsername: string;
+  receiverUsername: string;
+}
+
+declare interface FriendStatusType {
+  name: string;
+}
+
+declare interface Friendship {
+  id: number;
+  user_id: string;
+  friend_id: string;
+  created_at: Date;
+  friend_username: string;
+}
 
 type Stacks = {
   ids: [];
