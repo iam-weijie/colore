@@ -2,7 +2,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { ConversationItem, FriendStatusType } from "@/types/type";
 import NotificationBubble from "@/components/NotificationBubble";
 import { useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState, useCallback } from "react";
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -86,7 +86,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       useState<boolean>(false);
 
   //Navigation
-  const [selectedTab, setSelectedTab] = useState<string>("Messages");
+  const { tab } = useLocalSearchParams() || "Messages";
+  console.log("tab", tab)
+  const [selectedTab, setSelectedTab] = useState<string>(tab || "Messages");
 
   const fetchConversations = async (): Promise<void> => {
     setLoading(true);

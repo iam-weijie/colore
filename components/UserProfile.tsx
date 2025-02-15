@@ -516,8 +516,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={async () => {
+          const tab = "Friends"
           if (user!.id == userId) {
-          router.push("/root/friends/friend-screen")
+            router.push({
+              pathname: "/root/chat",
+              params: {tab}
+            });
           }
           if(user!.id != userId && friendStatus.name == "unknown" || friendStatus.name == "none") {
             handleSendFriendRequest()

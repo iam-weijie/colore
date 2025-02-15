@@ -18,11 +18,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = () => {
       <TouchableOpacity onPress={() => router.push("/root/chat/chat-screen")}>
         <Image source={icons.chat} className="w-10 h-10"  style={{ tintColor: 'black' }} />
       </TouchableOpacity>
-      <View className="mt-4">
-        <TouchableOpacity onPress={() => router.push("/root/friends/friend-screen")}>
-          <FontAwesome5 name="user-friends" size={30} color="black"/>
-        </TouchableOpacity>
-      </View>
     </View>
   </SafeAreaView>
  )
