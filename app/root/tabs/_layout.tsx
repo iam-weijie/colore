@@ -20,9 +20,26 @@ const TabIcon = ({
   unread: number;
   color: string;
 }) => (
-  <View className={`items-center justify-center ${focused ? "bg-general-300 rounded-full" : ""}`}>
-    <View className={`w-12 h-12 items-center justify-center rounded-full ${focused ? "bg-gray-500" : ""}`}>
-      <Image source={source} tintColor="white" resizeMode="contain" className="w-7 h-7" />
+  <View
+  className={`items-center justify-center ${focused ? "bg-general-600 rounded-full" : ""}`}
+>
+  <View
+    className={`w-14 h-14 items-center justify-center rounded-full ${focused ? "bg-[#000000]" : ""}`}
+  >
+    {focused && (<Image
+      source={source}
+      tintColor="#ffffff"
+      resizeMode="contain"
+      className="w-10 h-10"
+
+
+    />)}
+    {!focused && (<Image
+      source={source}
+      tintColor="#000000"
+      resizeMode="contain"
+      className="w-9 h-9"
+    />)}r
       {/* Display NotificationBubble only when there are notifications */}
       {unread > 0 && <NotificationBubble unread={unread} color={color} />}
     </View>
@@ -248,18 +265,21 @@ const Layout = () => {
         tabBarInactiveTintColor: "white",
         tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: "#333333",
+          backgroundColor: "#fafafa",
           borderRadius: 50,
-          paddingBottom: 25,
+          paddingRight: 15,
+          paddingLeft: 15,
+          paddingBottom: 30,
           overflow: "hidden",
-          marginHorizontal: 20,
-          marginBottom: 20,
-          height: 70,
+          marginHorizontal: 30,
+          marginBottom: 35,
+          height: 80,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           flexDirection: "row",
           position: "absolute",
+          boxShadow: "0 0px 0px 3px rgba(0,0,0,1)"
         },
       }}
     >

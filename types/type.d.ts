@@ -132,9 +132,8 @@ declare interface InputFieldProps extends TextInputProps {
 }
 
 declare interface NotificationBubbleProps {
-  like: "Likes";
-  comment: "Comments";
-  message: "Messages";
+unread: number,
+color: string
 }
 
 

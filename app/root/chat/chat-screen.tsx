@@ -104,11 +104,11 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           {item.lastMessageContent ?
             <View className="flex flex-row items-start justify-between -mt-1">
               
-              <Text className="text-sm">{item.lastMessageContent}</Text>
-              {item.unread_messages &&  <View className="mr-5"><NotificationBubble unread={item.unread_messages} color={"#000000"} /></View>}
+              <Text className="text-sm" style={{ fontWeight:item.unread_messages ? 600 : 400 }}>{item.lastMessageContent}</Text>
+              {item.unread_messages &&  <NotificationBubble unread={item.unread_messages} color={"#000000"} />}
             </View>
            : 
-            <Text className="text-gray-600 text-sm mb-2">
+            <Text className="text-gray-600 text-sm -mt-1 mb-2">
            "No messages yet"
           </Text>
           }
