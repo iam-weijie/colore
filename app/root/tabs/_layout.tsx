@@ -35,7 +35,7 @@ const TabIcon = ({
       tintColor="#000000"
       resizeMode="contain"
       className="w-9 h-9"
-    />)}r
+    />)}
       {/* Display NotificationBubble only when there are notifications */}
       {unread > 0 && <NotificationBubble unread={unread} color={color} />}
     </View>

@@ -4,7 +4,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
 import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from '@/notifications/NotificationContext'; // Assuming you have a notification context to manage global state
-import { Timestamp } from "react-native-reanimated/lib/typescript/commonTypes";
+
 
 // Types for global state
 type GlobalContextType = {
@@ -15,8 +15,6 @@ type GlobalContextType = {
   unreadMessages: number;
   unreadRequests: number;
   lastConnection: Date;
-  fetchNotifications: () => void;
-  handleSendNotification: (n: any, content: any, type: string) => Promise<void>;
 };
 
 // Constants
@@ -267,8 +265,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       notifications,
       unreadComments,
       unreadMessages,
-      fetchNotifications, // You can still call this manually if needed
-      handleSendNotification,
+      unreadRequests,
+      lastConnection
     }}>
       {children}
     </GlobalContext.Provider>
