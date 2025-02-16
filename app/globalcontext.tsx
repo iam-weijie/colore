@@ -1,36 +1,217 @@
-import React, { createContext, useContext, useState } from "react";
-import { Stack } from "@/types/type";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { Stacks } from "@/types/type";
+import { fetchAPI } from "@/lib/fetch";
+import { sendPushNotification } from "@/notifications/PushNotificationService";
+import { useUser } from "@clerk/clerk-expo";
+import { useNotification } from '@/notifications/NotificationContext'; // Assuming you have a notification context to manage global state
 
-// Initiating GlobalContext
+// Types for global state
 type GlobalContextType = {
-    stacks: Stack[];
-    setStacks: React.Dispatch<React.SetStateAction<Stack[]>>;
-    // Add other global constants here
-
-  };
-
-
+  stacks: Stacks[];
+  setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
+  notifications: any[]; 
+  unreadComments: number;
+  unreadMessages: number;
+  fetchNotifications: () => void;
+  handleSendNotification: (n: any, content: any, type: string) => Promise<void>;
+};
 
 // Constants
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
-// Exporting GlobalContext
-
 export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [stacks, setStacks] = useState<Stack[]>([]);
-    //const [someOtherConstant, setSomeOtherConstant] = useState<string>("");
+  const [stacks, setStacks] = useState<Stacks[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadComments, setUnreadComments] = useState<number>(0);
+  const [unreadMessages, setUnreadMessages] = useState<number>(0);
   
-    return (
-      <GlobalContext.Provider value={{ stacks, setStacks }}>
-        {children}
-      </GlobalContext.Provider>
-    );
-  };
-  
-  export const useGlobalContext = () => {
-    const context = useContext(GlobalContext);
-    if (!context) {
-      throw new Error("useGlobalContext must be used within a GlobalProvider");
+  const { user } = useUser();
+  const { pushToken } = useNotification();
+
+    // Process the fetched notifications (send push notifications for each)
+    const processFetchedNotifications = (notifications: any[]) => {
+      console.log("notificaitons", notifications)
+      notifications.forEach((n) => {
+        if (n.messages) {
+          n.messages.forEach((message) => {
+            handleSendNotification(n, message, "Messages");
+          });
+        } else {
+          n.comments.forEach((comment) => {
+            handleSendNotification(n, comment, "Comments");
+          });
+        }
+      });
+    };
+
+  // Fetch notifications for both Comments and Messages
+  const fetchNotifications = async () => {
+    if (!user?.id) return; // Ensure the user is available
+
+    try {
+      const [commentsResponse, messagesResponse] = await Promise.all([
+        fetch(`/api/notifications/getComments?id=${user.id}`),
+        fetch(`/api/notifications/getMessages?id=${user.id}`)
+      ]);
+      
+      // Handle the Comments response
+      const commentsData = await commentsResponse.json();
+      const comments = commentsData.toNotify;
+      const unreadCommentsCount = commentsData.unread_count;
+
+      setUnreadComments(unreadCommentsCount);
+
+      // Handle the Messages response
+      const messagesData = await messagesResponse.json();
+      const messages = messagesData.toNotify;
+      const unreadMessagesCount = messagesData.unread_count;
+
+      setUnreadMessages(unreadMessagesCount);
+
+      // Combine both comments and messages into one list of notifications
+      const allNotifications = [...comments, ...messages];
+      setNotifications(allNotifications);
+
+      // Process the fetched notifications (send push notifications)
+      processFetchedNotifications(allNotifications);
+
+    } catch (error) {
+      console.error("Error fetching notifications", error);
     }
-    return context;
   };
+
+  // Handle sending notifications based on content type (e.g., Comments, Messages)
+  const handleSendNotification = async (n: any, content: any, type: string) => {
+    if (!pushToken) {
+      return;
+    }
+
+    try {
+      if (type === "Comments") {
+        const notificationContent = content.comment_content.slice(0, 120);
+        await sendPushNotification(
+              pushToken,
+              `${content.commenter_username} responded to your post`, // Title
+              `${notificationContent}`, // Body (truncated content)
+              `comment`, // Type of notification
+              {
+                route: `/root/post/${n.id}`,
+                params: {
+                  id: n.post_id,
+                  clerk_id: n.clerk_id,
+                  content: n.content,
+                  nickname: n.nickname,
+                  firstname: n.firstname,
+                  username: n.username,
+                  like_count: n.like_count,
+                  report_count: n.report_count,
+                  created_at: n.created_at,
+                  unread_comments: n.unread_comments,
+                }
+              }
+            );
+      }
+
+      if (type === "Messages") {
+        const notificationContent = content.message.slice(0, 120);
+
+        const fetchUsername = async (id: string) => {
+                try {
+                  const response = await fetchAPI(`/api/users/getUserInfo?id=${id}`);
+                  const userInfo = response.data[0];
+        
+                  return userInfo.username || ""
+                  
+                } catch (error) {
+                  console.error("Failed to fetch user data:", error);
+                }
+              };
+        
+              const fetchConversation = async (id: string) => {
+                try {
+                  const response = await fetchAPI(`/api/chat/getConversations?id=${content.senderId}`);
+                  
+                  const conversationInfo = response.data.filter((c) => c.id == id);
+        
+                  console.log("conversationInfo", conversationInfo)
+                  if (conversationInfo.length === 0) return null; // Handle empty results
+        
+                  return {
+                    conversationId: conversationInfo[0].id,
+                    conversationOtherClerk: conversationInfo[0].clerk_id,
+                    conversationOtherName: conversationInfo[0].name
+                  };
+                  
+                } catch (error) {
+                  console.error("Failed to fetch conversation data:", error);
+                }
+              };  
+
+              const username = await fetchUsername(content.senderId)
+              const conversation = await fetchConversation(n.conversationid)
+              
+       await sendPushNotification(
+             pushToken,
+             `${username} sent you a message`, // Title
+             `${notificationContent}`, // Body (truncated content)
+             `comment`, // Type of notification
+             {
+               route: `/root/chat/conversation?conversationId=${n.conversationid}&otherClerkId=${conversation.conversationOtherClerk}&otherName=${conversation.conversationOtherName}`,
+               params: {}
+             }
+           );
+      }
+        console.log("n", n)
+        console.log("content.id", content.id)
+      // Mark notifications as notified in the backend
+      const updateResponse = await fetchAPI(`/api/notifications/updateNotified${type}`, {
+        method: "PATCH",
+        body: JSON.stringify({ id: content.id }),
+      });
+
+      if (updateResponse.error) {
+        throw new Error(updateResponse.error);
+      }
+    } catch (error) {
+      console.error("Failed to send notification:", error);
+    }
+
+     // When notification was successfully sent and  the 'notified' status is updated in the database. 
+     //setNotifications([])
+  };
+
+
+  // Poll notifications every 5 seconds
+  useEffect(() => {
+    if (user) {
+      fetchNotifications(); // Initial fetch
+      const interval = setInterval(() => {
+        fetchNotifications(); // Poll notifications every 5 seconds
+      }, 5000);
+
+      return () => clearInterval(interval); // Cleanup on unmount
+    }
+  }, [user]);
+
+  return (
+    <GlobalContext.Provider value={{
+      stacks,
+      setStacks,
+      notifications,
+      unreadComments,
+      unreadMessages,
+      fetchNotifications, // You can still call this manually if needed
+      handleSendNotification,
+    }}>
+      {children}
+    </GlobalContext.Provider>
+  );
+};
+
+export const useGlobalContext = () => {
+  const context = useContext(GlobalContext);
+  if (!context) {
+    throw new Error("useGlobalContext must be used within a GlobalProvider");
+  }
+  return context;
+};

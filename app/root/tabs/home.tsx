@@ -372,7 +372,7 @@ export default function Page() {
     setLoading(true);
     fetchRandomPosts();
   };
- console.log("Stacks: ", stacks)
+// console.log("Stacks: ", stacks)
 
   return (
     <SafeAreaView className="flex-1">

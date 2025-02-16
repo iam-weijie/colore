@@ -87,7 +87,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   //Navigation
   const { tab } = useLocalSearchParams() || "Messages";
-  console.log("tab", tab)
   const [selectedTab, setSelectedTab] = useState<string>(tab || "Messages");
 
   const fetchConversations = async (): Promise<void> => {
@@ -114,7 +113,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
         const matchingNotification = chatNotifications.filter(
           (notif: any) => notif.conversationid == conversation.id
         );
-        console.log("matching notification", matchingNotification)
+        //console.log("matching notification", matchingNotification)
         return {
           ...conversation, // Spread existing conversation data
           unread_messages: matchingNotification ? matchingNotification.length : 0, // Add unread_count
@@ -123,9 +122,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       });
 
       setToRead(chatNotifications);
-      console.log("chat notification", chatNotifications)
+      //("chat notification", chatNotifications)
       setConversations(conversationsWithUnread);
-      console.log("conversation", conversationsWithUnread)
+     // console.log("conversation", conversationsWithUnread)
     } catch (error) {
       console.error("Failed to fetch conversations: ", error);
       setError("Failed to fetch conversations.");
@@ -387,7 +386,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     router.push("/root/chat/new-conversation");
   };
 
-  console.log("All Friend Request", allFriendRequests?.sent)
+  //console.log("All Friend Request", allFriendRequests?.sent)
    // HANDLE REQUESTS ------ END
 
   // USE EFFECT ------- START
@@ -399,7 +398,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     }, [])
   );
 
-  console.log(conversations)
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
