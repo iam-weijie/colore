@@ -13,6 +13,7 @@ type GlobalContextType = {
   notifications: any[]; 
   unreadComments: number;
   unreadMessages: number;
+  unreadRequests: number;
   lastConnection: Date;
   fetchNotifications: () => void;
   handleSendNotification: (n: any, content: any, type: string) => Promise<void>;
@@ -26,6 +27,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
+  const [unreadRequests, setUnreadRequests] = useState<number>(0);
   const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
   
   const { user } = useUser();
@@ -96,6 +98,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         && (request.requestor == "UID1" ? (request.user_id1 != user.id) : (request.user_id2 != user.id))
     ) 
       const friendRequests = friendRequestsToNotify.length > 0 ? [{userId: user.id, requests: friendRequestsToNotify}] : []
+
+      setUnreadRequests(friendRequestsToNotify.length)
 
       //console.log(friendRequests)
       // Combine both comments and messages into one list of notifications

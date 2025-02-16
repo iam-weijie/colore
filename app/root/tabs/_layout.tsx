@@ -1,12 +1,8 @@
 import NotificationBubble from "@/components/NotificationBubble";
-import { fetchAPI } from "@/lib/fetch";
 import { icons } from "@/constants";
 import { Tabs } from "expo-router";
 import { Alert, Image, ImageSourcePropType, View } from "react-native";
 import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-expo";
-import { useNotification } from '@/notifications/NotificationContext'; // Assuming you have a notification context to manage global state
-import { sendPushNotification } from '@/notifications/PushNotificationService'; // Assuming this handles the push notification
 import { useGlobalContext } from "@/app/globalcontext";
 
 const TabIcon = ({
@@ -47,9 +43,8 @@ const TabIcon = ({
 );
 
 const Layout = () => {
-  const { notifications, unreadComments, unreadMessages } = useGlobalContext();
+  const { notifications, unreadComments, unreadMessages, unreadRequests } = useGlobalContext();
 
-  console.log(notifications, unreadComments, unreadMessages)
   return (
     <Tabs
       screenOptions={{
@@ -99,7 +94,7 @@ const Layout = () => {
             <TabIcon
               focused={focused}
               source={icons.chat}
-              unread={unreadMessages}
+              unread={unreadMessages + unreadRequests}
               color={"#FF7272"} // Needs to be changed with message notifications
             />
           ),
