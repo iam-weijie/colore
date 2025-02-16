@@ -4,6 +4,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
 import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from '@/notifications/NotificationContext'; // Assuming you have a notification context to manage global state
+import { Timestamp } from "react-native-reanimated/lib/typescript/commonTypes";
 
 // Types for global state
 type GlobalContextType = {
@@ -12,6 +13,7 @@ type GlobalContextType = {
   notifications: any[]; 
   unreadComments: number;
   unreadMessages: number;
+  lastConnection: Date;
   fetchNotifications: () => void;
   handleSendNotification: (n: any, content: any, type: string) => Promise<void>;
 };
@@ -24,21 +26,29 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
+  const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
   
   const { user } = useUser();
   const { pushToken } = useNotification();
 
     // Process the fetched notifications (send push notifications for each)
     const processFetchedNotifications = (notifications: any[]) => {
-      console.log("notificaitons", notifications)
+      console.log("notifications", notifications)
       notifications.forEach((n) => {
         if (n.messages) {
           n.messages.forEach((message) => {
             handleSendNotification(n, message, "Messages");
           });
-        } else {
+        } 
+        if (n.comments) {
           n.comments.forEach((comment) => {
             handleSendNotification(n, comment, "Comments");
+          });
+        }
+        if(n.requests) {
+          n.requests.forEach((request) => {
+            console.log("exact request", request)
+            handleSendNotification(n, request, "Requests")
           });
         }
       });
@@ -49,11 +59,14 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (!user?.id) return; // Ensure the user is available
 
     try {
-      const [commentsResponse, messagesResponse] = await Promise.all([
+      const [commentsResponse, messagesResponse, userResponse, friendRequestResponse] = await Promise.all([
         fetch(`/api/notifications/getComments?id=${user.id}`),
-        fetch(`/api/notifications/getMessages?id=${user.id}`)
+        fetch(`/api/notifications/getMessages?id=${user.id}`),
+        fetch(`/api/users/getUserInfo?id=${user.id}`),
+        fetch(`/api/friends/getFriendRequests?userId=${user.id}`)
       ]);
       
+     
       // Handle the Comments response
       const commentsData = await commentsResponse.json();
       const comments = commentsData.toNotify;
@@ -68,10 +81,28 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       setUnreadMessages(unreadMessagesCount);
 
+      // Handle the Friend Requests response
+      const userResponseData =  await userResponse.json();
+      console.log(userResponseData)
+      const mostRecentConnection = userResponseData.data[0].last_connection
+      setLastConnection(mostRecentConnection)
+
+      const friendRequestData = await friendRequestResponse.json();
+      const allFriendResquests = friendRequestData.data
+      
+      const friendRequestsToNotify = allFriendResquests.filter((request) => 
+        new Date(request.created_at) > new Date(mostRecentConnection) 
+        && request.notified == false 
+        && (request.requestor == "UID1" ? (request.user_id1 != user.id) : (request.user_id2 != user.id))
+    ) 
+      const friendRequests = friendRequestsToNotify.length > 0 ? [{userId: user.id, requests: friendRequestsToNotify}] : []
+
+      //console.log(friendRequests)
       // Combine both comments and messages into one list of notifications
-      const allNotifications = [...comments, ...messages];
+      const allNotifications = [...comments, ...messages, ...friendRequests];
       setNotifications(allNotifications);
 
+      //console.log("All notificaitons", allNotifications)
       // Process the fetched notifications (send push notifications)
       processFetchedNotifications(allNotifications);
 
@@ -161,8 +192,21 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
              }
            );
       }
-        console.log("n", n)
-        console.log("content.id", content.id)
+      if (type === "Requests") {
+        console.log("request", content)
+        const username = content.requestor == "UID1" ? content.user1_username : content.user2_username
+        await sendPushNotification(
+          pushToken,
+          `${username} wants to be your friend!`, // Title
+          "Click here to accept their friend request", // Body (truncated content)
+          `comment`, // Type of notification
+          {
+            route: `/root/chat`,
+            params: {tab: "Requests"}
+          }
+        );
+      }
+
       // Mark notifications as notified in the backend
       const updateResponse = await fetchAPI(`/api/notifications/updateNotified${type}`, {
         method: "PATCH",
@@ -180,6 +224,24 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
      //setNotifications([])
   };
 
+  const updateLastConnection = async () => {
+        if (user) {
+          try {
+            const response = await fetchAPI(`/api/users/updateUserLastConnection`,  {
+              method: "PATCH",
+              body: JSON.stringify({
+                clerkId: user?.id,
+              }),
+            });
+  
+            if (response.error) {
+              throw new Error(response.error);
+            }
+          } catch (error) {
+            console.error("Failed to update user last connection:", error);
+          } 
+        }
+      };
 
   // Poll notifications every 5 seconds
   useEffect(() => {
@@ -187,6 +249,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       fetchNotifications(); // Initial fetch
       const interval = setInterval(() => {
         fetchNotifications(); // Poll notifications every 5 seconds
+        updateLastConnection();
       }, 5000);
 
       return () => clearInterval(interval); // Cleanup on unmount

@@ -171,6 +171,7 @@ declare interface RawFriendRequest {
   user_id2: string;
   requestor: "UID1" | "UID2";
   createdAt: Date;
+  notified: boolean,
   user1_username: string;
   user2_username: string;
 }
@@ -180,6 +181,7 @@ declare interface FriendRequest {
   senderId: string;
   receiverId: string;
   createdAt: Date;
+  notified: boolean,
   senderUsername: string;
   receiverUsername: string;
 }
