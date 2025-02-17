@@ -28,7 +28,11 @@ const NewPost = () => {
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
+<<<<<<< HEAD
     temporaryColors[Math.floor(Math.random() * 4)]
+=======
+    temporaryColors[0]
+>>>>>>> 4e86fdb (more attempts to fix personal-board-component)
   );
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);

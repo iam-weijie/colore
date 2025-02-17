@@ -7,7 +7,6 @@ import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   Easing,
   Image,
@@ -15,7 +14,6 @@ import {
   RefreshControl,
   ScrollView,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -268,7 +266,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         })
       );
       setPostsWithPosition(postsWithPositions);
-      setStacks(initialStacks);
+      if (allowStacking) {
+        setStacks(initialStacks);
+      }
       // Initialize to add to map
       const initialMap = postsWithPositions.map((post: PostWithPosition) =>
         MappingPostIt({
@@ -451,7 +451,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       const newPostScreenCoordinates = maps[maps.length - 1].coordinates;
       updateStacks(newPostID, newPostScreenCoordinates);
     }
-  }, [maps]);
+  }, [maps, postsWithPosition]);
 
   useEffect(() => {
     fetchRandomPosts();
