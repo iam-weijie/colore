@@ -21,7 +21,7 @@ const UserPersonalBoard = () => {
       pathname: "/root/new-personal-post",
       params: {
         recipient_id: user!.id,
-        source: "board",
+        source: "board"
       },
     });
   };

@@ -49,20 +49,52 @@ const { width, height } = Dimensions.get("window");
 
 
 const CarrouselIndicator = ({
-id,
-index
+  id,
+  index,
 }: {
   id: number;
   index: number;
-}) => (
-<View className="rounded-full h-2 bg-white min-w-2 p-1 mx-1"
-style={{
-  width: id === index ? 50 : 2,
-  opacity: id === index ? 1 : 0.5
-}}
->
-</View>
-);
+}) => {
+  // Shared values for animation
+  const width = useSharedValue(2);
+  const opacity = useSharedValue(0.5);
+
+  // Animate when `id` or `index` changes
+  useEffect(() => {
+    if (id === index) {
+      width.value = withTiming(50, { duration: 300 }); // Animate width to 50
+      opacity.value = withTiming(1, { duration: 300 }); // Animate opacity to 1
+    } else {
+      width.value = withTiming(8, { duration: 300 }); // Animate width back to 2
+      opacity.value = withTiming(0.5, { duration: 300 }); // Animate opacity back to 0.5
+    }
+  }, [id, index]);
+
+  // Animated styles
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      width: width.value,
+      opacity: opacity.value,
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[
+        {
+          borderRadius: 999, // Fully rounded corners
+          padding: 2,
+          minWidth: 8,
+          height: 8,
+          backgroundColor: 'white',
+          marginHorizontal: 4,
+        },
+        animatedStyle, // Apply animated styles
+      ]}
+    />
+  );
+};
+
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -85,6 +117,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const opacity = useSharedValue(1);
   const [savedPosts, setSavedPosts] = useState<string[]>([]);
   const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [isPinned, setIsPinned] = useState<boolean>(false);
   const viewRef = useRef<View>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
 
@@ -93,6 +126,8 @@ const PostModal: React.FC<PostModalProps> = ({
     const stack = stacks.find((stack) => stack.ids.includes(selectedPost.id));
     return stack ? stack.elements : [selectedPost];
   }, [selectedPost, stacks]);
+
+
 
   useEffect(() => {
     fetchUserdata()
@@ -103,6 +138,7 @@ const PostModal: React.FC<PostModalProps> = ({
     if (post.length) {
       setPosts(post);
     }
+  
   }, [post]);
 
 
@@ -181,9 +217,9 @@ const PostModal: React.FC<PostModalProps> = ({
 
   const handleLikePress = async () => {
     if (isLoadingLike || !post[currentPostIndex]?.id || !user?.id) return;
-
+    setIsLoadingLike(true);
     try {
-      setIsLoadingLike(true);
+
       const increment = !isLiked;
       setIsLiked(increment);
       setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
@@ -206,11 +242,13 @@ const PostModal: React.FC<PostModalProps> = ({
 
       setIsLiked(response.data.liked);
       setLikeCount(response.data.likeCount);
+      
     } catch (error) {
       console.error("Failed to update like status:", error);
     } finally {
-      handleUpdate()
       setIsLoadingLike(false);
+      handleUpdate()
+     
     }
   };
 
@@ -253,7 +291,6 @@ const PostModal: React.FC<PostModalProps> = ({
       const savedStatus = savePostsList.includes(`${post[currentPostIndex]?.id}`);
       setSavedPosts(savePostsList);
       setIsSaved(savedStatus);
-     
     }
     catch(error) {
       console.error("Failed to fetch user data", error)
@@ -279,7 +316,11 @@ const PostModal: React.FC<PostModalProps> = ({
     setTimeout(() => {
     router.push({
           pathname: "/root/edit-post",
-          params: { postId: post[currentPostIndex]?.id, content: post[currentPostIndex]?.content, color: post[currentPostIndex]?.color},
+          params: { 
+            postId: post[currentPostIndex]?.id,
+            content: post[currentPostIndex]?.content, 
+            color: post[currentPostIndex]?.color,
+            emoji: post[currentPostIndex]?.emoji}
                 });}, 750)
             
 }
@@ -330,7 +371,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const handleSavePost = async (postId: number) => {
     
     try {
-           const updateSavePosts = await fetchAPI(`/api/users/updateUserSavedPosts`, {
+           await fetchAPI(`/api/users/updateUserSavedPosts`, {
                method: "PATCH",
                body: JSON.stringify({
                  clerkId: user!.id,
@@ -417,6 +458,25 @@ const handleShare = async () => {
   }
 };
 
+const handlePin = async () => {
+  try {
+     await fetchAPI(`/api/posts/updatePinnedPost`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          userId: user!.id,
+          postId: post[currentPostIndex]?.id,
+          pinnedStatus: !isPinned
+        })
+      })
+  }
+  catch(error) {
+    console.error("Failed to update handlepin message:", error);
+  } finally {
+   setIsPinned((prevIsPinned) => !prevIsPinned)
+   handleUpdate()
+  }
+
+}
 
 useEffect(() => {
   if (imageUri) {
@@ -460,6 +520,31 @@ const BackgroundGridEmoji = (emoji: string) => {
     </View>
   );
 };
+
+
+const getMenuItems = (isOwner: boolean, invertedColors: boolean) => {
+
+  if (invertedColors) {
+    return  [
+          { label: isPinned ? "Unpin" : "Pin", source: icons.pin, color: "rgba(180,180,180,0.95)", onPress:  handlePin},
+          { label: "Share", source: icons.send, color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", onPress: handleShare },
+          { label: "Edit", source: icons.pencil, color: "#0851DA", onPress: handleEditing },
+          { label: "Delete", source: icons.trash, color: "#DA0808", onPress: handleDeletePress }
+        ];
+  } 
+
+  return isOwner ? [
+    { label: "Share", source: icons.send, color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", onPress: handleShare },
+    { label: "Edit", source: icons.pencil, color: "#0851DA", onPress: handleEditing },
+    { label: isSaved ? "Remove" : "Save", color: "#000000", source: isSaved ? icons.close : icons.bookmark, onPress: () => handleSavePost(post[currentPostIndex]?.id) },
+  ] : [
+    { label: "Share", source: icons.send, color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", onPress: handleShare },
+    { label: isSaved ? "Remove" : "Save", color: "#000000", source: isSaved ? icons.close : icons.bookmark, onPress: () => handleSavePost(post[currentPostIndex]?.id) },
+    { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress }
+  ]
+};
+
+
   
 
   return (
@@ -520,7 +605,6 @@ const BackgroundGridEmoji = (emoji: string) => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleLikePress}
-                  disabled={isLoadingLike}
                   className="ml-2"
                 >
                   <MaterialCommunityIcons
@@ -535,48 +619,9 @@ const BackgroundGridEmoji = (emoji: string) => {
                 )}
               </View>
               {/* Delete button for post owner */}
-              {post[currentPostIndex]?.clerk_id === user!.id ? (
-                  <DropdownMenu
-                    menuItems={[
-                      { 
-                        label: "Share", 
-                        source: icons.send, 
-                        color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", 
-                        onPress: () => {
-                          console.log("clicked")
-                          handleShare()
-                        } }, 
-                      { label: "Edit", 
-                        source: icons.pencil, 
-                        color: "#0851DA", 
-                        onPress: handleEditing },
-                    { label: "Delete", 
-                      source: icons.trash, 
-                      color: "#DA0808", 
-                      onPress: handleDeletePress }
-                    ]}
-                  />
-                ) : (
-                  <DropdownMenu
-                   menuItems={[
-                    { 
-                      label: "Share", 
-                      source: icons.send, 
-                      color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", 
-                      onPress: () => {
-                        console.log("clicked")
-                        handleShare()
-                      } }, 
-                      { label: isSaved ? "Remove" : "Save", 
-                        color: "#000000", 
-                        source: isSaved ? icons.close : icons.bookmark, 
-                        onPress: () => handleSavePost(post[currentPostIndex]?.id) }, 
-                      { label: "Report", 
-                        source: icons.email,
-                        color: "#DA0808",  
-                        onPress: handleReportPress }]}
-                  />
-                )}
+              {
+                <DropdownMenu menuItems={getMenuItems(post[currentPostIndex]?.clerk_id === user!.id || post[currentPostIndex]?.recipient_user_id === user!.id, invertedColors)} />
+              }
             </View>
           </Animated.View>
         </PanGestureHandler>

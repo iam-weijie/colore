@@ -522,8 +522,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         const newPostWithPosition: PostWithPosition = {
           ...newPost,
           position: {
-            top: Math.random() * 400 + 50,
-            left: Math.random() * 250,
+            top: Math.random() * 775 / 2,
+            left: Math.random() * 475 / 2
           },
         };
         setPostsWithPosition((prevPosts) => [

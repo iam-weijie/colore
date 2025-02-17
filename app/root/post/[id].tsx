@@ -649,6 +649,9 @@ const PostScreen = () => {
   };
 
   const handleUserProfile = async (id: string) => {
+    if (anonymous === "true" ) {
+      return
+    }
     router.push({
       pathname: "/root/profile/[id]",
       params: { id },

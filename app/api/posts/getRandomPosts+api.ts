@@ -17,6 +17,8 @@ export async function GET(request: Request) {
         p.report_count, 
         p.created_at,
         p.unread_comments,
+        p.recipient_user_id,
+        p.pinned,
         p.color,
         p.emoji,
         u.clerk_id,

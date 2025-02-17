@@ -50,7 +50,12 @@ const NewPersonalPost = () => {
            router.push({
                  pathname: "/root/preview-post",
                  params: {
-                   id: "", content: postContent, color: selectedColor.name, emoji: selectedEmoji, personal: "true", recipientIconsod: recipient_id 
+                   id: "", 
+                   content: postContent, 
+                   color: selectedColor.name, 
+                   emoji: selectedEmoji, 
+                   personal: "true", 
+                   recipientId: recipient_id
                  }
                })
                setPostContent("");

@@ -76,14 +76,21 @@ const PreviewPost = () => {
             emoji: emoji,
           }),
         });
-    
+
+        
+        
+      router.replace(`/root/tabs/profile`);
+       setTimeout(() => {
         Alert.alert("Success", "Post updated successfully.");
-        router.back();
+       }, 500)
+       
       } catch (error) {
         console.log(error);
         Alert.alert("Error", "An error occurred. Please try again.");
       } finally {
         setIsPosting(false);
+
+
       }
     }
     else if (personal === "true") {
@@ -103,8 +110,13 @@ const PreviewPost = () => {
                   emoji: emoji,
                   }),
               });
-              Alert.alert("Post created.");
-              router.back();
+              
+              router.replace(`/root/tabs/personal-board`);
+
+              setTimeout(() => {
+                Alert.alert("Success", "Post created.");
+              }, 500)
+
               } catch (error) {
               Alert.alert("Error", "An error occurred. Please try again.");
               } finally {
@@ -129,14 +141,19 @@ const PreviewPost = () => {
           emoji: emoji,
         }),
       });
-      Alert.alert("Post created.");
+
+      router.replace(`/root/tabs/home`);
+
+      setTimeout(() => {
+        Alert.alert("Success", "Post created.");
+      }, 500)
     } catch (error) {
       Alert.alert("Error", "An error occurred. Please try again.");
     } finally {
       setIsPosting(false);
     }
 
-    router.back();
+  
     }
    
   }
