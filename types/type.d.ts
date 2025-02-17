@@ -98,7 +98,7 @@ declare interface UserPostsGalleryProps {
   posts: Post[];
   profileUserId: string;
   handleUpdate?: () => void | undefined | Promise<void>;
-  query: string;
+  query?: string;
 }
 
 declare interface UserProfileProps {
@@ -130,9 +130,8 @@ declare interface InputFieldProps extends TextInputProps {
 }
 
 declare interface NotificationBubbleProps {
-  like: "Likes";
-  comment: "Comments";
-  message: "Messages";
+  unread: number,
+  color: string
 }
 
 declare interface PaymentProps {
@@ -147,6 +146,8 @@ declare interface ConversationItem {
   clerk_id: string;
   lastMessageContent: string | null;
   lastMessageTimestamp: Date | null;
+  active_participants: number;
+  unread_messages: number;
 }
 
 declare interface Message {
@@ -154,6 +155,8 @@ declare interface Message {
   senderId: string;
   content: string;
   timestamp: Date;
+  unread: boolean;
+  notified: boolean;
 }
 
 type UserNicknamePair = [string, string];

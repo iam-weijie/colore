@@ -48,6 +48,8 @@ export async function GET(request: Request) {
           ? row.lastMessageTimestamp.toISOString()
           : null,
         nickname: row.nicknames,
+        active_participants: row.active_participants,
+        unread_messages: row.unread_messages
       };
     });
 
