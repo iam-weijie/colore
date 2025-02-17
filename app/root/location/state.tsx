@@ -1,37 +1,48 @@
-import { countries } from "@/constants/index";
+import { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { FlatList, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const State = () => {
-  const { country, previousScreen } = useLocalSearchParams();
+// Define the State interface
+interface State {
+  name: string;
+  cca2: string;  // Country code (ISO alpha-2)
+  cities: string[];  // List of cities in the state
+}
 
-  const selectedCountry = countries.find((c) => c.name === country);
-  const states = selectedCountry ? selectedCountry.states : [];
+const State = () => {
+  const { country, countryId, states, previousScreen } = useLocalSearchParams();
+
+  // Parse the states data from the passed JSON string
+  const countryStates: State[] = states ? JSON.parse(states as string) : [];
 
   return (
     <SafeAreaView className="flex-1">
-      <Text className="text-lg font-JakartaSemiBold m-3">
+      <Text className="text-xl font-JakartaBold m-3">
         Select a State in {country}
       </Text>
+
       <FlatList
-        data={states}
-        keyExtractor={(item) => item.name}
+        data={countryStates}  // Use the parsed states data
+        keyExtractor={(item) => item.name}  // Use state name as the key
         renderItem={({ item }) => (
           <TouchableOpacity
+          className="flex flex-row items-center justify-between px-4 relative h-[50px]"
             onPress={() =>
               router.push({
                 pathname: "/root/location/city",
                 params: { 
-                  state: item.name, 
                   country: country, 
+                  countryId: countryId,
+                  state: item.name,
+                  cities: JSON.stringify(item.cities),  // Pass the cities for the selected state
                   previousScreen: previousScreen 
                 }
               })
             }
           >
-            <Text className="font-JakartaSemiBold text-[15px] ml-3 my-2">
-              {item.name}
+            <Text className="font-JakartaSemiBold text-[16px] ml-3 my-2">
+              {item.name} {/* Display the state name */}
             </Text>
           </TouchableOpacity>
         )}
