@@ -93,7 +93,7 @@ const PostModal: React.FC<PostModalProps> = ({
       context.startX = translateX.value;
     },
     onActive: (event, context) => {
-      translateX.value = context.startX + event.translationX;
+      translateX.value = context.startX as number + event.translationX;
     },
     onEnd: () => {
       const threshold = 60;

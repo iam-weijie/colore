@@ -26,7 +26,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 type DraggablePostItProps = {
   post: PostWithPosition;
   updateIndex: () => void;
-  updatePosition: (x: number, y:number, post: Post) => void;
+  updatePosition: (x: number, y:number, post: PostWithPosition) => void;
   onPress: () => void;
 };
 
@@ -123,14 +123,17 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, up
   );
 };
 
-export default function Page() {
-  //const { user } = useUser();
-  ////console.log(user);
-  //const { isLoaded, isSignedIn, session } = useSession();
-  ////console.log("session: ", session);
-  //useAuth();
-  //router.replace("/auth/log-in");
-  const { pushToken } = useNotification();
+declare interface PostItBoardProps {
+    posts: Post[];
+    handlePostsRefresh: () => void | Promise<void>;
+    handleBack?: () => void;
+    fetchNewPost: () => void;
+    onWritePost: () => void;
+}
+
+const PostItBoard: React.FC<PostItBoardProps> = ({
+
+}) => {
   const [posts, setPosts] = useState<PostWithPosition[]>([]);
   const {stacks, setStacks } = useGlobalContext(); // Add more global constants here
   const [loading, setLoading] = useState(true);
@@ -157,7 +160,7 @@ export default function Page() {
       setPosts(postsWithPositions);
 
     // Initialize each post as a stack
-      const initialStacks = postsWithPositions.map((post: Post) => ({
+      const initialStacks = postsWithPositions.map((post: PostWithPosition) => ({
         ids: [post.id],
         elements: [post],
       }));
@@ -220,7 +223,9 @@ export default function Page() {
     updatedStacks = updatedStacks.map((stack) => ({
       ...stack,
       ids: stack.ids.filter((id: number) => id !== postId),
-     elements: stack.elements.lengtrh > 0 ? stack.elements.filter((post: Post) => post.id !== postId) : stack.elements
+     elements: stack.elements.lengtrh > 0 
+     ? stack.elements.filter((post: PostWithPosition) => post.id !== postId) 
+     : stack.elements
     }));
   
     // Remove empty stacks
@@ -443,17 +448,6 @@ export default function Page() {
             <View className="relative">
               {posts.map((post, index) => {
                 return (
-                  // <TouchableOpacity
-                  //   key={post.id}
-                  //   onPress={() => handlePostPress(post)}
-                  //   style={{
-                  //     position: "absolute",
-                  //     top: post.position.top,
-                  //     left: post.position.left,
-                  //   }}
-                  // 
-                  //   <DraggablePostIt />
-                  // </TouchableOpacity>
                   <DraggablePostIt 
                     key={post.id}
                     updateIndex={() => reorderPost(post)}

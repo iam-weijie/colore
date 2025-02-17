@@ -1,8 +1,7 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
-
 declare interface Post {
-  id: string;
+  id: number;
   clerk_id: string;
   firstname: string;
   username: string;
@@ -28,7 +27,6 @@ declare interface PostComment {
   created_at: string;
   like_count: number;
   report_count: number;
-
 }
 
 declare interface UserProfileType {
@@ -136,8 +134,6 @@ declare interface NotificationBubbleProps {
   comment: "Comments";
   message: "Messages";
 }
-
-
 
 declare interface PaymentProps {
   fullName: string;
