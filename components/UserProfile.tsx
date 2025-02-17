@@ -600,6 +600,37 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 <Text className="text-white font-JakartaBold text-[16px]">Unfriend</Text>
               </View>}
         </TouchableOpacity>
+
+        <TouchableOpacity 
+          onPress={() => router.push({
+            pathname: "/root/personal-board/[id]",
+
+      
+            params: { id: profileUser!.clerk_id }
+          })}
+          className="flex-1 max-w-[135px] p-5 bg-gray-200 items-center justify-between"
+          style={{
+            height: isCollapsed ? 60 : 150, 
+            borderRadius: isCollapsed ? 24 : 32
+          }}
+        >
+          {!isCollapsed && (
+            <View className="w-full flex flex-row items-start">
+              <Text className="text-[#333333] font-JakartaBold text-3xl">0</Text>
+            </View>
+          )}
+          {!isCollapsed && (
+            <Image
+              source={icons.chat}
+              tintColor="#333333"
+              resizeMode="contain"
+              className="w-10 h-10 -mt-4"
+            />
+          )}
+          <Text className="text-[#333333] font-JakartaBold text-[16px]">
+            {isCollapsed ? "Personal" : "Personal Board"}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View className="mx-7 mt-5">
