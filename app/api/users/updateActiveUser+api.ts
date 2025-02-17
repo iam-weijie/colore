@@ -6,12 +6,12 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { clerkId, conversationId, activity } = body;
 
-    console.log(
-      "clerkId, conversationId, activity",
-      clerkId,
-      conversationId,
-      activity
-    );
+    // console.log(
+    //   "clerkId, conversationId, activity",
+    //   clerkId,
+    //   conversationId,
+    //   activity
+    // );
 
     if (!clerkId || !conversationId) {
       return new Response(
@@ -51,7 +51,6 @@ export async function PATCH(request: Request) {
       throw new Error("Failed to update active participants status");
     }
 
-    // console.log(response)
     return new Response(
       JSON.stringify({
         data: { active_participants: response[0].active_participants },
