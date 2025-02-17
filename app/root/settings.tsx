@@ -114,7 +114,6 @@ const Settings = () => {
     ? `${profileUser.city}, ${profileUser.state}, ${profileUser.country}`
     : "No location set";
 
-    console.log(profileUser)
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView behavior="padding" className="flex-1">

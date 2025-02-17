@@ -8,7 +8,6 @@ import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from '@/notifications/NotificationContext'; // Assuming you have a notification context to manage global state
 import { sendPushNotification } from '@/notifications/PushNotificationService'; // Assuming this handles the push notification
 
-
 const TabIcon = ({
   source,
   focused,
@@ -31,16 +30,13 @@ const TabIcon = ({
       tintColor="#ffffff"
       resizeMode="contain"
       className="w-10 h-10"
-
-
     />)}
     {!focused && (<Image
       source={source}
       tintColor="#000000"
       resizeMode="contain"
       className="w-9 h-9"
-    />)}r
-      {/* Display NotificationBubble only when there are notifications */}
+    />)}
       {unread > 0 && <NotificationBubble unread={unread} color={color} />}
     </View>
   </View>
@@ -194,7 +190,7 @@ const Layout = () => {
       `${notificationContent}`, // Body (truncated content)
       `comment`, // Type of notification
       {
-        route: `/root/chat/conversation?conversationId=${n.conversationid}&otherClerkId=${conversation.conversationOtherClerk}&otherName=${conversation.conversationOtherName}`,
+        route: `/root/chat/conversation?conversationId=${n.conversationid}&otherClerkId=${conversation!.conversationOtherClerk}&otherName=${conversation!.conversationOtherName}`,
         params: {}
       }
     );
@@ -236,11 +232,11 @@ const Layout = () => {
       
       notifications.forEach((n) => {
         if(n.messages) {
-          n.messages.forEach((message) => {
+          n.messages.forEach((message: string) => {
             handleSendNotification(n, message, "Messages");
           });
         } else {
-        n.comments.forEach((comment) => {
+        n.comments.forEach((comment: string) => {
           handleSendNotification(n, comment, "Comments");
         });
       }
@@ -293,7 +289,7 @@ const Layout = () => {
               focused={focused}
               source={icons.home}
               unread={0}
-              color={"#FF7272"} // Needs to be changed with like notifications
+              color={"#FF7272"}
             />
           ),
         }}
@@ -308,7 +304,7 @@ const Layout = () => {
               focused={focused}
               source={icons.chat}
               unread={unreadMessages}
-              color={"#FF7272"} // Needs to be changed with message notifications
+              color={"#FF7272"}
             />
           ),
         }}
