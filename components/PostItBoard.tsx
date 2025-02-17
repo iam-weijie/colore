@@ -2,11 +2,16 @@ import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
 import { temporaryColors } from "@/constants";
 import { useGlobalContext } from "@/app/globalcontext";
+import { icons } from "@/constants";
 import { Post, PostWithPosition } from "@/types/type";
+import { useNotification } from '@/notifications/NotificationContext';
+import { sendPushNotification } from '@/notifications/PushNotificationService';
 import { SignedIn, useUser } from "@clerk/clerk-expo";
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   Easing,
   Image,
@@ -14,6 +19,7 @@ import {
   RefreshControl,
   ScrollView,
   Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -266,9 +272,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         })
       );
       setPostsWithPosition(postsWithPositions);
-      if (allowStacking) {
-        setStacks(initialStacks);
-      }
+      setStacks(initialStacks);
       // Initialize to add to map
       const initialMap = postsWithPositions.map((post: PostWithPosition) =>
         MappingPostIt({
@@ -417,8 +421,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     post: PostWithPosition
   ) => {
     const id = post.id;
-    const x = post.position.left + dx;
-    const y = post.position.top + dy;
+    const x = post.position.left + dx
+    const y = post.position.top + dy
 
     const postItCoordinates = MappingPostIt({
       id: id,
@@ -451,7 +455,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       const newPostScreenCoordinates = maps[maps.length - 1].coordinates;
       updateStacks(newPostID, newPostScreenCoordinates);
     }
-  }, [maps, postsWithPosition]);
+  }, [maps]);
 
   useEffect(() => {
     fetchRandomPosts();
