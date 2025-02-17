@@ -49,79 +49,84 @@ return {
   }
 }
 
-const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, updatePosition, onPress}) => {
-  const position = useRef(new Animated.ValueXY()).current;
-  const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-
-  // console.log(post);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        // when gesture starts, set to dragging and moves it the the front
-        setIsDragging(true);
-        updateIndex()
-        
-      },
-      // this is called when the user moves finger
-      // to initiate component movement
-      onPanResponderMove: Animated.event(
-        [
-          null,
-          {
-            dx: position.x,
-            dy: position.y,
-          },
-        ],
-        { useNativeDriver: false }
-      ),
-      onPanResponderRelease: (event, gestureState) => {
-        const dx = gestureState.dx;
-        const dy = gestureState.dy;
-        const x = position.x
-        const y = position.y
-       
-        position.extractOffset(); // reset the offset so transformations don't accumulate
-        
-        if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
-          onPress();
-        }
-        setIsDragging(false);
-      },
-    })
-  ).current;
-
-  return (
-    <Animated.View
-      {...panResponder.panHandlers}
-      style={{
-        transform: position.getTranslateTransform(),
-        opacity: 1,
-        position: "absolute",
-        top: post.position.top,
-        left: post.position.left,
-      }}
-    >
-      <TouchableWithoutFeedback onPress={onPress}>
-        <PostIt color={post.color || "yellow"}/>
-      </TouchableWithoutFeedback>
-
-      <Text
+const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, updatePosition, onPress }) => {
+    const position = useRef(new Animated.ValueXY()).current;
+    const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
+    const [isDragging, setIsDragging] = useState<boolean>(false);
+  
+    useEffect(() => {
+      const listenerId = position.addListener(({ x, y }) => {
+        updatePosition(x, y, post);
+      });
+  
+      return () => {
+        position.removeListener(listenerId);
+      };
+    }, [position, post, updatePosition]);
+  
+    const panResponder = useRef(
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+          // when gesture starts, set to dragging and moves it the the front
+          setIsDragging(true);
+          updateIndex();
+          position.extractOffset();
+        },
+        // this is called when the user moves finger
+        // to initiate component movement
+        onPanResponderMove: Animated.event(
+          [
+            null,
+            {
+              dx: position.x,
+              dy: position.y,
+            },
+          ],
+          { useNativeDriver: false }
+        ),
+        onPanResponderRelease: (event, gestureState) => {
+          const dx = gestureState.dx;
+          const dy = gestureState.dy;
+          position.flattenOffset(); // reset the offset so transformations don't accumulate
+  
+          if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
+            onPress();
+          }
+          setIsDragging(false);
+        },
+      })
+    ).current;
+  
+    return (
+      <Animated.View
+        {...panResponder.panHandlers}
         style={{
+          transform: position.getTranslateTransform(),
+          opacity: 1,
           position: "absolute",
-          left: Math.random() * 100,
-          top: Math.random() * 100,
-          fontSize: 50,
+          top: post.position.top,
+          left: post.position.left,
         }}
       >
-        {post.emoji && post.emoji}
-      </Text>
-    </Animated.View>
-  );
-};
+        <TouchableWithoutFeedback onPress={onPress}>
+          <PostIt color={post.color || "yellow"} />
+        </TouchableWithoutFeedback>
+  
+        <Text
+          style={{
+            position: "absolute",
+            left: Math.random() * 100,
+            top: Math.random() * 100,
+            fontSize: 50,
+          }}
+        >
+          {post.emoji && post.emoji}
+        </Text>
+      </Animated.View>
+    );
+  };
 
 declare interface PostItBoardProps {
     userId: string;
@@ -141,7 +146,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<PostWithPosition | null>(null);
-  const { user } = useUser();
   const [maps, setMap] = useState<MappingPostitProps[]>([]);
 
   const fetchRandomPosts = async () => {
@@ -162,6 +166,17 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       }));
       setPostsWithPosition(postsWithPositions);
       setStacks(initialStacks);
+      // Initialize to add to map
+      const initialMap = postsWithPositions.map((post: PostWithPosition) => 
+        MappingPostIt({
+            id: post.id, 
+            coordinates: {
+                "x_coordinate": post.position.left,
+                "y_coordinate": post.position.top
+            }
+        }));
+        // console.log(initialMap);
+        setMap(initialMap);
     } catch (error) {
       setError("Failed to fetch new posts.");
       console.error(error);
@@ -174,7 +189,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
     let updatedStacks = [...stacks];
     let postsToCombine = new Set([postId]); // Set of post IDs to combine into a single stack
-  
+
     // Check proximity to all posts
     maps.forEach((mappedPost) => {
       if (mappedPost.id !== postId) {
@@ -290,9 +305,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     
   };
   useEffect(() => {
-    if ( maps.length > 1) {
-        const newPostID = maps[maps.length - 1].id
-        const newPostScreenCoordinates = maps[maps.length - 1].coordinates
+    if (maps.length > 1) {
+        const newPostID = maps[maps.length - 1].id;
+        const newPostScreenCoordinates = maps[maps.length - 1].coordinates;
         updateStacks(newPostID, newPostScreenCoordinates);
     }
   }, [maps]);
@@ -303,10 +318,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   const handlePostPress = (post: PostWithPosition) => {
       setSelectedPost(post);
-  };
-  
-  const handleNewPostPress = () => {
-    router.push("/root/new-post");
   };
 
   const handleCloseModal = async () => {
