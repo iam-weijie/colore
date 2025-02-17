@@ -135,6 +135,7 @@ declare interface PostItBoardProps {
     handleBack?: () => void;
     handleNewPostFetch: () => Promise<Post>;
     onWritePost: () => void;
+    allowStacking: boolean;
 }
 
 const PostItBoard: React.FC<PostItBoardProps> = ({
