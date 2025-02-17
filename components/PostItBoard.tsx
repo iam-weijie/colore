@@ -1,16 +1,23 @@
 import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
 import { useGlobalContext } from "@/app/globalcontext";
+import { icons } from "@/constants";
 import { Post, PostWithPosition } from "@/types/type";
+import { useNotification } from '@/notifications/NotificationContext';
+import { sendPushNotification } from '@/notifications/PushNotificationService';
 import { SignedIn, useUser } from "@clerk/clerk-expo";
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Animated,
+  Image,
   PanResponder,
   RefreshControl,
   ScrollView,
   Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -110,8 +117,9 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, up
         <Text
           style={{
             position: "absolute",
-            left: Math.random() * 100,
-            top: Math.random() * 100,
+            left: "50%",
+            top: "50%",
+            transform: [{ translateX: -30 }, { translateY: -30 }],
             fontSize: 50,
           }}
         >
@@ -127,14 +135,12 @@ declare interface PostItBoardProps {
     handleBack?: () => void;
     handleNewPostFetch: () => Promise<Post>;
     onWritePost: () => void;
-    allowStacking: boolean;
 }
 
 const PostItBoard: React.FC<PostItBoardProps> = ({
     userId, 
     handlePostsRefresh,
     handleNewPostFetch,
-    allowStacking,
 }) => {
   const [postsWithPosition, setPostsWithPosition] = useState<PostWithPosition[]>([]);
   const {stacks, setStacks } = useGlobalContext(); // Add more global constants here
@@ -160,9 +166,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         elements: [post],
       }));
       setPostsWithPosition(postsWithPositions);
-      if (allowStacking) {
-        setStacks(initialStacks);
-      }
+      setStacks(initialStacks);
       // Initialize to add to map
       const initialMap = postsWithPositions.map((post: PostWithPosition) => 
         MappingPostIt({
@@ -284,8 +288,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const updatePostPosition = (dx: number, dy: number, post: PostWithPosition) => {
 
     const id = post.id;
-    const x = post.position.left + dx;
-    const y = post.position.top + dy;
+    const x = post.position.left + dx
+    const y = post.position.top + dy
 
     const postItCoordinates = MappingPostIt({id: id, coordinates: {x_coordinate: x, y_coordinate: y}})
     setMap((prevMap) => [
@@ -302,13 +306,12 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     
   };
   useEffect(() => {
-    if (maps.length > 1 && allowStacking) {
-        console.log(maps);
+    if (maps.length > 1) {
         const newPostID = maps[maps.length - 1].id;
         const newPostScreenCoordinates = maps[maps.length - 1].coordinates;
         updateStacks(newPostID, newPostScreenCoordinates);
     }
-  }, [maps, postsWithPosition]);
+  }, [maps]);
 
   useEffect(() => {
     fetchRandomPosts();
@@ -350,8 +353,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     setLoading(true);
     fetchRandomPosts();
   };
- 
-  console.log("Stacks: ", stacks);
+//  console.log("Stacks: ", stacks)
 
   return (
     <SafeAreaView className="flex-1">
