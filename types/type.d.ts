@@ -130,8 +130,8 @@ declare interface InputFieldProps extends TextInputProps {
 }
 
 declare interface NotificationBubbleProps {
-  unread: number;
-  color: string;
+  unread: number,
+  color: string
 }
 
 declare interface PaymentProps {

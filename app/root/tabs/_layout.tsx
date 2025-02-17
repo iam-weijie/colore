@@ -293,7 +293,7 @@ const Layout = () => {
               focused={focused}
               source={icons.home}
               unread={0}
-              color={"#FF7272"}
+              color={"#FF7272"} // Needs to be changed with like notifications
             />
           ),
         }}
@@ -308,7 +308,7 @@ const Layout = () => {
               focused={focused}
               source={icons.chat}
               unread={unreadMessages}
-              color={"#FF7272"}
+              color={"#FF7272"} // Needs to be changed with message notifications
             />
           ),
         }}

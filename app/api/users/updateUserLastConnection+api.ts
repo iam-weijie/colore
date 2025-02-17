@@ -4,13 +4,15 @@ export async function PATCH(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const body = await request.json();
-    const clerkId = body.clerkId;
+    const clerkId = body.clerkId
+
+    console.log("clerkId:", clerkId);
 
     if (!clerkId) {
-      return new Response(JSON.stringify({ error: "Missing User Id" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Missing User Id" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     // Execute the SQL update query
@@ -22,20 +24,16 @@ export async function PATCH(request: Request) {
     `;
 
     if (response.length === 0) {
-      return new Response(JSON.stringify({ error: "User not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "User not found" }),
+        { status: 404, headers: { "Content-Type": "application/json" } }
+      );
     }
 
-    // console.log(response);
+    console.log(response)
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: "User last connection updated",
-        data: response,
-      }),
+      JSON.stringify({ success: true, message: "User last connection updated", data: response }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {

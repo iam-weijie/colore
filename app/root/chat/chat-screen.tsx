@@ -4,7 +4,7 @@ import NotificationBubble from "@/components/NotificationBubble";
 import { useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState, useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from '@react-navigation/native';
 import {
   acceptFriendRequest,
   fetchFriends,
@@ -19,6 +19,7 @@ import {
 } from "@/types/type";
 import DropdownMenu from "@/components/DropdownMenu";
 import { FriendStatus } from "@/lib/enum";
+
 import {
   ActivityIndicator,
   Alert,

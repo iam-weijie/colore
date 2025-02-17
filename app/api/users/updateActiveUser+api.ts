@@ -51,7 +51,6 @@ export async function PATCH(request: Request) {
       throw new Error("Failed to update active participants status");
     }
 
-    // console.log(response)
     return new Response(
       JSON.stringify({
         data: { active_participants: response[0].active_participants },
