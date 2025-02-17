@@ -14,6 +14,7 @@ import {
 import { FriendRequest, Friendship, RawFriendRequest, UserNicknamePair } from "@/types/type";
 import DropdownMenu from "@/components/DropdownMenu";
 import { FriendStatus } from "@/lib/enum";
+
 import {
   ActivityIndicator,
   Alert,
@@ -110,6 +111,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       const fetchedConversations = responseConversation.data; // Conversations data
 
       // Merge conversations with unread count from chatNotifications
+
       const conversationsWithUnread = fetchedConversations.map((conversation: any) => {
         const matchingNotification = chatNotifications.filter(
           (notif: any) => notif.conversationid == conversation.id
@@ -133,7 +135,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       setLoading(false);
     }
   };
-
 
   const fetchNicknames = async () => {
     try {
@@ -202,6 +203,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       await fetchNicknames();
       setLoading(false);
     };
+
   const filteredConversations = conversations.filter((conversation) =>
     conversation.name.toLowerCase().includes(searchText.toLowerCase())
   );
@@ -232,7 +234,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               <Text className="text-sm" style={{ fontWeight: item.unread_messages ? 600 : 400 }}>
                 {item.lastMessageContent}
               </Text>
-              {item.unread_messages && <NotificationBubble unread={item.unread_messages} color={"#000000"} />}
+              {item.unread_messages > 0 && <NotificationBubble unread={item.unread_messages} color={"#000000"} />}
             </View>
           ) : (
             <Text className="text-gray-600 text-sm -mt-1 mb-2">No messages yet</Text>
@@ -417,10 +419,8 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                 </TouchableOpacity>
                 <Text className="font-JakartaBold text-2xl ml-2">{selectedTab}</Text>
               </View>
-             
-
-
               <View className="flex flex-row items-center mx-4">
+
               <TouchableOpacity
                 onPress={handleCreateNewConversation}
                 className="w-8 h-8 ml-2 flex justify-center items-center bg-black rounded-full"
@@ -518,7 +518,6 @@ setSearchText("")}
                         style={{ maxHeight: screenHeight * 0.3}}
                       />
                   </View>}
-
           </View>
         )}
       </View>
