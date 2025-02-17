@@ -261,7 +261,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     updateLastConnection()
-  }, [isSignedIn])
+  }, [])
 
   return (
     <GlobalContext.Provider value={{
