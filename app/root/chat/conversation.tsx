@@ -6,6 +6,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
 import { useFocusEffect} from "@react-navigation/native";
 import React, { useEffect, useRef, useState,  useCallback } from "react";
+
 import {
   ActivityIndicator,
   FlatList,
@@ -42,8 +43,7 @@ const Conversation = () => {
       }
     } catch (error) {
       console.error("Failed to update user last connection:", error);
-    }
-  
+    }  
 };
 
 const checkNumberOfParticipants = async (activity: boolean) => {
@@ -67,8 +67,6 @@ const checkNumberOfParticipants = async (activity: boolean) => {
   }
 
 };
-
-
 
   const fetchMessages = async () => {
     const response = await fetchAPI(
@@ -94,7 +92,6 @@ const checkNumberOfParticipants = async (activity: boolean) => {
   };
 
   useEffect(() => {
-
     updateActiveUser(true);
   }, [conversationId]); 
 
@@ -119,7 +116,6 @@ const checkNumberOfParticipants = async (activity: boolean) => {
   }, [messages])
   const updateMessages = async (messageContent: string) => {
     const active_participants = await checkNumberOfParticipants(true)
-
     await fetchAPI(`/api/chat/newMessage`, {
       method: "POST",
       body: JSON.stringify({
@@ -150,8 +146,8 @@ const checkNumberOfParticipants = async (activity: boolean) => {
       content: newMessage,
       senderId: user!.id,
       timestamp: new Date(),
-      unread: true,
-      notified: false
+      unread: false,
+      notified: false,
     };
 
     // Update the state to include the new message
@@ -175,7 +171,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
           })
       }
       catch {
-        console.error("Failed to update unread message");
+        console.error("Failed to update unread message:", error);
       } finally {
         setLoading(false)
       }
@@ -224,10 +220,9 @@ const checkNumberOfParticipants = async (activity: boolean) => {
             onPress={() => {
               router.push({
                 pathname: "/root/profile/[id]",
-                params: { id: otherClerkId as string },
+                params: { id: otherClerkId },
               })
-            }
-            }
+            }}
           >
             <Text className={`text-2xl font-JakartaBold flex-1 text-center`}>
               {otherName}

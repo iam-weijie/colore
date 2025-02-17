@@ -100,9 +100,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   //Navigation
   const { tab } = useLocalSearchParams();
   console.log("tab", tab);
-  const [selectedTab, setSelectedTab] = useState<string>(
-    Array.isArray(tab) ? tab[0] : tab || "Messages"
-  );
+  const [selectedTab, setSelectedTab] = useState<string>("Messages");
 
   const fetchConversations = async (): Promise<void> => {
     setLoading(true);
@@ -122,6 +120,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       }
       const responseData = await responseNotifications.json();
 
+
       const chatNotifications = responseData.toRead; // Notifications data
       const fetchedConversations = responseConversation.data; // Conversations data
 
@@ -131,7 +130,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           const matchingNotification = chatNotifications.filter(
             (notif: any) => notif.conversationid == conversation.id
           );
-          console.log("matching notification", matchingNotification);
+          // console.log("matching notification", matchingNotification);
           return {
             ...conversation, // Spread existing conversation data
             unread_messages: matchingNotification
@@ -142,9 +141,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       );
 
       setToRead(chatNotifications);
-      console.log("chat notification", chatNotifications);
+      // console.log("chat notification", chatNotifications);
       setConversations(conversationsWithUnread);
-      console.log("conversation", conversationsWithUnread);
+      // console.log("conversation", conversationsWithUnread);
     } catch (error) {
       console.error("Failed to fetch conversations: ", error);
       setError("Failed to fetch conversations.");
@@ -252,7 +251,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               >
                 {item.lastMessageContent}
               </Text>
-              {item.unread_messages && (
+              {item.unread_messages > 0 && (
                 <NotificationBubble
                   unread={item.unread_messages}
                   color={"#000000"}
@@ -419,7 +418,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     router.push("/root/chat/new-conversation");
   };
 
-  console.log("All Friend Request", allFriendRequests?.sent);
+  // console.log("All Friend Request", allFriendRequests?.sent);
   // HANDLE REQUESTS ------ END
 
   // USE EFFECT ------- START
@@ -431,7 +430,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     }, [])
   );
 
-  console.log(conversations);
+  // console.log(conversations);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -465,7 +464,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>
 
             <ScrollView
-              className=" max-h-10"
+              className="max-h-10"
               contentOffset={{ x: 10, y: 0 }}
               horizontal={true}
               showsHorizontalScrollIndicator={false}
