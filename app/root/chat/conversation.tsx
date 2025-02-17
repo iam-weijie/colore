@@ -4,7 +4,8 @@ import { Message } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -23,6 +24,47 @@ const Conversation = () => {
   const [newMessage, setNewMessage] = useState<string>("");
   const flatListRef = useRef<FlatList<Message>>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const updateActiveUser = async (activity: boolean) => {
+    try {
+      const response = await fetchAPI(`/api/users/updateActiveUser`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user?.id,
+          conversationId: conversationId,
+          activity: activity,
+        }),
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+    } catch (error) {
+      console.error("Failed to update user last connection:", error);
+    }
+  };
+
+  const checkNumberOfParticipants = async (activity: boolean) => {
+    try {
+      const response = await fetchAPI(`/api/users/updateActiveUser`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user?.id,
+          conversationId: conversationId,
+          activity: activity,
+        }),
+      });
+
+      console.log(
+        "check number of participants",
+        response.data.active_participants.length
+      );
+      const number_of_participants = response.data.active_participants.length;
+      return number_of_participants;
+    } catch (error) {
+      console.error("Failed to check number of participants", error);
+    }
+  };
 
   const fetchMessages = async () => {
     const response = await fetchAPI(
@@ -48,11 +90,34 @@ const Conversation = () => {
   };
 
   useEffect(() => {
+    updateActiveUser(true);
+  }, [conversationId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        updateActiveUser(false);
+      };
+    }, [user, conversationId])
+  );
+  useEffect(() => {
     fetchMessagesFirst();
     flatListRef.current?.scrollToEnd({ animated: true });
   }, [conversationId]);
 
+  useEffect(() => {
+    setLoading(true);
+    const unread_messages = messages.filter(
+      (msg) => msg.unread == true && msg.senderId != user!.id
+    );
+    unread_messages.map((msg) => {
+      handleUpdateUnreadMessages(msg.id);
+    });
+    setLoading(false);
+  }, [messages]);
   const updateMessages = async (messageContent: string) => {
+    const active_participants = await checkNumberOfParticipants(true);
+
     await fetchAPI(`/api/chat/newMessage`, {
       method: "POST",
       body: JSON.stringify({
@@ -60,6 +125,8 @@ const Conversation = () => {
         message: messageContent,
         senderId: user!.id,
         timestamp: new Date(),
+        unread: active_participants == 2 ? false : true,
+        notified: active_participants == 2 ? true : false,
       }),
     });
   };
@@ -81,6 +148,8 @@ const Conversation = () => {
       content: newMessage,
       senderId: user!.id,
       timestamp: new Date(),
+      unread: false,
+      notified: false,
     };
 
     // Update the state to include the new message
@@ -91,6 +160,25 @@ const Conversation = () => {
     patchConversation(newMessage);
     flatListRef.current?.scrollToEnd({ animated: true });
     setNewMessage("");
+  };
+  const handleUpdateUnreadMessages = async (messageId: number) => {
+    setLoading(true);
+    try {
+      const updateUnreadMessages = await fetchAPI(
+        `/api/notifications/updateUnreadMessages`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            clerkId: user?.id,
+            messageId: messageId,
+          }),
+        }
+      );
+    } catch {
+      console.error("Failed to update unread message:");
+    } finally {
+      setLoading(false);
+    }
   };
   const renderMessageItem = ({
     item,
@@ -106,9 +194,7 @@ const Conversation = () => {
     >
       <Text
         className={`font-bold ${item.senderId == user?.id ? "text-white" : "text-black"}`}
-      >
-        {item.senderId === user?.id ? "You" : otherName}
-      </Text>
+      ></Text>
       <Text
         className={`${item.senderId === user?.id ? "text-white" : "text-black"}`}
       >
@@ -134,12 +220,12 @@ const Conversation = () => {
           </View>
           <TouchableOpacity
             className="flex-1"
-            onPress={() =>
+            onPress={() => {
               router.push({
                 pathname: "/root/profile/[id]",
-                params: { id: otherClerkId },
-              })
-            }
+                params: { id: otherClerkId as string },
+              });
+            }}
           >
             <Text className={`text-2xl font-JakartaBold flex-1 text-center`}>
               {otherName}

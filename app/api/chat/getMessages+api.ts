@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     //console.log("Received GET request for messages from conversation with ID: ", conversationId);
 
     const rawResponse = await sql`
-      SELECT id, message, timestamp, senderid FROM messages WHERE conversationid = ${conversationId}`;
+      SELECT id, message, timestamp, senderid, unread, notified FROM messages WHERE conversationid = ${conversationId}`;
 
     // Transform the raw response to match the interface
     const conversation: Message[] = rawResponse.map((row) => {
@@ -19,6 +19,8 @@ export async function GET(request: Request) {
         senderId: row.senderid,
         content: row.message,
         timestamp: row.timestamp.toISOString(),
+        unread: row.unread,
+        notified: row.notified
       };
     });
 

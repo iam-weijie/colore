@@ -71,13 +71,23 @@ export async function GET(request: Request) {
       ORDER BY p.created_at ASC;
     `;
 
+    // Sum up all unread_comments
+    const unread_comments = postsWithComments.reduce(
+      (sum: number, post: any) => sum + (post.unread_comments || 0),
+      0
+    );
+
     const filteredPosts = postsWithComments.filter(
       (post: any) => post.comments && post.comments.length > 0
     );
-    
-    return new Response(JSON.stringify({ data: filteredPosts }), {
-      status: 200,
-    });
+
+    return new Response(
+      JSON.stringify({ toNotify: filteredPosts, unread_count: unread_comments }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error(error);
     return new Response(
