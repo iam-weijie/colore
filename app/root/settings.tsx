@@ -1,3 +1,6 @@
+// Need to configure Email Verification & Update
+
+
 import { fetchAPI } from "@/lib/fetch";
 import { UserProfileType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -12,7 +15,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useNavigationContext } from "@/components/NavigationContext";
@@ -21,16 +23,18 @@ const Settings = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
 
   const fetchUserData = async () => {
     try {
-      const response = await fetchAPI(`/api/users/getUserInfoPosts?id=${user!.id}`);
-      const { userInfo } = response;
-      setProfileUser(userInfo);
-      setUsername(userInfo.username || '');
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
+      const data = response.data[0];
+      setProfileUser(data);
+      setUsername(data.username || '');
+      setEmail(data.email || '')
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     }
@@ -110,6 +114,7 @@ const Settings = () => {
     ? `${profileUser.city}, ${profileUser.state}, ${profileUser.country}`
     : "No location set";
 
+    console.log(profileUser)
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
@@ -119,47 +124,69 @@ const Settings = () => {
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
           </View>
+          <View className=" m-4">
+          <View className="bg-[#fafafa] rounded-[32px] p-5 mb-4">
+              <Text className="text-xl font-JakartaSemiBold mb-4 text-[#bfbfbf]">Profile</Text>
+              <View className="p-2">
+              <View className="mb-4">
+              <Text className="text-lg font-JakartaSemiBold">First Name</Text>
+              <Text className="text-lg">{profileUser?.firstname}</Text>
+              </View>
+              <View className="mb-4">
+              <Text className="text-lg font-JakartaSemiBold">Last Name</Text>
+              <Text className="text-lg">{profileUser?.lastname}</Text>
+              </View>
+              </View>
+              
 
-          <View className="px-7">
-            <Text className="text-2xl font-JakartaBold mb-8">Settings</Text>
-            
-            <View className="mb-8">
+            </View>
+
+
+            <View className="bg-[#fafafa] rounded-[32px] p-5">
+              <Text className="text-xl font-JakartaSemiBold mb-4 text-[#bfbfbf]">Account</Text>
+              <View className="flex flex-row items-center justify-between -mb-10 p-2">
+              <Text className="text-lg font-JakartaSemiBold">Username</Text>
+              <Text onPress={() => {
+                if (!username || loading) {
+                  return
+                }
+                handleUsernameUpdate()
+                
+                }} className="text-md text-indigo-700 font-JakartaSemiBold">Update</Text>
+              </View>
               <InputField
-                label="Username"
+                label=""
                 value={username}
                 onChangeText={setUsername}
                 placeholder={profileUser?.username || "Enter username"}
                 containerStyle="mb-4"
               />
-              <CustomButton
-                title="Update Username"
-                onPress={handleUsernameUpdate}
-                disabled={loading || !username}
-                bgVariant="gradient"
-                className="w-full"
-                padding="3"
+             <View className="flex flex-row items-center justify-between -mb-10 p-2">
+              <Text className="text-lg font-JakartaSemiBold">Email Address</Text>
+              <Text className="text-md text-indigo-700 font-JakartaSemiBold">Update</Text> 
+              </View>
+              <InputField
+                label=""
+                value={email}
+                onChangeText={setEmail}
+                placeholder={profileUser?.email || "Enter email address"}
+                containerStyle="mb-4"
               />
+            <View className="mb-6 mx-2">
+              <View className="flex flex-row items-center justify-between mb-4">
+              <Text className="text-lg font-JakartaSemiBold ">Location</Text>
+              <Text onPress={handleLocationUpdate} className="text-md text-indigo-700 font-JakartaSemiBold">Update</Text>
+              </View>
+              
+              <Text className="text-gray-500 mb-2">Current location: {currentLocation}</Text>
+            </View>
             </View>
 
-            <View className="mb-8">
-              <Text className="text-lg font-JakartaSemiBold mb-2">Current Location</Text>
-              <Text className="text-gray-500 mb-4">{currentLocation}</Text>
-              <CustomButton
-                title="Change Location"
-                onPress={handleLocationUpdate}
-                bgVariant="gradient"
-                className="w-full"
-                padding="3"
-              />
+            <View className="my-[36px]">
+              <TouchableOpacity onPress={handleSignOut} >
+                <Text className="font-JakartaBold text-xl text-red-500 text-center">Sign Out</Text>
+                </TouchableOpacity>
             </View>
-
-            <CustomButton
-              title="Sign Out"
-              onPress={handleSignOut}
-              bgVariant="danger"
-              className="w-full"
-              padding="3"
-            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
