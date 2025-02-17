@@ -124,17 +124,21 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, up
 };
 
 declare interface PostItBoardProps {
-    posts: Post[];
-    handlePostsRefresh: () => void | Promise<void>;
+    userId: string;
+    handlePostsRefresh: () => Promise<Post[]>;
     handleBack?: () => void;
-    fetchNewPost: () => void;
+    handleNewPostFetch: () => Promise<Post>;
     onWritePost: () => void;
 }
 
 const PostItBoard: React.FC<PostItBoardProps> = ({
-
+    userId, 
+    handlePostsRefresh,
+    handleBack,
+    handleNewPostFetch,
+    onWritePost,
 }) => {
-  const [posts, setPosts] = useState<PostWithPosition[]>([]);
+  const [postsWithPosition, setPostsWithPosition] = useState<PostWithPosition[]>([]);
   const {stacks, setStacks } = useGlobalContext(); // Add more global constants here
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -144,26 +148,21 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   const fetchRandomPosts = async () => {
     try {
-      const response = await fetch(
-        `/api/posts/getRandomPosts?number=${4}&id=${user!.id}`
-      );
-      if (!response.ok) throw new Error("Network response was not ok");
-      const result = await response.json();
+      const posts: Post[] = await handlePostsRefresh();
       // set positions of posts
-      const postsWithPositions = result.data.map((post: Post) => ({
+      const postsWithPositions = posts.map((post: Post) => ({
         ...post,
         position: {
           top: Math.random() * 400 + 50,
           left: Math.random() * 250,
         },
       }));
-      setPosts(postsWithPositions);
-
     // Initialize each post as a stack
       const initialStacks = postsWithPositions.map((post: PostWithPosition) => ({
         ids: [post.id],
         elements: [post],
       }));
+      setPostsWithPosition(postsWithPositions);
       setStacks(initialStacks);
     } catch (error) {
       setError("Failed to fetch new posts.");
@@ -257,7 +256,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       );
       updatedStacks.push({ 
         ids: Array.from(mergedStackIds), 
-        elements: Array.from(mergedStackIds).map((id) => posts.find((post) => post.id === id))});
+        elements: Array.from(mergedStackIds).map((id) => postsWithPosition.find((post) => post.id === id))});
     }
   
     // Remove posts from stacks if they're no longer within range of each other
@@ -307,16 +306,10 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       ...prevMap.filter((p) => p.id !== id),
       postItCoordinates,
     ]);
-
-    // Update the stack logic
-    //updateStacks(id, postItCoordinates.coordinates);
-    
-    //console.log(distanceBetweenPosts(x, y, posts.filter((post) => post.id !== id)));
-   
   }
 
   const reorderPost = (topPost: PostWithPosition) => {
-    setPosts((prevPosts) => [
+    setPostsWithPosition((prevPosts: PostWithPosition[]) => [
       ...prevPosts.filter((post) => post.id !== topPost.id), // Remove the moved post
       topPost, // Add the moved post to the end
     ]);
@@ -324,83 +317,48 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   };
   useEffect(() => {
     if ( maps.length > 1) {
-    const newPostID = maps[maps.length - 1].id
-    const newPostScreenCoordinates = maps[maps.length - 1].coordinates
-    updateStacks(newPostID, newPostScreenCoordinates);
+        const newPostID = maps[maps.length - 1].id
+        const newPostScreenCoordinates = maps[maps.length - 1].coordinates
+        updateStacks(newPostID, newPostScreenCoordinates);
     }
-   
-
   }, [maps]);
-  
 
-  /*
-  useEffect(() => {
-
-    if ( maps.length > 1) {
-
-    const newPostID = maps[maps.length - 1].id
-    const newPostScreenCoordinates = maps[maps.length - 1].coordinates
-    const distances = distanceBetweenPosts(newPostScreenCoordinates.x_coordinate, newPostScreenCoordinates.y_coordinate, maps.filter((post) => post.id !== newPostID))
-    
-    console.log(distances)
-    const newStack = []
-
-    distances.forEach((dist, index) => {
-
-      if (dist < 15) {
-        if (stacks.length > 0 && !stacks.includes(newPostID)) {
-          const matchingPost = posts.find((post) => post.id === maps[index].id) 
-          const matchingStack = stacks.find((post) => post.ids.includes(maps[index].id))
-         //r matchingStack.ids.push(matchingPost.id)
-          //newStack = matchingStack.ids
-          console.log(matchingPost.id)
-          console.log(matchingStack.ids)
-        }
-     
-      }
-    }
-)
-    //setStacks(() => [Stack({ids: newStack, elements:[]})]);
-  };
-
-  }, [maps])
-*/
   useEffect(() => {
     fetchRandomPosts();
-
-    // Fetch the first post (one random post)
-    const fetchAndSetNewPost = async () => {
-      const newPost = await fetchNewPost();
-      if (newPost) {
-        setPosts((prevPosts) => [...prevPosts, newPost]); // Add the new post to the list
-      }
-    };
-
-    fetchAndSetNewPost();
   }, []);
 
   const handlePostPress = (post: PostWithPosition) => {
       setSelectedPost(post);
-
-    
   };
   
-
   const handleNewPostPress = () => {
     router.push("/root/new-post");
   };
 
   const handleCloseModal = async () => {
     if (selectedPost) {
-      setPosts((prevPosts) =>
+      setPostsWithPosition((prevPosts) =>
         prevPosts.filter((post) => post.id !== selectedPost.id)
       );
-      // Fetch a new post to replace the removed one
-      const newPost = await fetchNewPost();
-      if (newPost) {
-        setPosts((prevPosts) => [...prevPosts, newPost]);
+  
+      let newPost: Post | null = null;
+      let newPostWithPosition: PostWithPosition | null = null;
+  
+      do {
+        newPost = await handleNewPostFetch();
+        if (newPost) {
+          newPostWithPosition = {
+            ...newPost,
+            position: {
+              top: Math.random() * 400 + 50,
+              left: Math.random() * 250,
+            },
+          };
+        }
+      } while (newPost && postsWithPosition.some((post) => post.id === newPost!.id));
+      if (newPostWithPosition) {
+        setPostsWithPosition((prevPosts) => [...prevPosts, newPostWithPosition]);
       }
-
       setSelectedPost(null);
     }
   };
@@ -409,7 +367,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     setLoading(true);
     fetchRandomPosts();
   };
- console.log("Stacks: ", stacks)
+//  console.log("Stacks: ", stacks)
 
   return (
     <SafeAreaView className="flex-1">
@@ -446,7 +404,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             />
 
             <View className="relative">
-              {posts.map((post, index) => {
+              {postsWithPosition.map((post, index) => {
                 return (
                   <DraggablePostIt 
                     key={post.id}
@@ -473,3 +431,5 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     </SafeAreaView>
   );
 }
+
+export default PostItBoard;
