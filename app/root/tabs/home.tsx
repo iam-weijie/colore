@@ -46,6 +46,7 @@ export default function Page() {
           handlePostsRefresh={fetchPosts}
           handleNewPostFetch={fetchNewPost}
           onWritePost={handleNewPostPress}
+          allowStacking={true}
         />
       </SignedIn>
     </SafeAreaView>
