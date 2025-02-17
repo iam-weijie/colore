@@ -7,7 +7,6 @@ import { useNotification } from '@/notifications/NotificationContext';
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import React = require("react");
 import {
   ActivityIndicator,
   Alert,

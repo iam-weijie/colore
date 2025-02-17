@@ -14,6 +14,7 @@ import {
 import { FriendRequest, Friendship, RawFriendRequest, UserNicknamePair } from "@/types/type";
 import DropdownMenu from "@/components/DropdownMenu";
 import { FriendStatus } from "@/lib/enum";
+
 import {
   ActivityIndicator,
   Alert,
@@ -64,7 +65,6 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ name, focused, onPress, n
   );
 };
 
-
 const ChatScreen: React.FC<ChatScreenProps> = () => {
   const { user } = useUser();
 
@@ -100,11 +100,11 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       );
 
       const responseNotifications = await fetch(`/api/notifications/getMessages?id=${user!.id}`);
+
       if (!responseNotifications) {
         throw new Error("Response is undefined.");
       }
       const responseData = await responseNotifications.json();
-
       const chatNotifications = responseData.toRead; // Notifications data
       const fetchedConversations = responseConversation.data; // Conversations data
 
@@ -133,7 +133,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     }
   };
 
-
   const fetchNicknames = async () => {
     try {
       const response = await fetchAPI(
@@ -146,7 +145,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       // Ensure response data exists and contains nicknames
       const nicknames: UserNicknamePair[] = response.data?.[0]?.nicknames || [];
       const nicknameMap: Record<string, string> = convertNicknameDictionary(nicknames);
-  
       setNicknames(nicknameMap);
     } catch (error) {
       console.error("Failed to fetch nicknames: ", error);
@@ -207,7 +205,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   const filteredFriendList = friendList.filter((friend) =>
     friend.friend_username.toLowerCase().includes(searchText.toLowerCase())
   );
-
 
   // RENDER LISTS ------ START
   const renderConversationItem = ({ item }: { item: ConversationItem }): React.ReactElement => (
@@ -388,7 +385,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   //console.log("All Friend Request", allFriendRequests?.sent)
    // HANDLE REQUESTS ------ END
-
   // USE EFFECT ------- START
 
   useFocusEffect(
@@ -397,7 +393,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       fetchFriendData();
     }, [])
   );
-
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -516,7 +511,6 @@ setSearchText("")}
                         style={{ maxHeight: screenHeight * 0.3}}
                       />
                   </View>}
-
           </View>
         )}
       </View>
