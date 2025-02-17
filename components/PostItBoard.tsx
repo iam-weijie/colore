@@ -134,9 +134,7 @@ declare interface PostItBoardProps {
 const PostItBoard: React.FC<PostItBoardProps> = ({
     userId, 
     handlePostsRefresh,
-    handleBack,
     handleNewPostFetch,
-    onWritePost,
 }) => {
   const [postsWithPosition, setPostsWithPosition] = useState<PostWithPosition[]>([]);
   const {stacks, setStacks } = useGlobalContext(); // Add more global constants here
@@ -172,32 +170,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     }
   };
 
-  const fetchNewPost = async () => {
-    try {
-      const response = await fetch(
-        `/api/posts/getRandomPosts?number=${1}&id=${user!.id}`
-      );
-      if (!response.ok) throw new Error("Network response was not ok");
-      const result = await response.json();
-      // Add position to the new post
-      const newPostWithPosition = result.data.map((post: Post) => ({
-        ...post,
-        position: {
-          top: Math.random() * 500,
-          left: Math.random() * 250,
-        },
-      }));
-      return newPostWithPosition[0];
-    } catch (error) {
-      setError("Failed to fetch new post.");
-      console.error(error);
-      return null;
-    }
-  };
-
   const updateStacks = (postId: number, newCoordinates: {x_coordinate: number, y_coordinate: number}) => {
 
-  
     let updatedStacks = [...stacks];
     let postsToCombine = new Set([postId]); // Set of post IDs to combine into a single stack
   
@@ -372,18 +346,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <View className="flex-row justify-between items-center mx-7 mt-3">
-          <Image
-            source={require("@/assets/colore-word-logo.png")}
-            style={{ width: 120, height: 50 }}
-            resizeMode="contain"
-            accessibilityLabel="Colore logo"
-          />
-
-          <TouchableOpacity onPress={handleNewPostPress}>
-            <Image source={icons.pencil} className="w-7 h-7" />
-          </TouchableOpacity>
-        </View>
 
         {loading ? (
           <View className="flex-[0.8] justify-center items-center">

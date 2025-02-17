@@ -1,15 +1,14 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import PostItBoard from "@/components/PostItBoard";
-import { Post } from "@/types/type";
-import { useState } from "react";
 import { fetchAPI } from "@/lib/fetch";
 import { 
-  Text, 
+  Image, 
   SafeAreaView, 
   View, 
-  ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { router } from "expo-router";
+import { icons } from "@/constants";
 
 export default function Page() {
   const { user } = useUser();
@@ -31,6 +30,17 @@ export default function Page() {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
+        <View className="flex-row justify-between items-center mx-7 mt-3">
+          <Image
+            source={require("@/assets/colore-word-logo.png")}
+            style={{ width: 120, height: 50 }}
+            resizeMode="contain"
+            accessibilityLabel="Colore logo"
+          />
+          <TouchableOpacity onPress={handleNewPostPress}>
+            <Image source={icons.pencil} className="w-7 h-7" />
+          </TouchableOpacity>
+        </View>
         <PostItBoard 
           userId={user!.id}
           handlePostsRefresh={fetchPosts}
