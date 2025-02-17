@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { Stacks } from "@/types/type";
 import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useNotification } from '@/notifications/NotificationContext'; // Assuming you have a notification context to manage global state
 
 
@@ -28,6 +28,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [unreadRequests, setUnreadRequests] = useState<number>(0);
   const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
   
+  const { isSignedIn } = useAuth();
   const { user } = useUser();
   const { pushToken } = useNotification();
 
@@ -260,7 +261,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     updateLastConnection()
-  })
+  }, [isSignedIn])
 
   return (
     <GlobalContext.Provider value={{

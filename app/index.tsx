@@ -1,5 +1,5 @@
 
-import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useAuth } from "@clerk/clerk-expo";
 import { Redirect } from "expo-router";
 
 const Home = () => {
