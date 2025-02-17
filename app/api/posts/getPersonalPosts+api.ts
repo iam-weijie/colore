@@ -5,10 +5,9 @@ export async function GET(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const number = url.searchParams.get("number");
-    const id = url.searchParams.get("id");
+    const recipientId = url.searchParams.get("recipient_id");
     //console.log("Received GET request for random posts.");
 
-    // comments table to be joined later :]
     const response = await sql`
       SELECT 
         p.id, 
@@ -26,10 +25,9 @@ export async function GET(request: Request) {
         u.country, 
         u.state, 
         u.city
-  
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
-      WHERE p.user_id != ${id} AND p.post_type = 'public'
+      WHERE p.recipient_user_id = ${recipientId} AND p.post_type = 'private'
       ORDER BY RANDOM()
       LIMIT ${number};
     `;
