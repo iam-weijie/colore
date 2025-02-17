@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { Stacks } from "@/types/type";
 import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
-import { useUser, useAuth } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from '@/notifications/NotificationContext'; // Assuming you have a notification context to manage global state
 
 
@@ -28,7 +28,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [unreadRequests, setUnreadRequests] = useState<number>(0);
   const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
   
-  const { isSignedIn } = useAuth();
+  
+  const hasUpdatedLastConnection = useRef(false);
   const { user } = useUser();
   const { pushToken } = useNotification();
 
@@ -87,6 +88,10 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log(userResponseData)
       const mostRecentConnection = userResponseData.data[0].last_connection
       setLastConnection(mostRecentConnection)
+
+      if (!hasUpdatedLastConnection.current) {
+        updateLastConnection();
+      }
 
       const friendRequestData = await friendRequestResponse.json();
       const allFriendResquests = friendRequestData.data
@@ -228,7 +233,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const updateLastConnection = async () => {
-        if (user) {
+
+        if (user && !hasUpdatedLastConnection.current) {
           try {
             const response = await fetchAPI(`/api/users/updateUserLastConnection`,  {
               method: "PATCH",
@@ -240,6 +246,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             if (response.error) {
               throw new Error(response.error);
             }
+            hasUpdatedLastConnection.current = true;
           } catch (error) {
             console.error("Failed to update user last connection:", error);
           } 
@@ -252,16 +259,12 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       fetchNotifications(); // Initial fetch
       const interval = setInterval(() => {
         fetchNotifications(); // Poll notifications every 5 seconds
-        updateLastConnection();
       }, 5000);
 
       return () => clearInterval(interval); // Cleanup on unmount
     }
   }, [user]);
 
-  useEffect(() => {
-    updateLastConnection()
-  }, [])
 
   return (
     <GlobalContext.Provider value={{
