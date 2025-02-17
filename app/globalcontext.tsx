@@ -258,6 +258,10 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [user]);
 
+  useEffect(() => {
+    updateLastConnection()
+  })
+
   return (
     <GlobalContext.Provider value={{
       stacks,
