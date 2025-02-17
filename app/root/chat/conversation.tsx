@@ -148,6 +148,8 @@ const Conversation = () => {
       content: newMessage,
       senderId: user!.id,
       timestamp: new Date(),
+      unread: false,
+      notified: false,
     };
 
     // Update the state to include the new message
@@ -221,7 +223,7 @@ const Conversation = () => {
             onPress={() => {
               router.push({
                 pathname: "/root/profile/[id]",
-                params: { id: otherClerkId },
+                params: { id: otherClerkId as string },
               });
             }}
           >
