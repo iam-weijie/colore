@@ -211,7 +211,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     updatedStacks = updatedStacks.map((stack) => ({
       ...stack,
       ids: stack.ids.filter((id: number) => id !== postId),
-     elements: stack.elements.lengtrh > 0 
+     elements: stack.elements.length > 0 
      ? stack.elements.filter((post: PostWithPosition) => post.id !== postId) 
      : stack.elements
     }));
