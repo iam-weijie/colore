@@ -89,7 +89,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({ post, updateIndex, up
         onPanResponderRelease: (event, gestureState) => {
           const dx = gestureState.dx;
           const dy = gestureState.dy;
-          position.flattenOffset(); // reset the offset so transformations don't accumulate
+          position.extractOffset(); // reset the offset so transformations don't accumulate
   
           if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
             onPress();
