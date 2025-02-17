@@ -4,8 +4,8 @@ import { Message } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
-import { useFocusEffect} from "@react-navigation/native";
-import React, { useEffect, useRef, useState,  useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -26,14 +26,13 @@ const Conversation = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const updateActiveUser = async (activity: boolean) => {
-    
     try {
-      const response = await fetchAPI(`/api/users/updateActiveUser`,  {
+      const response = await fetchAPI(`/api/users/updateActiveUser`, {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user?.id,
           conversationId: conversationId,
-          activity: activity
+          activity: activity,
         }),
       });
 
@@ -43,32 +42,29 @@ const Conversation = () => {
     } catch (error) {
       console.error("Failed to update user last connection:", error);
     }
-  
-};
+  };
 
-const checkNumberOfParticipants = async (activity: boolean) => {
-    
-  try {
-    const response = await fetchAPI(`/api/users/updateActiveUser`,  {
-      method: "PATCH",
-      body: JSON.stringify({
-        clerkId: user?.id,
-        conversationId: conversationId,
-        activity: activity
-      }),
-    });
+  const checkNumberOfParticipants = async (activity: boolean) => {
+    try {
+      const response = await fetchAPI(`/api/users/updateActiveUser`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user?.id,
+          conversationId: conversationId,
+          activity: activity,
+        }),
+      });
 
-    console.log("check number of participants", response.data.active_participants.length)
-    const number_of_participants = response.data.active_participants.length;
-    return number_of_participants
-
-  } catch (error) {
-    console.error("Failed to check number of participants", error);
-  }
-
-};
-
-
+      console.log(
+        "check number of participants",
+        response.data.active_participants.length
+      );
+      const number_of_participants = response.data.active_participants.length;
+      return number_of_participants;
+    } catch (error) {
+      console.error("Failed to check number of participants", error);
+    }
+  };
 
   const fetchMessages = async () => {
     const response = await fetchAPI(
@@ -94,14 +90,14 @@ const checkNumberOfParticipants = async (activity: boolean) => {
   };
 
   useEffect(() => {
-
     updateActiveUser(true);
-  }, [conversationId]); 
+  }, [conversationId]);
 
   useFocusEffect(
     useCallback(() => {
       return () => {
-        updateActiveUser(false)};
+        updateActiveUser(false);
+      };
     }, [user, conversationId])
   );
   useEffect(() => {
@@ -110,15 +106,17 @@ const checkNumberOfParticipants = async (activity: boolean) => {
   }, [conversationId]);
 
   useEffect(() => {
-    setLoading(true)
-    const unread_messages = messages.filter((msg) => msg.unread == true && msg.senderId != user!.id)
+    setLoading(true);
+    const unread_messages = messages.filter(
+      (msg) => msg.unread == true && msg.senderId != user!.id
+    );
     unread_messages.map((msg) => {
-      handleUpdateUnreadMessages(msg.id)
-    })
-    setLoading(false)
-  }, [messages])
+      handleUpdateUnreadMessages(msg.id);
+    });
+    setLoading(false);
+  }, [messages]);
   const updateMessages = async (messageContent: string) => {
-    const active_participants = await checkNumberOfParticipants(true)
+    const active_participants = await checkNumberOfParticipants(true);
 
     await fetchAPI(`/api/chat/newMessage`, {
       method: "POST",
@@ -128,7 +126,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
         senderId: user!.id,
         timestamp: new Date(),
         unread: active_participants == 2 ? false : true,
-        notified: active_participants == 2 ? true : false
+        notified: active_participants == 2 ? true : false,
       }),
     });
   };
@@ -162,22 +160,24 @@ const checkNumberOfParticipants = async (activity: boolean) => {
     setNewMessage("");
   };
   const handleUpdateUnreadMessages = async (messageId: number) => {
-      setLoading(true)
-      try {
-          const updateUnreadMessages = await fetchAPI(`/api/notifications/updateUnreadMessages`, {
-            method: "PATCH",
-            body: JSON.stringify({
-              clerkId: user?.id,
-              messageId: messageId,
-            })
-          })
-      }
-      catch {
-        console.error("Failed to update unread message:", error);
-      } finally {
-        setLoading(false)
-      }
+    setLoading(true);
+    try {
+      const updateUnreadMessages = await fetchAPI(
+        `/api/notifications/updateUnreadMessages`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            clerkId: user?.id,
+            messageId: messageId,
+          }),
+        }
+      );
+    } catch {
+      console.error("Failed to update unread message:");
+    } finally {
+      setLoading(false);
     }
+  };
   const renderMessageItem = ({
     item,
   }: {
@@ -192,8 +192,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
     >
       <Text
         className={`font-bold ${item.senderId == user?.id ? "text-white" : "text-black"}`}
-      >
-      </Text>
+      ></Text>
       <Text
         className={`${item.senderId === user?.id ? "text-white" : "text-black"}`}
       >
@@ -223,9 +222,8 @@ const checkNumberOfParticipants = async (activity: boolean) => {
               router.push({
                 pathname: "/root/profile/[id]",
                 params: { id: otherClerkId },
-              })
-            }
-            }
+              });
+            }}
           >
             <Text className={`text-2xl font-JakartaBold flex-1 text-center`}>
               {otherName}
