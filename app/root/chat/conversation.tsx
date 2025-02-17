@@ -150,6 +150,8 @@ const checkNumberOfParticipants = async (activity: boolean) => {
       content: newMessage,
       senderId: user!.id,
       timestamp: new Date(),
+      unread: true,
+      notified: false
     };
 
     // Update the state to include the new message
@@ -173,7 +175,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
           })
       }
       catch {
-        console.error("Failed to update unread message:", error);
+        console.error("Failed to update unread message");
       } finally {
         setLoading(false)
       }
@@ -222,7 +224,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
             onPress={() => {
               router.push({
                 pathname: "/root/profile/[id]",
-                params: { id: otherClerkId },
+                params: { id: otherClerkId as string },
               })
             }
             }
