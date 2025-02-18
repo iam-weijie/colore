@@ -478,43 +478,57 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
         </View>
       </View>
-
-
       <View className="flex-row justify-around items-center space-x-8 mx-7">
         <TouchableOpacity onPress={() => {
-          if (currentSubscreen !== "colors") setCurrentSubscreen("colors")
-          if (currentSubscreen === "colors") setCurrentSubscreen("posts")
-          }} className="flex-1 max-w-[135px] p-5  bg-gray-200 items-center justify-between" 
-        style={{height: isCollapsed ? 60 : 150, 
-                borderRadius: isCollapsed ? 24 : 32}}>
-              { !isCollapsed &&
-              <View  className="w-full flex flex-row items-start">
-                <Text className="text-[#333333] font-JakartaBold text-3xl">{currentSubscreen !== "colors" ? temporaryColors.length : userPosts.length}</Text>
-              </View>}
-              { !isCollapsed && <View>
-               {currentSubscreen !== "colors" &&
-              <Image
-                source={icons.palette}
-                tintColor={currentSubscreen === "colors" ? "#93c5fd" : "#333333"}
-                resizeMode="contain"
-                className="w-10 h-10 -mt-4"
-              />
-               }
-                {currentSubscreen !== "posts" &&
-              <Image
-                source={icons.home}
-                tintColor={currentSubscreen === "posts" ? "#93c5fd" : "#333333"}
-                resizeMode="contain"
-                className="w-10 h-10 -mt-4"
-              />
-               }
-              </View>}
-              
-              <View>
-              {currentSubscreen !== "colors" && <Text className="text-[#333333] font-JakartaBold text-[16px]">{isCollapsed ? `Colors (${temporaryColors.length})` : "Colors"}</Text>}
-              {currentSubscreen !== "posts" && <Text className="text-[#333333] font-JakartaBold text-[16px]">Posts</Text>}
-              </View>
+          if (currentSubscreen === "posts") setCurrentSubscreen("colors");
+          else if (currentSubscreen === "colors") setCurrentSubscreen("personal");
+          else setCurrentSubscreen("posts");
+          }} 
+          className="flex-1 max-w-[135px] p-5 bg-gray-200 items-center justify-between" 
+          style={{
+            height: isCollapsed ? 60 : 150, 
+            borderRadius: isCollapsed ? 24 : 32
+          }}
+        >
+          {!isCollapsed && (
+            <View className="w-full flex flex-row items-start">
+              <Text className="text-[#333333] font-JakartaBold text-3xl">
+                {currentSubscreen !== "colors" ? temporaryColors.length : userPosts.length}
+              </Text>
+            </View>
+          )}
+          {!isCollapsed && (
+            <View>
+              {currentSubscreen !== "colors" && (
+                <Image
+                  source={icons.palette}
+                  tintColor={currentSubscreen === "colors" ? "#93c5fd" : "#333333"}
+                  resizeMode="contain"
+                  className="w-10 h-10 -mt-4"
+                />
+              )}
+              {currentSubscreen !== "posts" && (
+                <Image
+                  source={icons.home}
+                  tintColor={currentSubscreen === "posts" ? "#93c5fd" : "#333333"}
+                  resizeMode="contain"
+                  className="w-10 h-10 -mt-4"
+                />
+              )}
+            </View>
+          )}
+          <View>
+            {currentSubscreen !== "colors" && (
+              <Text className="text-[#333333] font-JakartaBold text-[16px]">
+                {isCollapsed ? `Colors (${temporaryColors.length})` : "Colors"}
+              </Text>
+            )}
+            {currentSubscreen !== "posts" && (
+              <Text className="text-[#333333] font-JakartaBold text-[16px]">Posts</Text>
+            )}
+          </View>
         </TouchableOpacity>
+
         <TouchableOpacity onPress={async () => {
           const tab = "Friends"
           if (user!.id == userId) {
@@ -601,36 +615,58 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               </View>}
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          onPress={() => router.push({
-            pathname: "/root/personal-board/[id]",
+     
+
+      <TouchableOpacity 
+
+        onPress={() => {
+          const isViewingOwnProfile = user!.id === profileUser!.clerk_id;
+          if (isViewingOwnProfile) {
+            // If viewing own profile, go to personal board to see all notes
+            router.push({
+              pathname: "/root/tabs/personal-board",
+              params: { id: user!.id }
+            });
+          } else {
+            // If viewing someone else's profile, create a new personal note
+            router.push({
+              pathname: "/root/new-personal-post",
+              params: { 
+                recipient_id: profileUser!.clerk_id,
+                source: 'profile'
+              }
+            });
+          }
+        }}
+        className="flex-1 max-w-[135px] p-5 bg-gray-200 items-center justify-between"
+        style={{
+          height: isCollapsed ? 60 : 150, 
+          borderRadius: isCollapsed ? 24 : 32
+        }}
+        
+      >
+
+        {!isCollapsed && (
+          <View className="w-full flex flex-row items-start">
+            <Text className="text-[#333333] font-JakartaBold text-3xl">
+              
+              {user!.id === profileUser!.clerk_id ? "My" : "Leave"}
+            </Text>
+          </View>
+        )}
+        <Image
+          source={icons.chat}
+          tintColor="#333333"
+          resizeMode="contain"
+          className="w-10 h-10 -mt-4"
+        />
+        <Text className="text-[#333333] font-JakartaBold text-[16px]">
+          {isCollapsed ? "Personal" : user!.id === profileUser!.clerk_id  ? "Personal Board" : "Note"}
+        </Text>
+      </TouchableOpacity>
+
 
       
-            params: { id: profileUser!.clerk_id }
-          })}
-          className="flex-1 max-w-[135px] p-5 bg-gray-200 items-center justify-between"
-          style={{
-            height: isCollapsed ? 60 : 150, 
-            borderRadius: isCollapsed ? 24 : 32
-          }}
-        >
-          {!isCollapsed && (
-            <View className="w-full flex flex-row items-start">
-              <Text className="text-[#333333] font-JakartaBold text-3xl">0</Text>
-            </View>
-          )}
-          {!isCollapsed && (
-            <Image
-              source={icons.chat}
-              tintColor="#333333"
-              resizeMode="contain"
-              className="w-10 h-10 -mt-4"
-            />
-          )}
-          <Text className="text-[#333333] font-JakartaBold text-[16px]">
-            {isCollapsed ? "Personal" : "Personal Board"}
-          </Text>
-        </TouchableOpacity>
       </View>
 
       <View className="mx-7 mt-5">

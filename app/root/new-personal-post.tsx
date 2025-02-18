@@ -13,8 +13,8 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import EmojiSelector from "react-native-emoji-selector";
 import { SafeAreaView } from "react-native-safe-area-context";
+import EmojiSelector from "react-native-emoji-selector";
 
 import ColorSelector from "@/components/ColorSelector";
 import CustomButton from "@/components/CustomButton";
@@ -24,56 +24,26 @@ import { PostItColor } from "@/types/type";
 
 const NewPersonalPost = () => {
   const { user } = useUser();
-  const { recipient_id } = useLocalSearchParams();
+  const { recipient_id, source } = useLocalSearchParams();
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
-  const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors[0]
-  );
+  const [selectedColor, setSelectedColor] = useState<PostItColor>(temporaryColors[0]);
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
-
-  const handleColorSelect = (color: PostItColor) => {
-    setSelectedColor(color);
-    setIsEmojiSelectorVisible(false);
-  };
-
   const screenHeight = Dimensions.get("screen").height;
+
+  useEffect(() => {
+    if (!recipient_id) {
+      console.error("No recipient_id provided");
+      Alert.alert("Error", "No recipient specified");
+      router.back();
+    }
+  }, [recipient_id]);
 
   const handleContentSizeChange = (event: any) => {
     setInputHeight(event.nativeEvent.contentSize.height);
-  };
-
-  const handlePostSubmit = async () => {
-    setIsPosting(true);
-    const cleanedContent = postContent.trim();
-    if (cleanedContent === "") {
-      Alert.alert("Error", "Post content cannot be empty.");
-      return;
-    }
-    try {
-      await fetchAPI("/api/posts/newPersonalPost", {
-        method: "POST",
-        body: JSON.stringify({
-          content: cleanedContent,
-          clerkId: user!.id,
-          receipientId: recipient_id,
-          color: selectedColor.name,
-          emoji: selectedEmoji,
-        }),
-      });
-      setPostContent("");
-      setSelectedEmoji(null);
-      Alert.alert("Post created.");
-    } catch (error) {
-      Alert.alert("Error", "An error occurred. Please try again.");
-    } finally {
-      setIsPosting(false);
-    }
-
-    router.back();
   };
 
   const handleChangeText = (text: string) => {
@@ -88,6 +58,11 @@ const NewPersonalPost = () => {
     }
   };
 
+  const handleColorSelect = (color: PostItColor) => {
+    setSelectedColor(color);
+    setIsEmojiSelectorVisible(false);
+  };
+
   const toggleEmojiSelector = () => {
     setIsEmojiSelectorVisible((prev) => !prev);
   };
@@ -98,23 +73,72 @@ const NewPersonalPost = () => {
     }
   }, [selectedEmoji]);
 
+  const handlePostSubmit = async () => {
+    setIsPosting(true);
+    const cleanedContent = postContent.trim();
+    
+    if (cleanedContent === "") {
+      Alert.alert("Error", "Post content cannot be empty.");
+      setIsPosting(false);
+      return;
+    }
+
+    try {
+      const response = await fetchAPI("/api/posts/newPersonalPost", {
+        method: "POST",
+        body: JSON.stringify({
+          content: cleanedContent,
+          clerkId: user!.id,
+          recipientId: recipient_id,
+          color: selectedColor.name,
+          emoji: selectedEmoji,
+          post_type: 'personal'
+        }),
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      setPostContent("");
+      setSelectedEmoji(null);
+      Alert.alert("Success", "Personal note created!", [
+        {
+          text: "OK",
+          onPress: () => {
+            if (source === 'profile') {
+              router.back();
+            } else {
+              router.push({
+                pathname: "/root/tabs/personal-board",
+                params: { id: recipient_id }
+              });
+            }
+          }
+        }
+      ]);
+    } catch (error) {
+      console.error("Failed to create personal post:", error);
+      Alert.alert("Error", "Failed to create personal note. Please try again.");
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-white">
       <SignedIn>
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
         >
-          <View>
-            <View className="flex flex-row justify-center items-center mt-3 mx-6">
-              <View className="flex-1">
-                <TouchableOpacity onPress={() => router.back()}>
-                  <AntDesign name="caretleft" size={18} color="0076e3" />
-                </TouchableOpacity>
-              </View>
-              <Text className="absolute text-xl font-JakartaSemiBold">
-                New Personal Post
-              </Text>
+          <View className="flex-1">
+            {/* Header */}
+            <View className="flex-row justify-between items-center px-6 py-3">
+              <TouchableOpacity onPress={() => router.back()}>
+                <AntDesign name="caretleft" size={18} color="0076e3" />
+              </TouchableOpacity>
+              <Text className="text-xl font-JakartaSemiBold">Leave a Note</Text>
               <CustomButton
                 className="w-14 h-8 rounded-md"
                 fontSize="sm"
@@ -125,50 +149,57 @@ const NewPersonalPost = () => {
               />
             </View>
 
-            <View className="mx-3">
+            {/* Main Content */}
+            <View className="flex-1 px-6">
               {!isEmojiSelectorVisible && (
-                <TextInput
-                  className="font-Jakarta mx-10 my-5"
-                  placeholder="Write something to share..."
-                  value={postContent}
-                  onChangeText={handleChangeText}
-                  onContentSizeChange={handleContentSizeChange}
-                  autoFocus
-                  multiline
-                  scrollEnabled
-                  style={{
-                    paddingTop: 10,
-                    paddingBottom: 0,
-                    minHeight: screenHeight * 0.2,
-                    maxHeight: screenHeight * 0.45,
-                    textAlignVertical: "top",
-                  }}
-                />
+                <View className="flex-1">
+                  <TextInput
+                    className="flex-1 font-Jakarta py-4"
+                    placeholder="Type something..."
+                    value={postContent}
+                    onChangeText={handleChangeText}
+                    onContentSizeChange={handleContentSizeChange}
+                    autoFocus
+                    multiline
+                    scrollEnabled
+                    style={{
+                      textAlignVertical: "top",
+                    }}
+                  />
+                </View>
               )}
 
-              <ColorSelector
-                colors={temporaryColors}
-                selectedColor={selectedColor}
-                onColorSelect={handleColorSelect}
-              />
-
-              <TouchableOpacity onPress={toggleEmojiSelector}>
-                {selectedEmoji ? (
-                  <Text style={{ fontSize: 35, margin: 1 }}>
-                    {selectedEmoji}
-                  </Text>
-                ) : (
-                  <Image source={icons.wink} className="w-8 h-9 m-1" />
-                )}
-              </TouchableOpacity>
+              {/* Bottom Bar */}
+              <View className="flex-row items-center justify-between py-4">
+                <View className="flex-row">
+                  <ColorSelector
+                    colors={temporaryColors}
+                    selectedColor={selectedColor}
+                    onColorSelect={handleColorSelect}
+                  />
+                  
+                  <TouchableOpacity 
+                    onPress={toggleEmojiSelector}
+                    className="ml-4"
+                  >
+                    {selectedEmoji ? (
+                      <Text style={{ fontSize: 35 }}>{selectedEmoji}</Text>
+                    ) : (
+                      <Image source={icons.wink} className="w-8 h-8" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
 
+            {/* Emoji Selector */}
             {isEmojiSelectorVisible && (
-              <View className="w-full h-screen bg-white">
+              <View className="absolute bottom-0 left-0 right-0 h-96 bg-white">
                 <EmojiSelector
                   onEmojiSelected={(emoji) => {
                     setSelectedEmoji(emoji);
                   }}
+                  showSearchBar={false}
                 />
               </View>
             )}

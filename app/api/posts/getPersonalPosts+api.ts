@@ -27,7 +27,7 @@ export async function GET(request: Request) {
         u.city
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
-      WHERE p.recipient_user_id = ${recipientId} AND p.post_type = 'private'
+      WHERE p.recipient_user_id = ${recipientId} AND p.post_type = 'personal'
       ORDER BY RANDOM()
       LIMIT ${number};
     `;
