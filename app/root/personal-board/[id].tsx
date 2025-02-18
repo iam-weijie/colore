@@ -1,67 +1,162 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
-import { SafeAreaView, View, TouchableOpacity, Image } from "react-native";
-import { icons } from "@/constants";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import PostItBoard from "@/components/PostItBoard";
+import { 
+  Alert, 
+  Dimensions, 
+  Image, 
+  Keyboard, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  TouchableWithoutFeedback, 
+  View 
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import EmojiSelector from "react-native-emoji-selector";
+import AntDesign from "@expo/vector-icons/AntDesign";
+
+import ColorSelector from "@/components/ColorSelector";
+import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
+import { PostItColor } from "@/types/type";
 
-const PersonalBoardScreen = () => {
+const NewPersonalPost = () => {
   const { user } = useUser();
-  const { id } = useLocalSearchParams();
-  const isOwnBoard = user?.id === id;
-  
-  const fetchPosts = async () => {
-    const response = await fetchAPI(`/api/posts/getPersonalPosts?number=${4}&recipient_id=${id}`);
-    return response.data;
+  const { recipient_id } = useLocalSearchParams();
+  const [postContent, setPostContent] = useState("");
+  const [selectedColor, setSelectedColor] = useState<PostItColor>(temporaryColors[0]);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
+  const screenHeight = Dimensions.get("screen").height;
+  const maxCharacters = 3000;
+
+  const handleColorSelect = (color: PostItColor) => {
+    setSelectedColor(color);
+    setIsEmojiSelectorVisible(false);
   };
 
-  const fetchNewPost = async () => {
-    const response = await fetchAPI(`/api/posts/getPersonalPosts?number=${1}&recipient_id=${id}`);
-    return response.data[0];
+  const handlePostSubmit = async () => {
+    setIsPosting(true);
+    const cleanedContent = postContent.trim();
+    
+    if (cleanedContent === "") {
+      Alert.alert("Error", "Post content cannot be empty.");
+      setIsPosting(false);
+      return;
+    }
+
+    try {
+      await fetchAPI("/api/posts/newPersonalPost", {
+        method: "POST",
+        body: JSON.stringify({
+          content: cleanedContent,
+          clerkId: user!.id,
+          receipientId: recipient_id,
+          color: selectedColor.name,
+          emoji: selectedEmoji,
+        }),
+      });
+      
+      Alert.alert("Success", "Post created successfully!");
+      router.back();
+    } catch (error) {
+      console.error('Failed to create personal post:', error);
+      Alert.alert("Error", "Failed to create post. Please try again.");
+    } finally {
+      setIsPosting(false);
+    }
   };
 
-  const handleNewPostPress = () => {
-    router.push({
-      pathname: "/root/new-personal-post",
-      params: { recipient_id: id }
-    });
+  const handleChangeText = (text: string) => {
+    if (text.length <= maxCharacters) {
+      setPostContent(text);
+    } else {
+      setPostContent(text.substring(0, maxCharacters));
+      Alert.alert("Limit Reached", `You can only enter up to ${maxCharacters} characters.`);
+    }
   };
+
+  const toggleEmojiSelector = () => {
+    setIsEmojiSelectorVisible(prev => !prev);
+  };
+
+  useEffect(() => {
+    if (selectedEmoji) {
+      toggleEmojiSelector();
+    }
+  }, [selectedEmoji]);
 
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <View className="flex-col justify-end items-end mx-7 mt-6">
-          {!isOwnBoard && (
-            <TouchableOpacity onPress={() => router.push("/root/chat/chat-screen")}>
-              <Image
-                source={icons.chat}
-                className="w-10 h-10"
-                style={{ tintColor: "black" }}
-              />
-            </TouchableOpacity>
-          )}
-          {!isOwnBoard && (
-            <View className="mt-4">
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View className="flex-1 bg-white">
+            <View className="flex flex-row justify-between items-center mt-3 mx-6">
+              <TouchableOpacity onPress={() => router.back()}>
+                <AntDesign name="caretleft" size={18} />
+              </TouchableOpacity>
+              <Text className="text-xl font-JakartaSemiBold">New Personal Post</Text>
               <TouchableOpacity
-                onPress={() => router.push("/root/friends/friend-screen")}
+                onPress={handlePostSubmit}
+                disabled={!postContent || isPosting}
+                className={`px-4 py-2 rounded-md ${(!postContent || isPosting) ? 'bg-gray-300' : 'bg-black'}`}
               >
-                <FontAwesome5 name="user-friends" size={30} color="black" />
+                <Text className="text-white font-JakartaSemiBold">
+                  {isPosting ? "Posting..." : "Post"}
+                </Text>
               </TouchableOpacity>
             </View>
-          )}
-          <PostItBoard
-            userId={id as string}
-            handlePostsRefresh={fetchPosts}
-            handleNewPostFetch={fetchNewPost}
-            onWritePost={handleNewPostPress}
-            allowStacking={false}
-          />
-        </View>
+
+            <View className="mx-3 mt-6">
+              {!isEmojiSelectorVisible && (
+                <TextInput
+                  className="font-Jakarta mx-10 my-5"
+                  placeholder="Write something..."
+                  value={postContent}
+                  onChangeText={handleChangeText}
+                  autoFocus
+                  multiline
+                  scrollEnabled
+                  style={{
+                    minHeight: screenHeight * 0.2,
+                    maxHeight: screenHeight * 0.45,
+                    textAlignVertical: "top",
+                  }}
+                />
+              )}
+
+              <View className="mt-4">
+                <ColorSelector
+                  colors={temporaryColors}
+                  selectedColor={selectedColor}
+                  onColorSelect={handleColorSelect}
+                />
+              </View>
+
+              <TouchableOpacity onPress={toggleEmojiSelector} className="mt-4">
+                {selectedEmoji ? (
+                  <Text style={{ fontSize: 35 }}>{selectedEmoji}</Text>
+                ) : (
+                  <Image source={icons.wink} className="w-8 h-9" />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {isEmojiSelectorVisible && (
+              <View className="absolute bottom-0 left-0 right-0 h-[50%] bg-white">
+                <EmojiSelector
+                  onEmojiSelected={(emoji) => setSelectedEmoji(emoji)}
+                  showSearchBar={false}
+                />
+              </View>
+            )}
+          </View>
+        </TouchableWithoutFeedback>
       </SignedIn>
     </SafeAreaView>
   );
 };
 
-export default PersonalBoardScreen;
+export default NewPersonalPost;

@@ -482,9 +482,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
       <View className="flex-row justify-around items-center space-x-8 mx-7">
         <TouchableOpacity onPress={() => {
-          if (currentSubscreen === "posts") setCurrentSubscreen("colors");
-          else if (currentSubscreen === "colors") setCurrentSubscreen("personal");
-          else setCurrentSubscreen("posts");
+          if (currentSubscreen !== "colors") setCurrentSubscreen("colors")
+          if (currentSubscreen === "colors") setCurrentSubscreen("posts")
           }} className="flex-1 max-w-[135px] p-5  bg-gray-200 items-center justify-between" 
         style={{height: isCollapsed ? 60 : 150, 
                 borderRadius: isCollapsed ? 24 : 32}}>
