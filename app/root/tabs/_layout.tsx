@@ -299,7 +299,7 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="personal-board" // This is actually the chat board...the name needs to be fixed but when I change it to "chat" things break
         options={{
           title: "Chat",
           headerShown: false,
@@ -323,22 +323,6 @@ const Layout = () => {
               focused={focused}
               source={icons.profile}
               unread={unreadComments}
-              color={"#72B2FF"}
-            />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="personal-board"
-        options={{
-          title: "Personal Board",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              focused={focused}
-              source={icons.album}
-              unread={0}
               color={"#72B2FF"}
             />
           ),
