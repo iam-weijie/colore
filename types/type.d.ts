@@ -1,7 +1,7 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
 declare interface Post {
-  id: string;
+  id: number;
   clerk_id: string;
   firstname: string;
   username: string;
