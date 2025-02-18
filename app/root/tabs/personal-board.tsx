@@ -38,11 +38,11 @@ const PersonalBoard: React.FC<PersonalBoardProps> = () => {
             />
           </TouchableOpacity>
           <View className="mt-4">
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={() => router.push("/root/friends/friend-screen")}
             >
               <FontAwesome5 name="user-friends" size={30} color="black" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
           <View>
             <PostItBoard
