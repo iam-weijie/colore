@@ -1,7 +1,7 @@
 import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
 import { useGlobalContext } from "@/app/globalcontext";
-import { icons } from "@/constants";
+
 import { Post, PostWithPosition } from "@/types/type";
 import { useNotification } from '@/notifications/NotificationContext';
 import { sendPushNotification } from '@/notifications/PushNotificationService';
@@ -10,9 +10,9 @@ import { sendPushNotification } from '@/notifications/PushNotificationService';
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import PostItBoard from "@/components/PostItBoard";
 import { fetchAPI } from "@/lib/fetch";
-import { router } from "expo-router";
+
 import { useEffect, useRef, useState } from "react";
-import React = require("react");
+import * as React from "react";
 import {
   ActivityIndicator,
   Alert,
