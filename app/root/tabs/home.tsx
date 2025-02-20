@@ -47,7 +47,7 @@ export default function Page() {
           left: Math.random() * 250,
         },
       }));
-      return newPostWithPosition[0];
+      if (newPostWithPosition.length > 0) return newPostWithPosition[0];
     } catch (error) {
       setError("Failed to fetch new post.");
       console.error(error);

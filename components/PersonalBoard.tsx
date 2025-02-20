@@ -66,22 +66,22 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     return formattedPosts;
   };
 
-  const fetchNewPersonalPost = async () => {
+  const fetchNewPersonalPost = async (excludeIds: number[]) => {
     try {
-      const response = await fetchAPI(
-        `/api/posts/getPersonalPosts?number=${1}&user_id=${userId}&recipient_id=${user!.id}`
+      const excludeIdsParam = excludeIds.join(',');
+      const response = await fetch(
+        `/api/posts/getPersonalPostsExcluding?number=${1}&user_id=${user!.id}&recipient_id=${userId}&exclude_ids=${excludeIdsParam}`
       );
-      const newPost = response.data[0];
-      if (!newPost) {
-        return null;
-      }
-      return {
-        ...newPost,
+      if (!response.ok) throw new Error("Network response was not ok");
+      const result = await response.json();
+      const newPostWithPosition = result.data.map((post: Post) => ({
+        ...post,
         position: {
-          top: Math.random() * 400 + 50,
+          top: Math.random() * 500,
           left: Math.random() * 250,
         },
-      };
+      }));
+      if (newPostWithPosition.length > 0) return newPostWithPosition[0];
     } catch (error) {
       setError("Failed to fetch new post.");
       console.error(error);
@@ -114,7 +114,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           handlePostsRefresh={fetchPersonalPosts}
           handleNewPostFetch={fetchNewPersonalPost}
           allowStacking={true}
-          maxPosts={maxPosts - 1}
         />
       </SignedIn>
     </SafeAreaView>

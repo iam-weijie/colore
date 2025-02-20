@@ -15,64 +15,32 @@ export async function GET(request: Request) {
       );
     }
 
-    let query;
+    const query = `
+      SELECT 
+        p.id, 
+        p.content, 
+        p.like_count, 
+        p.report_count, 
+        p.created_at,
+        p.unread_comments,
+        p.color,
+        p.emoji,
+        u.clerk_id,
+        u.firstname, 
+        u.lastname, 
+        u.username,
+        u.country, 
+        u.state, 
+        u.city
+      FROM posts p
+      JOIN users u ON p.user_id = u.clerk_id
+      WHERE p.recipient_user_id = '${recipientId}'
+        AND p.post_type = 'personal'
+      ORDER BY p.created_at DESC
+      LIMIT ${number};
+    `;
 
-    // If viewing own board, show all posts made to your board
-    if (recipientId === viewerId) {
-      query = sql`
-        SELECT 
-          p.id, 
-          p.content, 
-          p.like_count, 
-          p.report_count, 
-          p.created_at,
-          p.unread_comments,
-          p.color,
-          p.emoji,
-          u.clerk_id,
-          u.firstname, 
-          u.lastname, 
-          u.username,
-          u.country, 
-          u.state, 
-          u.city
-        FROM posts p
-        JOIN users u ON p.user_id = u.clerk_id
-        WHERE p.recipient_user_id = ${recipientId}
-          AND p.post_type = 'personal'
-        ORDER BY p.created_at DESC
-        LIMIT ${number};
-      `;
-    } else {
-      // If viewing someone else's board, only show your posts to their board
-      query = sql`
-        SELECT 
-          p.id, 
-          p.content, 
-          p.like_count, 
-          p.report_count, 
-          p.created_at,
-          p.unread_comments,
-          p.color,
-          p.emoji,
-          u.clerk_id,
-          u.firstname, 
-          u.lastname, 
-          u.username,
-          u.country, 
-          u.state, 
-          u.city
-        FROM posts p
-        JOIN users u ON p.user_id = u.clerk_id
-        WHERE p.recipient_user_id = ${recipientId}
-          AND p.user_id = ${viewerId}
-          AND p.post_type = 'personal'
-        ORDER BY p.created_at DESC
-        LIMIT ${number};
-      `;
-    }
-
-    const response = await query;
+    const response = await sql(query);
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
