@@ -695,15 +695,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {!isEditable && (
+              <TouchableOpacity
               onPress={() => {
                 if (user!.id === userId) {
                   router.push("/root/tabs/personal-board");
                 } else {
                   router.push({
-                    pathname: "/root/user-board/[id]",
-                    params: { id: userId, username: profileUser?.username },
-                  });
+                  pathname: "/root/user-board/[id]",
+                  params: { id: userId, username: profileUser?.username },
+                });
                 }
               }}
               className="flex-1 max-w-[110px] p-5 bg-gray-200 items-center justify-between"
@@ -739,6 +740,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 </Text>
               </View>
             </TouchableOpacity>
+            )}
+
+      
           </View>
 
           <View className="mx-7 mt-5"></View>
