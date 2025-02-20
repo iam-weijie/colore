@@ -478,13 +478,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
         </View>
       </View>
-      <View className="flex-row justify-around items-center space-x-8 mx-7">
+      <View className="flex-row justify-around items-center space-x-4 mx-7">
         <TouchableOpacity onPress={() => {
           if (currentSubscreen === "posts") setCurrentSubscreen("colors");
           else if (currentSubscreen === "colors") setCurrentSubscreen("personal");
           else setCurrentSubscreen("posts");
           }} 
-          className="flex-1 max-w-[135px] p-5 bg-gray-200 items-center justify-between" 
+
+          /*Colors button*/
+          className="flex-1 max-w-[110px] p-5 bg-gray-200 items-center justify-between" 
           style={{
             height: isCollapsed ? 60 : 150, 
             borderRadius: isCollapsed ? 24 : 32
@@ -504,7 +506,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   source={icons.palette}
                   tintColor={currentSubscreen === "colors" ? "#93c5fd" : "#333333"}
                   resizeMode="contain"
-                  className="w-10 h-10 -mt-4"
+                  className="w-6 h-6 -mt-2"
                 />
               )}
               {currentSubscreen !== "posts" && (
@@ -512,7 +514,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   source={icons.home}
                   tintColor={currentSubscreen === "posts" ? "#93c5fd" : "#333333"}
                   resizeMode="contain"
-                  className="w-10 h-10 -mt-4"
+                  className="w-6 h-6 -mt-2"
                 />
               )}
             </View>
@@ -579,7 +581,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             setFriendStatus(response);
             setIsHandlingFriendRequest(false);
           }
-        }} className="flex-1 max-w-[135px] p-5  items-center justify-between" 
+        }}
+        /*Friends button */ 
+        className="flex-1 max-w-[110px] p-5  items-center justify-between" 
         style={{backgroundColor: user!.id == userId ? "#93c5fd" :  friendStatus.name != "unknown" ? "#FF6B6B" : "#000", 
         height: isCollapsed ? 60 : 150, 
         borderRadius: isCollapsed ? 24 : 32 }}>
@@ -616,7 +620,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         </TouchableOpacity>
 
      
-
+        
         <TouchableOpacity 
           onPress={() => {
             const isViewingOwnProfile = user!.id === profileUser!.clerk_id;
@@ -625,29 +629,38 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               params: { id: isViewingOwnProfile ? user!.id : profileUser!.clerk_id }
             });
           }}
-          className="flex-1 max-w-[135px] p-5 bg-gray-200 items-center justify-between"
+          className="flex-1 p-3 bg-gray-200 items-center"
           style={{
-            height: isCollapsed ? 60 : 150,
-            borderRadius: isCollapsed ? 24 : 32
+            height: isCollapsed ? 45 : 150,
+            borderRadius: isCollapsed ? 24 : 32,
+            justifyContent: 'space-between',
+            minWidth: 50,  // Increased width for proper centering
           }}
         >
-          {!isCollapsed && (
-            <View className="w-full flex flex-row items-start">
-              <Text className="text-[#333333] font-JakartaBold text-3xl">My</Text>
-            </View>
-          )}
-          
-          <Image
-            source={icons.chat}
-            tintColor="#333333" 
-            resizeMode="contain"
-            className="w-10 h-10 -mt-4"
-          />
+          <View style={{ marginTop: isCollapsed ? 0 : 20 }}> 
+            <Image
+              source={icons.chat}
+              tintColor="#333333" 
+              resizeMode="contain"
+              className="w-10 h-10"
+            />
+          </View>
 
-          <Text className="text-[#333333] font-JakartaBold text-[16px] text-center">
-            {isCollapsed ? "Personal" : user!.id === profileUser!.clerk_id ? "Personal Board" : "Leave Note"}
-          </Text>
+          <View className="items-center">
+            <Text 
+              className="text-[#333333] font-JakartaBold text-[16px] text-center" // Ensures text is centered
+              numberOfLines={2} 
+            >
+              {isCollapsed 
+                ? "Personal" 
+                : user!.id === profileUser!.clerk_id 
+                  ? "Personal\nBoard" // Explicitly force line break
+                  : "Leave\nNote"}
+            </Text>
+          </View>
         </TouchableOpacity>
+
+
 
 
       
