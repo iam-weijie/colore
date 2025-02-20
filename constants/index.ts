@@ -19,6 +19,7 @@ import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import login from "@/assets/images/login_squares.png";
 import signup from "@/assets/images/signup.png";
+import note from "@/assets/icons/note.png";
 import { PostItColor } from "@/types/type";
 import settings from "@/assets/icons/settings.png";
 
@@ -43,6 +44,7 @@ export const icons = {
   palette,
   settings,
   wink,
+  note,
 };
 
 export const images = {

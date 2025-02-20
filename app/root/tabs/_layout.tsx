@@ -8,6 +8,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from "@/notifications/NotificationContext"; // Assuming you have a notification context to manage global state
 import { sendPushNotification } from "@/notifications/PushNotificationService"; // Assuming this handles the push notification
 import { ConversationItem } from "@/types/type";
+import Entypo from '@expo/vector-icons/Entypo';
 
 const TabIcon = ({
   source,
@@ -306,7 +307,7 @@ const Layout = () => {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
-              source={icons.chat}
+              source={icons.note}
               unread={unreadMessages}
               color={"#FF7272"} // Needs to be changed with message notifications
             />
