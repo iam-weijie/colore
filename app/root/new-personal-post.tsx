@@ -44,35 +44,47 @@ const NewPersonalPost = () => {
     setInputHeight(event.nativeEvent.contentSize.height);
   };
 
-  const handlePostSubmit = async () => {
-    setIsPosting(true);
-    const cleanedContent = postContent.trim();
-    if (cleanedContent === "") {
-      Alert.alert("Error", "Post content cannot be empty.");
-      return;
-    }
-    try {
-      await fetchAPI("/api/posts/newPersonalPost", {
-        method: "POST",
-        body: JSON.stringify({
-          content: cleanedContent,
-          clerkId: user!.id,
-          recipientId: recipient_id,
-          color: selectedColor.name,
-          emoji: selectedEmoji,
-        }),
-      });
-      setPostContent("");
-      setSelectedEmoji(null);
-      Alert.alert("Post created.");
-    } catch (error) {
-      Alert.alert("Error", "An error occurred. Please try again.");
-    } finally {
-      setIsPosting(false);
-    }
 
-    router.back();
-  };
+    const handlePostSubmit = async () => {
+        setIsPosting(true);
+        const cleanedContent = postContent.trim();
+        if (cleanedContent === "") {
+        Alert.alert("Error", "Post content cannot be empty.");
+        return;
+        }
+        try {
+        const response = await fetchAPI("/api/posts/newPersonalPost", {
+            method: "POST",
+            body: JSON.stringify({
+            content: cleanedContent,
+            clerkId: user!.id,
+            recipientId: recipient_id,
+            color: selectedColor.name,
+            emoji: selectedEmoji,
+            }),
+        });
+        setPostContent("");
+        setSelectedEmoji(null);
+        Alert.alert("Post created.");
+        
+        // Navigate back with refresh parameter
+        if (source === 'board') {
+            router.back();
+        } else {
+            router.push({
+            pathname: "/root/personal-board",
+            params: { 
+                id: recipient_id,
+                refresh: 'true'
+            }
+            });
+        }
+        } catch (error) {
+        Alert.alert("Error", "An error occurred. Please try again.");
+        } finally {
+        setIsPosting(false);
+        }
+    };
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {

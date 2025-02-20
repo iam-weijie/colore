@@ -13,13 +13,16 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 export default function PersonalBoard() {
   const { user } = useUser();
-  const { id } = useLocalSearchParams(); // For viewing other users' boards
+  const { id, refresh } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<any>(null);
+  const [shouldRefresh, setShouldRefresh] = useState(0); // Add a refresh counter
   const isOwnBoard = !id || id === user?.id;
 
   const fetchUserData = async () => {
@@ -34,6 +37,14 @@ export default function PersonalBoard() {
     }
     setLoading(false);
   };
+
+  // Use useFocusEffect to refresh when the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Increment refresh counter to trigger re-render
+      setShouldRefresh(prev => prev + 1);
+    }, [])
+  );
 
   useEffect(() => {
     fetchUserData();
@@ -55,7 +66,6 @@ export default function PersonalBoard() {
       );
       const newPost = response.data[0];
       if (!newPost) {
-        // If no new post is found, return null to handle gracefully
         return null;
       }
       return {
@@ -98,6 +108,7 @@ export default function PersonalBoard() {
       </View>
     );
   }
+
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
@@ -116,6 +127,7 @@ export default function PersonalBoard() {
         </View>
 
         <PostItBoard 
+          key={shouldRefresh} // Add key to force re-render when shouldRefresh changes
           userId={isOwnBoard ? user!.id : id as string}
           handlePostsRefresh={fetchPersonalPosts}
           handleNewPostFetch={fetchNewPersonalPost}
