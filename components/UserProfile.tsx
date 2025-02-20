@@ -629,16 +629,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               params: { id: isViewingOwnProfile ? user!.id : profileUser!.clerk_id }
             });
           }}
-          className="flex-1 p-3 bg-gray-200 items-center"
+          className="flex-1 max-w-[110px] p-5 bg-gray-200 items-center justify-between"
           style={{
-            height: isCollapsed ? 45 : 150,
+            height: isCollapsed ? 60 : 150,
             borderRadius: isCollapsed ? 24 : 32,
             justifyContent: 'space-between',
             minWidth: 80, // Ensures a minimum width
             maxWidth: 110, // Sets a max width to match other buttons
           }}
         >
-          <View style={{ marginTop: isCollapsed ? 0 : 20 }}> 
+          {user!.id === profileUser!.clerk_id && (
+          <View style={{ marginTop: isCollapsed ? 0 : 20}}> 
             <Image
               source={icons.chat}
               tintColor="#333333" 
@@ -646,6 +647,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               className="w-12 h-12"
             />
           </View>
+          )}
 
           <View className="items-center">
             <Text 
