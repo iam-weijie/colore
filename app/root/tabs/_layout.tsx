@@ -299,9 +299,9 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="chat-board" 
+        name="personal-board" 
         options={{
-          title: "Chat",
+          title: "Personal Board",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon

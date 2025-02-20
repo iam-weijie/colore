@@ -99,9 +99,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     useState<boolean>(false);
 
   //Navigation
-  const { tab } = useLocalSearchParams();
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
   console.log("tab", tab);
-  const [selectedTab, setSelectedTab] = useState<string>("Messages");
+  const [selectedTab, setSelectedTab] = useState<string>(tab ? tab : "Messages");
 
   const fetchConversations = async (): Promise<void> => {
     setLoading(true);

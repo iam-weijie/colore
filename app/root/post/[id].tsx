@@ -261,9 +261,16 @@ const PostScreen = () => {
       }
 
       // Initialize like states from the response
-      const likeStatuses = {};
-      const likeCounts = {};
-      response.data.forEach((comment) => {
+      interface CommentResponse {
+        id: number;
+        is_liked: boolean;
+        like_count: number;
+      }
+
+      const likeStatuses: { [key: number]: boolean } = {};
+      const likeCounts: { [key: number]: number } = {};
+
+      (response.data as CommentResponse[]).forEach((comment) => {
         likeStatuses[comment.id] = comment.is_liked || false;
         likeCounts[comment.id] = comment.like_count || 0;
       });

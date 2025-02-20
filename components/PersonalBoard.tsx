@@ -15,20 +15,24 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { Post } from "@/types/type";
 
-export default function PersonalBoard() {
+type PersonalBoardProps = {
+    userId: string;
+}
+
+const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   const { user } = useUser();
-  const { id, refresh } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<any>(null);
   const [shouldRefresh, setShouldRefresh] = useState(0); // Add a refresh counter
-  const isOwnBoard = !id || id === user?.id;
+  const isOwnBoard = !userId || userId === user?.id;
 
   const fetchUserData = async () => {
     if (!isOwnBoard) {
       try {
-        const response = await fetchAPI(`/api/users/getUserInfo?id=${id}`);
+        const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`);
         setProfileUser(response.data[0]);
       } catch (error) {
         console.error("Failed to fetch user data:", error);
@@ -48,17 +52,16 @@ export default function PersonalBoard() {
 
   useEffect(() => {
     fetchUserData();
-  }, [id]);
+  }, [userId]);
 
   const fetchPersonalPosts = async () => {
-    const userId = isOwnBoard ? user!.id : id;
     const viewerId = user!.id;
     const response = await fetchAPI(
       `/api/posts/getPersonalPosts?recipient_id=${userId}&user_id=${viewerId}`
     );
     
     // Validate and format each post
-    const formattedPosts = response.data.map(post => ({
+    const formattedPosts = response.data.map((post: Post) => ({
       ...post,
       like_count: post.like_count || 0,
       report_count: post.report_count || 0,
@@ -71,7 +74,7 @@ export default function PersonalBoard() {
   const fetchNewPersonalPost = async () => {
     try {
       const response = await fetchAPI(
-        `/api/posts/getPersonalPosts?number=1&user_id=${user!.id}&recipient_id=${isOwnBoard ? user!.id : id}`
+        `/api/posts/getPersonalPosts?number=1&user_id=${userId}&recipient_id=${user!.id}`
       );
       const newPost = response.data[0];
       if (!newPost) {
@@ -92,11 +95,10 @@ export default function PersonalBoard() {
   };
 
   const handleNewPost = () => { 
-    const targetId = isOwnBoard ? user!.id : id;
     router.push({
       pathname: "/root/new-personal-post",
       params: { 
-        recipient_id: targetId,
+        recipient_id: userId,
         source: 'board'
       }
     });
@@ -121,23 +123,9 @@ export default function PersonalBoard() {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <View className="flex-row justify-between items-center mx-7 mt-3">
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <AntDesign name="caretleft" size={18} />
-          </TouchableOpacity>
-          
-          <Text className="text-xl font-JakartaBold">
-            {isOwnBoard ? "My Personal Board" : `${profileUser?.username}'s Board`}
-          </Text>
-
-          <TouchableOpacity onPress={handleNewPost}>
-            <Image source={icons.pencil} className="w-7 h-7" />
-          </TouchableOpacity>
-        </View>
-
         <PostItBoard 
           key={shouldRefresh} // Add key to force re-render when shouldRefresh changes
-          userId={isOwnBoard ? user!.id : id as string}
+          userId={userId}
           handlePostsRefresh={fetchPersonalPosts}
           handleNewPostFetch={fetchNewPersonalPost}
           onWritePost={handleNewPost}
@@ -147,3 +135,5 @@ export default function PersonalBoard() {
     </SafeAreaView>
   );
 }
+
+export default PersonalBoard;

@@ -1,13 +1,14 @@
 import React from "react";
-import { SignedIn } from "@clerk/clerk-expo";
+import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { SafeAreaView } from "react-native";
-import ChatScreen from "@/app/root/chat/chat-screen";
+import PersonalBoard from "@/components/PersonalBoard";
 
 const ChatBoard = () => {
+  const { user } = useUser();
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <ChatScreen />
+        <PersonalBoard userId={user!.id} />
       </SignedIn>
     </SafeAreaView>
   );
