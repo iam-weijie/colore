@@ -1,11 +1,7 @@
-import PostIt from "@/components/PostIt";
-import PostModal from "@/components/PostModal";
-import { useGlobalContext } from "@/app/globalcontext";
-import { icons } from "@/constants";
-import { Post, PostWithPosition } from "@/types/type";
-import { SignedIn, useUser } from "@clerk/clerk-expo";
 import PostItBoard from "@/components/PostItBoard";
+import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
+import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -45,8 +41,9 @@ export default function PersonalBoard() {
 
   const fetchPersonalPosts = async () => {
     const userId = isOwnBoard ? user!.id : id;
+    const viewerId = user!.id;
     const response = await fetchAPI(
-      `/api/posts/getPersonalPosts?number=${4}&recipient_id=${userId}`
+      `/api/posts/getPersonalPosts?user_id=${viewerId}&recipient_id=${userId}`
     );
     return response.data;
   };
@@ -54,9 +51,20 @@ export default function PersonalBoard() {
   const fetchNewPersonalPost = async () => {
     try {
       const response = await fetchAPI(
-        `/api/posts/getPersonalPosts?number=${1}&recipient_id=${isOwnBoard ? user!.id : id}`
+        `/api/posts/getPersonalPosts?number=1&user_id=${user!.id}&recipient_id=${isOwnBoard ? user!.id : id}`
       );
-      return response.data[0];
+      const newPost = response.data[0];
+      if (!newPost) {
+        // If no new post is found, return null to handle gracefully
+        return null;
+      }
+      return {
+        ...newPost,
+        position: {
+          top: Math.random() * 400 + 50,
+          left: Math.random() * 250,
+        },
+      };
     } catch (error) {
       setError("Failed to fetch new post.");
       console.error(error);
@@ -64,20 +72,16 @@ export default function PersonalBoard() {
     }
   };
 
-  const handleNewPostPress = () => {
-    console.log("Navigating to new personal post with params:", {
-        recipient_id: isOwnBoard ? user!.id : id,
-        source: 'board'
-    });
-    
+  const handleNewPost = () => { 
+    const targetId = isOwnBoard ? user!.id : id;
     router.push({
-        pathname: "/root/new-personal-post",
-        params: { 
-            recipient_id: isOwnBoard ? user!.id : id,
-            source: 'board'
-        }
+      pathname: "/root/new-personal-post",
+      params: { 
+        recipient_id: targetId,
+        source: 'board'
+      }
     });
-};
+  };
 
   if (loading) {
     return (
@@ -109,7 +113,7 @@ export default function PersonalBoard() {
             {isOwnBoard ? "My Personal Board" : `${profileUser?.username}'s Board`}
           </Text>
 
-          <TouchableOpacity onPress={handleNewPostPress}>
+          <TouchableOpacity onPress={handleNewPost}>
             <Image source={icons.pencil} className="w-7 h-7" />
           </TouchableOpacity>
         </View>
@@ -118,7 +122,7 @@ export default function PersonalBoard() {
           userId={isOwnBoard ? user!.id : id as string}
           handlePostsRefresh={fetchPersonalPosts}
           handleNewPostFetch={fetchNewPersonalPost}
-          onWritePost={handleNewPostPress}
+          onWritePost={handleNewPost}
           allowStacking={true}
         />
       </SignedIn>

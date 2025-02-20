@@ -621,23 +621,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
         onPress={() => {
           const isViewingOwnProfile = user!.id === profileUser!.clerk_id;
-          if (isViewingOwnProfile) {
-            // If viewing own profile, go to personal board to see all notes
-            router.push({
-              pathname: "/root/tabs/personal-board",
-              params: { id: user!.id }
-            });
-          } else {
-            // If viewing someone else's profile, create a new personal note
-            router.push({
-              pathname: "/root/new-personal-post",
-              params: { 
-                recipient_id: profileUser!.clerk_id,
-                source: 'profile'
-              }
-            });
-          }
+          // Always go to personal board, whether it's your own or someone else's
+          router.push({
+            pathname: "/root/personal-board",
+            params: { id: isViewingOwnProfile ? user!.id : profileUser!.clerk_id }
+          });
         }}
+                  
         className="flex-1 max-w-[135px] p-5 bg-gray-200 items-center justify-between"
         style={{
           height: isCollapsed ? 60 : 150, 

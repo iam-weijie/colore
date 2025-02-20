@@ -14,6 +14,7 @@ const Layout = () => {
       <Stack.Screen name="friends" options={{ headerShown: false }} />
       <Stack.Screen name="settings" options={{ headerShown: false }} />
       <Stack.Screen name="personal-board" options={{ headerShown: false }} />
+      <Stack.Screen name="new-personal-post" options={{ headerShown: false }} />
       
     </Stack>
   );
