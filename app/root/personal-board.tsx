@@ -98,16 +98,13 @@ export default function PersonalBoard() {
       </View>
     );
   }
-
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
         <View className="flex-row justify-between items-center mx-7 mt-3">
-          {!isOwnBoard && (
-            <TouchableOpacity onPress={() => router.back()} className="mr-4">
-              <AntDesign name="caretleft" size={18} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity onPress={() => router.back()} className="mr-4">
+            <AntDesign name="caretleft" size={18} />
+          </TouchableOpacity>
           
           <Text className="text-xl font-JakartaBold">
             {isOwnBoard ? "My Personal Board" : `${profileUser?.username}'s Board`}
