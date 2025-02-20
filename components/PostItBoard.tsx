@@ -149,6 +149,10 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<PostWithPosition | null>(null);
   const [maps, setMap] = useState<MappingPostitProps[]>([]);
+  
+  if (!userId) {
+    return null; 
+  }
 
   const fetchRandomPosts = async () => {
     try {
@@ -319,7 +323,24 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   }, []);
 
   const handlePostPress = (post: PostWithPosition) => {
-      setSelectedPost(post);
+    // Ensure all required properties are present
+    const formattedPost: Post = {
+      id: post.id,
+      clerk_id: post.clerk_id,
+      content: post.content,
+      created_at: post.created_at,
+      like_count: post.like_count || 0,
+      report_count: post.report_count || 0,
+      unread_comments: post.unread_comments || 0,
+      color: post.color,
+      emoji: post.emoji,
+      firstname: post.firstname,
+      username: post.username,
+      city: post.city,
+      state: post.state,
+      country: post.country
+    };
+    setSelectedPost(formattedPost);
   };
 
   const handleCloseModal = async () => {
@@ -354,7 +375,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     setLoading(true);
     fetchRandomPosts();
   };
-//  console.log("Stacks: ", stacks)
+
+  
+
 
   return (
     <SafeAreaView className="flex-1">

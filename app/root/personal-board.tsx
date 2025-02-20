@@ -54,9 +54,18 @@ export default function PersonalBoard() {
     const userId = isOwnBoard ? user!.id : id;
     const viewerId = user!.id;
     const response = await fetchAPI(
-      `/api/posts/getPersonalPosts?user_id=${viewerId}&recipient_id=${userId}`
+      `/api/posts/getPersonalPosts?recipient_id=${userId}&user_id=${viewerId}`
     );
-    return response.data;
+    
+    // Validate and format each post
+    const formattedPosts = response.data.map(post => ({
+      ...post,
+      like_count: post.like_count || 0,
+      report_count: post.report_count || 0,
+      unread_comments: post.unread_comments || 0
+    }));
+    
+    return formattedPosts;
   };
 
   const fetchNewPersonalPost = async () => {

@@ -5,48 +5,71 @@ export async function GET(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const recipientId = url.searchParams.get("recipient_id");
-    const userId = url.searchParams.get("user_id");
+    const viewerId = url.searchParams.get("user_id");
 
-    // Add this validation
-    if (!recipientId || !userId) {
+    if (!recipientId || !viewerId) {
       return new Response(
         JSON.stringify({ error: "Missing recipient_id or user_id parameter" }),
         { status: 400 }
       );
     }
 
-    // Ensure they are strings 
-    const userIdStr = String(userId);
-    const recipientIdStr = String(recipientId);
+    let query;
+    
+    // If viewing own board, show all posts made to your board
+    if (recipientId === viewerId) {
+      query = sql`
+        SELECT 
+          p.id, 
+          p.content, 
+          p.like_count, 
+          p.report_count, 
+          p.created_at,
+          p.unread_comments,
+          p.color,
+          p.emoji,
+          u.clerk_id,
+          u.firstname, 
+          u.lastname, 
+          u.username,
+          u.country, 
+          u.state, 
+          u.city
+        FROM posts p
+        JOIN users u ON p.user_id = u.clerk_id
+        WHERE p.recipient_user_id = ${recipientId}
+          AND p.post_type = 'personal'
+        ORDER BY p.created_at DESC
+      `;
+    } else {
+      // If viewing someone else's board, only show your posts to their board
+      query = sql`
+        SELECT 
+          p.id, 
+          p.content, 
+          p.like_count, 
+          p.report_count, 
+          p.created_at,
+          p.unread_comments,
+          p.color,
+          p.emoji,
+          u.clerk_id,
+          u.firstname, 
+          u.lastname, 
+          u.username,
+          u.country, 
+          u.state, 
+          u.city
+        FROM posts p
+        JOIN users u ON p.user_id = u.clerk_id
+        WHERE p.recipient_user_id = ${recipientId}
+          AND p.user_id = ${viewerId}
+          AND p.post_type = 'personal'
+        ORDER BY p.created_at DESC
+      `;
+    }
 
-    const response = await sql`
-      SELECT 
-        p.id, 
-        p.content, 
-        p.like_count, 
-        p.report_count, 
-        p.created_at,
-        p.unread_comments,
-        p.color,
-        p.emoji,
-        u.clerk_id,
-        u.firstname, 
-        u.lastname, 
-        u.username,
-        u.country, 
-        u.state, 
-        u.city
-      FROM posts p
-      JOIN users u ON p.user_id = u.clerk_id
-      WHERE (
-        (p.user_id = ${userIdStr} AND p.recipient_user_id = ${recipientIdStr})
-        OR 
-        (p.user_id = ${recipientIdStr} AND p.recipient_user_id = ${userIdStr})
-      )
-      AND p.post_type = 'personal'
-      ORDER BY p.created_at DESC
-    `;
-
+    const response = await query;
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });

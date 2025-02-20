@@ -617,43 +617,37 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
      
 
-      <TouchableOpacity 
+        <TouchableOpacity 
+          onPress={() => {
+            const isViewingOwnProfile = user!.id === profileUser!.clerk_id;
+            router.push({
+              pathname: "/root/personal-board",
+              params: { id: isViewingOwnProfile ? user!.id : profileUser!.clerk_id }
+            });
+          }}
+          className="flex-1 max-w-[135px] p-5 bg-gray-200 items-center justify-between"
+          style={{
+            height: isCollapsed ? 60 : 150,
+            borderRadius: isCollapsed ? 24 : 32
+          }}
+        >
+          {!isCollapsed && (
+            <View className="w-full flex flex-row items-start">
+              <Text className="text-[#333333] font-JakartaBold text-3xl">My</Text>
+            </View>
+          )}
+          
+          <Image
+            source={icons.chat}
+            tintColor="#333333" 
+            resizeMode="contain"
+            className="w-10 h-10 -mt-4"
+          />
 
-        onPress={() => {
-          const isViewingOwnProfile = user!.id === profileUser!.clerk_id;
-          // Always go to personal board, whether it's your own or someone else's
-          router.push({
-            pathname: "/root/personal-board",
-            params: { id: isViewingOwnProfile ? user!.id : profileUser!.clerk_id }
-          });
-        }}
-                  
-        className="flex-1 max-w-[135px] p-5 bg-gray-200 items-center justify-between"
-        style={{
-          height: isCollapsed ? 60 : 150, 
-          borderRadius: isCollapsed ? 24 : 32
-        }}
-        
-      >
-
-        {!isCollapsed && (
-          <View className="w-full flex flex-row items-start">
-            <Text className="text-[#333333] font-JakartaBold text-3xl">
-              
-              {user!.id === profileUser!.clerk_id ? "My" : "Leave"}
-            </Text>
-          </View>
-        )}
-        <Image
-          source={icons.chat}
-          tintColor="#333333"
-          resizeMode="contain"
-          className="w-10 h-10 -mt-4"
-        />
-        <Text className="text-[#333333] font-JakartaBold text-[16px]">
-          {isCollapsed ? "Personal" : user!.id === profileUser!.clerk_id  ? "Personal Board" : "Note"}
-        </Text>
-      </TouchableOpacity>
+          <Text className="text-[#333333] font-JakartaBold text-[16px] text-center">
+            {isCollapsed ? "Personal" : user!.id === profileUser!.clerk_id ? "Personal Board" : "Leave Note"}
+          </Text>
+        </TouchableOpacity>
 
 
       
