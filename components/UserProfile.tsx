@@ -506,7 +506,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   source={icons.palette}
                   tintColor={currentSubscreen === "colors" ? "#93c5fd" : "#333333"}
                   resizeMode="contain"
-                  className="w-6 h-6 -mt-2"
+                  className="w-8 h-8 -mt-2"
                 />
               )}
               {currentSubscreen !== "posts" && (
@@ -634,7 +634,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             height: isCollapsed ? 45 : 150,
             borderRadius: isCollapsed ? 24 : 32,
             justifyContent: 'space-between',
-            minWidth: 50,  // Increased width for proper centering
+            minWidth: 80, // Ensures a minimum width
+            maxWidth: 110, // Sets a max width to match other buttons
           }}
         >
           <View style={{ marginTop: isCollapsed ? 0 : 20 }}> 
@@ -642,23 +643,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               source={icons.chat}
               tintColor="#333333" 
               resizeMode="contain"
-              className="w-10 h-10"
+              className="w-12 h-12"
             />
           </View>
 
           <View className="items-center">
             <Text 
-              className="text-[#333333] font-JakartaBold text-[16px] text-center" // Ensures text is centered
-              numberOfLines={2} 
+              className="text-[#333333] font-JakartaBold text-[16px] text-center"
+              numberOfLines={2}
             >
               {isCollapsed 
                 ? "Personal" 
                 : user!.id === profileUser!.clerk_id 
-                  ? "Personal\nBoard" // Explicitly force line break
+                  ? "Personal\nBoard" 
                   : "Leave\nNote"}
             </Text>
           </View>
         </TouchableOpacity>
+
 
 
 
