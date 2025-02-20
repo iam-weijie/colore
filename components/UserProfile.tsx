@@ -676,7 +676,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           <View className="items-center">
             <ColorGallery />
           </View>
-        ) : currentSubscreen === "posts" ? (
+        ) : currentSubscreen === "posts" && isEditable ? (
           <View className="items-center flex-1 w-full">
           <TextInput
           className="w-4/5  h-12 px-5 rounded-[16px] bg-gray-200 mb-5 "

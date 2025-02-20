@@ -36,7 +36,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     }
   };
 
-  const filteredPosts = posts.filter((post) => post.content.toLowerCase().includes(query.toLowerCase()));
+  const filteredPosts = posts.filter((post) => post.content.toLowerCase().includes((query ?? "").toLowerCase()));
 
   useEffect(() => {
     if (isOwnProfile) {
