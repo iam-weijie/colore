@@ -697,10 +697,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
             <TouchableOpacity
               onPress={() => {
-                router.push({
-                  pathname: "/root/user-board/[id]",
-                  params: { id: userId, username: profileUser?.username },
-                });
+                if (user!.id === userId) {
+                  router.push("/root/tabs/personal-board");
+                } else {
+                  router.push({
+                    pathname: "/root/user-board/[id]",
+                    params: { id: userId, username: profileUser?.username },
+                  });
+                }
               }}
               className="flex-1 max-w-[110px] p-5 bg-gray-200 items-center justify-between"
               style={{
