@@ -299,7 +299,7 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="personal-board" // This is actually the chat board...the name needs to be fixed but when I change it to "chat" things break
+        name="chat-board" // This is actually the chat board...the name needs to be fixed but when I change it to "chat" things break
         options={{
           title: "Chat",
           headerShown: false,
