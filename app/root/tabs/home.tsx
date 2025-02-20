@@ -1,10 +1,4 @@
-import PostIt from "@/components/PostIt";
-import PostModal from "@/components/PostModal";
-import { useGlobalContext } from "@/app/globalcontext";
 import { Post, PostWithPosition } from "@/types/type";
-import { useNotification } from '@/notifications/NotificationContext';
-import { sendPushNotification } from '@/notifications/PushNotificationService';
-
 
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import PostItBoard from "@/components/PostItBoard";
@@ -29,13 +23,7 @@ import { router } from "expo-router";
 import { icons } from "@/constants";
 
 export default function Page() {
-
-  const { pushToken } = useNotification();
-  const [posts, setPosts] = useState<PostWithPosition[]>([]);
-  const {stacks, setStacks } = useGlobalContext(); // Add more global constants here
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPost, setSelectedPost] = useState<PostWithPosition | null>(null);
   const { user } = useUser();
 
   const fetchPosts = async () => {
@@ -43,10 +31,11 @@ export default function Page() {
     return response.data;
   };
 
-  const fetchNewPost = async () => {
+  const fetchNewPost = async (excludeIds: number[]) => {
     try {
+      const excludeIdsParam = excludeIds.join(',');
       const response = await fetch(
-        `/api/posts/getRandomPosts?number=${1}&id=${user!.id}`
+        `/api/posts/getRandomPostsExcluding?number=${1}&id=${user!.id}&exclude_ids=${excludeIdsParam}`
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
@@ -67,7 +56,7 @@ export default function Page() {
   };
 
   const handleNewPostPress = () => {
-      router.push("/root/new-post");
+    router.push("/root/new-post");
   };
 
   return (
@@ -88,7 +77,6 @@ export default function Page() {
           userId={user!.id}
           handlePostsRefresh={fetchPosts}
           handleNewPostFetch={fetchNewPost}
-          onWritePost={handleNewPostPress}
           allowStacking={true}
         />
       </SignedIn>

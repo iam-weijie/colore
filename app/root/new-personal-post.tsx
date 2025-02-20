@@ -66,19 +66,7 @@ const NewPersonalPost = () => {
         setPostContent("");
         setSelectedEmoji(null);
         Alert.alert("Post created.");
-        
-        // Navigate back with refresh parameter
-        if (source === 'board') {
-            router.back();
-        } else {
-            router.push({
-            pathname: "/root/personal-board",
-            params: { 
-                id: recipient_id,
-                refresh: 'true'
-            }
-            });
-        }
+        router.back();
         } catch (error) {
         Alert.alert("Error", "An error occurred. Please try again.");
         } finally {

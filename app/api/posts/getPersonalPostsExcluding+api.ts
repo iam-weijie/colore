@@ -7,6 +7,8 @@ export async function GET(request: Request) {
     const number = url.searchParams.get("number");
     const recipientId = url.searchParams.get("recipient_id");
     const viewerId = url.searchParams.get("user_id");
+    const excludeIds =
+      url.searchParams.get("exclude_ids")?.split(",").map(String) || [];
 
     if (!recipientId || !viewerId) {
       return new Response(
@@ -14,6 +16,9 @@ export async function GET(request: Request) {
         { status: 400 }
       );
     }
+
+    const excludeClause =
+      excludeIds.length > 0 ? `AND p.id NOT IN (${excludeIds.join(",")})` : "";
 
     let query;
 
@@ -40,6 +45,7 @@ export async function GET(request: Request) {
         JOIN users u ON p.user_id = u.clerk_id
         WHERE p.recipient_user_id = ${recipientId}
           AND p.post_type = 'personal'
+          ${excludeClause}
         ORDER BY p.created_at DESC
         LIMIT ${number};
       `;
@@ -67,6 +73,7 @@ export async function GET(request: Request) {
         WHERE p.recipient_user_id = ${recipientId}
           AND p.user_id = ${viewerId}
           AND p.post_type = 'personal'
+          ${excludeClause}
         ORDER BY p.created_at DESC
         LIMIT ${number};
       `;

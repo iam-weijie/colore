@@ -28,6 +28,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   const [profileUser, setProfileUser] = useState<any>(null);
   const [shouldRefresh, setShouldRefresh] = useState(0); // Add a refresh counter
   const isOwnBoard = !userId || userId === user?.id;
+  const [maxPosts, setMaxPosts] = useState(0);
 
   const fetchUserData = async () => {
     if (!isOwnBoard) {
@@ -42,23 +43,17 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     setLoading(false);
   };
 
-  // Use useFocusEffect to refresh when the screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      // Increment refresh counter to trigger re-render
-      setShouldRefresh(prev => prev + 1);
-    }, [])
-  );
-
   useEffect(() => {
     fetchUserData();
-  }, [userId]);
+  }, []);
 
   const fetchPersonalPosts = async () => {
     const viewerId = user!.id;
     const response = await fetchAPI(
-      `/api/posts/getPersonalPosts?recipient_id=${userId}&user_id=${viewerId}`
+      `/api/posts/getPersonalPosts?number=${4}&recipient_id=${userId}&user_id=${viewerId}`
     );
+
+    setMaxPosts(response.data.length); // maximum number of posts to display
     
     // Validate and format each post
     const formattedPosts = response.data.map((post: Post) => ({
@@ -74,7 +69,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   const fetchNewPersonalPost = async () => {
     try {
       const response = await fetchAPI(
-        `/api/posts/getPersonalPosts?number=1&user_id=${userId}&recipient_id=${user!.id}`
+        `/api/posts/getPersonalPosts?number=${1}&user_id=${userId}&recipient_id=${user!.id}`
       );
       const newPost = response.data[0];
       if (!newPost) {
@@ -92,16 +87,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       console.error(error);
       return null;
     }
-  };
-
-  const handleNewPost = () => { 
-    router.push({
-      pathname: "/root/new-personal-post",
-      params: { 
-        recipient_id: userId,
-        source: 'board'
-      }
-    });
   };
 
   if (loading) {
@@ -128,8 +113,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           userId={userId}
           handlePostsRefresh={fetchPersonalPosts}
           handleNewPostFetch={fetchNewPersonalPost}
-          onWritePost={handleNewPost}
           allowStacking={true}
+          maxPosts={maxPosts - 1}
         />
       </SignedIn>
     </SafeAreaView>
