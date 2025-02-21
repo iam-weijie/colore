@@ -28,6 +28,7 @@ type DraggablePostItProps = {
   updateIndex: () => void;
   updatePosition: (x: number, y: number, post: PostWithPosition) => void;
   onPress: () => void;
+  showText?: boolean;
 };
 
 type MappingPostitProps = {
@@ -53,6 +54,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   updateIndex,
   updatePosition,
   onPress,
+  showText = false,
 }) => {
   const position = useRef(new Animated.ValueXY()).current;
   const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
@@ -118,17 +120,34 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
         <PostIt color={post.color || "yellow"} />
       </TouchableWithoutFeedback>
 
-      <Text
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          transform: [{ translateX: -30 }, { translateY: -30 }],
-          fontSize: 50,
-        }}
-      >
-        {post.emoji && post.emoji}
-      </Text>
+      {!showText && (
+        <Text
+          style={{
+            position: "absolute",
+            top: "30%",
+            transform: [{ translateX: 50 }, { translateY: 0 }],
+            fontSize: 50,
+          }}
+        >
+          {post.emoji && post.emoji}
+        </Text>
+      )}
+      {showText && (
+        <Text
+          className="font-JakartaSemiBold text-black"
+          style={{
+            position: "absolute",
+            top: "40%",
+            fontSize: 16,
+            width: "100%",
+            textAlign: "center",
+          }}
+          numberOfLines={3} 
+          ellipsizeMode="tail"
+        >
+          {post.content}
+        </Text>
+      )}
     </Animated.View>
   );
 };
@@ -139,12 +158,14 @@ declare interface PostItBoardProps {
   handleBack?: () => void;
   handleNewPostFetch: (excludeIds: number[]) => Promise<Post>; // do not refetch IDs
   allowStacking: boolean;
+  showPostItText?: boolean;
 }
 
 const PostItBoard: React.FC<PostItBoardProps> = ({
   userId,
   handlePostsRefresh,
   handleNewPostFetch,
+  showPostItText = false,
 }) => {
   const [postsWithPosition, setPostsWithPosition] = useState<
     PostWithPosition[]
@@ -377,10 +398,10 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       setPostsWithPosition((prevPosts) =>
         prevPosts.filter((post) => post.id !== selectedPost.id)
       );
-  
+
       const existingPostIds = postsWithPosition.map((post) => post.id);
       const newPost = await handleNewPostFetch(existingPostIds);
-  
+
       if (newPost && !existingPostIds.includes(newPost.id)) {
         const newPostWithPosition: PostWithPosition = {
           ...newPost,
@@ -394,7 +415,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
           newPostWithPosition,
         ]);
       }
-  
+
       setSelectedPost(null);
     }
   };
@@ -436,6 +457,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                     }
                     post={post}
                     onPress={() => handlePostPress(post)}
+                    showText={showPostItText}
                   />
                 );
               })}

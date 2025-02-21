@@ -114,6 +114,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           handlePostsRefresh={fetchPersonalPosts}
           handleNewPostFetch={fetchNewPersonalPost}
           allowStacking={true}
+          showPostItText={true}
         />
       </SignedIn>
     </SafeAreaView>
