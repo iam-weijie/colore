@@ -159,6 +159,7 @@ declare interface PostItBoardProps {
   handleNewPostFetch: (excludeIds: number[]) => Promise<Post>; // do not refetch IDs
   allowStacking: boolean;
   showPostItText?: boolean;
+  invertColors?: boolean;
 }
 
 const PostItBoard: React.FC<PostItBoardProps> = ({
@@ -166,6 +167,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   handlePostsRefresh,
   handleNewPostFetch,
   showPostItText = false,
+  invertColors = false
 }) => {
   const [postsWithPosition, setPostsWithPosition] = useState<
     PostWithPosition[]
@@ -468,6 +470,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                 isVisible={!!selectedPost}
                 selectedPost={selectedPost}
                 handleCloseModal={handleCloseModal}
+                invertedColors={invertColors}
               />
             )}
           </View>

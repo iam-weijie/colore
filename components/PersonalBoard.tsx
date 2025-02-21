@@ -115,6 +115,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           handleNewPostFetch={fetchNewPersonalPost}
           allowStacking={true}
           showPostItText={true}
+          invertColors={true}
         />
       </SignedIn>
     </SafeAreaView>
