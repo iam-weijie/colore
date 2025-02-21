@@ -1,6 +1,5 @@
 // Need to configure Email Verification & Update
 
-
 import { fetchAPI } from "@/lib/fetch";
 import { UserProfileType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -33,8 +32,8 @@ const Settings = () => {
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
       const data = response.data[0];
       setProfileUser(data);
-      setUsername(data.username || '');
-      setEmail(data.email || '')
+      setUsername(data.username || "");
+      setEmail(data.email || "");
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     }
@@ -92,11 +91,11 @@ const Settings = () => {
   const handleLocationUpdate = () => {
     setStateVars({
       ...stateVars,
-      previousScreen: "settings"
+      previousScreen: "settings",
     });
     router.push({
       pathname: "/root/location/country",
-      params: { previousScreen: "settings" }
+      params: { previousScreen: "settings" },
     });
   };
 
@@ -110,7 +109,7 @@ const Settings = () => {
     }
   };
 
-  const currentLocation = profileUser 
+  const currentLocation = profileUser
     ? `${profileUser.city}, ${profileUser.state}, ${profileUser.country}`
     : "No location set";
 
@@ -119,39 +118,31 @@ const Settings = () => {
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView className="flex-1">
           <View className="flex flex-row items-center px-4 pt-2">
-            <TouchableOpacity onPress={() => router.push("/root/tabs/profile")} className="mr-4">
+            <TouchableOpacity
+              onPress={() => router.push("/root/tabs/profile")}
+              className="mr-4"
+            >
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
           </View>
           <View className=" m-4">
-          <View className="bg-[#fafafa] rounded-[32px] p-5 mb-4">
-              <Text className="text-xl font-JakartaSemiBold mb-4 text-[#bfbfbf]">Profile</Text>
-              <View className="p-2">
-              <View className="mb-4">
-              <Text className="text-lg font-JakartaSemiBold">First Name</Text>
-              <Text className="text-lg">{profileUser?.firstname}</Text>
-              </View>
-              <View className="mb-4">
-              <Text className="text-lg font-JakartaSemiBold">Last Name</Text>
-              <Text className="text-lg">{profileUser?.lastname}</Text>
-              </View>
-              </View>
-              
-
-            </View>
-
-
             <View className="bg-[#fafafa] rounded-[32px] p-5">
-              <Text className="text-xl font-JakartaSemiBold mb-4 text-[#bfbfbf]">Account</Text>
+              <Text className="text-xl font-JakartaSemiBold mb-4 text-[#bfbfbf]">
+                Account
+              </Text>
               <View className="flex flex-row items-center justify-between -mb-10 p-2">
-              <Text className="text-lg font-JakartaSemiBold">Username</Text>
-              <Text onPress={() => {
-                if (!username || loading) {
-                  return
-                }
-                handleUsernameUpdate()
-                
-                }} className="text-md text-indigo-700 font-JakartaSemiBold">Update</Text>
+                <Text className="text-lg font-JakartaSemiBold">Username</Text>
+                <Text
+                  onPress={() => {
+                    if (!username || loading) {
+                      return;
+                    }
+                    handleUsernameUpdate();
+                  }}
+                  className="text-md text-indigo-700 font-JakartaSemiBold"
+                >
+                  Update
+                </Text>
               </View>
               <InputField
                 label=""
@@ -160,9 +151,13 @@ const Settings = () => {
                 placeholder={profileUser?.username || "Enter username"}
                 containerStyle="mb-4"
               />
-             <View className="flex flex-row items-center justify-between -mb-10 p-2">
-              <Text className="text-lg font-JakartaSemiBold">Email Address</Text>
-              <Text className="text-md text-indigo-700 font-JakartaSemiBold">Update</Text> 
+              <View className="flex flex-row items-center justify-between -mb-10 p-2">
+                <Text className="text-lg font-JakartaSemiBold">
+                  Email Address
+                </Text>
+                <Text className="text-md text-indigo-700 font-JakartaSemiBold">
+                  Update
+                </Text>
               </View>
               <InputField
                 label=""
@@ -171,20 +166,31 @@ const Settings = () => {
                 placeholder={profileUser?.email || "Enter email address"}
                 containerStyle="mb-4"
               />
-            <View className="mb-6 mx-2">
-              <View className="flex flex-row items-center justify-between mb-4">
-              <Text className="text-lg font-JakartaSemiBold ">Location</Text>
-              <Text onPress={handleLocationUpdate} className="text-md text-indigo-700 font-JakartaSemiBold">Update</Text>
+              <View className="mb-6 mx-2">
+                <View className="flex flex-row items-center justify-between mb-4">
+                  <Text className="text-lg font-JakartaSemiBold ">
+                    Location
+                  </Text>
+                  <Text
+                    onPress={handleLocationUpdate}
+                    className="text-md text-indigo-700 font-JakartaSemiBold"
+                  >
+                    Update
+                  </Text>
+                </View>
+
+                <Text className="text-gray-500 mb-2">
+                  Current location: {currentLocation}
+                </Text>
               </View>
-              
-              <Text className="text-gray-500 mb-2">Current location: {currentLocation}</Text>
-            </View>
             </View>
 
             <View className="my-[36px]">
-              <TouchableOpacity onPress={handleSignOut} >
-                <Text className="font-JakartaBold text-xl text-red-500 text-center">Sign Out</Text>
-                </TouchableOpacity>
+              <TouchableOpacity onPress={handleSignOut}>
+                <Text className="font-JakartaBold text-xl text-red-500 text-center">
+                  Sign Out
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>

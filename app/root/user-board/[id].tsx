@@ -9,15 +9,15 @@ import { router } from "expo-router";
 const UserPersonalBoard = () => {
   const { id, username } = useLocalSearchParams();
   
-    const handleNewPost = () => { 
-      router.push({
-        pathname: "/root/new-personal-post",
-        params: { 
-          recipient_id: id,
-          source: 'board'
-        }
-      });
-    };
+  const handleNewPost = () => { 
+    router.push({
+      pathname: "/root/new-personal-post",
+      params: { 
+        recipient_id: id,
+        source: 'board'
+      }
+    });
+  };
 
   return (
     <SafeAreaView className="flex-1">
