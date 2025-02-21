@@ -94,4 +94,11 @@ export const temporaryColors: PostItColor[] = [
     rarity: "default",
     foldcolorhex: "#b8e1ff",
   },
+  {
+    name: "baby-purple",
+    id: 3,
+    hex: "#CFB1FB",
+    rarity: "default",
+    foldcolorhex: "#E2C7FF"
+  }
 ];

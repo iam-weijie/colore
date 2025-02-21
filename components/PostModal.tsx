@@ -261,6 +261,7 @@ const PostModal: React.FC<PostModalProps> = ({
       },
     });
   };
+  
 
   return (
     <ReactNativeModal

@@ -22,7 +22,9 @@ const Settings = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
   const [username, setUsername] = useState("");
+  const [newUsername, setNewUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
@@ -49,7 +51,7 @@ const Settings = () => {
   };
 
   const handleUsernameUpdate = async () => {
-    if (!verifyValidUsername(username)) {
+    if (!verifyValidUsername(newUsername)) {
       Alert.alert(
         "Invalid Username",
         "Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long"
@@ -63,10 +65,11 @@ const Settings = () => {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
-          username: username,
+          username: newUsername,
         }),
       });
 
+      console.log("Changed Username", response)
       if (response.error) {
         if (response.error.includes("already taken")) {
           Alert.alert(
@@ -118,65 +121,89 @@ const Settings = () => {
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView className="flex-1">
           <View className="flex flex-row items-center px-4 pt-2">
+            <View>
             <TouchableOpacity
               onPress={() => router.push("/root/tabs/profile")}
-              className="mr-4"
+              className="mr-2"
             >
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
+            </View>
+            <View>
+              <Text className="font-JakartaBold text-2xl">
+                Settings
+              </Text>
+            </View>
           </View>
           <View className=" m-4">
-            <View className="bg-[#fafafa] rounded-[32px] p-5">
-              <Text className="text-xl font-JakartaSemiBold mb-4 text-[#bfbfbf]">
+          <Text className="ml-2 text-xl font-JakartaSemiBold mb-4">
                 Account
               </Text>
-              <View className="flex flex-row items-center justify-between -mb-10 p-2">
+            <View className="bg-[#fafafa] rounded-[32px] p-5">
+              <View className="flex flex-row items-center justify-between -mb-14 p-2">
                 <Text className="text-lg font-JakartaSemiBold">Username</Text>
-                <Text
+                <TouchableOpacity
+                  activeOpacity={0.5}
+                  className="p-5 items-center"
                   onPress={() => {
-                    if (!username || loading) {
+                    console.log("Pressed")
+                   if (!newUsername || loading) {
                       return;
                     }
                     handleUsernameUpdate();
+                    setUsername(newUsername)
+                    setNewUsername("");
+
                   }}
-                  className="text-md text-indigo-700 font-JakartaSemiBold"
-                >
-                  Update
+                  
+                > 
+                <Text className="text-md text-indigo-700 font-JakartaSemiBold">
+                Update
                 </Text>
+                </TouchableOpacity>
               </View>
               <InputField
                 label=""
-                value={username}
-                onChangeText={setUsername}
-                placeholder={profileUser?.username || "Enter username"}
-                containerStyle="mb-4"
+                value={newUsername}
+                onChangeText={setNewUsername}
+                placeholder={username || "Enter username"}
+               
               />
-              <View className="flex flex-row items-center justify-between -mb-10 p-2">
+              <View className="flex flex-row items-center justify-between -mb-14 p-2">
                 <Text className="text-lg font-JakartaSemiBold">
                   Email Address
                 </Text>
+                <TouchableOpacity
+                  activeOpacity={0.5}
+                  className="p-5 items-center"
+                 >
                 <Text className="text-md text-indigo-700 font-JakartaSemiBold">
-                  Update
+                    Update
                 </Text>
+                 
+                </TouchableOpacity>
               </View>
               <InputField
                 label=""
-                value={email}
-                onChangeText={setEmail}
+                value={newEmail}
+                onChangeText={setNewEmail}
                 placeholder={profileUser?.email || "Enter email address"}
                 containerStyle="mb-4"
               />
-              <View className="mb-6 mx-2">
+              <View className="mb-4 mx-2">
                 <View className="flex flex-row items-center justify-between mb-4">
                   <Text className="text-lg font-JakartaSemiBold ">
                     Location
                   </Text>
-                  <Text
+                  <TouchableOpacity
+                    activeOpacity={0.5}
                     onPress={handleLocationUpdate}
-                    className="text-md text-indigo-700 font-JakartaSemiBold"
                   >
+                   <Text className="text-md text-indigo-700 font-JakartaSemiBold">
                     Update
-                  </Text>
+                </Text>
+                  </TouchableOpacity>
+                  
                 </View>
 
                 <Text className="text-gray-500 mb-2">

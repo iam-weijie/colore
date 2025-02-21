@@ -73,13 +73,13 @@ const Layout = () => {
       const data = responseData.toNotify;
       const unread_count = responseData.unread_count;
 
-      console.log("data", data, "unread_count", unread_count);
+      //console.log("data", data, "unread_count", unread_count);
 
       if (type == "Comments") {
         setUnreadComments(unread_count);
       }
       if (type == "Messages") {
-        console.log("unread_message", unread_count);
+        //console.log("unread_message", unread_count);
         setUnreadMessages(unread_count);
       }
       if (data.length > 0) {
@@ -307,7 +307,7 @@ const Layout = () => {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
-              source={icons.note}
+              source={icons.album}
               unread={unreadMessages}
               color={"#FF7272"} // Needs to be changed with message notifications
             />
