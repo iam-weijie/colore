@@ -99,6 +99,7 @@ declare interface UserPostsGalleryProps {
   profileUserId: string;
   handleUpdate?: () => void | undefined | Promise<void>;
   query?: string;
+  header: React.ReactElement;
 }
 
 declare interface UserProfileProps {

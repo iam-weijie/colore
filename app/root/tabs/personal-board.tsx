@@ -28,15 +28,17 @@ const UserPersonalBoard = () => {
 
   return (
     <SafeAreaView className="flex-1">
-      <View className="flex-row justify-between mx-7 mt-3">
-        <Text className="text-xl font-JakartaBold mt-4">My Personal Board</Text>
-        <View className="flex-col mt-4">
+      <View className="flex-row justify-between items-center mx-7 mt-3">
+        <Text className="text-2xl font-JakartaBold mt-4">My Board</Text>
+        <View className="flex flex-row mt-4 p-1 items-center justify-center border-2 border-black rounded-[24px] bg-[#FAFAFA]">
+          <View className="mx-2">
           <TouchableOpacity
             onPress={() => router.push("/root/chat/chat-screen")}
           >
-            <FontAwesome5 name="user-friends" size={30} color="black" />
+            <FontAwesome5 name="user-friends" size={24} color="black" />
           </TouchableOpacity>
-          <View className="mt-5 mx-2">
+          </View>
+          <View className="mx-2">
             <TouchableOpacity onPress={handleNewPost}>
               <Image source={icons.pencil} className="w-7 h-7" />
             </TouchableOpacity>

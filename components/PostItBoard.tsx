@@ -227,7 +227,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     newCoordinates: { x_coordinate: number; y_coordinate: number }
   ) => {
     let updatedStacks = [...stacks];
-    let postsToCombine = new Set([postId]); // Set of post IDs to combine into a single stack
+    let postsToCombine = [postId]; // Set of post IDs to combine into a single stack
 
     // Check proximity to all posts
     maps.forEach((mappedPost) => {
@@ -240,36 +240,43 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         );
 
         if (dist <= 15) {
-          postsToCombine.add(mappedPost.id); // Add all nearby posts
+          postsToCombine.push(mappedPost.id); // Add all nearby posts
         }
       }
     });
+    
+     // Remove empty stacks
+     updatedStacks = updatedStacks.filter((stack) => stack.ids.length > 0);
 
-    // Update stacks by removing the moving post from any stack it belongs to
-    updatedStacks = updatedStacks.map((stack) => ({
-      ...stack,
-      ids: stack.ids.filter((id: number) => id !== postId),
-      elements:
-        stack.elements.length > 0
-          ? stack.elements.filter(
-              (post: PostWithPosition) => post.id !== postId
-            )
-          : stack.elements,
-    }));
+    
 
-    // Remove empty stacks
-    updatedStacks = updatedStacks.filter((stack) => stack.ids.length > 0);
+     // Update stacks by removing the moving post from any stack it belongs to
+      updatedStacks = updatedStacks.map((stack) => ({
+        ...stack,
+        ids: stack.ids.filter((id: number) => id !== postId),
+        elements:
+          stack.elements.length > 0
+            ? stack.elements.filter(
+                (post: PostWithPosition) => post.id !== postId
+              )
+            : stack.elements,
+      }));
+  
+ 
+
+   
+
 
     // Check if postsToCombine should form a new stack or merge with existing ones
     const affectedStacks = updatedStacks.filter((stack) =>
-      stack.ids.some((id: number) => postsToCombine.has(id))
+      stack.ids.some((id: number) => postsToCombine.includes(id))
     );
 
-    if (affectedStacks.length === 0 && postsToCombine.size > 1) {
+    if (affectedStacks.length === 0 && postsToCombine.length > 1) {
       // No existing stack: create a new one if there's more than one post
       updatedStacks.push({
         ids: Array.from(postsToCombine),
-        elements: postsToCombine.size > 1 ? postsToCombine : [],
+        elements: postsToCombine.length > 1 ? postsToCombine : [],
       });
     } else if (affectedStacks.length > 0) {
       // Merge all affected stacks and postsToCombine into one stack
@@ -318,7 +325,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     }));
 
     // Filter out empty stacks
-    updatedStacks = updatedStacks.filter((stack) => stack.ids.length > 0);
+    updatedStacks = updatedStacks.filter((stack) => stack.ids.length > 1);
 
     setStacks(updatedStacks);
   };
@@ -395,10 +402,29 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   const handleCloseModal = async () => {
     if (selectedPost) {
-      setPostsWithPosition((prevPosts) =>
-        prevPosts.filter((post) => post.id !== selectedPost.id)
-      );
+      const postId = selectedPost.id
 
+       setSelectedPost(null);
+      //("Post to remove", selectedPost.id)
+      setPostsWithPosition((prevPosts) =>
+        prevPosts.filter((post) => post.id !== postId)
+      );
+      
+      setStacks((prevStacks) => {
+        const updatedStacks = prevStacks.map((stack) => ({
+          ...stack,
+          ids: stack.ids.filter((id: number) => id !== postId),
+        }));
+        return updatedStacks.filter((stack) => stack.ids.length > 1);
+      });
+
+      setMap((prevMap) => {
+        const updateMap = prevMap.filter((c) => c.id != postId)
+
+        return updateMap
+      });
+      //("remainging right after", stacks)
+  
       const existingPostIds = postsWithPosition.map((post) => post.id);
       const newPost = await handleNewPostFetch(existingPostIds);
 
@@ -416,7 +442,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         ]);
       }
 
-      setSelectedPost(null);
+  
+  
+      
     }
   };
 
@@ -425,6 +453,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     fetchRandomPosts();
   };
 
+  //console.log("remainging loaded", stacks)
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
