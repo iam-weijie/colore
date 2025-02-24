@@ -173,7 +173,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               >
                 <Image
                   source={icons.settings}
-                  className="w-8 h-8"
+                  className="w-7 h-7"
                   resizeMode="contain"
                 />
               </TouchableOpacity>
@@ -390,7 +390,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   <TouchableOpacity
                     onPress={() => router.push("/root/settings")}
                   >
-                    <Image source={icons.settings} className="w-8 h-8" />
+                    <Image source={icons.settings} className="w-7 h-7 top-5" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -527,7 +527,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
                   <View className="items-center">
                     <Text className="text-[#333333] font-JakartaBold text-[15px] text-center">
-                      Visit Board
+                      Visit board
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -638,7 +638,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 {user!.id !== userId && friendStatus.name == "unknown" && (
                   <View>
                     <Text className="text-white font-JakartaBold text-[14px]">
-                      Add Friend
+                      Add friend
                     </Text>
                   </View>
                 )}
