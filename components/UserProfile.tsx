@@ -35,6 +35,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
+import * as Linking from "expo-linking";
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -289,43 +290,26 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
+  const handleReportPress = () => {
+    Linking.openURL("mailto:support@colore.ca")
+  };
+
   // to prevent database errors,
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
-    { label: "Alias", onPress: handleAddNickname },
-    {
-      label: "Chat",
-      onPress: () =>
-        startChat([
-          profileUser!.clerk_id,
-          nickname || profileUser!.username,
-        ] as UserNicknamePair),
-    },
+    { label: "Alias", onPress: handleAddNickname},
+    { label: "Report", onPress: handleReportPress}
   ];
 
   const menuItems_default = [
     { label: "Alias", onPress: handleAddNickname },
-    {
-      label: "Chat",
-      onPress: () =>
-        startChat([
-          profileUser!.clerk_id,
-          nickname || profileUser!.username,
-        ] as UserNicknamePair),
-    },
-    {
-      label: "Send friend request",
-      onPress: () => {
-        if (friendStatus === FriendStatus.NONE) {
-          handleSendFriendRequest(); // only send if checked for sure not friends, and no request exists
-        }
-      },
-    },
+    { label: "Report", onPress: handleReportPress}
   ];
 
   const menuItems_friend = [
     { label: "Alias", onPress: handleAddNickname },
+    { label: "Report", onPress: handleReportPress},
     {
       label: "Chat",
       onPress: () =>
@@ -333,79 +317,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           profileUser!.clerk_id,
           nickname || profileUser!.username,
         ] as UserNicknamePair),
-    },
-    {
-      label: "Unfriend",
-      onPress: async () => {
-        setIsHandlingFriendRequest(true);
-        const response: FriendStatusType = await unfriend(user!.id, userId);
-        if (response === FriendStatus.NONE) {
-          Alert.alert("You have unfriended this user.");
-        } else {
-          Alert.alert("Error unfriending this user.");
-        }
-        setFriendStatus(response);
-        setIsHandlingFriendRequest(false);
-      },
     },
   ];
 
   const menuItems_sent = [
     { label: "Alias", onPress: handleAddNickname },
-    {
-      label: "Chat",
-      onPress: () =>
-        startChat([
-          profileUser!.clerk_id,
-          nickname || profileUser!.username,
-        ] as UserNicknamePair),
-    },
-    {
-      label: "Cancel friend request",
-      onPress: async () => {
-        setIsHandlingFriendRequest(true);
-        const response: FriendStatusType = await cancelFriendRequest(
-          user!.id,
-          userId
-        );
-        if (response === FriendStatus.NONE) {
-          Alert.alert("Friend request cancelled.");
-        } else {
-          Alert.alert("Error cancelling friend request.");
-        }
-        setFriendStatus(response);
-        setIsHandlingFriendRequest(false);
-      },
-    },
+    { label: "Report", onPress: () => Linking.openURL("mailto:support@colore.ca")}
   ];
 
   const menuItems_received = [
     { label: "Alias", onPress: handleAddNickname },
-    {
-      label: "Chat",
-      onPress: () =>
-        startChat([
-          profileUser!.clerk_id,
-          nickname || profileUser!.username,
-        ] as UserNicknamePair),
-    },
-    {
-      label: "Accept friend request",
-      onPress: async () => {
-        setIsHandlingFriendRequest(true);
-        const response = await acceptFriendRequest(
-          profileUser!.clerk_id,
-          user!.id
-        );
-        if (response === FriendStatus.FRIENDS) {
-          Alert.alert("Friend request accepted!");
-        } else {
-          Alert.alert("Error accepting friend request.");
-        }
-        setFriendStatus(response);
-        setIsHandlingFriendRequest(false);
-      },
-    },
+    { label: "Report", onPress: () => Linking.openURL("mailto:support@colore.ca")}
   ];
 
   function toggleExpanded() {
