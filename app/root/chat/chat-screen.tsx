@@ -99,9 +99,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     useState<boolean>(false);
 
   //Navigation
-  const { tab } = useLocalSearchParams();
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
   console.log("tab", tab);
-  const [selectedTab, setSelectedTab] = useState<string>("Messages");
+  const [selectedTab, setSelectedTab] = useState<string>(tab ? tab : "Messages");
 
   const fetchConversations = async (): Promise<void> => {
     setLoading(true);
@@ -223,6 +223,72 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     friend.friend_username.toLowerCase().includes(searchText.toLowerCase())
   );
 
+  const FriendLocation = ({ friendId }: { friendId: string }) => {
+    const [location, setLocation] = useState<string>("Loading...");
+  
+    useEffect(() => {
+      const fetchUserLocation = async (userId: string) => {
+        try {
+          const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
+            method: "GET",
+          });
+          const country = response.data?.[0]?.country || "Unknown Country";
+          const state = response.data?.[0]?.state || "Unknown State";
+          const city = response.data?.[0]?.city || "Unknown City";
+  
+          setLocation(`${city}, ${state}, ${country}`);
+        } catch (error) {
+          console.error(error, "Couldn't find location");
+          setLocation("Location not available");
+        }
+      };
+  
+      if (friendId) {
+        fetchUserLocation(friendId);
+      }
+    }, [friendId]);
+  
+    return <Text className="text-gray-500">{location}</Text>;
+  };
+
+  const handleUnfriending = async (friendId: string) => {
+       Alert.alert(
+      "Unfriend",                         // Title
+      "Are you sure you want to unfriend this person?", // Message
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Unfriending Cancelled"),
+          style: "cancel",                 // Makes the Cancel button stand out
+        },
+        {
+          text: "Unfriend",
+          onPress: async () => {
+            try {
+              setHandlingFriendRequest(true);
+              const response: FriendStatusType = await unfriend(
+                user!.id,
+                friendId
+              );
+              if (response === FriendStatus.NONE) {
+                Alert.alert("You have unfriended this user.");
+              } else {
+                Alert.alert("Error unfriending this user.");
+              }
+              fetchFriendData();
+              setHandlingFriendRequest(false);
+            } catch (error) {
+              console.error("Couldn't unfriend that person...", error);
+            }
+          }, // Replace with your API call
+          style: "destructive",            // Red color for emphasis
+        },
+      ],
+      { cancelable: true }                 // Close alert by tapping outside
+    );
+
+  }
+
   // RENDER LISTS ------ START
   const renderConversationItem = ({
     item,
@@ -270,41 +336,42 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderFriend = ({ item }: { item: Friendship }) => (
-    <View className="flex items-center mb-2 p-4 bg-[#FAFAFA] rounded-[16px]">
-      <View className="flex-row justify-between items-center mx-2">
+    <View className="flex  mb-2 p-4 bg-[#FAFAFA] rounded-[16px]">
+      <View className="flex flex-row justify-between items-center mx-2">
+        <View>
         <TouchableOpacity
           className="flex-1"
           activeOpacity={0.6}
           onPress={() => handleUserProfile(item.friend_id)}
+          onLongPress={async () => handleUnfriending(item.friend_id)}
         >
+          <View>
           <Text className="text-lg font-bold ">
             {nicknames && item.friend_id in nicknames
               ? nicknames[item.friend_id]
               : item.friend_username}
           </Text>
+          <FriendLocation friendId={item.friend_id} />
+          </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={async () => {
-            try {
-              setHandlingFriendRequest(true);
-              const response: FriendStatusType = await unfriend(
-                user!.id,
-                item.friend_id
-              );
-              if (response === FriendStatus.NONE) {
-                Alert.alert("You have unfriended this user.");
-              } else {
-                Alert.alert("Error unfriending this user.");
-              }
-              fetchFriendData();
-              setHandlingFriendRequest(false);
-            } catch (error) {
-              console.error("Couldn't unfriend that person...", error);
-            }
+        </View>
+        <View className="flex flex-row items-center justify-center">
+          <TouchableOpacity
+          onPress={() => {
+            router.push({
+              pathname: "/root/user-board/[id]",
+              params: { id: item.friend_id, username:item.friend_username },
+            });
           }}
-        >
-          <Image source={icons.close} style={{ width: 30, height: 30 }} />
-        </TouchableOpacity>
+          >
+             <Image
+                      source={icons.album}
+                      tintColor="#000000"
+                      resizeMode="contain"
+                      className="w-9 h-9"
+                    />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

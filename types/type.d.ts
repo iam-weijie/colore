@@ -99,6 +99,7 @@ declare interface UserPostsGalleryProps {
   profileUserId: string;
   handleUpdate?: () => void | undefined | Promise<void>;
   query?: string;
+  header: React.ReactElement;
 }
 
 declare interface UserProfileProps {
@@ -110,6 +111,7 @@ declare interface PostModalProps {
   isVisible: boolean;
   selectedPost: Post;
   handleCloseModal: () => void;
+  invertedColors?: boolean;
   handleUpdate?: () => void | Promise<void>;
 }
 
@@ -130,8 +132,8 @@ declare interface InputFieldProps extends TextInputProps {
 }
 
 declare interface NotificationBubbleProps {
-  unread: number,
-  color: string
+  unread: number;
+  color: string;
 }
 
 declare interface PaymentProps {

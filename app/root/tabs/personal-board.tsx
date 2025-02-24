@@ -1,62 +1,55 @@
 import React from "react";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
-import { SafeAreaView, View, Image, TouchableOpacity } from "react-native";
+import {
+  SafeAreaView,
+  TouchableOpacity,
+  View,
+  Image,
+  Text,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { FontAwesome5 } from "@expo/vector-icons";
+import PersonalBoard from "@/components/PersonalBoard";
 import { icons } from "@/constants";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import PostItBoard from "@/components/PostItBoard";
-import { fetchAPI } from "@/lib/fetch";
 
-declare interface PersonalBoardProps {}
-
-const PersonalBoard: React.FC<PersonalBoardProps> = () => {
+const UserPersonalBoard = () => {
+  const router = useRouter();
   const { user } = useUser();
-  
-    const fetchPosts = async () => {
-      const response = await fetchAPI(`/api/posts/getPersonalPosts?number=${4}&id=${user!.id}`);
-      return response.data;
-    };
-  
-    const fetchNewPost = async () => {
-      const response = await fetchAPI(`/api/posts/getPersonalPosts?number=${1}&id=${user!.id}`);
-      return response.data[0];
-    };
-  
-    const handleNewPostPress = () => {
-        router.push("/root/new-post");
-    };
+
+  const handleNewPost = () => {
+    router.push({
+      pathname: "/root/new-personal-post",
+      params: {
+        recipient_id: user!.id,
+        source: "board",
+      },
+    });
+  };
 
   return (
     <SafeAreaView className="flex-1">
-      <SignedIn>
-        <View className="flex-col justify-end items-end mx-7 mt-6">
-          <TouchableOpacity onPress={() => router.push("/root/chat/chat-screen")}>
-            <Image
-              source={icons.chat}
-              className="w-10 h-10"
-              style={{ tintColor: "black" }}
-            />
+      <View className="flex-row justify-between items-center mx-7 mt-3">
+        <Text className="text-2xl font-JakartaBold mt-4">My Board</Text>
+        <View className="flex flex-row mt-4 p-1 items-center justify-center border-2 border-black rounded-[24px] bg-[#FAFAFA]">
+          <View className="mx-2">
+          <TouchableOpacity
+            onPress={() => router.push("/root/chat/chat-screen")}
+          >
+            <FontAwesome5 name="user-friends" size={24} color="black" />
           </TouchableOpacity>
-          <View className="mt-4">
-            {/* <TouchableOpacity
-              onPress={() => router.push("/root/friends/friend-screen")}
-            >
-              <FontAwesome5 name="user-friends" size={30} color="black" />
-            </TouchableOpacity> */}
           </View>
-          <View>
-            <PostItBoard
-              userId={user!.id}
-              handlePostsRefresh={fetchPosts}
-              handleNewPostFetch={fetchNewPost}
-              onWritePost={handleNewPostPress}
-              allowStacking={false}
-            />
+          <View className="mx-2">
+            <TouchableOpacity onPress={handleNewPost}>
+              <Image source={icons.pencil} className="w-7 h-7" />
+            </TouchableOpacity>
           </View>
         </View>
+      </View>
+      <SignedIn>
+        <PersonalBoard userId={user!.id} />
       </SignedIn>
     </SafeAreaView>
   );
 };
 
-export default PersonalBoard;
+export default UserPersonalBoard;

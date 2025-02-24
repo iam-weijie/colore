@@ -8,7 +8,7 @@ import Animated, {
   withTiming,
   FadeInUp,
   FadeOutDown,
-  runOnJS
+  runOnJS,
 } from "react-native-reanimated";
 import {
   Alert,
@@ -20,13 +20,21 @@ import {
   View,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
-import { GestureHandlerRootView, PanGestureHandler } from "react-native-gesture-handler";
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+} from "react-native-gesture-handler";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
-import { Post, PostItColor, PostModalProps, UserNicknamePair } from "@/types/type";
+import {
+  Post,
+  PostItColor,
+  PostModalProps,
+  UserNicknamePair,
+} from "@/types/type";
 import { icons, temporaryColors } from "@/constants/index";
 import DropdownMenu from "./DropdownMenu";
 import * as Linking from "expo-linking";
@@ -36,6 +44,7 @@ const PostModal: React.FC<PostModalProps> = ({
   selectedPost,
   handleCloseModal,
   handleUpdate,
+  invertedColors = false,
 }) => {
   const { stacks } = useGlobalContext();
   const { user } = useUser();
@@ -83,9 +92,13 @@ const PostModal: React.FC<PostModalProps> = ({
     fetchLikeStatus();
   }, [post, currentPostIndex, user?.id]);
 
-  const dateCreated = convertToLocal(new Date(post[currentPostIndex]?.created_at || ""));
+  const dateCreated = convertToLocal(
+    new Date(post[currentPostIndex]?.created_at || "")
+  );
   const formattedDate = formatDateTruncatedMonth(dateCreated);
-  const postColor = temporaryColors.find((color) => color.name === post[currentPostIndex]?.color) as PostItColor;
+  const postColor = temporaryColors.find(
+    (color) => color.name === post[currentPostIndex]?.color
+  ) as PostItColor;
 
   // Handle swipe gestures
   const gestureHandler = useAnimatedGestureHandler({
@@ -93,7 +106,7 @@ const PostModal: React.FC<PostModalProps> = ({
       context.startX = translateX.value;
     },
     onActive: (event, context) => {
-      translateX.value = context.startX as number + event.translationX;
+      translateX.value = (context.startX as number) + event.translationX;
     },
     onEnd: () => {
       const threshold = 60;
@@ -103,7 +116,10 @@ const PostModal: React.FC<PostModalProps> = ({
           runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
           opacity.value = withTiming(1);
         });
-      } else if (translateX.value < -threshold && currentPostIndex < posts.length - 1) {
+      } else if (
+        translateX.value < -threshold &&
+        currentPostIndex < posts.length - 1
+      ) {
         translateX.value = withTiming(0);
         opacity.value = withTiming(0, {}, () => {
           runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
@@ -117,7 +133,14 @@ const PostModal: React.FC<PostModalProps> = ({
 
   // Animated styles for swiping
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: withSpring(translateX.value, { damping: 20, stiffness: 300 }) }],
+    transform: [
+      {
+        translateX: withSpring(translateX.value, {
+          damping: 20,
+          stiffness: 300,
+        }),
+      },
+    ],
     opacity: withTiming(opacity.value),
   }));
 
@@ -132,7 +155,11 @@ const PostModal: React.FC<PostModalProps> = ({
 
       const response = await fetchAPI(`/api/posts/updateLikeCount`, {
         method: "PATCH",
-        body: JSON.stringify({ postId: post[currentPostIndex].id, userId: user.id, increment }),
+        body: JSON.stringify({
+          postId: post[currentPostIndex].id,
+          userId: user.id,
+          increment,
+        }),
       });
 
       if (response.error) {
@@ -165,13 +192,8 @@ const PostModal: React.FC<PostModalProps> = ({
         method: "GET",
       });
       if (response.error) {
-        //console.log("Error fetching user data");
-        ////console.log("response data: ", response.data);
-        //console.log("response status: ", response.status);
-        // //console.log("response: ", response);
         throw new Error(response.error);
       }
-      // //console.log("response: ", response.data[0].nicknames);
       const nicknames = response.data[0].nicknames || [];
       return findUserNickname(nicknames, post!.clerk_id) === -1
         ? ""
@@ -197,7 +219,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
   const handleReportPress = () => {
     Linking.openURL("mailto:support@colore.ca");
-  }
+  };
 
   const handleDelete = async () => {
     try {
@@ -239,72 +261,86 @@ const PostModal: React.FC<PostModalProps> = ({
       },
     });
   };
+  
 
   return (
     <ReactNativeModal
-    isVisible={isVisible}
-    backdropColor={postColor?.hex || "rgba(0,0,0,0.5)"}
-    backdropOpacity={1}
-    onBackdropPress={handleCloseModal}
-  >
-    <TouchableWithoutFeedback onPress={handleCloseModal}>
-      <View />
-    </TouchableWithoutFeedback>
+      isVisible={isVisible}
+      backdropColor={
+        invertedColors ? "rgba(0,0,0,0.5)" : (postColor?.hex || "rgba(0,0,0,0.5)")
+      }
+      backdropOpacity={1}
+      onBackdropPress={handleCloseModal}
+    >
+      <TouchableWithoutFeedback onPress={handleCloseModal}>
+        <View />
+      </TouchableWithoutFeedback>
 
-    <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
-      <PanGestureHandler onGestureEvent={gestureHandler}>
-        <Animated.View
-          entering={FadeInUp.duration(400)}
-          exiting={FadeOutDown.duration(250)}
-          className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto"
-          style={[animatedStyle]}
-        >
-          <TouchableOpacity onPress={handleCloseModal}>
-            <Image source={icons.close} style={{ width: 24, height: 24, alignSelf: "flex-end" }} />
-          </TouchableOpacity>
-
-          <ScrollView>
-          <Text className="text-[16px] p-1 my-4 font-Jakarta">
-            {post[currentPostIndex]?.content}
-          </Text>
-        </ScrollView>
-        <View className="my-2 flex-row justify-between items-center">
-          <View className="flex flex-row items-center">
-            <TouchableOpacity onPress={handleCommentsPress}>
-              <Image source={icons.comment} className="w-8 h-8" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleLikePress}
-              disabled={isLoadingLike}
-              className="ml-2"
-            >
-              <MaterialCommunityIcons
-                name={isLiked ? "heart" : "heart-outline"}
-                size={32}
-                color={isLiked ? "red" : "black"}
+      <GestureHandlerRootView
+        style={{ justifyContent: "center", alignItems: "center" }}
+      >
+        <PanGestureHandler onGestureEvent={gestureHandler}>
+          <Animated.View
+            entering={FadeInUp.duration(400)}
+            exiting={FadeOutDown.duration(250)}
+            className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto"
+            style={[
+              animatedStyle,
+              {
+                backgroundColor: !invertedColors
+                  ? "rgba(255, 255, 255, 1)"
+                  : (postColor?.hex || "rgba(255, 255, 255, 1)"),
+              },
+            ]}
+          >
+            <TouchableOpacity onPress={handleCloseModal}>
+              <Image
+                source={icons.close}
+                style={{ width: 24, height: 24, alignSelf: "flex-end" }}
               />
             </TouchableOpacity>
-            {/* Show like count only to post creator */}
-            {post && post.clerk_id === user?.id && (
-              <Text className="ml-1 text-gray-600">{likeCount}</Text>
-            )}
-          </View>
-          {/* Delete button for post owner */}
-          {post && post.clerk_id === user?.id ? (
-            <DropdownMenu 
-              menuItems={[ {label: "Delete", onPress: handleDeletePress} ]}
-            />
-          ) : (
-            <DropdownMenu 
-              menuItems={[ {label: "Report", onPress: handleReportPress} ]}
-            />
-          )}
-        </View>
 
-        </Animated.View>
-      </PanGestureHandler>
-    </GestureHandlerRootView>
-  </ReactNativeModal>
+            <ScrollView>
+              <Text className="text-[16px] p-1 my-4 font-Jakarta">
+                {post[currentPostIndex]?.content}
+              </Text>
+            </ScrollView>
+            <View className="my-2 flex-row justify-between items-center">
+              <View className="flex flex-row items-center">
+                <TouchableOpacity onPress={handleCommentsPress}>
+                  <Image source={icons.comment} className="w-8 h-8" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleLikePress}
+                  disabled={isLoadingLike}
+                  className="ml-2"
+                >
+                  <MaterialCommunityIcons
+                    name={isLiked ? "heart" : "heart-outline"}
+                    size={32}
+                    color={isLiked ? "red" : "black"}
+                  />
+                </TouchableOpacity>
+                {/* Show like count only to post creator */}
+                {post && post.clerk_id === user?.id && (
+                  <Text className="ml-1 text-gray-600">{likeCount}</Text>
+                )}
+              </View>
+              {/* Delete button for post owner */}
+              {post && post.clerk_id === user?.id ? (
+                <DropdownMenu
+                  menuItems={[{ label: "Delete", onPress: handleDeletePress }]}
+                />
+              ) : (
+                <DropdownMenu
+                  menuItems={[{ label: "Report", onPress: handleReportPress }]}
+                />
+              )}
+            </View>
+          </Animated.View>
+        </PanGestureHandler>
+      </GestureHandlerRootView>
+    </ReactNativeModal>
   );
 };
 
