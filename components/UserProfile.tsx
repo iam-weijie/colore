@@ -613,7 +613,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               <TouchableOpacity
                 onPress={async () => {
                   if (user!.id == userId) {
-                    router.push("/root/chat");
+                    router.push("/root/chat/chat-screen");
                   }
                   if (
                     (user!.id != userId && friendStatus.name == "unknown") ||
