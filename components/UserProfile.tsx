@@ -172,7 +172,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               >
                 <Image
                   source={icons.settings}
-                  className="w-8 h-8"
+                  className="w-7 h-7"
                   resizeMode="contain"
                 />
               </TouchableOpacity>

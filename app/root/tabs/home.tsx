@@ -1,39 +1,29 @@
-import { Post, PostWithPosition } from "@/types/type";
+import { Post } from "@/types/type";
 
-import { SignedIn, useUser } from "@clerk/clerk-expo";
 import PostItBoard from "@/components/PostItBoard";
 import { fetchAPI } from "@/lib/fetch";
-import { useEffect, useRef, useState } from "react";
+import { SignedIn, useUser } from "@clerk/clerk-expo";
 import * as React from "react";
+import { useState } from "react";
 
-import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Image,
-  PanResponder,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-  SafeAreaView,
-} from "react-native";
-import { router } from "expo-router";
 import { icons } from "@/constants";
+import { router } from "expo-router";
+import { Image, SafeAreaView, TouchableOpacity, View } from "react-native";
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
 
   const fetchPosts = async () => {
-    const response = await fetchAPI(`/api/posts/getRandomPosts?number=${4}&id=${user!.id}`);
+    const response = await fetchAPI(
+      `/api/posts/getRandomPosts?number=${4}&id=${user!.id}`
+    );
     return response.data;
   };
 
   const fetchNewPost = async (excludeIds: number[]) => {
     try {
-      const excludeIdsParam = excludeIds.join(',');
+      const excludeIdsParam = excludeIds.join(",");
       const response = await fetch(
         `/api/posts/getRandomPostsExcluding?number=${1}&id=${user!.id}&exclude_ids=${excludeIdsParam}`
       );
@@ -62,7 +52,7 @@ export default function Page() {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <View className="flex-row justify-between items-center mx-7 mt-3">
+        <View className="flex-row justify-between items-center mx-7 mt-5">
           <Image
             source={require("@/assets/colore-word-logo.png")}
             style={{ width: 120, height: 50 }}
@@ -73,7 +63,7 @@ export default function Page() {
             <Image source={icons.pencil} className="w-7 h-7" />
           </TouchableOpacity>
         </View>
-        <PostItBoard 
+        <PostItBoard
           userId={user!.id}
           handlePostsRefresh={fetchPosts}
           handleNewPostFetch={fetchNewPost}
