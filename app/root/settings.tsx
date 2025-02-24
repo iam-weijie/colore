@@ -191,7 +191,7 @@ const Settings = () => {
                 placeholder={profileUser?.email || "Enter email address"}
                 containerStyle="mb-4"
               />
-              <View className="mb-4 mx-2">
+              <View className="mb-4 mx-2 pr-[20px]">
                 <View className="flex flex-row items-center justify-between mb-4">
                   <Text className="text-lg font-JakartaSemiBold ">
                     Location
@@ -208,7 +208,7 @@ const Settings = () => {
                 </View>
 
                 <Text className="text-gray-500 mb-2">
-                  Current location: {currentLocation}
+                  {currentLocation}
                 </Text>
               </View>
             </View>

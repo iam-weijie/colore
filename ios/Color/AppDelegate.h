@@ -1,8 +1,7 @@
+#import <RCTAppDelegate.h>
 #import <UIKit/UIKit.h>
-#import <UserNotifications/UserNotifications.h>
+#import <Expo/Expo.h>
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate, UNUserNotificationCenterDelegate>
-
-@property (strong, nonatomic) UIWindow *window;
+@interface AppDelegate : EXAppDelegateWrapper
 
 @end

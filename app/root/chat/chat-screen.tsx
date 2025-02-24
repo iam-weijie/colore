@@ -611,59 +611,67 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               />
             )}
             {selectedTab == "Requests" && (
-              <View>
-                <FlatList
-                  className="mt-3 mx-4 p-4 bg-[#FAFAFA] rounded-[24px]"
-                  data={allFriendRequests?.received}
-                  ListHeaderComponent={
-                    <View>
-                      <Text className="font-JakartaBold text-lg">
-                        Requests{" "}
-                      </Text>
-                      <NotificationBubble
-                        unread={
-                          allFriendRequests?.received
-                            ? allFriendRequests.received.length
-                            : 0
-                        }
-                        color="#ffd12b"
-                      />
-                    </View>
-                  }
-                  renderItem={renderIncomingRequest}
-                  keyExtractor={(item) => item.id.toString()}
-                  ListEmptyComponent={
-                    <Text className="text-left text-gray-500">
-                      No friend requests
-                    </Text>
-                  }
-                  style={{ maxHeight: screenHeight * 0.3 }}
-                />
-                <FlatList
-                  className="mt-4 mx-4 p-4 bg-[#FAFAFA] rounded-[24px]"
-                  data={allFriendRequests?.sent}
-                  ListHeaderComponent={
-                    <View>
-                      <Text className="font-JakartaBold text-lg">Sent </Text>
-                      <NotificationBubble
-                        unread={
-                          allFriendRequests?.sent
-                            ? allFriendRequests.sent.length
-                            : 0
-                        }
-                        color="#ffd12b"
-                      />
-                    </View>
-                  }
-                  renderItem={renderOutgoingRequest}
-                  keyExtractor={(item) => item.id.toString()}
-                  ListEmptyComponent={
-                    <Text className="text-left text-gray-500">
-                      No outgoing friend requests
-                    </Text>
-                  }
-                  style={{ maxHeight: screenHeight * 0.3 }}
-                />
+              <View className="flex-1 mt-3 mx-4">
+                {/* Container for both lists, flex-1 to take all available space */}
+                <View className="flex-1 flex-col">
+                  {/* Top half: Incoming Requests */}
+                  <View className="flex-1 mb-2">
+                    <FlatList
+                      className="flex-1 p-4 bg-[#FAFAFA] rounded-[24px]"
+                      data={allFriendRequests?.received}
+                      ListHeaderComponent={
+                        <View>
+                          <Text className="font-JakartaBold text-lg">
+                            Requests{" "}
+                          </Text>
+                          <NotificationBubble
+                            unread={
+                              allFriendRequests?.received
+                                ? allFriendRequests.received.length
+                                : 0
+                            }
+                            color="#ffd12b"
+                          />
+                        </View>
+                      }
+                      renderItem={renderIncomingRequest}
+                      keyExtractor={(item) => item.id.toString()}
+                      ListEmptyComponent={
+                        <Text className="text-left text-gray-500">
+                          No friend requests
+                        </Text>
+                      }
+                    />
+                  </View>
+
+                  {/* Bottom half: Outgoing Requests */}
+                  <View className="flex-1 mt-2">
+                    <FlatList
+                      className="flex-1 p-4 bg-[#FAFAFA] rounded-[24px]"
+                      data={allFriendRequests?.sent}
+                      ListHeaderComponent={
+                        <View>
+                          <Text className="font-JakartaBold text-lg">Sent </Text>
+                          <NotificationBubble
+                            unread={
+                              allFriendRequests?.sent
+                                ? allFriendRequests.sent.length
+                                : 0
+                            }
+                            color="#ffd12b"
+                          />
+                        </View>
+                      }
+                      renderItem={renderOutgoingRequest}
+                      keyExtractor={(item) => item.id.toString()}
+                      ListEmptyComponent={
+                        <Text className="text-left text-gray-500">
+                          No outgoing friend requests
+                        </Text>
+                      }
+                    />
+                  </View>
+                </View>
               </View>
             )}
           </View>
