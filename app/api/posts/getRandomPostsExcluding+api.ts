@@ -6,10 +6,17 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const number = url.searchParams.get("number");
     const id = url.searchParams.get("id");
-    //console.log("Received GET request for random posts.");
+    const excludeIds =
+      url.searchParams.get("exclude_ids")?.split(",").map(Number) || [];
 
-    // comments table to be joined later :]
-    const response = await sql`
+    // Construct the exclusion clause
+    const excludeClause =
+      excludeIds.length > 0
+        ? `AND p.id NOT IN (${excludeIds.map((id) => `'${id}'`).join(",")})`
+        : "";
+
+    // Construct the full SQL query
+    const query = `
       SELECT 
         p.id, 
         p.content, 
@@ -26,13 +33,16 @@ export async function GET(request: Request) {
         u.country, 
         u.state, 
         u.city
-  
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
-      WHERE p.user_id != ${id} AND p.post_type = 'public'
+      WHERE p.user_id != '${id}' 
+        AND p.post_type = 'public'
+        ${excludeClause}
       ORDER BY RANDOM()
       LIMIT ${number};
     `;
+
+    const response = await sql(query);
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,

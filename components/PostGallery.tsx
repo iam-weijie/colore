@@ -17,7 +17,8 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   posts,
   profileUserId,
   handleUpdate,
-  query
+  query,
+  header
 }) => {
   const { user } = useUser();
   const isOwnProfile = user!.id === profileUserId;
@@ -113,8 +114,16 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   );
 
   return (
-    <View className="absolute max-h-[100%]">
-      <Text className="text-lg font-JakartaSemiBold">Posts</Text>
+    <View className=" max-h-[100%]">
+      {filteredPosts.length > 0 ? 
+      (
+        header
+        
+      ) : 
+      (<Text className="font-Jakarta text-gray-500">
+              No Post Found
+            </Text>)}
+       
       {posts.length === 0 ? (
         <View
           className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent mx-auto"
@@ -128,7 +137,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
         </View>
       ) : (
         <FlatList
-          className="flex-1"
+          className="mt-4 mx-7 rounded-[24px]"
           data={filteredPosts}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}

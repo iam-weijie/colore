@@ -8,6 +8,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from "@/notifications/NotificationContext"; // Assuming you have a notification context to manage global state
 import { sendPushNotification } from "@/notifications/PushNotificationService"; // Assuming this handles the push notification
 import { ConversationItem } from "@/types/type";
+import Entypo from '@expo/vector-icons/Entypo';
 
 const TabIcon = ({
   source,
@@ -72,13 +73,13 @@ const Layout = () => {
       const data = responseData.toNotify;
       const unread_count = responseData.unread_count;
 
-      console.log("data", data, "unread_count", unread_count);
+      //console.log("data", data, "unread_count", unread_count);
 
       if (type == "Comments") {
         setUnreadComments(unread_count);
       }
       if (type == "Messages") {
-        console.log("unread_message", unread_count);
+        //console.log("unread_message", unread_count);
         setUnreadMessages(unread_count);
       }
       if (data.length > 0) {
@@ -299,14 +300,14 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="personal-board"
+        name="personal-board" 
         options={{
-          title: "Chat",
+          title: "Personal Board",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
-              source={icons.chat}
+              source={icons.album}
               unread={unreadMessages}
               color={"#FF7272"} // Needs to be changed with message notifications
             />

@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       p.emoji
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
-      WHERE u.clerk_id = ${clerkId}
+      WHERE u.clerk_id = ${clerkId} AND p.post_type = 'public'
       ORDER BY p.created_at ASC;
       `;
     return new Response(JSON.stringify({ data: response }), {

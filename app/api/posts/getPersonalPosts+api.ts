@@ -5,11 +5,17 @@ export async function GET(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const number = url.searchParams.get("number");
-    const id = url.searchParams.get("id");
-    //console.log("Received GET request for random posts.");
+    const recipientId = url.searchParams.get("recipient_id");
+    const viewerId = url.searchParams.get("user_id");
 
-    // comments table to be joined later :]
-    const response = await sql`
+    if (!recipientId || !viewerId) {
+      return new Response(
+        JSON.stringify({ error: "Missing recipient_id or user_id parameter" }),
+        { status: 400 }
+      );
+    }
+
+    const query = `
       SELECT 
         p.id, 
         p.content, 
@@ -26,24 +32,23 @@ export async function GET(request: Request) {
         u.country, 
         u.state, 
         u.city
-  
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
-      WHERE p.user_id != ${id} AND p.post_type = 'public'
-      ORDER BY RANDOM()
+      WHERE p.recipient_user_id = '${recipientId}'
+        AND p.post_type = 'personal'
+      ORDER BY p.created_at DESC
       LIMIT ${number};
     `;
 
+    const response = await sql(query);
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching personal posts:", error);
     return new Response(
-      JSON.stringify({ error: "Failed to fetch random posts" }),
-      {
-        status: 500,
-      }
+      JSON.stringify({ error: "Failed to fetch personal posts" }),
+      { status: 500 }
     );
   }
 }

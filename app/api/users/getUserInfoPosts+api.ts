@@ -32,7 +32,7 @@ export async function GET(request: Request) {
         p.emoji
       FROM users u
       LEFT JOIN posts p ON u.clerk_id = p.user_id
-      WHERE u.clerk_id = ${clerkId}
+      WHERE u.clerk_id = ${clerkId} AND p.post_type = 'public'
       ORDER BY p.created_at DESC;
     `;
 
