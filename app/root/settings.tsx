@@ -105,6 +105,7 @@ const Settings = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
+      setLoading(true);
       router.replace("/auth/log-in");
     } catch (error) {
       console.error("Error signing out:", error);
