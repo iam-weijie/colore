@@ -605,7 +605,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
                   <View className="items-center">
                     <Text className="text-[#333333] font-JakartaBold text-[15px] text-center">
-                      Visit Board
+                      Visit board
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -716,7 +716,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 {user!.id !== userId && friendStatus.name == "unknown" && (
                   <View>
                     <Text className="text-white font-JakartaBold text-[14px]">
-                      Add Friend
+                      Add friend
                     </Text>
                   </View>
                 )}
