@@ -468,7 +468,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   <TouchableOpacity
                     onPress={() => router.push("/root/settings")}
                   >
-                    <Image source={icons.settings} className="w-8 h-8" />
+                    <Image source={icons.settings} className="w-7 h-7 top-5" />
                   </TouchableOpacity>
                 )}
               </View>
