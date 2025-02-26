@@ -21,6 +21,7 @@ import {
 import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -35,7 +36,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
-import * as Linking from "expo-linking";
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -291,25 +291,25 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   };
 
   const handleReportPress = () => {
-    Linking.openURL("mailto:support@colore.ca")
+    Linking.openURL("mailto:support@colore.ca");
   };
 
   // to prevent database errors,
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
-    { label: "Alias", onPress: handleAddNickname},
-    { label: "Report", onPress: handleReportPress}
+    { label: "Nickname", onPress: handleAddNickname },
+    { label: "Report", onPress: handleReportPress },
   ];
 
   const menuItems_default = [
-    { label: "Alias", onPress: handleAddNickname },
-    { label: "Report", onPress: handleReportPress}
+    { label: "Nickname", onPress: handleAddNickname },
+    { label: "Report", onPress: handleReportPress },
   ];
 
   const menuItems_friend = [
-    { label: "Alias", onPress: handleAddNickname },
-    { label: "Report", onPress: handleReportPress},
+    { label: "Nickname", onPress: handleAddNickname },
+    { label: "Report", onPress: handleReportPress },
     {
       label: "Chat",
       onPress: () =>
@@ -321,13 +321,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_sent = [
-    { label: "Alias", onPress: handleAddNickname },
-    { label: "Report", onPress: () => Linking.openURL("mailto:support@colore.ca")}
+    { label: "Nickname", onPress: handleAddNickname },
+    {
+      label: "Report",
+      onPress: () => Linking.openURL("mailto:support@colore.ca"),
+    },
   ];
 
   const menuItems_received = [
-    { label: "Alias", onPress: handleAddNickname },
-    { label: "Report", onPress: () => Linking.openURL("mailto:support@colore.ca")}
+    { label: "Nickname", onPress: handleAddNickname },
+    {
+      label: "Report",
+      onPress: () => Linking.openURL("mailto:support@colore.ca"),
+    },
   ];
 
   function toggleExpanded() {
