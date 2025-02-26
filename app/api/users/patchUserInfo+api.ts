@@ -8,7 +8,7 @@ import { neon } from "@neondatabase/serverless";
 export async function PATCH(request: Request) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const { clerkId, country, state, city, username } = await request.json();
+    const { clerkId, country, state, city, username, email} = await request.json();
 
     if (!clerkId) {
       return Response.json(
@@ -24,6 +24,13 @@ export async function PATCH(request: Request) {
       response = await sql`
         UPDATE users
         SET username = ${username}
+        WHERE clerk_id = ${clerkId}
+        RETURNING *
+      `;
+    } else if (email !== undefined) {
+      response = await sql`
+        UPDATE users
+        SET email = ${email}
         WHERE clerk_id = ${clerkId}
         RETURNING *
       `;
