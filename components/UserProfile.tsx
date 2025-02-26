@@ -433,11 +433,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   className="flex-1 max-w-[135px]  bg-gray-200 items-center"
                   style={{
                     justifyContent:
-                      user!.id == userId ? "space-between" : "center",
-                    padding: user!.id == userId ? 20 : 5,
+                      user!.id === userId ? "space-between" : "center",
+                    padding: user!.id === userId ? 20 : 5,
                     height: isCollapsed ? 50 : 150,
                     borderRadius: isCollapsed
-                      ? user!.id == userId
+                      ? user!.id === userId
                         ? 24
                         : 20
                       : 32,
@@ -509,12 +509,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   className="flex-1 bg-gray-200 items-center justify-between"
                   style={{
                     justifyContent:
-                      user!.id == userId ? "space-between" : "center",
-                    padding: user!.id == userId ? 20 : 5,
+                      user!.id === userId ? "space-between" : "center",
+                    padding: user!.id === userId ? 20 : 5,
                     maxWidth: 135,
                     height: isCollapsed ? 50 : 150,
                     borderRadius: isCollapsed
-                      ? user!.id == userId
+                      ? user!.id === userId
                         ? 24
                         : 20
                       : 32,
