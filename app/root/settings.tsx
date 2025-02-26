@@ -205,7 +205,7 @@ const Settings = () => {
             
             <View className="bg-[#fafafa] rounded-[32px] p-5">
               {/* Username Section */}
-              <View className="mb-6">
+              <View className="mb-4">
                 <View className="flex flex-row items-center justify-between p-2">
                   <Text className="text-lg font-JakartaSemiBold">Username</Text>
                   <TouchableOpacity
@@ -230,11 +230,13 @@ const Settings = () => {
                   value={newUsername}
                   onChangeText={setNewUsername}
                   placeholder={username || "Enter username"}
+                  containerStyle="mt-[0px]"
+                  labelStyle="hidden" 
                 />
               </View>
               
               {/* Email Section */}
-              <View className="mb-6">
+              <View className="mb-4"> 
                 <View className="flex flex-row items-center justify-between p-2">
                   <Text className="text-lg font-JakartaSemiBold">
                     Email Address
@@ -261,7 +263,9 @@ const Settings = () => {
                   value={newEmail}
                   onChangeText={setNewEmail}
                   placeholder={profileUser?.email || "Enter email address"}
-                  containerStyle="mb-4"
+                  containerStyle="mt-[0px]" 
+                  labelStyle="hidden"
+              
                 />
               </View>
               
