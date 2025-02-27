@@ -309,22 +309,28 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
   const menuItems_friend = [
     { label: "Nickname", onPress: handleAddNickname },
-    {
-      label: "Message",
-      onPress: () =>
-        startChat([
-          profileUser!.clerk_id,
-          nickname || profileUser!.username,
-        ] as UserNicknamePair),
-    },
     { label: "Report", onPress: handleReportPress },
+    { label: "Unfriend", onPress: async () => {
+      setIsHandlingFriendRequest(true);
+      const response: FriendStatusType = await unfriend(
+        user!.id,
+        userId
+      );
+      if (response === FriendStatus.NONE) {
+        Alert.alert("You have unfriended this user.");
+      } else {
+        Alert.alert("Error unfriending this user.");
+      }
+      setFriendStatus(response);
+      setIsHandlingFriendRequest(false);
+    }}
   ];
 
   const menuItems_sent = [
     { label: "Nickname", onPress: handleAddNickname },
     {
       label: "Report",
-      onPress: () => Linking.openURL("mailto:support@colore.ca"),
+      onPress: handleReportPress,
     },
   ];
 
@@ -332,7 +338,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     { label: "Nickname", onPress: handleAddNickname },
     {
       label: "Report",
-      onPress: () => Linking.openURL("mailto:support@colore.ca"),
+      onPress: () => handleReportPress,
     },
   ];
 
@@ -576,18 +582,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     setIsHandlingFriendRequest(false);
                   }
                   if (user!.id !== userId && friendStatus.name === "friends") {
-                    setIsHandlingFriendRequest(true);
-                    const response: FriendStatusType = await unfriend(
-                      user!.id,
-                      userId
-                    );
-                    if (response === FriendStatus.NONE) {
-                      Alert.alert("You have unfriended this user.");
-                    } else {
-                      Alert.alert("Error unfriending this user.");
-                    }
-                    setFriendStatus(response);
-                    setIsHandlingFriendRequest(false);
+                      startChat([
+                        profileUser!.clerk_id,
+                        nickname || profileUser!.username,
+                      ] as UserNicknamePair);
                   }
                 }}
                 className="flex-1 items-center justify-between"
@@ -678,7 +676,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 {user!.id !== userId && friendStatus.name === "friends" && (
                   <View>
                     <Text className="text-white font-JakartaBold text-[14px]">
-                      Unfriend
+                      Message
                     </Text>
                   </View>
                 )}
