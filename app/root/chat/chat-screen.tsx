@@ -1,10 +1,7 @@
-import { fetchAPI } from "@/lib/fetch";
-import { ConversationItem, FriendStatusType } from "@/types/type";
+import DropdownMenu from "@/components/DropdownMenu";
 import NotificationBubble from "@/components/NotificationBubble";
-import { useUser } from "@clerk/clerk-expo";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
-import { useFocusEffect } from '@react-navigation/native';
+import { FriendStatus } from "@/lib/enum";
+import { fetchAPI } from "@/lib/fetch";
 import {
   acceptFriendRequest,
   fetchFriends,
@@ -12,14 +9,20 @@ import {
   unfriend,
 } from "@/lib/friend";
 import {
+  ConversationItem,
   FriendRequest,
   Friendship,
+  FriendStatusType,
   RawFriendRequest,
   UserNicknamePair,
 } from "@/types/type";
-import DropdownMenu from "@/components/DropdownMenu";
-import { FriendStatus } from "@/lib/enum";
+import { useUser } from "@clerk/clerk-expo";
+import { useFocusEffect } from "@react-navigation/native";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 
+import { icons } from "@/constants/index";
+import { AntDesign } from "@expo/vector-icons";
 import {
   ActivityIndicator,
   Alert,
@@ -32,9 +35,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { icons } from "@/constants/index";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -101,7 +102,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   //Navigation
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   console.log("tab", tab);
-  const [selectedTab, setSelectedTab] = useState<string>(tab ? tab : "Messages");
+  const [selectedTab, setSelectedTab] = useState<string>(
+    tab ? tab : "Messages"
+  );
 
   const fetchConversations = async (): Promise<void> => {
     setLoading(true);
@@ -120,7 +123,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
         throw new Error("Response is undefined.");
       }
       const responseData = await responseNotifications.json();
-
 
       const chatNotifications = responseData.toRead; // Notifications data
       const fetchedConversations = responseConversation.data; // Conversations data
@@ -225,41 +227,44 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   const FriendLocation = ({ friendId }: { friendId: string }) => {
     const [location, setLocation] = useState<string>("Loading...");
-  
+
     useEffect(() => {
       const fetchUserLocation = async (userId: string) => {
         try {
-          const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
-            method: "GET",
-          });
+          const response = await fetchAPI(
+            `/api/users/getUserInfo?id=${userId}`,
+            {
+              method: "GET",
+            }
+          );
           const country = response.data?.[0]?.country || "Unknown Country";
           const state = response.data?.[0]?.state || "Unknown State";
           const city = response.data?.[0]?.city || "Unknown City";
-  
+
           setLocation(`${city}, ${state}, ${country}`);
         } catch (error) {
           console.error(error, "Couldn't find location");
           setLocation("Location not available");
         }
       };
-  
+
       if (friendId) {
         fetchUserLocation(friendId);
       }
     }, [friendId]);
-  
+
     return <Text className="text-gray-500">{location}</Text>;
   };
 
   const handleUnfriending = async (friendId: string) => {
-       Alert.alert(
-      "Unfriend",                         // Title
+    Alert.alert(
+      "Unfriend", // Title
       "Are you sure you want to unfriend this person?", // Message
       [
         {
           text: "Cancel",
           onPress: () => console.log("Unfriending Cancelled"),
-          style: "cancel",                 // Makes the Cancel button stand out
+          style: "cancel", // Makes the Cancel button stand out
         },
         {
           text: "Unfriend",
@@ -281,13 +286,12 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               console.error("Couldn't unfriend that person...", error);
             }
           }, // Replace with your API call
-          style: "destructive",            // Red color for emphasis
+          style: "destructive", // Red color for emphasis
         },
       ],
-      { cancelable: true }                 // Close alert by tapping outside
+      { cancelable: true } // Close alert by tapping outside
     );
-
-  }
+  };
 
   // RENDER LISTS ------ START
   const renderConversationItem = ({
@@ -339,37 +343,37 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     <View className="flex  mb-2 p-4 bg-[#FAFAFA] rounded-[16px]">
       <View className="flex flex-row justify-between items-center mx-2">
         <View>
-        <TouchableOpacity
-          className="flex-1"
-          activeOpacity={0.6}
-          onPress={() => handleUserProfile(item.friend_id)}
-          onLongPress={async () => handleUnfriending(item.friend_id)}
-        >
-          <View>
-          <Text className="text-lg font-bold ">
-            {nicknames && item.friend_id in nicknames
-              ? nicknames[item.friend_id]
-              : item.friend_username}
-          </Text>
-          <FriendLocation friendId={item.friend_id} />
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1"
+            activeOpacity={0.6}
+            onPress={() => handleUserProfile(item.friend_id)}
+            onLongPress={async () => handleUnfriending(item.friend_id)}
+          >
+            <View>
+              <Text className="text-lg font-bold ">
+                {nicknames && item.friend_id in nicknames
+                  ? nicknames[item.friend_id]
+                  : item.friend_username}
+              </Text>
+              <FriendLocation friendId={item.friend_id} />
+            </View>
+          </TouchableOpacity>
         </View>
         <View className="flex flex-row items-center justify-center">
           <TouchableOpacity
-          onPress={() => {
-            router.push({
-              pathname: "/root/user-board/[id]",
-              params: { id: item.friend_id, username:item.friend_username },
-            });
-          }}
+            onPress={() => {
+              router.push({
+                pathname: "/root/user-board/[id]",
+                params: { id: item.friend_id, username: item.friend_username },
+              });
+            }}
           >
-             <Image
-                      source={icons.album}
-                      tintColor="#000000"
-                      resizeMode="contain"
-                      className="w-9 h-9"
-                    />
+            <Image
+              source={icons.album}
+              tintColor="#000000"
+              resizeMode="contain"
+              className="w-9 h-9"
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -651,7 +655,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                       data={allFriendRequests?.sent}
                       ListHeaderComponent={
                         <View>
-                          <Text className="font-JakartaBold text-lg">Sent </Text>
+                          <Text className="font-JakartaBold text-lg">
+                            Sent{" "}
+                          </Text>
                           <NotificationBubble
                             unread={
                               allFriendRequests?.sent

@@ -1,14 +1,13 @@
 import NotificationBubble from "@/components/NotificationBubble";
-import { fetchAPI } from "@/lib/fetch";
 import { icons } from "@/constants";
-import { Tabs } from "expo-router";
-import { Alert, Image, ImageSourcePropType, View } from "react-native";
-import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-expo";
+import { fetchAPI } from "@/lib/fetch";
 import { useNotification } from "@/notifications/NotificationContext"; // Assuming you have a notification context to manage global state
 import { sendPushNotification } from "@/notifications/PushNotificationService"; // Assuming this handles the push notification
 import { ConversationItem } from "@/types/type";
-import Entypo from '@expo/vector-icons/Entypo';
+import { useUser } from "@clerk/clerk-expo";
+import { Tabs } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Alert, Image, ImageSourcePropType, View } from "react-native";
 
 const TabIcon = ({
   source,
@@ -175,7 +174,9 @@ const Layout = () => {
             `/api/chat/getConversations?id=${content.senderId}`
           );
 
-          const conversationInfo = response.data.filter((c: ConversationItem) => c.id == id);
+          const conversationInfo = response.data.filter(
+            (c: ConversationItem) => c.id == id
+          );
 
           console.log("conversationInfo", conversationInfo);
           if (conversationInfo.length === 0) return null; // Handle empty results
@@ -300,7 +301,7 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="personal-board" 
+        name="personal-board"
         options={{
           title: "Personal Board",
           headerShown: false,
