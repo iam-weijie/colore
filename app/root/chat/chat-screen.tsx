@@ -2,6 +2,7 @@ import DropdownMenu from "@/components/DropdownMenu";
 import NotificationBubble from "@/components/NotificationBubble";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
+import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
 import {
   acceptFriendRequest,
   fetchFriends,
@@ -61,20 +62,26 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
 }) => {
   return (
     <TouchableOpacity
-      className="py-2 px-5 border-2 border-black rounded-[12px] mx-[8px]"
-      style={{ backgroundColor: focused ? "#000000" : "#FBFBFB" }}
       activeOpacity={0.6}
       onPress={() => {
         console.log(`Pressed tab: ${name}`);
         onPress();
       }}
     >
-      <Text
-        className="text-sm font-[600]"
-        style={{ color: !focused ? "#000000" : "#FBFBFB" }}
+      <View
+        className="min-w-[135px] h-[50px] rounded-[24px] mx-2 px-5 flex justify-center items-center"
+        style={{
+          backgroundColor: focused ? "#000000" : "#FBFBFB",
+          overflow: "visible", // Ensure content is not clipped
+        }}
       >
-        {name} {notifications ? `(${notifications})` : null}
-      </Text>
+        <Text
+          className="text-sm font-[600]"
+          style={{ color: !focused ? "#000000" : "#FBFBFB" }}
+        >
+          {name} {notifications ? `(${notifications})` : null}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -186,6 +193,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           method: "GET",
         }
       );
+      console.log("Friend Request", response.data);
       const processedFriendRequests: FriendRequest[] = processFriendRequests(
         response.data
       );
@@ -253,7 +261,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       }
     }, [friendId]);
 
-    return <Text className="text-gray-500">{location}</Text>;
+    return <Text className="text-gray-500 text-[12px]">{location}</Text>;
   };
 
   const handleUnfriending = async (friendId: string) => {
@@ -303,8 +311,8 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       <View className="flex items-center mb-2 p-4 bg-[#FAFAFA] rounded-[16px]">
         <View className="w-full">
           <View className="flex flex-row justify-between items-center">
-            <Text className="text-lg font-bold mb-1">{item.name}</Text>
-            <Text className="text-xs text-gray-400">
+            <Text className="text-[16px] font-bold mb-1">{item.name}</Text>
+            <Text className="text-[12px] text-gray-400">
               {item.lastMessageTimestamp
                 ? new Date(item.lastMessageTimestamp).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -317,7 +325,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           {item.lastMessageContent ? (
             <View className="flex flex-row items-start justify-between -mt-1">
               <Text
-                className="text-sm"
+                className="text-[14px]"
                 style={{ fontWeight: item.unread_messages ? 600 : 400 }}
               >
                 {item.lastMessageContent}
@@ -350,7 +358,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             onLongPress={async () => handleUnfriending(item.friend_id)}
           >
             <View>
-              <Text className="text-lg font-bold ">
+              <Text className="text-[16px] font-bold ">
                 {nicknames && item.friend_id in nicknames
                   ? nicknames[item.friend_id]
                   : item.friend_username}
@@ -372,7 +380,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               source={icons.album}
               tintColor="#000000"
               resizeMode="contain"
-              className="w-9 h-9"
+              className="w-8 h-8"
             />
           </TouchableOpacity>
         </View>
@@ -381,7 +389,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderIncomingRequest = ({ item }: { item: FriendRequest }) => (
-    <View className="p-4 border-b border-gray-200">
+    <View  className=" py-6 border-b border-gray-200">
       <View className="flex-row justify-between items-center">
         <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
           <Text className="font-JakartaSemiBold">
@@ -434,14 +442,19 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderOutgoingRequest = ({ item }: { item: FriendRequest }) => (
-    <View className="p-4 border-b border-gray-200">
-      <View className="flex-row justify-between items-center ">
-        <TouchableOpacity onPress={() => handleUserProfile(item.receiverId)}>
+    <View className=" py-6 border-b border-gray-200">
+      <View >
+        <TouchableOpacity className="flex-column justify-center items-start " onPress={() => handleUserProfile(item.receiverId)}>
           <Text className="font-JakartaSemiBold">
             {nicknames && item.receiverId in nicknames
               ? nicknames[item.receiverId]
               : item.receiverUsername}
           </Text>
+          <Text className="text-gray-500 italic text-xs">Since {typeof item.createdAt === "string"
+                    ? formatDateTruncatedMonth(
+                        convertToLocal(new Date(item.createdAt))
+                      )
+                    : "No date"}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -461,7 +474,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
         receiverId: isRequestorUID1
           ? friendRequest.user_id2
           : friendRequest.user_id1,
-        createdAt: friendRequest.createdAt,
+        createdAt: friendRequest.createdAt || friendRequest.created_at,
         senderUsername: isRequestorUID1
           ? friendRequest.user1_username
           : friendRequest.user2_username,
@@ -503,6 +516,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   // console.log(conversations);
+  console.log("allFriendRequests", allFriendRequests?.sent);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -536,10 +550,11 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>
 
             <ScrollView
-              className="max-h-10"
+              contentContainerStyle={{ flexGrow: 0 }}
               contentOffset={{ x: 10, y: 0 }}
               horizontal={true}
               showsHorizontalScrollIndicator={false}
+              className="max-h-[50px]"
             >
               <View className="flex flex-row items-center justify-between mx-6">
                 <TabNavigation
@@ -568,7 +583,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                     allFriendRequests
                       ? allFriendRequests.sent.length +
                         allFriendRequests.received.length
-                      : 10
+                      : 0
                   }
                 />
               </View>
@@ -576,7 +591,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
             {selectedTab === "Messages" && (
               <FlatList
-                className="rounded-[16px] mt-3 mx-4"
+                className="rounded-[16px] mx-4"
                 ListHeaderComponent={
                   <View className="flex flex-row items-center mb-4 mt-4">
                     <TextInput
@@ -595,7 +610,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
             {selectedTab == "Friends" && (
               <FlatList
-                className="rounded-[16px] mt-3 mx-4"
+                className="rounded-[16px] mx-4"
                 ListHeaderComponent={
                   <View className="flex flex-row items-center mb-4 mt-4">
                     <TextInput
@@ -619,9 +634,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                 {/* Container for both lists, flex-1 to take all available space */}
                 <View className="flex-1 flex-col">
                   {/* Top half: Incoming Requests */}
-                  <View className="flex-1 mb-2">
+                  <View className="mb-2">
                     <FlatList
-                      className="flex-1 p-4 bg-[#FAFAFA] rounded-[24px]"
+                      className=" p-4 bg-[#FAFAFA] rounded-[24px]"
                       data={allFriendRequests?.received}
                       ListHeaderComponent={
                         <View>
@@ -645,13 +660,15 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                           No friend requests
                         </Text>
                       }
+                      showsVerticalScrollIndicator={false}
+                      scrollEnabled={allFriendRequests?.received.length > 0}
                     />
                   </View>
 
                   {/* Bottom half: Outgoing Requests */}
                   <View className="flex-1 mt-2">
                     <FlatList
-                      className="flex-1 p-4 bg-[#FAFAFA] rounded-[24px]"
+                      className=" p-4 bg-[#FAFAFA] rounded-[24px]"
                       data={allFriendRequests?.sent}
                       ListHeaderComponent={
                         <View>
@@ -675,6 +692,8 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                           No outgoing friend requests
                         </Text>
                       }
+                      showsVerticalScrollIndicator={false}
+                      scrollEnabled={allFriendRequests?.sent.length > 0}
                     />
                   </View>
                 </View>

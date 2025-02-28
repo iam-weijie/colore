@@ -106,7 +106,7 @@ const NewPersonalPost = () => {
                 </TouchableOpacity>
               </View>
               <Text className="absolute text-xl font-JakartaSemiBold">
-                New Post
+                New Personal Post
               </Text>
               <CustomButton
                 className="w-14 h-8 rounded-md"

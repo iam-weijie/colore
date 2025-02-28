@@ -262,6 +262,7 @@ const PostModal: React.FC<PostModalProps> = ({
         report_count: post[currentPostIndex]?.report_count,
         created_at: post[currentPostIndex]?.created_at,
         unread_comments: post[currentPostIndex]?.unread_comments,
+        anonymous: invertedColors,
       },
     });
   };

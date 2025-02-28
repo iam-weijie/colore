@@ -471,10 +471,26 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     fetchRandomPosts();
   };
 
+  const handleGatherPosts = () => {
+    const updatedStacks = [...stacks];
+    const newPostsPostions = postsWithPosition.map((post) => ({
+      id: post.id,
+      coordinates: {
+        x_coordinate: post.position.left,
+        y_coordinate: post.position.top,
+      },
+    }));
+    setMap(newPostsPostions);
+    //console.log("new posts", newPostsPostions)
+  };
+
+
   //console.log("remainging loaded", stacks)
   return (
     <View className="flex-1 mb-[80px]">
       <SignedIn>
+
+
         {loading ? (
           <View className="flex-[0.8] justify-center items-center">
             <ActivityIndicator size="large" color="black" />
@@ -492,7 +508,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
               }
               style={{ position: "absolute", width: "100%", height: "100%" }}
             />
-
             <View className="relative">
               {postsWithPosition.map((post, index) => {
                 return (

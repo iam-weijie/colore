@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, Text, TouchableOpacity, View,  Animated } from "react-native";
+import React, { useEffect, useRef, useState,  useCallback } from "react";
 
 type MenuItem = {
   label: string;
@@ -26,6 +26,24 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
     }
   }
 
+  const slideAnim = useRef(new Animated.Value(300)).current; // Start off-screen
+
+  useEffect(() => {
+    if (visible) {
+      Animated.timing(slideAnim, {
+        toValue: 0, // Slide into view
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: 300, // Slide out of view
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
+
   return (
     <View className="relative">
       <TouchableOpacity onPress={handlePress} ref={triggerRef}>
@@ -44,25 +62,28 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
         <Pressable
           className="flex-1 bg-black/30"
           onPress={() => setVisible(false)}
-        >
-          <View 
-            style={{ top: menuPosition.top, left: menuPosition.left, width: menuWidth }}
-            className="bg-white rounded-lg shadow-lg"
-          >           
-            {menuItems.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => {
-                  setVisible(false);
-                  item.onPress();
-                }}
-                className={`flex-row items-center px-4 py-3 ${index < menuItems.length - 1 ? "border-b border-gray-200" : ""}`}
-              >
-                <Text className="font-Jakarta text-base">{item.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Pressable>
+        />
+          <Animated.View
+        style={{
+          transform: [{ translateY: slideAnim }],
+        }}
+        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-lg p-4"
+      >
+        {menuItems.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            onPress={() => {
+              setVisible(false);
+              item.onPress();
+            }}
+            className={`flex-row items-center px-4 py-3 ${
+              index < menuItems.length - 1 ? "border-b border-gray-200" : ""
+            }`}
+          >
+            <Text className="font-Jakarta text-base">{item.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </Animated.View>
       </Modal>
     </View>
   );

@@ -87,7 +87,7 @@ const MessageItem: React.FC<Message> = ({
             },
           ]}
         >
-          <Text className="text-[16px] font-600" style={{ color: senderId === user?.id ? 'white' : 'black' }}>
+          <Text className="text-[14px] font-600" style={{ color: senderId === user?.id ? 'white' : 'black' }}>
             {content}
           </Text>
 
