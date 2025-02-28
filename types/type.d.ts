@@ -63,6 +63,7 @@ declare interface PostItColor {
   hex: string;
   rarity: string;
   foldcolorhex: string;
+  fontColor: string;
 }
 
 declare interface NavigationContextType {

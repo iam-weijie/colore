@@ -38,6 +38,10 @@ import {
 import { icons, temporaryColors } from "@/constants/index";
 import DropdownMenu from "./DropdownMenu";
 import * as Linking from "expo-linking";
+import { Dimensions } from "react-native";
+
+const { width, height } = Dimensions.get("window");
+
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -261,19 +265,53 @@ const PostModal: React.FC<PostModalProps> = ({
       },
     });
   };
+
+    // COMPONENT RENDER
+
+const BackgroundGridEmoji = (emoji: string) => {
+  const GRID_SIZE = 100; // Size of each square in the grid
+  const OFFSET_X = 20; // Offset for odd rows
+  const ITEMS_PER_ROW = 4; // Number of items per row
+  const numColumns = ITEMS_PER_ROW;
+  const numRows = Math.ceil(height / GRID_SIZE);
+
+  // Generate positions for the grid
+  const gridItems = [];
+  for (let row = 0; row < numRows; row++) {
+    for (let col = 0; col < numColumns; col++) {
+      const offsetX = row % 2 === 1 ? OFFSET_X : 0; // Add offset for odd rows
+      gridItems.push({
+        x: col * GRID_SIZE + offsetX, 
+        y: row * GRID_SIZE
+      });
+    }
+  }
+
+  return (
+    <View className="absolute w-full h-full -ml-2">
+      {gridItems.map((item, index) => (
+        <View
+          key={index}
+          className="absolute align-center justify-center"  
+          style={{ left: item.x, top: item.y, width: GRID_SIZE, height: GRID_SIZE }}  
+        >
+          <Text style={{fontSize: 50}}>{emoji}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
   
 
   return (
     <ReactNativeModal
       isVisible={isVisible}
-      backdropColor={
-        invertedColors ? "rgba(0,0,0,0.5)" : (postColor?.hex || "rgba(0,0,0,0.5)")
-      }
+      backdropColor={(postColor?.hex || "rgba(0,0,0,0.5)")}
       backdropOpacity={1}
       onBackdropPress={handleCloseModal}
     >
       <TouchableWithoutFeedback onPress={handleCloseModal}>
-        <View />
+      {BackgroundGridEmoji(post[currentPostIndex]?.emoji || "")}
       </TouchableWithoutFeedback>
 
       <GestureHandlerRootView
@@ -287,9 +325,7 @@ const PostModal: React.FC<PostModalProps> = ({
             style={[
               animatedStyle,
               {
-                backgroundColor: !invertedColors
-                  ? "rgba(255, 255, 255, 1)"
-                  : (postColor?.hex || "rgba(255, 255, 255, 1)"),
+                backgroundColor:  "rgba(255, 255, 255, 1)"
               },
             ]}
           >

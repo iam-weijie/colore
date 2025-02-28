@@ -43,9 +43,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchUserData();
-  }, []);
+
 
   const fetchPersonalPosts = async () => {
     const viewerId = user!.id;
@@ -93,6 +91,14 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+      fetchPersonalPosts();
+      setShouldRefresh((prev) => prev + 1); // Increment refresh counter
+    }, [])
+  );
+
   if (loading) {
     return (
       <View className="flex-[0.8] justify-center items-center">
@@ -110,7 +116,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   }
 
   return (
-    <SafeAreaView className="flex-1">
+    <View className="flex-1">
       <SignedIn>
         <PostItBoard 
           key={shouldRefresh} // Add key to force re-render when shouldRefresh changes
@@ -122,7 +128,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           invertColors={true}
         />
       </SignedIn>
-    </SafeAreaView>
+    </View>
   );
 }
 

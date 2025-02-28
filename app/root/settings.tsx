@@ -69,7 +69,7 @@ const Settings = () => {
         }),
       });
 
-      console.log("Changed Username", response)
+      //console.log("Changed Username", response)
       if (response.error) {
         if (response.error.includes("already taken")) {
           Alert.alert(
@@ -89,6 +89,53 @@ const Settings = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const verifyValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+  const handleEmailUpdate = async () => {
+    if (!newEmail || newEmail === email) {
+      return;
+    };
+
+    if (!verifyValidEmail(newEmail)) {
+      Alert.alert(
+        "Email address is invalid.", "Please enter a valid email address."
+      );
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetchAPI("/api/users/patchUserInfo", {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user!.id,
+          email: newEmail,
+        }),
+      });
+
+      if (response.error) {
+        if (response.error.includes("already taken")) {
+          Alert.alert(
+            "Email taken",
+            `Email ${newEmail} already exists. Please try another one.`
+          );
+        } else {
+          throw new Error(response.error);
+        }
+      } else {
+        Alert.alert("Success", "Email updated successfully");
+        await fetchUserData();
+      }
+    } catch (error) {
+      console.error("Failed to update email:", error);
+      Alert.alert("Error", "Failed to update email. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  
   };
 
   const handleLocationUpdate = () => {
@@ -120,87 +167,77 @@ const Settings = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
-        <ScrollView className="flex-1">
+      
           <View className="flex flex-row items-center px-4 pt-2">
             <View>
             <TouchableOpacity
-              onPress={() => router.push("/root/tabs/profile")}
+              onPress={() => router.back()}
               className="mr-2"
             >
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
             </View>
             <View>
-              <Text className="font-JakartaBold text-2xl">
+              <Text className="font-JakartaBold text-2xl mb-2">
                 Settings
               </Text>
             </View>
           </View>
-          <View className=" m-4">
-          <Text className="ml-2 text-xl font-JakartaSemiBold mb-4">
+          <ScrollView className="flex-1">
+          <View className=" mx-6">
+          <Text className="ml-2 text-xl font-JakartaSemiBold my-4">
                 Account
               </Text>
             <View className="bg-[#fafafa] rounded-[32px] p-5">
               <View className="flex flex-row items-center justify-between -mb-14 p-2">
-                <Text className="text-lg font-JakartaSemiBold">Username</Text>
-                <TouchableOpacity
-                  activeOpacity={0.5}
-                  className="p-5 items-center"
-                  onPress={() => {
-                    console.log("Pressed")
-                   if (!newUsername || loading) {
-                      return;
-                    }
-                    handleUsernameUpdate();
-                    setUsername(newUsername)
-                    setNewUsername("");
+                <Text className="text-lg font-JakartaSemiBold my-2">Username</Text>
 
-                  }}
-                  
-                > 
-                <Text className="text-md text-indigo-700 font-JakartaSemiBold">
-                Update
-                </Text>
-                </TouchableOpacity>
               </View>
               <InputField
                 label=""
                 value={newUsername}
                 onChangeText={setNewUsername}
                 placeholder={username || "Enter username"}
-               
+                onSubmitEditing={() => {
+                  if (!newUsername || loading) {
+                    return;
+                  }
+                  handleUsernameUpdate();
+                  setUsername(newUsername)
+                  setNewUsername("");
+                }}
               />
               <View className="flex flex-row items-center justify-between -mb-14 p-2">
-                <Text className="text-lg font-JakartaSemiBold">
+                <Text className="text-lg font-JakartaSemiBold mb-2">
                   Email Address
                 </Text>
-                <TouchableOpacity
-                  activeOpacity={0.5}
-                  className="p-5 items-center"
-                 >
-                <Text className="text-md text-indigo-700 font-JakartaSemiBold">
-                    Update
-                </Text>
-                 
-                </TouchableOpacity>
+
               </View>
               <InputField
                 label=""
                 value={newEmail}
                 onChangeText={setNewEmail}
                 placeholder={profileUser?.email || "Enter email address"}
+                onSubmitEditing={() => {
+                  if (!newEmail || loading) {
+                    return;
+                  }
+                  handleEmailUpdate();
+                  setEmail(newEmail)
+                  setNewEmail("");
+                }}
                 containerStyle="mb-4"
               />
               <View className="mb-4 mx-2 pr-[20px]">
                 <View className="flex flex-row items-center justify-between mb-4">
-                  <Text className="text-lg font-JakartaSemiBold ">
+                  <Text className="text-lg  font-JakartaSemiBold ">
                     Location
                   </Text>
                   <TouchableOpacity
                     activeOpacity={0.5}
                     onPress={handleLocationUpdate}
                   >
-                   <Text className="text-md text-indigo-700 font-JakartaSemiBold">
+                   <Text className="text-md text-indigo-500 font-JakartaSemiBold">
                     Update
                 </Text>
                   </TouchableOpacity>
@@ -212,19 +249,34 @@ const Settings = () => {
                 </Text>
               </View>
             </View>
+            
+          </View>
 
-            <View className="my-[36px]">
+              <View className="my-[36px]">
               <TouchableOpacity onPress={handleSignOut}>
                 <Text className="font-JakartaBold text-xl text-red-500 text-center">
                   Sign Out
                 </Text>
               </TouchableOpacity>
+             
             </View>
-          </View>
-        </ScrollView>
+          </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 export default Settings;
+
+/*
+
+                    console.log("Pressed")
+                   if (!newUsername || loading) {
+                      return;
+                    }
+                    handleUsernameUpdate();
+                    setUsername(newUsername)
+                    setNewUsername("");
+
+                  }}
+                    */

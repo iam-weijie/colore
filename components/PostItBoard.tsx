@@ -1,12 +1,9 @@
 import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
+import { temporaryColors } from "@/constants";
 import { useGlobalContext } from "@/app/globalcontext";
-import { icons } from "@/constants";
 import { Post, PostWithPosition } from "@/types/type";
-import { useNotification } from "@/notifications/NotificationContext";
-import { sendPushNotification } from "@/notifications/PushNotificationService";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -59,6 +56,12 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   const position = useRef(new Animated.ValueXY()).current;
   const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [fontColor, setFontColor] = useState<string>("#0000ff");
+
+  const getFontColorHex = (colorName: string | undefined) => {
+      const foundColor = temporaryColors.find((c) => c.name === colorName);
+      setFontColor(foundColor?.fontColor || "#ff0000"); // Default font colour is black
+    };
 
   useEffect(() => {
     const listenerId = position.addListener(({ x, y }) => {
@@ -69,6 +72,10 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       position.removeListener(listenerId);
     };
   }, [position, post, updatePosition]);
+
+  useEffect(() => {
+    getFontColorHex(post.color);
+  }, []);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -105,6 +112,8 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
     })
   ).current;
 
+
+ 
   return (
     <Animated.View
       {...panResponder.panHandlers}
@@ -121,32 +130,33 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       </TouchableWithoutFeedback>
 
       {!showText && (
+        <View className="absolute text-black w-full h-full items-center justify-center">
         <Text
           style={{
-            position: "absolute",
-            top: "30%",
-            transform: [{ translateX: 50 }, { translateY: 0 }],
-            fontSize: 50,
+            fontSize: 50
           }}
         >
           {post.emoji && post.emoji}
         </Text>
+        </View>
       )}
       {showText && (
+        <View className="absolute text-black w-full h-full items-center justify-center">
         <Text
-          className="font-JakartaSemiBold text-black"
+          className="font-[500] text-black"
           style={{
-            position: "absolute",
-            top: "40%",
+            color: fontColor,
             fontSize: 16,
-            width: "100%",
-            textAlign: "center",
+            padding: 15,
+            numberOfLines: 3,
+            fontStyle: "italic"
           }}
           numberOfLines={3} 
           ellipsizeMode="tail"
         >
           {post.content}
         </Text>
+        </View>
       )}
     </Animated.View>
   );
@@ -184,15 +194,17 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     return null;
   }
 
+
   const fetchRandomPosts = async () => {
+
     try {
       const posts: Post[] = await handlePostsRefresh();
       // set positions of posts
       const postsWithPositions = posts.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 400 + 50,
-          left: Math.random() * 250,
+          top: Math.random() * 775 / 2,
+          left: Math.random() * 475 / 2,
         },
       }));
       // Initialize each post as a stack
@@ -368,6 +380,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       topPost, // Add the moved post to the end
     ]);
   };
+
+  // USE EFFECTS
   useEffect(() => {
     if (maps.length > 1) {
       const newPostID = maps[maps.length - 1].id;
@@ -402,6 +416,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     setSelectedPost(formattedPost);
   };
 
+
+  // HANDLING MODAL
   const handleCloseModal = async () => {
     if (selectedPost) {
       const postId = selectedPost.id
@@ -457,7 +473,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   //console.log("remainging loaded", stacks)
   return (
-    <SafeAreaView className="flex-1">
+    <View className="flex-1 mb-[80px]">
       <SignedIn>
         {loading ? (
           <View className="flex-[0.8] justify-center items-center">
@@ -466,7 +482,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         ) : error ? (
           <Text>{error}</Text>
         ) : (
-          <View className="flex-1">
+          <View className="flex-1 w-full h-full">
             <ScrollView
               refreshControl={
                 <RefreshControl
@@ -505,7 +521,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
           </View>
         )}
       </SignedIn>
-    </SafeAreaView>
+    </View>
   );
 };
 

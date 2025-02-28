@@ -3,6 +3,7 @@ import PostGallery from "@/components/PostGallery";
 import { icons, temporaryColors } from "@/constants/index";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
+import axios from "axios";
 import {
   acceptFriendRequest,
   cancelFriendRequest,
@@ -23,7 +24,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -44,7 +45,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
+  const [countryEmoji, setCountryEmoji] = useState<string>("");
   const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [unreadComments, setUnreadComments] = useState<number>(0);
   const { stateVars, setStateVars } = useNavigationContext();
   const router = useRouter();
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
@@ -92,6 +95,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
+  const fetchCountryEmoji = async (countryName: string) => {
+  
+    try {
+      const response = await fetch(`https://restcountries.com/v3.1/name/${countryName}`);
+      const data = await response.json();
+
+      if (!response.ok || !data || data.length === 0) {
+        //setError("Country not found.");
+        return;
+      }
+
+      const countryCode = data[0]?.cca2 || ""; // ISO 3166-1 alpha-2 country code
+      const flagEmoji = countryCode?.toUpperCase().split("").map((char) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
+
+      setCountryEmoji(flagEmoji);
+    } catch (err) {
+      setError("Error fetching country data.");
+    }
+
+  };
+
   useEffect(() => {
     setIsCollapsed(user!.id != userId);
     const getData = async () => {
@@ -128,8 +152,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         throw new Error(response.error);
       }
       const { userInfo, posts } = response as UserData;
+      const unread_comments = posts.reduce((acc, post) => acc + (post.unread_comments ?? 0), 0);
+      setUnreadComments(unread_comments);
       setProfileUser(userInfo);
       setUserPosts(posts);
+
+      // Fetch country emoji
+      await fetchCountryEmoji(userInfo.country);
     } catch (error) {
       setError("Failed to fetch user data.");
       console.error("Failed to fetch user data:", error);
@@ -139,9 +168,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   };
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       fetchUserData();
-    }, [userId])
+    }, [])
   );
 
   const handleAddNickname = () => {
@@ -164,7 +193,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     return (
       <SafeAreaView className="flex-1">
         <View className="flex flex-row items-center justify-between">
-          <Text>An error occurred. Please try again Later.</Text>
+          <Text>An error occurred. Please try again Later. 
+            {error}
+          </Text>
           <View className="flex flex-row items-right">
             {isEditable && (
               <TouchableOpacity
@@ -420,7 +451,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
                 <View>
                   <Text className="text-gray-500 text-center font-Jakarta text-base">
-                    📍{profileUser?.city}, {profileUser?.state},{" "}
+                    {countryEmoji}{" "}{profileUser?.city}, {profileUser?.state},{" "}
                     {profileUser?.country}
                   </Text>
                 </View>
@@ -696,23 +727,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           ) : currentSubscreen === "posts" ? (
             <View className="items-center flex-1 w-full">
               <TextInput
-                className="w-4/5  h-12 px-5 rounded-[16px] bg-gray-200 mb-5 "
+                className="w-4/5  h-12 px-5 rounded-[16px] bg-gray-200 mb-6 "
                 placeholder="Search"
                 onChangeText={setQuery}
                 value={query}
               />
 
-              <View className="items-center flex-1">
+              <View className="items-center flex-1 mb-[100px]">
                 <PostGallery
                   posts={userPosts}
-                  profileUserId={profileUser!.clerk_id}
+                  profileUserId={user!.id}
                   handleUpdate={fetchUserData}
                   query={query}
                   header={
                     <View className="w-screen px-8 flex flex-row items-center justify-between">
                       <View>
                         <Text className="text-lg font-JakartaSemiBold">
-                          Most Recent
+                          Most Recent {unreadComments > 0 ? `(${unreadComments})` : ""//put notification count here
+                          }
                         </Text>
                       </View>
                       <View>
@@ -732,6 +764,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               </View>
             </View>
           ) : (
+            <View className="items-center flex-1 ">
             <PostGallery
               posts={userPosts}
               profileUserId={profileUser!.clerk_id}
@@ -741,7 +774,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 <View className="w-screen px-8 flex flex-row items-center justify-between">
                   <View>
                     <Text className="text-lg font-JakartaSemiBold">
-                      Most Recent
+                      Most Recent ({userPosts.length //Put notification count here
+                          })
                     </Text>
                   </View>
 
@@ -758,8 +792,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   </View>
                 </View>
               }
-              scrollEnabled={isExpanded}
             />
+            </View>
           )}
         </View>
       ) : (

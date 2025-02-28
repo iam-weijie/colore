@@ -269,11 +269,10 @@ const Layout = () => {
         tabBarStyle: {
           backgroundColor: "#fafafa",
           borderRadius: 50,
-          paddingRight: 15,
-          paddingLeft: 15,
+          paddingHorizontal: 20,
           paddingBottom: 30,
           overflow: "hidden",
-          marginHorizontal: 30,
+          marginHorizontal: 35,
           marginBottom: 35,
           height: 80,
           display: "flex",

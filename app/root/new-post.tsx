@@ -7,6 +7,7 @@ import {
   Dimensions,
   Image,
   Keyboard,
+  KeyboardAvoidingView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -105,7 +106,7 @@ const NewPost = () => {
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
         >
-          <View>
+          <View className="flex-1">
             <View className="flex flex-row justify-center items-center mt-3 mx-6">
               <View className="flex-1">
                 <TouchableOpacity onPress={() => router.back()}>
@@ -124,11 +125,12 @@ const NewPost = () => {
                 disabled={!postContent || isPosting}
               />
             </View>
-
-            <View className="mx-3">
+            <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
+          <View className="flex h-full flex-column justify-between items-center pb-4">
+            <View className="flex w-full mx-3">
               {!isEmojiSelectorVisible && (
                 <TextInput
-                  className="font-Jakarta mx-10 my-5"
+                  className="text-[16px] font-Jakarta mx-10 my-5"
                   placeholder="Type something..."
                   value={postContent}
                   onChangeText={handleChangeText}
@@ -140,12 +142,14 @@ const NewPost = () => {
                     paddingTop: 10,
                     paddingBottom: 0,
                     minHeight: screenHeight * 0.2,
-                    maxHeight: screenHeight * 0.45,
+                    maxHeight: screenHeight * 0.5,
                     textAlignVertical: "top",
                   }}
                 />
               )}
-
+            </View>
+    
+            <View className=" w-full flex flex-row justify-center items-center mb-12">
               <ColorSelector
                 colors={temporaryColors}
                 selectedColor={selectedColor}
@@ -162,7 +166,10 @@ const NewPost = () => {
                   <Image source={icons.wink} className="w-8 h-9 m-1" />
                 )}
               </TouchableOpacity>
-            </View>
+              </View>
+             
+              </View>
+              </KeyboardAvoidingView>
 
             {isEmojiSelectorVisible && (
               <View className="w-full h-screen bg-white">
