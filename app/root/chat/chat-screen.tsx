@@ -69,7 +69,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
       }}
     >
       <View
-        className="min-w-[135px] h-[50px] rounded-[24px] mx-2 px-5 flex justify-center items-center"
+        className="min-w-[132px] h-[48px] rounded-[24px] mx-2 px-5 flex justify-center items-center"
         style={{
           backgroundColor: focused ? "#000000" : "#FBFBFB",
           overflow: "visible", // Ensure content is not clipped
@@ -338,7 +338,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               )}
             </View>
           ) : (
-            <Text className="text-gray-600 text-sm -mt-1 mb-2">
+            <Text className="text-gray-600 text-sm -mt-1 ">
               No messages yet
             </Text>
           )}
@@ -402,6 +402,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           menuItems={[
             {
               label: "Accept",
+              source: icons.check,
               onPress: async () => {
                 setHandlingFriendRequest(true);
                 const returnStats = await acceptFriendRequest(
@@ -420,6 +421,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             },
             {
               label: "Reject",
+              source: icons.close,
               onPress: async () => {
                 setHandlingFriendRequest(true);
                 const returnStats = await rejectFriendRequest(

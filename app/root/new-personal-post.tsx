@@ -109,9 +109,10 @@ const NewPersonalPost = () => {
                 New Personal Post
               </Text>
               <CustomButton
-                className="w-14 h-8 rounded-md"
+                className="w-14 h-10 rounded-full shadow-none"
                 fontSize="sm"
                 title="Post"
+                style={{backgroundColor: selectedColor.hex}}
                 padding="0"
                 onPress={handlePostSubmit}
                 disabled={!postContent || isPosting}

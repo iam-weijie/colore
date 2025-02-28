@@ -21,12 +21,14 @@ declare interface PostComment {
   id: number;
   post_id: number;
   user_id: string;
+  sender_id: string;
   content: string;
   username: string;
   created_at: string;
   like_count: number;
   report_count: number;
   is_liked: boolean;
+  postColor: string;
 }
 
 declare interface UserProfileType {

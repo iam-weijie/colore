@@ -1,9 +1,9 @@
 import CustomButton from "@/components/CustomButton";
 import DropdownMenu from "@/components/DropdownMenu";
-import { icons } from "@/constants/index";
+import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
-import { PostComment, UserNicknamePair } from "@/types/type";
+import { PostComment, UserNicknamePair, PostItColor } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -52,11 +52,13 @@ const CommentItem: React.FC<PostComment> = ({
   id,
   post_id,
   user_id,
+  sender_id,
   content,
   username,
   created_at,
   like_count,
-  is_liked
+  is_liked,
+  postColor
 }) => {
   const { user } = useUser();
   const router = useRouter();
@@ -202,7 +204,7 @@ const [tapCount, setTapCount] = useState(0);
           style={[
             animatedStyle, // Apply animated style here
             {
-              backgroundColor: user_id === user?.id ? 'black' : '#e5e7eb',
+              backgroundColor: user_id === user?.id ? 'black' : (user_id == sender_id ? postColor : '#e5e7eb'),
               alignSelf: user_id === user?.id ? 'flex-end' : 'flex-start',
               marginTop: username ? 32 : 8,
             },
@@ -224,8 +226,8 @@ const [tapCount, setTapCount] = useState(0);
             </Text>
             </TouchableOpacity>
         </View>
-        <TouchableOpacity activeOpacity={0.6} onPress={() => {doubleTapHandler();}} onLongPress={() => {handleReportPress();}}>
-          <Text className="text-[16px] font-600" style={{ color: user_id === user?.id ? 'white' : 'black' }}>
+        <TouchableOpacity activeOpacity={0.85} onPress={() => {doubleTapHandler();}} onLongPress={() => {handleReportPress();}}>
+          <Text className="text-[14px] font-600" style={{ color: user_id === user?.id ? 'white' : 'black' }}>
             {content}
           </Text>
           </TouchableOpacity>
@@ -293,6 +295,7 @@ const PostScreen = () => {
     created_at,
     unread_comments = 0,
     anonymous = false,
+    color
   } = useLocalSearchParams();
 
 
@@ -323,6 +326,9 @@ const PostScreen = () => {
   const screenHeight = Dimensions.get("screen").height;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPostDeleted, setIsPostDeleted] = useState(false);
+  const postColor = temporaryColors.find(
+      (c) => c.name === color
+    ) as PostItColor;
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
@@ -723,6 +729,7 @@ const PostScreen = () => {
       <CommentItem
         id={item.id}
         user_id={item.user_id}
+        sender_id={clerk_id}
         post_id={item.post_id}
         username={username}
         like_count={likeCount}
@@ -730,6 +737,7 @@ const PostScreen = () => {
         created_at={item.created_at}
         report_count={item.report_count}
         is_liked={commentLikes[item.id]}
+        postColor={postColor?.hex}
       />
     );
   };
@@ -751,7 +759,7 @@ const PostScreen = () => {
               <View className="flex-1">
                 <TouchableOpacity onPress={() => handleUserProfile(userId)}>
                   <Text className="font-JakartaSemiBold text-lg">
-                    {nickname || username || displayName.charAt(0) + "."}
+                    {anonymous === "true" ? (clerk_id === user!.id ? "Me" : "Anonymous") : (nickname || username || "Anonymous")}
                   </Text>
                 </TouchableOpacity>
                 <Text className="text-sm text-gray-500">
@@ -776,11 +784,28 @@ const PostScreen = () => {
               <View className="flex flex-col items-center ml-4">
                 {clerk_id === user?.id ? (
                   <DropdownMenu
-                    menuItems={[{ label: "Delete", onPress: handleDeletePostPress }]}
+                    menuItems={[
+                      { label: "Delete", 
+                        source: icons.trash, 
+                        onPress: handleDeletePostPress },
+                      { label: "Edit", 
+                          source: icons.pencil, 
+                          onPress: () => {} }
+                    ]}
                   />
                 ) : (
                   <DropdownMenu
-                    menuItems={[{ label: "Report", onPress: handleReportPress }]}
+                   menuItems={[
+                    { 
+                    label: "Share", 
+                    source: icons.send, 
+                    onPress: () => {} }, 
+                    { label: "Save", 
+                      source: icons.bookmark, 
+                      onPress: () => {} }, 
+                    { label: "Report", 
+                      source: icons.email, 
+                      onPress: handleReportPress },]}
                   />
                 )}
                 <View className="mt-4">  
@@ -806,15 +831,12 @@ const PostScreen = () => {
             <View className="flex-1">
 
               {/* Comment section */}
-              <View className="h-full mt-4 ">
-                <Text className="font-JakartaSemiBold text-lg mx-4 pl-2">
-                  Comments
-                </Text>
+              <View className="h-full">
                 {loading && <ActivityIndicator size="large" color="#0076e3" />}
                 {error && <Text className="text-red-500 mx-4">{error}</Text>}
                 {!loading && !error && postComments.length === 0 && (
-                  <Text className="text-gray-500 mx-4 min-h-[30px] pl-2">
-                    No comments yet.
+                  <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2">
+                    No messages yet.
                   </Text>
                 )}
                 {!loading && !error && postComments.length > 0 && (
@@ -836,8 +858,8 @@ const PostScreen = () => {
 
             <View className="flex-row items-center p-4">
               <TextInput
-                className="flex-1 border border-gray-300 rounded-lg px-4 py-3"
-                placeholder="Write a comment..."
+                className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
+                placeholder="Write a something..."
                 value={newComment}
                 multiline
                 scrollEnabled
@@ -851,7 +873,8 @@ const PostScreen = () => {
                 disabled={
                   newComment.length === 0 || isSubmitting || isPostDeleted
                 }
-                className="ml-3 w-14 h-10 rounded-md"
+                className="ml-3 w-14 h-10 rounded-full shadow-none"
+                style = {{ backgroundColor: postColor ? postColor.hex : "black"}}
                 fontSize="sm"
                 padding="0"
               />

@@ -170,6 +170,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   useFocusEffect(
     useCallback(() => {
       fetchUserData();
+      setIsFocusedOnProfile(true);
     }, [])
   );
 
@@ -329,19 +330,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
-    { label: "Nickname", onPress: handleAddNickname },
-    { label: "Report", onPress: handleReportPress },
+    { label: "Nickname", source: icons.person, onPress: handleAddNickname },
+    { label: "Report", source: icons.email, onPress: handleReportPress },
   ];
 
   const menuItems_default = [
-    { label: "Nickname", onPress: handleAddNickname },
-    { label: "Report", onPress: handleReportPress },
+    { label: "Nickname", source: icons.person, onPress: handleAddNickname },
+    { label: "Report",  source: icons.email, onPress: handleReportPress },
   ];
 
   const menuItems_friend = [
-    { label: "Nickname", onPress: handleAddNickname },
-    { label: "Report", onPress: handleReportPress },
-    { label: "Unfriend", onPress: async () => {
+    { label: "Nickname", source: icons.person, onPress: handleAddNickname },
+    { label: "Report",  source: icons.email, onPress: handleReportPress },
+    { label: "Unfriend",  source: icons.close, onPress: async () => {
       setIsHandlingFriendRequest(true);
       const response: FriendStatusType = await unfriend(
         user!.id,
@@ -361,14 +362,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     { label: "Nickname", onPress: handleAddNickname },
     {
       label: "Report",
+      source: icons.email,
       onPress: handleReportPress,
     },
   ];
 
   const menuItems_received = [
-    { label: "Nickname", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, onPress: handleAddNickname },
     {
       label: "Report",
+      source: icons.email,
       onPress: () => handleReportPress,
     },
   ];

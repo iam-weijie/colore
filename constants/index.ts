@@ -1,4 +1,5 @@
 import album from "@/assets/icons/album.png";
+import bookmark from "@/assets/icons/bookmark.png";
 import chat from "@/assets/icons/chat.png";
 import check from "@/assets/icons/check.png";
 import close from "@/assets/icons/close.png";
@@ -16,6 +17,7 @@ import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
 import refresh from "@/assets/icons/refresh.png";
 import search from "@/assets/icons/search.png";
+import send from "@/assets/icons/send.png";
 import settings from "@/assets/icons/settings.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
@@ -45,6 +47,8 @@ export const icons = {
   settings,
   wink,
   note,
+  send,
+  bookmark,
 };
 
 export const images = {

@@ -256,13 +256,13 @@ const PostModal: React.FC<PostModalProps> = ({
         id: post[currentPostIndex]?.id,
         clerk_id: post[currentPostIndex]?.clerk_id,
         content: post[currentPostIndex]?.content,
-        firstname: post[currentPostIndex]?.firstname,
         username: post[currentPostIndex]?.username,
         like_count: post[currentPostIndex]?.like_count,
         report_count: post[currentPostIndex]?.report_count,
         created_at: post[currentPostIndex]?.created_at,
         unread_comments: post[currentPostIndex]?.unread_comments,
         anonymous: invertedColors,
+        color: post[currentPostIndex]?.color,
       },
     });
   };
@@ -364,15 +364,32 @@ const BackgroundGridEmoji = (emoji: string) => {
                 )}
               </View>
               {/* Delete button for post owner */}
-              {post && post.clerk_id === user?.id ? (
-                <DropdownMenu
-                  menuItems={[{ label: "Delete", onPress: handleDeletePress }]}
-                />
-              ) : (
-                <DropdownMenu
-                  menuItems={[{ label: "Report", onPress: handleReportPress }]}
-                />
-              )}
+              {post[currentPostIndex]?.clerk_id === user!.id ? (
+                  <DropdownMenu
+                    menuItems={[
+                      { label: "Delete", 
+                        source: icons.trash, 
+                        onPress: handleDeletePress },
+                      { label: "Edit", 
+                          source: icons.pencil, 
+                          onPress: () => {} }
+                    ]}
+                  />
+                ) : (
+                  <DropdownMenu
+                   menuItems={[
+                    { 
+                    label: "Share", 
+                    source: icons.send, 
+                    onPress: () => {} }, 
+                    { label: "Save", 
+                      source: icons.bookmark, 
+                      onPress: () => {} }, 
+                    { label: "Report", 
+                      source: icons.email, 
+                      onPress: handleReportPress },]}
+                  />
+                )}
             </View>
           </Animated.View>
         </PanGestureHandler>
