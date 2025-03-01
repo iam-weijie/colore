@@ -701,6 +701,14 @@ const PostScreen = () => {
   const handleReportPress = () => {
     Linking.openURL("mailto:support@colore.ca")
   };
+  const handleEditing = () => {
+
+      router.push({
+            pathname: "/root/edit-post",
+            params: { postId: id, content: content, color: color},
+                  });
+              
+  }
 
   const renderCommentItem = ({
     item,
@@ -785,12 +793,12 @@ const PostScreen = () => {
                 {clerk_id === user?.id ? (
                   <DropdownMenu
                     menuItems={[
-                      { label: "Delete", 
-                        source: icons.trash, 
-                        onPress: handleDeletePostPress },
                       { label: "Edit", 
                           source: icons.pencil, 
-                          onPress: () => {} }
+                          onPress: handleEditing },
+                      { label: "Delete", 
+                        source: icons.trash, 
+                        onPress: handleDeletePostPress }
                     ]}
                   />
                 ) : (

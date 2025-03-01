@@ -225,9 +225,20 @@ const PostModal: React.FC<PostModalProps> = ({
     Linking.openURL("mailto:support@colore.ca");
   };
 
+  const handleEditing = () => {
+    
+    handleCloseModal()
+    setTimeout(() => {
+    router.push({
+          pathname: "/root/edit-post",
+          params: { postId: post[currentPostIndex]?.id, content: post[currentPostIndex]?.content, color: post[currentPostIndex]?.color},
+                });}, 500)
+            
+}
+
   const handleDelete = async () => {
     try {
-      const response = await fetchAPI(`/api/posts/deletePost?id=${post!.id}`, {
+      const response = await fetchAPI(`/api/posts/deletePost?id=${post[currentPostIndex]!.id}`, {
         method: "DELETE",
       });
 
@@ -367,12 +378,12 @@ const BackgroundGridEmoji = (emoji: string) => {
               {post[currentPostIndex]?.clerk_id === user!.id ? (
                   <DropdownMenu
                     menuItems={[
-                      { label: "Delete", 
-                        source: icons.trash, 
-                        onPress: handleDeletePress },
                       { label: "Edit", 
-                          source: icons.pencil, 
-                          onPress: () => {} }
+                        source: icons.pencil, 
+                        onPress: handleEditing },
+                    { label: "Delete", 
+                      source: icons.trash, 
+                      onPress: handleDeletePress }
                     ]}
                   />
                 ) : (

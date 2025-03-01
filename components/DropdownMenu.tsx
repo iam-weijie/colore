@@ -32,7 +32,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
   const handleClose = () => {
     Animated.timing(slideAnim, {
       toValue: 300, // Slide out
-      duration: 300,
+      duration: 120,
       useNativeDriver: true,
     }).start(() => setVisible(false)); // Hide modal after animation
   };
