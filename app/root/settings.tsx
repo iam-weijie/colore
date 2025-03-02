@@ -2,11 +2,13 @@
 
 import { fetchAPI } from "@/lib/fetch";
 import { UserProfileType } from "@/types/type";
+import { icons } from "@/constants";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   ScrollView,
   Text,
@@ -28,6 +30,7 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
+  const [savedPosts, setSavedPosts] = useState<string[]>();
 
   const fetchUserData = async () => {
     try {
@@ -36,6 +39,7 @@ const Settings = () => {
       setProfileUser(data);
       setUsername(data.username || "");
       setEmail(data.email || "");
+      setSavedPosts(data.saved_posts)
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     }
@@ -165,7 +169,7 @@ const Settings = () => {
     : "No location set";
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
       
           <View className="flex flex-row items-center px-4 pt-2">
@@ -178,14 +182,14 @@ const Settings = () => {
             </TouchableOpacity>
             </View>
             <View>
-              <Text className="font-JakartaBold text-2xl mb-2">
+              <Text className="font-JakartaBold text-2xl">
                 Settings
               </Text>
             </View>
           </View>
           <ScrollView className="flex-1">
           <View className=" mx-6">
-          <Text className="ml-2 text-xl font-JakartaSemiBold my-4">
+          <Text className="text-xl font-JakartaSemiBold my-4 bg-[#fafafa] text-[#93c5fd] rounded-[24px] px-5 py-6">
                 Account
               </Text>
             <View className="bg-[#fafafa] rounded-[32px] p-5">
@@ -237,7 +241,7 @@ const Settings = () => {
                     activeOpacity={0.5}
                     onPress={handleLocationUpdate}
                   >
-                   <Text className="text-md text-indigo-500 font-JakartaSemiBold">
+                   <Text className="text-md text-[#93c5fd] font-JakartaSemiBold">
                     Update
                 </Text>
                   </TouchableOpacity>
@@ -248,6 +252,34 @@ const Settings = () => {
                   {currentLocation}
                 </Text>
               </View>
+            </View>
+            
+          </View>
+          <View className=" mx-6">
+          <Text className=" text-xl font-JakartaSemiBold my-4 bg-[#fafafa] text-[#CFB1FB] rounded-[24px] px-5 py-6">
+                Activity 
+              </Text>
+            <View className="bg-[#fafafa] rounded-[32px] p-5">
+              <TouchableOpacity activeOpacity={0.6} onPress={() => {
+
+                router.push({
+                  pathname: "/root/saved-post-gallery",
+                  params: {posts: JSON.stringify(savedPosts)}
+                  })
+               
+              }}>
+              <View className="flex flex-row items-center justify-between p-2">
+                <Text className="text-lg font-JakartaSemiBold my-2">Saved Posts</Text>
+                 <Image
+                          source={icons.bookmark}
+                          tintColor="#000000"
+                          resizeMode="contain"
+                          className="w-6 h-6"
+                        />
+              </View>
+              </TouchableOpacity>
+
+              
             </View>
             
           </View>

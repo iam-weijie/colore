@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 type MenuItem = {
   label: string;
   source: ImageSourcePropType;
+  color: string;
   onPress: () => void;
 };
 
@@ -69,7 +70,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
         />
         <Animated.View
           style={{ transform: [{ translateY: slideAnim }] }}
-          className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-lg p-8 "
+          className="absolute w-[90%] bottom-0 left-[50%] -ml-[45%] right-0 bg-white rounded-[48px] shadow-lg py-4 px-6 mb-7"
         >
           {menuItems.map((item, index) => (
             <TouchableOpacity
@@ -78,18 +79,19 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
                 handleClose(); // Close after selecting an item
                 item.onPress();
               }}
-              className={`flex-row items-center px-4 py-5 ${
+              className={`flex-row items-center px-6 py-6 ${
                 index < menuItems.length - 1 ? "border-b border-gray-200" : ""
               }`}
             >
               <View className="flex-row items-center">
                 <Image
                   source={item.source}
-                  tintColor="#A7A7A7"
+                  tintColor={item.color}
                   resizeMode="contain"
                   className="w-5 h-5 mr-2"
+                  style={{ opacity: 0.8 }}
                 />
-                <Text className="font-JakartaSemiBold text-[16px]">{item.label}</Text>
+                <Text className="font-JakartaSemiBold text-[16px]" style={{ color: item.color}}>{item.label}</Text>
               </View>
             </TouchableOpacity>
           ))}

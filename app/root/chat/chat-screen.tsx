@@ -54,6 +54,7 @@ type TabNavigationProps = {
   notifications: number;
 };
 
+
 const TabNavigation: React.FC<TabNavigationProps> = ({
   name,
   focused,
@@ -96,6 +97,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   // Messages constants
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
+  const [skeletalConversationList, setSkeletalConversationList] = useState<ConversationItem[]>([]);
   const [toRead, setToRead] = useState<[]>([]);
 
   // Friend List & Request constants
@@ -106,6 +108,21 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   const [handlingFriendRequest, setHandlingFriendRequest] =
     useState<boolean>(false);
 
+  // Loading handlig
+  const skeletalConversation = (id: string) => {
+    return (
+      {
+    id: id,
+    name: "",
+    clerk_id: "",
+    lastMessageContent: "",
+    lastMessageTimestamp: new Date(),
+    active_participants: 0,
+    unread_messages: 0,
+      }
+    )
+  }
+
   //Navigation
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   console.log("tab", tab);
@@ -115,6 +132,13 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   const fetchConversations = async (): Promise<void> => {
     setLoading(true);
+    setSkeletalConversationList([
+      skeletalConversation("1"), 
+      skeletalConversation("2"), 
+      skeletalConversation("3"), 
+      skeletalConversation("4"),
+      skeletalConversation("5"),
+      skeletalConversation("6")])
     try {
       const responseConversation = await fetchAPI(
         `/api/chat/getConversations?id=${user!.id}`,
@@ -308,12 +332,14 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     item: ConversationItem;
   }): React.ReactElement => (
     <TouchableOpacity onPress={() => handleOpenChat(item)}>
-      <View className="flex items-center mb-2 p-4 bg-[#FAFAFA] rounded-[16px]">
+      <View className="flex items-center mb-2 p-4 rounded-[16px]" 
+      style={{ backgroundColor: loading ? "#E5E7EB" : "#FAFAFA"}}
+      >
         <View className="w-full">
           <View className="flex flex-row justify-between items-center">
             <Text className="text-[16px] font-bold mb-1">{item.name}</Text>
             <Text className="text-[12px] text-gray-400">
-              {item.lastMessageTimestamp
+              {item.lastMessageTimestamp && !loading
                 ? new Date(item.lastMessageTimestamp).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -339,7 +365,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>
           ) : (
             <Text className="text-gray-600 text-sm -mt-1 ">
-              No messages yet
+              {loading ? "" : "No messages yet"}
             </Text>
           )}
         </View>
@@ -348,7 +374,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderFriend = ({ item }: { item: Friendship }) => (
-    <View className="flex  mb-2 p-4 bg-[#FAFAFA] rounded-[16px]">
+    <View className="flex  mb-2 p-4 rounded-[16px]"
+    style={{ backgroundColor: loading ? "#E5E7EB" : "#FAFAFA"}}
+    >
       <View className="flex flex-row justify-between items-center mx-2">
         <View>
           <TouchableOpacity
@@ -403,6 +431,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             {
               label: "Accept",
               source: icons.check,
+              color: "#08DA14",
               onPress: async () => {
                 setHandlingFriendRequest(true);
                 const returnStats = await acceptFriendRequest(
@@ -422,6 +451,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             {
               label: "Reject",
               source: icons.close,
+              color: "#DA0808", 
               onPress: async () => {
                 setHandlingFriendRequest(true);
                 const returnStats = await rejectFriendRequest(
@@ -523,11 +553,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View className="flex-1 bg-gray-100">
-        {loading ? (
-          <View className="flex-[0.8] justify-center items-center">
-            <ActivityIndicator size="large" color="black" />
-          </View>
-        ) : (
+        
           <View className="flex-1">
             <View className="flex flex-row justify-between items-center mx-4 mb-4 mt-4">
               <View className="flex flex-row items-center mr-2">
@@ -604,7 +630,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                     />
                   </View>
                 }
-                data={filteredConversations}
+                data={loading ? skeletalConversationList : filteredConversations}
                 renderItem={renderConversationItem}
                 keyExtractor={(item): string => item.id}
               />
@@ -702,7 +728,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               </View>
             )}
           </View>
-        )}
+      
       </View>
     </SafeAreaView>
   );

@@ -295,7 +295,8 @@ const PostScreen = () => {
     created_at,
     unread_comments = 0,
     anonymous = false,
-    color
+    color,
+    saved
   } = useLocalSearchParams();
 
 
@@ -666,6 +667,22 @@ const PostScreen = () => {
     }
   };
 
+  const handleSavePost = async (postId: number) => {
+
+     try {
+            const updateSavePosts = await fetchAPI(`/api/users/updateUserSavedPosts`, {
+                method: "PATCH",
+                body: JSON.stringify({
+                  clerkId: user?.id,
+                  postId: postId,
+                })
+              })
+          }
+          catch(error) {
+            console.error("Failed to update unread message:", error);
+          } 
+  }
+
   useEffect(() => {
     fetchComments();
   }, [id]);
@@ -795,24 +812,29 @@ const PostScreen = () => {
                     menuItems={[
                       { label: "Edit", 
                           source: icons.pencil, 
+                          color: "#0851DA", 
                           onPress: handleEditing },
                       { label: "Delete", 
                         source: icons.trash, 
+                        color: "#DA0808", 
                         onPress: handleDeletePostPress }
                     ]}
                   />
                 ) : (
                   <DropdownMenu
                    menuItems={[
-                    { 
+                     { 
                     label: "Share", 
                     source: icons.send, 
+                    color: "#000000", 
                     onPress: () => {} }, 
-                    { label: "Save", 
+                    { label: saved ? "Remove" : "Save", 
+                      color: "#000000", 
                       source: icons.bookmark, 
-                      onPress: () => {} }, 
+                      onPress: () => handleSavePost(id) }, 
                     { label: "Report", 
-                      source: icons.email, 
+                      source: icons.email,
+                      color: "#DA0808",  
                       onPress: handleReportPress },]}
                   />
                 )}

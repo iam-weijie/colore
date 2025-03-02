@@ -43,6 +43,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [nickname, setNickname] = useState<string>("");
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [emojiLoading, setEmojiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [countryEmoji, setCountryEmoji] = useState<string>("");
@@ -62,6 +63,25 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [isFocusedOnProfile, setIsFocusedOnProfile] = useState<boolean>(true);
 
   const isEditable = user!.id === userId;
+
+  const skeletonPost = (id: number) => {
+    return({
+    id: id,
+    clerk_id: "",
+    firstname: "",
+    username: "",
+    content: "",
+    created_at: "",
+    city: "",
+    state: "",
+    country: "",
+    like_count: 0,
+    report_count: 0,
+    unread_comments: 0,
+    color: "#E5E7EB", //String for now. Should be changed to PostItColor
+    emoji: "",
+  })
+  }
 
   function findUserNickname(
     userArray: UserNicknamePair[],
@@ -110,6 +130,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       const flagEmoji = countryCode?.toUpperCase().split("").map((char) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
 
       setCountryEmoji(flagEmoji);
+      setEmojiLoading(false)
     } catch (err) {
       setError("Error fetching country data.");
     }
@@ -182,13 +203,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     });
     router.push("/root/profile/nickname");
   };
-
-  if (loading)
-    return (
-      <View className="flex-[0.8] justify-center items-center">
-        <ActivityIndicator size="large" color="black" />
-      </View>
-    );
 
   if (error)
     return (
@@ -330,19 +344,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
-    { label: "Nickname", source: icons.person, onPress: handleAddNickname },
-    { label: "Report", source: icons.email, onPress: handleReportPress },
+    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_default = [
-    { label: "Nickname", source: icons.person, onPress: handleAddNickname },
-    { label: "Report",  source: icons.email, onPress: handleReportPress },
+    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_friend = [
-    { label: "Nickname", source: icons.person, onPress: handleAddNickname },
-    { label: "Report",  source: icons.email, onPress: handleReportPress },
-    { label: "Unfriend",  source: icons.close, onPress: async () => {
+    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Unfriend",  source: icons.close, color: "#6408DA", onPress: async () => {
       setIsHandlingFriendRequest(true);
       const response: FriendStatusType = await unfriend(
         user!.id,
@@ -355,22 +368,25 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       }
       setFriendStatus(response);
       setIsHandlingFriendRequest(false);
-    }}
+    }},
+    { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_sent = [
-    { label: "Nickname", onPress: handleAddNickname },
+    { label: "Nickname", color: "#A7A7A7", onPress: handleAddNickname },
     {
       label: "Report",
       source: icons.email,
+      color: "#DA0808",
       onPress: handleReportPress,
     },
   ];
 
   const menuItems_received = [
-    { label: "Nickname", source: icons.person, onPress: handleAddNickname },
+    { label: "Nickname", color: "#A7A7A7", source: icons.person, onPress: handleAddNickname },
     {
       label: "Report",
+      color: "#DA0808",
       source: icons.email,
       onPress: () => handleReportPress,
     },
@@ -454,7 +470,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
                 <View>
                   <Text className="text-gray-500 text-center font-Jakarta text-base">
-                    {countryEmoji}{" "}{profileUser?.city}, {profileUser?.state},{" "}
+                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city}, {profileUser?.state},{" "}
                     {profileUser?.country}
                   </Text>
                 </View>
@@ -738,7 +754,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
               <View className="items-center flex-1 mb-[100px]">
                 <PostGallery
-                  posts={userPosts}
+                  posts={loading ? [skeletonPost(1), skeletonPost(2)] : userPosts}
                   profileUserId={user!.id}
                   handleUpdate={fetchUserData}
                   query={query}

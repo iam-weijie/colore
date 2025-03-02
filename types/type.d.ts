@@ -45,6 +45,7 @@ declare interface UserProfileType {
   device_token: string;
   is_paid_user: boolean;
   report_count: number;
+  saved_posts: string[];
 }
 
 declare interface UserData {

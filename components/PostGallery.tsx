@@ -73,14 +73,14 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     >
       <View
         className="flex-1 m-2 p-5  shadow-xs rounded-[24px] mx-auto"
-        style={{ width: screenWidth * 0.85, backgroundColor: temporaryColors.find((c) => c.name === item.color)?.hex }}
+        style={{ width: screenWidth * 0.85, backgroundColor: temporaryColors?.find((c) => c.name === item.color)?.hex || item.color}}
       >
         <Text className="font-JakartaSemiBold text-black">
           {truncateText(item.content, 100)}
         </Text>
         <View className="flex-row justify-between">
           <Text className="font-Jakarta text-gray-500">
-            {formatDateTruncatedMonth(new Date(item.created_at))}
+            {item.created_at ? formatDateTruncatedMonth(new Date(item.created_at)) : ""}
           </Text>
         </View>
         {isOwnProfile && item.unread_comments > 0 && (

@@ -61,12 +61,18 @@ const PostModal: React.FC<PostModalProps> = ({
   const router = useRouter();
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
+  const [savedPosts, setSavedPosts] = useState<string[]>([]);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
 
   // Memoize the posts array to prevent unnecessary re-renders
   const post = useMemo(() => {
     const stack = stacks.find((stack) => stack.ids.includes(selectedPost.id));
     return stack ? stack.elements : [selectedPost];
   }, [selectedPost, stacks]);
+
+  useEffect(() => {
+    fetchUserdata()
+  }, [isSaved, user])
 
   useEffect(() => {
     if (post.length) {
@@ -208,11 +214,25 @@ const PostModal: React.FC<PostModalProps> = ({
   };
   useEffect(() => {
     const getData = async () => {
-      const data = await fetchCurrentNickname();
-      setNickname(data);
+      const nickname = await fetchCurrentNickname();
+      setNickname(nickname);
     };
     getData();
   }, [user]);
+
+  const fetchUserdata = async () => {
+    try {
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
+      const savePostsList = response.data[0].saved_posts; 
+      const savedStatus = savePostsList.includes(`${post[currentPostIndex]?.id}`);
+      setSavedPosts(savePostsList);
+      setIsSaved(savedStatus);
+     
+    }
+    catch(error) {
+      console.error("Failed to fetch user data", error)
+    }
+  }
 
   const handleDeletePress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
@@ -274,9 +294,29 @@ const PostModal: React.FC<PostModalProps> = ({
         unread_comments: post[currentPostIndex]?.unread_comments,
         anonymous: invertedColors,
         color: post[currentPostIndex]?.color,
+        saved: isSaved
       },
     });
   };
+
+  const handleSavePost = async (postId: number) => {
+    try {
+           const updateSavePosts = await fetchAPI(`/api/users/updateUserSavedPosts`, {
+               method: "PATCH",
+               body: JSON.stringify({
+                 clerkId: user!.id,
+                 postId: postId,
+                 isSaved: isSaved
+               })
+             })
+         }
+         catch(error) {
+           console.error("Failed to update unread message:", error);
+         } finally {
+          setIsSaved((prevIsSaved) => !prevIsSaved)
+          handleUpdate
+         }
+ }
 
     // COMPONENT RENDER
 
@@ -380,9 +420,11 @@ const BackgroundGridEmoji = (emoji: string) => {
                     menuItems={[
                       { label: "Edit", 
                         source: icons.pencil, 
+                        color: "#0851DA", 
                         onPress: handleEditing },
                     { label: "Delete", 
                       source: icons.trash, 
+                      color: "#DA0808", 
                       onPress: handleDeletePress }
                     ]}
                   />
@@ -390,15 +432,18 @@ const BackgroundGridEmoji = (emoji: string) => {
                   <DropdownMenu
                    menuItems={[
                     { 
-                    label: "Share", 
-                    source: icons.send, 
-                    onPress: () => {} }, 
-                    { label: "Save", 
-                      source: icons.bookmark, 
+                      label: "Share", 
+                      source: icons.send, 
+                      color: "#000000", 
                       onPress: () => {} }, 
-                    { label: "Report", 
-                      source: icons.email, 
-                      onPress: handleReportPress },]}
+                      { label: isSaved ? "Remove" : "Save", 
+                        color: "#000000", 
+                        source: isSaved ? icons.close : icons.bookmark, 
+                        onPress: () => handleSavePost(post[currentPostIndex]?.id) }, 
+                      { label: "Report", 
+                        source: icons.email,
+                        color: "#DA0808",  
+                        onPress: handleReportPress }]}
                   />
                 )}
             </View>
