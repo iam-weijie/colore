@@ -189,7 +189,7 @@ const Settings = () => {
           </View>
           <ScrollView className="flex-1">
           <View className=" mx-6">
-          <Text className="text-xl font-JakartaSemiBold my-4 bg-[#fafafa] text-[#93c5fd] rounded-[24px] px-5 py-6">
+          <Text className="text-xl font-JakartaBold my-4 bg-[#93c5fd] text-[#ffffff] rounded-[24px] px-5 py-6">
                 Account
               </Text>
             <View className="bg-[#fafafa] rounded-[32px] p-5">
@@ -256,7 +256,7 @@ const Settings = () => {
             
           </View>
           <View className=" mx-6">
-          <Text className=" text-xl font-JakartaSemiBold my-4 bg-[#fafafa] text-[#CFB1FB] rounded-[24px] px-5 py-6">
+          <Text className=" text-xl font-JakartaBold my-4 bg-[#CFB1FB] text-[#ffffff]  rounded-[24px] px-5 py-6">
                 Activity 
               </Text>
             <View className="bg-[#fafafa] rounded-[32px] p-5">
