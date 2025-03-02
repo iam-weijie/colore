@@ -544,6 +544,7 @@ const BackgroundGridEmoji = (emoji: string) => {
                         source: icons.send, 
                         color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", 
                         onPress: () => {
+                          console.log("clicked")
                           handleShare()
                         } }, 
                       { label: "Edit", 
@@ -564,6 +565,7 @@ const BackgroundGridEmoji = (emoji: string) => {
                       source: icons.send, 
                       color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", 
                       onPress: () => {
+                        console.log("clicked")
                         handleShare()
                       } }, 
                       { label: isSaved ? "Remove" : "Save", 

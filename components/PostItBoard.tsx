@@ -566,7 +566,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     <View className="flex-1 mb-[80px]">
       <SignedIn>
       
-      <TouchableWithoutFeedback className="flex-1 w-full h-full" onPress={handleGatherPosts}>
+      <TouchableWithoutFeedback className="flex-1 w-full h-full" onLongPress={handleGatherPosts}>
         { error ? (
           <Text>{error}</Text>
         ) : (
