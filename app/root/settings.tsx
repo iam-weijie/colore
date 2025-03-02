@@ -51,7 +51,6 @@ const Settings = () => {
     try {
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
       const data = response.data[0];
-      console.log("saved", data.saved_posts)
       setSavedPosts(data.saved_posts)
     } catch (error) {
       console.error("Failed to fetch saved post data:", error);
@@ -62,7 +61,6 @@ const Settings = () => {
     try {
       const response = await fetchAPI(`/api/posts/getLikedPostsIds?userId=${user!.id}`);
       const data = response.data;
-      console.log("liked", data)
       setLikedPosts(data)
     } catch (error) {
       console.error("Failed to fetch liked post data:", error);
@@ -318,7 +316,6 @@ const Settings = () => {
               </View>
               </TouchableOpacity>
               <TouchableOpacity activeOpacity={0.6} onPress={() => {
-                  console.log("about to pass", likedPosts)
                 router.push({
                   pathname: "/root/saved-post-gallery",
                   params: {

@@ -13,6 +13,7 @@ declare interface Post {
   like_count: number;
   report_count: number;
   unread_comments: number;
+  recipient_user_id: string;
   color: string; //String for now. Should be changed to PostItColor
   emoji: string;
 }

@@ -1,5 +1,15 @@
 import { temporaryColors } from "@/constants";
 import { View } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedGestureHandler,
+  withSpring,
+  withTiming,
+  FadeInUp,
+  FadeInDown,
+  runOnJS,
+} from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 
 interface PostItProps {
@@ -23,7 +33,9 @@ const PostIt: React.FC<PostItProps> = ({ color }) => {
   const foldColor = getFoldColorHex(color);
 
   return (
-    <View className="w-40 h-40 shadow">
+    <Animated.View 
+    entering={FadeInDown.duration(100)}
+    className="w-40 h-40 shadow">
       {/* Post-it Shape */}
       <Svg height="160" width="160">
         <Path
@@ -55,7 +67,7 @@ const PostIt: React.FC<PostItProps> = ({ color }) => {
           borderRightColor: "transparent",
         }}
       />
-    </View>
+    </Animated.View>
   );
 };
 

@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  Easing,
   Image,
   PanResponder,
   RefreshControl,
@@ -20,14 +21,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type DraggablePostItProps = {
-  post: PostWithPosition;
-  updateIndex: () => void;
-  updatePosition: (x: number, y: number, post: PostWithPosition) => void;
-  onPress: () => void;
-  showText?: boolean;
-};
-
 type MappingPostitProps = {
   id: number;
   coordinates: {
@@ -35,6 +28,17 @@ type MappingPostitProps = {
     y_coordinate: number;
   };
 };
+
+type DraggablePostItProps = {
+  post: PostWithPosition;
+  updateIndex: () => void;
+  updatePosition: (x: number, y: number, post: PostWithPosition) => void;
+  onPress: () => void;
+  forceStack: (id: number) => MappingPostitProps;
+  showText?: boolean;
+};
+
+
 
 const MappingPostIt = ({ id, coordinates }: MappingPostitProps) => {
   return {
@@ -51,38 +55,92 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   updateIndex,
   updatePosition,
   onPress,
+  forceStack,
   showText = false,
 }) => {
   const position = useRef(new Animated.ValueXY()).current;
   const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [fontColor, setFontColor] = useState<string>("#0000ff");
+  const { stacks, setStacks } = useGlobalContext();
+  const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(null);
+
+  const hasUpdatedPosition = useRef(false); // Tracks if we have already updated position
 
   const getFontColorHex = (colorName: string | undefined) => {
-      const foundColor = temporaryColors.find((c) => c.name === colorName);
-      setFontColor(foundColor?.fontColor || "#ff0000"); // Default font colour is black
-    };
-
+    const foundColor = temporaryColors.find((c) => c.name === colorName);
+    setFontColor(foundColor?.fontColor || "#ff0000"); // Default font colour is black
+  };
   useEffect(() => {
     const listenerId = position.addListener(({ x, y }) => {
       updatePosition(x, y, post);
     });
+  
+    const newStackedPosition = forceStack(post.id);
+  
+    // Handle `prev` being undefined
+    setNewPosition((prev) => {
 
+      const prevX = prev?.coordinates?.x_coordinate ?? 0; // Default to null
+      const prevY = prev?.coordinates?.y_coordinate ?? 0;
+  
+      if (Math.abs(prevX - newStackedPosition.coordinates.x_coordinate) < 1 &&
+      Math.abs(prevY - newStackedPosition.coordinates.y_coordinate) < 1) {
+        return prev; // No change, do not trigger re-render
+      }
+      return newStackedPosition;
+    });
+  
     return () => {
       position.removeListener(listenerId);
     };
-  }, [position, post, updatePosition]);
+  }, [post.id, updatePosition, forceStack]);
+  
+
+  useEffect(() => {
+    //console.log("stack", stacks, stacks.length);
+  
+    if (stacks.length === 1 && newPosition && !hasUpdatedPosition.current) {
+      
+      const dx = newPosition.coordinates.x_coordinate - post.position.left - position.x.__getValue();
+      const dy = newPosition.coordinates.y_coordinate - post.position.top - position.y.__getValue();
+      
+        // console.log("id", post.id, "dx", dx, "dy", dy);
+      
+      
+      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+      //  console.log( post.id, "has started moving to", newPosition.coordinates.x_coordinate, newPosition.coordinates.y_coordinate, "from", post.position.left, post.position.top, "with velocity", dx, dy )
+      Animated.timing(position, {
+        toValue: { x: dx + Math.random() * 15, y: dy + Math.random() * 15},
+        duration: 150, // Adjust duration for smoothness
+        easing: Easing.out(Easing.quad), // Adjust easing for a more natural feel
+        useNativeDriver: false, // Cannot use native driver for XY values
+      }).start();
+      hasUpdatedPosition.current = true; // Prevent future re-executions
+      }
+      
+  
+      
+    }
+  }, [forceStack]); 
+
+
+  useEffect(() =>{
+    if(stacks.length == 0) {
+      hasUpdatedPosition.current = false; 
+    }
+  }, [stacks])
 
   useEffect(() => {
     getFontColorHex(post.color);
-  }, []);
+  }, [post.color]);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        // when gesture starts, set to dragging and moves it the the front
+        // when gesture starts, set to dragging and moves it to the front
         setIsDragging(true);
         updateIndex();
         position.extractOffset();
@@ -112,8 +170,6 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
     })
   ).current;
 
-
- 
   return (
     <Animated.View
       {...panResponder.panHandlers}
@@ -131,36 +187,33 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
 
       {!showText && (
         <View className="absolute text-black w-full h-full items-center justify-center">
-        <Text
-          style={{
-            fontSize: 50
-          }}
-        >
-          {post.emoji && post.emoji}
-        </Text>
+          <Text style={{ fontSize: 50 }}>
+            {post.emoji && post.emoji}
+          </Text>
         </View>
       )}
       {showText && (
         <View className="absolute text-black w-full h-full items-center justify-center">
-        <Text
-          className="font-[500] text-black"
-          style={{
-            color: fontColor,
-            fontSize: 16,
-            padding: 15,
-            numberOfLines: 3,
-            fontStyle: "italic"
-          }}
-          numberOfLines={3} 
-          ellipsizeMode="tail"
-        >
-          {post.content}
-        </Text>
+          <Text
+            className="font-[500] text-black"
+            style={{
+              color: fontColor,
+              fontSize: 16,
+              padding: 15,
+              numberOfLines: 3,
+              fontStyle: "italic",
+            }}
+            numberOfLines={3}
+            ellipsizeMode="tail"
+          >
+            {post.content}
+          </Text>
         </View>
       )}
     </Animated.View>
   );
 };
+
 
 declare interface PostItBoardProps {
   userId: string;
@@ -290,7 +343,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       // No existing stack: create a new one if there's more than one post
       updatedStacks.push({
         ids: Array.from(postsToCombine),
-        elements: postsToCombine.length > 1 ? postsToCombine : [],
+        elements: Array.from(postsToCombine).map((id) =>
+          postsWithPosition.find((post) => post.id === id)
+        ),
       });
     } else if (affectedStacks.length > 0) {
       // Merge all affected stacks and postsToCombine into one stack
@@ -341,6 +396,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     // Filter out empty stacks
     updatedStacks = updatedStacks.filter((stack) => stack.ids.length > 1);
 
+    //console.log("stacks1", updatedStacks)
     setStacks(updatedStacks);
   };
 
@@ -372,7 +428,14 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       ...prevMap.filter((p) => p.id !== id),
       postItCoordinates,
     ]);
+
   };
+
+  useEffect(() => {
+    //console.log("map", maps)
+    //console.log("stacks1.5", stacks)
+   //console.log("post with postion", postsWithPosition.map((p) => p.position))
+  }, [maps])
 
   const reorderPost = (topPost: PostWithPosition) => {
     setPostsWithPosition((prevPosts: PostWithPosition[]) => [
@@ -394,6 +457,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     fetchRandomPosts();
   }, []);
 
+  const forceStack = (id: number) => {
+    return maps.find((p) => p.id == id)
+  }
   const handlePostPress = (post: PostWithPosition) => {
     // Ensure all required properties are present
     const formattedPost: PostWithPosition = {
@@ -424,8 +490,10 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
        setSelectedPost(null);
       //("Post to remove", selectedPost.id)
-      setPostsWithPosition((prevPosts) =>
-        prevPosts.filter((post) => post.id !== postId)
+      setPostsWithPosition((prevPosts) => {
+        const updatePosts = prevPosts.filter((post) => post.id !== postId)
+        
+        return updatePosts}
       );
       
       setStacks((prevStacks) => {
@@ -441,9 +509,13 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
         return updateMap
       });
+
       //("remainging right after", stacks)
   
       const existingPostIds = postsWithPosition.map((post) => post.id);
+      
+      console.log("existing", existingPostIds)
+
       const newPost = await handleNewPostFetch(existingPostIds);
 
       if (newPost && !existingPostIds.includes(newPost.id)) {
@@ -458,9 +530,11 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
           ...prevPosts,
           newPostWithPosition,
         ]);
+        updatePostPosition(0, 0, newPostWithPosition)
       }
 
-  
+      // Wait for React state updates to finish before using remainingPosts
+      await new Promise((resolve) => setTimeout(resolve, 0));
   
       
     }
@@ -472,30 +546,33 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   };
 
   const handleGatherPosts = () => {
-    const updatedStacks = [...stacks];
+    
+    const ref = maps[maps.length - 1].coordinates
     const newPostsPostions = postsWithPosition.map((post) => ({
       id: post.id,
       coordinates: {
-        x_coordinate: post.position.left,
-        y_coordinate: post.position.top,
+        x_coordinate: ref.x_coordinate,
+        y_coordinate: ref.y_coordinate,
       },
     }));
+    //console.log("newPostsPostions")
     setMap(newPostsPostions);
     //console.log("new posts", newPostsPostions)
   };
 
 
-  //console.log("remainging loaded", stacks)
+  //console.log("remaingring loaded", stacks)
   return (
     <View className="flex-1 mb-[80px]">
       <SignedIn>
-
-
+      
+      <TouchableWithoutFeedback className="flex-1 w-full h-full" onPress={handleGatherPosts}>
         { error ? (
           <Text>{error}</Text>
         ) : (
           <View className="flex-1 w-full h-full">
              { /*loading */ false && (
+              
             <View className="flex-[0.8] justify-center items-center">
               <ActivityIndicator size="large" color="black" />
             </View>
@@ -509,6 +586,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
               }
               style={{ position: "absolute", width: "100%", height: "100%" }}
             />
+            
             <View className="relative">
               {postsWithPosition.map((post, index) => {
                 return (
@@ -519,13 +597,14 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                       updatePostPosition(dx, dy, post)
                     }
                     post={post}
+                    forceStack={forceStack}
                     onPress={() => handlePostPress(post)}
                     showText={showPostItText}
                   />
                 );
               })}
             </View>
-
+          
             {selectedPost && (
               <PostModal
                 isVisible={!!selectedPost}
@@ -536,6 +615,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             )}
           </View>
         )}
+         </TouchableWithoutFeedback>
       </SignedIn>
     </View>
   );

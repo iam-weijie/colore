@@ -469,18 +469,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                         : `${profileUser?.firstname?.charAt(0)}.`}
                   </Text> 
                 </View>) : <View>
-                 <Text className={`text-[24px] bg-[#E7E5Eb] font-JakartaBold`}>Username</Text>
+                 <Text className={`text-[24px] bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
                  </View>}
                 </Animated.View>
                 <Animated.View entering={FadeIn.duration(800)}>
                 { profileUser ?  (<View>
-                <Text className="text-gray-500 text-center font-Jakarta text-base">
+                <Text className="text-gray-700 text-center font-Jakarta text-base">
                     {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city}, {profileUser?.state},{" "}
                     {profileUser?.country}
                   </Text> 
                 </View>) : (
                   <View>
-                  <Text className="text-gray-200 text-center font-Jakarta text-base"> Location updating... </Text>
+                  <Text className="text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta text-base"> Location updating... </Text>
                   </View>)}
                 </Animated.View>
               </View>
@@ -565,9 +565,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     if (user!.id === userId) {
                       router.push("/root/tabs/personal-board");
                     } else {
+                     
                       router.push({
                         pathname: "/root/user-board/[id]",
-                        params: { id: userId, username: profileUser?.username },
+                        params: { id: `${profileUser?.clerk_id}`, username: profileUser?.username },
                       });
                     }
                   }}
@@ -585,7 +586,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                       : 32,
                   }}
                 >
-                  {user!.id === profileUser!.clerk_id && (
+                  {user!.id === profileUser?.clerk_id && (
                     <View style={{ marginTop: isCollapsed ? 0 : 20 }}>
                       <Image
                         source={icons.chat}

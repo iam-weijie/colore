@@ -14,11 +14,14 @@ import {
   Alert,
   Image,
   ScrollView,
+  Share,
+  Platform,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import * as FileSystem from "expo-file-system";
 import ReactNativeModal from "react-native-modal";
 import {
   GestureHandlerRootView,
@@ -44,6 +47,22 @@ import { captureRef } from 'react-native-view-shot';
 
 const { width, height } = Dimensions.get("window");
 
+
+const CarrouselIndicator = ({
+id,
+index
+}: {
+  id: number;
+  index: number;
+}) => (
+<View className="rounded-full h-2 bg-white min-w-2 p-1 mx-1"
+style={{
+  width: id === index ? 50 : 2,
+  opacity: id === index ? 1 : 0.5
+}}
+>
+</View>
+);
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -85,6 +104,7 @@ const PostModal: React.FC<PostModalProps> = ({
       setPosts(post);
     }
   }, [post]);
+
 
   const fetchLikeStatus = async () => {
     try {
@@ -254,7 +274,9 @@ const PostModal: React.FC<PostModalProps> = ({
 
   const handleEditing = () => {
     
+    setTimeout(() => {
     handleCloseModal()
+    }, 250)
     setTimeout(() => {
     router.push({
           pathname: "/root/edit-post",
@@ -326,48 +348,82 @@ const PostModal: React.FC<PostModalProps> = ({
          }
  }
  
- const handleShare = async () => {
-  if (!imageUri) {
+
+
+// Capture the content as soon as the component mounts (first render)
+useEffect(() => {
+  if (isVisible) {
+    setTimeout(() => {
+      handleCapture() // Capture content on first render when modal is visible
+    }, 800)
+   
+  }
+}, [isVisible]);
+useEffect(() => {
+  setTimeout(() => {
     if (viewRef.current) {
-      try {
-        const uri = await captureRef(viewRef.current, {
-          format: 'png',
-          quality: 0.8,
-        });
-        console.log("Captured screenshot:", uri);
+      viewRef.current.measure((x, y, width, height) => {
+        console.log(x, y, width, height);
+      });
+    }
+  }, 500); // Small delay to ensure the view is ready
+}, []);
 
-        // Directly use the URI for sharing
-        const canShare = await Sharing.isAvailableAsync();
-        if (canShare) {
-          console.log("Captured screenshot 2:", uri);
+const handleCapture = async () => {
+  if (!isVisible) {
+    console.warn('Modal is not visible, skipping capture.');
+    return;
+  }
 
-          await Sharing.shareAsync(uri, {
-            dialogTitle: 'Share this post',
-            mimeType: 'image/png',
-          }); // Share the image
-          console.log("Captured screenshot 3:", uri);
-        } else {
-          alert('Sharing is not available on this device');
-        }
+  if (viewRef.current) {
+    try {
+      const uri = await captureRef(viewRef.current, {
+        format: 'png',
+        quality: 0.8,
+      });
+      
+      setImageUri(uri); // Save the captured URI for later sharing
 
-        setImageUri(uri); // Set the URI after the capture
-      } catch (error) {
-        console.error('Error capturing screenshot:', error);
-      }
+    } catch (error) {
+      console.error('Error capturing view:', error);
     }
   }
 };
+
+const handleShare = async () => {
+  if (!imageUri) {
+    console.warn('No image to share. Please capture first.');
+    return;
+  }
+
+  try {
+    let imageToShare = imageUri;
+    if (Platform.OS === 'ios') {
+      const base64 = await FileSystem.readAsStringAsync(imageUri, { encoding: FileSystem.EncodingType.Base64 });
+      imageToShare = `data:image/png;base64,${base64}`;
+    }
+
+    const result = await Share.share({
+      message: `${post[currentPostIndex]?.content.trim()} \n\nHere’s something interesting:https://testflight.apple.com/join/edtGfSAT`,
+      url: imageToShare, // Share the captured image (uri or base64)
+    });
+
+    if (result.action === Share.sharedAction) {
+      console.log('Shared successfully');
+    } else if (result.action === Share.dismissedAction) {
+      console.log('Share dismissed');
+    }
+  } catch (error) {
+    console.error('Error sharing:', error);
+  }
+};
+
 
 useEffect(() => {
   if (imageUri) {
     console.log("Image URI has been set:", imageUri);
   }
 }, [imageUri]);
-
-const captureScreenshot = async () => {
-  
-};
-
 
 
     // COMPONENT RENDER
@@ -392,7 +448,7 @@ const BackgroundGridEmoji = (emoji: string) => {
   }
 
   return (
-    <View className="absolute w-full h-full -ml-2">
+    <View className="absolute w-full h-full ml-3">
       {gridItems.map((item, index) => (
         <View
           key={index}
@@ -408,26 +464,37 @@ const BackgroundGridEmoji = (emoji: string) => {
   
 
   return (
+    <GestureHandlerRootView
+    style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+  >
+   
+  
     <ReactNativeModal
       isVisible={isVisible}
-      backdropColor={(postColor?.hex || "rgba(0,0,0,0.5)")}
+      backdropColor={"rgba(0,0,0,0)"}
       backdropOpacity={1}
       onBackdropPress={handleCloseModal}
     >
-      <TouchableWithoutFeedback onPress={handleCloseModal}>
+      
+      
+      <View 
+      ref={viewRef} 
+      className="flex-1 absolute w-screen h-screen  -ml-5 align-items justify-center z-[10]"
+      style={{
+        backgroundColor: postColor?.hex || "rgba(0, 0, 0, 0.5)"
+      }}>
+        <TouchableWithoutFeedback onPress={handleCloseModal}>
       {BackgroundGridEmoji(post[currentPostIndex]?.emoji || "")}
       </TouchableWithoutFeedback>
+     
       {header}
+
       
-      <GestureHandlerRootView
-        style={{ justifyContent: "center", alignItems: "center" }}
-      >
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
-            ref={viewRef} 
             entering={FadeInUp.duration(400)}
             exiting={FadeOutDown.duration(250)}
-            className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto"
+            className="bg-white px-6 py-4 rounded-[20px] min-h-[200px] max-h-[40%] w-[80%] mx-auto"
             style={[
               animatedStyle,
               {
@@ -472,6 +539,13 @@ const BackgroundGridEmoji = (emoji: string) => {
               {post[currentPostIndex]?.clerk_id === user!.id ? (
                   <DropdownMenu
                     menuItems={[
+                      { 
+                        label: "Share", 
+                        source: icons.send, 
+                        color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", 
+                        onPress: () => {
+                          handleShare()
+                        } }, 
                       { label: "Edit", 
                         source: icons.pencil, 
                         color: "#0851DA", 
@@ -488,9 +562,8 @@ const BackgroundGridEmoji = (emoji: string) => {
                     { 
                       label: "Share", 
                       source: icons.send, 
-                      color: "#000000", 
+                      color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", 
                       onPress: () => {
-                        console.log("clicked")
                         handleShare()
                       } }, 
                       { label: isSaved ? "Remove" : "Save", 
@@ -506,8 +579,21 @@ const BackgroundGridEmoji = (emoji: string) => {
             </View>
           </Animated.View>
         </PanGestureHandler>
-      </GestureHandlerRootView>
+        <View className="absolute top-[80%] self-center flex flex-row">
+          {posts.length > 1 && posts.map((post, index) => {
+            return (
+            <CarrouselIndicator
+            key={post.id}
+            id={index}
+            index={currentPostIndex}
+            />
+            )
+          })}
+        </View>
+        </View>
     </ReactNativeModal>
+    
+     </GestureHandlerRootView>
   );
 };
 

@@ -154,7 +154,6 @@ const checkNumberOfParticipants = async (activity: boolean) => {
       }),
     });
 
-    console.log("check number of participants", response.data.active_participants.length)
     const number_of_participants = response.data.active_participants.length;
     return number_of_participants
 

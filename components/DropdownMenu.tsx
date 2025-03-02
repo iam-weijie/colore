@@ -19,7 +19,8 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
   const triggerRef = useRef<View>(null);
   const menuWidth = customMenuWidth ? customMenuWidth : 100;
 
-  const slideAnim = useRef(new Animated.Value(300)).current; 
+  const slideAnim = useRef(new Animated.Value(300)).current; // Slide down animation
+  const opacityAnim = useRef(new Animated.Value(0)).current; // Background fade animation
 
   const handlePress = () => {
     if (triggerRef.current) {
@@ -31,21 +32,37 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
   };
 
   const handleClose = () => {
-    Animated.timing(slideAnim, {
-      toValue: 300, // Slide out
-      duration: 120,
-      useNativeDriver: true,
-    }).start(() => setVisible(false)); // Hide modal after animation
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 300, // Slide down
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0, // Fade out background
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setVisible(false)); // Hide modal after animation
   };
 
   useEffect(() => {
     if (visible) {
       slideAnim.setValue(300); // Reset before opening
-      Animated.timing(slideAnim, {
-        toValue: 0, // Slide into view
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+      opacityAnim.setValue(0); // Reset opacity before opening
+
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0, // Slide into view
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0.2, // Fade in background
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }
   }, [visible]);
 
@@ -59,15 +76,16 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
         </View>
       </TouchableOpacity>
 
-      <Modal
-        transparent
-        visible={visible}
-        onRequestClose={handleClose} // Handles close on Android back button
-      >
-        <Pressable
-          className="flex-1 bg-black/30"
-          onPress={handleClose} // Handles closing when pressing outside
-        />
+      <Modal transparent visible={visible} onRequestClose={handleClose}>
+        {/* Background Overlay */}
+        <Pressable className="flex-1 " onPress={handleClose}>
+          <Animated.View
+            style={{ backgroundColor: "black", opacity: opacityAnim }}
+            className="flex-1 absolute top-0 left-0 right-0 bottom-0"
+          />
+        </Pressable>
+
+        {/* Dropdown Menu */}
         <Animated.View
           style={{ transform: [{ translateY: slideAnim }] }}
           className="absolute w-[90%] bottom-0 left-[50%] -ml-[45%] right-0 bg-white rounded-[48px] shadow-lg py-4 px-6 mb-7"
@@ -76,7 +94,11 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
             <TouchableOpacity
               key={index}
               onPress={() => {
-                handleClose(); // Close after selecting an item
+                if (item.label !== "Share") {
+                    handleClose();
+                  }
+                 
+                
                 item.onPress();
               }}
               className={`flex-row items-center px-6 py-6 ${
@@ -91,7 +113,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
                   className="w-5 h-5 mr-2"
                   style={{ opacity: 0.8 }}
                 />
-                <Text className="font-JakartaSemiBold text-[16px]" style={{ color: item.color}}>{item.label}</Text>
+                <Text className="font-JakartaSemiBold text-[16px]" style={{ color: item.color }}>{item.label}</Text>
               </View>
             </TouchableOpacity>
           ))}

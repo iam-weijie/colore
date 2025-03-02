@@ -748,7 +748,6 @@ const PostScreen = () => {
     // Get the like count and fallback to 0 if undefined
     const likeCount = commentLikeCounts[item.id] || 0;
 
-    console.log("username2", username);
   
     return (
       <CommentItem
@@ -767,7 +766,6 @@ const PostScreen = () => {
     );
   };
 
-  console.log("anonymousComments: ", anonymousComments);
   
   return (
     <SafeAreaView className="flex-1">
@@ -838,7 +836,16 @@ const PostScreen = () => {
                       onPress: handleReportPress },]}
                   />
                 )}
-                <View className="mt-4">  
+                <View className="mt-4 flex flex-row justify-center items-center">
+                <View>
+                    {/* Only show like count to post creator */}
+                  <Text
+                    className={`${clerk_id === user?.id ? "text-gray-400" : "text-transparent"} text-center mr-1 text-sm`}
+                  >
+                    {clerk_id === user?.id ? likeCount : "0"}
+                  </Text>
+                  </View>
+                  <View>
                   <TouchableOpacity
                     onPress={handleLikePress}
                     disabled={isLoadingLike}
@@ -849,12 +856,9 @@ const PostScreen = () => {
                       color={isLiked ? "red" : "black"}
                     />
                   </TouchableOpacity>
-                  {/* Only show like count to post creator */}
-                  <Text
-                    className={`${clerk_id === user?.id ? "text-gray-600" : "text-transparent"} text-center`}
-                  >
-                    {clerk_id === user?.id ? likeCount : "0"}
-                  </Text>
+                  </View>  
+                 
+                  
                 </View>
               </View>
             </View>

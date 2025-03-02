@@ -178,7 +178,6 @@ const Layout = () => {
             (c: ConversationItem) => c.id == id
           );
 
-          console.log("conversationInfo", conversationInfo);
           if (conversationInfo.length === 0) return null; // Handle empty results
 
           return {

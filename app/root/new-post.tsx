@@ -29,7 +29,7 @@ const NewPost = () => {
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors[0]
+    temporaryColors[Math.floor(Math.random() * 4)]
   );
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
@@ -75,11 +75,12 @@ const NewPost = () => {
     // console.log(selectedEmoji);
   };
 
-  useEffect(() => {
-    if (selectedEmoji) {
-      toggleEmojiSelector();
-    }
-  }, [selectedEmoji]);
+   useEffect(() => {
+     if (selectedEmoji && isEmojiSelectorVisible) {
+       toggleEmojiSelector();
+     }
+   }, [selectedEmoji]);
+   
 
   return (
     <SafeAreaView className="flex-1">

@@ -65,7 +65,6 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
     <TouchableOpacity
       activeOpacity={0.6}
       onPress={() => {
-        console.log(`Pressed tab: ${name}`);
         onPress();
       }}
     >
@@ -125,7 +124,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   //Navigation
   const { tab } = useLocalSearchParams<{ tab?: string }>();
-  console.log("tab", tab);
   const [selectedTab, setSelectedTab] = useState<string>(
     tab ? tab : "Messages"
   );
@@ -217,7 +215,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           method: "GET",
         }
       );
-      console.log("Friend Request", response.data);
+      
       const processedFriendRequests: FriendRequest[] = processFriendRequests(
         response.data
       );
@@ -548,7 +546,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   // console.log(conversations);
-  console.log("allFriendRequests", allFriendRequests?.sent);
+  // console.log("allFriendRequests", allFriendRequests?.sent);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

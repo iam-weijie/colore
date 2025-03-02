@@ -57,7 +57,7 @@ const PreviewPost = () => {
     setIsPosting(true);
 
     if (id) {
-      console.log(" post edited")
+     
       const cleanedContent = content;
     
       if (cleanedContent === "") {
@@ -112,7 +112,7 @@ const PreviewPost = () => {
               }
     }
     else {
-      console.log(" post create")
+    
     setIsPosting(true);
     const cleanedContent = content;
     if (cleanedContent === "") {
@@ -149,7 +149,7 @@ const PreviewPost = () => {
           handleCloseModal={handleCloseModal}
           header={
             
-          <View className="absolute top-0 left-0 w-full flex flex-row items-center justify-center mt-10 pt-2">
+          <View className="absolute top-0 left-0 w-full flex flex-row items-center justify-center mt-10 pt-7 px-6">
             <View className="flex-1">
             <TouchableOpacity
               onPress={() => router.back()}
@@ -158,7 +158,7 @@ const PreviewPost = () => {
               <AntDesign name="caretleft" size={18} color={"white"} />
             </TouchableOpacity>
             </View>
-            <View className="absolute top-4 ">
+            <View className="absolute top-9 ">
               <Text className="font-JakartaSemiBold text-[#ffffff] text-xl ">
                 Preview
               </Text>

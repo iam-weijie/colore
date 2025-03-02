@@ -1,7 +1,7 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Alert,
   Dimensions,
@@ -50,7 +50,7 @@ const NewPersonalPost = () => {
            router.push({
                  pathname: "/root/preview-post",
                  params: {
-                   id: "", content: postContent, color: selectedColor.name, emoji: selectedEmoji, personal: "true", recipient_id: recipient_id 
+                   id: "", content: postContent, color: selectedColor.name, emoji: selectedEmoji, personal: "true", recipientIconsod: recipient_id 
                  }
                })
                setPostContent("");
@@ -73,6 +73,13 @@ const NewPersonalPost = () => {
     setIsEmojiSelectorVisible((prev) => !prev);
   };
 
+  useEffect(() => {
+    if (selectedEmoji && isEmojiSelectorVisible) {
+        toggleEmojiSelector();
+      }
+    }, [selectedEmoji]);
+    
+
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
@@ -93,7 +100,7 @@ const NewPersonalPost = () => {
               <CustomButton
                 className="w-14 h-10 rounded-full shadow-none"
                 fontSize="sm"
-                title="Post"
+                title="Next"
                 style={{backgroundColor: selectedColor.hex}}
                 padding="0"
                 onPress={handlePostSubmit}
