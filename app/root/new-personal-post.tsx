@@ -47,32 +47,14 @@ const NewPersonalPost = () => {
 
 
     const handlePostSubmit = async () => {
-        setIsPosting(true);
-        const cleanedContent = postContent.trim();
-        if (cleanedContent === "") {
-        Alert.alert("Error", "Post content cannot be empty.");
-        return;
-        }
-        try {
-        const response = await fetchAPI("/api/posts/newPersonalPost", {
-            method: "POST",
-            body: JSON.stringify({
-            content: cleanedContent,
-            clerkId: user!.id,
-            recipientId: recipient_id,
-            color: selectedColor.name,
-            emoji: selectedEmoji,
-            }),
-        });
-        setPostContent("");
-        setSelectedEmoji(null);
-        Alert.alert("Post created.");
-        router.back();
-        } catch (error) {
-        Alert.alert("Error", "An error occurred. Please try again.");
-        } finally {
-        setIsPosting(false);
-        }
+           router.push({
+                 pathname: "/root/preview-post",
+                 params: {
+                   id: "", content: postContent, color: selectedColor.name, emoji: selectedEmoji, personal: "true", recipient_id: recipient_id 
+                 }
+               })
+               setPostContent("");
+               setSelectedEmoji(null);
     };
 
   const handleChangeText = (text: string) => {

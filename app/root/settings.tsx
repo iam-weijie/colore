@@ -4,8 +4,8 @@ import { fetchAPI } from "@/lib/fetch";
 import { UserProfileType } from "@/types/type";
 import { icons } from "@/constants";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { router, useFocusEffect  } from "expo-router";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Alert,
   Image,
@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import InputField from "@/components/InputField";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigationContext } from "@/components/NavigationContext";
 
 const Settings = () => {
@@ -31,6 +32,7 @@ const Settings = () => {
   const { stateVars, setStateVars } = useNavigationContext();
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [savedPosts, setSavedPosts] = useState<string[]>();
+  const [likedPosts, setLikedPosts] = useState<string[]>();
 
   const fetchUserData = async () => {
     try {
@@ -39,14 +41,37 @@ const Settings = () => {
       setProfileUser(data);
       setUsername(data.username || "");
       setEmail(data.email || "");
-      setSavedPosts(data.saved_posts)
+      setSavedPosts(data.saved_posts);
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     }
   };
 
+  const fetchSavedPosts = async () => {
+    try {
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
+      const data = response.data[0];
+      console.log("saved", data.saved_posts)
+      setSavedPosts(data.saved_posts)
+    } catch (error) {
+      console.error("Failed to fetch saved post data:", error);
+    }
+  }
+
+  const fetchLikedPosts = async () => {
+    try {
+      const response = await fetchAPI(`/api/posts/getLikedPostsIds?userId=${user!.id}`);
+      const data = response.data;
+      console.log("liked", data)
+      setLikedPosts(data)
+    } catch (error) {
+      console.error("Failed to fetch liked post data:", error);
+    }
+  }
+
   useEffect(() => {
     fetchUserData();
+    fetchLikedPosts();
   }, []);
 
   const verifyValidUsername = (username: string): boolean => {
@@ -168,6 +193,12 @@ const Settings = () => {
     ? `${profileUser.city}, ${profileUser.state}, ${profileUser.country}`
     : "No location set";
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchSavedPosts()
+      fetchLikedPosts()
+      
+      }, []))
   return (
     <SafeAreaView className="flex-1">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
@@ -264,20 +295,53 @@ const Settings = () => {
 
                 router.push({
                   pathname: "/root/saved-post-gallery",
-                  params: {posts: JSON.stringify(savedPosts)}
+                  params: {
+                    posts: JSON.stringify(savedPosts),
+                    name: "Saved Posts"
+                  }
                   })
                
               }}>
+                
               <View className="flex flex-row items-center justify-between p-2">
-                <Text className="text-lg font-JakartaSemiBold my-2">Saved Posts</Text>
-                 <Image
+              <View>
+                    <Text className="text-lg font-JakartaSemiBold my-2">Saved Posts</Text></View>
+                  <View className="flex flex-row items-center">
+                    <Text className="text-gray-400 text-sm mr-2">{savedPosts?.length || ""}</Text>
+                    <Image
                           source={icons.bookmark}
                           tintColor="#000000"
                           resizeMode="contain"
                           className="w-6 h-6"
                         />
+                  </View>
               </View>
               </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.6} onPress={() => {
+                  console.log("about to pass", likedPosts)
+                router.push({
+                  pathname: "/root/saved-post-gallery",
+                  params: {
+                    posts: JSON.stringify(likedPosts),
+                    name: "Liked Posts"
+                  }
+                  })
+
+                }}>
+                <View className="flex flex-row items-center justify-between p-2">
+                  <View>
+                    <Text className="text-lg font-JakartaSemiBold my-2">Liked Posts</Text></View>
+                  <View className="flex flex-row items-center">
+                    <Text className="text-gray-400 text-sm mr-2">{likedPosts?.length || ""}</Text>
+                  <MaterialCommunityIcons
+                      name={"heart-outline"}
+                      size={24}
+                      color={"black"}
+                    />
+                  </View>
+                
+                </View>
+                </TouchableOpacity>
 
               
             </View>

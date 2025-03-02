@@ -35,6 +35,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
 
@@ -204,7 +205,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     router.push("/root/profile/nickname");
   };
 
-  if (error)
+ /* if (error)
     return (
       <SafeAreaView className="flex-1">
         <View className="flex flex-row items-center justify-between">
@@ -227,7 +228,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           </View>
         </View>
       </SafeAreaView>
-    );
+    );*/
   const checkIfChatExists = async (user2: UserNicknamePair) => {
     try {
       // //console.log("user: ", user!.id);
@@ -458,22 +459,30 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               </View>
 
               <View className="p-8 flex flex-column items-center justify-center ">
-                <View className="flex flex-row items-center justify-center">
-                  <Text className={`text-[24px] font-JakartaBold`}>
+                <Animated.View entering={FadeIn.duration(800)}>
+                { (nickname || profileUser?.username) ? (<View className="flex flex-row items-center justify-center">
+                   <Text className={`text-[24px] font-JakartaBold`}>
                     {nickname
                       ? nickname
                       : profileUser?.username
                         ? `${profileUser?.username}`
                         : `${profileUser?.firstname?.charAt(0)}.`}
-                  </Text>
-                </View>
-
-                <View>
-                  <Text className="text-gray-500 text-center font-Jakarta text-base">
+                  </Text> 
+                </View>) : <View>
+                 <Text className={`text-[24px] bg-[#E7E5Eb] font-JakartaBold`}>Username</Text>
+                 </View>}
+                </Animated.View>
+                <Animated.View entering={FadeIn.duration(800)}>
+                { profileUser ?  (<View>
+                <Text className="text-gray-500 text-center font-Jakarta text-base">
                     {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city}, {profileUser?.state},{" "}
                     {profileUser?.country}
-                  </Text>
-                </View>
+                  </Text> 
+                </View>) : (
+                  <View>
+                  <Text className="text-gray-200 text-center font-Jakarta text-base"> Location updating... </Text>
+                  </View>)}
+                </Animated.View>
               </View>
             </View>
 

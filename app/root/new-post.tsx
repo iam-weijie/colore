@@ -48,32 +48,14 @@ const NewPost = () => {
   };
 
   const handlePostSubmit = async () => {
-    setIsPosting(true);
-    const cleanedContent = postContent.trim();
-    if (cleanedContent === "") {
-      Alert.alert("Error", "Post content cannot be empty.");
-      return;
-    }
-    try {
-      await fetchAPI("/api/posts/newPost", {
-        method: "POST",
-        body: JSON.stringify({
-          content: cleanedContent,
-          clerkId: user!.id,
-          color: selectedColor.name,
-          emoji: selectedEmoji,
-        }),
-      });
-      setPostContent("");
-      setSelectedEmoji(null);
-      Alert.alert("Post created.");
-    } catch (error) {
-      Alert.alert("Error", "An error occurred. Please try again.");
-    } finally {
-      setIsPosting(false);
-    }
-
-    router.back();
+        router.push({
+          pathname: "/root/preview-post",
+          params: {
+            id: "", content: postContent, color: selectedColor.name, emoji: selectedEmoji
+          }
+        })
+        setPostContent("");
+        setSelectedEmoji(null);
   };
 
   const handleChangeText = (text: string) => {

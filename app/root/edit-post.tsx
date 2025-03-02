@@ -50,40 +50,13 @@ const EditPost = () => {
     setInputHeight(event.nativeEvent.contentSize.height);
   };
 
-  const handlePostUpdate = async () => {
-    setIsPosting(true);
-    const cleanedContent = postContent.trim();
-    
-    console.log(postId, cleanedContent, selectedEmoji, selectedColor.name);
-    
-    if (cleanedContent === "") {
-      setIsPosting(false); // Ensure state is reset
-      Alert.alert("Error", "Post content cannot be empty.");
-      return;
-    }
-  
-    try {
-      await fetchAPI("/api/posts/updatePost", {
-        method: "PATCH",
-        body: JSON.stringify({
-          content: cleanedContent,
-          postId: postId,
-          color: selectedColor.name,
-          emoji: selectedEmoji,
-        }),
-      });
-  
-      setPostContent("");
-      setSelectedEmoji(null);
-      Alert.alert("Success", "Post updated successfully.");
-      router.back();
-    } catch (error) {
-      console.log(error);
-      Alert.alert("Error", "An error occurred. Please try again.");
-    } finally {
-      setIsPosting(false);
-    }
-  
+  const handlePostUpdate = () => {
+    router.push({
+      pathname: "/root/preview-post",
+      params: {
+        id: postId, content: content, color: color, emoji: selectedEmoji
+      }
+    })
     
   };
   
@@ -106,7 +79,7 @@ const EditPost = () => {
   };
 
   useEffect(() => {
-    if (selectedEmoji && !isEmojiSelectorVisible) {
+    if (selectedEmoji && isEmojiSelectorVisible) {
       toggleEmojiSelector();
     }
   }, [selectedEmoji]);
@@ -131,7 +104,7 @@ const EditPost = () => {
               <CustomButton
                 className="w-14 h-10 rounded-full shadow-none"
                 fontSize="sm"
-                title="Post"
+                title="Next"
                 style={{backgroundColor: selectedColor.hex}}
                 padding="0"
                 onPress={handlePostUpdate}

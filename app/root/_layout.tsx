@@ -8,6 +8,7 @@ const Layout = () => {
       <Stack.Screen name="chat" options={{ headerShown: false }} />
       <Stack.Screen name="user-info" options={{ headerShown: false }} />
       <Stack.Screen name="new-post" options={{ headerShown: false }} />
+      <Stack.Screen name="preview-post" options={{ headerShown: false }} />
       <Stack.Screen name="saved-post-gallery" options={{ headerShown: false }} />
       <Stack.Screen name="edit-post" options={{ headerShown: false }} />
       <Stack.Screen name="location" options={{ headerShown: false }} />

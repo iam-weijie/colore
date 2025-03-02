@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from "react";
-import { Post} from "@/types/type";
+import { Post } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import {
@@ -19,7 +19,7 @@ const SavedPostGallery = () => {
   const router = useRouter();
   const { user } = useUser();
   const [query, setQuery] = useState<string>("");
-  const { posts } = useLocalSearchParams();
+  const { posts, name } = useLocalSearchParams();
   const [savedPostsList, setSavedPostsList] = useState<Post[]>([]);
   const [update, setUpdate] = useState<boolean>(false);
   const [savedPostsID, setSavedPostsID] = useState<string[]>(typeof posts === "string" ? JSON.parse(posts) : posts);
@@ -51,21 +51,13 @@ const SavedPostGallery = () => {
     }
   }, [posts, update]);
 
-  const handleUpdate = () => {
-    console.log("dd")
-      const fetchUserData = async () => {
-        try {
-          const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
-          const data = response.data[0];
-          setSavedPostsID(data.saved_posts)
-        } catch (error) {
-          console.error("Failed to fetch user data:", error);
-        }
-      };
-    fetchUserData
+  const handleUpdate = (postId: number, isRemoved: boolean) => {
+    if (isRemoved) {
+    setSavedPostsID((prevPost) => prevPost.filter((id) => id != `${postId}`))
+    }
+
     setUpdate(true)
   }
-
 
   return (
     <SafeAreaView className="flex-1">
@@ -80,7 +72,7 @@ const SavedPostGallery = () => {
             </View>
             <View>
               <Text className="font-JakartaBold text-2xl">
-                Saved Posts
+                {name}
               </Text>
             </View>
           </View>
@@ -96,7 +88,7 @@ const SavedPostGallery = () => {
         <PostGallery
         posts={savedPostsList}
         profileUserId={user!.id}
-        handleUpdate={handleUpdate}
+        handleUpdate={(id, isRemoved) => {handleUpdate(id, isRemoved)}}
         query={query}
         header={
           <View className="w-screen px-8 flex flex-row items-center justify-between">

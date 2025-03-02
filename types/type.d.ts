@@ -101,7 +101,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
 declare interface UserPostsGalleryProps {
   posts: Post[];
   profileUserId: string;
-  handleUpdate?: () => void | undefined | Promise<void>;
+  handleUpdate?: (id: number, isRemove: boolean) => void;
   query?: string;
   header: React.ReactElement;
 }
@@ -117,6 +117,7 @@ declare interface PostModalProps {
   handleCloseModal: () => void;
   invertedColors?: boolean;
   handleUpdate?: () => void | Promise<void>;
+  header: React.ReactElement;
 }
 
 declare interface UserPostsGalleryProps {

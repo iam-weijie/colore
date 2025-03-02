@@ -13,6 +13,7 @@ export async function GET(request: Request) {
       );
     }
 
+
     // Convert to an array of numbers
     const ids = idsParam.split(',')
       .map(id => Number(id.trim()))
@@ -24,18 +25,9 @@ export async function GET(request: Request) {
         { status: 400 }
       );
     }
-
     // Execute the query using `ANY($1::int[])` for safer parameter handling
     const response = await sql`
-      SELECT 
-        p.id, 
-        p.content, 
-        p.like_count, 
-        p.report_count, 
-        p.created_at,
-        p.unread_comments,
-        p.color,
-        p.emoji
+      SELECT *
       FROM posts p
       WHERE p.id = ANY(${ids}::int[])
     `;

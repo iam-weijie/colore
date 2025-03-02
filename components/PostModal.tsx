@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useGlobalContext } from "@/app/globalcontext";
 import Animated, {
   useSharedValue,
@@ -39,6 +39,8 @@ import { icons, temporaryColors } from "@/constants/index";
 import DropdownMenu from "./DropdownMenu";
 import * as Linking from "expo-linking";
 import { Dimensions } from "react-native";
+import * as Sharing from 'expo-sharing'; 
+import { captureRef } from 'react-native-view-shot';
 
 const { width, height } = Dimensions.get("window");
 
@@ -49,6 +51,7 @@ const PostModal: React.FC<PostModalProps> = ({
   handleCloseModal,
   handleUpdate,
   invertedColors = false,
+  header
 }) => {
   const { stacks } = useGlobalContext();
   const { user } = useUser();
@@ -63,6 +66,8 @@ const PostModal: React.FC<PostModalProps> = ({
   const opacity = useSharedValue(1);
   const [savedPosts, setSavedPosts] = useState<string[]>([]);
   const [isSaved, setIsSaved] = useState<boolean>(false);
+  const viewRef = useRef<View>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null);
 
   // Memoize the posts array to prevent unnecessary re-renders
   const post = useMemo(() => {
@@ -72,7 +77,8 @@ const PostModal: React.FC<PostModalProps> = ({
 
   useEffect(() => {
     fetchUserdata()
-  }, [isSaved, user])
+    fetchLikeStatus();
+  }, [isSaved, isLiked, user])
 
   useEffect(() => {
     if (post.length) {
@@ -80,24 +86,24 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   }, [post]);
 
+  const fetchLikeStatus = async () => {
+    try {
+      const response = await fetchAPI(
+        `/api/posts/updateLikeCount?postId=${post[currentPostIndex].id}&userId=${user.id}`,
+        { method: "GET" }
+      );
+      if (response.error) return;
+
+      setIsLiked(response.data.liked);
+      setLikeCount(response.data.likeCount);
+    } catch (error) {
+      console.error("Failed to fetch like status:", error);
+    }
+  };
+
   // Fetch like status only when post or user changes
   useEffect(() => {
     if (!user?.id || !post[currentPostIndex]?.id) return;
-
-    const fetchLikeStatus = async () => {
-      try {
-        const response = await fetchAPI(
-          `/api/posts/updateLikeCount?postId=${post[currentPostIndex].id}&userId=${user.id}`,
-          { method: "GET" }
-        );
-        if (response.error) return;
-
-        setIsLiked(response.data.liked);
-        setLikeCount(response.data.likeCount);
-      } catch (error) {
-        console.error("Failed to fetch like status:", error);
-      }
-    };
 
     fetchLikeStatus();
   }, [post, currentPostIndex, user?.id]);
@@ -184,6 +190,7 @@ const PostModal: React.FC<PostModalProps> = ({
     } catch (error) {
       console.error("Failed to update like status:", error);
     } finally {
+      handleUpdate()
       setIsLoadingLike(false);
     }
   };
@@ -252,7 +259,7 @@ const PostModal: React.FC<PostModalProps> = ({
     router.push({
           pathname: "/root/edit-post",
           params: { postId: post[currentPostIndex]?.id, content: post[currentPostIndex]?.content, color: post[currentPostIndex]?.color},
-                });}, 500)
+                });}, 750)
             
 }
 
@@ -300,6 +307,7 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
   const handleSavePost = async (postId: number) => {
+    
     try {
            const updateSavePosts = await fetchAPI(`/api/users/updateUserSavedPosts`, {
                method: "PATCH",
@@ -314,9 +322,53 @@ const PostModal: React.FC<PostModalProps> = ({
            console.error("Failed to update unread message:", error);
          } finally {
           setIsSaved((prevIsSaved) => !prevIsSaved)
-          handleUpdate
+          handleUpdate()
          }
  }
+ 
+ const handleShare = async () => {
+  if (!imageUri) {
+    if (viewRef.current) {
+      try {
+        const uri = await captureRef(viewRef.current, {
+          format: 'png',
+          quality: 0.8,
+        });
+        console.log("Captured screenshot:", uri);
+
+        // Directly use the URI for sharing
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          console.log("Captured screenshot 2:", uri);
+
+          await Sharing.shareAsync(uri, {
+            dialogTitle: 'Share this post',
+            mimeType: 'image/png',
+          }); // Share the image
+          console.log("Captured screenshot 3:", uri);
+        } else {
+          alert('Sharing is not available on this device');
+        }
+
+        setImageUri(uri); // Set the URI after the capture
+      } catch (error) {
+        console.error('Error capturing screenshot:', error);
+      }
+    }
+  }
+};
+
+useEffect(() => {
+  if (imageUri) {
+    console.log("Image URI has been set:", imageUri);
+  }
+}, [imageUri]);
+
+const captureScreenshot = async () => {
+  
+};
+
+
 
     // COMPONENT RENDER
 
@@ -365,12 +417,14 @@ const BackgroundGridEmoji = (emoji: string) => {
       <TouchableWithoutFeedback onPress={handleCloseModal}>
       {BackgroundGridEmoji(post[currentPostIndex]?.emoji || "")}
       </TouchableWithoutFeedback>
-
+      {header}
+      
       <GestureHandlerRootView
         style={{ justifyContent: "center", alignItems: "center" }}
       >
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
+            ref={viewRef} 
             entering={FadeInUp.duration(400)}
             exiting={FadeOutDown.duration(250)}
             className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto"
@@ -435,7 +489,10 @@ const BackgroundGridEmoji = (emoji: string) => {
                       label: "Share", 
                       source: icons.send, 
                       color: "#000000", 
-                      onPress: () => {} }, 
+                      onPress: () => {
+                        console.log("clicked")
+                        handleShare()
+                      } }, 
                       { label: isSaved ? "Remove" : "Save", 
                         color: "#000000", 
                         source: isSaved ? icons.close : icons.bookmark, 
