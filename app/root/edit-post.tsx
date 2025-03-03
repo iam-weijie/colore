@@ -1,12 +1,13 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
   Image,
   Keyboard,
+  KeyboardAvoidingView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -22,13 +23,16 @@ import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
 
-const NewPost = () => {
+const EditPost = () => {
   const { user } = useUser();
-  const [postContent, setPostContent] = useState("");
+  const { postId, content, color} = useLocalSearchParams()
+  const [postContent, setPostContent] = useState<string>(`${content}`);
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors[Math.floor(Math.random() * 4)]
+    temporaryColors.find(
+      (c) => c.name === color
+    ) as PostItColor
   );
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
@@ -46,34 +50,16 @@ const NewPost = () => {
     setInputHeight(event.nativeEvent.contentSize.height);
   };
 
-  const handlePostSubmit = async () => {
-    setIsPosting(true);
-    const cleanedContent = postContent.trim();
-    if (cleanedContent === "") {
-      Alert.alert("Error", "Post content cannot be empty.");
-      return;
-    }
-    try {
-      await fetchAPI("/api/posts/newPost", {
-        method: "POST",
-        body: JSON.stringify({
-          content: cleanedContent,
-          clerkId: user!.id,
-          color: selectedColor.name,
-          emoji: selectedEmoji,
-        }),
-      });
-      setPostContent("");
-      setSelectedEmoji(null);
-      Alert.alert("Post created.");
-    } catch (error) {
-      Alert.alert("Error", "An error occurred. Please try again.");
-    } finally {
-      setIsPosting(false);
-    }
-
-    router.back();
+  const handlePostUpdate = () => {
+    router.push({
+      pathname: "/root/preview-post",
+      params: {
+        id: postId, content: content, color: color, emoji: selectedEmoji
+      }
+    })
+    
   };
+  
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -93,11 +79,11 @@ const NewPost = () => {
   };
 
   useEffect(() => {
-    if (selectedEmoji) {
+    if (selectedEmoji && isEmojiSelectorVisible) {
       toggleEmojiSelector();
     }
   }, [selectedEmoji]);
-
+  
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
@@ -105,7 +91,7 @@ const NewPost = () => {
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
         >
-          <View>
+          <View className="flex-1">
             <View className="flex flex-row justify-center items-center mt-3 mx-6">
               <View className="flex-1">
                 <TouchableOpacity onPress={() => router.back()}>
@@ -113,22 +99,24 @@ const NewPost = () => {
                 </TouchableOpacity>
               </View>
               <Text className="absolute text-xl font-JakartaSemiBold">
-                New Post
+                Editing
               </Text>
               <CustomButton
-                className="w-14 h-8 rounded-md"
+                className="w-14 h-10 rounded-full shadow-none"
                 fontSize="sm"
-                title="Post"
+                title="Next"
+                style={{backgroundColor: selectedColor.hex}}
                 padding="0"
-                onPress={handlePostSubmit}
+                onPress={handlePostUpdate}
                 disabled={!postContent || isPosting}
               />
             </View>
-
-            <View className="mx-3">
+            <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
+          <View className="flex h-full flex-column justify-between items-center pb-4">
+            <View className="flex w-full mx-3">
               {!isEmojiSelectorVisible && (
                 <TextInput
-                  className="font-Jakarta mx-10 my-5"
+                  className="text-[16px] font-Jakarta mx-10 my-5"
                   placeholder="Type something..."
                   value={postContent}
                   onChangeText={handleChangeText}
@@ -140,12 +128,14 @@ const NewPost = () => {
                     paddingTop: 10,
                     paddingBottom: 0,
                     minHeight: screenHeight * 0.2,
-                    maxHeight: screenHeight * 0.45,
+                    maxHeight: screenHeight * 0.5,
                     textAlignVertical: "top",
                   }}
                 />
               )}
-
+            </View>
+    
+            <View className=" w-full flex flex-row justify-center items-center mb-12">
               <ColorSelector
                 colors={temporaryColors}
                 selectedColor={selectedColor}
@@ -162,7 +152,10 @@ const NewPost = () => {
                   <Image source={icons.wink} className="w-8 h-9 m-1" />
                 )}
               </TouchableOpacity>
-            </View>
+              </View>
+             
+              </View>
+              </KeyboardAvoidingView>
 
             {isEmojiSelectorVisible && (
               <View className="w-full h-screen bg-white">
@@ -180,4 +173,4 @@ const NewPost = () => {
   );
 };
 
-export default NewPost;
+export default EditPost;

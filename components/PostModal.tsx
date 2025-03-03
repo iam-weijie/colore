@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useGlobalContext } from "@/app/globalcontext";
 import Animated, {
   useSharedValue,
@@ -14,11 +14,14 @@ import {
   Alert,
   Image,
   ScrollView,
+  Share,
+  Platform,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import * as FileSystem from "expo-file-system";
 import ReactNativeModal from "react-native-modal";
 import {
   GestureHandlerRootView,
@@ -38,6 +41,28 @@ import {
 import { icons, temporaryColors } from "@/constants/index";
 import DropdownMenu from "./DropdownMenu";
 import * as Linking from "expo-linking";
+import { Dimensions } from "react-native";
+import * as Sharing from 'expo-sharing'; 
+import { captureRef } from 'react-native-view-shot';
+
+const { width, height } = Dimensions.get("window");
+
+
+const CarrouselIndicator = ({
+id,
+index
+}: {
+  id: number;
+  index: number;
+}) => (
+<View className="rounded-full h-2 bg-white min-w-2 p-1 mx-1"
+style={{
+  width: id === index ? 50 : 2,
+  opacity: id === index ? 1 : 0.5
+}}
+>
+</View>
+);
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -45,6 +70,7 @@ const PostModal: React.FC<PostModalProps> = ({
   handleCloseModal,
   handleUpdate,
   invertedColors = false,
+  header
 }) => {
   const { stacks } = useGlobalContext();
   const { user } = useUser();
@@ -57,6 +83,10 @@ const PostModal: React.FC<PostModalProps> = ({
   const router = useRouter();
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
+  const [savedPosts, setSavedPosts] = useState<string[]>([]);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const viewRef = useRef<View>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null);
 
   // Memoize the posts array to prevent unnecessary re-renders
   const post = useMemo(() => {
@@ -65,30 +95,35 @@ const PostModal: React.FC<PostModalProps> = ({
   }, [selectedPost, stacks]);
 
   useEffect(() => {
+    fetchUserdata()
+    fetchLikeStatus();
+  }, [isSaved, isLiked, user])
+
+  useEffect(() => {
     if (post.length) {
       setPosts(post);
     }
   }, [post]);
 
+
+  const fetchLikeStatus = async () => {
+    try {
+      const response = await fetchAPI(
+        `/api/posts/updateLikeCount?postId=${post[currentPostIndex].id}&userId=${user!.id}`,
+        { method: "GET" }
+      );
+      if (response.error) return;
+
+      setIsLiked(response.data.liked);
+      setLikeCount(response.data.likeCount);
+    } catch (error) {
+      console.error("Failed to fetch like status:", error);
+    }
+  };
+
   // Fetch like status only when post or user changes
   useEffect(() => {
     if (!user?.id || !post[currentPostIndex]?.id) return;
-
-    const fetchLikeStatus = async () => {
-      try {
-        const response = await fetchAPI(
-          `/api/posts/updateLikeCount?postId=${post[currentPostIndex].id}&userId=${user.id}`,
-          { method: "GET" }
-        );
-        if (response.error) return;
-
-        setIsLiked(response.data.liked);
-        setLikeCount(response.data.likeCount);
-      } catch (error) {
-        console.error("Failed to fetch like status:", error);
-      }
-    };
-
     fetchLikeStatus();
   }, [post, currentPostIndex, user?.id]);
 
@@ -174,6 +209,7 @@ const PostModal: React.FC<PostModalProps> = ({
     } catch (error) {
       console.error("Failed to update like status:", error);
     } finally {
+      handleUpdate()
       setIsLoadingLike(false);
     }
   };
@@ -204,11 +240,25 @@ const PostModal: React.FC<PostModalProps> = ({
   };
   useEffect(() => {
     const getData = async () => {
-      const data = await fetchCurrentNickname();
-      setNickname(data);
+      const nickname = await fetchCurrentNickname();
+      setNickname(nickname);
     };
     getData();
   }, [user]);
+
+  const fetchUserdata = async () => {
+    try {
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
+      const savePostsList = response.data[0].saved_posts; 
+      const savedStatus = savePostsList.includes(`${post[currentPostIndex]?.id}`);
+      setSavedPosts(savePostsList);
+      setIsSaved(savedStatus);
+     
+    }
+    catch(error) {
+      console.error("Failed to fetch user data", error)
+    }
+  }
 
   const handleDeletePress = async () => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
@@ -221,9 +271,22 @@ const PostModal: React.FC<PostModalProps> = ({
     Linking.openURL("mailto:support@colore.ca");
   };
 
+  const handleEditing = () => {
+    
+    setTimeout(() => {
+    handleCloseModal()
+    }, 250)
+    setTimeout(() => {
+    router.push({
+          pathname: "/root/edit-post",
+          params: { postId: post[currentPostIndex]?.id, content: post[currentPostIndex]?.content, color: post[currentPostIndex]?.color},
+                });}, 750)
+            
+}
+
   const handleDelete = async () => {
     try {
-      const response = await fetchAPI(`/api/posts/deletePost?id=${post!.id}`, {
+      const response = await fetchAPI(`/api/posts/deletePost?id=${post[currentPostIndex]!.id}`, {
         method: "DELETE",
       });
 
@@ -252,44 +315,189 @@ const PostModal: React.FC<PostModalProps> = ({
         id: post[currentPostIndex]?.id,
         clerk_id: post[currentPostIndex]?.clerk_id,
         content: post[currentPostIndex]?.content,
-        firstname: post[currentPostIndex]?.firstname,
         username: post[currentPostIndex]?.username,
         like_count: post[currentPostIndex]?.like_count,
         report_count: post[currentPostIndex]?.report_count,
         created_at: post[currentPostIndex]?.created_at,
         unread_comments: post[currentPostIndex]?.unread_comments,
+        anonymous: invertedColors,
+        color: post[currentPostIndex]?.color,
+        saved: isSaved
       },
     });
   };
+
+  const handleSavePost = async (postId: number) => {
+    
+    try {
+           const updateSavePosts = await fetchAPI(`/api/users/updateUserSavedPosts`, {
+               method: "PATCH",
+               body: JSON.stringify({
+                 clerkId: user!.id,
+                 postId: postId,
+                 isSaved: isSaved
+               })
+             })
+         }
+         catch(error) {
+           console.error("Failed to update unread message:", error);
+         } finally {
+          setIsSaved((prevIsSaved) => !prevIsSaved)
+          handleUpdate()
+         }
+ }
+ 
+
+
+// Capture the content as soon as the component mounts (first render)
+useEffect(() => {
+  if (isVisible) {
+    setTimeout(() => {
+      handleCapture() // Capture content on first render when modal is visible
+    }, 800)
+   
+  }
+}, [isVisible]);
+useEffect(() => {
+  setTimeout(() => {
+    if (viewRef.current) {
+      viewRef.current.measure((x, y, width, height) => {
+        console.log(x, y, width, height);
+      });
+    }
+  }, 500); // Small delay to ensure the view is ready
+}, []);
+
+const handleCapture = async () => {
+  if (!isVisible) {
+    console.warn('Modal is not visible, skipping capture.');
+    return;
+  }
+
+  if (viewRef.current) {
+    try {
+      const uri = await captureRef(viewRef.current, {
+        format: 'png',
+        quality: 0.8,
+      });
+      
+      setImageUri(uri); // Save the captured URI for later sharing
+
+    } catch (error) {
+      console.error('Error capturing view:', error);
+    }
+  }
+};
+
+const handleShare = async () => {
+  if (!imageUri) {
+    console.warn('No image to share. Please capture first.');
+    return;
+  }
+
+  try {
+    let imageToShare = imageUri;
+    if (Platform.OS === 'ios') {
+      const base64 = await FileSystem.readAsStringAsync(imageUri, { encoding: FileSystem.EncodingType.Base64 });
+      imageToShare = `data:image/png;base64,${base64}`;
+    }
+
+    const result = await Share.share({
+      message: `${post[currentPostIndex]?.content.trim()} \n\nHere’s something interesting:https://testflight.apple.com/join/edtGfSAT`,
+      url: imageToShare, // Share the captured image (uri or base64)
+    });
+
+    if (result.action === Share.sharedAction) {
+      console.log('Shared successfully');
+    } else if (result.action === Share.dismissedAction) {
+      console.log('Share dismissed');
+    }
+  } catch (error) {
+    console.error('Error sharing:', error);
+  }
+};
+
+
+useEffect(() => {
+  if (imageUri) {
+    console.log("Image URI has been set:", imageUri);
+  }
+}, [imageUri]);
+
+
+    // COMPONENT RENDER
+
+const BackgroundGridEmoji = (emoji: string) => {
+  const GRID_SIZE = 100; // Size of each square in the grid
+  const OFFSET_X = 20; // Offset for odd rows
+  const ITEMS_PER_ROW = 4; // Number of items per row
+  const numColumns = ITEMS_PER_ROW;
+  const numRows = Math.ceil(height / GRID_SIZE);
+
+  // Generate positions for the grid
+  const gridItems = [];
+  for (let row = 0; row < numRows; row++) {
+    for (let col = 0; col < numColumns; col++) {
+      const offsetX = row % 2 === 1 ? OFFSET_X : 0; // Add offset for odd rows
+      gridItems.push({
+        x: col * GRID_SIZE + offsetX, 
+        y: row * GRID_SIZE
+      });
+    }
+  }
+
+  return (
+    <View className="absolute w-full h-full ml-3">
+      {gridItems.map((item, index) => (
+        <View
+          key={index}
+          className="absolute align-center justify-center"  
+          style={{ left: item.x, top: item.y, width: GRID_SIZE, height: GRID_SIZE }}  
+        >
+          <Text style={{fontSize: 50}}>{emoji}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
   
 
   return (
+    <GestureHandlerRootView
+    style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+  >
+   
+  
     <ReactNativeModal
       isVisible={isVisible}
-      backdropColor={
-        invertedColors ? "rgba(0,0,0,0.5)" : (postColor?.hex || "rgba(0,0,0,0.5)")
-      }
+      backdropColor={"rgba(0,0,0,0)"}
       backdropOpacity={1}
       onBackdropPress={handleCloseModal}
     >
-      <TouchableWithoutFeedback onPress={handleCloseModal}>
-        <View />
+      
+      
+      <View 
+      ref={viewRef} 
+      className="flex-1 absolute w-screen h-screen  -ml-5 align-items justify-center z-[10]"
+      style={{
+        backgroundColor: postColor?.hex || "rgba(0, 0, 0, 0.5)"
+      }}>
+        <TouchableWithoutFeedback onPress={handleCloseModal}>
+      {BackgroundGridEmoji(post[currentPostIndex]?.emoji || "")}
       </TouchableWithoutFeedback>
+     
+      {header}
 
-      <GestureHandlerRootView
-        style={{ justifyContent: "center", alignItems: "center" }}
-      >
+      
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
             entering={FadeInUp.duration(400)}
             exiting={FadeOutDown.duration(250)}
-            className="bg-white px-6 py-4 rounded-2xl min-h-[200px] max-h-[70%] w-[90%] mx-auto"
+            className="bg-white px-6 py-4 rounded-[20px] min-h-[200px] max-h-[40%] w-[80%] mx-auto"
             style={[
               animatedStyle,
               {
-                backgroundColor: !invertedColors
-                  ? "rgba(255, 255, 255, 1)"
-                  : (postColor?.hex || "rgba(255, 255, 255, 1)"),
+                backgroundColor:  "rgba(255, 255, 255, 1)"
               },
             ]}
           >
@@ -327,20 +535,66 @@ const PostModal: React.FC<PostModalProps> = ({
                 )}
               </View>
               {/* Delete button for post owner */}
-              {post && post.clerk_id === user?.id ? (
-                <DropdownMenu
-                  menuItems={[{ label: "Delete", onPress: handleDeletePress }]}
-                />
-              ) : (
-                <DropdownMenu
-                  menuItems={[{ label: "Report", onPress: handleReportPress }]}
-                />
-              )}
+              {post[currentPostIndex]?.clerk_id === user!.id ? (
+                  <DropdownMenu
+                    menuItems={[
+                      { 
+                        label: "Share", 
+                        source: icons.send, 
+                        color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", 
+                        onPress: () => {
+                          console.log("clicked")
+                          handleShare()
+                        } }, 
+                      { label: "Edit", 
+                        source: icons.pencil, 
+                        color: "#0851DA", 
+                        onPress: handleEditing },
+                    { label: "Delete", 
+                      source: icons.trash, 
+                      color: "#DA0808", 
+                      onPress: handleDeletePress }
+                    ]}
+                  />
+                ) : (
+                  <DropdownMenu
+                   menuItems={[
+                    { 
+                      label: "Share", 
+                      source: icons.send, 
+                      color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)", 
+                      onPress: () => {
+                        console.log("clicked")
+                        handleShare()
+                      } }, 
+                      { label: isSaved ? "Remove" : "Save", 
+                        color: "#000000", 
+                        source: isSaved ? icons.close : icons.bookmark, 
+                        onPress: () => handleSavePost(post[currentPostIndex]?.id) }, 
+                      { label: "Report", 
+                        source: icons.email,
+                        color: "#DA0808",  
+                        onPress: handleReportPress }]}
+                  />
+                )}
             </View>
           </Animated.View>
         </PanGestureHandler>
-      </GestureHandlerRootView>
+        <View className="absolute top-[80%] self-center flex flex-row">
+          {posts.length > 1 && posts.map((post, index) => {
+            return (
+            <CarrouselIndicator
+            key={post.id}
+            id={index}
+            index={currentPostIndex}
+            />
+            )
+          })}
+        </View>
+        </View>
     </ReactNativeModal>
+    
+     </GestureHandlerRootView>
   );
 };
 

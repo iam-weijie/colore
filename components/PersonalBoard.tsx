@@ -43,9 +43,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchUserData();
-  }, []);
+
 
   const fetchPersonalPosts = async () => {
     const viewerId = user!.id;
@@ -53,15 +51,25 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       `/api/posts/getPersonalPosts?number=${4}&recipient_id=${userId}&user_id=${viewerId}`
     );
 
-    setMaxPosts(response.data.length); // maximum number of posts to display
+    const filteredPosts = response.data
+    
+    /*
+    FILTER DOESNT WORK AS INTENDED
+    .filter((post: Post) => (
+      isOwnBoard || (!isOwnBoard && post.clerk_id == user!.id)
+    ));
+
+    */
+    setMaxPosts(filteredPosts.length); // maximum number of posts to display
     
     // Validate and format each post
-    const formattedPosts = response.data.map((post: Post) => ({
+    const formattedPosts = filteredPosts.map((post: Post) => ({
       ...post,
       like_count: post.like_count || 0,
       report_count: post.report_count || 0,
       unread_comments: post.unread_comments || 0
     }));
+
     
     return formattedPosts;
   };
@@ -89,6 +97,14 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+      fetchPersonalPosts;
+      setShouldRefresh((prev) => prev + 1); // Increment refresh counter
+    }, [userId])
+  );
+
   if (loading) {
     return (
       <View className="flex-[0.8] justify-center items-center">
@@ -106,7 +122,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   }
 
   return (
-    <SafeAreaView className="flex-1">
+    <View className="flex-1">
       <SignedIn>
         <PostItBoard 
           key={shouldRefresh} // Add key to force re-render when shouldRefresh changes
@@ -118,7 +134,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           invertColors={true}
         />
       </SignedIn>
-    </SafeAreaView>
+    </View>
   );
 }
 

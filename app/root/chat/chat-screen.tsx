@@ -1,10 +1,8 @@
-import { fetchAPI } from "@/lib/fetch";
-import { ConversationItem, FriendStatusType } from "@/types/type";
+import DropdownMenu from "@/components/DropdownMenu";
 import NotificationBubble from "@/components/NotificationBubble";
-import { useUser } from "@clerk/clerk-expo";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
-import { useFocusEffect } from '@react-navigation/native';
+import { FriendStatus } from "@/lib/enum";
+import { fetchAPI } from "@/lib/fetch";
+import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
 import {
   acceptFriendRequest,
   fetchFriends,
@@ -12,14 +10,20 @@ import {
   unfriend,
 } from "@/lib/friend";
 import {
+  ConversationItem,
   FriendRequest,
   Friendship,
+  FriendStatusType,
   RawFriendRequest,
   UserNicknamePair,
 } from "@/types/type";
-import DropdownMenu from "@/components/DropdownMenu";
-import { FriendStatus } from "@/lib/enum";
+import { useUser } from "@clerk/clerk-expo";
+import { useFocusEffect } from "@react-navigation/native";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 
+import { icons } from "@/constants/index";
+import { AntDesign } from "@expo/vector-icons";
 import {
   ActivityIndicator,
   Alert,
@@ -32,9 +36,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { icons } from "@/constants/index";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -52,6 +54,7 @@ type TabNavigationProps = {
   notifications: number;
 };
 
+
 const TabNavigation: React.FC<TabNavigationProps> = ({
   name,
   focused,
@@ -60,20 +63,25 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
 }) => {
   return (
     <TouchableOpacity
-      className="py-2 px-5 border-2 border-black rounded-[12px] mx-[8px]"
-      style={{ backgroundColor: focused ? "#000000" : "#FBFBFB" }}
       activeOpacity={0.6}
       onPress={() => {
-        console.log(`Pressed tab: ${name}`);
         onPress();
       }}
     >
-      <Text
-        className="text-sm font-[600]"
-        style={{ color: !focused ? "#000000" : "#FBFBFB" }}
+      <View
+        className="min-w-[132px] h-[48px] rounded-[24px] mx-2 px-5 flex justify-center items-center"
+        style={{
+          backgroundColor: focused ? "#000000" : "#FBFBFB",
+          overflow: "visible", // Ensure content is not clipped
+        }}
       >
-        {name} {notifications ? `(${notifications})` : null}
-      </Text>
+        <Text
+          className="text-sm font-[600]"
+          style={{ color: !focused ? "#000000" : "#FBFBFB" }}
+        >
+          {name} {notifications ? `(${notifications})` : null}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -88,6 +96,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   // Messages constants
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
+  const [skeletalConversationList, setSkeletalConversationList] = useState<ConversationItem[]>([]);
   const [toRead, setToRead] = useState<[]>([]);
 
   // Friend List & Request constants
@@ -98,13 +107,36 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   const [handlingFriendRequest, setHandlingFriendRequest] =
     useState<boolean>(false);
 
+  // Loading handlig
+  const skeletalConversation = (id: string) => {
+    return (
+      {
+    id: id,
+    name: "",
+    clerk_id: "",
+    lastMessageContent: "",
+    lastMessageTimestamp: new Date(),
+    active_participants: 0,
+    unread_messages: 0,
+      }
+    )
+  }
+
   //Navigation
   const { tab } = useLocalSearchParams<{ tab?: string }>();
-  console.log("tab", tab);
-  const [selectedTab, setSelectedTab] = useState<string>(tab ? tab : "Messages");
+  const [selectedTab, setSelectedTab] = useState<string>(
+    tab ? tab : "Messages"
+  );
 
   const fetchConversations = async (): Promise<void> => {
     setLoading(true);
+    setSkeletalConversationList([
+      skeletalConversation("1"), 
+      skeletalConversation("2"), 
+      skeletalConversation("3"), 
+      skeletalConversation("4"),
+      skeletalConversation("5"),
+      skeletalConversation("6")])
     try {
       const responseConversation = await fetchAPI(
         `/api/chat/getConversations?id=${user!.id}`,
@@ -120,7 +152,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
         throw new Error("Response is undefined.");
       }
       const responseData = await responseNotifications.json();
-
 
       const chatNotifications = responseData.toRead; // Notifications data
       const fetchedConversations = responseConversation.data; // Conversations data
@@ -184,6 +215,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           method: "GET",
         }
       );
+      
       const processedFriendRequests: FriendRequest[] = processFriendRequests(
         response.data
       );
@@ -225,41 +257,44 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   const FriendLocation = ({ friendId }: { friendId: string }) => {
     const [location, setLocation] = useState<string>("Loading...");
-  
+
     useEffect(() => {
       const fetchUserLocation = async (userId: string) => {
         try {
-          const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
-            method: "GET",
-          });
+          const response = await fetchAPI(
+            `/api/users/getUserInfo?id=${userId}`,
+            {
+              method: "GET",
+            }
+          );
           const country = response.data?.[0]?.country || "Unknown Country";
           const state = response.data?.[0]?.state || "Unknown State";
           const city = response.data?.[0]?.city || "Unknown City";
-  
+
           setLocation(`${city}, ${state}, ${country}`);
         } catch (error) {
           console.error(error, "Couldn't find location");
           setLocation("Location not available");
         }
       };
-  
+
       if (friendId) {
         fetchUserLocation(friendId);
       }
     }, [friendId]);
-  
-    return <Text className="text-gray-500">{location}</Text>;
+
+    return <Text className="text-gray-500 text-[12px]">{location}</Text>;
   };
 
   const handleUnfriending = async (friendId: string) => {
-       Alert.alert(
-      "Unfriend",                         // Title
+    Alert.alert(
+      "Unfriend", // Title
       "Are you sure you want to unfriend this person?", // Message
       [
         {
           text: "Cancel",
           onPress: () => console.log("Unfriending Cancelled"),
-          style: "cancel",                 // Makes the Cancel button stand out
+          style: "cancel", // Makes the Cancel button stand out
         },
         {
           text: "Unfriend",
@@ -281,13 +316,12 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               console.error("Couldn't unfriend that person...", error);
             }
           }, // Replace with your API call
-          style: "destructive",            // Red color for emphasis
+          style: "destructive", // Red color for emphasis
         },
       ],
-      { cancelable: true }                 // Close alert by tapping outside
+      { cancelable: true } // Close alert by tapping outside
     );
-
-  }
+  };
 
   // RENDER LISTS ------ START
   const renderConversationItem = ({
@@ -296,12 +330,14 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     item: ConversationItem;
   }): React.ReactElement => (
     <TouchableOpacity onPress={() => handleOpenChat(item)}>
-      <View className="flex items-center mb-2 p-4 bg-[#FAFAFA] rounded-[16px]">
+      <View className="flex items-center mb-2 p-4 rounded-[16px]" 
+      style={{ backgroundColor: loading ? "#E5E7EB" : "#FAFAFA"}}
+      >
         <View className="w-full">
           <View className="flex flex-row justify-between items-center">
-            <Text className="text-lg font-bold mb-1">{item.name}</Text>
-            <Text className="text-xs text-gray-400">
-              {item.lastMessageTimestamp
+            <Text className="text-[16px] font-bold mb-1">{item.name}</Text>
+            <Text className="text-[12px] text-gray-400">
+              {item.lastMessageTimestamp && !loading
                 ? new Date(item.lastMessageTimestamp).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -313,7 +349,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           {item.lastMessageContent ? (
             <View className="flex flex-row items-start justify-between -mt-1">
               <Text
-                className="text-sm"
+                className="text-[14px]"
                 style={{ fontWeight: item.unread_messages ? 600 : 400 }}
               >
                 {item.lastMessageContent}
@@ -326,8 +362,8 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               )}
             </View>
           ) : (
-            <Text className="text-gray-600 text-sm -mt-1 mb-2">
-              No messages yet
+            <Text className="text-gray-600 text-sm -mt-1 ">
+              {loading ? "" : "No messages yet"}
             </Text>
           )}
         </View>
@@ -336,40 +372,42 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderFriend = ({ item }: { item: Friendship }) => (
-    <View className="flex  mb-2 p-4 bg-[#FAFAFA] rounded-[16px]">
+    <View className="flex  mb-2 p-4 rounded-[16px]"
+    style={{ backgroundColor: loading ? "#E5E7EB" : "#FAFAFA"}}
+    >
       <View className="flex flex-row justify-between items-center mx-2">
         <View>
-        <TouchableOpacity
-          className="flex-1"
-          activeOpacity={0.6}
-          onPress={() => handleUserProfile(item.friend_id)}
-          onLongPress={async () => handleUnfriending(item.friend_id)}
-        >
-          <View>
-          <Text className="text-lg font-bold ">
-            {nicknames && item.friend_id in nicknames
-              ? nicknames[item.friend_id]
-              : item.friend_username}
-          </Text>
-          <FriendLocation friendId={item.friend_id} />
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1"
+            activeOpacity={0.6}
+            onPress={() => handleUserProfile(item.friend_id)}
+            onLongPress={async () => handleUnfriending(item.friend_id)}
+          >
+            <View>
+              <Text className="text-[16px] font-bold ">
+                {nicknames && item.friend_id in nicknames
+                  ? nicknames[item.friend_id]
+                  : item.friend_username}
+              </Text>
+              <FriendLocation friendId={item.friend_id} />
+            </View>
+          </TouchableOpacity>
         </View>
         <View className="flex flex-row items-center justify-center">
           <TouchableOpacity
-          onPress={() => {
-            router.push({
-              pathname: "/root/user-board/[id]",
-              params: { id: item.friend_id, username:item.friend_username },
-            });
-          }}
+            onPress={() => {
+              router.push({
+                pathname: "/root/user-board/[id]",
+                params: { id: item.friend_id, username: item.friend_username },
+              });
+            }}
           >
-             <Image
-                      source={icons.album}
-                      tintColor="#000000"
-                      resizeMode="contain"
-                      className="w-9 h-9"
-                    />
+            <Image
+              source={icons.album}
+              tintColor="#000000"
+              resizeMode="contain"
+              className="w-8 h-8"
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -377,7 +415,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderIncomingRequest = ({ item }: { item: FriendRequest }) => (
-    <View className="p-4 border-b border-gray-200">
+    <View  className=" py-6 border-b border-gray-200">
       <View className="flex-row justify-between items-center">
         <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
           <Text className="font-JakartaSemiBold">
@@ -390,6 +428,8 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           menuItems={[
             {
               label: "Accept",
+              source: icons.check,
+              color: "#08DA14",
               onPress: async () => {
                 setHandlingFriendRequest(true);
                 const returnStats = await acceptFriendRequest(
@@ -408,6 +448,8 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             },
             {
               label: "Reject",
+              source: icons.close,
+              color: "#DA0808", 
               onPress: async () => {
                 setHandlingFriendRequest(true);
                 const returnStats = await rejectFriendRequest(
@@ -430,14 +472,19 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderOutgoingRequest = ({ item }: { item: FriendRequest }) => (
-    <View className="p-4 border-b border-gray-200">
-      <View className="flex-row justify-between items-center ">
-        <TouchableOpacity onPress={() => handleUserProfile(item.receiverId)}>
+    <View className=" py-6 border-b border-gray-200">
+      <View >
+        <TouchableOpacity className="flex-column justify-center items-start " onPress={() => handleUserProfile(item.receiverId)}>
           <Text className="font-JakartaSemiBold">
             {nicknames && item.receiverId in nicknames
               ? nicknames[item.receiverId]
               : item.receiverUsername}
           </Text>
+          <Text className="text-gray-500 italic text-xs">Since {typeof item.createdAt === "string"
+                    ? formatDateTruncatedMonth(
+                        convertToLocal(new Date(item.createdAt))
+                      )
+                    : "No date"}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -457,7 +504,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
         receiverId: isRequestorUID1
           ? friendRequest.user_id2
           : friendRequest.user_id1,
-        createdAt: friendRequest.createdAt,
+        createdAt: friendRequest.createdAt || friendRequest.created_at,
         senderUsername: isRequestorUID1
           ? friendRequest.user1_username
           : friendRequest.user2_username,
@@ -499,15 +546,12 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   // console.log(conversations);
+  // console.log("allFriendRequests", allFriendRequests?.sent);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View className="flex-1 bg-gray-100">
-        {loading ? (
-          <View className="flex-[0.8] justify-center items-center">
-            <ActivityIndicator size="large" color="black" />
-          </View>
-        ) : (
+        
           <View className="flex-1">
             <View className="flex flex-row justify-between items-center mx-4 mb-4 mt-4">
               <View className="flex flex-row items-center mr-2">
@@ -532,10 +576,11 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>
 
             <ScrollView
-              className="max-h-10"
+              contentContainerStyle={{ flexGrow: 0 }}
               contentOffset={{ x: 10, y: 0 }}
               horizontal={true}
               showsHorizontalScrollIndicator={false}
+              className="max-h-[50px]"
             >
               <View className="flex flex-row items-center justify-between mx-6">
                 <TabNavigation
@@ -564,7 +609,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                     allFriendRequests
                       ? allFriendRequests.sent.length +
                         allFriendRequests.received.length
-                      : 10
+                      : 0
                   }
                 />
               </View>
@@ -572,7 +617,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
             {selectedTab === "Messages" && (
               <FlatList
-                className="rounded-[16px] mt-3 mx-4"
+                className="rounded-[16px] mx-4"
                 ListHeaderComponent={
                   <View className="flex flex-row items-center mb-4 mt-4">
                     <TextInput
@@ -583,7 +628,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                     />
                   </View>
                 }
-                data={filteredConversations}
+                data={loading ? skeletalConversationList : filteredConversations}
                 renderItem={renderConversationItem}
                 keyExtractor={(item): string => item.id}
               />
@@ -591,7 +636,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
             {selectedTab == "Friends" && (
               <FlatList
-                className="rounded-[16px] mt-3 mx-4"
+                className="rounded-[16px] mx-4"
                 ListHeaderComponent={
                   <View className="flex flex-row items-center mb-4 mt-4">
                     <TextInput
@@ -611,63 +656,77 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               />
             )}
             {selectedTab == "Requests" && (
-              <View>
-                <FlatList
-                  className="mt-3 mx-4 p-4 bg-[#FAFAFA] rounded-[24px]"
-                  data={allFriendRequests?.received}
-                  ListHeaderComponent={
-                    <View>
-                      <Text className="font-JakartaBold text-lg">
-                        Requests{" "}
-                      </Text>
-                      <NotificationBubble
-                        unread={
-                          allFriendRequests?.received
-                            ? allFriendRequests.received.length
-                            : 0
-                        }
-                        color="#ffd12b"
-                      />
-                    </View>
-                  }
-                  renderItem={renderIncomingRequest}
-                  keyExtractor={(item) => item.id.toString()}
-                  ListEmptyComponent={
-                    <Text className="text-left text-gray-500">
-                      No friend requests
-                    </Text>
-                  }
-                  style={{ maxHeight: screenHeight * 0.3 }}
-                />
-                <FlatList
-                  className="mt-4 mx-4 p-4 bg-[#FAFAFA] rounded-[24px]"
-                  data={allFriendRequests?.sent}
-                  ListHeaderComponent={
-                    <View>
-                      <Text className="font-JakartaBold text-lg">Sent </Text>
-                      <NotificationBubble
-                        unread={
-                          allFriendRequests?.sent
-                            ? allFriendRequests.sent.length
-                            : 0
-                        }
-                        color="#ffd12b"
-                      />
-                    </View>
-                  }
-                  renderItem={renderOutgoingRequest}
-                  keyExtractor={(item) => item.id.toString()}
-                  ListEmptyComponent={
-                    <Text className="text-left text-gray-500">
-                      No outgoing friend requests
-                    </Text>
-                  }
-                  style={{ maxHeight: screenHeight * 0.3 }}
-                />
+              <View className="flex-1 mt-3 mx-4">
+                {/* Container for both lists, flex-1 to take all available space */}
+                <View className="flex-1 flex-col">
+                  {/* Top half: Incoming Requests */}
+                  <View className="mb-2">
+                    <FlatList
+                      className=" p-4 bg-[#FAFAFA] rounded-[24px]"
+                      data={allFriendRequests?.received}
+                      ListHeaderComponent={
+                        <View>
+                          <Text className="font-JakartaBold text-lg">
+                            Requests{" "}
+                          </Text>
+                          <NotificationBubble
+                            unread={
+                              allFriendRequests?.received
+                                ? allFriendRequests.received.length
+                                : 0
+                            }
+                            color="#ffd12b"
+                          />
+                        </View>
+                      }
+                      renderItem={renderIncomingRequest}
+                      keyExtractor={(item) => item.id.toString()}
+                      ListEmptyComponent={
+                        <Text className="text-left text-gray-500">
+                          No friend requests
+                        </Text>
+                      }
+                      showsVerticalScrollIndicator={false}
+                      scrollEnabled={allFriendRequests && allFriendRequests.received.length > 0}
+                    />
+                  </View>
+
+                  {/* Bottom half: Outgoing Requests */}
+                  <View className="flex-1 mt-2">
+                    <FlatList
+                      className=" p-4 bg-[#FAFAFA] rounded-[24px]"
+                      data={allFriendRequests?.sent}
+                      ListHeaderComponent={
+                        <View>
+                          <Text className="font-JakartaBold text-lg">
+                            Sent{" "}
+                          </Text>
+                          <NotificationBubble
+                            unread={
+                              allFriendRequests?.sent
+                                ? allFriendRequests.sent.length
+                                : 0
+                            }
+                            color="#ffd12b"
+                          />
+                        </View>
+                      }
+                      renderItem={renderOutgoingRequest}
+                      keyExtractor={(item) => item.id.toString()}
+                      ListEmptyComponent={
+                        <Text className="text-left text-gray-500">
+                          No outgoing friend requests
+                        </Text>
+                      }
+                      showsVerticalScrollIndicator={false}
+                      scrollEnabled={allFriendRequests && allFriendRequests?.sent.length > 0}
+                    />
+                  </View>
+                </View>
               </View>
             )}
           </View>
-        )}
+      
       </View>
     </SafeAreaView>
   );

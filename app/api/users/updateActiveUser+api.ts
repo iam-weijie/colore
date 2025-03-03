@@ -6,12 +6,7 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { clerkId, conversationId, activity } = body;
 
-    // console.log(
-    //   "clerkId, conversationId, activity",
-    //   clerkId,
-    //   conversationId,
-    //   activity
-    // );
+    // console.log("clerkId, conversationId, activity", clerkId, conversationId, activity);
 
     if (!clerkId || !conversationId) {
       return new Response(

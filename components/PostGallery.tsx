@@ -4,6 +4,7 @@ import { formatDateTruncatedMonth } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { Link, useFocusEffect } from "expo-router";
+import Animated, { SlideInDown, SlideInUp, FadeInDown } from "react-native-reanimated";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
@@ -26,6 +27,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   const [sortedPosts, setSortedPosts] = useState<Post[]>([]);
   const [queueRefresh, setQueueRefresh] = useState(false);
   const [hasNavigatedAway, setHasNavigatedAway] = useState(false);
+  const [isSaved, setIsSaved] = useState(true);
 
   const sortByUnread = (a: Post, b: Post) => {
     if (a.unread_comments > 0 && b.unread_comments === 0) {
@@ -62,6 +64,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   }
 
   const renderItem = ({ item }: { item: Post }) => (
+    <Animated.View entering={FadeInDown.duration(300)}>
     <TouchableOpacity
       onPress={() => {
         setSelectedPost(item);
@@ -73,14 +76,14 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     >
       <View
         className="flex-1 m-2 p-5  shadow-xs rounded-[24px] mx-auto"
-        style={{ width: screenWidth * 0.85, backgroundColor: temporaryColors.find((c) => c.name === item.color)?.hex }}
+        style={{ width: screenWidth * 0.85, backgroundColor: temporaryColors?.find((c) => c.name === item.color)?.hex || item.color}}
       >
         <Text className="font-JakartaSemiBold text-black">
-          {truncateText(item.content, 100)}
+         {truncateText(item.content, 100)}
         </Text>
         <View className="flex-row justify-between">
           <Text className="font-Jakarta text-gray-500">
-            {formatDateTruncatedMonth(new Date(item.created_at))}
+            {item.created_at ? formatDateTruncatedMonth(new Date(item.created_at)) : ""}
           </Text>
         </View>
         {isOwnProfile && item.unread_comments > 0 && (
@@ -90,19 +93,22 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
         )}
       </View>
     </TouchableOpacity>
+    </Animated.View>
   );
+ const handleUnsave = () =>{
+  setIsSaved((prevPost) => !isSaved);
+  handleUpdate(selectedPost?.id || -1, isSaved);
+  handleCloseModal()
 
+ }
   const handleCloseModal = () => {
     setSelectedPost(null);
-    if (queueRefresh && hasNavigatedAway && isOwnProfile && handleUpdate) {
-      handleUpdate();
-    }
   };
 
   useFocusEffect(
     useCallback(() => {
       if (queueRefresh && hasNavigatedAway && isOwnProfile && handleUpdate) {
-        handleUpdate();
+        handleUpdate(selectedPost?.id || -1, saveStatus);
       }
     }, [hasNavigatedAway, queueRefresh, handleUpdate])
   );
@@ -150,7 +156,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
           isVisible={!!selectedPost}
           selectedPost={selectedPost}
           handleCloseModal={handleCloseModal}
-          handleUpdate={handleUpdate}
+          handleUpdate={handleUnsave}
         />
       )}
     </View>

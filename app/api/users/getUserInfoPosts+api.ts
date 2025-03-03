@@ -15,26 +15,26 @@ export async function GET(request: Request) {
 
     // combined api call
     const response = await sql`
-      SELECT 
-        u.clerk_id, 
-        u.email,
-        u.username,
-        u.country,
-        u.state,
-        u.city, 
-        p.id AS post_id, 
-        p.content, 
-        p.created_at, 
-        p.like_count, 
-        p.report_count,
-        p.unread_comments,
-        p.color,
-        p.emoji
-      FROM users u
-      LEFT JOIN posts p ON u.clerk_id = p.user_id
-      WHERE u.clerk_id = ${clerkId} AND p.post_type = 'public'
-      ORDER BY p.created_at DESC;
-    `;
+    SELECT 
+      u.clerk_id, 
+      u.email,
+      u.username,
+      u.country,
+      u.state,
+      u.city, 
+      p.id AS post_id, 
+      p.content, 
+      p.created_at, 
+      p.like_count, 
+      p.report_count,
+      p.unread_comments,
+      p.color,
+      p.emoji
+    FROM users u
+    LEFT JOIN posts p ON u.clerk_id = p.user_id
+    WHERE u.clerk_id = ${clerkId} AND p.post_type = 'public'
+    ORDER BY p.unread_comments DESC, p.created_at DESC;
+  `;
 
     if (response.length === 0) {
       return new Response(JSON.stringify({ error: "User not found" }), {

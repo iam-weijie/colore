@@ -13,6 +13,7 @@ declare interface Post {
   like_count: number;
   report_count: number;
   unread_comments: number;
+  recipient_user_id: string;
   color: string; //String for now. Should be changed to PostItColor
   emoji: string;
 }
@@ -21,12 +22,14 @@ declare interface PostComment {
   id: number;
   post_id: number;
   user_id: string;
+  sender_id: string;
   content: string;
-  firstname: string;
   username: string;
   created_at: string;
   like_count: number;
   report_count: number;
+  is_liked: boolean;
+  postColor: string;
 }
 
 declare interface UserProfileType {
@@ -43,6 +46,7 @@ declare interface UserProfileType {
   device_token: string;
   is_paid_user: boolean;
   report_count: number;
+  saved_posts: string[];
 }
 
 declare interface UserData {
@@ -63,6 +67,7 @@ declare interface PostItColor {
   hex: string;
   rarity: string;
   foldcolorhex: string;
+  fontColor: string;
 }
 
 declare interface NavigationContextType {
@@ -97,7 +102,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
 declare interface UserPostsGalleryProps {
   posts: Post[];
   profileUserId: string;
-  handleUpdate?: () => void | undefined | Promise<void>;
+  handleUpdate?: (id: number, isRemove: boolean) => void;
   query?: string;
   header: React.ReactElement;
 }
@@ -113,6 +118,7 @@ declare interface PostModalProps {
   handleCloseModal: () => void;
   invertedColors?: boolean;
   handleUpdate?: () => void | Promise<void>;
+  header: React.ReactElement;
 }
 
 declare interface UserPostsGalleryProps {
@@ -132,8 +138,8 @@ declare interface InputFieldProps extends TextInputProps {
 }
 
 declare interface NotificationBubbleProps {
-  unread: number;
-  color: string;
+unread: number,
+color: string
 }
 
 declare interface PaymentProps {
@@ -169,6 +175,7 @@ declare interface RawFriendRequest {
   user_id2: string;
   requestor: "UID1" | "UID2";
   createdAt: Date;
+  notified: boolean,
   user1_username: string;
   user2_username: string;
 }
@@ -178,6 +185,7 @@ declare interface FriendRequest {
   senderId: string;
   receiverId: string;
   createdAt: Date;
+  notified: boolean,
   senderUsername: string;
   receiverUsername: string;
 }

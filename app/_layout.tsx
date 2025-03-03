@@ -84,9 +84,9 @@ export default function RootLayout() {
 
   return (
     <NotificationProvider>
-      <GlobalProvider>
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
           <ClerkLoaded>
+          <GlobalProvider>
             <NavigationProvider>
               <Animated.View style={{ flex: 1 }} entering={FadeIn}>
                 <Stack>
@@ -97,9 +97,10 @@ export default function RootLayout() {
                 </Stack>
               </Animated.View>
             </NavigationProvider>
+            </GlobalProvider>
           </ClerkLoaded>
         </ClerkProvider>
-      </GlobalProvider>
+      
     </NotificationProvider>
   );
 }

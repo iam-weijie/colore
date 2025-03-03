@@ -8,7 +8,7 @@ import { neon } from "@neondatabase/serverless";
 export async function PATCH(request: Request) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const { clerkId, country, state, city, username } = await request.json();
+    const { clerkId, country, state, city, username, email } = await request.json();
 
     if (!clerkId) {
       return Response.json(
@@ -37,12 +37,30 @@ export async function PATCH(request: Request) {
         WHERE clerk_id = ${clerkId}
         RETURNING *
       `;
+    } else if (email !== undefined) {
+      response = await sql`
+         UPDATE users
+          SET email = ${email}
+          WHERE clerk_id = ${clerkId}
+          AND NOT EXISTS (
+            SELECT 1 FROM users WHERE email = ${email}
+          )
+          RETURNING *;
+        `;
+        
     } else {
       return Response.json(
         { error: "Invalid update parameters" },
         { status: 400 }
       );
     }
+
+    // Check for email uniqueness violation
+  
+    if (response.length === 0 && email !== undefined) {
+      throw new Error("Email is already taken.");
+    }
+
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
@@ -55,6 +73,7 @@ export async function PATCH(request: Request) {
         { error: "Username already taken" },
         { status: 409 }
       );
+
     }
     return Response.json({ error: error.message }, { status: 500 });
   }
