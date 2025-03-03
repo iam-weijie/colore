@@ -139,7 +139,7 @@ const Conversation = () => {
       }
     } catch (error) {
       console.error("Failed to update user last connection:", error);
-    }  
+    }
 };
 
 const checkNumberOfParticipants = async (activity: boolean) => {
@@ -212,6 +212,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
   }, [messages])
   const updateMessages = async (messageContent: string) => {
     const active_participants = await checkNumberOfParticipants(true)
+
     await fetchAPI(`/api/chat/newMessage`, {
       method: "POST",
       body: JSON.stringify({
@@ -306,7 +307,8 @@ const checkNumberOfParticipants = async (activity: boolean) => {
                 pathname: "/root/profile/[id]",
                 params: { id: otherClerkId },
               })
-            }}
+            }
+            }
           >
             <Text className={`text-xl font-JakartaBold flex-1 text-center`}>
               {otherName}

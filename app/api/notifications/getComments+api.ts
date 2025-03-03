@@ -25,7 +25,7 @@ export async function GET(request: Request) {
         p.color,
         json_agg(
           json_build_object(
-            'comment_id', c.id,
+            'id', c.id,
             'comment_content', c.content,
             'comment_created_at', c.created_at,
             'comment_like_count', c.like_count,
