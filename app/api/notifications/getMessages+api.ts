@@ -13,7 +13,7 @@ export async function GET(request: Request) {
       );
     }
 
-    // console.log("fetching messages");
+    //console.log("fetching messages");
 
     // Query to fetch only unread messages where senderId is not the clerkId
     const userMessages = await sql`

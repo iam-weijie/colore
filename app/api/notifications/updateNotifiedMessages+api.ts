@@ -4,7 +4,7 @@ export async function PATCH(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const message = await request.json()
-    const messageId = message.messageId;
+    const messageId = message.id;
 
     if (!messageId) {
       return new Response(

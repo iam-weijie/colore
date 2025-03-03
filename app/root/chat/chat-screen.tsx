@@ -687,7 +687,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                         </Text>
                       }
                       showsVerticalScrollIndicator={false}
-                      scrollEnabled={allFriendRequests?.received.length > 0}
+                      scrollEnabled={allFriendRequests && allFriendRequests.received.length > 0}
                     />
                   </View>
 
@@ -719,7 +719,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                         </Text>
                       }
                       showsVerticalScrollIndicator={false}
-                      scrollEnabled={allFriendRequests?.sent.length > 0}
+                      scrollEnabled={allFriendRequests && allFriendRequests?.sent.length > 0}
                     />
                   </View>
                 </View>

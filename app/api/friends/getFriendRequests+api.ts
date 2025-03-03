@@ -34,6 +34,7 @@ export async function GET(request: Request) {
         fr.user_id2,
         fr.requestor,
         fr.created_at,
+        fr.notified,
         u1.username AS user1_username,
         u2.username AS user2_username
       FROM friend_requests fr
