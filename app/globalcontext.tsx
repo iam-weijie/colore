@@ -49,7 +49,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
         if(n.requests) {
           n.requests.forEach((request) => {
-            console.log("exact request", request)
+            // console.log("exact request", request)
             handleSendNotification(n, request, "Requests")
           });
         }
@@ -85,7 +85,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       // Handle the Friend Requests response
       const userResponseData =  await userResponse.json();
-      console.log(userResponseData)
+      // console.log(userResponseData)
       const mostRecentConnection = userResponseData.data[0].last_connection
       setLastConnection(mostRecentConnection)
 
@@ -158,6 +158,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 try {
                   const response = await fetchAPI(`/api/users/getUserInfo?id=${id}`);
                   const userInfo = response.data[0];
+                  
         
                   return userInfo.username || ""
                   
@@ -172,7 +173,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                   
                   const conversationInfo = response.data.filter((c) => c.id == id);
         
-                  console.log("conversationInfo", conversationInfo)
+               //   console.log("conversationInfo", conversationInfo)
                   if (conversationInfo.length === 0) return null; // Handle empty results
         
                   return {
@@ -201,7 +202,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
            );
       }
       if (type === "Requests") {
-        console.log("request", content)
+        // console.log("request", content)
         const username = content.requestor == "UID1" ? content.user1_username : content.user2_username
         await sendPushNotification(
           pushToken,

@@ -109,7 +109,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const fetchLikeStatus = async () => {
     try {
       const response = await fetchAPI(
-        `/api/posts/updateLikeCount?postId=${post[currentPostIndex].id}&userId=${user.id}`,
+        `/api/posts/updateLikeCount?postId=${post[currentPostIndex].id}&userId=${user!.id}`,
         { method: "GET" }
       );
       if (response.error) return;
@@ -124,7 +124,6 @@ const PostModal: React.FC<PostModalProps> = ({
   // Fetch like status only when post or user changes
   useEffect(() => {
     if (!user?.id || !post[currentPostIndex]?.id) return;
-
     fetchLikeStatus();
   }, [post, currentPostIndex, user?.id]);
 

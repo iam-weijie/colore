@@ -1,15 +1,19 @@
 import NotificationBubble from "@/components/NotificationBubble";
 import { icons } from "@/constants";
+import { fetchAPI } from "@/lib/fetch";
+import { useNotification } from "@/notifications/NotificationContext"; // Assuming you have a notification context to manage global state
+import { sendPushNotification } from "@/notifications/PushNotificationService"; // Assuming this handles the push notification
+import { ConversationItem } from "@/types/type";
+import { useUser } from "@clerk/clerk-expo";
 import { Tabs } from "expo-router";
+import React, { useEffect, useState } from "react";
 import { Alert, Image, ImageSourcePropType, View } from "react-native";
-import React, { useState, useEffect } from "react";
-import { useGlobalContext } from "@/app/globalcontext";
 
 const TabIcon = ({
   source,
   focused,
   unread,
-  color
+  color,
 }: {
   source: ImageSourcePropType;
   focused: boolean;
@@ -17,25 +21,27 @@ const TabIcon = ({
   color: string;
 }) => (
   <View
-  className={`items-center justify-center ${focused ? "bg-general-600 rounded-full" : ""}`}
->
-  <View
-    className={`w-14 h-14 items-center justify-center rounded-full ${focused ? "bg-[#000000]" : ""}`}
+    className={`items-center justify-center ${focused ? "bg-general-600 rounded-full" : ""}`}
   >
-    {focused && (<Image
-      source={source}
-      tintColor="#ffffff"
-      resizeMode="contain"
-      className="w-10 h-10"
-
-
-    />)}
-    {!focused && (<Image
-      source={source}
-      tintColor="#000000"
-      resizeMode="contain"
-      className="w-9 h-9"
-    />)}
+    <View
+      className={`w-14 h-14 items-center justify-center rounded-full ${focused ? "bg-[#000000]" : ""}`}
+    >
+      {focused && (
+        <Image
+          source={source}
+          tintColor="#ffffff"
+          resizeMode="contain"
+          className="w-10 h-10"
+        />
+      )}
+      {!focused && (
+        <Image
+          source={source}
+          tintColor="#000000"
+          resizeMode="contain"
+          className="w-9 h-9"
+        />
+      )}
       {/* Display NotificationBubble only when there are notifications */}
       {unread > 0 && <NotificationBubble unread={unread} color={color} />}
     </View>
@@ -43,7 +49,6 @@ const TabIcon = ({
 );
 
 const Layout = () => {
-<<<<<<< HEAD
   const [notifications, setNotifications] = useState<any[]>([]); // State to hold notifications for each tab
   const { pushToken } = useNotification();
   const [unreadComments, setUnreadComments] = useState<number>(0); // Assuming you have a notification context that provides pushToken
@@ -200,7 +205,7 @@ const Layout = () => {
       );
 
       try {
-        console.log(content.id);
+        // console.log(content.id);
         const response = await fetchAPI(
           `/api/notifications/updateNotifiedMessages`,
           {
@@ -253,9 +258,6 @@ const Layout = () => {
 
     return () => clearInterval(interval); // Cleanup interval when the component unmounts
   }, [notifications, user]);
-=======
-  const { notifications, unreadComments, unreadMessages, unreadRequests } = useGlobalContext();
->>>>>>> 68337693df7eeb757443794dad61239c94c07fff
 
   return (
     <Tabs
@@ -277,7 +279,7 @@ const Layout = () => {
           alignItems: "center",
           flexDirection: "row",
           position: "absolute",
-          boxShadow: "0 0px 0px 3px rgba(0,0,0,1)"
+          boxShadow: "0 0px 0px 3px rgba(0,0,0,1)",
         },
       }}
     >
@@ -304,8 +306,8 @@ const Layout = () => {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
-              source={icons.chat}
-              unread={unreadMessages + unreadRequests}
+              source={icons.album}
+              unread={unreadMessages}
               color={"#FF7272"} // Needs to be changed with message notifications
             />
           ),
