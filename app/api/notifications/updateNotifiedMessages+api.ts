@@ -6,7 +6,6 @@ export async function PATCH(request: Request) {
     const message = await request.json()
     const messageId = message.id;
 
-    console.log("patching rn...")
     if (!messageId) {
       return new Response(
         JSON.stringify({ error: "Missing messageId field" }),

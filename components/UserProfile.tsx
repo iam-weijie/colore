@@ -3,6 +3,7 @@ import PostGallery from "@/components/PostGallery";
 import { icons, temporaryColors } from "@/constants/index";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
+import axios from "axios";
 import {
   acceptFriendRequest,
   cancelFriendRequest,
@@ -23,7 +24,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -34,6 +35,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
 
@@ -42,9 +44,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [nickname, setNickname] = useState<string>("");
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [emojiLoading, setEmojiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
+  const [countryEmoji, setCountryEmoji] = useState<string>("");
   const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [unreadComments, setUnreadComments] = useState<number>(0);
   const { stateVars, setStateVars } = useNavigationContext();
   const router = useRouter();
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
@@ -59,6 +64,25 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [isFocusedOnProfile, setIsFocusedOnProfile] = useState<boolean>(true);
 
   const isEditable = user!.id === userId;
+
+  const skeletonPost = (id: number) => {
+    return({
+    id: id,
+    clerk_id: "",
+    firstname: "",
+    username: "",
+    content: "",
+    created_at: "",
+    city: "",
+    state: "",
+    country: "",
+    like_count: 0,
+    report_count: 0,
+    unread_comments: 0,
+    color: "#E5E7EB", //String for now. Should be changed to PostItColor
+    emoji: "",
+  })
+  }
 
   function findUserNickname(
     userArray: UserNicknamePair[],
@@ -90,6 +114,28 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       const data = await fetchFriends(user!.id);
       setFriendCount(data.length);
     }
+  };
+
+  const fetchCountryEmoji = async (countryName: string) => {
+  
+    try {
+      const response = await fetch(`https://restcountries.com/v3.1/name/${countryName}`);
+      const data = await response.json();
+
+      if (!response.ok || !data || data.length === 0) {
+        //setError("Country not found.");
+        return;
+      }
+
+      const countryCode = data[0]?.cca2 || ""; // ISO 3166-1 alpha-2 country code
+      const flagEmoji = countryCode?.toUpperCase().split("").map((char) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
+
+      setCountryEmoji(flagEmoji);
+      setEmojiLoading(false)
+    } catch (err) {
+      setError("Error fetching country data.");
+    }
+
   };
 
   useEffect(() => {
@@ -128,8 +174,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         throw new Error(response.error);
       }
       const { userInfo, posts } = response as UserData;
+      const unread_comments = posts.reduce((acc, post) => acc + (post.unread_comments ?? 0), 0);
+      setUnreadComments(unread_comments);
       setProfileUser(userInfo);
       setUserPosts(posts);
+
+      // Fetch country emoji
+      await fetchCountryEmoji(userInfo.country);
     } catch (error) {
       setError("Failed to fetch user data.");
       console.error("Failed to fetch user data:", error);
@@ -139,9 +190,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   };
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       fetchUserData();
-    }, [userId])
+      setIsFocusedOnProfile(true);
+    }, [])
   );
 
   const handleAddNickname = () => {
@@ -153,18 +205,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     router.push("/root/profile/nickname");
   };
 
-  if (loading)
-    return (
-      <View className="flex-[0.8] justify-center items-center">
-        <ActivityIndicator size="large" color="black" />
-      </View>
-    );
-
-  if (error)
+ /* if (error)
     return (
       <SafeAreaView className="flex-1">
         <View className="flex flex-row items-center justify-between">
-          <Text>An error occurred. Please try again Later.</Text>
+          <Text>An error occurred. Please try again Later. 
+            {error}
+          </Text>
           <View className="flex flex-row items-right">
             {isEditable && (
               <TouchableOpacity
@@ -181,7 +228,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           </View>
         </View>
       </SafeAreaView>
-    );
+    );*/
   const checkIfChatExists = async (user2: UserNicknamePair) => {
     try {
       // //console.log("user: ", user!.id);
@@ -298,19 +345,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
-    { label: "Nickname", onPress: handleAddNickname },
-    { label: "Report", onPress: handleReportPress },
+    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_default = [
-    { label: "Nickname", onPress: handleAddNickname },
-    { label: "Report", onPress: handleReportPress },
+    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_friend = [
-    { label: "Nickname", onPress: handleAddNickname },
-    { label: "Report", onPress: handleReportPress },
-    { label: "Unfriend", onPress: async () => {
+    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Unfriend",  source: icons.close, color: "#6408DA", onPress: async () => {
       setIsHandlingFriendRequest(true);
       const response: FriendStatusType = await unfriend(
         user!.id,
@@ -323,21 +369,26 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       }
       setFriendStatus(response);
       setIsHandlingFriendRequest(false);
-    }}
+    }},
+    { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_sent = [
-    { label: "Nickname", onPress: handleAddNickname },
+    { label: "Nickname", color: "#A7A7A7", onPress: handleAddNickname },
     {
       label: "Report",
+      source: icons.email,
+      color: "#DA0808",
       onPress: handleReportPress,
     },
   ];
 
   const menuItems_received = [
-    { label: "Nickname", onPress: handleAddNickname },
+    { label: "Nickname", color: "#A7A7A7", source: icons.person, onPress: handleAddNickname },
     {
       label: "Report",
+      color: "#DA0808",
+      source: icons.email,
       onPress: () => handleReportPress,
     },
   ];
@@ -408,22 +459,30 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               </View>
 
               <View className="p-8 flex flex-column items-center justify-center ">
-                <View className="flex flex-row items-center justify-center">
-                  <Text className={`text-[24px] font-JakartaBold`}>
+                <Animated.View entering={FadeIn.duration(800)}>
+                { (nickname || profileUser?.username) ? (<View className="flex flex-row items-center justify-center">
+                   <Text className={`text-[24px] font-JakartaBold`}>
                     {nickname
                       ? nickname
                       : profileUser?.username
                         ? `${profileUser?.username}`
                         : `${profileUser?.firstname?.charAt(0)}.`}
-                  </Text>
-                </View>
-
-                <View>
-                  <Text className="text-gray-500 text-center font-Jakarta text-base">
-                    📍{profileUser?.city}, {profileUser?.state},{" "}
+                  </Text> 
+                </View>) : <View>
+                 <Text className={`text-[24px] bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
+                 </View>}
+                </Animated.View>
+                <Animated.View entering={FadeIn.duration(800)}>
+                { profileUser ?  (<View>
+                <Text className="text-gray-700 text-center font-Jakarta text-base">
+                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city}, {profileUser?.state},{" "}
                     {profileUser?.country}
-                  </Text>
-                </View>
+                  </Text> 
+                </View>) : (
+                  <View>
+                  <Text className="text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta text-base"> Location updating... </Text>
+                  </View>)}
+                </Animated.View>
               </View>
             </View>
 
@@ -506,9 +565,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     if (user!.id === userId) {
                       router.push("/root/tabs/personal-board");
                     } else {
+                     
                       router.push({
                         pathname: "/root/user-board/[id]",
-                        params: { id: userId, username: profileUser?.username },
+                        params: { id: `${profileUser?.clerk_id}`, username: profileUser?.username },
                       });
                     }
                   }}
@@ -526,7 +586,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                       : 32,
                   }}
                 >
-                  {user!.id === profileUser!.clerk_id && (
+                  {user!.id === profileUser?.clerk_id && (
                     <View style={{ marginTop: isCollapsed ? 0 : 20 }}>
                       <Image
                         source={icons.chat}
@@ -696,23 +756,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           ) : currentSubscreen === "posts" ? (
             <View className="items-center flex-1 w-full">
               <TextInput
-                className="w-4/5  h-12 px-5 rounded-[16px] bg-gray-200 mb-5 "
+                className="w-4/5  h-12 px-5 rounded-[16px] bg-gray-200 mb-6 "
                 placeholder="Search"
                 onChangeText={setQuery}
                 value={query}
               />
 
-              <View className="items-center flex-1">
+              <View className="items-center flex-1 mb-[100px]">
                 <PostGallery
-                  posts={userPosts}
-                  profileUserId={profileUser!.clerk_id}
+                  posts={loading ? [skeletonPost(1), skeletonPost(2)] : userPosts}
+                  profileUserId={user!.id}
                   handleUpdate={fetchUserData}
                   query={query}
                   header={
                     <View className="w-screen px-8 flex flex-row items-center justify-between">
                       <View>
                         <Text className="text-lg font-JakartaSemiBold">
-                          Most Recent
+                          Most Recent {unreadComments > 0 ? `(${unreadComments})` : ""//put notification count here
+                          }
                         </Text>
                       </View>
                       <View>
@@ -732,6 +793,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               </View>
             </View>
           ) : (
+            <View className="items-center flex-1 ">
             <PostGallery
               posts={userPosts}
               profileUserId={profileUser!.clerk_id}
@@ -741,7 +803,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 <View className="w-screen px-8 flex flex-row items-center justify-between">
                   <View>
                     <Text className="text-lg font-JakartaSemiBold">
-                      Most Recent
+                      Most Recent ({userPosts.length //Put notification count here
+                          })
                     </Text>
                   </View>
 
@@ -758,8 +821,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   </View>
                 </View>
               }
-              scrollEnabled={isExpanded}
             />
+            </View>
           )}
         </View>
       ) : (

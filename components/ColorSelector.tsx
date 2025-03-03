@@ -15,7 +15,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({
   onColorSelect,
 }) => {
   return (
-    <View>
+    <View className="flex-row">
       {colors.map((color) => (
         <Circle
           key={color.id}

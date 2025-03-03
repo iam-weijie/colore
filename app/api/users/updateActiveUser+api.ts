@@ -6,11 +6,13 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { clerkId, conversationId, activity } = body;
 
-    console.log("clerkId, conversationId, activity", clerkId, conversationId, activity);
+    // console.log("clerkId, conversationId, activity", clerkId, conversationId, activity);
 
     if (!clerkId || !conversationId) {
       return new Response(
-        JSON.stringify({ error: "Missing User Id or Conversation does not exist" }),
+        JSON.stringify({
+          error: "Missing User Id or Conversation does not exist",
+        }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -45,7 +47,9 @@ export async function PATCH(request: Request) {
     }
 
     return new Response(
-      JSON.stringify({ data: { active_participants: response[0].active_participants } }),
+      JSON.stringify({
+        data: { active_participants: response[0].active_participants },
+      }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {

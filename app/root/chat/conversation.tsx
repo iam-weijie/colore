@@ -87,7 +87,7 @@ const MessageItem: React.FC<Message> = ({
             },
           ]}
         >
-          <Text className="text-[16px] font-600" style={{ color: senderId === user?.id ? 'white' : 'black' }}>
+          <Text className="text-[14px] font-600" style={{ color: senderId === user?.id ? 'white' : 'black' }}>
             {content}
           </Text>
 
@@ -154,7 +154,6 @@ const checkNumberOfParticipants = async (activity: boolean) => {
       }),
     });
 
-    console.log("check number of participants", response.data.active_participants.length)
     const number_of_participants = response.data.active_participants.length;
     return number_of_participants
 
@@ -340,7 +339,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
           )}
           <View className="flex-row items-center p-4 border-t border-gray-200">
             <TextInput
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3"
+              className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
               placeholder="Type a message..."
               value={newMessage}
               multiline
@@ -350,7 +349,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
               title="Send"
               onPress={handleSendMessage}
               disabled={!newMessage.trim()}
-              className="ml-3 w-14 h-10 rounded-md"
+              className="ml-3 w-14 h-10 rounded-full shadow-none"
               fontSize="sm"
               padding="0"
             />

@@ -14,6 +14,7 @@ export async function GET(request: Request) {
       excludeIds.length > 0
         ? `AND p.id NOT IN (${excludeIds.map((id) => `'${id}'`).join(",")})`
         : "";
+      
 
     // Construct the full SQL query
     const query = `
