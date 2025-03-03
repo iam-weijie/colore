@@ -1,10 +1,7 @@
-import { fetchAPI } from "@/lib/fetch";
-import { ConversationItem, FriendStatusType } from "@/types/type";
+import DropdownMenu from "@/components/DropdownMenu";
 import NotificationBubble from "@/components/NotificationBubble";
-import { useUser } from "@clerk/clerk-expo";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
-import { useFocusEffect } from '@react-navigation/native';
+import { FriendStatus } from "@/lib/enum";
+import { fetchAPI } from "@/lib/fetch";
 import {
   acceptFriendRequest,
   fetchFriends,
@@ -15,6 +12,8 @@ import { FriendRequest, Friendship, RawFriendRequest, UserNicknamePair } from "@
 import DropdownMenu from "@/components/DropdownMenu";
 import { FriendStatus } from "@/lib/enum";
 
+import { icons } from "@/constants/index";
+import { AntDesign } from "@expo/vector-icons";
 import {
   ActivityIndicator,
   Alert,
@@ -27,9 +26,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { icons } from "@/constants/index";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -105,6 +102,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
         throw new Error("Response is undefined.");
       }
       const responseData = await responseNotifications.json();
+
       const chatNotifications = responseData.toRead; // Notifications data
       const fetchedConversations = responseConversation.data; // Conversations data
 
@@ -205,6 +203,74 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   const filteredFriendList = friendList.filter((friend) =>
     friend.friend_username.toLowerCase().includes(searchText.toLowerCase())
   );
+
+  const FriendLocation = ({ friendId }: { friendId: string }) => {
+    const [location, setLocation] = useState<string>("Loading...");
+
+    useEffect(() => {
+      const fetchUserLocation = async (userId: string) => {
+        try {
+          const response = await fetchAPI(
+            `/api/users/getUserInfo?id=${userId}`,
+            {
+              method: "GET",
+            }
+          );
+          const country = response.data?.[0]?.country || "Unknown Country";
+          const state = response.data?.[0]?.state || "Unknown State";
+          const city = response.data?.[0]?.city || "Unknown City";
+
+          setLocation(`${city}, ${state}, ${country}`);
+        } catch (error) {
+          console.error(error, "Couldn't find location");
+          setLocation("Location not available");
+        }
+      };
+
+      if (friendId) {
+        fetchUserLocation(friendId);
+      }
+    }, [friendId]);
+
+    return <Text className="text-gray-500">{location}</Text>;
+  };
+
+  const handleUnfriending = async (friendId: string) => {
+    Alert.alert(
+      "Unfriend", // Title
+      "Are you sure you want to unfriend this person?", // Message
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Unfriending Cancelled"),
+          style: "cancel", // Makes the Cancel button stand out
+        },
+        {
+          text: "Unfriend",
+          onPress: async () => {
+            try {
+              setHandlingFriendRequest(true);
+              const response: FriendStatusType = await unfriend(
+                user!.id,
+                friendId
+              );
+              if (response === FriendStatus.NONE) {
+                Alert.alert("You have unfriended this user.");
+              } else {
+                Alert.alert("Error unfriending this user.");
+              }
+              fetchFriendData();
+              setHandlingFriendRequest(false);
+            } catch (error) {
+              console.error("Couldn't unfriend that person...", error);
+            }
+          }, // Replace with your API call
+          style: "destructive", // Red color for emphasis
+        },
+      ],
+      { cancelable: true } // Close alert by tapping outside
+    );
+  };
 
   // RENDER LISTS ------ START
   const renderConversationItem = ({ item }: { item: ConversationItem }): React.ReactElement => (
@@ -438,7 +504,6 @@ setSearchText("")}
                 <TabNavigation name="Requests" focused={selectedTab === "Requests"} onPress={() => setSelectedTab("Requests")} notifications={allFriendRequests ? allFriendRequests.sent.length + allFriendRequests.received.length : 10} />
               </View>
             </ScrollView>
-
 
             {selectedTab === "Messages" && <FlatList
             className="rounded-[16px] mt-3 mx-4"

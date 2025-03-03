@@ -79,7 +79,7 @@ const Nickname = () => {
           </TouchableOpacity>
           <TextInput
             className="flex-1 px-4 w-full py-2 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-            placeholder="Add an alias..."
+            placeholder="Add a nickname..."
             placeholderTextColor="#4a4a4a"
             value={nicknameText}
             onChangeText={(text): void => setNicknameText(text)}

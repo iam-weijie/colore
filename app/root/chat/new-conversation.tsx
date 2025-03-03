@@ -1,6 +1,5 @@
-import CustomButton from "@/components/CustomButton";
 import { fetchAPI } from "@/lib/fetch";
-import { UserNicknamePair, UserProfileType } from "@/types/type";
+import { UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useRouter } from "expo-router";
@@ -58,8 +57,9 @@ const NewConversation = (): React.ReactElement => {
 
   const filteredUsers =
     searchText.length > 0
-      ? users.filter((user) =>
-          user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
+      ? users.filter(
+          (user) =>
+            user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
         )
       : [];
   const checkIfChatExists = async (user2: UserNicknamePair) => {
@@ -160,28 +160,31 @@ const NewConversation = (): React.ReactElement => {
   }: {
     item: UserNicknamePair;
   }): React.ReactElement => (
-    <View className="flex flex-row justify-between items-center p-4 border-b border-gray-200">
-      <TouchableOpacity
-        onPress={() => {
-          router.push({
-            pathname: "/root/profile/[id]",
-            params: { id: item[0] },
-          });
-        }}
-        disabled={creatingChat}
-      >
-        <Text className="text-lg text-black">{item[1]}</Text>
-      </TouchableOpacity>
-      <CustomButton
+    <TouchableOpacity
+      onPress={() => {
+        router.push({
+          pathname: "/root/profile/[id]",
+          params: { id: item[0] },
+        });
+      }}
+      disabled={creatingChat}
+      className="p-4 border-b border-gray-200"
+    >
+      <View className="flex flex-row justify-between items-center">
+        <Text className="text-lg text-black left-4">{item[1]}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+  {
+    /* <CustomButton
         title="Chat"
         onPress={() => startChat(item)}
         disabled={!item[1]}
         className="w-14 h-8 rounded-md"
         fontSize="sm"
         padding="0"
-      />
-    </View>
-  );
+      /> */
+  }
 
   return (
     <SafeAreaView className="flex-1">
@@ -190,9 +193,7 @@ const NewConversation = (): React.ReactElement => {
           <View className="flex-1 bg-gray-100">
             <View className="flex flex-row items-center justify-between px-4 pt-2">
               <View className="mr-2">
-                <TouchableOpacity
-                  onPress={() => router.back()}
-                >
+                <TouchableOpacity onPress={() => router.back()}>
                   <AntDesign name="caretleft" size={18} color="0076e3" />
                 </TouchableOpacity>
               </View>

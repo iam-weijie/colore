@@ -1,52 +1,31 @@
-import PostIt from "@/components/PostIt";
-import PostModal from "@/components/PostModal";
-import { useGlobalContext } from "@/app/globalcontext";
-import { Post, PostWithPosition } from "@/types/type";
-import { useNotification } from '@/notifications/NotificationContext';
-import { sendPushNotification } from '@/notifications/PushNotificationService';
+import { Post } from "@/types/type";
 
-
-import { SignedIn, useUser } from "@clerk/clerk-expo";
 import PostItBoard from "@/components/PostItBoard";
 import { fetchAPI } from "@/lib/fetch";
-import { useEffect, useRef, useState } from "react";
+import { SignedIn, useUser } from "@clerk/clerk-expo";
 import * as React from "react";
+import { useState } from "react";
 
-import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Image,
-  PanResponder,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-  SafeAreaView,
-} from "react-native";
-import { router } from "expo-router";
 import { icons } from "@/constants";
+import { router } from "expo-router";
+import { Image, SafeAreaView, TouchableOpacity, View } from "react-native";
 
 export default function Page() {
-
-  const { pushToken } = useNotification();
-  const [posts, setPosts] = useState<PostWithPosition[]>([]);
-  const {stacks, setStacks } = useGlobalContext(); // Add more global constants here
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPost, setSelectedPost] = useState<PostWithPosition | null>(null);
   const { user } = useUser();
 
   const fetchPosts = async () => {
-    const response = await fetchAPI(`/api/posts/getRandomPosts?number=${4}&id=${user!.id}`);
+    const response = await fetchAPI(
+      `/api/posts/getRandomPosts?number=${4}&id=${user!.id}`
+    );
     return response.data;
   };
 
-  const fetchNewPost = async () => {
+  const fetchNewPost = async (excludeIds: number[]) => {
     try {
+      const excludeIdsParam = excludeIds.join(",");
       const response = await fetch(
-        `/api/posts/getRandomPosts?number=${1}&id=${user!.id}`
+        `/api/posts/getRandomPostsExcluding?number=${1}&id=${user!.id}&exclude_ids=${excludeIdsParam}`
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
@@ -58,7 +37,7 @@ export default function Page() {
           left: Math.random() * 250,
         },
       }));
-      return newPostWithPosition[0];
+      if (newPostWithPosition.length > 0) return newPostWithPosition[0];
     } catch (error) {
       setError("Failed to fetch new post.");
       console.error(error);
@@ -67,7 +46,7 @@ export default function Page() {
   };
 
   const handleNewPostPress = () => {
-      router.push("/root/new-post");
+    router.push("/root/new-post");
   };
 <<<<<<< centralizing-notifications
 
@@ -77,7 +56,7 @@ export default function Page() {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <View className="flex-row justify-between items-center mx-7 mt-3">
+        <View className="flex-row justify-between items-center mx-7 mt-5">
           <Image
             source={require("@/assets/colore-word-logo.png")}
             style={{ width: 120, height: 50 }}
@@ -88,11 +67,10 @@ export default function Page() {
             <Image source={icons.pencil} className="w-7 h-7" />
           </TouchableOpacity>
         </View>
-        <PostItBoard 
+        <PostItBoard
           userId={user!.id}
           handlePostsRefresh={fetchPosts}
           handleNewPostFetch={fetchNewPost}
-          onWritePost={handleNewPostPress}
           allowStacking={true}
         />
       </SignedIn>

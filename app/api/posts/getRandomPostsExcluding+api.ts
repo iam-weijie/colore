@@ -5,16 +5,17 @@ export async function GET(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const number = url.searchParams.get("number");
-    const recipientId = url.searchParams.get("recipient_id");
-    const viewerId = url.searchParams.get("user_id");
+    const id = url.searchParams.get("id");
+    const excludeIds =
+      url.searchParams.get("exclude_ids")?.split(",").map(Number) || [];
 
-    if (!recipientId || !viewerId) {
-      return new Response(
-        JSON.stringify({ error: "Missing recipient_id or user_id parameter" }),
-        { status: 400 }
-      );
-    }
+    // Construct the exclusion clause
+    const excludeClause =
+      excludeIds.length > 0
+        ? `AND p.id NOT IN (${excludeIds.map((id) => `'${id}'`).join(",")})`
+        : "";
 
+    // Construct the full SQL query
     const query = `
       SELECT 
         p.id, 
@@ -34,21 +35,25 @@ export async function GET(request: Request) {
         u.city
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
-      WHERE p.recipient_user_id = '${recipientId}'
-        AND p.post_type = 'personal'
-      ORDER BY p.created_at DESC
+      WHERE p.user_id != '${id}' 
+        AND p.post_type = 'public'
+        ${excludeClause}
+      ORDER BY RANDOM()
       LIMIT ${number};
     `;
 
     const response = await sql(query);
+
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
   } catch (error) {
-    console.error("Error fetching personal posts:", error);
+    console.error(error);
     return new Response(
-      JSON.stringify({ error: "Failed to fetch personal posts" }),
-      { status: 500 }
+      JSON.stringify({ error: "Failed to fetch random posts" }),
+      {
+        status: 500,
+      }
     );
   }
 }

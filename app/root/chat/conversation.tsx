@@ -4,8 +4,19 @@ import { Message } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
+import { PanGestureHandlerGestureEvent, GestureHandlerRootView, PanGestureHandler  } from "react-native-gesture-handler";
 import { useFocusEffect} from "@react-navigation/native";
 import React, { useEffect, useRef, useState,  useCallback } from "react";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedGestureHandler,
+  withSpring,
+  withTiming,
+  FadeInUp,
+  FadeOutDown,
+  runOnJS
+} from "react-native-reanimated";
 
 import {
   ActivityIndicator,
@@ -18,6 +29,91 @@ import {
   View,
 } from "react-native";
 
+interface GestureContext {
+  startX: number;
+  startY: number;
+}
+
+const MessageItem: React.FC<Message> = ({
+  id,
+  senderId,
+  content,
+  timestamp,
+  unread,
+  notified
+}) => {
+  const { user } = useUser();
+  const [showTime, setShowTime] = useState(false);
+
+  const translateX = useSharedValue(0);
+
+  // Maximum swipe distance
+  const maxSwipe = 55; // Adjust as needed
+  const minSwipe = -55; // Adjust as needed
+
+  const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent, GestureContext>({
+    onStart: (_, context) => {
+      context.startX = translateX.value;
+     
+    },
+    onActive: (event, context) => {
+      // Calculate the translation, limit swipe range
+      const translationX = context.startX + event.translationX;
+      translateX.value = Math.max(Math.min(translationX, maxSwipe), minSwipe);
+      // Show time while active swipe
+      runOnJS(setShowTime)(true);
+    },
+    onEnd: () => {
+    // Hide time after swipe ends
+      runOnJS(setShowTime)(false);
+      translateX.value = withTiming(0, { damping: 20, stiffness: 300 }); // Use `withTiming` to reset smoothly
+    },
+  });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: withSpring(translateX.value, { damping: 20, stiffness: 300 }) }],
+  }));
+
+  return (
+    <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
+      <PanGestureHandler onGestureEvent={gestureHandler}>
+        <Animated.View
+          className="p-3 my-2 rounded-2xl max-w-[70%]"
+          style={[
+            animatedStyle, // Apply animated style here
+            {
+              backgroundColor: senderId === user?.id ? 'black' : '#e5e7eb',
+              alignSelf: senderId === user?.id ? 'flex-end' : 'flex-start',
+            },
+          ]}
+        >
+          <Text className="text-[16px] font-600" style={{ color: senderId === user?.id ? 'white' : 'black' }}>
+            {content}
+          </Text>
+
+          {showTime && (
+            <View style={{
+              alignSelf: senderId == user?.id ? 'flex-end' : 'flex-start',
+              [senderId === user?.id ? 'right' : 'left']: -55, 
+              bottom: 0
+
+            }} className="absolute">
+              <Text className="text-xs text-gray-500 mt-1">
+                {timestamp
+                  ? new Date(timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    })
+                  : ''}
+              </Text>
+            </View>
+          )}
+        </Animated.View>
+      </PanGestureHandler>
+    </GestureHandlerRootView>
+  );
+};
 const Conversation = () => {
   const { conversationId, otherClerkId, otherName } = useLocalSearchParams();
   const { user } = useUser();
@@ -182,26 +278,14 @@ const checkNumberOfParticipants = async (activity: boolean) => {
   }: {
     item: Message;
   }): React.ReactElement => (
-    <View
-      className={`p-2 my-1 rounded-lg ${
-        item.senderId === user?.id
-          ? "bg-black text-white ml-auto max-w-[70%]"
-          : "bg-gray-200 mr-auto max-w-[70%]"
-      }`}
-    >
-      <Text
-        className={`font-bold ${item.senderId == user?.id ? "text-white" : "text-black"}`}
-      >
-      </Text>
-      <Text
-        className={`${item.senderId === user?.id ? "text-white" : "text-black"}`}
-      >
-        {item.content}
-      </Text>
-      <Text className="text-xs text-gray-500">
-        {new Date(item.timestamp).toLocaleTimeString()}
-      </Text>
-    </View>
+    <MessageItem 
+    id={item.id}
+    senderId={item.senderId}
+    content={item.content}
+    timestamp={item.timestamp}
+    unread={item.unread}
+    notified={item.notified}
+    />
   );
 
   return (
@@ -226,7 +310,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
             }
             }
           >
-            <Text className={`text-2xl font-JakartaBold flex-1 text-center`}>
+            <Text className={`text-xl font-JakartaBold flex-1 text-center`}>
               {otherName}
             </Text>
           </TouchableOpacity>
