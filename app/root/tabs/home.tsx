@@ -48,6 +48,10 @@ export default function Page() {
   const handleNewPostPress = () => {
     router.push("/root/new-post");
   };
+<<<<<<< centralizing-notifications
+
+=======
+>>>>>>> main
 
   return (
     <SafeAreaView className="flex-1">

@@ -21,6 +21,7 @@ import {
 import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -35,7 +36,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
-import * as Linking from "expo-linking";
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -291,43 +291,55 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   };
 
   const handleReportPress = () => {
-    Linking.openURL("mailto:support@colore.ca")
+    Linking.openURL("mailto:support@colore.ca");
   };
 
   // to prevent database errors,
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
-    { label: "Alias", onPress: handleAddNickname},
-    { label: "Report", onPress: handleReportPress}
+    { label: "Nickname", onPress: handleAddNickname },
+    { label: "Report", onPress: handleReportPress },
   ];
 
   const menuItems_default = [
-    { label: "Alias", onPress: handleAddNickname },
-    { label: "Report", onPress: handleReportPress}
+    { label: "Nickname", onPress: handleAddNickname },
+    { label: "Report", onPress: handleReportPress },
   ];
 
   const menuItems_friend = [
-    { label: "Alias", onPress: handleAddNickname },
-    { label: "Report", onPress: handleReportPress},
-    {
-      label: "Chat",
-      onPress: () =>
-        startChat([
-          profileUser!.clerk_id,
-          nickname || profileUser!.username,
-        ] as UserNicknamePair),
-    },
+    { label: "Nickname", onPress: handleAddNickname },
+    { label: "Report", onPress: handleReportPress },
+    { label: "Unfriend", onPress: async () => {
+      setIsHandlingFriendRequest(true);
+      const response: FriendStatusType = await unfriend(
+        user!.id,
+        userId
+      );
+      if (response === FriendStatus.NONE) {
+        Alert.alert("You have unfriended this user.");
+      } else {
+        Alert.alert("Error unfriending this user.");
+      }
+      setFriendStatus(response);
+      setIsHandlingFriendRequest(false);
+    }}
   ];
 
   const menuItems_sent = [
-    { label: "Alias", onPress: handleAddNickname },
-    { label: "Report", onPress: () => Linking.openURL("mailto:support@colore.ca")}
+    { label: "Nickname", onPress: handleAddNickname },
+    {
+      label: "Report",
+      onPress: handleReportPress,
+    },
   ];
 
   const menuItems_received = [
-    { label: "Alias", onPress: handleAddNickname },
-    { label: "Report", onPress: () => Linking.openURL("mailto:support@colore.ca")}
+    { label: "Nickname", onPress: handleAddNickname },
+    {
+      label: "Report",
+      onPress: () => handleReportPress,
+    },
   ];
 
   function toggleExpanded() {
@@ -427,11 +439,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   className="flex-1 max-w-[135px]  bg-gray-200 items-center"
                   style={{
                     justifyContent:
-                      user!.id == userId ? "space-between" : "center",
-                    padding: user!.id == userId ? 20 : 5,
+                      user!.id === userId ? "space-between" : "center",
+                    padding: user!.id === userId ? 20 : 5,
                     height: isCollapsed ? 50 : 150,
                     borderRadius: isCollapsed
-                      ? user!.id == userId
+                      ? user!.id === userId
                         ? 24
                         : 20
                       : 32,
@@ -503,12 +515,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   className="flex-1 bg-gray-200 items-center justify-between"
                   style={{
                     justifyContent:
-                      user!.id == userId ? "space-between" : "center",
-                    padding: user!.id == userId ? 20 : 5,
+                      user!.id === userId ? "space-between" : "center",
+                    padding: user!.id === userId ? 20 : 5,
                     maxWidth: 135,
                     height: isCollapsed ? 50 : 150,
                     borderRadius: isCollapsed
-                      ? user!.id == userId
+                      ? user!.id === userId
                         ? 24
                         : 20
                       : 32,
@@ -534,16 +546,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               )}
               <TouchableOpacity
                 onPress={async () => {
-                  if (user!.id == userId) {
+                  if (user!.id === userId) {
                     router.push("/root/chat/chat-screen");
                   }
                   if (
-                    (user!.id != userId && friendStatus.name == "unknown") ||
-                    friendStatus.name == "none"
+                    (user!.id !== userId && friendStatus.name === "unknown") ||
+                    friendStatus.name === "none"
                   ) {
                     handleSendFriendRequest();
                   }
-                  if (user!.id != userId && friendStatus.name == "received") {
+                  if (user!.id !== userId && friendStatus.name === "received") {
                     setIsHandlingFriendRequest(true);
                     const response = await acceptFriendRequest(
                       profileUser!.clerk_id,
@@ -557,7 +569,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     setFriendStatus(response);
                     setIsHandlingFriendRequest(false);
                   }
-                  if (user!.id != userId && friendStatus.name == "sent") {
+                  if (user!.id !== userId && friendStatus.name === "sent") {
                     setIsHandlingFriendRequest(true);
                     const response: FriendStatusType =
                       await cancelFriendRequest(user!.id, userId);
@@ -569,31 +581,23 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     setFriendStatus(response);
                     setIsHandlingFriendRequest(false);
                   }
-                  if (user!.id != userId && friendStatus.name == "friends") {
-                    setIsHandlingFriendRequest(true);
-                    const response: FriendStatusType = await unfriend(
-                      user!.id,
-                      userId
-                    );
-                    if (response === FriendStatus.NONE) {
-                      Alert.alert("You have unfriended this user.");
-                    } else {
-                      Alert.alert("Error unfriending this user.");
-                    }
-                    setFriendStatus(response);
-                    setIsHandlingFriendRequest(false);
+                  if (user!.id !== userId && friendStatus.name === "friends") {
+                      startChat([
+                        profileUser!.clerk_id,
+                        nickname || profileUser!.username,
+                      ] as UserNicknamePair);
                   }
                 }}
                 className="flex-1 items-center justify-between"
                 style={{
-                  backgroundColor: user!.id == userId ? "#93c5fd" : "#000000",
+                  backgroundColor: user!.id === userId ? "#93c5fd" : "#000000",
                   justifyContent:
-                    user!.id == userId ? "space-between" : "center",
-                  padding: user!.id == userId ? 20 : 5,
+                    user!.id === userId ? "space-between" : "center",
+                  padding: user!.id === userId ? 20 : 5,
                   maxWidth: 135,
                   height: isCollapsed ? 50 : 150,
                   borderRadius: isCollapsed
-                    ? user!.id == userId
+                    ? user!.id === userId
                       ? 24
                       : 20
                     : 32,
@@ -601,7 +605,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               >
                 {!isCollapsed && (
                   <View className="w-full flex flex-row items-start">
-                    {user!.id == userId && (
+                    {user!.id === userId && (
                       <View>
                         <Text className="text-white font-JakartaBold text-3xl">
                           {friendCount}
@@ -628,14 +632,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     />
                   </View>
                 )}
-                {user!.id == userId && (
+                {user!.id === userId && (
                   <View>
                     <Text className="text-white font-JakartaBold text-[16px]">
                       Friends
                     </Text>
                   </View>
                 )}
-                {user!.id !== userId && friendStatus.name == "unknown" && (
+                {user!.id !== userId && friendStatus.name === "unknown" && (
                   <View>
                     <Text className="text-white font-JakartaBold text-[14px]">
                       Add friend
@@ -643,8 +647,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   </View>
                 )}
                 {user!.id !== userId &&
-                  friendStatus.name != "friends" &&
-                  friendStatus.name == "none" && (
+                  friendStatus.name !== "friends" &&
+                  friendStatus.name === "none" && (
                     <View>
                       <Text className="text-white font-JakartaBold text-[14px]">
                         Add friend
@@ -652,8 +656,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     </View>
                   )}
                 {user!.id !== userId &&
-                  friendStatus.name != "friends" &&
-                  friendStatus.name == "sent" && (
+                  friendStatus.name !== "friends" &&
+                  friendStatus.name === "sent" && (
                     <View>
                       <Text className="text-white font-JakartaBold text-[12px]">
                         Cancel request
@@ -661,18 +665,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     </View>
                   )}
                 {user!.id !== userId &&
-                  friendStatus.name != "friends" &&
-                  friendStatus.name == "received" && (
+                  friendStatus.name !== "friends" &&
+                  friendStatus.name === "received" && (
                     <View>
                       <Text className="text-white font-JakartaBold text-[12px]">
                         Accept request
                       </Text>
                     </View>
                   )}
-                {user!.id !== userId && friendStatus.name == "friends" && (
+                {user!.id !== userId && friendStatus.name === "friends" && (
                   <View>
                     <Text className="text-white font-JakartaBold text-[14px]">
-                      Unfriend
+                      Message
                     </Text>
                   </View>
                 )}

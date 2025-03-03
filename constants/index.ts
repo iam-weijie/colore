@@ -8,6 +8,7 @@ import google from "@/assets/icons/google.png";
 import heart from "@/assets/icons/heart.png";
 import home from "@/assets/icons/home.png";
 import lock from "@/assets/icons/lock.png";
+import note from "@/assets/icons/note.png";
 import palette from "@/assets/icons/palette.png";
 import pencil from "@/assets/icons/pencil.png";
 import person from "@/assets/icons/person.png";
@@ -15,13 +16,12 @@ import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
 import refresh from "@/assets/icons/refresh.png";
 import search from "@/assets/icons/search.png";
+import settings from "@/assets/icons/settings.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import login from "@/assets/images/login_squares.png";
 import signup from "@/assets/images/signup.png";
-import note from "@/assets/icons/note.png";
 import { PostItColor } from "@/types/type";
-import settings from "@/assets/icons/settings.png";
 
 export const icons = {
   person,
@@ -99,6 +99,6 @@ export const temporaryColors: PostItColor[] = [
     id: 3,
     hex: "#CFB1FB",
     rarity: "default",
-    foldcolorhex: "#E2C7FF"
-  }
+    foldcolorhex: "#E2C7FF",
+  },
 ];
