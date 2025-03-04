@@ -3,17 +3,21 @@ import DropdownMenu from "@/components/DropdownMenu";
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
-import { PostComment, UserNicknamePair, PostItColor } from "@/types/type";
+import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useEffect, useState, useRef, useCallback } from "react";
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  Image,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
@@ -24,24 +28,22 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent,
+} from "react-native-gesture-handler";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
+  runOnJS,
   useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
-  FadeInUp,
-  FadeOutDown,
-  runOnJS
 } from "react-native-reanimated";
-import { 
-  PanGestureHandlerGestureEvent, 
-  GestureHandlerRootView, 
-  PanGestureHandler  } from "react-native-gesture-handler";
 
-import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
-import { create } from "react-test-renderer";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface GestureContext {
   startX: number;
@@ -58,14 +60,14 @@ const CommentItem: React.FC<PostComment> = ({
   created_at,
   like_count,
   is_liked,
-  postColor
+  postColor,
 }) => {
   const { user } = useUser();
   const router = useRouter();
   const [showTime, setShowTime] = useState(false);
 
-// Comment like constant
-const [tapCount, setTapCount] = useState(0);
+  // Comment like constant
+  const [tapCount, setTapCount] = useState(0);
   const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
   const [isLiked, setIsLiked] = useState<boolean>(is_liked);
   const [likeCount, setLikeCount] = useState<number>(like_count);
@@ -78,20 +80,19 @@ const [tapCount, setTapCount] = useState(0);
   const [isLoadingCommentLike, setIsLoadingCommentLike] =
     useState<boolean>(false);
 
-
   // Report Logic
   const handleReportPress = () => {
     Alert.alert(
       "Report Comment",
       "Are you sure you want to report this comment?",
       [
-        { text: "Cancel" ,
-          style: "cancel",
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          onPress: () => Linking.openURL("mailto:support@colore.ca"),
         },
-        { text: "Report", onPress: (() => (Linking.openURL("mailto:support@colore.ca"))) },
       ]
-    )
-    
+    );
   };
   // Comment Like Logic
   const handleCommentLike = async (commentId: number) => {
@@ -153,17 +154,18 @@ const [tapCount, setTapCount] = useState(0);
     }
   };
 
-
   const translateX = useSharedValue(0);
 
   // Maximum swipe distance
   const maxSwipe = 90; // Adjust as needed
   const minSwipe = -90; // Adjust as needed
 
-  const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent, GestureContext>({
+  const gestureHandler = useAnimatedGestureHandler<
+    PanGestureHandlerGestureEvent,
+    GestureContext
+  >({
     onStart: (_, context) => {
       context.startX = translateX.value;
-     
     },
     onActive: (event, context) => {
       // Calculate the translation, limit swipe range
@@ -173,7 +175,7 @@ const [tapCount, setTapCount] = useState(0);
       runOnJS(setShowTime)(true);
     },
     onEnd: () => {
-    // Hide time after swipe ends
+      // Hide time after swipe ends
       runOnJS(setShowTime)(false);
       translateX.value = withTiming(0, { damping: 20, stiffness: 300 }); // Use `withTiming` to reset smoothly
     },
@@ -185,91 +187,123 @@ const [tapCount, setTapCount] = useState(0);
 
   useEffect(() => {
     if (tapCount === 2) {
-      
       // Handle double-tap
       handleCommentLike(id);
       setTapCount(0); // Reset tap count
     }
   }, [tapCount]);
-  
+
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: withSpring(translateX.value, { damping: 20, stiffness: 300 }) }],
+    transform: [
+      {
+        translateX: withSpring(translateX.value, {
+          damping: 20,
+          stiffness: 300,
+        }),
+      },
+    ],
   }));
 
   return (
-    <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
+    <GestureHandlerRootView
+      style={{ justifyContent: "center", alignItems: "center" }}
+    >
       <PanGestureHandler onGestureEvent={gestureHandler}>
         <Animated.View
           className="p-3 rounded-2xl max-w-[70%]"
           style={[
             animatedStyle, // Apply animated style here
             {
-              backgroundColor: user_id === user?.id ? 'black' : (user_id == sender_id ? postColor : '#e5e7eb'),
-              alignSelf: user_id === user?.id ? 'flex-end' : 'flex-start',
+              backgroundColor:
+                user_id === user?.id
+                  ? "black"
+                  : user_id == sender_id
+                    ? postColor
+                    : "#e5e7eb",
+              alignSelf: user_id === user?.id ? "flex-end" : "flex-start",
               marginTop: username ? 32 : 8,
             },
           ]}
         >
-            <View className="absolute flex -mt-6" 
+          <View
+            className="absolute flex -mt-6"
             style={{
-              [user_id === user?.id ? 'right' : 'left']: 5,
-            }}>
-              <TouchableOpacity activeOpacity={0.6}  onPress={() =>{
+              [user_id === user?.id ? "right" : "left"]: 5,
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={() => {
                 router.push({
                   pathname: "/root/profile/[id]",
-                  params: { id: user_id},
+                  params: { id: user_id },
                 });
-              }}>
-        <Text 
-           className="font-JakartaSemiBold">
-            {username}
-            </Text>
+              }}
+            >
+              <Text className="font-JakartaSemiBold">{username}</Text>
             </TouchableOpacity>
-        </View>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => {doubleTapHandler();}} >
-          <Text className="text-[14px] font-600" style={{ color: user_id === user?.id ? 'white' : 'black' }}>
-            {content}
-          </Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => {
+              doubleTapHandler();
+            }}
+          >
+            <Text
+              className="text-[14px] font-600"
+              style={{ color: user_id === user?.id ? "white" : "black" }}
+            >
+              {content}
+            </Text>
           </TouchableOpacity>
-          <View className="absolute flex flex-row items-center" style={{
-            alignSelf: user_id === user?.id ? 'flex-start' : 'flex-end',
-            [user_id === user?.id ? 'left' : 'right']: (user_id !== user!.id ? -32 : -16),
-            top: "60%"
-          }}>  
-           {/* Only show like count to post creator */}
-           <Text
-                    className={`${user_id === user?.id ? "text-gray-600" : "text-transparent"} text-center`}
-                  >
-                    {(user_id === user?.id ? likeCount : "0") != "0" ? likeCount : ""}
-                  </Text>
-                 {user_id !== user!.id && <TouchableOpacity
-                    onPress={async () => {
-                      await handleCommentLike(id); 
-                    }}
-                    disabled={isLoadingLike}
-                  >
-                    {isLiked && <MaterialCommunityIcons
-                      name={isLiked ? "heart" : "heart-outline"}
-                      size={20}
-                      color={isLiked ? "red" : "black"}
-                    />}
-                  </TouchableOpacity>}
-                 
-                </View>
+          <View
+            className="absolute flex flex-row items-center"
+            style={{
+              alignSelf: user_id === user?.id ? "flex-start" : "flex-end",
+              [user_id === user?.id ? "left" : "right"]:
+                user_id !== user!.id ? -32 : -16,
+              top: "60%",
+            }}
+          >
+            {/* Only show like count to post creator */}
+            <Text
+              className={`${user_id === user?.id ? "text-gray-600" : "text-transparent"} text-center`}
+            >
+              {(user_id === user?.id ? likeCount : "0") != "0" ? likeCount : ""}
+            </Text>
+            {user_id !== user!.id && (
+              <TouchableOpacity
+                onPress={async () => {
+                  await handleCommentLike(id);
+                }}
+                disabled={isLoadingLike}
+              >
+                {isLiked && (
+                  <MaterialCommunityIcons
+                    name={isLiked ? "heart" : "heart-outline"}
+                    size={20}
+                    color={isLiked ? "red" : "black"}
+                  />
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
 
           {showTime && (
-            <View style={{
-              alignSelf: user_id == user?.id ? 'flex-end' : 'flex-start',
-              [user_id === user?.id ? 'right' : 'left']: -85, 
-              bottom: 0
-
-            }} className="absolute">
+            <View
+              style={{
+                alignSelf: user_id == user?.id ? "flex-end" : "flex-start",
+                [user_id === user?.id ? "right" : "left"]: -85,
+                bottom: 0,
+              }}
+              className="absolute"
+            >
               <Text className="text-xs text-gray-500 mt-1">
                 {typeof created_at === "string"
-                    ? formatDateTruncatedMonth(
-                        convertToLocal(new Date(created_at))
-                      )
-                    : "No date"}
+                  ? formatDateTruncatedMonth(
+                      convertToLocal(new Date(created_at))
+                    )
+                  : "No date"}
               </Text>
             </View>
           )}
@@ -296,9 +330,8 @@ const PostScreen = () => {
     unread_comments = 0,
     anonymous = false,
     color,
-    saved
+    saved,
   } = useLocalSearchParams();
-
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -306,7 +339,9 @@ const PostScreen = () => {
   const [postComments, setPostComments] = useState<PostComment[]>([]);
   const [newComment, setNewComment] = useState<string>("");
   const [nicknames, setNicknames] = useState<UserNicknamePair[]>([]);
-  const [anonymousComments, setAnonymousComments] = useState<boolean>(anonymous === "true");
+  const [anonymousComments, setAnonymousComments] = useState<boolean>(
+    anonymous === "true"
+  );
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(
     typeof like_count === "string" ? parseInt(like_count) : 0
@@ -328,8 +363,8 @@ const PostScreen = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPostDeleted, setIsPostDeleted] = useState(false);
   const postColor = temporaryColors.find(
-      (c) => c.name === color
-    ) as PostItColor;
+    (c) => c.name === color
+  ) as PostItColor;
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
@@ -359,7 +394,8 @@ const PostScreen = () => {
   useFocusEffect(
     useCallback(() => {
       setAnonymousComments(anonymous === "true");
-    }, []))
+    }, [])
+  );
 
   // Updated like handler
   const handleLikePress = async () => {
@@ -542,7 +578,7 @@ const PostScreen = () => {
         likeCounts[comment.id] = comment.like_count || 0;
       });
 
-      console.log(response.data)
+      // console.log(response.data);
       setPostComments(response.data);
       setCommentLikes(likeStatuses);
       setCommentLikeCounts(likeCounts);
@@ -650,8 +686,8 @@ const PostScreen = () => {
   };
 
   const handleUserProfile = async (id: string) => {
-    if (anonymous === "true" ) {
-      return
+    if (anonymous === "true") {
+      return;
     }
     router.push({
       pathname: "/root/profile/[id]",
@@ -672,20 +708,21 @@ const PostScreen = () => {
   };
 
   const handleSavePost = async (postId: number) => {
-
-     try {
-            const updateSavePosts = await fetchAPI(`/api/users/updateUserSavedPosts`, {
-                method: "PATCH",
-                body: JSON.stringify({
-                  clerkId: user?.id,
-                  postId: postId,
-                })
-              })
-          }
-          catch(error) {
-            console.error("Failed to update unread message:", error);
-          } 
-  }
+    try {
+      const updateSavePosts = await fetchAPI(
+        `/api/users/updateUserSavedPosts`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            clerkId: user?.id,
+            postId: postId,
+          }),
+        }
+      );
+    } catch (error) {
+      console.error("Failed to update unread message:", error);
+    }
+  };
 
   useEffect(() => {
     fetchComments();
@@ -725,19 +762,19 @@ const PostScreen = () => {
       "Are you sure you want to report this comment?",
       [
         { text: "Cancel" },
-        { text: "Report", onPress: () =>  Linking.openURL("mailto:support@colore.ca") },
+        {
+          text: "Report",
+          onPress: () => Linking.openURL("mailto:support@colore.ca"),
+        },
       ]
     );
-   
   };
   const handleEditing = () => {
-
-      router.push({
-            pathname: "/root/edit-post",
-            params: { postId: id, content: content, color: color},
-                  });
-              
-  }
+    router.push({
+      pathname: "/root/edit-post",
+      params: { postId: id, content: content, color: color },
+    });
+  };
 
   const renderCommentItem = ({
     item,
@@ -745,52 +782,56 @@ const PostScreen = () => {
     item: PostComment;
   }): React.ReactElement => {
     // Find the index of the current item in postComments only once
-    const itemIndex = postComments.findIndex(comment => comment.id === item.id);
-    
+    const itemIndex = postComments.findIndex(
+      (comment) => comment.id === item.id
+    );
+
     // Conditionally determine the username
 
     let username = "";
     if (!anonymousComments) {
-      username = itemIndex > 0 && postComments[itemIndex - 1].user_id === item.user_id
-        ? ""
-        : item.username;
+      username =
+        itemIndex > 0 && postComments[itemIndex - 1].user_id === item.user_id
+          ? ""
+          : item.username;
     }
-  
-  
+
     // Get the like count and fallback to 0 if undefined
     const likeCount = commentLikeCounts[item.id] || 0;
 
-  
     return (
-      <TouchableOpacity 
-      activeOpacity={0.5} 
-      hitSlop={4}
-      onLongPress={() => { 
-        if (item.user_id !== user!.id) {handleReportPress();}
-        else {handleDeleteCommentPress(item.id)}}}>
-      <CommentItem
-        id={item.id}
-        user_id={item.user_id}
-        sender_id={clerk_id}
-        post_id={item.post_id}
-        username={username}
-        like_count={likeCount}
-        content={item.content}
-        created_at={item.created_at}
-        report_count={item.report_count}
-        is_liked={commentLikes[item.id]}
-        postColor={postColor?.hex}
-      />
+      <TouchableOpacity
+        activeOpacity={0.5}
+        hitSlop={4}
+        onLongPress={() => {
+          if (item.user_id !== user!.id) {
+            handleReportPress();
+          } else {
+            handleDeleteCommentPress(item.id);
+          }
+        }}
+      >
+        <CommentItem
+          id={item.id}
+          user_id={item.user_id}
+          sender_id={clerk_id}
+          post_id={item.post_id}
+          username={username}
+          like_count={likeCount}
+          content={item.content}
+          created_at={item.created_at}
+          report_count={item.report_count}
+          is_liked={commentLikes[item.id]}
+          postColor={postColor?.hex}
+        />
       </TouchableOpacity>
     );
   };
 
-  
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-      
-          <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
+        <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
           <View className="flex-1">
             <View className="flex-row items-center ml-6 mt-6">
               <TouchableOpacity onPress={() => router.back()} className="mr-4">
@@ -801,7 +842,11 @@ const PostScreen = () => {
               <View className="flex-1">
                 <TouchableOpacity onPress={() => handleUserProfile(userId)}>
                   <Text className="font-JakartaSemiBold text-lg">
-                    {anonymous === "true" ? (clerk_id === user!.id ? "Me" : "Anonymous") : (nickname || username || "Anonymous")}
+                    {anonymous === "true"
+                      ? clerk_id === user!.id
+                        ? "Me"
+                        : "Anonymous"
+                      : nickname || username || "Anonymous"}
                   </Text>
                 </TouchableOpacity>
                 <Text className="text-sm text-gray-500">
@@ -812,72 +857,78 @@ const PostScreen = () => {
                     : "No date"}
                 </Text>
                 <TouchableWithoutFeedback
-                onPress={() => Keyboard.dismiss()}
-                onPressIn={() => Keyboard.dismiss()}
+                  onPress={() => Keyboard.dismiss()}
+                  onPressIn={() => Keyboard.dismiss()}
                 >
-                      <ScrollView style={{ maxHeight: screenHeight / 6 }} showsVerticalScrollIndicator={false}>
-                      <Text className="font-Jakarta min-h-[30]">
-                        {content}
-                      </Text>
-                      </ScrollView>
-    
+                  <ScrollView
+                    style={{ maxHeight: screenHeight / 6 }}
+                    showsVerticalScrollIndicator={false}
+                  >
+                    <Text className="font-Jakarta min-h-[30]">{content}</Text>
+                  </ScrollView>
                 </TouchableWithoutFeedback>
               </View>
               <View className="flex flex-col items-center ml-4">
                 {clerk_id === user?.id ? (
                   <DropdownMenu
                     menuItems={[
-                      { label: "Edit", 
-                          source: icons.pencil, 
-                          color: "#0851DA", 
-                          onPress: handleEditing },
-                      { label: "Delete", 
-                        source: icons.trash, 
-                        color: "#DA0808", 
-                        onPress: handleDeletePostPress }
+                      {
+                        label: "Edit",
+                        source: icons.pencil,
+                        color: "#0851DA",
+                        onPress: handleEditing,
+                      },
+                      {
+                        label: "Delete",
+                        source: icons.trash,
+                        color: "#DA0808",
+                        onPress: handleDeletePostPress,
+                      },
                     ]}
                   />
                 ) : (
                   <DropdownMenu
-                   menuItems={[
-                    { label: saved ? "Remove" : "Save", 
-                      color: "#000000", 
-                      source: icons.bookmark, 
-                      onPress: () => handleSavePost(id) }, 
-                    { label: "Report", 
-                      source: icons.email,
-                      color: "#DA0808",  
-                      onPress: handleReportPress },]}
+                    menuItems={[
+                      {
+                        label: saved ? "Remove" : "Save",
+                        color: "#000000",
+                        source: icons.bookmark,
+                        onPress: () => handleSavePost(id),
+                      },
+                      {
+                        label: "Report",
+                        source: icons.email,
+                        color: "#DA0808",
+                        onPress: handleReportPress,
+                      },
+                    ]}
                   />
                 )}
                 <View className="mt-4 flex flex-row justify-center items-center">
-                <View>
+                  <View>
                     {/* Only show like count to post creator */}
-                  <Text
-                    className={`${clerk_id === user?.id ? "text-gray-400" : "text-transparent"} text-center mr-1 text-sm`}
-                  >
-                    {clerk_id === user?.id ? likeCount : "0"}
-                  </Text>
+                    <Text
+                      className={`${clerk_id === user?.id ? "text-gray-400" : "text-transparent"} text-center mr-1 text-sm`}
+                    >
+                      {clerk_id === user?.id ? likeCount : "0"}
+                    </Text>
                   </View>
                   <View>
-                  <TouchableOpacity
-                    onPress={handleLikePress}
-                    disabled={isLoadingLike}
-                  >
-                    <MaterialCommunityIcons
-                      name={isLiked ? "heart" : "heart-outline"}
-                      size={24}
-                      color={isLiked ? "red" : "black"}
-                    />
-                  </TouchableOpacity>
-                  </View>  
-                 
-                  
+                    <TouchableOpacity
+                      onPress={handleLikePress}
+                      disabled={isLoadingLike}
+                    >
+                      <MaterialCommunityIcons
+                        name={isLiked ? "heart" : "heart-outline"}
+                        size={24}
+                        color={isLiked ? "red" : "black"}
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>
             <View className="flex-1">
-
               {/* Comment section */}
               <View className="h-full">
                 {loading && <ActivityIndicator size="large" color="#0076e3" />}
@@ -889,17 +940,17 @@ const PostScreen = () => {
                 )}
                 {!loading && !error && postComments.length > 0 && (
                   <FlatList
-                                ref={flatListRef}
-                                data={postComments}
-                                renderItem={renderCommentItem}
-                                keyExtractor={(item) => item.id as unknown as string}
-                                contentContainerStyle={{ padding: 16 }}
-                                style={{ flexGrow: 1 }}
-                                extraData={postComments}
-                                onContentSizeChange={() => {
-                                  flatListRef.current?.scrollToEnd({ animated: true });
-                                }}
-                              />
+                    ref={flatListRef}
+                    data={postComments}
+                    renderItem={renderCommentItem}
+                    keyExtractor={(item) => item.id as unknown as string}
+                    contentContainerStyle={{ padding: 16 }}
+                    style={{ flexGrow: 1 }}
+                    extraData={postComments}
+                    onContentSizeChange={() => {
+                      flatListRef.current?.scrollToEnd({ animated: true });
+                    }}
+                  />
                 )}
               </View>
             </View>
@@ -922,15 +973,13 @@ const PostScreen = () => {
                   newComment.length === 0 || isSubmitting || isPostDeleted
                 }
                 className="ml-3 w-14 h-10 rounded-full shadow-none"
-                style = {{ backgroundColor: postColor ? postColor.hex : "black"}}
+                style={{ backgroundColor: postColor ? postColor.hex : "black" }}
                 fontSize="sm"
                 padding="0"
               />
             </View>
-
-            </View>
-          </KeyboardAvoidingView>
-         
+          </View>
+        </KeyboardAvoidingView>
       </SignedIn>
     </SafeAreaView>
   );
