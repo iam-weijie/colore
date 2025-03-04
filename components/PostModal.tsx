@@ -463,7 +463,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
   useEffect(() => {
     if (imageUri) {
-      console.log("Image URI has been set:", imageUri);
+      // console.log("Image URI has been set:", imageUri);
     }
   }, [imageUri]);
 
