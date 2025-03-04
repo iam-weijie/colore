@@ -54,13 +54,14 @@ const CarrouselIndicator = ({ id, index }: { id: number; index: number }) => {
   // Animate when `id` or `index` changes
   useEffect(() => {
     if (id === index) {
-      width.value = withTiming(50, { duration: 300 }); // Animate width to 50
-      opacity.value = withTiming(1, { duration: 300 }); // Animate opacity to 1
+      width.value = withTiming(50, { duration: 250 }); // Animate width to 50
+      opacity.value = withTiming(1, { duration: 250 }); // Animate opacity to 1
     } else {
-      width.value = withTiming(8, { duration: 300 }); // Animate width back to 2
-      opacity.value = withTiming(0.5, { duration: 300 }); // Animate opacity back to 0.5
+      width.value = withTiming(8, { duration: 250 }); // Animate width back to 2
+      opacity.value = withTiming(0.5, { duration: 250 }); // Animate opacity back to 0.5
     }
   }, [id, index]);
+
 
   // Animated styles
   const animatedStyle = useAnimatedStyle(() => {
