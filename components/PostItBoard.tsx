@@ -4,7 +4,7 @@ import PostModal from "@/components/PostModal";
 import { temporaryColors } from "@/constants";
 import { Post, PostWithPosition } from "@/types/type";
 import { SignedIn } from "@clerk/clerk-expo";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -53,49 +53,54 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   showText = false,
 }) => {
   const position = useRef(new Animated.ValueXY()).current;
-  const clickThreshold = 2; // If the user barely moves the post-it (or doesn't move it at all) treat the gesture as a click
+  const clickThreshold = 2;
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [fontColor, setFontColor] = useState<string>("#0000ff");
   const { stacks, setStacks } = useGlobalContext();
-  const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(
-    null
-  );
+  const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(null);
 
-  const hasUpdatedPosition = useRef(false); // Tracks if we have already updated position
+  const hasUpdatedPosition = useRef(false);
 
   const getFontColorHex = (colorName: string | undefined) => {
     const foundColor = temporaryColors.find((c) => c.name === colorName);
-    setFontColor(foundColor?.fontColor || "#ff0000"); // Default font colour is black
+    setFontColor(foundColor?.fontColor || "#ff0000");
   };
+
+  const newStackedPosition = useMemo(() => {
+    return forceStack(post.id); // Memoize newStackedPosition to prevent recalculation
+  }, [forceStack, post.id]);
+
+  // Separate useEffect for setNewPosition
+  useEffect(() => {
+    setNewPosition((prev) => {
+      const prevX = prev?.coordinates?.x_coordinate ?? 0;
+      const prevY = prev?.coordinates?.y_coordinate ?? 0;
+
+      const newX = newStackedPosition.coordinates.x_coordinate;
+      const newY = newStackedPosition.coordinates.y_coordinate;
+
+      if (
+        Math.abs(prevX - newX) < 1 &&
+        Math.abs(prevY - newY) < 1
+      ) {
+        return prev; // No change, do not trigger re-render
+      }
+      return newStackedPosition; // Update with new position
+    });
+  }, [newStackedPosition]); // This runs only when newStackedPosition changes
+
+  // Original `useEffect` for handling position updates
   useEffect(() => {
     const listenerId = position.addListener(({ x, y }) => {
       updatePosition(x, y, post);
     });
 
-    const newStackedPosition = forceStack(post.id);
-
-    // Handle `prev` being undefined
-    setNewPosition((prev) => {
-      const prevX = prev?.coordinates?.x_coordinate ?? 0; // Default to null
-      const prevY = prev?.coordinates?.y_coordinate ?? 0;
-
-      if (
-        Math.abs(prevX - newStackedPosition.coordinates.x_coordinate) < 1 &&
-        Math.abs(prevY - newStackedPosition.coordinates.y_coordinate) < 1
-      ) {
-        return prev; // No change, do not trigger re-render
-      }
-      return newStackedPosition;
-    });
-
     return () => {
       position.removeListener(listenerId);
     };
-  }, [post.id, updatePosition, forceStack]);
+  }, [position, updatePosition, post]);
 
   useEffect(() => {
-    //console.log("stack", stacks, stacks.length);
-
     if (stacks.length === 1 && newPosition && !hasUpdatedPosition.current) {
       const dx =
         newPosition.coordinates.x_coordinate -
@@ -106,43 +111,37 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
         post.position.top -
         position.y.__getValue();
 
-      // console.log("id", post.id, "dx", dx, "dy", dy);
-
       if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-        //  console.log( post.id, "has started moving to", newPosition.coordinates.x_coordinate, newPosition.coordinates.y_coordinate, "from", post.position.left, post.position.top, "with velocity", dx, dy )
         Animated.timing(position, {
           toValue: { x: dx + Math.random() * 15, y: dy + Math.random() * 15 },
-          duration: 150, // Adjust duration for smoothness
-          easing: Easing.out(Easing.quad), // Adjust easing for a more natural feel
-          useNativeDriver: false, // Cannot use native driver for XY values
+          duration: 150,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: false,
         }).start();
-        hasUpdatedPosition.current = true; // Prevent future re-executions
+        hasUpdatedPosition.current = true;
       }
     }
-  }, [forceStack]);
-
-  useEffect(() => {
-    if (stacks.length == 0) {
-      hasUpdatedPosition.current = false;
-    }
-  }, [stacks]);
+  }, [forceStack, newPosition, stacks]);
 
   useEffect(() => {
     getFontColorHex(post.color);
   }, [post.color]);
+
+  useEffect(() => {
+    if (stacks.length == 0) {
+      hasUpdatedPosition.current = false; // Reset the flag when the stack is empty
+    }
+  }, [stacks]);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        // when gesture starts, set to dragging and moves it to the front
         setIsDragging(true);
         updateIndex();
         position.extractOffset();
       },
-      // this is called when the user moves finger
-      // to initiate component movement
       onPanResponderMove: Animated.event(
         [
           null,
@@ -156,7 +155,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       onPanResponderRelease: (event, gestureState) => {
         const dx = gestureState.dx;
         const dy = gestureState.dy;
-        position.extractOffset(); // reset the offset so transformations don't accumulate
+        position.extractOffset();
 
         if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
           onPress();
