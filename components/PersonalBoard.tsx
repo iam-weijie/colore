@@ -29,6 +29,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   const [shouldRefresh, setShouldRefresh] = useState(0); // Add a refresh counter
   const isOwnBoard = !userId || userId === user?.id;
   const [maxPosts, setMaxPosts] = useState(0);
+  const [postRefIDs, setPostRefIDS] = useState<number[]>([]);
+  const [updatePinnedPosts, setUpdatePinnedPosts] = useState<boolean>(false);
 
   const fetchUserData = async () => {
     if (!isOwnBoard) {
@@ -46,30 +48,58 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
 
 
   const fetchPersonalPosts = async () => {
-    const viewerId = user!.id;
-    const response = await fetchAPI(
-      `/api/posts/getPersonalPosts?number=${4}&recipient_id=${userId}&user_id=${viewerId}`
-    );
 
-    const filteredPosts = response.data.filter((post: Post) => (
-      isOwnBoard || (!isOwnBoard && post.clerk_id == user!.id) || post.pinned
-    ));
-
+    if (updatePinnedPosts) {
+      const existingPostIds = postRefIDs;
     
-    setMaxPosts(filteredPosts.length); // maximum number of posts to display
+      try {
+        const response = await fetchAPI(`/api/posts/getPostsById?ids=${existingPostIds}`);
+        const updatedPosts: Post[] = response.data;
     
-    // Validate and format each post
-    const formattedPosts = filteredPosts.map((post: Post) => ({
-      ...post,
-      recipient_user_id: post.recipient_user_id,
-      pinned: post.pinned,
-      like_count: post.like_count || 0,
-      report_count: post.report_count || 0,
-      unread_comments: post.unread_comments || 0
-    }));
-
+        const formattedPosts = updatedPosts.map((post: Post) => ({
+          ...post,
+          recipient_user_id: post.recipient_user_id,
+          pinned: post.pinned,
+          like_count: post.like_count || 0,
+          report_count: post.report_count || 0,
+          unread_comments: post.unread_comments || 0
+        }));
+      
+        setUpdatePinnedPosts(false)
+        return formattedPosts
+       
     
-    return formattedPosts;
+      } catch (error) {
+        console.error("Failed to update posts: ", error);
+      }
+    }
+    else {
+      const viewerId = user!.id;
+      const maxPostOnScreen = postRefIDs.length == 0 ? 4 : Math.min(postRefIDs.length  + 4, 7)
+      setMaxPosts(maxPostOnScreen ); 
+    
+      const response = await fetchAPI(
+        `/api/posts/getPersonalPosts?number=${maxPostOnScreen}&recipient_id=${userId}&user_id=${viewerId}`
+      );
+  
+      const filteredPosts = response.data.filter((post: Post) => (
+        isOwnBoard || (!isOwnBoard && post.clerk_id == user!.id) || (post.pinned)
+      ));
+  
+          
+      // Validate and format each post
+      const formattedPosts = filteredPosts.map((post: Post) => ({
+        ...post,
+        recipient_user_id: post.recipient_user_id,
+        pinned: post.pinned,
+        like_count: post.like_count || 0,
+        report_count: post.report_count || 0,
+        unread_comments: post.unread_comments || 0
+      }));
+      return formattedPosts;
+      
+    }
+   
   };
 
   const fetchNewPersonalPost = async (excludeIds: number[]) => {
@@ -83,8 +113,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       const newPostWithPosition = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 500,
-          left: Math.random() * 250,
+          top: post.pinned ? 150 : Math.random() * 775 / 2,
+          left: post.pinned ? 100 : Math.random() * 475 / 2,
         },
       }));
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];
@@ -94,6 +124,15 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       return null;
     }
   };
+
+  const updatePinPosts = (existingIds: number[]) => {
+    setUpdatePinnedPosts(true)
+    setPostRefIDS(existingIds)
+    fetchPersonalPosts()
+    setShouldRefresh((prev) => prev + 1);
+  }
+
+  
 
   useFocusEffect(
     useCallback(() => {
@@ -127,6 +166,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           userId={userId}
           handlePostsRefresh={fetchPersonalPosts}
           handleNewPostFetch={fetchNewPersonalPost}
+          handleUpdatePin={(ids) => updatePinPosts(ids)}
           allowStacking={true}
           showPostItText={true}
           invertColors={true}

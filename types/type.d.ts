@@ -118,7 +118,7 @@ declare interface PostModalProps {
   selectedPost: Post;
   handleCloseModal: () => void;
   invertedColors?: boolean;
-  handleUpdate?: () => void | Promise<void>;
+  handleUpdate?: (isPinned: boolean) => void | Promise<void>;
   header: React.ReactElement;
 }
 

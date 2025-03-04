@@ -1,18 +1,31 @@
-import { Post } from "@/types/type";
-
 import PostItBoard from "@/components/PostItBoard";
 import { fetchAPI } from "@/lib/fetch";
+import { Post } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import * as React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { icons } from "@/constants";
 import { router } from "expo-router";
 import { Image, SafeAreaView, TouchableOpacity, View } from "react-native";
+import { requestTrackingPermission } from "react-native-tracking-transparency";
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
+
+  const requestPermission = async () => {
+    const status = await requestTrackingPermission();
+    if (status === "authorized") {
+      console.log("Tracking permission granted!");
+    } else {
+      console.log("Tracking permission denied or restricted.");
+    }
+  };
+
+  useEffect(() => {
+    requestPermission();
+  }, []);
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
@@ -33,8 +46,8 @@ export default function Page() {
       const newPostWithPosition = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 775 / 2,
-          left: Math.random() * 475 / 2,
+          top: (Math.random() * 775) / 2,
+          left: (Math.random() * 475) / 2,
         },
       }));
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];

@@ -19,7 +19,8 @@
       "bundleIdentifier": "com.arthur1235.colore",
       "infoPlist": {
         "UIBackgroundModes": ["fetch", "remote-notification"],
-        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized notifications."
+        "NSUserTrackingUsageDescription": "We use your data to provide a better ad experience."
+      
       }
     },
     "android": {

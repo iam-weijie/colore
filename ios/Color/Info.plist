@@ -52,7 +52,7 @@
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
     </array>
     <key>NSUserTrackingUsageDescription</key>
-    <string>This identifier will be used to deliver personalized notifications.</string>
+    <string>This app requires tracking to allow PosIt to be dragged and improve user experience.</string>
     <key>UIBackgroundModes</key>
     <array>
       <string>fetch</string>

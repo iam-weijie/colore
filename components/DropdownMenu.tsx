@@ -101,9 +101,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
                 
                 item.onPress();
               }}
-              className={`flex-row items-center px-6 py-6 ${
-                index < menuItems.length - 1 ? "border-b border-gray-200" : ""
-              }`}
+              className={`flex-row items-center px-6 py-5 `}
             >
               <View className="flex-row items-center">
                 <Image

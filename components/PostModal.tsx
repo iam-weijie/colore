@@ -148,6 +148,7 @@ const PostModal: React.FC<PostModalProps> = ({
   useEffect(() => {
     if (!user?.id || !post[currentPostIndex]?.id) return;
     fetchLikeStatus();
+    setIsPinned(post[currentPostIndex]?.pinned)
   }, [post, currentPostIndex, user?.id]);
 
   const dateCreated = convertToLocal(
@@ -232,7 +233,6 @@ const PostModal: React.FC<PostModalProps> = ({
       console.error("Failed to update like status:", error);
     } finally {
       setIsLoadingLike(false);
-      handleUpdate();
     }
   };
 
@@ -272,9 +272,9 @@ const PostModal: React.FC<PostModalProps> = ({
     try {
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
       const savePostsList = response.data[0].saved_posts;
-      const savedStatus = savePostsList.includes(
+      const savedStatus = savePostsList?.includes(
         `${post[currentPostIndex]?.id}`
-      );
+      ) ?? false;
       setSavedPosts(savePostsList);
       setIsSaved(savedStatus);
     } catch (error) {
@@ -326,10 +326,7 @@ const PostModal: React.FC<PostModalProps> = ({
       Alert.alert("Post deleted successfully");
       handleCloseModal();
 
-      if (typeof handleUpdate === "function") {
-        // call only if defined (aka refresh needed after deleting post)
-        await handleUpdate();
-      }
+      
     } catch (error) {
       console.error("Failed to delete post:", error);
       Alert.alert("Error", "Failed to delete post. Please try again.");
@@ -370,7 +367,7 @@ const PostModal: React.FC<PostModalProps> = ({
       console.error("Failed to update unread message:", error);
     } finally {
       setIsSaved((prevIsSaved) => !prevIsSaved);
-      handleUpdate();
+      //handleUpdate
     }
   };
 
@@ -455,8 +452,9 @@ const PostModal: React.FC<PostModalProps> = ({
     } catch (error) {
       console.error("Failed to update handlepin message:", error);
     } finally {
+      handleUpdate(!isPinned)
       setIsPinned((prevIsPinned) => !prevIsPinned);
-      handleUpdate();
+      handleCloseModal;
     }
   };
 
@@ -557,6 +555,12 @@ const PostModal: React.FC<PostModalProps> = ({
             source: isSaved ? icons.close : icons.bookmark,
             onPress: () => handleSavePost(post[currentPostIndex]?.id),
           },
+          {
+            label: "Delete",
+            source: icons.trash,
+            color: "#DA0808",
+            onPress: handleDeletePress,
+          }
         ]
       : [
           {
@@ -624,7 +628,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
               <ScrollView>
                 <Text className="text-[16px] p-1 my-4 font-Jakarta">
-                  {post[currentPostIndex]?.content}
+                 {post[currentPostIndex]?.content}
                 </Text>
               </ScrollView>
               <View className="my-2 flex-row justify-between items-center">

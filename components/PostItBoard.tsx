@@ -1,14 +1,17 @@
 import { useGlobalContext } from "@/app/globalcontext";
 import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
-import { temporaryColors } from "@/constants";
+import { icons, temporaryColors } from "@/constants";
 import { Post, PostWithPosition } from "@/types/type";
 import { SignedIn } from "@clerk/clerk-expo";
+import { fetchAPI } from "@/lib/fetch";
 import { useEffect, useRef, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   Animated,
+  Dimensions,
   Easing,
+  Image, 
   PanResponder,
   RefreshControl,
   ScrollView,
@@ -34,6 +37,9 @@ type DraggablePostItProps = {
   showText?: boolean;
 };
 
+const screenHeight = Dimensions.get("screen").height;
+const screenWidth = Dimensions.get("screen").width;
+
 const MappingPostIt = ({ id, coordinates }: MappingPostitProps) => {
   return {
     id: id,
@@ -58,6 +64,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   const [fontColor, setFontColor] = useState<string>("#0000ff");
   const { stacks, setStacks } = useGlobalContext();
   const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(null);
+  const [isPinned, setIsPinned] = useState<boolean>(post.pinned);
 
   const hasUpdatedPosition = useRef(false);
 
@@ -91,6 +98,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
 
   // Original `useEffect` for handling position updates
   useEffect(() => {
+    if (isPinned) return;
     const listenerId = position.addListener(({ x, y }) => {
       updatePosition(x, y, post);
     });
@@ -99,8 +107,13 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       position.removeListener(listenerId);
     };
   }, [position, updatePosition, post]);
+  useEffect(() => {
+   // console.log("id", post.id, "is pinned?", post.pinned)
+    setIsPinned(post.pinned)
+  }, [post])
 
   useEffect(() => {
+    if (isPinned) return;
     if (stacks.length === 1 && newPosition && !hasUpdatedPosition.current) {
       const dx =
         newPosition.coordinates.x_coordinate -
@@ -138,21 +151,22 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        setIsDragging(true);
+        
         updateIndex();
+        if (isPinned) {
+          onPress()
+          return
+        };
+        setIsDragging(true);
         position.extractOffset();
       },
-      onPanResponderMove: Animated.event(
-        [
-          null,
-          {
-            dx: position.x,
-            dy: position.y,
-          },
-        ],
-        { useNativeDriver: false }
-      ),
+      onPanResponderMove: (event, gestureState) => {
+        if (!isPinned) {
+          position.setValue({ x: gestureState.dx, y: gestureState.dy });
+        }
+      },
       onPanResponderRelease: (event, gestureState) => {
+        if (isPinned) return;
         const dx = gestureState.dx;
         const dy = gestureState.dy;
         position.extractOffset();
@@ -173,13 +187,28 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
         opacity: 1,
         position: "absolute",
         top: post.position.top,
-        left: post.position.left,
+        left: post.position.left
       }}
     >
       <TouchableWithoutFeedback onPress={onPress}>
         <PostIt color={post.color || "yellow"} />
       </TouchableWithoutFeedback>
-
+      {isPinned && (
+        <View className="absolute text-black h-full -top-2 -left-2">
+          <View className="p-[6px] rounded-full bg-[#fafafa] flex-row items-center justify-start">
+          <Image 
+           source={icons.pin}
+           tintColor="black"
+           resizeMode="contain"
+           className="w-7 h-7"
+           style={{
+            opacity: 0.8,
+            transform: [{ scaleX: -1 }] // This flips the image vertically
+          }}/>
+           </View>
+        
+      </View>
+      )}
       {!showText && (
         <View className="absolute text-black w-full h-full items-center justify-center">
           <Text style={{ fontSize: 50 }}>{post.emoji && post.emoji}</Text>
@@ -212,6 +241,7 @@ declare interface PostItBoardProps {
   handlePostsRefresh: () => Promise<Post[]>;
   handleBack?: () => void;
   handleNewPostFetch: (excludeIds: number[]) => Promise<Post>; // do not refetch IDs
+  handleUpdatePin: (ids: number[]) => void;
   allowStacking: boolean;
   showPostItText?: boolean;
   invertColors?: boolean;
@@ -221,6 +251,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   userId,
   handlePostsRefresh,
   handleNewPostFetch,
+  handleUpdatePin,
   showPostItText = false,
   invertColors = false,
 }) => {
@@ -233,10 +264,25 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [selectedPost, setSelectedPost] = useState<PostWithPosition | null>(
     null
   );
+  const [isPinned, setIsPinned] = useState<boolean>(false);
   const [maps, setMap] = useState<MappingPostitProps[]>([]);
 
   if (!userId) {
     return null;
+  }
+
+  const AlgorithmRandomPosition = (isPinned: boolean) => {
+
+      if (isPinned) {
+        return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
+      } else {
+        const top = ((Math.random() - 0.5) * 2) * screenHeight / 4 + screenHeight / 4;
+        const left = ((Math.random() - 0.5) * 2) * screenWidth / 4 + screenWidth / 4
+        return {
+          top:  top,
+          left: left
+        }
+      }
   }
 
   const fetchRandomPosts = async () => {
@@ -246,19 +292,13 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       const postsWithPositions = posts.map((post: Post) => ({
         ...post,
         position: {
-          top: (Math.random() * 775) / 2,
-          left: (Math.random() * 475) / 2,
+          top:  AlgorithmRandomPosition(post.pinned).top,
+          left: AlgorithmRandomPosition(post.pinned).left,
         },
       }));
       // Initialize each post as a stack
-      const initialStacks = postsWithPositions.map(
-        (post: PostWithPosition) => ({
-          ids: [post.id],
-          elements: [post],
-        })
-      );
+      setStacks((prevStack) => prevStack.filter((stack) => stacks))
       setPostsWithPosition(postsWithPositions);
-      setStacks(initialStacks);
       // Initialize to add to map
       const initialMap = postsWithPositions.map((post: PostWithPosition) =>
         MappingPostIt({
@@ -271,6 +311,14 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       );
       // console.log(initialMap);
       setMap(initialMap);
+
+      initialMap.forEach((p: MappingPostitProps, index: number) => {
+        
+          const newPostID = p.id;
+          const newPostScreenCoordinates = initialMap[initialMap.length - 1].coordinates;
+          updateStacks(newPostID, newPostScreenCoordinates);
+        
+      })
     } catch (error) {
       setError("Failed to fetch new posts.");
       console.error(error);
@@ -285,7 +333,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   ) => {
     let updatedStacks = [...stacks];
     let postsToCombine = [postId]; // Set of post IDs to combine into a single stack
-
+  
     // Check proximity to all posts
     maps.forEach((mappedPost) => {
       if (mappedPost.id !== postId) {
@@ -295,76 +343,74 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
           mappedPost.coordinates.x_coordinate,
           mappedPost.coordinates.y_coordinate
         );
-
+  
         if (dist <= 15) {
           postsToCombine.push(mappedPost.id); // Add all nearby posts
         }
       }
     });
-
+  
     // Remove empty stacks
     updatedStacks = updatedStacks.filter((stack) => stack.ids.length > 0);
-
+  
     // Update stacks by removing the moving post from any stack it belongs to
     updatedStacks = updatedStacks.map((stack) => ({
       ...stack,
       ids: stack.ids.filter((id: number) => id !== postId),
-      elements:
-        stack.elements.length > 0
-          ? stack.elements.filter(
-              (post: PostWithPosition) => post.id !== postId
-            )
-          : stack.elements,
+      elements: stack.elements.filter((post: PostWithPosition) => post.id !== postId),
     }));
-
+  
     // Check if postsToCombine should form a new stack or merge with existing ones
     const affectedStacks = updatedStacks.filter((stack) =>
       stack.ids.some((id: number) => postsToCombine.includes(id))
     );
-
-    if (affectedStacks.length === 0 && postsToCombine.length > 1) {
-      // No existing stack: create a new one if there's more than one post
+  
+    // Create a new stack only if there are valid posts to combine
+    const validPosts = postsToCombine
+      .map((id) => postsWithPosition.find((post) => post.id === id))
+      .filter((post) => post !== undefined);
+  
+    if (affectedStacks.length === 0 && validPosts.length > 1) {
+      // No existing stack: create a new one if there's more than one valid post
       updatedStacks.push({
-        ids: Array.from(postsToCombine),
-        elements: Array.from(postsToCombine).map((id) =>
-          postsWithPosition.find((post) => post.id === id)
-        ),
+        ids: validPosts.map((post) => post.id),
+        elements: validPosts,
       });
     } else if (affectedStacks.length > 0) {
       // Merge all affected stacks and postsToCombine into one stack
       const mergedStackIds = new Set();
-
+  
       affectedStacks.forEach((stack) => {
         stack.ids.forEach((id: number) => mergedStackIds.add(id));
       });
-
-      postsToCombine.forEach((id) => mergedStackIds.add(id));
-
+  
+      validPosts.forEach((post) => mergedStackIds.add(post.id));
+  
       // Remove old affected stacks and add the new merged stack
       updatedStacks = updatedStacks.filter(
         (stack) => !affectedStacks.includes(stack)
       );
       updatedStacks.push({
         ids: Array.from(mergedStackIds),
-        elements: Array.from(mergedStackIds).map((id) =>
-          postsWithPosition.find((post) => post.id === id)
-        ),
+        elements: Array.from(mergedStackIds)
+          .map((id) => postsWithPosition.find((post) => post.id === id))
+          .filter((post) => post !== undefined),
       });
     }
-
+  
     // Remove posts from stacks if they're no longer within range of each other
     updatedStacks = updatedStacks.map((stack) => ({
       ...stack,
       ids: stack.ids.filter((id: number) => {
         const currentPost = maps.find((p) => p.id === id);
         if (!currentPost) return false; // If data is missing, remove the post
-
+  
         // Check if any other post in the stack is still within range
         return stack.ids.some((otherId: number) => {
           if (id === otherId) return true; // Skip self-comparison
           const otherPost = maps.find((p) => p.id === otherId);
           if (!otherPost) return false;
-
+  
           const dist = distanceBetweenPosts(
             currentPost.coordinates.x_coordinate,
             currentPost.coordinates.y_coordinate,
@@ -375,11 +421,12 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         });
       }),
     }));
-
-    // Filter out empty stacks
-    updatedStacks = updatedStacks.filter((stack) => stack.ids.length > 1);
-
-    //console.log("stacks1", updatedStacks)
+  
+    // Filter out empty stacks and stacks with no valid posts
+    updatedStacks = updatedStacks.filter(
+      (stack) => stack.ids.length > 0 && stack.elements.length > 0
+    );
+  
     setStacks(updatedStacks);
   };
 
@@ -413,11 +460,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     ]);
   };
 
-  useEffect(() => {
-    //console.log("map", maps)
-    //console.log("stacks1.5", stacks)
-    //console.log("post with postion", postsWithPosition.map((p) => p.position))
-  }, [maps]);
 
   const reorderPost = (topPost: PostWithPosition) => {
     setPostsWithPosition((prevPosts: PostWithPosition[]) => [
@@ -432,7 +474,10 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       const newPostID = maps[maps.length - 1].id;
       const newPostScreenCoordinates = maps[maps.length - 1].coordinates;
       updateStacks(newPostID, newPostScreenCoordinates);
+      //console.log(stacks)
     }
+    //console.log("maps", maps, maps.length)
+    //console.log("stacks", stacks)
   }, [maps]);
 
   useEffect(() => {
@@ -454,6 +499,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       unread_comments: post.unread_comments || 0,
       color: post.color,
       emoji: post.emoji,
+      pinned: post.pinned,
+      recipient_user_id: post.recipient_user_id,
       firstname: post.firstname,
       username: post.username,
       city: post.city,
@@ -462,14 +509,54 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       position: post.position,
     };
     setSelectedPost(formattedPost);
+    setIsPinned(post.pinned)
   };
 
   // HANDLING MODAL
-  const handleCloseModal = async () => {
-    if (selectedPost) {
-      const postId = selectedPost.id;
 
+const handleUpdatePosts = async () => {
+  const existingPostIds = postsWithPosition.map((post) => post.id);
+
+  try {
+    const response = await fetchAPI(`/api/posts/getPostsById?ids=${existingPostIds}`);
+    const updatedPosts: Post[] = response.data;
+
+    const updatedPostsMap = new Map(updatedPosts.map(post => [post.id, post]));
+
+    // Create a new array with updated posts
+    const updatedPostsWithPosition = postsWithPosition.map(post => {
+      const updatedPost = updatedPostsMap.get(post.id);
+      if (updatedPost) {
+        return {
+          ...updatedPost,
+          position: post.position, // Retain the original position
+        };
+      }
+      return post;
+    });
+
+    // Update the state with the new array
+    setPostsWithPosition(updatedPostsWithPosition);
+      // Force re-render
+   
+
+  } catch (error) {
+    console.error("Failed to update posts: ", error);
+  }
+};
+
+  const handleIsPinned = (isPinned: boolean) => {
+    setIsPinned(isPinned)
+    const existingPostIds = postsWithPosition.map((post) => post.id);
+    handleUpdatePin(existingPostIds)
+  }
+
+  const handleCloseModal = async () => {
+    if (selectedPost && !isPinned) {
+      const postId = selectedPost.id;
       setSelectedPost(null);
+
+      
       //("Post to remove", selectedPost.id)
       setPostsWithPosition((prevPosts) => {
         const updatePosts = prevPosts.filter((post) => post.id !== postId);
@@ -495,16 +582,14 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
       const existingPostIds = postsWithPosition.map((post) => post.id);
 
-      console.log("existing", existingPostIds);
-
       const newPost = await handleNewPostFetch(existingPostIds);
 
       if (newPost && !existingPostIds.includes(newPost.id)) {
         const newPostWithPosition: PostWithPosition = {
           ...newPost,
           position: {
-            top: (Math.random() * 775) / 2,
-            left: (Math.random() * 475) / 2,
+            top: newPost.pinned ? 70 + Math.random() * 15 : Math.random() * 775 / 2,
+            left: newPost.pinned ? 50 + Math.random() * 15 : Math.random() * 475 / 2,
           },
         };
         setPostsWithPosition((prevPosts) => [
@@ -516,8 +601,12 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
       // Wait for React state updates to finish before using remainingPosts
       await new Promise((resolve) => setTimeout(resolve, 0));
+    } else {
+      setSelectedPost(null)
     }
-  };
+  }
+
+  
 
   const handleReloadPosts = () => {
     setLoading(true);
@@ -590,6 +679,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                   isVisible={!!selectedPost}
                   selectedPost={selectedPost}
                   handleCloseModal={handleCloseModal}
+                  handleUpdate={(isPinned: boolean) => handleIsPinned(isPinned)}
                   invertedColors={invertColors}
                 />
               )}

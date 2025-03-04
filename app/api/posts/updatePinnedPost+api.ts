@@ -24,6 +24,7 @@ export async function PATCH(request: Request) {
       AND (${userId} = user_id OR ${userId} = recipient_user_id)
     RETURNING*;
   `;
+  
     // console.log("response", response);
     return new Response(JSON.stringify({ data: response }), {
       status: 200, // successful update
