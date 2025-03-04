@@ -83,7 +83,7 @@ export const temporaryColors: PostItColor[] = [
     hex: "#ffe640",
     rarity: "default",
     foldcolorhex: "#fef08a",
-    fontColor: "#B29B00"
+    fontColor: "#B29B00",
   },
   {
     name: "pink",
@@ -91,7 +91,7 @@ export const temporaryColors: PostItColor[] = [
     hex: "#fbb1d6",
     rarity: "default",
     foldcolorhex: "#ffc7e2",
-    fontColor: "#D82C82"
+    fontColor: "#D82C82",
   },
   {
     name: "light-blue",
@@ -99,7 +99,7 @@ export const temporaryColors: PostItColor[] = [
     hex: "#93c5fd",
     rarity: "default",
     foldcolorhex: "#b8e1ff",
-    fontColor: "#2775CC"
+    fontColor: "#2775CC",
   },
   {
     name: "baby-purple",
@@ -107,6 +107,6 @@ export const temporaryColors: PostItColor[] = [
     hex: "#CFB1FB",
     rarity: "default",
     foldcolorhex: "#E2C7FF",
-    fontColor: "#8654CF"
+    fontColor: "#8654CF",
   },
 ];
