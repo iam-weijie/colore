@@ -226,7 +226,7 @@ const [tapCount, setTapCount] = useState(0);
             </Text>
             </TouchableOpacity>
         </View>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => {doubleTapHandler();}} onLongPress={() => {handleReportPress();}}>
+        <TouchableOpacity activeOpacity={0.85} onPress={() => {doubleTapHandler();}} >
           <Text className="text-[14px] font-600" style={{ color: user_id === user?.id ? 'white' : 'black' }}>
             {content}
           </Text>
@@ -498,7 +498,7 @@ const PostScreen = () => {
   }, []);
 
   const fetchComments = async () => {
-    setLoading(true);
+    //setLoading(true);
     setError(null);
 
     if (!id || !user?.id) {
@@ -542,6 +542,7 @@ const PostScreen = () => {
         likeCounts[comment.id] = comment.like_count || 0;
       });
 
+      console.log(response.data)
       setPostComments(response.data);
       setCommentLikes(likeStatuses);
       setCommentLikeCounts(likeCounts);
@@ -719,7 +720,15 @@ const PostScreen = () => {
   };
 
   const handleReportPress = () => {
-    Linking.openURL("mailto:support@colore.ca")
+    Alert.alert(
+      "Report Comment",
+      "Are you sure you want to report this comment?",
+      [
+        { text: "Cancel" },
+        { text: "Report", onPress: () =>  Linking.openURL("mailto:support@colore.ca") },
+      ]
+    );
+   
   };
   const handleEditing = () => {
 
@@ -753,6 +762,12 @@ const PostScreen = () => {
 
   
     return (
+      <TouchableOpacity 
+      activeOpacity={0.5} 
+      hitSlop={4}
+      onLongPress={() => { 
+        if (item.user_id !== user!.id) {handleReportPress();}
+        else {handleDeleteCommentPress(item.id)}}}>
       <CommentItem
         id={item.id}
         user_id={item.user_id}
@@ -766,6 +781,7 @@ const PostScreen = () => {
         is_liked={commentLikes[item.id]}
         postColor={postColor?.hex}
       />
+      </TouchableOpacity>
     );
   };
 
@@ -824,11 +840,6 @@ const PostScreen = () => {
                 ) : (
                   <DropdownMenu
                    menuItems={[
-                     { 
-                    label: "Share", 
-                    source: icons.send, 
-                    color: "#000000", 
-                    onPress: () => {} }, 
                     { label: saved ? "Remove" : "Save", 
                       color: "#000000", 
                       source: icons.bookmark, 
