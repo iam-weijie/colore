@@ -3,9 +3,9 @@ import { neon } from "@neondatabase/serverless";
 export async function PATCH(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
-    const {clerkId, postId, isSaved} = await request.json();
+    const { clerkId, postId, isSaved } = await request.json();
 
-console.log("post id", postId, typeof postId)
+    // console.log("post id", postId, typeof postId);
     if (!clerkId) {
       return new Response(JSON.stringify({ error: "Missing User Id" }), {
         status: 400,
@@ -15,14 +15,14 @@ console.log("post id", postId, typeof postId)
 
     // Execute the SQL update query
 
-    const updateSavePost = isSaved  ? 
-    sql`
+    const updateSavePost = isSaved
+      ? sql`
     UPDATE users
     SET saved_posts = ARRAY_REMOVE(saved_posts, ${postId})
     WHERE clerk_id = ${clerkId}
     RETURNING *;
   `
-  : sql`
+      : sql`
     UPDATE users
     SET saved_posts = ARRAY_APPEND(saved_posts, ${postId})
     WHERE clerk_id = ${clerkId}

@@ -51,20 +51,18 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       `/api/posts/getPersonalPosts?number=${4}&recipient_id=${userId}&user_id=${viewerId}`
     );
 
-    const filteredPosts = response.data
-    
-    /*
-    FILTER DOESNT WORK AS INTENDED
-    .filter((post: Post) => (
-      isOwnBoard || (!isOwnBoard && post.clerk_id == user!.id)
+    const filteredPosts = response.data.filter((post: Post) => (
+      isOwnBoard || (!isOwnBoard && post.clerk_id == user!.id) || post.pinned
     ));
 
-    */
+    
     setMaxPosts(filteredPosts.length); // maximum number of posts to display
     
     // Validate and format each post
     const formattedPosts = filteredPosts.map((post: Post) => ({
       ...post,
+      recipient_user_id: post.recipient_user_id,
+      pinned: post.pinned,
       like_count: post.like_count || 0,
       report_count: post.report_count || 0,
       unread_comments: post.unread_comments || 0

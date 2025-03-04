@@ -2,13 +2,13 @@ import DropdownMenu from "@/components/DropdownMenu";
 import NotificationBubble from "@/components/NotificationBubble";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
 import {
   acceptFriendRequest,
   fetchFriends,
   rejectFriendRequest,
   unfriend,
 } from "@/lib/friend";
+import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
 import {
   ConversationItem,
   FriendRequest,
@@ -25,7 +25,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { icons } from "@/constants/index";
 import { AntDesign } from "@expo/vector-icons";
 import {
-  ActivityIndicator,
   Alert,
   Dimensions,
   FlatList,
@@ -53,7 +52,6 @@ type TabNavigationProps = {
   onPress: () => void;
   notifications: number;
 };
-
 
 const TabNavigation: React.FC<TabNavigationProps> = ({
   name,
@@ -96,7 +94,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   // Messages constants
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
-  const [skeletalConversationList, setSkeletalConversationList] = useState<ConversationItem[]>([]);
+  const [skeletalConversationList, setSkeletalConversationList] = useState<
+    ConversationItem[]
+  >([]);
   const [toRead, setToRead] = useState<[]>([]);
 
   // Friend List & Request constants
@@ -109,18 +109,16 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   // Loading handlig
   const skeletalConversation = (id: string) => {
-    return (
-      {
-    id: id,
-    name: "",
-    clerk_id: "",
-    lastMessageContent: "",
-    lastMessageTimestamp: new Date(),
-    active_participants: 0,
-    unread_messages: 0,
-      }
-    )
-  }
+    return {
+      id: id,
+      name: "",
+      clerk_id: "",
+      lastMessageContent: "",
+      lastMessageTimestamp: new Date(),
+      active_participants: 0,
+      unread_messages: 0,
+    };
+  };
 
   //Navigation
   const { tab } = useLocalSearchParams<{ tab?: string }>();
@@ -131,12 +129,13 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   const fetchConversations = async (): Promise<void> => {
     setLoading(true);
     setSkeletalConversationList([
-      skeletalConversation("1"), 
-      skeletalConversation("2"), 
-      skeletalConversation("3"), 
+      skeletalConversation("1"),
+      skeletalConversation("2"),
+      skeletalConversation("3"),
       skeletalConversation("4"),
       skeletalConversation("5"),
-      skeletalConversation("6")])
+      skeletalConversation("6"),
+    ]);
     try {
       const responseConversation = await fetchAPI(
         `/api/chat/getConversations?id=${user!.id}`,
@@ -215,7 +214,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
           method: "GET",
         }
       );
-      
+
       const processedFriendRequests: FriendRequest[] = processFriendRequests(
         response.data
       );
@@ -330,8 +329,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     item: ConversationItem;
   }): React.ReactElement => (
     <TouchableOpacity onPress={() => handleOpenChat(item)}>
-      <View className="flex items-center mb-2 p-4 rounded-[16px]" 
-      style={{ backgroundColor: loading ? "#E5E7EB" : "#FAFAFA"}}
+      <View
+        className="flex items-center mb-2 p-4 rounded-[16px]"
+        style={{ backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }}
       >
         <View className="w-full">
           <View className="flex flex-row justify-between items-center">
@@ -372,8 +372,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderFriend = ({ item }: { item: Friendship }) => (
-    <View className="flex  mb-2 p-4 rounded-[16px]"
-    style={{ backgroundColor: loading ? "#E5E7EB" : "#FAFAFA"}}
+    <View
+      className="flex  mb-2 p-4 rounded-[16px]"
+      style={{ backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }}
     >
       <View className="flex flex-row justify-between items-center mx-2">
         <View>
@@ -415,7 +416,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderIncomingRequest = ({ item }: { item: FriendRequest }) => (
-    <View  className=" py-6 border-b border-gray-200">
+    <View className=" py-6 border-b border-gray-200">
       <View className="flex-row justify-between items-center">
         <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
           <Text className="font-JakartaSemiBold">
@@ -449,7 +450,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             {
               label: "Reject",
               source: icons.close,
-              color: "#DA0808", 
+              color: "#DA0808",
               onPress: async () => {
                 setHandlingFriendRequest(true);
                 const returnStats = await rejectFriendRequest(
@@ -473,18 +474,24 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   const renderOutgoingRequest = ({ item }: { item: FriendRequest }) => (
     <View className=" py-6 border-b border-gray-200">
-      <View >
-        <TouchableOpacity className="flex-column justify-center items-start " onPress={() => handleUserProfile(item.receiverId)}>
+      <View>
+        <TouchableOpacity
+          className="flex-column justify-center items-start "
+          onPress={() => handleUserProfile(item.receiverId)}
+        >
           <Text className="font-JakartaSemiBold">
             {nicknames && item.receiverId in nicknames
               ? nicknames[item.receiverId]
               : item.receiverUsername}
           </Text>
-          <Text className="text-gray-500 italic text-xs">Since {typeof item.createdAt === "string"
-                    ? formatDateTruncatedMonth(
-                        convertToLocal(new Date(item.createdAt))
-                      )
-                    : "No date"}</Text>
+          <Text className="text-gray-500 italic text-xs">
+            Since{" "}
+            {typeof item.createdAt === "string"
+              ? formatDateTruncatedMonth(
+                  convertToLocal(new Date(item.createdAt))
+                )
+              : "No date"}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -551,182 +558,182 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View className="flex-1 bg-gray-100">
-        
-          <View className="flex-1">
-            <View className="flex flex-row justify-between items-center mx-4 mb-4 mt-4">
-              <View className="flex flex-row items-center mr-2">
-                <TouchableOpacity onPress={() => router.back()}>
-                  <AntDesign name="caretleft" size={18} color="0076e3" />
-                </TouchableOpacity>
-                <Text className="font-JakartaBold text-2xl ml-2">
-                  {selectedTab}
-                </Text>
-              </View>
-
-              <View className="flex flex-row items-center mx-4">
-                <TouchableOpacity
-                  onPress={handleCreateNewConversation}
-                  className="w-8 h-8 ml-2 flex justify-center items-center bg-black rounded-full"
-                >
-                  <View className="flex justify-center items-center w-full h-full">
-                    <Text className="text-white text-2xl -mt-[3px]">+</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
+        <View className="flex-1">
+          <View className="flex flex-row justify-between items-center mx-4 mb-4 mt-4">
+            <View className="flex flex-row items-center mr-2">
+              <TouchableOpacity onPress={() => router.back()}>
+                <AntDesign name="caretleft" size={18} color="0076e3" />
+              </TouchableOpacity>
+              <Text className="font-JakartaBold text-2xl ml-2">
+                {selectedTab}
+              </Text>
             </View>
 
-            <ScrollView
-              contentContainerStyle={{ flexGrow: 0 }}
-              contentOffset={{ x: 10, y: 0 }}
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              className="max-h-[50px]"
-            >
-              <View className="flex flex-row items-center justify-between mx-6">
-                <TabNavigation
-                  name="Messages"
-                  focused={selectedTab === "Messages"}
-                  onPress={() => {
-                    setSelectedTab("Messages");
-                    setSearchText("");
-                  }}
-                  notifications={toRead.length}
-                />
-                <TabNavigation
-                  name="Friends"
-                  focused={selectedTab === "Friends"}
-                  onPress={() => {
-                    setSelectedTab("Friends");
-                    setSearchText("");
-                  }}
-                  notifications={friendList.length}
-                />
-                <TabNavigation
-                  name="Requests"
-                  focused={selectedTab === "Requests"}
-                  onPress={() => setSelectedTab("Requests")}
-                  notifications={
-                    allFriendRequests
-                      ? allFriendRequests.sent.length +
-                        allFriendRequests.received.length
-                      : 0
-                  }
-                />
-              </View>
-            </ScrollView>
+            <View className="flex flex-row items-center mx-4">
+              <TouchableOpacity
+                onPress={handleCreateNewConversation}
+                className="w-8 h-8 ml-2 flex justify-center items-center bg-black rounded-full"
+              >
+                <View className="flex justify-center items-center w-full h-full">
+                  <Text className="text-white text-2xl -mt-[3px]">+</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
 
-            {selectedTab === "Messages" && (
-              <FlatList
-                className="rounded-[16px] mx-4"
-                ListHeaderComponent={
-                  <View className="flex flex-row items-center mb-4 mt-4">
-                    <TextInput
-                      className="w-full h-12 px-5 -pt-1 rounded-[16px] bg-gray-200 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Search conversations..."
-                      value={searchText}
-                      onChangeText={(text): void => setSearchText(text)}
-                    />
-                  </View>
-                }
-                data={loading ? skeletalConversationList : filteredConversations}
-                renderItem={renderConversationItem}
-                keyExtractor={(item): string => item.id}
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 0 }}
+            contentOffset={{ x: 10, y: 0 }}
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+            className="max-h-[50px]"
+          >
+            <View className="flex flex-row items-center justify-between mx-6">
+              <TabNavigation
+                name="Messages"
+                focused={selectedTab === "Messages"}
+                onPress={() => {
+                  setSelectedTab("Messages");
+                  setSearchText("");
+                }}
+                notifications={toRead.length}
               />
-            )}
-
-            {selectedTab == "Friends" && (
-              <FlatList
-                className="rounded-[16px] mx-4"
-                ListHeaderComponent={
-                  <View className="flex flex-row items-center mb-4 mt-4">
-                    <TextInput
-                      className="w-full h-12 px-5 -pt-1 rounded-[16px] bg-gray-200 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Search friend..."
-                      value={searchText}
-                      onChangeText={(text): void => setSearchText(text)}
-                    />
-                  </View>
-                }
-                data={filteredFriendList}
-                renderItem={renderFriend}
-                keyExtractor={(item) => item.id.toString()}
-                ListEmptyComponent={
-                  <Text className="text-center text-gray-500">No friends</Text>
+              <TabNavigation
+                name="Friends"
+                focused={selectedTab === "Friends"}
+                onPress={() => {
+                  setSelectedTab("Friends");
+                  setSearchText("");
+                }}
+                notifications={friendList.length}
+              />
+              <TabNavigation
+                name="Requests"
+                focused={selectedTab === "Requests"}
+                onPress={() => setSelectedTab("Requests")}
+                notifications={
+                  allFriendRequests
+                    ? allFriendRequests.sent.length +
+                      allFriendRequests.received.length
+                    : 0
                 }
               />
-            )}
-            {selectedTab == "Requests" && (
-              <View className="flex-1 mt-3 mx-4">
-                {/* Container for both lists, flex-1 to take all available space */}
-                <View className="flex-1 flex-col">
-                  {/* Top half: Incoming Requests */}
-                  <View className="mb-2">
-                    <FlatList
-                      className=" p-4 bg-[#FAFAFA] rounded-[24px]"
-                      data={allFriendRequests?.received}
-                      ListHeaderComponent={
-                        <View>
-                          <Text className="font-JakartaBold text-lg">
-                            Requests{" "}
-                          </Text>
-                          <NotificationBubble
-                            unread={
-                              allFriendRequests?.received
-                                ? allFriendRequests.received.length
-                                : 0
-                            }
-                            color="#ffd12b"
-                          />
-                        </View>
-                      }
-                      renderItem={renderIncomingRequest}
-                      keyExtractor={(item) => item.id.toString()}
-                      ListEmptyComponent={
-                        <Text className="text-left text-gray-500">
-                          No friend requests
-                        </Text>
-                      }
-                      showsVerticalScrollIndicator={false}
-                      scrollEnabled={allFriendRequests && allFriendRequests.received.length > 0}
-                    />
-                  </View>
+            </View>
+          </ScrollView>
 
-                  {/* Bottom half: Outgoing Requests */}
-                  <View className="flex-1 mt-2">
-                    <FlatList
-                      className=" p-4 bg-[#FAFAFA] rounded-[24px]"
-                      data={allFriendRequests?.sent}
-                      ListHeaderComponent={
-                        <View>
-                          <Text className="font-JakartaBold text-lg">
-                            Sent{" "}
-                          </Text>
-                          <NotificationBubble
-                            unread={
-                              allFriendRequests?.sent
-                                ? allFriendRequests.sent.length
-                                : 0
-                            }
-                            color="#ffd12b"
-                          />
-                        </View>
-                      }
-                      renderItem={renderOutgoingRequest}
-                      keyExtractor={(item) => item.id.toString()}
-                      ListEmptyComponent={
-                        <Text className="text-left text-gray-500">
-                          No outgoing friend requests
+          {selectedTab === "Messages" && (
+            <FlatList
+              className="rounded-[16px] mx-4"
+              ListHeaderComponent={
+                <View className="flex flex-row items-center mb-4 mt-4">
+                  <TextInput
+                    className="w-full h-12 px-5 -pt-1 rounded-[16px] bg-gray-200 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Search conversations..."
+                    value={searchText}
+                    onChangeText={(text): void => setSearchText(text)}
+                  />
+                </View>
+              }
+              data={loading ? skeletalConversationList : filteredConversations}
+              renderItem={renderConversationItem}
+              keyExtractor={(item): string => item.id}
+            />
+          )}
+
+          {selectedTab == "Friends" && (
+            <FlatList
+              className="rounded-[16px] mx-4"
+              ListHeaderComponent={
+                <View className="flex flex-row items-center mb-4 mt-4">
+                  <TextInput
+                    className="w-full h-12 px-5 -pt-1 rounded-[16px] bg-gray-200 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Search friend..."
+                    value={searchText}
+                    onChangeText={(text): void => setSearchText(text)}
+                  />
+                </View>
+              }
+              data={filteredFriendList}
+              renderItem={renderFriend}
+              keyExtractor={(item) => item.id.toString()}
+              ListEmptyComponent={
+                <Text className="text-center text-gray-500">No friends</Text>
+              }
+            />
+          )}
+          {selectedTab == "Requests" && (
+            <View className="flex-1 mt-3 mx-4">
+              {/* Container for both lists, flex-1 to take all available space */}
+              <View className="flex-1 flex-col">
+                {/* Top half: Incoming Requests */}
+                <View className="mb-2">
+                  <FlatList
+                    className=" p-4 bg-[#FAFAFA] rounded-[24px]"
+                    data={allFriendRequests?.received}
+                    ListHeaderComponent={
+                      <View>
+                        <Text className="font-JakartaBold text-lg">
+                          Requests{" "}
                         </Text>
-                      }
-                      showsVerticalScrollIndicator={false}
-                      scrollEnabled={allFriendRequests && allFriendRequests?.sent.length > 0}
-                    />
-                  </View>
+                        <NotificationBubble
+                          unread={
+                            allFriendRequests?.received
+                              ? allFriendRequests.received.length
+                              : 0
+                          }
+                          color="#ffd12b"
+                        />
+                      </View>
+                    }
+                    renderItem={renderIncomingRequest}
+                    keyExtractor={(item) => item.id.toString()}
+                    ListEmptyComponent={
+                      <Text className="text-left text-gray-500">
+                        No friend requests
+                      </Text>
+                    }
+                    showsVerticalScrollIndicator={false}
+                    scrollEnabled={
+                      allFriendRequests && allFriendRequests.received.length > 0
+                    }
+                  />
+                </View>
+
+                {/* Bottom half: Outgoing Requests */}
+                <View className="flex-1 mt-2">
+                  <FlatList
+                    className=" p-4 bg-[#FAFAFA] rounded-[24px]"
+                    data={allFriendRequests?.sent}
+                    ListHeaderComponent={
+                      <View>
+                        <Text className="font-JakartaBold text-lg">Sent </Text>
+                        <NotificationBubble
+                          unread={
+                            allFriendRequests?.sent
+                              ? allFriendRequests.sent.length
+                              : 0
+                          }
+                          color="#ffd12b"
+                        />
+                      </View>
+                    }
+                    renderItem={renderOutgoingRequest}
+                    keyExtractor={(item) => item.id.toString()}
+                    ListEmptyComponent={
+                      <Text className="text-left text-gray-500">
+                        No outgoing friend requests
+                      </Text>
+                    }
+                    showsVerticalScrollIndicator={false}
+                    scrollEnabled={
+                      allFriendRequests && allFriendRequests?.sent.length > 0
+                    }
+                  />
                 </View>
               </View>
-            )}
-          </View>
-      
+            </View>
+          )}
+        </View>
       </View>
     </SafeAreaView>
   );

@@ -17,8 +17,10 @@ export async function GET(request: Request) {
       p.like_count, 
       p.report_count,
       p.unread_comments,
+      p.pinned,
       p.color,
-      p.emoji
+      p.emoji,
+      p.recipient_user_id,
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       WHERE u.clerk_id = ${clerkId} AND p.post_type = 'public'

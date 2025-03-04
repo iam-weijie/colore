@@ -23,8 +23,10 @@ export async function GET(request: Request) {
         p.report_count, 
         p.created_at,
         p.unread_comments,
+        p.pinned,
         p.color,
         p.emoji,
+        p.recipient_user_id,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -40,10 +42,12 @@ export async function GET(request: Request) {
       LIMIT ${number};
     `;
 
+   
     const response = await sql(query);
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
+  
   } catch (error) {
     console.error("Error fetching personal posts:", error);
     return new Response(

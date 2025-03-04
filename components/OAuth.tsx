@@ -12,9 +12,9 @@ const OAuth = () => {
   const handleGoogleLogIn = useCallback(async () => {
     try {
       const result = await googleOAuth(startOAuthFlow);
-      console.log("OAuth result", result);
-      console.log("OAuth result code", result.code);
-      console.log("OAuth result message", result.message);
+      // console.log("OAuth result", result);
+      // console.log("OAuth result code", result.code);
+      // console.log("OAuth result message", result.message);
       if (result.code === "session_exists" || result.code === "success") {
         router.push("/root/user-info");
       }

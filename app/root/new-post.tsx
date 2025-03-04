@@ -51,7 +51,10 @@ const NewPost = () => {
         router.push({
           pathname: "/root/preview-post",
           params: {
-            id: "", content: postContent, color: selectedColor.name, emoji: selectedEmoji
+            id: "", 
+            content: postContent, 
+            color: selectedColor.name, 
+            emoji: selectedEmoji
           }
         })
         setPostContent("");

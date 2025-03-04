@@ -108,7 +108,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   useFocusEffect(
     useCallback(() => {
       if (queueRefresh && hasNavigatedAway && isOwnProfile && handleUpdate) {
-        handleUpdate(selectedPost?.id || -1, saveStatus);
+        handleUpdate(selectedPost?.id || -1, isSaved);
       }
     }, [hasNavigatedAway, queueRefresh, handleUpdate])
   );

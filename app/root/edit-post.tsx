@@ -25,7 +25,7 @@ import { PostItColor } from "@/types/type";
 
 const EditPost = () => {
   const { user } = useUser();
-  const { postId, content, color} = useLocalSearchParams()
+  const { postId, content, color, emoji} = useLocalSearchParams()
   const [postContent, setPostContent] = useState<string>(`${content}`);
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
@@ -34,7 +34,7 @@ const EditPost = () => {
       (c) => c.name === color
     ) as PostItColor
   );
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
 
@@ -54,7 +54,10 @@ const EditPost = () => {
     router.push({
       pathname: "/root/preview-post",
       params: {
-        id: postId, content: content, color: color, emoji: selectedEmoji
+        id: postId, 
+        content: content, 
+        color: color, 
+        emoji: selectedEmoji
       }
     })
     
