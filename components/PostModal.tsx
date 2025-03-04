@@ -62,7 +62,6 @@ const CarrouselIndicator = ({ id, index }: { id: number; index: number }) => {
     }
   }, [id, index]);
 
-
   // Animated styles
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -387,7 +386,7 @@ const PostModal: React.FC<PostModalProps> = ({
     setTimeout(() => {
       if (viewRef.current) {
         viewRef.current.measure((x, y, width, height) => {
-          console.log(x, y, width, height);
+          // console.log(x, y, width, height);
         });
       }
     }, 500); // Small delay to ensure the view is ready

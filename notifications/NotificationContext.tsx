@@ -73,7 +73,7 @@ export const NotificationProvider = ({
     // Listener for when a notification is tapped (this works even in background)
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log("Notification Clicked:", response);
+        // console.log("Notification Clicked:", response);
         const { notification } = response;
         const { data } = notification.request.content; // Get the custom data
 

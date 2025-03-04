@@ -6,7 +6,7 @@ export async function DELETE(request: Request) {
     const url = new URL(request.url);
     const postId = url.searchParams.get("id");
 
-    console.log("Received DELETE request for post comments.");
+    // console.log("Received DELETE request for post comments.");
 
     const response = await sql`
     DELETE FROM comments WHERE post_id = ${postId};
