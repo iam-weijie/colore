@@ -274,7 +274,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const AlgorithmRandomPosition = (isPinned: boolean) => {
 
       if (isPinned) {
-        return {top: 60 + Math.random() * 15, left: 40 + Math.random() * Math.sqrt(15) }
+        return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
       } else {
         const top = ((Math.random() - 0.5) * 2) * screenHeight / 4 + screenHeight / 4;
         const left = ((Math.random() - 0.5) * 2) * screenWidth / 4 + screenWidth / 4
