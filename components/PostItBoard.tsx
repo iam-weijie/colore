@@ -1,7 +1,7 @@
 import { useGlobalContext } from "@/app/globalcontext";
 import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
-import { temporaryColors } from "@/constants";
+import { icons, temporaryColors } from "@/constants";
 import { Post, PostWithPosition } from "@/types/type";
 import { SignedIn } from "@clerk/clerk-expo";
 import { useEffect, useRef, useState, useMemo } from "react";
@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  Image, 
   PanResponder,
   RefreshControl,
   ScrollView,
@@ -58,6 +59,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   const [fontColor, setFontColor] = useState<string>("#0000ff");
   const { stacks, setStacks } = useGlobalContext();
   const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(null);
+  const [isPinned, setIsPinned] = useState<boolean>(post.pinned)
 
   const hasUpdatedPosition = useRef(false);
 
@@ -91,6 +93,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
 
   // Original `useEffect` for handling position updates
   useEffect(() => {
+    if (isPinned) return;
     const listenerId = position.addListener(({ x, y }) => {
       updatePosition(x, y, post);
     });
@@ -99,8 +102,12 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       position.removeListener(listenerId);
     };
   }, [position, updatePosition, post]);
+  useEffect(() => {
+    //setIsPinned(post.pinned)
+  }, [post])
 
   useEffect(() => {
+    if (isPinned) return;
     if (stacks.length === 1 && newPosition && !hasUpdatedPosition.current) {
       const dx =
         newPosition.coordinates.x_coordinate -
@@ -138,21 +145,22 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        setIsDragging(true);
+        
         updateIndex();
+        if (isPinned) {
+          onPress()
+          return
+        };
+        setIsDragging(true);
         position.extractOffset();
       },
-      onPanResponderMove: Animated.event(
-        [
-          null,
-          {
-            dx: position.x,
-            dy: position.y,
-          },
-        ],
-        { useNativeDriver: false }
-      ),
+      onPanResponderMove: (event, gestureState) => {
+        if (!isPinned) {
+          position.setValue({ x: gestureState.dx, y: gestureState.dy });
+        }
+      },
       onPanResponderRelease: (event, gestureState) => {
+        if (isPinned) return;
         const dx = gestureState.dx;
         const dy = gestureState.dy;
         position.extractOffset();
@@ -173,13 +181,25 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
         opacity: 1,
         position: "absolute",
         top: post.position.top,
-        left: post.position.left,
+        left: post.position.left
       }}
     >
       <TouchableWithoutFeedback onPress={onPress}>
         <PostIt color={post.color || "yellow"} />
       </TouchableWithoutFeedback>
-
+      {isPinned && (
+        <View className="absolute text-black h-full -top-2 -left-2">
+          <View className="p-[6px] rounded-full bg-[#fafafa] flex-row items-center justify-start">
+          <Image 
+           source={icons.pin}
+           tintColor="black"
+           resizeMode="contain"
+           className="w-7 h-7"
+           style={{ opacity: 0.8 }}/>
+           </View>
+        
+      </View>
+      )}
       {!showText && (
         <View className="absolute text-black w-full h-full items-center justify-center">
           <Text style={{ fontSize: 50 }}>{post.emoji && post.emoji}</Text>
@@ -454,6 +474,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       unread_comments: post.unread_comments || 0,
       color: post.color,
       emoji: post.emoji,
+      pinned: post.pinned,
+      recipient_user_id: post.recipient_user_id,
       firstname: post.firstname,
       username: post.username,
       city: post.city,
@@ -466,7 +488,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   // HANDLING MODAL
   const handleCloseModal = async () => {
-    if (selectedPost) {
+    if (selectedPost && !selectedPost.pinned) {
       const postId = selectedPost.id;
 
       setSelectedPost(null);
@@ -495,8 +517,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
       const existingPostIds = postsWithPosition.map((post) => post.id);
 
-      console.log("existing", existingPostIds);
-
       const newPost = await handleNewPostFetch(existingPostIds);
 
       if (newPost && !existingPostIds.includes(newPost.id)) {
@@ -516,7 +536,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
       // Wait for React state updates to finish before using remainingPosts
       await new Promise((resolve) => setTimeout(resolve, 0));
-    }
+    } else { setSelectedPost(null) }
   };
 
   const handleReloadPosts = () => {

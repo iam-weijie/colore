@@ -83,8 +83,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       const newPostWithPosition = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 500,
-          left: Math.random() * 250,
+          top: Math.random() * 775 / 2,
+          left: Math.random() * 475 / 2,
         },
       }));
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];

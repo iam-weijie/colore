@@ -148,6 +148,7 @@ const PostModal: React.FC<PostModalProps> = ({
   useEffect(() => {
     if (!user?.id || !post[currentPostIndex]?.id) return;
     fetchLikeStatus();
+    setIsPinned(post[currentPostIndex]?.pinned)
   }, [post, currentPostIndex, user?.id]);
 
   const dateCreated = convertToLocal(
@@ -272,9 +273,9 @@ const PostModal: React.FC<PostModalProps> = ({
     try {
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
       const savePostsList = response.data[0].saved_posts;
-      const savedStatus = savePostsList.includes(
+      const savedStatus = savePostsList?.includes(
         `${post[currentPostIndex]?.id}`
-      );
+      ) ?? false;
       setSavedPosts(savePostsList);
       setIsSaved(savedStatus);
     } catch (error) {
@@ -456,7 +457,8 @@ const PostModal: React.FC<PostModalProps> = ({
       console.error("Failed to update handlepin message:", error);
     } finally {
       setIsPinned((prevIsPinned) => !prevIsPinned);
-      handleUpdate();
+      handleCloseModal
+      handleUpdate;
     }
   };
 
@@ -557,6 +559,12 @@ const PostModal: React.FC<PostModalProps> = ({
             source: isSaved ? icons.close : icons.bookmark,
             onPress: () => handleSavePost(post[currentPostIndex]?.id),
           },
+          {
+            label: "Delete",
+            source: icons.trash,
+            color: "#DA0808",
+            onPress: handleDeletePress,
+          }
         ]
       : [
           {

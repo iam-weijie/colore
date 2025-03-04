@@ -34,7 +34,7 @@ const EditPost = () => {
       (c) => c.name === color
     ) as PostItColor
   );
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
 
@@ -55,7 +55,7 @@ const EditPost = () => {
       pathname: "/root/preview-post",
       params: {
         id: postId, 
-        content: content, 
+        content: postContent, 
         color: color, 
         emoji: selectedEmoji
       }
