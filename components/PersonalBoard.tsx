@@ -75,7 +75,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     }
     else {
       const viewerId = user!.id;
-      const maxPostOnScreen = postRefIDs.length == 0 ? 4 : Math.min(postRefIDs.length  + 4, 8)
+      const maxPostOnScreen = postRefIDs.length == 0 ? 4 : Math.min(postRefIDs.length  + 4, 7)
       setMaxPosts(maxPostOnScreen ); 
     
       const response = await fetchAPI(
