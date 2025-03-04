@@ -3,9 +3,15 @@ import { neon } from "@neondatabase/serverless";
 export async function POST(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
-    const { content, clerkId, recipientId, color = "yellow", emoji } = await request.json();
+    const {
+      content,
+      clerkId,
+      recipientId,
+      color = "yellow",
+      emoji,
+    } = await request.json();
 
-    console.log(content, clerkId, recipientId, color, emoji)
+    // console.log(content, clerkId, recipientId, color, emoji);
 
     if (!content || !clerkId || !recipientId) {
       return new Response(
@@ -40,7 +46,7 @@ export async function POST(request: Request) {
       RETURNING id, color, recipient_user_id
     `;
 
-    console.log("personal post", response)
+    // console.log("personal post", response);
     return new Response(JSON.stringify({ data: response }), {
       status: 201,
     });

@@ -1,29 +1,21 @@
+import { useGlobalContext } from "@/app/globalcontext";
 import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
 import { temporaryColors } from "@/constants";
-import { useGlobalContext } from "@/app/globalcontext";
-import { icons } from "@/constants";
 import { Post, PostWithPosition } from "@/types/type";
-import { useNotification } from '@/notifications/NotificationContext';
-import { sendPushNotification } from '@/notifications/PushNotificationService';
-import { SignedIn, useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
+import { SignedIn } from "@clerk/clerk-expo";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   Easing,
-  Image,
   PanResponder,
   RefreshControl,
   ScrollView,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 type MappingPostitProps = {
   id: number;
@@ -41,8 +33,6 @@ type DraggablePostItProps = {
   forceStack: (id: number) => MappingPostitProps;
   showText?: boolean;
 };
-
-
 
 const MappingPostIt = ({ id, coordinates }: MappingPostitProps) => {
   return {
@@ -67,7 +57,9 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [fontColor, setFontColor] = useState<string>("#0000ff");
   const { stacks, setStacks } = useGlobalContext();
-  const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(null);
+  const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(
+    null
+  );
 
   const hasUpdatedPosition = useRef(false); // Tracks if we have already updated position
 
@@ -79,61 +71,61 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
     const listenerId = position.addListener(({ x, y }) => {
       updatePosition(x, y, post);
     });
-  
+
     const newStackedPosition = forceStack(post.id);
-  
+
     // Handle `prev` being undefined
     setNewPosition((prev) => {
-
       const prevX = prev?.coordinates?.x_coordinate ?? 0; // Default to null
       const prevY = prev?.coordinates?.y_coordinate ?? 0;
-  
-      if (Math.abs(prevX - newStackedPosition.coordinates.x_coordinate) < 1 &&
-      Math.abs(prevY - newStackedPosition.coordinates.y_coordinate) < 1) {
+
+      if (
+        Math.abs(prevX - newStackedPosition.coordinates.x_coordinate) < 1 &&
+        Math.abs(prevY - newStackedPosition.coordinates.y_coordinate) < 1
+      ) {
         return prev; // No change, do not trigger re-render
       }
       return newStackedPosition;
     });
-  
+
     return () => {
       position.removeListener(listenerId);
     };
   }, [post.id, updatePosition, forceStack]);
-  
 
   useEffect(() => {
     //console.log("stack", stacks, stacks.length);
-  
+
     if (stacks.length === 1 && newPosition && !hasUpdatedPosition.current) {
-      
-      const dx = newPosition.coordinates.x_coordinate - post.position.left - position.x.__getValue();
-      const dy = newPosition.coordinates.y_coordinate - post.position.top - position.y.__getValue();
-      
-        // console.log("id", post.id, "dx", dx, "dy", dy);
-      
-      
+      const dx =
+        newPosition.coordinates.x_coordinate -
+        post.position.left -
+        position.x.__getValue();
+      const dy =
+        newPosition.coordinates.y_coordinate -
+        post.position.top -
+        position.y.__getValue();
+
+      // console.log("id", post.id, "dx", dx, "dy", dy);
+
       if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-      //  console.log( post.id, "has started moving to", newPosition.coordinates.x_coordinate, newPosition.coordinates.y_coordinate, "from", post.position.left, post.position.top, "with velocity", dx, dy )
-      Animated.timing(position, {
-        toValue: { x: dx + Math.random() * 15, y: dy + Math.random() * 15},
-        duration: 150, // Adjust duration for smoothness
-        easing: Easing.out(Easing.quad), // Adjust easing for a more natural feel
-        useNativeDriver: false, // Cannot use native driver for XY values
-      }).start();
-      hasUpdatedPosition.current = true; // Prevent future re-executions
+        //  console.log( post.id, "has started moving to", newPosition.coordinates.x_coordinate, newPosition.coordinates.y_coordinate, "from", post.position.left, post.position.top, "with velocity", dx, dy )
+        Animated.timing(position, {
+          toValue: { x: dx + Math.random() * 15, y: dy + Math.random() * 15 },
+          duration: 150, // Adjust duration for smoothness
+          easing: Easing.out(Easing.quad), // Adjust easing for a more natural feel
+          useNativeDriver: false, // Cannot use native driver for XY values
+        }).start();
+        hasUpdatedPosition.current = true; // Prevent future re-executions
       }
-      
-  
-      
     }
-  }, [forceStack]); 
+  }, [forceStack]);
 
-
-  useEffect(() =>{
-    if(stacks.length == 0) {
-      hasUpdatedPosition.current = false; 
+  useEffect(() => {
+    if (stacks.length == 0) {
+      hasUpdatedPosition.current = false;
     }
-  }, [stacks])
+  }, [stacks]);
 
   useEffect(() => {
     getFontColorHex(post.color);
@@ -191,9 +183,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
 
       {!showText && (
         <View className="absolute text-black w-full h-full items-center justify-center">
-          <Text style={{ fontSize: 50 }}>
-            {post.emoji && post.emoji}
-          </Text>
+          <Text style={{ fontSize: 50 }}>{post.emoji && post.emoji}</Text>
         </View>
       )}
       {showText && (
@@ -218,7 +208,6 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   );
 };
 
-
 declare interface PostItBoardProps {
   userId: string;
   handlePostsRefresh: () => Promise<Post[]>;
@@ -234,7 +223,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   handlePostsRefresh,
   handleNewPostFetch,
   showPostItText = false,
-  invertColors = false
+  invertColors = false,
 }) => {
   const [postsWithPosition, setPostsWithPosition] = useState<
     PostWithPosition[]
@@ -251,17 +240,15 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     return null;
   }
 
-
   const fetchRandomPosts = async () => {
-
     try {
       const posts: Post[] = await handlePostsRefresh();
       // set positions of posts
       const postsWithPositions = posts.map((post: Post) => ({
         ...post,
         position: {
-          top: Math.random() * 775 / 2,
-          left: Math.random() * 475 / 2,
+          top: (Math.random() * 775) / 2,
+          left: (Math.random() * 475) / 2,
         },
       }));
       // Initialize each post as a stack
@@ -315,28 +302,21 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         }
       }
     });
-    
-     // Remove empty stacks
-     updatedStacks = updatedStacks.filter((stack) => stack.ids.length > 0);
 
-    
+    // Remove empty stacks
+    updatedStacks = updatedStacks.filter((stack) => stack.ids.length > 0);
 
-     // Update stacks by removing the moving post from any stack it belongs to
-      updatedStacks = updatedStacks.map((stack) => ({
-        ...stack,
-        ids: stack.ids.filter((id: number) => id !== postId),
-        elements:
-          stack.elements.length > 0
-            ? stack.elements.filter(
-                (post: PostWithPosition) => post.id !== postId
-              )
-            : stack.elements,
-      }));
-  
- 
-
-   
-
+    // Update stacks by removing the moving post from any stack it belongs to
+    updatedStacks = updatedStacks.map((stack) => ({
+      ...stack,
+      ids: stack.ids.filter((id: number) => id !== postId),
+      elements:
+        stack.elements.length > 0
+          ? stack.elements.filter(
+              (post: PostWithPosition) => post.id !== postId
+            )
+          : stack.elements,
+    }));
 
     // Check if postsToCombine should form a new stack or merge with existing ones
     const affectedStacks = updatedStacks.filter((stack) =>
@@ -421,8 +401,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     post: PostWithPosition
   ) => {
     const id = post.id;
-    const x = post.position.left + dx
-    const y = post.position.top + dy
+    const x = post.position.left + dx;
+    const y = post.position.top + dy;
 
     const postItCoordinates = MappingPostIt({
       id: id,
@@ -432,14 +412,13 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       ...prevMap.filter((p) => p.id !== id),
       postItCoordinates,
     ]);
-
   };
 
   useEffect(() => {
     //console.log("map", maps)
     //console.log("stacks1.5", stacks)
-   //console.log("post with postion", postsWithPosition.map((p) => p.position))
-  }, [maps])
+    //console.log("post with postion", postsWithPosition.map((p) => p.position))
+  }, [maps]);
 
   const reorderPost = (topPost: PostWithPosition) => {
     setPostsWithPosition((prevPosts: PostWithPosition[]) => [
@@ -462,8 +441,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   }, []);
 
   const forceStack = (id: number) => {
-    return maps.find((p) => p.id == id)
-  }
+    return maps.find((p) => p.id == id);
+  };
   const handlePostPress = (post: PostWithPosition) => {
     // Ensure all required properties are present
     const formattedPost: PostWithPosition = {
@@ -486,20 +465,19 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     setSelectedPost(formattedPost);
   };
 
-
   // HANDLING MODAL
   const handleCloseModal = async () => {
     if (selectedPost) {
-      const postId = selectedPost.id
+      const postId = selectedPost.id;
 
-       setSelectedPost(null);
+      setSelectedPost(null);
       //("Post to remove", selectedPost.id)
       setPostsWithPosition((prevPosts) => {
-        const updatePosts = prevPosts.filter((post) => post.id !== postId)
-        
-        return updatePosts}
-      );
-      
+        const updatePosts = prevPosts.filter((post) => post.id !== postId);
+
+        return updatePosts;
+      });
+
       setStacks((prevStacks) => {
         const updatedStacks = prevStacks.map((stack) => ({
           ...stack,
@@ -509,16 +487,16 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       });
 
       setMap((prevMap) => {
-        const updateMap = prevMap.filter((c) => c.id != postId)
+        const updateMap = prevMap.filter((c) => c.id != postId);
 
-        return updateMap
+        return updateMap;
       });
 
       //("remainging right after", stacks)
-  
+
       const existingPostIds = postsWithPosition.map((post) => post.id);
-      
-      console.log("existing", existingPostIds)
+
+      console.log("existing", existingPostIds);
 
       const newPost = await handleNewPostFetch(existingPostIds);
 
@@ -526,21 +504,19 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         const newPostWithPosition: PostWithPosition = {
           ...newPost,
           position: {
-            top: Math.random() * 775 / 2,
-            left: Math.random() * 475 / 2
+            top: (Math.random() * 775) / 2,
+            left: (Math.random() * 475) / 2,
           },
         };
         setPostsWithPosition((prevPosts) => [
           ...prevPosts,
           newPostWithPosition,
         ]);
-        updatePostPosition(0, 0, newPostWithPosition)
+        updatePostPosition(0, 0, newPostWithPosition);
       }
 
       // Wait for React state updates to finish before using remainingPosts
       await new Promise((resolve) => setTimeout(resolve, 0));
-  
-      
     }
   };
 
@@ -550,8 +526,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   };
 
   const handleGatherPosts = () => {
-    
-    const ref = maps[maps.length - 1].coordinates
+    const ref = maps[maps.length - 1].coordinates;
     const newPostsPostions = postsWithPosition.map((post) => ({
       id: post.id,
       coordinates: {
@@ -564,62 +539,64 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     //console.log("new posts", newPostsPostions)
   };
 
-
   //console.log("remaingring loaded", stacks)
   return (
     <View className="flex-1 mb-[80px]">
       <SignedIn>
-      
-      <TouchableWithoutFeedback className="flex-1 w-full h-full" onLongPress={handleGatherPosts}>
-        { error ? (
-          <Text>{error}</Text>
-        ) : (
-          <View className="flex-1 w-full h-full">
-             { /*loading */ false && (
-              
-            <View className="flex-[0.8] justify-center items-center">
-              <ActivityIndicator size="large" color="black" />
-            </View>
-          ) }
-            <ScrollView
-              refreshControl={
-                <RefreshControl
-                  refreshing={loading}
-                  onRefresh={handleReloadPosts}
-                />
+        <TouchableWithoutFeedback
+          className="flex-1 w-full h-full"
+          onLongPress={handleGatherPosts}
+        >
+          {error ? (
+            <Text>{error}</Text>
+          ) : (
+            <View className="flex-1 w-full h-full">
+              {
+                /*loading */ false && (
+                  <View className="flex-[0.8] justify-center items-center">
+                    <ActivityIndicator size="large" color="black" />
+                  </View>
+                )
               }
-              style={{ position: "absolute", width: "100%", height: "100%" }}
-            />
-            
-            <View className="relative">
-              {postsWithPosition.map((post, index) => {
-                return (
-                  <DraggablePostIt
-                    key={post.id}
-                    updateIndex={() => reorderPost(post)}
-                    updatePosition={(dx, dy, post) =>
-                      updatePostPosition(dx, dy, post)
-                    }
-                    post={post}
-                    forceStack={forceStack}
-                    onPress={() => handlePostPress(post)}
-                    showText={showPostItText}
+              <ScrollView
+                refreshControl={
+                  <RefreshControl
+                    refreshing={loading}
+                    onRefresh={handleReloadPosts}
                   />
-                );
-              })}
-            </View>
-          
-            {selectedPost && (
-              <PostModal
-                isVisible={!!selectedPost}
-                selectedPost={selectedPost}
-                handleCloseModal={handleCloseModal}
-                invertedColors={invertColors}
+                }
+                style={{ position: "absolute", width: "100%", height: "100%" }}
               />
-            )}
-          </View>
-        )}
-         </TouchableWithoutFeedback>
+
+              <View className="relative">
+                {postsWithPosition.map((post, index) => {
+                  return (
+                    <DraggablePostIt
+                      key={post.id}
+                      updateIndex={() => reorderPost(post)}
+                      updatePosition={(dx, dy, post) =>
+                        updatePostPosition(dx, dy, post)
+                      }
+                      post={post}
+                      forceStack={forceStack}
+                      onPress={() => handlePostPress(post)}
+                      showText={showPostItText}
+                    />
+                  );
+                })}
+              </View>
+
+              {selectedPost && (
+                <PostModal
+                  isVisible={!!selectedPost}
+                  selectedPost={selectedPost}
+                  handleCloseModal={handleCloseModal}
+                  invertedColors={invertColors}
+                />
+              )}
+            </View>
+          )}
+        </TouchableWithoutFeedback>
       </SignedIn>
     </View>
   );
