@@ -1,18 +1,31 @@
 import { Post } from "@/types/type";
-
 import PostItBoard from "@/components/PostItBoard";
 import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { icons } from "@/constants";
 import { router } from "expo-router";
-import { Image, SafeAreaView, TouchableOpacity, View } from "react-native";
+import { Image, SafeAreaView, TouchableOpacity, View, Alert } from "react-native";
+import { requestTrackingPermission } from 'react-native-tracking-transparency';
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
+
+  const requestPermission = async () => {
+    const status = await requestTrackingPermission();
+    if (status === 'authorized') {
+      console.log('Tracking permission granted!');
+    } else {
+      console.log('Tracking permission denied or restricted.');
+    }
+  };
+  
+  useEffect(() => {
+    requestPermission();
+  }, []);
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
