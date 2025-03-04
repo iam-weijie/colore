@@ -16,7 +16,6 @@ export async function PATCH(request: Request) {
       WHERE id=${postId}
       RETURNING *;
     `;
-
     return new Response(JSON.stringify({ data: response }), {
       status: 201,
     });

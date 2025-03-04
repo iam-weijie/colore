@@ -233,7 +233,6 @@ const PostModal: React.FC<PostModalProps> = ({
       console.error("Failed to update like status:", error);
     } finally {
       setIsLoadingLike(false);
-      handleUpdate();
     }
   };
 
@@ -327,10 +326,7 @@ const PostModal: React.FC<PostModalProps> = ({
       Alert.alert("Post deleted successfully");
       handleCloseModal();
 
-      if (typeof handleUpdate === "function") {
-        // call only if defined (aka refresh needed after deleting post)
-        await handleUpdate();
-      }
+      
     } catch (error) {
       console.error("Failed to delete post:", error);
       Alert.alert("Error", "Failed to delete post. Please try again.");
@@ -371,7 +367,7 @@ const PostModal: React.FC<PostModalProps> = ({
       console.error("Failed to update unread message:", error);
     } finally {
       setIsSaved((prevIsSaved) => !prevIsSaved);
-      handleUpdate();
+      //handleUpdate
     }
   };
 
@@ -456,9 +452,9 @@ const PostModal: React.FC<PostModalProps> = ({
     } catch (error) {
       console.error("Failed to update handlepin message:", error);
     } finally {
+      handleUpdate(!isPinned)
       setIsPinned((prevIsPinned) => !prevIsPinned);
-      handleCloseModal
-      handleUpdate;
+      handleCloseModal;
     }
   };
 
@@ -632,7 +628,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
               <ScrollView>
                 <Text className="text-[16px] p-1 my-4 font-Jakarta">
-                  {post[currentPostIndex]?.content}
+                 {post[currentPostIndex]?.content}
                 </Text>
               </ScrollView>
               <View className="my-2 flex-row justify-between items-center">

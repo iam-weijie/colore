@@ -31,7 +31,9 @@ export async function GET(request: Request) {
       FROM posts p
       WHERE p.id = ANY(${ids}::int[])
     `;
-
+console.log("pinned updated", response.map((p) => {
+  return {id: p.id, pinned: p.pinned}
+}))
     // Check if posts were found
     if (response.length === 0) {
       return new Response(
