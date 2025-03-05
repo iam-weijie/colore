@@ -257,6 +257,7 @@ const Layout = () => {
     }, 5000);
 
     return () => clearInterval(interval); // Cleanup interval when the component unmounts
+
   }, [notifications, user]);
 
   return (
