@@ -29,8 +29,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.arthur1235.colore",
-      "permissions": ["NOTIFICATIONS"],
-      "useNextNotificationsApi": true
+      "permissions": ["NOTIFICATIONS"]
     },
     "web": {
       "bundler": "metro",

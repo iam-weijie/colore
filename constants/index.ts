@@ -22,7 +22,6 @@ import settings from "@/assets/icons/settings.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import login from "@/assets/images/login_squares.png";
-import signup from "@/assets/images/signup.png";
 import { PostItColor } from "@/types/type";
 
 export const icons = {
@@ -52,7 +51,6 @@ export const icons = {
 };
 
 export const images = {
-  signup,
   login,
 };
 
