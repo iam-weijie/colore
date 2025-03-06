@@ -255,7 +255,7 @@ const PostModal: React.FC<PostModalProps> = ({
       const nicknames = response.data[0].nicknames || [];
       return findUserNickname(nicknames, post!.clerk_id) === -1
         ? ""
-        : nicknames[findUserNickname(nicknames, post!.clerk_id)][1];
+        : nicknames[findUserNickname(nicknames, post!.user_id)][1];
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     }
@@ -339,7 +339,7 @@ const PostModal: React.FC<PostModalProps> = ({
       pathname: "/root/post/[id]",
       params: {
         id: post[currentPostIndex]?.id,
-        clerk_id: post[currentPostIndex]?.clerk_id,
+        clerk_id: post[currentPostIndex]?.user_id || post[currentPostIndex]?.clerk_id,
         content: post[currentPostIndex]?.content,
         username: post[currentPostIndex]?.username,
         like_count: post[currentPostIndex]?.like_count,

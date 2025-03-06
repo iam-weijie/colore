@@ -189,12 +189,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchUserData();
-      setIsFocusedOnProfile(true);
-    }, [])
-  );
+  useEffect(() => {
+    fetchUserData();
+  }, [isFocusedOnProfile]);
 
   const handleAddNickname = () => {
     setStateVars({

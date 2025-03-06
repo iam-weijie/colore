@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useNavigationContext } from "./NavigationContext";
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   posts,
@@ -28,6 +29,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   const [queueRefresh, setQueueRefresh] = useState(false);
   const [hasNavigatedAway, setHasNavigatedAway] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
+  const { stateVars, setStateVars } = useNavigationContext();
 
   const sortByUnread = (a: Post, b: Post) => {
     if (a.unread_comments > 0 && b.unread_comments === 0) {
@@ -68,10 +70,6 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     <TouchableOpacity
       onPress={() => {
         setSelectedPost(item);
-        if (isOwnProfile && item.unread_comments > 0) {
-          setQueueRefresh(true);
-        }
-        setHasNavigatedAway(false);
       }}
     >
       <View
@@ -107,17 +105,13 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
   useFocusEffect(
     useCallback(() => {
-      if (queueRefresh && hasNavigatedAway && isOwnProfile && handleUpdate) {
+      if (stateVars.queueRefresh && stateVars.hasNavigatedAway && isOwnProfile && handleUpdate) {
         handleUpdate(selectedPost?.id || -1, isSaved);
+        setStateVars({ ...stateVars, queueRefresh: false }); // Reset queueRefresh to prevent infinite loop
       }
-    }, [hasNavigatedAway, queueRefresh, handleUpdate])
+    }, [stateVars.hasNavigatedAway, stateVars.queueRefresh, handleUpdate, isOwnProfile, selectedPost, isSaved])
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => setHasNavigatedAway(true);
-    }, [])
-  );
 
   return (
     <View className=" max-h-[100%]">
