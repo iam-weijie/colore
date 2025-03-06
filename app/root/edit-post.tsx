@@ -56,7 +56,7 @@ const EditPost = () => {
       params: {
         id: postId, 
         content: postContent, 
-        color: color, 
+        color: selectedColor.name, 
         emoji: selectedEmoji
       }
     })
