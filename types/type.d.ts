@@ -3,6 +3,7 @@ import { TextInputProps, TouchableOpacityProps } from "react-native";
 declare interface Post {
   id: number;
   clerk_id: string;
+  user_id?: string; // this is supposed to be a temporary fix to prevent weird type mismatch errors
   firstname: string;
   username: string;
   content: string;
@@ -105,7 +106,7 @@ declare interface UserPostsGalleryProps {
   profileUserId: string;
   handleUpdate?: (id: number, isRemove: boolean) => void;
   query?: string;
-  header: React.ReactElement;
+  header?: React.ReactElement;
 }
 
 declare interface UserProfileProps {
@@ -139,8 +140,8 @@ declare interface InputFieldProps extends TextInputProps {
 }
 
 declare interface NotificationBubbleProps {
-unread: number,
-color: string
+  unread: number;
+  color: string;
 }
 
 declare interface PaymentProps {
@@ -176,7 +177,7 @@ declare interface RawFriendRequest {
   user_id2: string;
   requestor: "UID1" | "UID2";
   createdAt: Date;
-  notified: boolean,
+  notified: boolean;
   user1_username: string;
   user2_username: string;
 }
@@ -186,7 +187,7 @@ declare interface FriendRequest {
   senderId: string;
   receiverId: string;
   createdAt: Date;
-  notified: boolean,
+  notified: boolean;
   senderUsername: string;
   receiverUsername: string;
 }
