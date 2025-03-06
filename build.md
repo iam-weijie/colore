@@ -27,3 +27,4 @@ https://developer.android.com/studio/publish/app-signing
 
 - The emulator does not load the app, instead it gets stuck on the initial splashscreen.
 - The `eas build` command doesn't work (i.e. cannot build on Expo servers), as certain Java dependencies are not available. For now we will have to deal with building locally.
+- Ensure that the app is using `react-native-clipboard/clipboard` and not `react-native-community/clipboard` (inside of `package.json`). The latter will cause an error when loading dependencies.
