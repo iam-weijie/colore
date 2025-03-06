@@ -7,6 +7,8 @@ import Circle from "@/components/Circle";
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
+import AppleSignIn from "@/components/AppleSignIn";
+import { Platform } from "react-native";
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 
@@ -223,7 +225,8 @@ const SignUp = () => {
           className="mt-8 bg-gradient-to-r from-yellow-400 to-orange-400"
         />
 
-        <OAuth />
+        {Platform.OS === "android" && <OAuth />}
+        {Platform.OS === "ios" && <AppleSignIn />}
 
         <Text className="text-base text-center text-general-200 mt-5">
           Already have an account?{" "}

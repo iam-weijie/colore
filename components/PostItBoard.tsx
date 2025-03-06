@@ -258,7 +258,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [postsWithPosition, setPostsWithPosition] = useState<
     PostWithPosition[]
   >([]);
-  const { stacks, setStacks } = useGlobalContext(); // Add more global constants here
+  const { isIpad, stacks, setStacks } = useGlobalContext(); // Add more global constants here
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<PostWithPosition | null>(
@@ -271,19 +271,30 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     return null;
   }
 
+  const screenHeight = Dimensions.get("screen").height;
+  const screenWidth = Dimensions.get("screen").width;
+
   const AlgorithmRandomPosition = (isPinned: boolean) => {
 
-      if (isPinned) {
-        return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
-      } else {
-        const top = ((Math.random() - 0.5) * 2) * screenHeight / 4 + screenHeight / 4;
-        const left = ((Math.random() - 0.5) * 2) * screenWidth / 4 + screenWidth / 4
-        return {
-          top:  top,
-          left: left
-        }
+    if (isPinned) {
+      return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
+    } else if (isIpad) {
+      const top = ((Math.random() - 0.5) * 2) * screenHeight / 3 + screenHeight / 4;
+      const left = ((Math.random() - 0.5) * 2) * screenWidth / 3 + screenWidth - screenWidth / 1.75
+      return {
+        top:  top,
+        left: left
       }
-  }
+    }
+     else {
+      const top = ((Math.random() - 0.5) * 2) * screenHeight / 4 + screenHeight / 4;
+      const left = ((Math.random() - 0.5) * 2) * screenWidth / 4 + screenWidth / 4
+      return {
+        top:  top,
+        left: left
+      }
+    }
+}
 
   const fetchRandomPosts = async () => {
     try {
@@ -514,36 +525,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   // HANDLING MODAL
 
-const handleUpdatePosts = async () => {
-  const existingPostIds = postsWithPosition.map((post) => post.id);
-
-  try {
-    const response = await fetchAPI(`/api/posts/getPostsById?ids=${existingPostIds}`);
-    const updatedPosts: Post[] = response.data;
-
-    const updatedPostsMap = new Map(updatedPosts.map(post => [post.id, post]));
-
-    // Create a new array with updated posts
-    const updatedPostsWithPosition = postsWithPosition.map(post => {
-      const updatedPost = updatedPostsMap.get(post.id);
-      if (updatedPost) {
-        return {
-          ...updatedPost,
-          position: post.position, // Retain the original position
-        };
-      }
-      return post;
-    });
-
-    // Update the state with the new array
-    setPostsWithPosition(updatedPostsWithPosition);
-      // Force re-render
-   
-
-  } catch (error) {
-    console.error("Failed to update posts: ", error);
-  }
-};
 
   const handleIsPinned = (isPinned: boolean) => {
     setIsPinned(isPinned)
