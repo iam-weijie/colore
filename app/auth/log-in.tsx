@@ -1,6 +1,8 @@
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
+import AppleSignIn from "@/components/AppleSignIn";
+import { Platform } from "react-native";
 import { icons, images } from "@/constants";
 import { useAuth, useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
@@ -120,7 +122,8 @@ const LogIn = () => {
             <Link href="/auth/reset">Forgot your password?</Link>
           </Text>
 
-          <OAuth />
+          {Platform.OS === "android" && <OAuth />}
+          {Platform.OS === "ios" && <AppleSignIn />}
 
           <Text className="text-base text-center text-general-200 mt-5">
             Don't have an account?{" "}

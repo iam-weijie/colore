@@ -19,6 +19,7 @@ import { fetchAPI } from "@/lib/fetch";
 
 const UserInfo = () => {
   const { user } = useUser();
+  //console.log("user", user)
   const [userData, setUserData] = useState({
     city: "",
     state: "",
@@ -43,7 +44,7 @@ const UserInfo = () => {
             await fetchAPI("/api/users/newUser", {
               method: "POST",
               body: JSON.stringify({
-                email: user!.emailAddresses[0]?.emailAddress,
+                email: user!.emailAddresses[0]?.emailAddress || "",
                 clerkId: user!.id,
               }),
             });
@@ -163,7 +164,7 @@ const UserInfo = () => {
           contentContainerStyle={{ paddingBottom: 120 }}
         >
           <Text className="text-2xl font-JakartaBold my-5">Who are you 👀</Text>
-          <View className="flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3">
+          <View className="flex flex-col items-start justify-center bg-white rounded-[36px] px-5 py-3">
             <View className="flex flex-col items-start justify-start w-full">
               <InputField
                 label="Username"
@@ -198,7 +199,7 @@ const UserInfo = () => {
                   onPress={() => {
                     handleGetStarted();
                   }}
-                  className="my-5 "
+                  className="my-5 bg-indigo-500"
                   disabled={!form.username || !form.userLocation}
                   padding="3"
                 />

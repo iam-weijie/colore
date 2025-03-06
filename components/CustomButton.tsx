@@ -58,7 +58,7 @@ const CustomButton = ({
   IconRight,
   className,
   disabled = false,
-  fontSize = "lg",
+  fontSize = "2xl",
   padding = "4",
   ...props
 }: ButtonProps) => {

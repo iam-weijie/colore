@@ -3,14 +3,10 @@ import * as SecureStore from "expo-secure-store";
 import { fetchAPI } from "./fetch";
 
 export const tokenCache = {
+  
   async getToken(key: string) {
     try {
       const item = await SecureStore.getItemAsync(key);
-      if (item) {
-        //console.log(`${key} was used 🔐 \n`);
-      } else {
-        //console.log("No values stored under key: " + key);
-      }
       return item;
     } catch (error) {
       console.error("SecureStore get item error: ", error);
@@ -22,7 +18,7 @@ export const tokenCache = {
     try {
       return SecureStore.setItemAsync(key, value);
     } catch (err) {
-      return;
+      console.error("SecureStore save item error: ", err);
     }
   },
 };
@@ -59,8 +55,6 @@ export const googleOAuth = async (startOAuthFlow: any) => {
       message: "An error occurred",
     };
   } catch (error: any) {
-    //console.log(error);
-
     return {
       success: false,
       code: error.code,
@@ -68,3 +62,5 @@ export const googleOAuth = async (startOAuthFlow: any) => {
     };
   }
 };
+
+

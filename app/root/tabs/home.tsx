@@ -7,12 +7,14 @@ import { useEffect, useState } from "react";
 
 import { icons } from "@/constants";
 import { router } from "expo-router";
-import { Image, SafeAreaView, TouchableOpacity, View } from "react-native";
+import { Dimensions, Image, SafeAreaView, TouchableOpacity, View } from "react-native";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
+import { useGlobalContext } from "@/app/globalcontext";
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
+  const { isIpad } = useGlobalContext();
 
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
@@ -27,9 +29,33 @@ export default function Page() {
     requestPermission();
   }, []);
 
+  const screenHeight = Dimensions.get("screen").height;
+  const screenWidth = Dimensions.get("screen").width;
+  const AlgorithmRandomPosition = (isPinned: boolean) => {
+
+    if (isPinned) {
+      return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
+    } else if (isIpad) {
+      const top = ((Math.random() - 0.5) * 2) * screenHeight / 3 + screenHeight / 4;
+      const left = ((Math.random() - 0.5) * 2) * screenWidth / 3 + screenWidth - screenWidth / 1.75
+      return {
+        top:  top,
+        left: left
+      }
+    }
+     else {
+      const top = ((Math.random() - 0.5) * 2) * screenHeight / 4 + screenHeight / 4;
+      const left = ((Math.random() - 0.5) * 2) * screenWidth / 4 + screenWidth / 4
+      return {
+        top:  top,
+        left: left
+      }
+    }
+}
+
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${4}&id=${user!.id}`
+      `/api/posts/getRandomPosts?number=${isIpad ? 8 : 4}&id=${user!.id}`
     );
     return response.data;
   };
@@ -46,8 +72,8 @@ export default function Page() {
       const newPostWithPosition = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: (Math.random() * 775) / 2,
-          left: (Math.random() * 475) / 2,
+          top:  AlgorithmRandomPosition(false).top,
+          left: AlgorithmRandomPosition(false).left,
         },
       }));
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];

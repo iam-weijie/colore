@@ -1,3 +1,4 @@
+import { useGlobalContext } from "@/app/globalcontext";
 import PostItBoard from "@/components/PostItBoard";
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
@@ -23,6 +24,7 @@ type PersonalBoardProps = {
 
 const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   const { user } = useUser();
+  const {isIpad} = useGlobalContext();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<any>(null);
@@ -75,7 +77,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     }
     else {
       const viewerId = user!.id;
-      const maxPostOnScreen = postRefIDs.length == 0 ? 4 : Math.min(postRefIDs.length  + 4, 7)
+      const maxPostOnScreen = postRefIDs.length == 0 ? (isIpad ? 8 : 4) : Math.min(postRefIDs.length  + 4, (isIpad ? 12 : 7) )
       setMaxPosts(maxPostOnScreen ); 
     
       const response = await fetchAPI(
