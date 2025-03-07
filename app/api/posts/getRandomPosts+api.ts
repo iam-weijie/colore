@@ -6,7 +6,6 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const number = url.searchParams.get("number");
     const id = url.searchParams.get("id");
-    //console.log("Received GET request for random posts.");
 
     // comments table to be joined later :]
     const response = await sql`
@@ -35,6 +34,8 @@ export async function GET(request: Request) {
       ORDER BY RANDOM()
       LIMIT ${number};
     `;
+
+
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,

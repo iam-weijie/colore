@@ -44,6 +44,7 @@ import Animated, {
 import { captureRef } from "react-native-view-shot";
 import DropdownMenu from "./DropdownMenu";
 
+
 const { width, height } = Dimensions.get("window");
 
 const CarrouselIndicator = ({ id, index }: { id: number; index: number }) => {
@@ -95,7 +96,7 @@ const PostModal: React.FC<PostModalProps> = ({
   invertedColors = false,
   header,
 }) => {
-  const { stacks } = useGlobalContext();
+  const { stacks, isIpad } = useGlobalContext();
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
@@ -467,9 +468,9 @@ const PostModal: React.FC<PostModalProps> = ({
   // COMPONENT RENDER
 
   const BackgroundGridEmoji = (emoji: string) => {
-    const GRID_SIZE = 100; // Size of each square in the grid
+    const GRID_SIZE = isIpad ? 150 : 100; // Size of each square in the grid
     const OFFSET_X = 20; // Offset for odd rows
-    const ITEMS_PER_ROW = 4; // Number of items per row
+    const ITEMS_PER_ROW = isIpad ? 9 : 4; // Number of items per row
     const numColumns = ITEMS_PER_ROW;
     const numRows = Math.ceil(height / GRID_SIZE);
 
@@ -596,8 +597,9 @@ const PostModal: React.FC<PostModalProps> = ({
       >
         <View
           ref={viewRef}
-          className="flex-1 absolute w-screen h-screen  -ml-5 align-items justify-center z-[10]"
+          className="flex-1 absolute w-screen h-screen justify-center z-[10]"
           style={{
+            marginLeft: isIpad ? -60 : -19,
             backgroundColor: postColor?.hex || "rgba(0, 0, 0, 0.5)",
           }}
         >
@@ -611,10 +613,12 @@ const PostModal: React.FC<PostModalProps> = ({
             <Animated.View
               entering={FadeInUp.duration(400)}
               exiting={FadeOutDown.duration(250)}
-              className="bg-white px-6 py-4 rounded-[20px] min-h-[200px] max-h-[40%] w-[80%] mx-auto"
+              className="bg-white px-6 py-4 rounded-[20px]  w-[80%] max-w-[500px] mx-auto"
               style={[
                 animatedStyle,
                 {
+                  minHeight:isIpad ? 250 : 205,
+                  maxHeight: isIpad ? "60%" : "40%",
                   backgroundColor: "rgba(255, 255, 255, 1)",
                 },
               ]}

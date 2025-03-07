@@ -49,6 +49,7 @@ const getTextVariantStyle = (
   }
 };
 
+
 const CustomButton = ({
   onPress,
   title,
@@ -58,11 +59,12 @@ const CustomButton = ({
   IconRight,
   className,
   disabled = false,
-  fontSize = "lg",
+  fontSize = "2xl",
   padding = "4",
   ...props
 }: ButtonProps) => {
   const bgStyle = getBgVariantStyle(bgVariant, disabled);
+ 
 
   return (
     <TouchableOpacity

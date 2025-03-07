@@ -11,6 +11,9 @@ import React, {
   useRef,
   useState,
 } from "react";
+import {
+  Dimensions
+} from "react-native"
 
 // Types for global state
 type GlobalContextType = {
@@ -21,10 +24,12 @@ type GlobalContextType = {
   unreadMessages: number;
   unreadRequests: number;
   lastConnection: Date;
+  isIpad: boolean;
 };
 
 // Constants
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
+const screenWidth = Dimensions.get("screen").width;
 
 export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -35,6 +40,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
   const [unreadRequests, setUnreadRequests] = useState<number>(0);
   const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
+  const [isIpad, setIsIpad] = useState<boolean>(false);
+
 
   const hasUpdatedLastConnection = useRef(false);
   const { user } = useUser();
@@ -286,6 +293,11 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [user]);
 
+  useEffect(() => {
+    const ipad = screenWidth > 500
+    setIsIpad(ipad)
+  }, [])
+
   return (
     <GlobalContext.Provider
       value={{
@@ -296,6 +308,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         unreadMessages,
         unreadRequests,
         lastConnection,
+        isIpad
       }}
     >
       {children}

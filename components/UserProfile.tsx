@@ -1,4 +1,5 @@
 import { useNavigationContext } from "@/components/NavigationContext";
+import { useGlobalContext } from "@/app/globalcontext";
 import PostGallery from "@/components/PostGallery";
 import { icons, temporaryColors } from "@/constants/index";
 import { FriendStatus } from "@/lib/enum";
@@ -41,6 +42,7 @@ import DropdownMenu from "./DropdownMenu";
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
+  const { isIpad } = useGlobalContext(); 
   const [nickname, setNickname] = useState<string>("");
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -139,7 +141,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   };
 
   useEffect(() => {
-    setIsCollapsed(user!.id != userId);
+    setIsCollapsed(user!.id != userId || isIpad);
     const getData = async () => {
       const data = await fetchCurrentNickname();
       setNickname(data);
@@ -486,7 +488,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               </View>
             </View>
 
-            <View className="flex-row justify-around items-center space-x-8 mx-7">
+            <View className="flex-row  items-center"
+            style={{
+              justifyContent: isIpad ? "space-between" : "space-around",
+              marginHorizontal: isIpad ? "10%" : 8,
+            }}>
               {isEditable ? (
                 <TouchableOpacity
                   onPress={() => {
@@ -495,12 +501,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     if (currentSubscreen === "colors")
                       setCurrentSubscreen("posts");
                   }}
-                  className="flex-1 max-w-[135px]  bg-gray-200 items-center"
+                  className="flex-1  bg-gray-200 items-center"
                   style={{
                     justifyContent:
                       user!.id === userId ? "space-between" : "center",
                     padding: user!.id === userId ? 20 : 5,
-                    height: isCollapsed ? 50 : 150,
+                    height: isCollapsed ? (isIpad ? 60 : 50) : 150,
+                    maxWidth: isIpad ? 350 : 135,
                     borderRadius: isCollapsed
                       ? user!.id === userId
                         ? 24
@@ -575,10 +582,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   className="flex-1 bg-gray-200 items-center justify-between"
                   style={{
                     justifyContent:
-                      user!.id === userId ? "space-between" : "center",
+                    user!.id === userId ? "space-between" : "center",
                     padding: user!.id === userId ? 20 : 5,
-                    maxWidth: 135,
-                    height: isCollapsed ? 50 : 150,
+                    maxWidth: isIpad ? 350 : 135,
+                    height: isCollapsed ? (isIpad ? 60 : 50) : 150,
                     borderRadius: isCollapsed
                       ? user!.id === userId
                         ? 24
@@ -654,8 +661,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   justifyContent:
                     user!.id === userId ? "space-between" : "center",
                   padding: user!.id === userId ? 20 : 5,
-                  maxWidth: 135,
-                  height: isCollapsed ? 50 : 150,
+                  maxWidth: isIpad ? 350 : 135,
+                  height: isCollapsed ? (isIpad ? 60 : 50) : 150,
                   borderRadius: isCollapsed
                     ? user!.id === userId
                       ? 24
@@ -762,14 +769,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 value={query}
               />
 
-              <View className="items-center flex-1 mb-[100px]">
+              <View className="items-center mb-[60px] mx-8">
                 <PostGallery
                   posts={loading ? [skeletonPost(1), skeletonPost(2)] : userPosts}
                   profileUserId={user!.id}
                   handleUpdate={fetchUserData}
                   query={query}
                   header={
-                    <View className="w-screen px-8 flex flex-row items-center justify-between">
+                    <View className="w-full mx-8 flex flex-row items-center justify-between">
                       <View>
                         <Text className="text-lg font-JakartaSemiBold">
                           Most Recent {unreadComments > 0 ? `(${unreadComments})` : ""//put notification count here
@@ -780,7 +787,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                         <TouchableOpacity
                           activeOpacity={0.3}
                           onPress={() => toggleExpanded()}
-                          className="w-full fixed"
+                          className="w-full "
                         >
                           <Text className="text-gray-400 font-JakartaBold text-[14px]">
                             {!isExpanded ? "See more" : "See less"}
