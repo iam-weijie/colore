@@ -736,7 +736,7 @@ const PostScreen = () => {
   useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
       handleReadComments();
-      console.log("User goes back from post screen");
+      //console.log("User goes back from post screen");
     });
   }, []);
 
