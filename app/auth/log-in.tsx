@@ -143,8 +143,8 @@ const LogIn = () => {
             <Link href="/auth/reset">Forgot your password?</Link>
           </Text>
 
-          {Platform.OS === "android" && <OAuth />}
-          {Platform.OS === "ios" && <AppleSignIn />}
+          {/*Platform.OS === "android" && <OAuth />*/}
+          {/*Platform.OS === "ios" && <AppleSignIn />*/}
 
           <Text className="text-base text-center text-general-200 mt-5">
             Don't have an account?{" "}
