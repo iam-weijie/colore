@@ -15,7 +15,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@clerk/clerk-expo": "^2.8.3",
+    "@clerk/clerk-expo": "^2.8.4",
     "@clerk/clerk-sdk-node": "^5.1.6",
     "@expo/metro-runtime": "~4.0.1",
     "@expo/vector-icons": "^14.0.0",

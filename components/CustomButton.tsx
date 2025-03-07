@@ -49,6 +49,7 @@ const getTextVariantStyle = (
   }
 };
 
+
 const CustomButton = ({
   onPress,
   title,
@@ -63,6 +64,7 @@ const CustomButton = ({
   ...props
 }: ButtonProps) => {
   const bgStyle = getBgVariantStyle(bgVariant, disabled);
+ 
 
   return (
     <TouchableOpacity

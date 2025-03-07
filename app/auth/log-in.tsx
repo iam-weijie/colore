@@ -8,11 +8,13 @@ import { useAuth, useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
+import { useGlobalContext } from "@/app/globalcontext";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { signOut } = useAuth();
   const router = useRouter();
+   const { isIpad } = useGlobalContext()
 
   const [form, setForm] = useState({
     email: "",
@@ -74,26 +76,45 @@ const LogIn = () => {
   }, [isLoaded, form, signIn, setActive, router, signOut]);
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="flex-1 bg-white ">
-        <View className="relative w-full">
+    <ScrollView 
+    className="flex-1 bg-white">
+      <View className="relative w-full">
           <Image
             source={images.login}
             style={{
               position: "absolute",
-              top: -90,
-              right: 0,
+              top: isIpad ? -150 : -90,
+              right:0,
               width: "100%",
               height: undefined,
               aspectRatio: 1.5,
             }}
             resizeMode="cover"
           />
-          <Text className="text-2xl font-JakartaBold relative ml-5 mt-[180]">
+        </View>
+      <View className="flex-1 "
+      style={{
+        paddingHorizontal: isIpad ? "12.5%" : 0
+      }}>
+      
+        
+        <View 
+        className="relative bg-white rounded-[32px] "
+        style={{
+          padding: isIpad ? 40 : 20,
+          marginTop: isIpad ? 150 : 180
+        }}
+        >
+        <View>
+           <Text 
+           className="font-JakartaBold relative ml-5"
+           style={{
+            fontSize: isIpad ? 32 : 24
+           }}
+           >
             Welcome 👋
           </Text>
-        </View>
-        <View className="p-5">
+          </View>
           <InputField
             label="Email"
             placeholder="Enter your email"
