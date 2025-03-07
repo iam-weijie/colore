@@ -41,6 +41,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { useNavigationContext } from "@/components/NavigationContext";
 
 import * as Linking from "expo-linking";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -365,6 +366,7 @@ const PostScreen = () => {
   const postColor = temporaryColors.find(
     (c) => c.name === color
   ) as PostItColor;
+  const { stateVars, setStateVars } = useNavigationContext();
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
@@ -394,6 +396,9 @@ const PostScreen = () => {
   useFocusEffect(
     useCallback(() => {
       setAnonymousComments(anonymous === "true");
+      return () => {
+        setStateVars({ ...stateVars, queueRefresh: true});
+      }
     }, [])
   );
 
@@ -730,9 +735,7 @@ const PostScreen = () => {
 
   useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
-      if (Number(unread_comments) > 0) {
-        handleReadComments();
-      }
+      handleReadComments();
       //console.log("User goes back from post screen");
     });
   }, []);
