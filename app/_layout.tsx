@@ -1,7 +1,8 @@
+
+
 import { NavigationProvider } from "@/components/NavigationContext";
 import { NotificationProvider } from '../notifications/NotificationContext';
 import SplashVideo from "@/components/SplashVideo";
-//import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import { GlobalProvider } from "@/app/globalcontext";
 import { tokenCache } from "@/lib/auth";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
@@ -9,7 +10,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { LogBox } from "react-native";
+import { LogBox, View } from "react-native";
 import "react-native-reanimated";
 import Animated, { FadeIn } from "react-native-reanimated";
 
@@ -39,40 +40,21 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
       setAppReady(true);
     }
-/*
-     // Request permissions on iOS
-     PushNotificationIOS.requestPermissions().then((data) => {
-      console.log('PushNotificationIOS.requestPermissions', data);
-    });
-
-    // Handle notification when the app is in the foreground
-    const onNotification = (notification) => {
-      console.log('Notification received: ', notification);
-      notification.finish(PushNotificationIOS.FetchResult.NoData);
-    };
-
-    PushNotificationIOS.addEventListener('notification', onNotification);
-
-    return () => {
-      PushNotificationIOS.removeEventListener('notification', onNotification);
-    };
-    */
   }, [loaded]);
 
-  
-
-  const showSplashVideo = !appReady || !isSplashVideoComplete; //appReady
+  const showSplashVideo = !appReady || !isSplashVideoComplete;
 
   if (showSplashVideo) {
-    // render animation while app is still loaded
     return (
-      <SplashVideo
-        onAnimationFinish={(isCancelled) => {
-          if (!isCancelled) {
-            setSplashVideoComplete(true);
-          }
-        }}
-      />
+      <View className="flex-1 bg-white">
+        <SplashVideo
+          onAnimationFinish={(isCancelled) => {
+            if (!isCancelled) {
+              setSplashVideoComplete(true);
+            }
+          }}
+        />
+      </View>
     );
   }
 
@@ -84,8 +66,8 @@ export default function RootLayout() {
 
   return (
     <NotificationProvider>
-        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-          <ClerkLoaded>
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <ClerkLoaded>
           <GlobalProvider>
             <NavigationProvider>
               <Animated.View style={{ flex: 1 }} entering={FadeIn}>
@@ -97,10 +79,9 @@ export default function RootLayout() {
                 </Stack>
               </Animated.View>
             </NavigationProvider>
-            </GlobalProvider>
-          </ClerkLoaded>
-        </ClerkProvider>
-      
+          </GlobalProvider>
+        </ClerkLoaded>
+      </ClerkProvider>
     </NotificationProvider>
   );
 }

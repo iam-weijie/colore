@@ -1,10 +1,12 @@
 import PostModal from "@/components/PostModal";
+import { useGlobalContext } from "@/app/globalcontext";
 import { temporaryColors } from "@/constants";
 import { formatDateTruncatedMonth } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { Link, useFocusEffect } from "expo-router";
 import Animated, { SlideInDown, SlideInUp, FadeInDown } from "react-native-reanimated";
+import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
@@ -23,6 +25,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   header
 }) => {
   const { user } = useUser();
+  const { isIpad } = useGlobalContext(); 
   const isOwnProfile = user!.id === profileUserId;
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [sortedPosts, setSortedPosts] = useState<Post[]>([]);
@@ -66,15 +69,22 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   }
 
   const renderItem = ({ item }: { item: Post }) => (
-    <Animated.View entering={FadeInDown.duration(300)}>
+    <Animated.View 
+    entering={FadeInDown.duration(300)}
+    style={{
+      marginHorizontal: isIpad ? 5 : 0
+    }}>
     <TouchableOpacity
       onPress={() => {
         setSelectedPost(item);
       }}
     >
       <View
-        className="flex-1 m-2 p-5  shadow-xs rounded-[24px] mx-auto"
-        style={{ width: screenWidth * 0.85, backgroundColor: temporaryColors?.find((c) => c.name === item.color)?.hex || item.color}}
+        className="w-full m-2 p-5 shadow-xs rounded-[24px] mx-auto"
+        style={{ 
+          minHeight: isIpad ? 70 : "auto",
+          marginHorizontal: isIpad ? 20 : 0,
+          backgroundColor: temporaryColors?.find((c) => c.name === item.color)?.hex || item.color}}
       >
         <Text className="font-JakartaSemiBold text-black">
          {truncateText(item.content, 100)}
@@ -114,34 +124,26 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
 
   return (
-    <View className=" max-h-[100%]">
+    <View className=" rounded-[24px] max-h-[100%]">
       {filteredPosts.length > 0 ? 
       (
         header
         
       ) : 
-      (<Text className="font-Jakarta text-gray-500">
-              No Post Found
-            </Text>)}
-       
-      {posts.length === 0 ? (
-        <View
-          className="flex-1 m-2 p-2 border border-gray-300 rounded-lg bg-transparent mx-auto"
-          style={{ width: screenWidth * 0.85 }}
-        >
-          <Link href="/root/new-post">
-            <Text className="font-Jakarta text-gray-500">
-              Create a post to see it here
+      (
+      <TouchableOpacity activeOpacity={0.7} onPress={() => {router.push("/root/new-post")}}>
+      <Text className="font-Jakarta text-gray-500">
+              Click to make a post and see it here!
             </Text>
-          </Link>
-        </View>
-      ) : (
+      </TouchableOpacity>)}
+       
+      {posts.length > 0 && (
         <FlatList
           className="mt-4 mx-7 rounded-[24px]"
           data={filteredPosts}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
-          numColumns={1}
+          numColumns={isIpad ? 4 : 1}
           showsVerticalScrollIndicator={false}
         />
       )}

@@ -2,10 +2,14 @@ import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   //console.log("received GET request for user information");
+  //console.log("Received GET request:", request.url);
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
+
+   // console.log("Extracted Clerk ID:", clerkId);
+
     if (!clerkId) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
         status: 400,
