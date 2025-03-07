@@ -7,14 +7,18 @@ import Circle from "@/components/Circle";
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
+import AppleSignIn from "@/components/AppleSignIn";
+import { Platform } from "react-native";
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
+import { useGlobalContext } from "@/app/globalcontext";
 
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState("");
+  const { isIpad } = useGlobalContext()
 
   const [form, setForm] = useState({
     email: "",
@@ -89,7 +93,11 @@ const SignUp = () => {
 
   if (showSuccess) {
     return (
-      <View className="flex-1 bg-white justify-center items-center px-7">
+      <View 
+      className="flex-1 bg-white justify-center items-center px-7"
+      style={{
+        paddingHorizontal: isIpad ? "15%" : 0
+      }}>
         <Image source={icons.check} className="w-[110px] h-[110px] mb-5" />
 
         <Text className="text-3xl font-JakartaBold text-center">Verified</Text>
@@ -110,7 +118,11 @@ const SignUp = () => {
 
   if (showVerification) {
     return (
-      <View className="flex-1 bg-white px-7 justify-center">
+      <View 
+      className="flex-1 bg-white px-7 justify-center"
+      style={{
+        paddingHorizontal: isIpad ? "15%" : 0
+      }}>
         <Text className="text-2xl font-JakartaExtraBold mb-2">
           Verification
         </Text>
@@ -152,7 +164,11 @@ const SignUp = () => {
   }
 
   return (
-    <ScrollView className="bg-white">
+    <ScrollView 
+    className="bg-white"
+    style={{
+      paddingHorizontal: isIpad ? "15%" : 0
+    }}>
       <View className="relative">
         <Circle
           color="#ffd640"
@@ -177,7 +193,11 @@ const SignUp = () => {
       </View>
 
       <View className="relative w-full">
-        <Text className="text-2xl font-JakartaBold relative ml-5 mt-[180]">
+        <Text 
+        className="font-JakartaBold relative ml-5 mt-[180]"
+        style={{
+          fontSize: isIpad ? 32 : 24
+         }}>
           Create Your Account
         </Text>
       </View>
@@ -223,7 +243,8 @@ const SignUp = () => {
           className="mt-8 bg-gradient-to-r from-yellow-400 to-orange-400"
         />
 
-        <OAuth />
+        {/*Platform.OS === "android" && <OAuth />*/}
+        {/*Platform.OS === "ios" && <AppleSignIn />*/}
 
         <Text className="text-base text-center text-general-200 mt-5">
           Already have an account?{" "}
