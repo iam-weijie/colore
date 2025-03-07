@@ -3,6 +3,7 @@ import { useNotification } from "@/notifications/NotificationContext"; // Assumi
 import { sendPushNotification } from "@/notifications/PushNotificationService";
 import { Stacks } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
+import { push } from "expo-router/build/global-state/routing";
 import React, {
   createContext,
   useContext,
@@ -261,7 +262,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const updateLastConnection = async () => {
-    if (user && !hasUpdatedLastConnection.current) {
+    if (user && !hasUpdatedLastConnection.current)  {
       try {
         const response = await fetchAPI(`/api/users/updateUserLastConnection`, {
           method: "PATCH",
