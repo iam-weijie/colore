@@ -27,6 +27,8 @@ import {
   View,
 } from "react-native";
 import {
+  Gesture,
+  GestureDetector,
   GestureHandlerRootView,
   PanGestureHandler,
 } from "react-native-gesture-handler";
@@ -163,6 +165,7 @@ const PostModal: React.FC<PostModalProps> = ({
   // Handle swipe gestures
   const gestureHandler = useAnimatedGestureHandler({
     onStart: (_, context) => {
+      console.log("Gesture started");
       context.startX = translateX.value;
     },
     onActive: (event, context) => {
@@ -190,6 +193,35 @@ const PostModal: React.FC<PostModalProps> = ({
       }
     },
   });
+
+  const swipeGesture = Gesture.Pan()
+    .onStart((event) => {
+      console.log("Swipe started");
+    })
+    .onUpdate((event) => {
+      translateX.value = event.translationX;
+    })
+    .onEnd(() => {
+      const threshold = 60;
+      if (translateX.value > threshold && currentPostIndex > 0) {
+        translateX.value = withTiming(0);
+        opacity.value = withTiming(0, {}, () => {
+          runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+          opacity.value = withTiming(1);
+        });
+      } else if (
+        translateX.value < -threshold &&
+        currentPostIndex < posts.length - 1
+      ) {
+        translateX.value = withTiming(0);
+        opacity.value = withTiming(0, {}, () => {
+          runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+          opacity.value = withTiming(1);
+        });
+      } else {
+        translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+      }
+    })
 
   // Animated styles for swiping
   const animatedStyle = useAnimatedStyle(() => ({
@@ -586,9 +618,6 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
   return (
-    <GestureHandlerRootView
-      style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-    >
       <ReactNativeModal
         isVisible={isVisible}
         backdropColor={"rgba(0,0,0,0)"}
@@ -608,63 +637,64 @@ const PostModal: React.FC<PostModalProps> = ({
           </TouchableWithoutFeedback>
 
           {header}
-
-          <PanGestureHandler onGestureEvent={gestureHandler}>
-            <Animated.View
-              entering={FadeInUp.duration(400)}
-              exiting={FadeOutDown.duration(250)}
-              className="bg-white px-6 py-4 rounded-[20px]  w-[80%] max-w-[500px] mx-auto"
-              style={[
-                animatedStyle,
-                {
-                  minHeight:isIpad ? 250 : 205,
-                  maxHeight: isIpad ? "60%" : "40%",
-                  backgroundColor: "rgba(255, 255, 255, 1)",
-                },
-              ]}
-            >
-              <TouchableOpacity onPress={handleCloseModal}>
-                <Image
-                  source={icons.close}
-                  style={{ width: 24, height: 24, alignSelf: "flex-end" }}
-                />
-              </TouchableOpacity>
-
-              <ScrollView>
-                <Text className="text-[16px] p-1 my-4 font-Jakarta">
-                 {post[currentPostIndex]?.content}
-                </Text>
-              </ScrollView>
-              <View className="my-2 flex-row justify-between items-center">
-                <View className="flex flex-row items-center">
-                  <TouchableOpacity onPress={handleCommentsPress}>
-                    <Image source={icons.comment} className="w-8 h-8" />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleLikePress} className="ml-2">
-                    <MaterialCommunityIcons
-                      name={isLiked ? "heart" : "heart-outline"}
-                      size={32}
-                      color={isLiked ? "red" : "black"}
-                    />
-                  </TouchableOpacity>
-                  {/* Show like count only to post creator */}
-                  {post && post.clerk_id === user?.id && (
-                    <Text className="ml-1 text-gray-600">{likeCount}</Text>
-                  )}
-                </View>
-                {/* Delete button for post owner */}
-                {
-                  <DropdownMenu
-                    menuItems={getMenuItems(
-                      post[currentPostIndex]?.clerk_id === user!.id ||
-                        post[currentPostIndex]?.recipient_user_id === user!.id,
-                      invertedColors
-                    )}
+          <GestureHandlerRootView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <GestureDetector gesture={swipeGesture}>
+              <Animated.View
+                entering={FadeInUp.duration(400)}
+                exiting={FadeOutDown.duration(250)}
+                className="bg-white px-6 py-4 rounded-[20px]  w-[80%] max-w-[500px] mx-auto"
+                style={[
+                  animatedStyle,
+                  {
+                    minHeight:isIpad ? 250 : 205,
+                    maxHeight: isIpad ? "60%" : "40%",
+                    backgroundColor: "rgba(255, 255, 255, 1)",
+                  },
+                ]}
+              >
+                <TouchableOpacity onPress={handleCloseModal}>
+                  <Image
+                    source={icons.close}
+                    style={{ width: 24, height: 24, alignSelf: "flex-end" }}
                   />
-                }
-              </View>
-            </Animated.View>
-          </PanGestureHandler>
+                </TouchableOpacity>
+
+                <ScrollView>
+                  <Text className="text-[16px] p-1 my-4 font-Jakarta">
+                  {post[currentPostIndex]?.content}
+                  </Text>
+                </ScrollView>
+                <View className="my-2 flex-row justify-between items-center">
+                  <View className="flex flex-row items-center">
+                    <TouchableOpacity onPress={handleCommentsPress}>
+                      <Image source={icons.comment} className="w-8 h-8" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleLikePress} className="ml-2">
+                      <MaterialCommunityIcons
+                        name={isLiked ? "heart" : "heart-outline"}
+                        size={32}
+                        color={isLiked ? "red" : "black"}
+                      />
+                    </TouchableOpacity>
+                    {/* Show like count only to post creator */}
+                    {post && post.clerk_id === user?.id && (
+                      <Text className="ml-1 text-gray-600">{likeCount}</Text>
+                    )}
+                  </View>
+                  {/* Delete button for post owner */}
+                  {
+                    <DropdownMenu
+                      menuItems={getMenuItems(
+                        post[currentPostIndex]?.clerk_id === user!.id ||
+                          post[currentPostIndex]?.recipient_user_id === user!.id,
+                        invertedColors
+                      )}
+                    />
+                  }
+                </View>
+              </Animated.View>
+            </GestureDetector>
+          </GestureHandlerRootView>
           <View className="absolute top-[80%] self-center flex flex-row">
             {posts.length > 1 &&
               posts.map((post, index) => {
@@ -679,7 +709,6 @@ const PostModal: React.FC<PostModalProps> = ({
           </View>
         </View>
       </ReactNativeModal>
-    </GestureHandlerRootView>
   );
 };
 
