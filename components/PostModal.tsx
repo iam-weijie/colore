@@ -163,36 +163,36 @@ const PostModal: React.FC<PostModalProps> = ({
   ) as PostItColor;
 
   // Handle swipe gestures
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: (_, context) => {
-      console.log("Gesture started");
-      context.startX = translateX.value;
-    },
-    onActive: (event, context) => {
-      translateX.value = (context.startX as number) + event.translationX;
-    },
-    onEnd: () => {
-      const threshold = 60;
-      if (translateX.value > threshold && currentPostIndex > 0) {
-        translateX.value = withTiming(0);
-        opacity.value = withTiming(0, {}, () => {
-          runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
-          opacity.value = withTiming(1);
-        });
-      } else if (
-        translateX.value < -threshold &&
-        currentPostIndex < posts.length - 1
-      ) {
-        translateX.value = withTiming(0);
-        opacity.value = withTiming(0, {}, () => {
-          runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-          opacity.value = withTiming(1);
-        });
-      } else {
-        translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-      }
-    },
-  });
+  // const gestureHandler = useAnimatedGestureHandler({
+  //   onStart: (_, context) => {
+  //     console.log("Gesture started");
+  //     context.startX = translateX.value;
+  //   },
+  //   onActive: (event, context) => {
+  //     translateX.value = (context.startX as number) + event.translationX;
+  //   },
+  //   onEnd: () => {
+  //     const threshold = 60;
+  //     if (translateX.value > threshold && currentPostIndex > 0) {
+  //       translateX.value = withTiming(0);
+  //       opacity.value = withTiming(0, {}, () => {
+  //         runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
+  //         opacity.value = withTiming(1);
+  //       });
+  //     } else if (
+  //       translateX.value < -threshold &&
+  //       currentPostIndex < posts.length - 1
+  //     ) {
+  //       translateX.value = withTiming(0);
+  //       opacity.value = withTiming(0, {}, () => {
+  //         runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+  //         opacity.value = withTiming(1);
+  //       });
+  //     } else {
+  //       translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+  //     }
+  //   },
+  // });
 
   const swipeGesture = Gesture.Pan()
     .onStart((event) => {
@@ -206,7 +206,7 @@ const PostModal: React.FC<PostModalProps> = ({
       if (translateX.value > threshold && currentPostIndex > 0) {
         translateX.value = withTiming(0);
         opacity.value = withTiming(0, {}, () => {
-          runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+          runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
           opacity.value = withTiming(1);
         });
       } else if (
