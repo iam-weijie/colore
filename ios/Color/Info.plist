@@ -48,13 +48,13 @@
 		<true/>
 	</dict>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Allow $(PRODUCT_NAME) to use Face ID</string>
+	<string>Allow $(PRODUCT_NAME) to use Face ID for secure authentication via Apple ID.</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
 	</array>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>We use your data to provide a better ad experience.</string>
+	<string>This app collects your email address, country, state, and city to personalize your experience and improve our services. With your permission, we may also use this data for targeted marketing. However, your data will never be shared with data brokers.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
