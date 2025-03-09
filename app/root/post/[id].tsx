@@ -735,8 +735,8 @@ const PostScreen = () => {
 
   useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
-      handleReadComments();
-      //console.log("User goes back from post screen");
+      setStateVars({ ...stateVars, queueRefresh: true });
+      console.log("User goes back from post screen");
     });
   }, []);
 
@@ -872,41 +872,6 @@ const PostScreen = () => {
                 </TouchableWithoutFeedback>
               </View>
               <View className="flex flex-col items-center ml-4">
-                {clerk_id === user?.id ? (
-                  <DropdownMenu
-                    menuItems={[
-                      {
-                        label: "Edit",
-                        source: icons.pencil,
-                        color: "#0851DA",
-                        onPress: handleEditing,
-                      },
-                      {
-                        label: "Delete",
-                        source: icons.trash,
-                        color: "#DA0808",
-                        onPress: handleDeletePostPress,
-                      },
-                    ]}
-                  />
-                ) : (
-                  <DropdownMenu
-                    menuItems={[
-                      {
-                        label: saved ? "Remove" : "Save",
-                        color: "#000000",
-                        source: icons.bookmark,
-                        onPress: () => handleSavePost(id),
-                      },
-                      {
-                        label: "Report",
-                        source: icons.email,
-                        color: "#DA0808",
-                        onPress: handleReportPress,
-                      },
-                    ]}
-                  />
-                )}
                 <View className="mt-4 flex flex-row justify-center items-center">
                   <View>
                     {/* Only show like count to post creator */}

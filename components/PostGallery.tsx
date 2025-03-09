@@ -115,11 +115,12 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
   useFocusEffect(
     useCallback(() => {
-      if (stateVars.queueRefresh && stateVars.hasNavigatedAway && isOwnProfile && handleUpdate) {
+      if (stateVars.queueRefresh && isOwnProfile && handleUpdate) {
+        console.log("Queueing refresh");
         handleUpdate(selectedPost?.id || -1, isSaved);
-        setStateVars({ ...stateVars, queueRefresh: false }); // Reset queueRefresh to prevent infinite loop
+        setStateVars({ ...stateVars, queueRefresh: false });
       }
-    }, [stateVars.hasNavigatedAway, stateVars.queueRefresh, handleUpdate, isOwnProfile, selectedPost, isSaved])
+    }, [stateVars.queueRefresh, handleUpdate, isOwnProfile, selectedPost, isSaved])
   );
 
 
