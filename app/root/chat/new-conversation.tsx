@@ -199,7 +199,7 @@ const NewConversation = (): React.ReactElement => {
               </View>
               <View className="flex-grow">
                 <TextInput
-                  className="w-full h-11 px-4 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                  className="w-full h-12 px-5 -pt-1 rounded-[16px] bg-gray-200 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
                   placeholder="Search users..."
                   placeholderTextColor="#4a4a4a"
                   value={searchText}

@@ -6,6 +6,7 @@ import {
   acceptFriendRequest,
   fetchFriends,
   rejectFriendRequest,
+  cancelFriendRequest,
   unfriend,
 } from "@/lib/friend";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
@@ -462,6 +463,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                 } else {
                   alert("Error when trying to reject friend request.");
                 }
+                
                 fetchFriendRequests();
                 setHandlingFriendRequest(false);
               },
@@ -553,7 +555,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   // console.log(conversations);
-  // console.log("allFriendRequests", allFriendRequests?.sent);
+  // console.log("firends", friendList, "\n\nSent", allFriendRequests?.sent, "\n\nReceived", allFriendRequests?.received);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -667,11 +669,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               <View className="flex-1 flex-col">
                 {/* Top half: Incoming Requests */}
                 <View className="mb-2">
-                  <FlatList
-                    className=" p-4 bg-[#FAFAFA] rounded-[24px]"
-                    data={allFriendRequests?.received}
-                    ListHeaderComponent={
-                      <View>
+                <View className="p-2">
                         <Text className="font-JakartaBold text-lg">
                           Requests{" "}
                         </Text>
@@ -681,14 +679,16 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                               ? allFriendRequests.received.length
                               : 0
                           }
-                          color="#ffd12b"
+                          color="#8654CF"
                         />
                       </View>
-                    }
+                  <FlatList
+                    className=" p-4 bg-[#FAFAFA] rounded-[24px]"
+                    data={allFriendRequests?.received}
                     renderItem={renderIncomingRequest}
                     keyExtractor={(item) => item.id.toString()}
                     ListEmptyComponent={
-                      <Text className="text-left text-gray-500">
+                      <Text className="text-left text-gray-500 py-2">
                         No friend requests
                       </Text>
                     }
@@ -701,11 +701,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
 
                 {/* Bottom half: Outgoing Requests */}
                 <View className="flex-1 mt-2">
-                  <FlatList
-                    className=" p-4 bg-[#FAFAFA] rounded-[24px]"
-                    data={allFriendRequests?.sent}
-                    ListHeaderComponent={
-                      <View>
+                <View className="p-2">
                         <Text className="font-JakartaBold text-lg">Sent </Text>
                         <NotificationBubble
                           unread={
@@ -713,14 +709,16 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                               ? allFriendRequests.sent.length
                               : 0
                           }
-                          color="#ffd12b"
+                          color="#2775CC"
                         />
                       </View>
-                    }
+                  <FlatList
+                    className=" p-4 bg-[#FAFAFA] rounded-[24px]"
+                    data={allFriendRequests?.sent}
                     renderItem={renderOutgoingRequest}
                     keyExtractor={(item) => item.id.toString()}
                     ListEmptyComponent={
-                      <Text className="text-left text-gray-500">
+                      <Text className="text-left text-gray-500 py-2">
                         No outgoing friend requests
                       </Text>
                     }

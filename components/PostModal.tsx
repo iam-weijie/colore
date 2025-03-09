@@ -458,7 +458,7 @@ const PostModal: React.FC<PostModalProps> = ({
       }
 
       const result = await Share.share({
-        message: `${post[currentPostIndex]?.content.trim()} \n\nHere’s something interesting:https://testflight.apple.com/join/edtGfSAT`,
+        message: `${post[currentPostIndex]?.content.trim()} \n\nDownload Coloré here:https://apps.apple.com/ca/app/coloré/id6738930845`,
         url: imageToShare, // Share the captured image (uri or base64)
       });
 
