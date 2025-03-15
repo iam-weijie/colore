@@ -40,9 +40,3 @@ To get an overview of the tasks and new features we're working on, please check 
 - Database - [Neon Postgres](https://neon.tech/home)
 - Styling - [NativeWind](https://www.nativewind.dev/)
 - Formatting - [Prettier](https://prettier.io)
-
-_Note:_ For best dev experience, it is recommended to use Node v.20
-
-```bash
-nvm use 20
-```
