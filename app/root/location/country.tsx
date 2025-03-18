@@ -11,7 +11,8 @@ import {
   Dimensions
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { addStatesToCache } from "./cacheStore";
+import { addStatesToCache, generateAcronym, isNameTooLong } from "./cacheStore";
+import ScrollingText from "./ScrollingText";
 
 // Define simpler interfaces for better performance
 interface State {
@@ -46,11 +47,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 60,
   },
+  countryNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginVertical: 8,
+  },
+  emoji: {
+    fontSize: 16,
+    marginRight: 8,
+  },
   countryName: {
     fontFamily: 'JakartaSemiBold',
     fontSize: 16,
-    marginLeft: 12,
-    marginVertical: 8,
+  },
+  countryNameText: {
+    fontFamily: 'JakartaSemiBold',
+    fontSize: 16,
   },
   countryCode: {
     fontFamily: 'JakartaSemiBold',
@@ -83,15 +96,28 @@ const CountryItem = memo(({
     onPress(item.cca2, item.name);
   }, [onPress, item.cca2, item.name]);
   
+  const requiresScrolling = isNameTooLong(item.name, 15);
+
   return (
     <TouchableOpacity
       style={styles.itemContainer}
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <Text style={styles.countryName}>
-        {item.emoji} {item.name}
-      </Text>
+      <View style={styles.countryNameContainer}>
+        <Text style={styles.emoji}>{item.emoji}</Text>
+        {requiresScrolling ? (
+          <ScrollingText
+            text={item.name}
+            style={styles.countryName}
+            maxLength={15}
+          />
+        ) : (
+          <Text style={styles.countryNameText}>
+            {item.name}
+          </Text>
+        )}
+      </View>
       <Text style={styles.countryCode}>
         {item.cca2}
       </Text>
