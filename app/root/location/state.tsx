@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback, memo } from "react";
 import { router, useLocalSearchParams, Href } from "expo-router";
-import { FlatList, Text, TouchableOpacity, ActivityIndicator, View, Alert } from "react-native";
+import { FlatList, Text, TouchableOpacity, ActivityIndicator, View, Alert, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getStatesFromCache } from "./cacheStore";
+import { getStatesFromCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { useNavigationContext } from "@/components/NavigationContext";
+import ScrollingText from "./ScrollingText";
 
 // Define the State interface
 interface State {
@@ -13,25 +14,92 @@ interface State {
   cities: string[];  // List of cities in the state
 }
 
+// Static styles to replace className
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    margin: 12,
+    fontFamily: 'JakartaBold',
+  },
+  itemContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: 16, 
+    height: 50,
+  },
+  stateName: {
+    fontFamily: 'JakartaSemiBold', 
+    fontSize: 16, 
+    marginLeft: 12,
+  },
+  stateNameText: {
+    fontFamily: 'JakartaSemiBold', 
+    fontSize: 16, 
+    marginLeft: 12,
+  },
+  stateInfo: {
+    fontFamily: 'JakartaRegular', 
+    fontSize: 14, 
+    color: '#6B7280', 
+    marginRight: 12,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontFamily: 'JakartaRegular',
+    color: 'black',
+  },
+  noStatesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noStatesText: {
+    fontFamily: 'JakartaRegular',
+    fontSize: 16,
+  }
+});
+
 // Memoized state item component for better performance
 const StateItem = memo(({ item, onPress }: { 
   item: State, 
   onPress: (item: State) => void 
-}) => (
-  <TouchableOpacity
-    className="flex flex-row items-center justify-between px-4 relative h-[50px]"
-    onPress={() => onPress(item)}
-  >
-    <Text className="font-JakartaSemiBold text-[16px] ml-3 my-2">
-      {item.name}
-    </Text>
-    {item.cities.length === 0 && (
-      <Text className="font-JakartaRegular text-[14px] text-gray-500 mr-3">
-        State used as city
-      </Text>
-    )}
-  </TouchableOpacity>
-));
+}) => {
+  const requiresScrolling = isNameTooLong(item.name, 15);
+  
+  return (
+    <TouchableOpacity
+      style={styles.itemContainer}
+      onPress={() => onPress(item)}
+    >
+      {requiresScrolling ? (
+        <ScrollingText
+          text={item.name}
+          style={styles.stateName}
+          maxLength={15}
+        />
+      ) : (
+        <Text style={styles.stateNameText}>
+          {item.name}
+        </Text>
+      )}
+      {item.cities.length === 0 && (
+        <Text style={styles.stateInfo}>
+          State used as city
+        </Text>
+      )}
+    </TouchableOpacity>
+  );
+});
 
 const State = () => {
   const { user } = useUser();
@@ -39,6 +107,12 @@ const State = () => {
   const { country, countryId, previousScreen } = useLocalSearchParams();
   const [statesList, setStatesList] = useState<State[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Format the country name in the title
+  const formattedCountryName = useCallback(() => {
+    const countryStr = country as string || '';
+    return isNameTooLong(countryStr) ? generateAcronym(countryStr) : countryStr;
+  }, [country]);
 
   // Get states from the shared cache
   useEffect(() => {
@@ -147,22 +221,24 @@ const State = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="black" />
-        <Text className="mt-4 font-JakartaRegular text-black">Loading states...</Text>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="black" />
+          <Text style={styles.loadingText}>Loading states...</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1">
-      <Text className="text-xl font-JakartaBold m-3">
-        Select a State in {country}
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>
+        Select a State in {formattedCountryName()}
       </Text>
 
       {statesList.length === 0 ? (
-        <View className="flex-1 justify-center items-center">
-          <Text>No states found for this country.</Text>
+        <View style={styles.noStatesContainer}>
+          <Text style={styles.noStatesText}>No states found for this country.</Text>
         </View>
       ) : (
         <FlatList

@@ -4,8 +4,10 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { useUser } from "@clerk/clerk-expo";
 import { Href, router, useLocalSearchParams } from "expo-router";
-import { FlatList, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { FlatList, Text, TouchableOpacity, View, ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ScrollingText from "./ScrollingText";
+import { generateAcronym, isNameTooLong } from "./cacheStore";
 
 // Interface for City and State
 interface City {
@@ -17,6 +19,58 @@ interface State {
   cities: City[]; // List of cities
 }
 
+// Static styles to replace className
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    margin: 12,
+    fontFamily: 'JakartaBold',
+  },
+  itemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    height: 50,
+    position: 'relative',
+  },
+  cityName: {
+    fontFamily: 'JakartaSemiBold',
+    fontSize: 16,
+    marginLeft: 12,
+  },
+  cityNameText: {
+    fontFamily: 'JakartaSemiBold',
+    fontSize: 16,
+    marginLeft: 12,
+  },
+  checkmark: {
+    position: 'absolute',
+    fontSize: 18,
+    right: 0,
+    marginVertical: 4,
+    marginHorizontal: 12,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontFamily: 'JakartaRegular',
+  }
+});
+
 // Memoized city item component for better performance
 const CityItem = memo(({ 
   cityName, 
@@ -26,20 +80,32 @@ const CityItem = memo(({
   cityName: string, 
   isSelected: boolean, 
   onPress: (city: string) => void 
-}) => (
-  <TouchableOpacity 
-    onPress={() => onPress(cityName)} 
-    className="flex flex-row items-center justify-between px-4 relative h-[50px]"
-  >
-    <Text className="font-JakartaSemiBold text-[16px] ml-3 my-2">
-      {cityName}
-    </Text>
+}) => {
+  const requiresScrolling = isNameTooLong(cityName, 15);
+  
+  return (
+    <TouchableOpacity 
+      onPress={() => onPress(cityName)} 
+      style={styles.itemContainer}
+    >
+      {requiresScrolling ? (
+        <ScrollingText
+          text={cityName}
+          style={styles.cityName}
+          maxLength={15}
+        />
+      ) : (
+        <Text style={styles.cityNameText}>
+          {cityName}
+        </Text>
+      )}
 
-    {isSelected && (
-      <Text className="absolute text-lg my-1 mx-3 right-0">✓</Text>
-    )}
-  </TouchableOpacity>
-));
+      {isSelected && (
+        <Text style={styles.checkmark}>✓</Text>
+      )}
+    </TouchableOpacity>
+  );
+});
 
 const City = () => {
   const { user } = useUser();
@@ -49,6 +115,12 @@ const City = () => {
   const [loading, setLoading] = useState(true);
   const [sortedCities, setSortedCities] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState("");
+
+  // Format the state name in the title
+  const formattedStateName = useCallback(() => {
+    const stateStr = state as string || '';
+    return isNameTooLong(stateStr) ? generateAcronym(stateStr) : stateStr;
+  }, [state]);
 
   // Process city data in a non-blocking way
   useEffect(() => {
@@ -121,18 +193,20 @@ const City = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text className="mt-4">Loading cities...</Text>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.loadingText}>Loading cities...</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1">
-      <View className="flex flex-row justify-between items-center">
-        <Text className="text-xl font-JakartaBold m-3">
-          Select a City in {state}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>
+          Select a City in {formattedStateName()}
         </Text>
 
         <CustomButton
