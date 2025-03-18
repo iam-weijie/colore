@@ -65,6 +65,7 @@ const PostIt: React.FC<PostItProps> = ({ color }) => {
           borderTopColor: "transparent",
           borderLeftColor: foldColor,
           borderRightColor: "transparent",
+          borderBottomLeftRadius: 8
         }}
       />
     </Animated.View>

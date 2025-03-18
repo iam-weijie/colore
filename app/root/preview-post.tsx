@@ -9,11 +9,12 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+ 
 
 const PreviewPost = () => {
   const { user } = useUser();
   const [isVisible, setIsVisible] = useState<boolean>(true);
-  const { id, content, color, emoji, personal, recipientId } =
+  const { id, content, color, emoji, personal, recipientId, username } =
     useLocalSearchParams();
   const [isPosting, setIsPosting] = useState(false);
   const [postColor, setPostColor] = useState<PostItColor>(
@@ -25,7 +26,7 @@ const PreviewPost = () => {
     id: (id as string) || "", // Ensure it's a string
     clerk_id: "",
     firstname: "",
-    username: "",
+    username: username,
     content: (content as string) || "",
     created_at: "",
     city: "",
@@ -89,7 +90,7 @@ const PreviewPost = () => {
         return;
       }
       try {
-        const response = await fetchAPI("/api/posts/newPersonalPost", {
+        await fetchAPI("/api/posts/newPersonalPost", {
           method: "POST",
           body: JSON.stringify({
             content: cleanedContent,
@@ -100,7 +101,16 @@ const PreviewPost = () => {
           }),
         });
 
-        router.replace(`/root/tabs/personal-board`);
+        if (recipientId == user!.id) {
+          router.replace(`/root/tabs/personal-board`);
+        } else {
+          router.replace({
+            pathname: "/root/user-board/[id]",
+            params: { id: recipientId, username: username },
+          });
+        }
+
+        
 
         setTimeout(() => {
           Alert.alert("Success", "Post created.");

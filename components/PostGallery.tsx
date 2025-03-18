@@ -94,7 +94,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
             {item.created_at ? formatDateTruncatedMonth(new Date(item.created_at)) : ""}
           </Text>
         </View>
-        {isOwnProfile && item.unread_comments > 0 && (
+        {item.clerk_id == user!.id && item.unread_comments > 0 && (
           <Text className="text-xs font-Jakarta text-red-500">
             New comments
           </Text>

@@ -554,12 +554,6 @@ const PostModal: React.FC<PostModalProps> = ({
           onPress: handleShare,
         },
         {
-          label: "Edit",
-          source: icons.pencil,
-          color: "#0851DA",
-          onPress: handleEditing,
-        },
-        {
           label: "Delete",
           source: icons.trash,
           color: "#DA0808",

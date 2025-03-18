@@ -22,6 +22,7 @@ import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
+import { useNavigationContext } from "@/components/NavigationContext";
 
 const NewPost = () => {
   const { user } = useUser();
@@ -34,6 +35,7 @@ const NewPost = () => {
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const { stateVars, setStateVars } = useNavigationContext();
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -48,13 +50,18 @@ const NewPost = () => {
   };
 
   const handlePostSubmit = async () => {
+    setStateVars({
+      ...stateVars,
+      previousScreen: "new-post",
+    });
         router.push({
           pathname: "/root/preview-post",
           params: {
             id: "", 
             content: postContent, 
             color: selectedColor.name, 
-            emoji: selectedEmoji
+            emoji: selectedEmoji,
+            username: ""
           }
         })
         setPostContent("");
@@ -105,7 +112,7 @@ const NewPost = () => {
               <CustomButton
                 className="w-14 h-10 rounded-full shadow-none"
                 fontSize="sm"
-                title="Post"
+                title="Next"
                 style={{backgroundColor: selectedColor.hex}}
                 padding="0"
                 onPress={handlePostSubmit}
@@ -117,7 +124,7 @@ const NewPost = () => {
             <View className="flex w-full mx-3">
               {!isEmojiSelectorVisible && (
                 <TextInput
-                  className="text-[16px] font-Jakarta mx-10 my-5"
+                  className="text-[16px] font-Jakarta mx-10 my-5 "
                   placeholder="Type something..."
                   value={postContent}
                   onChangeText={handleChangeText}

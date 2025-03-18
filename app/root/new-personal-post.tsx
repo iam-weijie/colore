@@ -22,10 +22,11 @@ import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
+import { useNavigationContext } from "@/components/NavigationContext";
 
 const NewPersonalPost = () => {
   const { user } = useUser();
-  const { recipient_id, source } = useLocalSearchParams(); // Get recipient_id from params
+  const { recipient_id, username } = useLocalSearchParams(); // Get recipient_id from params
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
@@ -33,6 +34,7 @@ const NewPersonalPost = () => {
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const { stateVars, setStateVars } = useNavigationContext();
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -47,6 +49,10 @@ const NewPersonalPost = () => {
 
 
     const handlePostSubmit = async () => {
+      setStateVars({
+        ...stateVars,
+        previousScreen: "new-personal-post",
+      });
            router.push({
                  pathname: "/root/preview-post",
                  params: {
@@ -55,7 +61,8 @@ const NewPersonalPost = () => {
                    color: selectedColor.name, 
                    emoji: selectedEmoji, 
                    personal: "true", 
-                   recipientId: recipient_id
+                   recipientId: recipient_id,
+                   username: username
                  }
                })
                setPostContent("");
@@ -117,7 +124,7 @@ const NewPersonalPost = () => {
             <View className="flex w-full mx-3">
               {!isEmojiSelectorVisible && (
                 <TextInput
-                  className="text-[16px] font-Jakarta mx-10 my-5"
+                  className="text-[16px] font-Jakarta mx-10 my-5 "
                   placeholder="Type something..."
                   value={postContent}
                   onChangeText={handleChangeText}

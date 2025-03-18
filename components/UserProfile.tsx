@@ -35,7 +35,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
@@ -194,6 +193,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   useEffect(() => {
     fetchUserData();
   }, [isFocusedOnProfile]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+      return () => {
+        setStateVars({ ...stateVars, queueRefresh: true});
+      }
+    }, [])
+  );
+
 
   const handleAddNickname = () => {
     setStateVars({
@@ -757,7 +766,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
             <View className="items-center">
               <ColorGallery />
             </View>
-          ) : currentSubscreen === "posts" ? (
+          ) : currentSubscreen === "posts" && (
             <View className="items-center flex-1 w-full">
               <TextInput
                 className="w-4/5  h-12 px-5 rounded-[16px] bg-gray-200 mb-6 "
@@ -766,9 +775,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 value={query}
               />
 
-              <View className="items-center mb-[60px] mx-8">
+              <View 
+              className="items-center mb-[60px]"
+              style={{
+                marginHorizontal: isIpad ? 125 : 40,
+              }}
+              >
                 <PostGallery
-                  posts={loading ? [skeletonPost(1), skeletonPost(2)] : userPosts}
+                  posts={loading ? [skeletonPost(1), skeletonPost(2), skeletonPost(3)] : userPosts}
                   profileUserId={user!.id}
                   handleUpdate={fetchUserData}
                   query={query}
@@ -796,38 +810,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 />
               </View>
             </View>
-          ) : (
-            <View className="items-center flex-1 ">
-            <PostGallery
-              posts={userPosts}
-              profileUserId={profileUser!.clerk_id}
-              handleUpdate={fetchUserData}
-              query={query}
-              header={
-                <View className="w-screen px-8 flex flex-row items-center justify-between">
-                  <View>
-                    <Text className="text-lg font-JakartaSemiBold">
-                      Most Recent ({userPosts.length //Put notification count here
-                          })
-                    </Text>
-                  </View>
-
-                  <View>
-                    <TouchableOpacity
-                      activeOpacity={0.3}
-                      onPress={() => toggleExpanded()}
-                      className="w-full fixed"
-                    >
-                      <Text className="text-gray-400 font-JakartaBold text-[14px]">
-                        {!isExpanded ? "See more" : "See less"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              }
-            />
-            </View>
-          )}
+          ) }
         </View>
       ) : (
         <View className="items-center">

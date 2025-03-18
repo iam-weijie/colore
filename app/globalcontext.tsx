@@ -3,7 +3,8 @@ import { useNotification } from "@/notifications/NotificationContext"; // Assumi
 import { sendPushNotification } from "@/notifications/PushNotificationService";
 import { Stacks } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
-import { push } from "expo-router/build/global-state/routing";
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as TaskManager from 'expo-task-manager';
 import React, {
   createContext,
   useContext,
@@ -30,6 +31,9 @@ type GlobalContextType = {
 // Constants
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 const screenWidth = Dimensions.get("screen").width;
+
+// Background Fetch Task Name
+const NOTIFICATION_TASK = 'background-notification-fetch';
 
 export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -292,6 +296,39 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       return () => clearInterval(interval); // Cleanup on unmount
     }
   }, [user]);
+
+    // Background Fetch Task
+    const backgroundFetchTask = async () => {
+      try {
+        await fetchNotifications();
+        return BackgroundFetch.Result.NewData; // Returns new data, so it can repeat
+      } catch (error) {
+        console.error("Background Fetch failed:", error);
+        return BackgroundFetch.Result.Failed; // Mark as failed if an error occurs
+      }
+    };
+  
+    // Register Background Fetch Task on component mount
+    useEffect(() => {
+      if (user) {
+        BackgroundFetch.registerTaskAsync(NOTIFICATION_TASK, {
+          minimumInterval: 60 * 15, // 15 minutes (change this interval to fit your needs)
+          stopOnTerminate: false,
+          startOnBoot: true,
+        });
+  
+        // Start the task when the app launches
+        const registerBackgroundFetch = async () => {
+          await BackgroundFetch.setMinimumIntervalAsync(60 * 15); // Example: 15 minutes interval
+        };
+  
+        registerBackgroundFetch();
+  
+        return () => {
+          BackgroundFetch.unregisterTaskAsync(NOTIFICATION_TASK);
+        };
+      }
+    }, [user]);
 
   useEffect(() => {
     const ipad = screenWidth > 500
