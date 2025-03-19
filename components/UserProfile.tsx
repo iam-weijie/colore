@@ -75,7 +75,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     content: "",
     created_at: "",
     city: "",
-    state: "",
     country: "",
     like_count: 0,
     report_count: 0,
