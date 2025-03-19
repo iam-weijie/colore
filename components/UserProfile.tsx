@@ -532,7 +532,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 <Animated.View entering={FadeIn.duration(800)}>
                 { profileUser ?  (<View>
                 <Text className="text-gray-700 text-center font-Jakarta text-base">
-                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : profileUser?.city}, {profileUser?.state},{" "}
+                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : `${profileUser?.city},`}{profileUser?.state},{" "}
                     {profileUser?.country}
                   </Text> 
                 </View>) : (
