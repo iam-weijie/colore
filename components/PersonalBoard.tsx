@@ -4,6 +4,7 @@ import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
+import ActionPrompts, { ActionType } from "@/components/ActionPrompts";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,6 +18,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { Post } from "@/types/type";
+import UserProfile from "./UserProfile";
 
 type PersonalBoardProps = {
     userId: string;
@@ -173,6 +175,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           showPostItText={true}
           invertColors={true}
         />
+        <ActionPrompts friendName={profileUser?.username ?? "your"} action={ActionType.EMPTY}/>
       </SignedIn>
     </View>
   );
