@@ -13,15 +13,27 @@ export const acceptFriendRequest = async (
   receiver_id: string
 ) => {
   try {
-    await fetchAPI(`/api/friends/handleFriendRequest`, {
-      method: "PATCH",
+    const response = await fetchAPI(`/api/friends/handleFriendRequest`, {
+      method: "POST",
       body: JSON.stringify({
         sender_id: sender_id,
-        receiver_id: receiver_id,
-        option: "accept",
+        receiver_id: receiver_id
       }),
     });
-    return FriendStatus.FRIENDS;
+
+    const data = response;
+    console.log("data", data)
+
+    if (data.message === "Friend request accepted") {
+      // Only delete request if friendship was created
+      await fetchAPI(
+        `/api/friends/deleteFriendRequest?user_id=${receiver_id}&request_id=${sender_id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      return FriendStatus.FRIENDS;
+    }
   } catch (error) {
     console.error("Failed to accept friend:", error);
     return FriendStatus.UNKNOWN;
@@ -33,18 +45,18 @@ export const rejectFriendRequest = async (
   receiver_id: string
 ) => {
   try {
-    await fetchAPI(`/api/friends/handleFriendRequest`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        sender_id: sender_id,
-        receiver_id: receiver_id,
-        option: "reject",
-      }),
-    });
+    await fetchAPI(
+      `/api/friends/deleteFriendRequest?user_id=${receiver_id}&request_id=${sender_id}`,
+      {
+        method: "DELETE",
+      }
+    );
     return FriendStatus.NONE;
   } catch (error) {
     console.error("Failed to reject friend:", error);
     return FriendStatus.UNKNOWN;
+  } finally {
+    fetchFriends(receiver_id)
   }
 };
 

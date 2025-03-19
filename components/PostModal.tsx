@@ -641,7 +641,7 @@ const PostModal: React.FC<PostModalProps> = ({
                   animatedStyle,
                   {
                     minHeight:isIpad ? 250 : 205,
-                    maxHeight: isIpad ? "60%" : "40%",
+                    maxHeight: isIpad ? "55%" : "40%",
                     backgroundColor: "rgba(255, 255, 255, 1)",
                   },
                 ]}

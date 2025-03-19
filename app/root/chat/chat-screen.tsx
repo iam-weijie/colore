@@ -21,7 +21,7 @@ import {
 import { useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 
 import { icons } from "@/constants/index";
 import { AntDesign } from "@expo/vector-icons";
@@ -51,6 +51,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationContext } from "@/components/NavigationContext";
+import { LinearGradient } from "expo-linear-gradient";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -76,26 +77,39 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
 }) => {
   return (
     <TouchableOpacity
-      activeOpacity={0.6}
-      onPress={() => {
-        onPress();
-      }}
+  activeOpacity={0.6}
+  onPress={onPress}
+>
+  <LinearGradient
+    colors={
+      focused
+        ? name === "Messages"
+          ? ["#FACC15", "#FB923C"] // Yellow to Orange
+          : name === "Friends"
+          ? ["#CFB1FB", "#93c5fd"] // Indigo to Blue
+          : ["#fbb1d6", "#ffe640"] // Green to Red
+        : ["#FBFBFB", "#FBFBFB"] // Default (No Gradient)
+    }
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 0 }}
+    style={{
+      minWidth: 132,
+      height: 48,
+      borderRadius: 24,
+      marginHorizontal: 8,
+      paddingHorizontal: 20,
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <Text
+      className="text-sm font-[600]"
+      style={{ color: focused ? "#FBFBFB" : "#000000" }}
     >
-      <View
-        className="min-w-[132px] h-[48px] rounded-[24px] mx-2 px-5 flex justify-center items-center"
-        style={{
-          backgroundColor: focused ? "#000000" : "#FBFBFB",
-          overflow: "visible", // Ensure content is not clipped
-        }}
-      >
-        <Text
-          className="text-sm font-[600]"
-          style={{ color: !focused ? "#000000" : "#FBFBFB" }}
-        >
-          {name} {notifications ? `(${notifications})` : null}
-        </Text>
-      </View>
-    </TouchableOpacity>
+      {name} {notifications ? `(${notifications})` : ""}
+    </Text>
+  </LinearGradient>
+</TouchableOpacity>
   );
 };
 
@@ -271,36 +285,35 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     friend.friend_username.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const FriendLocation = ({ friendId }: { friendId: string }) => {
+  const FriendLocation = React.memo(({ friendId }: { friendId: string }) => {
     const [location, setLocation] = useState<string>("Loading...");
-
-    useEffect(() => {
-      const fetchUserLocation = async (userId: string) => {
-        try {
-          const response = await fetchAPI(
-            `/api/users/getUserInfo?id=${userId}`,
-            {
-              method: "GET",
-            }
-          );
-          const country = response.data?.[0]?.country || "Unknown Country";
-          const state = response.data?.[0]?.state || "Unknown State";
-          const city = response.data?.[0]?.city || "Unknown City";
-
-          setLocation(`${city}, ${state}, ${country}`);
-        } catch (error) {
-          console.error(error, "Couldn't find location");
-          setLocation("Location not available");
+  
+    const fetchUserLocation = async (userId: string) => {
+      try {
+        const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
+          method: "GET",
+        });
+  
+        if (!response?.data?.[0]) {
+          throw new Error("Invalid location data");
         }
-      };
-
-      if (friendId) {
-        fetchUserLocation(friendId);
+  
+        const { country = "Unknown Country", state = "Unknown State", city = "Unknown City" } = response.data[0];
+  
+        const newLocation = city !== state ? `${city}, ${state}, ${country}` : `${state}, ${country}`;
+        setLocation((prev) => (prev !== newLocation ? newLocation : prev));
+      } catch (error) {
+        console.error("Couldn't find location:", error);
+        setLocation("Location not available");
       }
+    };
+  
+    useEffect(() => {
+      fetchUserLocation(friendId);
     }, [friendId]);
-
+  
     return <Text className="text-gray-500 text-[12px]">{location}</Text>;
-  };
+  });
 
   const handleUnfriending = async (friendId: string) => {
     Alert.alert(
@@ -462,7 +475,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                   </View>
                 </TouchableOpacity>
               </View>
-              <View className="flex flex-row items-center justify-center">
+              <View className="flex flex-row items-center justify-center ">
                 <TouchableOpacity
                   onPress={() => {
                     router.push({
@@ -471,12 +484,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                     });
                   }}
                 >
-                  <Image
-                    source={icons.pin}
-                    tintColor="rgba(150,150,150, 0.75)"
-                    resizeMode="contain"
-                    className="w-6 h-6"
-                  />
+                  <Text className="font-JakartaSemiBold text-[12px] text-grey-500">Visit Board</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -680,11 +688,14 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             <View className="flex flex-row items-center mx-4">
               <TouchableOpacity
                 onPress={handleCreateNewConversation}
-                className="w-9 h-9 ml-2 flex justify-center items-center bg-black rounded-full"
+                className="w-9 h-9 flex justify-center items-center bg-black rounded-full"
               >
-                <View className="flex justify-center items-center w-full h-full">
-                  <Text className="text-white text-2xl -mt-[3px]">+</Text>
-                </View>
+                  <Image 
+                  source={icons.search}
+                  className="w-5 h-5"
+                  tintColor="white"
+                  />
+               
               </TouchableOpacity>
             </View>
           </View>
@@ -779,7 +790,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                 <View className="mb-2">
                 <View className="p-2">
                         <Text className="font-JakartaBold text-lg">
-                          Requests{" "}
+                          Requests
                         </Text>
                         <NotificationBubble
                           unread={
@@ -808,7 +819,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                 </View>
 
                 {/* Bottom half: Outgoing Requests */}
-                <View className="flex-1 mt-2">
+                <View className="flex-1 flex-col mt-2">
                 <View className="p-2">
                         <Text className="font-JakartaBold text-lg">Sent </Text>
                         <NotificationBubble
@@ -826,7 +837,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                     renderItem={renderOutgoingRequest}
                     keyExtractor={(item) => item.id.toString()}
                     ListEmptyComponent={
-                      <Text className="text-left text-gray-500 ">
+                      <Text className="text-left text-gray-500 py-2">
                         No outgoing friend requests
                       </Text>
                     }
