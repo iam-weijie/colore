@@ -121,6 +121,7 @@ declare interface PostModalProps {
   invertedColors?: boolean;
   handleUpdate?: (isPinned: boolean) => void | Promise<void>;
   header: React.ReactElement;
+  isPreview?: boolean;
 }
 
 declare interface UserPostsGalleryProps {

@@ -21,6 +21,7 @@ import {
   Platform,
   ScrollView,
   Share,
+  StatusBar,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -97,6 +98,7 @@ const PostModal: React.FC<PostModalProps> = ({
   handleUpdate,
   invertedColors = false,
   header,
+  isPreview = false,
 }) => {
   const { stacks, isIpad } = useGlobalContext();
   const { user } = useUser();
@@ -117,7 +119,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
   // Memoize the posts array to prevent unnecessary re-renders
   const post = useMemo(() => {
-    const stack = stacks.find((stack) => stack.ids.includes(selectedPost.id));
+    const stack = stacks.find((stack) => stack.ids.includes(selectedPost.id as never));
     return stack ? stack.elements : [selectedPost];
   }, [selectedPost, stacks]);
 
@@ -286,9 +288,11 @@ const PostModal: React.FC<PostModalProps> = ({
         throw new Error(response.error);
       }
       const nicknames = response.data[0].nicknames || [];
-      return findUserNickname(nicknames, post!.clerk_id) === -1
+      const clerkId = post[currentPostIndex]?.clerk_id || '';
+      const userId = post[currentPostIndex]?.user_id || '';
+      return findUserNickname(nicknames, clerkId) === -1
         ? ""
-        : nicknames[findUserNickname(nicknames, post!.user_id)][1];
+        : nicknames[findUserNickname(nicknames, userId)][1];
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     }
@@ -379,9 +383,9 @@ const PostModal: React.FC<PostModalProps> = ({
         report_count: post[currentPostIndex]?.report_count,
         created_at: post[currentPostIndex]?.created_at,
         unread_comments: post[currentPostIndex]?.unread_comments,
-        anonymous: invertedColors,
+        anonymous: invertedColors ? "true" : "false",
         color: post[currentPostIndex]?.color,
-        saved: isSaved,
+        saved: isSaved ? "true" : "false",
       },
     });
   };
@@ -400,7 +404,9 @@ const PostModal: React.FC<PostModalProps> = ({
       console.error("Failed to update unread message:", error);
     } finally {
       setIsSaved((prevIsSaved) => !prevIsSaved);
-      //handleUpdate
+      handleUpdate && handleUpdate(!isPinned);
+      setIsPinned((prevIsPinned) => !prevIsPinned);
+      handleCloseModal();
     }
   };
 
@@ -485,9 +491,9 @@ const PostModal: React.FC<PostModalProps> = ({
     } catch (error) {
       console.error("Failed to update handlepin message:", error);
     } finally {
-      handleUpdate(!isPinned)
+      handleUpdate && handleUpdate(!isPinned);
       setIsPinned((prevIsPinned) => !prevIsPinned);
-      handleCloseModal;
+      handleCloseModal();
     }
   };
 
@@ -519,13 +525,17 @@ const PostModal: React.FC<PostModalProps> = ({
     }
 
     return (
-      <View className="absolute w-full h-full ml-3">
+      <Animated.View 
+        className="absolute w-full h-full ml-3"
+        entering={FadeInUp.duration(400)}
+        exiting={FadeOutDown.duration(250)}
+      >
         {gridItems.map((item, index) => (
           <View
             key={index}
             className="absolute align-center justify-center"
             style={{
-              left: item.x,
+              left: item.x - 25, // Adjusted position for android, check if this is correct for ios
               top: item.y,
               width: GRID_SIZE,
               height: GRID_SIZE,
@@ -534,7 +544,7 @@ const PostModal: React.FC<PostModalProps> = ({
             <Text style={{ fontSize: 50 }}>{emoji}</Text>
           </View>
         ))}
-      </View>
+      </Animated.View>
     );
   };
 
@@ -623,76 +633,138 @@ const PostModal: React.FC<PostModalProps> = ({
         backdropColor={"rgba(0,0,0,0)"}
         backdropOpacity={1}
         onBackdropPress={handleCloseModal}
+        style={{ margin: 0 }}
+        animationIn="fadeIn"
+        animationInTiming={400}
+        animationOut="fadeOut"
+        animationOutTiming={250}
+        statusBarTranslucent={true}
       >
-        <View
+        {Platform.OS === 'android' && (
+          <StatusBar
+            backgroundColor="transparent"
+            translucent={true}
+            barStyle="light-content"
+          />
+        )}
+        <Animated.View
           ref={viewRef}
+          entering={FadeInUp.duration(400)}
+          exiting={FadeOutDown.duration(250)}
           className="flex-1 absolute w-screen h-screen justify-center z-[10]"
           style={{
-            marginLeft: isIpad ? -60 : -19,
             backgroundColor: postColor?.hex || "rgba(0, 0, 0, 0.5)",
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100%',
+            height: '100%',
           }}
         >
           <TouchableWithoutFeedback onPress={handleCloseModal}>
-            {BackgroundGridEmoji(post[currentPostIndex]?.emoji || "")}
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
           </TouchableWithoutFeedback>
-
+          
           {header}
-          <GestureHandlerRootView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          {BackgroundGridEmoji(post[currentPostIndex]?.emoji || "")}
+          
+          <GestureHandlerRootView style={{ 
+            flex: 1, 
+            justifyContent: "center", 
+            alignItems: "center",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 20
+          }}>
             <GestureDetector gesture={swipeGesture}>
-              <Animated.View
-                entering={FadeInUp.duration(400)}
-                exiting={FadeOutDown.duration(250)}
-                className="bg-white px-6 py-4 rounded-[20px]  w-[80%] max-w-[500px] mx-auto"
-                style={[
-                  animatedStyle,
-                  {
-                    minHeight:isIpad ? 250 : 205,
-                    maxHeight: isIpad ? "60%" : "40%",
-                    backgroundColor: "rgba(255, 255, 255, 1)",
-                  },
-                ]}
-              >
-                <TouchableOpacity onPress={handleCloseModal}>
-                  <Image
-                    source={icons.close}
-                    style={{ width: 24, height: 24, alignSelf: "flex-end" }}
-                  />
-                </TouchableOpacity>
-
-                <ScrollView>
-                  <Text className="text-[16px] p-1 my-4 font-Jakarta">
-                  {post[currentPostIndex]?.content}
-                  </Text>
-                </ScrollView>
-                <View className="my-2 flex-row justify-between items-center">
-                  <View className="flex flex-row items-center">
-                    <TouchableOpacity onPress={handleCommentsPress}>
-                      <Image source={icons.comment} className="w-8 h-8" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleLikePress} className="ml-2">
-                      <MaterialCommunityIcons
-                        name={isLiked ? "heart" : "heart-outline"}
-                        size={32}
-                        color={isLiked ? "red" : "black"}
-                      />
-                    </TouchableOpacity>
-                    {/* Show like count only to post creator */}
-                    {post && post.clerk_id === user?.id && (
-                      <Text className="ml-1 text-gray-600">{likeCount}</Text>
-                    )}
-                  </View>
-                  {/* Delete button for post owner */}
-                  {
-                    <DropdownMenu
-                      menuItems={getMenuItems(
-                        post[currentPostIndex]?.clerk_id === user!.id ||
-                          post[currentPostIndex]?.recipient_user_id === user!.id,
-                        invertedColors
+              <View style={{ width: "80%", maxWidth: 500, alignSelf: "center" }}>
+                <View>
+                  <Animated.View
+                    entering={FadeInUp.duration(400)}
+                    exiting={FadeOutDown.duration(250)}
+                  >
+                    <Animated.View
+                      className="bg-white px-6 py-4 rounded-[20px]"
+                      style={[
+                        animatedStyle,
+                        {
+                          minHeight: isIpad ? 250 : 205,
+                          maxHeight: isIpad ? "60%" : "50%",
+                          backgroundColor: "rgba(255, 255, 255, 1)",
+                        },
+                      ]}
+                    >
+                      {!isPreview ? (
+                        <TouchableOpacity onPress={handleCloseModal}>
+                          <Image
+                            source={icons.close}
+                            style={{ width: 24, height: 24, alignSelf: "flex-end" }}
+                          />
+                        </TouchableOpacity>
+                      ) : (
+                        <Image
+                          source={icons.close}
+                          style={{ width: 24, height: 24, alignSelf: "flex-end", opacity: 0.5 }}
+                        />
                       )}
-                    />
-                  }
+
+                      <ScrollView>
+                        <Text className="text-[16px] p-1 my-4 font-Jakarta">
+                        {post[currentPostIndex]?.content}
+                        </Text>
+                      </ScrollView>
+                      
+                      <View className="flex flex-row justify-between items-center">
+                        <View className="flex flex-row items-center">
+                          {!isPreview ? (
+                            <>
+                              <TouchableOpacity onPress={handleCommentsPress}>
+                                <Image source={icons.comment} className="w-8 h-8" />
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={handleLikePress} className="ml-2">
+                                <MaterialCommunityIcons
+                                  name={isLiked ? "heart" : "heart-outline"}
+                                  size={32}
+                                  color={isLiked ? "red" : "black"}
+                                />
+                              </TouchableOpacity>
+                              {/* Show like count only to post creator */}
+                              {post[currentPostIndex] && post[currentPostIndex].clerk_id === user?.id && (
+                                <Text className="ml-1 text-gray-600">{likeCount}</Text>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <Image source={icons.comment} className="w-8 h-8 opacity-30" />
+                              <MaterialCommunityIcons
+                                name="heart-outline"
+                                size={32}
+                                color="gray"
+                                style={{ marginLeft: 8, opacity: 0.5 }}
+                              />
+                            </>
+                          )}
+                        </View>
+                        {/* Delete button for post owner */}
+                        {!isPreview && (
+                          <DropdownMenu
+                            menuItems={getMenuItems(
+                              post[currentPostIndex]?.clerk_id === user!.id ||
+                                post[currentPostIndex]?.recipient_user_id === user!.id,
+                              invertedColors
+                            )}
+                          />
+                        )}
+                      </View>
+                    </Animated.View>
+                  </Animated.View>
                 </View>
-              </Animated.View>
+              </View>
             </GestureDetector>
           </GestureHandlerRootView>
           <View className="absolute top-[80%] self-center flex flex-row">
@@ -707,7 +779,7 @@ const PostModal: React.FC<PostModalProps> = ({
                 );
               })}
           </View>
-        </View>
+        </Animated.View>
       </ReactNativeModal>
   );
 };

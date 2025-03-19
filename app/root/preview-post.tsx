@@ -7,7 +7,7 @@ import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const PreviewPost = () => {
@@ -22,7 +22,7 @@ const PreviewPost = () => {
 
   // Create a default "empty" post object
   const defaultPost: Post = {
-    id: (id as string) || "", // Ensure it's a string
+    id: parseInt((id as string) || "0"), // Convert string id to number
     clerk_id: "",
     firstname: "",
     username: "",
@@ -34,34 +34,54 @@ const PreviewPost = () => {
     like_count: 0,
     report_count: 0,
     unread_comments: 0,
-    color: (color as string) || "", // Change when PostItColor type is available
-    emoji: emoji,
+    recipient_user_id: "",
+    pinned: false,
+    color: (color as string) || "", // Ensure color is treated as string
+    emoji: emoji as string,
   };
 
   const [post, setPost] = useState<Post>(defaultPost);
 
   useEffect(() => {
+    console.log("Preview post mounted with params:", {
+      id,
+      content,
+      color,
+      emoji,
+      personal,
+      recipientId
+    });
     setPost(defaultPost);
   }, [id, content, color]); // Re-run when params change
 
   const handleCloseModal = () => {
     setIsVisible(false);
-    router.back();
+    if (id) {
+      // For edit mode, navigate back to edit-post with the same parameters
+      router.back();
+    } else {
+      // For new post mode, navigate back to new-post with the content preserved
+      router.back();
+    }
   };
 
   const handleSubmitPost = async () => {
+    console.log("handleSubmitPost started");
     setIsPosting(true);
 
     if (id) {
-      const cleanedContent = content;
+      console.log("Editing existing post: ", id);
+      const cleanedContent = content as string;
 
-      if (cleanedContent === "") {
+      if (!cleanedContent || cleanedContent.trim() === "") {
+        console.log("Content is empty");
         setIsPosting(false); // Ensure state is reset
         Alert.alert("Error", "Post content cannot be empty.");
         return;
       }
 
       try {
+        console.log("Sending update request");
         await fetchAPI("/api/posts/updatePost", {
           method: "PATCH",
           body: JSON.stringify({
@@ -72,23 +92,28 @@ const PreviewPost = () => {
           }),
         });
 
+        console.log("Update successful, navigating to profile");
         router.replace(`/root/tabs/profile`);
         setTimeout(() => {
           Alert.alert("Success", "Post updated successfully.");
         }, 500);
       } catch (error) {
-        console.log(error);
+        console.log("Update error: ", error);
         Alert.alert("Error", "An error occurred. Please try again.");
       } finally {
         setIsPosting(false);
       }
     } else if (personal === "true") {
-      const cleanedContent = content;
-      if (cleanedContent === "") {
+      console.log("Creating personal post to recipient: ", recipientId);
+      const cleanedContent = content as string;
+      if (!cleanedContent || cleanedContent.trim() === "") {
+        console.log("Content is empty");
+        setIsPosting(false); // Ensure state is reset
         Alert.alert("Error", "Post content cannot be empty.");
         return;
       }
       try {
+        console.log("Sending personal post request");
         const response = await fetchAPI("/api/posts/newPersonalPost", {
           method: "POST",
           body: JSON.stringify({
@@ -100,40 +125,47 @@ const PreviewPost = () => {
           }),
         });
 
+        console.log("Personal post created, navigating to personal board");
         router.replace(`/root/tabs/personal-board`);
 
         setTimeout(() => {
           Alert.alert("Success", "Post created.");
         }, 500);
       } catch (error) {
+        console.log("Personal post error: ", error);
         Alert.alert("Error", "An error occurred. Please try again.");
       } finally {
         setIsPosting(false);
       }
     } else {
-      setIsPosting(true);
-      const cleanedContent = content;
-      if (cleanedContent === "") {
+      console.log("Creating standard post");
+      const cleanedContent = content as string;
+      if (!cleanedContent || cleanedContent.trim() === "") {
+        console.log("Content is empty");
+        setIsPosting(false); // Ensure state is reset
         Alert.alert("Error", "Post content cannot be empty.");
         return;
       }
       try {
+        console.log("Sending standard post request");
         await fetchAPI("/api/posts/newPost", {
           method: "POST",
           body: JSON.stringify({
-            content: content,
+            content: cleanedContent,
             clerkId: user!.id,
             color: postColor.name,
             emoji: emoji,
           }),
         });
 
+        console.log("Standard post created, navigating to home");
         router.replace(`/root/tabs/home`);
 
         setTimeout(() => {
           Alert.alert("Success", "Post created.");
         }, 500);
       } catch (error) {
+        console.log("Standard post error: ", error);
         Alert.alert("Error", "An error occurred. Please try again.");
       } finally {
         setIsPosting(false);
@@ -147,31 +179,38 @@ const PreviewPost = () => {
           isVisible={isVisible}
           selectedPost={post} // Always a valid Post object
           handleCloseModal={handleCloseModal}
+          isPreview={true}
           header={
-            <View className="absolute top-0 left-0 w-full flex flex-row items-center justify-center mt-10 pt-7 px-6">
-              <View className="flex-1">
-                <TouchableOpacity
-                  onPress={() => router.back()}
-                  className="mr-2"
-                >
-                  <AntDesign name="caretleft" size={18} color={"white"} />
-                </TouchableOpacity>
-              </View>
-              <View className="absolute top-9 ">
-                <Text className="font-JakartaSemiBold text-[#ffffff] text-xl ">
-                  Preview
-                </Text>
-              </View>
-              <View>
-                <CustomButton
-                  className="w-14 h-10 rounded-full shadow-none"
-                  fontSize="sm"
-                  title="Post"
-                  style={{ backgroundColor: "black" }}
-                  padding="0"
-                  onPress={handleSubmitPost}
-                  disabled={false}
-                />
+            <View className="absolute top-0 left-0 w-full mt-10 pt-7 px-6 z-50">
+              <View style={{ position: 'relative', width: '100%' }}>
+                <View className="flex flex-row justify-between items-center">
+                  <View style={{ width: 60 }}>
+                    <TouchableOpacity
+                      onPress={() => router.back()}
+                      className="mr-2"
+                    >
+                      <AntDesign name="caretleft" size={18} color={"black"} />
+                    </TouchableOpacity>
+                  </View>
+                  
+                  <View style={{ width: 60, alignItems: 'flex-end' }}>
+                    <CustomButton
+                      className="w-14 h-10 rounded-full shadow-none"
+                      fontSize="sm"
+                      title="Post"
+                      style={{backgroundColor: "black"}}
+                      padding="0"
+                      onPress={handleSubmitPost}
+                      disabled={isPosting}
+                    />
+                  </View>
+                </View>
+                
+                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  <Text className="font-JakartaSemiBold text-[#0] text-xl">
+                    Preview
+                  </Text>
+                </View>
               </View>
             </View>
           }

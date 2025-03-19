@@ -45,22 +45,22 @@ const NewPersonalPost = () => {
     setInputHeight(event.nativeEvent.contentSize.height);
   };
 
-
-    const handlePostSubmit = async () => {
-           router.push({
-                 pathname: "/root/preview-post",
-                 params: {
-                   id: "", 
-                   content: postContent, 
-                   color: selectedColor.name, 
-                   emoji: selectedEmoji, 
-                   personal: "true", 
-                   recipientId: recipient_id
-                 }
-               })
-               setPostContent("");
-               setSelectedEmoji(null);
-    };
+  const handlePostSubmit = async () => {
+    router.push({
+      pathname: "/root/preview-post",
+      params: {
+        id: "", 
+        content: postContent, 
+        color: selectedColor.name, 
+        emoji: selectedEmoji, 
+        personal: "true", 
+        recipientId: recipient_id
+      }
+    });
+    // Don't clear content here so it persists when returning from preview
+    // setPostContent("");
+    // setSelectedEmoji(null);
+  };
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {

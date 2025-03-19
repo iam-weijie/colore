@@ -57,8 +57,9 @@ const NewPost = () => {
             emoji: selectedEmoji
           }
         })
-        setPostContent("");
-        setSelectedEmoji(null);
+        // Don't clear content here so it persists when returning from preview
+        // setPostContent("");
+        // setSelectedEmoji(null);
   };
 
   const handleChangeText = (text: string) => {
@@ -93,24 +94,30 @@ const NewPost = () => {
           onPressIn={() => Keyboard.dismiss()}
         >
           <View className="flex-1">
-            <View className="flex flex-row justify-center items-center mt-3 mx-6">
-              <View className="flex-1">
-                <TouchableOpacity onPress={() => router.back()}>
-                  <AntDesign name="caretleft" size={18} color="0076e3" />
-                </TouchableOpacity>
+            <View style={{ position: 'relative', width: '100%' }}>
+              <View className="flex flex-row justify-between items-center mx-6 mt-2">
+                <View style={{ width: 60, zIndex: 5, elevation: 5 }}>
+                  <TouchableOpacity onPress={() => router.back()}>
+                    <AntDesign name="caretleft" size={18} color="0076e3" />
+                  </TouchableOpacity>
+                </View>
+                <View style={{ width: 60, zIndex: 5, elevation: 5, alignItems: 'flex-end' }}>
+                  <CustomButton
+                    className="w-14 h-10 rounded-full shadow-none"
+                    fontSize="sm"
+                    title="Post"
+                    style={{backgroundColor: selectedColor.hex}}
+                    padding="0"
+                    onPress={handlePostSubmit}
+                    disabled={!postContent || isPosting}
+                  />
+                </View>
               </View>
-              <Text className="absolute text-xl font-JakartaSemiBold">
-                New Post
-              </Text>
-              <CustomButton
-                className="w-14 h-10 rounded-full shadow-none"
-                fontSize="sm"
-                title="Post"
-                style={{backgroundColor: selectedColor.hex}}
-                padding="0"
-                onPress={handlePostSubmit}
-                disabled={!postContent || isPosting}
-              />
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center', height: '100%', zIndex: 4, elevation: 4 }}>
+                <Text className="text-xl font-JakartaSemiBold mt-2">
+                  New Post
+                </Text>
+              </View>
             </View>
             <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
           <View className="flex h-full flex-column justify-between items-center pb-4">
