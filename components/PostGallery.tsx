@@ -5,7 +5,7 @@ import { formatDateTruncatedMonth } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { Link, useFocusEffect } from "expo-router";
-import Animated, { SlideInDown, SlideInUp, FadeInDown } from "react-native-reanimated";
+import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -21,7 +21,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   posts,
   profileUserId,
   handleUpdate,
-  query,
+  query = "",
   header
 }) => {
   const { user } = useUser();
@@ -103,11 +103,12 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     </TouchableOpacity>
     </Animated.View>
   );
- const handleUnsave = () =>{
+ const handleUnsave = () => {
   setIsSaved((prevPost) => !isSaved);
-  handleUpdate(selectedPost?.id || -1, isSaved);
-  handleCloseModal()
-
+  if (handleUpdate) {
+    handleUpdate(selectedPost?.id || -1, isSaved);
+  }
+  handleCloseModal();
  }
   const handleCloseModal = () => {
     setSelectedPost(null);
@@ -133,9 +134,14 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       ) : 
       (
       <TouchableOpacity activeOpacity={0.7} onPress={() => {router.push("/root/new-post")}}>
-      <Text className="font-Jakarta text-gray-500">
-              Click to make a post and see it here!
-            </Text>
+        <Animated.View 
+          entering={FadeIn.duration(800)}
+          className="w-full flex items-center justify-center p-6"
+        >
+          <Text className="font-Jakarta text-gray-500 text-center">
+            Click to make a post and see it here!
+          </Text>
+        </Animated.View>
       </TouchableOpacity>)}
        
       {posts.length > 0 && (
@@ -154,6 +160,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
           selectedPost={selectedPost}
           handleCloseModal={handleCloseModal}
           handleUpdate={handleUnsave}
+          header={<View />}
         />
       )}
     </View>

@@ -163,17 +163,15 @@ const State = () => {
         }),
       });
 
-      // Navigate back based on previous screen
-      if (previousScreen === "settings") {
-        router.replace("/root/settings");
-      } else {
-        router.replace(`/${stateVars.previousScreen}` as Href);
-      }
+      // Use router.back() to ensure we return to previous screen properly
+      router.back();
+      router.back();
+      
     } catch (error) {
       console.error("Error saving location:", error);
       Alert.alert("Error", "Failed to save your location. Please try again.");
     }
-  }, [country, stateVars, previousScreen, user, setStateVars]);
+  }, [country, stateVars, user, setStateVars]);
 
   // Memoized press handler
   const handleStatePress = useCallback((item: State) => {

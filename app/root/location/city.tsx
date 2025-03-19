@@ -171,11 +171,10 @@ const City = () => {
       }),
     });
 
-    if (previousScreen === "settings") {
-      router.replace("/root/settings");
-    } else {
-      router.replace(`/${stateVars.previousScreen}` as Href);
-    }
+    router.back();
+    router.back();
+    router.back();
+    
   }, [selectedCity, state, country, stateVars, previousScreen, user]);
 
   // Memoized keyExtractor

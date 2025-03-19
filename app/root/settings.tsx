@@ -195,9 +195,11 @@ const Settings = () => {
 
   useFocusEffect(
     useCallback(() => {
+      // Fetch all user data including location when screen is focused
+      fetchUserData();
       fetchSavedPosts();
       fetchLikedPosts();
-    }, [])
+    }, [stateVars])
   );
   return (
     <SafeAreaView className="flex-1">
