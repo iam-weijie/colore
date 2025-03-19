@@ -884,8 +884,8 @@ const PostScreen = () => {
             </View>
             <View className="flex-1">
               {/* Comment section */}
-              <View className="h-full">
-                {loading && <ActivityIndicator size="large" color="#0076e3" />}
+              <View className="h-full mt-4">
+                {loading && <ActivityIndicator size="small" color="rgba(180,180,180,0.75)" />}
                 {error && <Text className="text-red-500 mx-4">{error}</Text>}
                 {!loading && !error && postComments.length === 0 && (
                   <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2">
