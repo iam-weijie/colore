@@ -7,10 +7,11 @@ import rosie from "@/assets/characters/rosie-1.png";
 
 
 export const ActionType = Object.freeze({
-  NONE: {name: "none"},
+  NONE: { name: "none" },
   EMPTY: { name: "empty" },
   WHILEAGO: { name: "whileago" },
-  RECIPROCITY: { name: "reciprocity" }
+  RECIPROCITY: { name: "reciprocity" },
+  TIPS: { name: "tips" }
 });
 
 // Define prompts for each action type with title, body, and source
@@ -122,8 +123,21 @@ const actionPrompts = {
       body: `${friendName} shared something, so why not share back?`,
       source: steve
     }
+  ],
+  tips: () => [
+    {
+      title: "Stacking Post-its",
+      body: "Try sliding one post-it on top of another to stack them! This way, they can be visualized together instead of individually.",
+      source: bob
+    },
+    {
+      title: "Quick Stack",
+      body: "Hold the background for 2 seconds to automatically stack all post-its together. It's a quick way to organize!",
+      source: rosie
+    }
   ]
 };
+
 
 type Prompt = {
   title: string;
@@ -160,12 +174,12 @@ const ActionPrompts: React.FC<ActionPromptsProps> = ({ friendName, action }) => 
 
     generateRandomPrompt(action.name);
     // Spring animation to slide in
-    translateY.value = withSpring(0, { damping: 15, stiffness: 100 });  // Slide in to 0 with spring effect
+    translateY.value = withSpring(0, { damping: 15, stiffness: 85 });  // Slide in to 0 with spring effect
 
       // Make it disappear after 7 seconds
       const timeout = setTimeout(() => {
-        translateY.value = withSpring(200, { damping: 15, stiffness: 100 });  // Slide out to off-screen
-      }, 7000);  // 7 seconds
+        translateY.value = withSpring(200, { damping: 15, stiffness: 85 });  // Slide out to off-screen
+      }, 5500);  // 7 seconds
   
       // Cleanup timeout on unmount
       return () => clearTimeout(timeout);
@@ -196,13 +210,18 @@ const ActionPrompts: React.FC<ActionPromptsProps> = ({ friendName, action }) => 
       bg-[#FAFAFA]
       rounded-[32px] 
       shadow-xs
-      bottom-3 
+      bottom-3  
+      h-[15%] "
+    >
+      <TouchableOpacity
+      className="
+      w-full
+      h-full
       flex 
       flex-row 
-      h-[15%] 
       items-center 
       justify-start"
-    >
+      hitSlop={3}>
       <View>
         <Image
           source={randomPrompt.source}
@@ -214,7 +233,7 @@ const ActionPrompts: React.FC<ActionPromptsProps> = ({ friendName, action }) => 
         <Text className="text-lg font-JakartaSemiBold">{randomPrompt.title}</Text>
         <Text className="text-[14px">{randomPrompt.body}</Text>
       </View>
-     
+      </TouchableOpacity>
     </Animated.View>
   );
 };
