@@ -44,7 +44,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     }
   };
 
-  const filteredPosts = posts.filter((post) => post.content.toLowerCase().includes(query.toLowerCase()));
+  const filteredPosts = posts.filter((post) => post.content.toLowerCase().includes(query?.toLowerCase() || ""));
 
   useEffect(() => {
     if (isOwnProfile) {
@@ -103,11 +103,12 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     </TouchableOpacity>
     </Animated.View>
   );
- const handleUnsave = () =>{
+ const handleUnsave = () => {
   setIsSaved((prevPost) => !isSaved);
-  handleUpdate(selectedPost?.id || -1, isSaved);
-  handleCloseModal()
-
+  if (handleUpdate) {
+    handleUpdate(selectedPost?.id || -1, isSaved);
+  }
+  handleCloseModal();
  }
   const handleCloseModal = () => {
     setSelectedPost(null);
@@ -154,6 +155,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
           selectedPost={selectedPost}
           handleCloseModal={handleCloseModal}
           handleUpdate={handleUnsave}
+          header={<View />}
         />
       )}
     </View>

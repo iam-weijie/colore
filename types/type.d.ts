@@ -206,6 +206,6 @@ declare interface Friendship {
 }
 
 type Stacks = {
-  ids: [];
-  elements: [];
+  ids: number[];
+  elements: PostWithPosition[];
 };

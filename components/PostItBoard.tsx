@@ -118,11 +118,11 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       const dx =
         newPosition.coordinates.x_coordinate -
         post.position.left -
-        position.x.__getValue();
+        (position.x as any)._value;
       const dy =
         newPosition.coordinates.y_coordinate -
         post.position.top -
-        position.y.__getValue();
+        (position.y as any)._value;
 
       if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
         Animated.timing(position, {
@@ -222,7 +222,6 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
               color: fontColor,
               fontSize: 16,
               padding: 15,
-              numberOfLines: 3,
               fontStyle: "italic",
             }}
             numberOfLines={3}
@@ -402,10 +401,10 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         (stack) => !affectedStacks.includes(stack)
       );
       updatedStacks.push({
-        ids: Array.from(mergedStackIds),
+        ids: Array.from(mergedStackIds) as number[],
         elements: Array.from(mergedStackIds)
           .map((id) => postsWithPosition.find((post) => post.id === id))
-          .filter((post) => post !== undefined),
+          .filter((post) => post !== undefined) as PostWithPosition[],
       });
     }
   
@@ -495,8 +494,14 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     fetchRandomPosts();
   }, []);
 
-  const forceStack = (id: number) => {
-    return maps.find((p) => p.id == id);
+  const forceStack = (id: number): MappingPostitProps => {
+    return maps.find((p) => p.id == id) || {
+      id: id,
+      coordinates: {
+        x_coordinate: 0,
+        y_coordinate: 0
+      }
+    };
   };
   const handlePostPress = (post: PostWithPosition) => {
     // Ensure all required properties are present
@@ -662,6 +667,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                   handleCloseModal={handleCloseModal}
                   handleUpdate={(isPinned: boolean) => handleIsPinned(isPinned)}
                   invertedColors={invertColors}
+                  header={<View />}
                 />
               )}
             </View>

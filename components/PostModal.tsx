@@ -633,6 +633,7 @@ const PostModal: React.FC<PostModalProps> = ({
         backdropColor={"rgba(0,0,0,0)"}
         backdropOpacity={1}
         onBackdropPress={handleCloseModal}
+        onBackButtonPress={handleCloseModal}
         style={{ margin: 0 }}
         animationIn="fadeIn"
         animationInTiming={400}

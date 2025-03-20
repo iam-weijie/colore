@@ -7,14 +7,37 @@ import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { Alert, Text, TouchableOpacity, View, ActivityIndicator, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 
-const PreviewPost = () => {
+interface PreviewPostProps {
+  previewProps?: {
+    id: string;
+    content: string;
+    color: string;
+    emoji: string | null;
+    personal?: string;
+    recipientId?: string;
+    onClose: () => void;
+    inlineMode: boolean;
+  };
+}
+
+const PreviewPost = ({ previewProps }: PreviewPostProps) => {
   const { user } = useUser();
   const [isVisible, setIsVisible] = useState<boolean>(true);
-  const { id, content, color, emoji, personal, recipientId } =
-    useLocalSearchParams();
+  
+  // Use props if provided (inline mode), otherwise use URL params
+  const params = useLocalSearchParams();
+  const id = previewProps?.id || params.id as string;
+  const content = previewProps?.content || params.content as string;
+  const color = previewProps?.color || params.color as string;
+  const emoji = previewProps?.emoji || params.emoji as string;
+  const personal = previewProps?.personal || params.personal as string;
+  const recipientId = previewProps?.recipientId || params.recipientId as string;
+  const inlineMode = previewProps?.inlineMode || false;
+  
   const [isPosting, setIsPosting] = useState(false);
   const [postColor, setPostColor] = useState<PostItColor>(
     temporaryColors.find((c) => c.name === color) as PostItColor
@@ -22,11 +45,11 @@ const PreviewPost = () => {
 
   // Create a default "empty" post object
   const defaultPost: Post = {
-    id: parseInt((id as string) || "0"), // Convert string id to number
+    id: parseInt(id || "0"), // Convert string id to number
     clerk_id: "",
     firstname: "",
     username: "",
-    content: (content as string) || "",
+    content: content || "",
     created_at: "",
     city: "",
     state: "",
@@ -36,7 +59,7 @@ const PreviewPost = () => {
     unread_comments: 0,
     recipient_user_id: "",
     pinned: false,
-    color: (color as string) || "", // Ensure color is treated as string
+    color: color || "", // Ensure color is treated as string
     emoji: emoji as string,
   };
 
@@ -56,7 +79,9 @@ const PreviewPost = () => {
 
   const handleCloseModal = () => {
     setIsVisible(false);
-    if (id) {
+    if (inlineMode && previewProps?.onClose) {
+      previewProps.onClose();
+    } else if (id) {
       // For edit mode, navigate back to edit-post with the same parameters
       router.back();
     } else {
@@ -65,13 +90,29 @@ const PreviewPost = () => {
     }
   };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (isVisible) {
+          handleCloseModal();
+          return true;
+        }
+        return false;
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, [isVisible, handleCloseModal])
+  );
+
   const handleSubmitPost = async () => {
     console.log("handleSubmitPost started");
     setIsPosting(true);
 
     if (id) {
       console.log("Editing existing post: ", id);
-      const cleanedContent = content as string;
+      const cleanedContent = content;
 
       if (!cleanedContent || cleanedContent.trim() === "") {
         console.log("Content is empty");
@@ -93,6 +134,9 @@ const PreviewPost = () => {
         });
 
         console.log("Update successful, navigating to profile");
+        if (inlineMode) {
+          handleCloseModal();
+        }
         router.replace(`/root/tabs/profile`);
         setTimeout(() => {
           Alert.alert("Success", "Post updated successfully.");
@@ -105,7 +149,7 @@ const PreviewPost = () => {
       }
     } else if (personal === "true") {
       console.log("Creating personal post to recipient: ", recipientId);
-      const cleanedContent = content as string;
+      const cleanedContent = content;
       if (!cleanedContent || cleanedContent.trim() === "") {
         console.log("Content is empty");
         setIsPosting(false); // Ensure state is reset
@@ -126,6 +170,9 @@ const PreviewPost = () => {
         });
 
         console.log("Personal post created, navigating to personal board");
+        if (inlineMode) {
+          handleCloseModal();
+        }
         router.replace(`/root/tabs/personal-board`);
 
         setTimeout(() => {
@@ -139,7 +186,7 @@ const PreviewPost = () => {
       }
     } else {
       console.log("Creating standard post");
-      const cleanedContent = content as string;
+      const cleanedContent = content;
       if (!cleanedContent || cleanedContent.trim() === "") {
         console.log("Content is empty");
         setIsPosting(false); // Ensure state is reset
@@ -159,6 +206,9 @@ const PreviewPost = () => {
         });
 
         console.log("Standard post created, navigating to home");
+        if (inlineMode) {
+          handleCloseModal();
+        }
         router.replace(`/root/tabs/home`);
 
         setTimeout(() => {
@@ -186,7 +236,7 @@ const PreviewPost = () => {
                 <View className="flex flex-row justify-between items-center">
                   <View style={{ width: 60 }}>
                     <TouchableOpacity
-                      onPress={() => router.back()}
+                      onPress={handleCloseModal}
                       className="mr-2"
                     >
                       <AntDesign name="caretleft" size={18} color={"black"} />

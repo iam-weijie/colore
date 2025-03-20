@@ -1,7 +1,7 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Alert,
   Dimensions,
@@ -13,15 +13,19 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  BackHandler,
+  Animated,
 } from "react-native";
 import EmojiSelector from "react-native-emoji-selector";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 
 import ColorSelector from "@/components/ColorSelector";
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor } from "@/types/type";
+import { Post, PostItColor } from "@/types/type";
+import PostModal from "@/components/PostModal";
 
 const NewPost = () => {
   const { user } = useUser();
@@ -34,6 +38,28 @@ const NewPost = () => {
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Create a preview post for the PostModal
+  const previewPost: Post = {
+    id: 0,
+    clerk_id: user?.id || "",
+    firstname: user?.firstName || "",
+    username: user?.username || "",
+    content: postContent,
+    created_at: new Date().toISOString(),
+    city: "",
+    state: "",
+    country: "",
+    like_count: 0,
+    report_count: 0,
+    unread_comments: 0,
+    recipient_user_id: "",
+    pinned: false,
+    color: selectedColor.name,
+    emoji: selectedEmoji || "",
+  };
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -48,18 +74,27 @@ const NewPost = () => {
   };
 
   const handlePostSubmit = async () => {
-        router.push({
-          pathname: "/root/preview-post",
-          params: {
-            id: "", 
-            content: postContent, 
-            color: selectedColor.name, 
-            emoji: selectedEmoji
-          }
-        })
-        // Don't clear content here so it persists when returning from preview
-        // setPostContent("");
-        // setSelectedEmoji(null);
+    // Reset opacity to fully visible
+    fadeAnim.setValue(1);
+    setShowPreview(true);
+    // Don't clear content here so it persists when returning from preview
+  };
+
+  const handlePreviewClose = () => {
+    // Start the fade out animation first
+    Animated.timing(
+      fadeAnim,
+      {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true
+      }
+    ).start(() => {
+      // Then hide the preview after animation completes
+      setShowPreview(false);
+      // Reset opacity for next time
+      fadeAnim.setValue(1);
+    });
   };
 
   const handleChangeText = (text: string) => {
@@ -79,12 +114,70 @@ const NewPost = () => {
     // console.log(selectedEmoji);
   };
 
-   useEffect(() => {
-     if (selectedEmoji && isEmojiSelectorVisible) {
-       toggleEmojiSelector();
-     }
-   }, [selectedEmoji]);
+  const handleFinalPostSubmit = async () => {
+    console.log("Creating standard post");
+    setIsPosting(true);
+
+    try {
+      console.log("Sending standard post request");
+      await fetchAPI("/api/posts/newPost", {
+        method: "POST",
+        body: JSON.stringify({
+          content: postContent,
+          clerkId: user!.id,
+          color: selectedColor.name,
+          emoji: selectedEmoji,
+        }),
+      });
+
+      console.log("Standard post created, navigating to home");
+      // Start the fade out animation
+      Animated.timing(
+        fadeAnim,
+        {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true
+        }
+      ).start(() => {
+        // Complete navigation after animation
+        setShowPreview(false);
+        router.replace(`/root/tabs/home`);
+      });
+
+      setTimeout(() => {
+        Alert.alert("Success", "Post created.");
+      }, 500);
+    } catch (error) {
+      console.log("Standard post error: ", error);
+      Alert.alert("Error", "An error occurred. Please try again.");
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedEmoji && isEmojiSelectorVisible) {
+      toggleEmojiSelector();
+    }
+  }, [selectedEmoji]);
    
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (showPreview) {
+          handlePreviewClose();
+          return true;
+        }
+        router.back();
+        return true;
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, [showPreview])
+  );
 
   return (
     <SafeAreaView className="flex-1">
@@ -148,7 +241,6 @@ const NewPost = () => {
                 colors={temporaryColors}
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
-                //onColorSelect={setSelectedColor}
               />
 
               <TouchableOpacity onPress={toggleEmojiSelector}>
@@ -177,6 +269,60 @@ const NewPost = () => {
           </View>
         </TouchableWithoutFeedback>
       </SignedIn>
+
+      {showPreview && (
+        <Animated.View style={{ 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0,
+          backgroundColor: 'transparent',
+          zIndex: 100,
+          opacity: fadeAnim
+        }}>
+          <PostModal
+            isVisible={showPreview}
+            selectedPost={previewPost}
+            handleCloseModal={handlePreviewClose}
+            isPreview={true}
+            header={
+              <View className="absolute top-0 left-0 w-full mt-10 pt-7 px-6 z-50">
+                <View style={{ position: 'relative', width: '100%' }}>
+                  <View className="flex flex-row justify-between items-center">
+                    <View style={{ width: 60 }}>
+                      <TouchableOpacity
+                        onPress={handlePreviewClose}
+                        className="mr-2"
+                      >
+                        <AntDesign name="caretleft" size={18} color={"black"} />
+                      </TouchableOpacity>
+                    </View>
+                    
+                    <View style={{ width: 60, alignItems: 'flex-end' }}>
+                      <CustomButton
+                        className="w-14 h-10 rounded-full shadow-none"
+                        fontSize="sm"
+                        title="Post"
+                        style={{backgroundColor: "black"}}
+                        padding="0"
+                        onPress={handleFinalPostSubmit}
+                        disabled={isPosting}
+                      />
+                    </View>
+                  </View>
+                  
+                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                    <Text className="font-JakartaSemiBold text-[#0] text-xl">
+                      Preview
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            }
+          />
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 };

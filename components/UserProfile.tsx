@@ -83,6 +83,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     unread_comments: 0,
     color: "#E5E7EB", //String for now. Should be changed to PostItColor
     emoji: "",
+    recipient_user_id: "",
+    pinned: false,
   })
   }
 
@@ -130,7 +132,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       }
 
       const countryCode = data[0]?.cca2 || ""; // ISO 3166-1 alpha-2 country code
-      const flagEmoji = countryCode?.toUpperCase().split("").map((char) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
+      const flagEmoji = countryCode?.toUpperCase().split("").map((char: string) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
 
       setCountryEmoji(flagEmoji);
       setEmojiLoading(false)
@@ -373,7 +375,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_sent = [
-    { label: "Nickname", color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
     {
       label: "Report",
       source: icons.email,
