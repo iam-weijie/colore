@@ -67,6 +67,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
   const isEditable = user!.id === userId;
 
+  // Check if we're in the tabs navigation (with navbar) - onSignOut is only provided in tabs/profile.tsx
+  const isInTabsNavigation = onSignOut !== undefined;
+
   const skeletonPost = (id: number) => {
     return({
     id: id,
@@ -404,7 +407,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         (query.length < 1 && (
           <View>
             <View className="mx-7 mb-2">
-              {!isEditable && (
+              {(!isEditable || (isEditable && router.canGoBack() && !isInTabsNavigation)) && (
                 <View className="flex flex-row items-center justify-between pb-3">
                   <TouchableOpacity
                     onPress={() => router.back()}
