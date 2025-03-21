@@ -1,7 +1,7 @@
 import { fetchAPI } from "@/lib/fetch";
 import { useNotification } from "@/notifications/NotificationContext"; // Assuming you have a notification context to manage global state
 import { sendPushNotification } from "@/notifications/PushNotificationService";
-import { Stacks } from "@/types/type";
+import { PostComment, Stacks } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { push } from "expo-router/build/global-state/routing";
 import React, {
@@ -25,6 +25,8 @@ type GlobalContextType = {
   unreadRequests: number;
   lastConnection: Date;
   isIpad: boolean;
+  replyTo: string | null;
+  setReplyTo: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 // Constants
@@ -41,6 +43,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [unreadRequests, setUnreadRequests] = useState<number>(0);
   const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
   const [isIpad, setIsIpad] = useState<boolean>(false);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
 
 
   const hasUpdatedLastConnection = useRef(false);
@@ -308,7 +311,9 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         unreadMessages,
         unreadRequests,
         lastConnection,
-        isIpad
+        isIpad,
+        replyTo,
+        setReplyTo
       }}
     >
       {children}

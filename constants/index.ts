@@ -21,7 +21,9 @@ import send from "@/assets/icons/send.png";
 import settings from "@/assets/icons/settings.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
+import reply from "@/assets/icons/reply.png";
 import login from "@/assets/images/login_squares.png";
+
 import { PostItColor } from "@/types/type";
 
 export const icons = {
@@ -42,6 +44,7 @@ export const icons = {
   refresh,
   heart,
   comment,
+  reply,
   palette,
   settings,
   wink,

@@ -5,7 +5,7 @@ export async function POST(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     //console.log("Received POST request for new comment.");
 
-    const { clerkId, postId, postClerkId, content } = await request.json();
+    const { clerkId, postId, postClerkId, content, replyId } = await request.json();
 
     if (!clerkId || !postId || !postClerkId || !content) {
       //console.log("Missing required fields:", { clerkId, postId, postClerkId, content });
@@ -19,8 +19,8 @@ export async function POST(request: Request) {
     if (clerkId !== postClerkId) {
       const response = await sql`
         WITH insert_comment AS (
-          INSERT INTO comments (user_id, post_id, content)
-          VALUES (${clerkId}, ${postId}, ${content})
+          INSERT INTO comments (user_id, post_id, content, reply_comment_id)
+          VALUES (${clerkId}, ${postId}, ${content}, ${replyId})
           RETURNING id
         )
         UPDATE posts
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
     } else {
       // If the post owner is commenting, don't increment unread_comments
       const response = await sql`
-        INSERT INTO comments (user_id, post_id, content)
-        VALUES (${clerkId}, ${postId}, ${content})
+        INSERT INTO comments (user_id, post_id, content, reply_comment_id)
+        VALUES (${clerkId}, ${postId}, ${content}, ${replyId})
         RETURNING id;
       `;
       return new Response(JSON.stringify({ data: response }), {

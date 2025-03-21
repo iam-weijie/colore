@@ -32,8 +32,8 @@ declare interface PostComment {
   report_count: number;
   is_liked: boolean;
   postColor: string;
+  reply_comment_id: string;
 }
-
 declare interface UserProfileType {
   id: number;
   clerk_id: string;
