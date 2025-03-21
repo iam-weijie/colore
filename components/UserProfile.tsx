@@ -247,9 +247,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       //console.log("response: ", response.data.length);
       if (response.data.length > 0) {
         setConvId(response.data[0].id);
-        router.push(
-          `/root/chat/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`
-        );
+        /*router.push(
+         `/root/chat/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`
+         
+        );*/
+        router.push({
+          pathname: "/root/new-personal-post",
+          params: {
+            recipient_id: user!.id,
+            source: "board"
+          },
+        });
       }
       return response.data.length > 0;
     } catch (err) {
@@ -298,9 +306,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           } else {
             const conversation = result.data[0];
             //console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
-            router.push(
+           /* router.push(
               `/root/chat/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
-            );
+            );*/
+            router.push({
+              pathname: "/root/new-personal-post",
+              params: {
+                recipient_id: user!.id,
+                source: "board"
+              },
+            });
           }
         } catch (err) {
           console.error("Failed to fetch conversation data:", err);

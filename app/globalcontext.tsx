@@ -211,7 +211,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
         const username = await fetchUsername(content.senderId);
         const conversation = await fetchConversation(n.conversationid);
-
+/*
         await sendPushNotification(
           pushToken,
           `${username} sent you a message`, // Title
@@ -222,6 +222,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
             params: {},
           }
         );
+        */
       }
       if (type === "Requests") {
         // console.log("request", content)
