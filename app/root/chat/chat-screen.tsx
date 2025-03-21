@@ -154,7 +154,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   //Navigation
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const [selectedTab, setSelectedTab] = useState<string>(
-    tab ? tab : "Messages"
+    tab ? tab : "Friends"
   );
 
   const fetchConversations = async (): Promise<void> => {
@@ -651,7 +651,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   };
 
   const handleCreateNewConversation = (): void => {
-    router.push("/root/chat/new-conversation");
+   router.push("/root/chat/new-conversation");
   };
 
   // console.log("All Friend Request", allFriendRequests?.sent);
@@ -708,7 +708,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             className="max-h-[50px] min-h-auto"
           >
             <View className="flex flex-row items-center justify-between mx-6">
-              <TabNavigation
+             {/* <TabNavigation
                 name="Messages"
                 focused={selectedTab === "Messages"}
                 onPress={() => {
@@ -716,7 +716,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                   setSearchText("");
                 }}
                 notifications={toRead.length}
-              />
+              />*/}
               <TabNavigation
                 name="Friends"
                 focused={selectedTab === "Friends"}
@@ -740,7 +740,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>
           </ScrollView>
 
-          {selectedTab === "Messages" && (
+          {/*selectedTab === "Messages" && (
             <FlatList
               className="rounded-[16px] mt-3 mx-4"
               ListHeaderComponent={
@@ -758,7 +758,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               keyExtractor={(item): string => item.id}
               showsVerticalScrollIndicator={false}
             />
-          )}
+          )*/}
 
           {selectedTab == "Friends" && (
             <FlatList
