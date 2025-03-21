@@ -1,6 +1,6 @@
 import PostItBoard from "@/components/PostItBoard";
 import { fetchAPI } from "@/lib/fetch";
-import { Post } from "@/types/type";
+import { Post, UserData } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import * as React from "react";
 import { useEffect, useState } from "react";
@@ -11,10 +11,14 @@ import { Dimensions, Image, SafeAreaView, TouchableOpacity, View } from "react-n
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 
+import ActionPrompts from "@/components/ActionPrompts";
+import { ActionType } from "@/lib/prompts";
+
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
   const { isIpad } = useGlobalContext();
+  const [action, setAction] = useState(ActionType.NONE)
 
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
@@ -27,6 +31,7 @@ export default function Page() {
 
   useEffect(() => {
     requestPermission();
+    fetchUserData()
   }, []);
 
   const screenHeight = Dimensions.get("screen").height;
@@ -52,6 +57,18 @@ export default function Page() {
       }
     }
 }
+const fetchUserData = async () => {
+    try {
+      const response = await fetchAPI(`/api/users/getUserInfoPosts?id=${user!.id}`);
+      getAction(response.posts[0]);
+      
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+      setError("Failed to load profile");
+    }
+  
+
+};
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
@@ -88,6 +105,16 @@ export default function Page() {
     router.push("/root/new-post");
   };
 
+  const getAction = (lastPost: Post) => {
+    const lastConnection = lastPost.created_at
+    const daysDifference = (Date.now() - new Date(lastConnection).getTime()) / (1000 * 60 * 60 * 24)
+
+
+    if (daysDifference > 3) {
+      setAction(ActionType.TIPS)
+    }
+  }
+
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
@@ -108,6 +135,10 @@ export default function Page() {
           handleNewPostFetch={fetchNewPost}
           allowStacking={true}
         />
+         <ActionPrompts 
+        friendName={""}
+         action={action} 
+         handleAction={() => {}}/>
       </SignedIn>
     </SafeAreaView>
   );
