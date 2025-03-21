@@ -58,12 +58,12 @@ const PostScreen = () => {
     content = "",
     nickname,
     firstname,
-    username,
+    username = "",
     like_count,
     report_count,
     created_at,
     unread_comments = 0,
-    anonymous = false,
+    anonymous = "",
     color,
     saved,
   } = useLocalSearchParams();
@@ -113,7 +113,7 @@ const PostScreen = () => {
       return null;
     }
   };
-
+console.log("username", username)
   useEffect(() => {
     if (replyTo) {
     fetchCommentById(replyTo)
@@ -504,7 +504,7 @@ const PostScreen = () => {
 
   useEffect(() => {
     fetchComments();
-  }, [id]);
+  }, [id, scrollTo]);
 
   useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
@@ -586,11 +586,11 @@ const PostScreen = () => {
               <View className="flex-1">
                 <TouchableOpacity onPress={() => handleUserProfile(userId)}>
                   <Text className="font-JakartaSemiBold text-lg">
-                    {anonymous === "true"
+                    {anonymousComments
                       ? clerk_id === user!.id
                         ? "Me"
                         : "Anonymous"
-                      : nickname || username || "Anonymous"}
+                      : username}
                   </Text>
                 </TouchableOpacity>
                 <Text className="text-sm text-gray-700">
@@ -647,7 +647,7 @@ const PostScreen = () => {
                   <FlatList
                     ref={flatListRef}
                     data={postComments}
-                    className="rounded-[20px]"
+                    className="rounded-[20px] mx-4"
                     renderItem={renderCommentItem}
                     keyExtractor={(item) => item.date as unknown as string}
                     contentContainerStyle={{ padding: 16 }}
@@ -656,6 +656,7 @@ const PostScreen = () => {
                     onContentSizeChange={() => {
                       flatListRef.current?.scrollToEnd({ animated: true });
                     }}
+                    showsVerticalScrollIndicator={false}
                   />
                 )}
               </View>

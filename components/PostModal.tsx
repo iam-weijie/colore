@@ -372,9 +372,9 @@ const PostModal: React.FC<PostModalProps> = ({
       pathname: "/root/post/[id]",
       params: {
         id: post[currentPostIndex]?.id,
-        clerk_id: post[currentPostIndex]?.user_id || post[currentPostIndex]?.clerk_id,
+        clerk_id: post[currentPostIndex]?.clerk_id,
         content: post[currentPostIndex]?.content,
-        username: post[currentPostIndex]?.username,
+        username: post[currentPostIndex]?.username || nickname,
         like_count: post[currentPostIndex]?.like_count,
         report_count: post[currentPostIndex]?.report_count,
         created_at: post[currentPostIndex]?.created_at,

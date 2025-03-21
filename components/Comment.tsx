@@ -278,7 +278,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 </View>
                 }
             <View
-            className="p-3 rounded-[20px] max-w-[70%]"
+            className="py-3 px-4 rounded-[20px] max-w-[70%]"
             style={{
               backgroundColor:
               user_id === user?.id
@@ -294,6 +294,30 @@ export const CommentItem: React.FC<PostComment> = ({
               onPress={() => {
                 doubleTapHandler();
               }}
+              onLongPress={() => {
+                if (sender_id === user!.id) {
+                Alert.alert(
+                  "Delete Comment",
+                  "Are you sure you want to delete this comment?",
+                  [
+                    { text: "Cancel" },
+                    { text: "Delete", onPress: async () => {
+                      try {
+                        await fetchAPI(`/api/comments/deleteComment?id=${id}`, {
+                          method: "DELETE",
+                        });
+                        
+                        Alert.alert("Comment deleted.");
+                        setScrollTo(`${id - 1}`)
+                      } catch (error) {
+                        Alert.alert("Error", "Failed to delete comment.");
+                        console.error("Failed to delete comment:", error);
+                      }
+                    }},
+                  ]
+                );
+              }}
+            }
               hitSlop={3}
             >
               <Text

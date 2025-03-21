@@ -26,17 +26,29 @@ export async function GET(request: Request) {
     }
     // Execute the query using `ANY($1::int[])` for safer parameter handling
     const response = await sql`
-      SELECT *
+      SELECT 
+        p.id, 
+        p.content, 
+        p.like_count, 
+        p.report_count, 
+        p.created_at,
+        p.unread_comments,
+        p.pinned,
+        p.color,
+        p.emoji,
+        p.recipient_user_id,
+        u.clerk_id,
+        u.firstname, 
+        u.lastname, 
+        u.username,
+        u.country, 
+        u.state, 
+        u.city
       FROM posts p
+      JOIN users u ON p.user_id = u.clerk_id
       WHERE p.id = ANY(${ids}::int[])
     `;
-    // console.log(
-    //   "pinned updated",
-    //   response.map((p) => {
-    //     return { id: p.id, pinned: p.pinned };
-    //   })
-    // );
-    // Check if posts were found
+
     if (response.length === 0) {
       return new Response(JSON.stringify({ error: "No posts found" }), {
         status: 404,

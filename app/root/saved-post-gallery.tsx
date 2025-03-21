@@ -42,7 +42,7 @@ const SavedPostGallery = () => {
   
         // Filter out null values (failed fetches)
         setSavedPostsList(response.filter((post: Post) => post !== undefined) as Post[]);
-     
+     console.log(response.map((p) => p.username))
      setUpdate(false)
     };
   
