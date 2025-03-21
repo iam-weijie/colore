@@ -303,7 +303,6 @@ export const CommentItem: React.FC<PostComment> = ({
                 {content}
               </Text>
             </TouchableOpacity>
-            </View>
             <View
               className="absolute flex flex-row items-center"
               style={{
@@ -336,6 +335,8 @@ export const CommentItem: React.FC<PostComment> = ({
                 </TouchableOpacity>
               )}
             </View>
+            </View>
+            
   
             {showReplyIcon && (
               <View
