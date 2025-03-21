@@ -208,3 +208,16 @@ type Stacks = {
   ids: [];
   elements: [];
 };
+
+type Prompt = {
+  title: string;
+  body: string;
+  source: ImageSourcePropType;
+};
+
+
+declare interface ActionPromptsProps {
+  friendName: string, 
+  action: { name: string };
+  handleAction: () => void;
+}

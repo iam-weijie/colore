@@ -25,7 +25,7 @@ import { PostItColor } from "@/types/type";
 
 const NewPersonalPost = () => {
   const { user } = useUser();
-  const { recipient_id, source } = useLocalSearchParams(); // Get recipient_id from params
+  const { recipient_id } = useLocalSearchParams(); // Get recipient_id from params
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
