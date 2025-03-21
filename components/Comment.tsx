@@ -47,7 +47,7 @@ export const CommentItem: React.FC<PostComment> = ({
     const router = useRouter();
     const [showReplyIcon, setShowReplyIcon] = useState(false);
     const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
-    const { replyTo, setReplyTo } = useGlobalContext()
+    const { replyTo, setReplyTo, setScrollTo } = useGlobalContext()
 
 
     // Comment Reply
@@ -220,25 +220,19 @@ export const CommentItem: React.FC<PostComment> = ({
       >
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
-            className="p-3 rounded-[20px] max-w-[70%]"
+            className="flex flex-col justify-center"
             style={[
-              animatedStyle, // Apply animated style here
-              {
-                backgroundColor:
-                  user_id === user?.id
-                    ? "black"
-                    : user_id == sender_id
-                      ? postColor
-                      : "#e5e7eb",
+              animatedStyle, {
                 alignSelf: user_id === user?.id ? "flex-end" : "flex-start",
-                marginTop: username ? 32 : 8,
-              },
+                alignItems: user_id === user?.id ? "flex-end" : "flex-start",
+              }
             ]}
           >
-            <View
-              className="absolute flex -mt-6"
+            {username && <View
+              className="flex mt-4"
               style={{
                 [user_id === user?.id ? "right" : "left"]: 5,
+                alignSelf: user_id === user?.id ? "flex-end" : "flex-start",
               }}
             >
               <TouchableOpacity
@@ -252,7 +246,49 @@ export const CommentItem: React.FC<PostComment> = ({
               >
                 <Text className="font-JakartaSemiBold">{username}</Text>
               </TouchableOpacity>
-            </View>
+            </View>}
+            { replyingTo &&
+            <View
+              style={{
+                marginTop: 8,
+                alignSelf: user_id === user?.id ? "flex-end" : "flex-start",
+                }}>
+                <TouchableOpacity
+                onPress={() => {setScrollTo(`${replyingTo.id}`)}}>
+                <View 
+                className="flex flex-row rounded-[20px] p-3"
+                style={{
+                  backgroundColor: replyingTo.sender_id == user_id
+                      ? postColor
+                      : "#e5e7eb",
+                      opacity: 0.6
+                }}
+                >
+                    <Text 
+                    className="ml-1 text-[14px] italic"
+                    style={{
+                        color: replyingTo.sender_id == user_id ? "white" : "black"
+                    }}
+                    numberOfLines={2}
+                    >
+                        {replyingTo!.content}
+                    </Text>
+                    </View>
+                    </TouchableOpacity>
+                </View>
+                }
+            <View
+            className="p-3 rounded-[20px] max-w-[70%]"
+            style={{
+              backgroundColor:
+              user_id === user?.id
+                ? "black"
+                : user_id == sender_id
+                  ? postColor
+                  : "#e5e7eb",
+            
+            marginTop:  6,
+            }}>
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => {
@@ -260,36 +296,14 @@ export const CommentItem: React.FC<PostComment> = ({
               }}
               hitSlop={3}
             >
-                { replyingTo &&
-                <View className="flex flex-row">
-                    <Image 
-                    source={icons.reply}
-                    className="w-3 h-3"
-                    tintColor={"#757575"}
-                    style={{
-                        transform: [{ scaleX: -1}],
-                        opacity: 0.5
-                    }}
-                    />
-                    <Text 
-                    className="ml-1 text-[14px] italic"
-                    style={{
-                        color: "#757575",
-                        opacity: 0.75
-                    }}
-                    numberOfLines={2}
-                    >
-                        {replyingTo!.content}
-                    </Text>
-                    </View>
-                }
               <Text
-                className="text-[14px] font-600"
+                className="text-[14px] font-600 font-Jakarta"
                 style={{ color: user_id === user?.id ? "white" : "black" }}
               >
                 {content}
               </Text>
             </TouchableOpacity>
+            </View>
             <View
               className="absolute flex flex-row items-center"
               style={{

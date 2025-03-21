@@ -27,6 +27,8 @@ type GlobalContextType = {
   isIpad: boolean;
   replyTo: string | null;
   setReplyTo: React.Dispatch<React.SetStateAction<string | null>>;
+  scrollTo: string | null;
+  setScrollTo: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 // Constants
@@ -44,6 +46,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
   const [isIpad, setIsIpad] = useState<boolean>(false);
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [scrollTo, setScrollTo] = useState<string | null>(null);
 
 
   const hasUpdatedLastConnection = useRef(false);
@@ -313,7 +316,9 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         lastConnection,
         isIpad,
         replyTo,
-        setReplyTo
+        setReplyTo,
+        scrollTo,
+        setScrollTo
       }}
     >
       {children}

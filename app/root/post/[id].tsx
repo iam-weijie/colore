@@ -41,6 +41,11 @@ interface GestureContext {
   startY: number;
 }
 
+interface PostCommentGroup {
+  date: string;
+  comments: PostComment[]
+}
+
 
 
 const PostScreen = () => {
@@ -65,8 +70,8 @@ const PostScreen = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const flatListRef = useRef<FlatList<PostComment>>(null);
-  const [postComments, setPostComments] = useState<PostComment[]>([]);
+  const flatListRef = useRef(null);
+  const [postComments, setPostComments] = useState<PostCommentGroup[]>([]);
   const [newComment, setNewComment] = useState<string>("");
   const [nicknames, setNicknames] = useState<UserNicknamePair[]>([]);
   const [anonymousComments, setAnonymousComments] = useState<boolean>(
@@ -95,7 +100,7 @@ const PostScreen = () => {
     (c) => c.name === color
   ) as PostItColor;
   const { stateVars, setStateVars } = useNavigationContext();
-  const { replyTo, setReplyTo } = useGlobalContext();
+  const { replyTo, setReplyTo, scrollTo, setScrollTo } = useGlobalContext();
   const [replyView, setReplyView] = useState<PostComment | null>(null);
 
 
@@ -287,6 +292,24 @@ const PostScreen = () => {
   useEffect(() => {
     fetchNicknames();
   }, []);
+
+  useEffect(() => {
+    scrollToItem()
+  }, [scrollTo])
+
+  const scrollToItem = () => {
+   // Find the index of the group that contains the target comment
+   const groupIndex = postComments.findIndex((p) =>
+    p.comments.some(item => item.id == scrollTo)
+  );
+
+  console.log("groupIndex:", groupIndex);
+
+  // Scroll to the group's index if valid
+  if (groupIndex !== -1 && flatListRef.current) {
+    flatListRef.current.scrollToIndex({ index: groupIndex });
+  }
+  };
 
   const fetchComments = async () => {
     //setLoading(true);
@@ -485,31 +508,11 @@ const PostScreen = () => {
 
   useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
+      setScrollTo(null)
       setStateVars({ ...stateVars, queueRefresh: true });
       console.log("User goes back from post screen");
     });
   }, []);
-
-
-  const handleReportPress = () => {
-    Alert.alert(
-      "Report Comment",
-      "Are you sure you want to report this comment?",
-      [
-        { text: "Cancel" },
-        {
-          text: "Report",
-          onPress: () => Linking.openURL("mailto:support@colore.ca"),
-        },
-      ]
-    );
-  };
-  const handleEditing = () => {
-    router.push({
-      pathname: "/root/edit-post",
-      params: { postId: id, content: content, color: color },
-    });
-  };
 
   const renderCommentItem = ({
     item,
@@ -531,7 +534,11 @@ const PostScreen = () => {
           user_id={comment.user_id}
           sender_id={clerk_id}
           post_id={comment.post_id}
-          username={index > 0 ? (item.comments[index - 1].username == comment.username ? "" : comment.username) : comment.username}
+          username={
+            anonymousComments ? "" :
+            index > 0 ? (item.comments[index - 1].username == comment.username ? "" : comment.username) : comment.username
+
+          }
           like_count={comment.like_count|| 0}
           content={comment.content}
           created_at={comment.created_at}
@@ -640,6 +647,7 @@ const PostScreen = () => {
                   <FlatList
                     ref={flatListRef}
                     data={postComments}
+                    className="rounded-[20px]"
                     renderItem={renderCommentItem}
                     keyExtractor={(item) => item.date as unknown as string}
                     contentContainerStyle={{ padding: 16 }}
@@ -658,18 +666,12 @@ const PostScreen = () => {
   <View
   className="mt-2 -mb-1 ml-5 flex flex-row"
   >
-    <Image 
-                    source={icons.reply}
-                    className="w-3 h-3"
-                    tintColor={"#757575"}
-                    style={{
-                        transform: [{ scaleX: -1}],
-                        opacity: 0.5
-                    }}
-                    />
     <Text   
-    className="ml-1 text-[14px] italic text-gray-700"
+    className="ml-1 text-[14px] italic"
     numberOfLines={2}
+    style={{
+      color:"#757575"
+    }}
               >Reply to : {replyView.content}
               </Text>
   </View>}
