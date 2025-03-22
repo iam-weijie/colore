@@ -884,7 +884,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 )}
               </View>
             </View>
-          ) }
+          )}
         </View>
       ) : (
         <View className="items-center">

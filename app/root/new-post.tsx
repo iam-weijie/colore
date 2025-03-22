@@ -28,6 +28,8 @@ const NewPost = () => {
   const { user } = useUser();
   const { content, color, emoji } = useLocalSearchParams();
   
+  const { content, color, emoji } = useLocalSearchParams();
+  
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
@@ -127,6 +129,7 @@ const NewPost = () => {
           <View className="flex-1">
             <View className="flex flex-row justify-center items-center mt-3 mx-6">
               <View className="flex-1">
+                <TouchableOpacity onPress={handleBackNavigation}>
                 <TouchableOpacity onPress={handleBackNavigation}>
                   <AntDesign name="caretleft" size={18} color="0076e3" />
                 </TouchableOpacity>
