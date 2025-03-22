@@ -87,6 +87,7 @@ export const NotificationProvider = ({
             //   data.path.params.content,
             //   data.path.route
             // );
+            console.log("Navigating to post", data.path.params)
             
             router.push({
               pathname: data.path.route,
@@ -101,7 +102,8 @@ export const NotificationProvider = ({
                 like_count: data.path.params!.like_count,
                 report_count: data.path.params!.report_count,
                 created_at: data.path.params!.created_at,
-                unread_comments: data.path.params!.unread_comments
+                unread_comments: data.path.params!.unread_comments,
+                color: data.path.params!.color,
               },
             });
           }

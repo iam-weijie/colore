@@ -28,6 +28,10 @@ type GlobalContextType = {
   unreadPersonalPosts: number;
   lastConnection: Date;
   isIpad: boolean;
+  replyTo: string | null;
+  setReplyTo: React.Dispatch<React.SetStateAction<string | null>>;
+  scrollTo: string | null;
+  setScrollTo: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -150,6 +154,7 @@ async function handleSendNotificationExternal(
     if (type === "Comments") {
       const notificationContent = content.comment_content.slice(0, 120);
   
+      console.log("n", n)
       await sendPushNotification(
         pushToken,
         `${content.commenter_username} responded to your post`,
@@ -167,7 +172,8 @@ async function handleSendNotificationExternal(
             like_count: n.like_count,
             report_count: n.report_count,
             created_at: n.created_at,
-            unread_comments: n.unread_comments
+            unread_comments: n.unread_comments,
+            color: n.color
           },
         }
       );
@@ -249,6 +255,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [unreadRequests, setUnreadRequests] = useState<number>(0);
   const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
   const [isIpad, setIsIpad] = useState<boolean>(false);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [scrollTo, setScrollTo] = useState<string | null>(null);
 
   const hasUpdatedLastConnection = useRef(false);
   const { user } = useUser();
@@ -338,6 +346,10 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         unreadRequests,
         lastConnection,
         isIpad,
+        replyTo,
+        setReplyTo,
+        scrollTo,
+        setScrollTo
       }}
     >
       {children}

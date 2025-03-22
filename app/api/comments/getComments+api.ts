@@ -30,6 +30,7 @@ export async function GET(request: Request) {
         c.like_count, 
         c.report_count,
         c.notified,
+        c.reply_comment_id,
         COALESCE(
           (SELECT TRUE 
            FROM comment_likes cl 
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
       FROM comments c
       JOIN users u ON c.user_id = u.clerk_id
       WHERE c.post_id = ${postId}
-      ORDER BY c.created_at DESC;
+      ORDER BY c.created_at ASC;
     `;
 
     return new Response(JSON.stringify({ data: response }), {
