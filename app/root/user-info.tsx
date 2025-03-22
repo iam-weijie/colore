@@ -91,6 +91,7 @@ const UserInfo = () => {
     userLocation: stateVars.userLocation || "",
   });
 
+
   const handleNavigateToCountry = () => {
     setStateVars({
       ...stateVars,
@@ -103,6 +104,13 @@ const UserInfo = () => {
     router.push("/root/location/country");
   };
 
+  useEffect(() => {
+    console.log("Update location");
+    setForm(prevForm => ({
+      ...prevForm, // Spread previous form state
+      userLocation: stateVars.userLocation, // Update only the userLocation
+    }));
+  }, [stateVars.userLocation]);
   const verifyValidUsername = (username: string): boolean => {
     const usernameRegex = /^[\w\-\.]{1,20}$/;
     return usernameRegex.test(username);

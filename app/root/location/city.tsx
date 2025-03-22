@@ -162,6 +162,7 @@ const City = () => {
     });
 
     // Update user info
+    if (user!.id) {
     await fetchAPI("/api/users/patchUserInfo", {
       method: "PATCH",
       body: JSON.stringify({
@@ -171,6 +172,7 @@ const City = () => {
         city: selectedCity,
       }),
     });
+  }
 
     router.back();
     router.back();
