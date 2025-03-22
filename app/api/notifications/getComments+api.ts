@@ -18,6 +18,7 @@ export async function GET(request: Request) {
         p.id,
         p.content,
         u.firstname,
+         u.username, 
         p.created_at,
         p.user_id,
         p.like_count,
@@ -67,7 +68,7 @@ export async function GET(request: Request) {
         AND cl.user_id = ${clerkId || ""}
       ) cl ON TRUE
       WHERE u.clerk_id = ${clerkId}
-      GROUP BY p.id, u.firstname
+      GROUP BY p.id, u.firstname, u.username
       HAVING json_agg(c.*) IS NOT NULL
       ORDER BY p.created_at ASC;
     `;
@@ -85,6 +86,7 @@ export async function GET(request: Request) {
     comments: post.comments.filter((comment: any) => comment.id !== clerkId),
   }));
   
+  console.log("res", filteredPosts)
 
     return new Response(
       JSON.stringify({ toNotify: filteredPosts, unread_count: unread_comments }),

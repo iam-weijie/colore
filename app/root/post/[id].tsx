@@ -113,7 +113,7 @@ const PostScreen = () => {
       return null;
     }
   };
-console.log("username", username)
+
   useEffect(() => {
     if (replyTo) {
     fetchCommentById(replyTo)
@@ -574,160 +574,155 @@ console.log("username", username)
 
   return (
     <SafeAreaView className="flex-1">
-      <SignedIn>
-        <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-          <View className="flex-1">
-            <View className="flex-row items-center ml-6 mt-6">
-              <TouchableOpacity onPress={() => {
-                handleReadComments()
-                router.back()
-                }} className="mr-4">
-                <AntDesign name="caretleft" size={18} />
-              </TouchableOpacity>
-              <TouchableOpacity
-              onPress={() => {
-                router.push({
-                  pathname: "/root/new-personal-post",
-                  params: { 
-                    recipient_id: clerk_id,
-                    source: 'board'
-                  }
-                })
-              }}
-              className="py-3 px-4 bg-white rounded-[24px] shadow-xs">
-                <Text className="font-JakartaSemiBold" style={{
-                  color: postColor.fontColor
-                }}>Reply to {username}</Text>
-              </TouchableOpacity>
-            </View>
-            <View 
-            className="mb-6 p-6 rounded-[24px]  w-[90%] max-w-[500px] mx-auto flex flex-row items-center justify-between"
-            style={{
-              backgroundColor: postColor.hex
-            }}>
-              <View className="flex-1">
-                <TouchableOpacity onPress={() => handleUserProfile(userId)}>
-                  <Text className="font-JakartaSemiBold text-lg">
-                    {anonymousComments
-                      ? clerk_id === user!.id
-                        ? "Me"
-                        : "Anonymous"
-                      : username}
-                  </Text>
-                </TouchableOpacity>
-                <Text className="text-sm text-gray-700">
-                  {typeof created_at === "string"
-                    ? formatDateTruncatedMonth(
-                        convertToLocal(new Date(created_at))
-                      )
-                    : "No date"}
-                </Text>
-                <TouchableWithoutFeedback
-                  onPress={() => Keyboard.dismiss()}
-                  onPressIn={() => Keyboard.dismiss()}
-                >
-                  <ScrollView
-                    style={{ maxHeight: screenHeight / 6 }}
-                    showsVerticalScrollIndicator={false}
-                  >
-                    <Text className="font-Jakarta min-h-[30]">{content}</Text>
-                  </ScrollView>
-                </TouchableWithoutFeedback>
-              </View>
-              <View className="flex flex-col items-center ml-4">
-                <View className="mt-4 flex flex-row justify-center items-center">
-                  <View>
-                    {/* Only show like count to post creator */}
-                    <Text
-                      className={`${clerk_id === user?.id ? "text-gray-400" : "text-transparent"} text-center mr-1 text-sm`}
-                    >
-                      {clerk_id === user?.id ? likeCount : "0"}
-                    </Text>
-                  </View>
-                    <TouchableOpacity
-                      onPress={handleLikePress}
-                      disabled={isLoadingLike}
-                    >
-                      <MaterialCommunityIcons
-                        name={isLiked ? "heart" : "heart-outline"}
-                        size={24}
-                        color={isLiked ? "red" : "black"}
-                      />
-                    </TouchableOpacity>
-                  </View>
-            </View>
+    <SignedIn>
+      <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
+        <View className="flex-1">
+          <View className="flex-row justify-between items-center mx-6 my-6">
+            <TouchableOpacity onPress={() => router.back()} className="mr-4">
+              <AntDesign name="caretleft" size={18} />
+            </TouchableOpacity>
+            <TouchableOpacity
+            onPress={() => {
+              router.push({
+                pathname: "/root/new-personal-post",
+                params: { 
+                  recipient_id: clerk_id,
+                  source: 'board'
+                }
+              })
+            }}
+            className="py-3 px-4 bg-white rounded-[24px] shadow-xs">
+              <Text className="font-JakartaSemiBold" style={{
+                color: postColor?.fontColor ?? color 
+              }}>Reply to {anonymousComments ? "Author" : username}</Text>
+            </TouchableOpacity>
+          </View>
+          <View 
+          className="mb-6 p-6 rounded-[24px]  w-[90%] max-w-[500px] mx-auto flex flex-row items-center justify-between"
+          style={{
+            backgroundColor: postColor?.hex ?? color
+          }}>
             <View className="flex-1">
-              {/* Comment section */}
-              <View className="h-full mt-4">
-                {loading && <ActivityIndicator size="small" color="rgba(180,180,180,0.75)" />}
-                {error && <Text className="text-red-500 mx-4">{error}</Text>}
-                {!loading && !error && postComments.length === 0 && (
-                  <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2">
-                    No messages yet.
-                  </Text>
-                )}
-                {!loading && !error && postComments.length > 0 && (
-                  <FlatList
-                    ref={flatListRef}
-                    data={postComments}
-                    className="rounded-[20px] mx-4"
-                    renderItem={renderCommentItem}
-                    keyExtractor={(item) => item.date as unknown as string}
-                    contentContainerStyle={{ padding: 16 }}
-                    style={{ flexGrow: 1 }}
-                    extraData={postComments}
-                    onContentSizeChange={() => {
-                      flatListRef.current?.scrollToEnd({ animated: true });
-                    }}
-                    showsVerticalScrollIndicator={false}
-                  />
-                )}
-              </View>
+              <TouchableOpacity onPress={() => handleUserProfile(userId)}>
+                <Text className="font-JakartaSemiBold text-lg">
+                  {anonymousComments
+                    ? clerk_id === user!.id
+                      ? "Me"
+                      : "Anonymous"
+                    : username}
+                </Text>
+              </TouchableOpacity>
+              <Text className="text-sm text-gray-700">
+                {typeof created_at === "string"
+                  ? formatDateTruncatedMonth(
+                      convertToLocal(new Date(created_at))
+                    )
+                  : "No date"}
+              </Text>
+              <TouchableWithoutFeedback
+                onPress={() => Keyboard.dismiss()}
+                onPressIn={() => Keyboard.dismiss()}
+              >
+                <ScrollView
+                  style={{ maxHeight: screenHeight / 6 }}
+                  showsVerticalScrollIndicator={false}
+                >
+                  <Text className="font-Jakarta min-h-[30]">{content}</Text>
+                </ScrollView>
+              </TouchableWithoutFeedback>
             </View>
+            <View className="flex flex-row justify-center items-center">
+                <View>
+                  {/* Only show like count to post creator */}
+                  <Text
+                    className={`${clerk_id === user?.id ? "text-gray-800" : "text-transparent"} text-center mr-1 text-sm`}
+                  >
+                    {clerk_id === user?.id ? likeCount : "0"}
+                  </Text>
+                </View>
+                  <TouchableOpacity
+                    onPress={handleLikePress}
+                    disabled={isLoadingLike}
+                  >
+                    <MaterialCommunityIcons
+                      name={isLiked ? "heart" : "heart-outline"}
+                      size={24}
+                      color={isLiked ? "red" : "black"}
+                    />
+                  </TouchableOpacity>
+                </View>
+          </View>
+          <View className="flex-1">
+            {/* Comment section */}
+            <View className="h-full">
+              {loading && <ActivityIndicator size="large" color="#0076e3" />}
+              {error && <Text className="text-red-500 mx-4">{error}</Text>}
+              {!loading && !error && postComments.length === 0 && (
+                <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2">
+                  No messages yet.
+                </Text>
+              )}
+              {!loading && !error && postComments.length > 0 && (
+                <FlatList
+                  ref={flatListRef}
+                  data={postComments}
+                  className="rounded-[20px] mx-4"
+                  renderItem={renderCommentItem}
+                  keyExtractor={(item) => item.date as unknown as string}
+                  contentContainerStyle={{ padding: 16 }}
+                  style={{ flexGrow: 1 }}
+                  extraData={postComments}
+                  onContentSizeChange={() => {
+                    flatListRef.current?.scrollToEnd({ animated: true });
+                  }}
+                  showsVerticalScrollIndicator={false}
+                />
+              )}
+            </View>
+          </View>
 
 <View className="flex flex-col">
-  {replyView && 
-  <View
-  className="mt-2 -mb-1 ml-5 flex flex-row"
-  >
-    <Text   
-    className="ml-1 text-[14px] italic"
-    numberOfLines={2}
-    style={{
-      color:"#757575"
-    }}
-              >Reply to : {replyView.content}
-              </Text>
-  </View>}
-            <View className="flex-row items-center p-4">
-              <TextInput
-                className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
-                placeholder="Write a something..."
-                value={newComment}
-                multiline
-                scrollEnabled
-                onChangeText={handleChangeText}
-                onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
-                editable={!isSubmitting && !isSubmitting}
-              />
-              <CustomButton
-                title={isSubmitting ? "..." : "Send"}
-                onPress={handleCommentSubmit}
-                disabled={
-                  newComment.length === 0 || isSubmitting || isPostDeleted
-                }
-                className="ml-3 w-14 h-10 rounded-full shadow-none"
-                style={{ backgroundColor: postColor ? postColor.hex : "black" }}
-                fontSize="sm"
-                padding="0"
-              />
-            </View>
-            </View>
+{replyView && 
+<View
+className="mt-2 -mb-1 ml-5 flex flex-row"
+>
+  <Text   
+  className="ml-1 text-[14px] italic"
+  numberOfLines={2}
+  style={{
+    color:"#757575"
+  }}
+            >Reply to : {replyView.content}
+            </Text>
+</View>}
+          <View className="flex-row items-center p-4">
+            <TextInput
+              className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
+              placeholder="Write a something..."
+              value={newComment}
+              multiline
+              scrollEnabled
+              onChangeText={handleChangeText}
+              onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
+              editable={!isSubmitting && !isSubmitting}
+            />
+            <CustomButton
+              title={isSubmitting ? "..." : "Send"}
+              onPress={handleCommentSubmit}
+              disabled={
+                newComment.length === 0 || isSubmitting || isPostDeleted
+              }
+              className="ml-3 w-14 h-10 rounded-full shadow-none"
+              style={{ backgroundColor: postColor ? (postColor.hex || color) : "black" }}
+              fontSize="sm"
+              padding="0"
+            />
           </View>
           </View>
-        </KeyboardAvoidingView>
-      </SignedIn>
-    </SafeAreaView>
+        </View>
+      </KeyboardAvoidingView>
+    </SignedIn>
+  </SafeAreaView>
   );
 };
 
