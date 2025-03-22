@@ -39,6 +39,44 @@ import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-nati
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
 
+// Skeleton component for post loading states
+const PostSkeleton = () => (
+  <Animated.View 
+    entering={FadeIn.duration(600)}
+    className="w-full px-4 my-3"
+  >
+    <View className="bg-gray-200 rounded-2xl w-full h-32 opacity-70" />
+  </Animated.View>
+);
+
+// Skeleton UI for posts section during loading
+const PostGallerySkeleton = () => (
+  <Animated.View 
+    entering={FadeIn.duration(400)}
+    className="w-full"
+  >
+    <View className="w-full mx-8 flex flex-row items-center justify-between mb-4">
+      <View className="w-32 h-6 bg-gray-200 rounded opacity-70" />
+      <View className="w-16 h-4 bg-gray-200 rounded opacity-70" />
+    </View>
+    <PostSkeleton />
+    <PostSkeleton />
+    <PostSkeleton />
+  </Animated.View>
+);
+
+// Skeleton UI for color gallery
+const ColorGallerySkeleton = () => (
+  <Animated.View 
+    entering={FadeIn.duration(400)}
+    className="w-full flex-row flex-wrap justify-center"
+  >
+    {[...Array(9)].map((_, i) => (
+      <View key={i} className="w-20 h-20 m-2 rounded-md bg-gray-200 opacity-70" />
+    ))}
+  </Animated.View>
+);
+
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
   const { isIpad } = useGlobalContext(); 
@@ -81,6 +119,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     unread_comments: 0,
     color: "#E5E7EB", //String for now. Should be changed to PostItColor
     emoji: "",
+    recipient_user_id: "",
+    pinned: false
   })
   }
 
@@ -128,7 +168,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       }
 
       const countryCode = data[0]?.cca2 || ""; // ISO 3166-1 alpha-2 country code
-      const flagEmoji = countryCode?.toUpperCase().split("").map((char) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
+      const flagEmoji = countryCode?.toUpperCase().split("").map((char: string) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
 
       setCountryEmoji(flagEmoji);
       setEmojiLoading(false)
@@ -137,6 +177,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
 
   };
+
+  // Add useFocusEffect to reload data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Reload user data when screen is focused (e.g., after location change)
+      fetchUserData();
+      // Reload nickname data
+      const getData = async () => {
+        const data = await fetchCurrentNickname();
+        setNickname(data);
+      };
+      getData();
+      
+      return () => {
+        // Cleanup if needed
+      };
+    }, [userId, stateVars])
+  );
 
   useEffect(() => {
     setIsCollapsed(user!.id != userId || isIpad);
@@ -381,7 +439,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_sent = [
-    { label: "Nickname", color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
     {
       label: "Report",
       source: icons.email,
@@ -482,7 +540,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 <Animated.View entering={FadeIn.duration(800)}>
                 { profileUser ?  (<View>
                 <Text className="text-gray-700 text-center font-Jakarta text-base">
-                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city}, {profileUser?.state},{" "}
+                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : `${profileUser?.city},`}{profileUser?.state},{" "}
                     {profileUser?.country}
                   </Text> 
                 </View>) : (
@@ -763,7 +821,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         <View className="items-center flex-1 mt-5">
           {currentSubscreen === "colors" ? (
             <View className="items-center">
-              <ColorGallery />
+              {loading ? (
+                <ColorGallerySkeleton />
+              ) : (
+                <ColorGallery />
+              )}
             </View>
           ) : currentSubscreen === "posts" && (
             <View className="items-center flex-1 w-full">
@@ -774,46 +836,82 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 value={query}
               />
 
-              <View 
-              className="items-center mb-[60px]"
-              style={{
-                marginHorizontal: isIpad ? 125 : 40,
-              }}
-              >
-                <PostGallery
-                  posts={loading ? [skeletonPost(1), skeletonPost(2), skeletonPost(3)] : userPosts}
-                  profileUserId={user!.id}
-                  handleUpdate={fetchUserData}
-                  query={query}
-                  header={
-                    <View className="w-full mx-8 flex flex-row items-center justify-between">
-                      <View>
-                        <Text className="text-lg font-JakartaSemiBold">
-                          Most Recent {unreadComments > 0 ? `(${unreadComments})` : ""//put notification count here
-                          }
-                        </Text>
-                      </View>
-                      <View>
-                        <TouchableOpacity
-                          activeOpacity={0.3}
-                          onPress={() => toggleExpanded()}
-                          className="w-full "
-                        >
-                          <Text className="text-gray-400 font-JakartaBold text-[14px]">
-                            {!isExpanded ? "See more" : "See less"}
+              <View className="items-center mb-[60px] mx-8">
+                {loading ? (
+                  <PostGallerySkeleton />
+                ) : (
+                  <PostGallery
+                    posts={userPosts}
+                    profileUserId={user!.id}
+                    handleUpdate={fetchUserData}
+                    query={query}
+                    header={
+                      <View className="w-full mx-8 flex flex-row items-center justify-between">
+                        <View>
+                          <Text className="text-lg font-JakartaSemiBold">
+                            Most Recent {unreadComments > 0 ? `(${unreadComments})` : ""}
                           </Text>
-                        </TouchableOpacity>
+                        </View>
+                        <View>
+                          <TouchableOpacity
+                            activeOpacity={0.3}
+                            onPress={() => toggleExpanded()}
+                            className="w-full "
+                          >
+                            <Text className="text-gray-400 font-JakartaBold text-[14px]">
+                              {!isExpanded ? "See more" : "See less"}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
                       </View>
-                    </View>
-                  }
-                />
+                    }
+                  />
+                )}
               </View>
             </View>
-          ) }
+          ) : (
+            <View className="items-center flex-1 ">
+            {loading ? (
+              <PostGallerySkeleton />
+            ) : (
+              <PostGallery
+                posts={userPosts}
+                profileUserId={profileUser!.clerk_id}
+                handleUpdate={fetchUserData}
+                query={query}
+                header={
+                  <View className="w-screen px-8 flex flex-row items-center justify-between">
+                    <View>
+                      <Text className="text-lg font-JakartaSemiBold">
+                        Most Recent ({userPosts.length})
+                      </Text>
+                    </View>
+
+                    <View>
+                      <TouchableOpacity
+                        activeOpacity={0.3}
+                        onPress={() => toggleExpanded()}
+                        className="w-full fixed"
+                      >
+                        <Text className="text-gray-400 font-JakartaBold text-[14px]">
+                          {!isExpanded ? "See more" : "See less"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                }
+              />
+            )}
+            </View>
+          )}
         </View>
       ) : (
         <View className="items-center">
-          <ColorGallery />
+          {loading ? (
+            <ColorGallerySkeleton />
+          ) : (
+            <ColorGallery />
+          )}
         </View>
       )}
     </View>
