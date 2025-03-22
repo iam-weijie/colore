@@ -121,7 +121,7 @@ export const CommentItem: React.FC<PostComment> = ({
             ...prev,
             [commentId]: prev[commentId] + (isCurrentlyLiked ? 1 : -1),
           }));
-          Alert.alert("Error", "Unable to update like status");
+          Alert.alert("Error", "Unable to update like state");
           return;
         }
   
