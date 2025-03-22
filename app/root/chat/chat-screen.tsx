@@ -87,7 +87,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
           ? ["#FACC15", "#FB923C"] // Yellow to Orange
           : name === "Friends"
           ? ["#CFB1FB", "#93c5fd"] // Indigo to Blue
-          : ["#fbb1d6", "#ffe640"] // Green to Red
+          : ["#8654CF", "#2775CC"] 
         : ["#FBFBFB", "#FBFBFB"] // Default (No Gradient)
     }
     start={{ x: 0, y: 0 }}

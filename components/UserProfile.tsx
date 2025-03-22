@@ -869,40 +869,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 )}
               </View>
             </View>
-          ) : (
-            <View className="items-center flex-1 ">
-            {loading ? (
-              <PostGallerySkeleton />
-            ) : (
-              <PostGallery
-                posts={userPosts}
-                profileUserId={profileUser!.clerk_id}
-                handleUpdate={fetchUserData}
-                query={query}
-                header={
-                  <View className="w-screen px-8 flex flex-row items-center justify-between">
-                    <View>
-                      <Text className="text-lg font-JakartaSemiBold">
-                        Most Recent ({userPosts.length})
-                      </Text>
-                    </View>
-
-                    <View>
-                      <TouchableOpacity
-                        activeOpacity={0.3}
-                        onPress={() => toggleExpanded()}
-                        className="w-full fixed"
-                      >
-                        <Text className="text-gray-400 font-JakartaBold text-[14px]">
-                          {!isExpanded ? "See more" : "See less"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                }
-              />
-            )}
-            </View>
           )}
         </View>
       ) : (
