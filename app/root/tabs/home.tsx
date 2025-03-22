@@ -106,6 +106,7 @@ const fetchUserData = async () => {
   };
 
   const getAction = (lastPost: Post) => {
+    if (lastPost) {
     const lastConnection = lastPost.created_at
     const daysDifference = (Date.now() - new Date(lastConnection).getTime()) / (1000 * 60 * 60 * 24)
 
@@ -113,6 +114,7 @@ const fetchUserData = async () => {
     if (daysDifference > 1.5) {
       setAction(ActionType.TIPS)
     }
+  }
   }
 
   return (
