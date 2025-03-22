@@ -114,6 +114,8 @@ const fetchUserData = async () => {
     if (daysDifference > 1.5) {
       setAction(ActionType.TIPS)
     }
+  } else {
+    setAction(ActionType.TIPS)
   }
   }
 
