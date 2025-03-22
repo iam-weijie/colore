@@ -87,6 +87,7 @@ export const NotificationProvider = ({
             //   data.path.params.content,
             //   data.path.route
             // );
+            
             router.push({
               pathname: data.path.route,
               // send through params to avoid doing another API call for post
@@ -100,7 +101,7 @@ export const NotificationProvider = ({
                 like_count: data.path.params!.like_count,
                 report_count: data.path.params!.report_count,
                 created_at: data.path.params!.created_at,
-                unread_comments: data.path.params!.unread_comments,
+                unread_comments: data.path.params!.unread_comments
               },
             });
           }

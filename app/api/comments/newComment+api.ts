@@ -34,8 +34,8 @@ export async function POST(request: Request) {
     } else {
       // If the post owner is commenting, don't increment unread_comments
       const response = await sql`
-        INSERT INTO comments (user_id, post_id, content)
-        VALUES (${clerkId}, ${postId}, ${content})
+        INSERT INTO comments (user_id, post_id, content, notified)
+        VALUES (${clerkId}, ${postId}, ${content}, true)
         RETURNING id;
       `;
       return new Response(JSON.stringify({ data: response }), {

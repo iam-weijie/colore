@@ -24,12 +24,17 @@
       }
     },
     "android": {
+    "backgroundFetch": {
+      "minimumInterval": 900,
+      "stopOnTerminate": false,
+      "startOnBoot": true
+    },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.arthur1235.colore",
-      "permissions": ["NOTIFICATIONS"]
+      "permissions": ["NOTIFICATIONS", "android.permission.ACCESS_BACKGROUND_LOCATION"]
     },
     "web": {
       "bundler": "metro",

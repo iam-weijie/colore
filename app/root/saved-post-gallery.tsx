@@ -58,7 +58,6 @@ const SavedPostGallery = () => {
 
     setUpdate(true)
   }
-
   return (
     <SafeAreaView className="flex-1">
          <View className="flex flex-row items-center px-4 pt-2">

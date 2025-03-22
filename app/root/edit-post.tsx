@@ -23,6 +23,7 @@ import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
 
+
 const EditPost = () => {
   const { user } = useUser();
   const { postId, content, color, emoji} = useLocalSearchParams()
@@ -57,7 +58,8 @@ const EditPost = () => {
         id: postId, 
         content: postContent, 
         color: selectedColor.name, 
-        emoji: selectedEmoji
+        emoji: selectedEmoji,
+        username: ""
       }
     })
     

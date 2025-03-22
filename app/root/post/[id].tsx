@@ -235,10 +235,11 @@ const CommentItem: React.FC<PostComment> = ({
             <TouchableOpacity
               activeOpacity={0.6}
               onPress={() => {
+                if (user_id !== user!.id) {
                 router.push({
                   pathname: "/root/profile/[id]",
                   params: { id: user_id },
-                });
+                });}
               }}
             >
               <Text className="font-JakartaSemiBold">{username}</Text>
@@ -396,6 +397,7 @@ const PostScreen = () => {
   useFocusEffect(
     useCallback(() => {
       setAnonymousComments(anonymous === "true");
+  
       return () => {
         setStateVars({ ...stateVars, queueRefresh: true});
       }
@@ -603,13 +605,16 @@ const PostScreen = () => {
 
     const trimmedComment = newComment.trim();
 
+
     if (!trimmedComment || !id || !user?.id || !clerk_id) {
-      /*console.log("Missing required data:", { 
+      /*
+      console.log("Missing required data:", { 
           content: trimmedComment, 
           postId: id, 
           clerkId: user?.id,
           postClerkId: clerk_id 
-        });*/
+        });
+        */
       Alert.alert("Error", "Unable to submit comment. Missing required data.");
       return;
     }
@@ -712,40 +717,11 @@ const PostScreen = () => {
     }
   };
 
-  const handleSavePost = async (postId: number) => {
-    try {
-      const updateSavePosts = await fetchAPI(
-        `/api/users/updateUserSavedPosts`,
-        {
-          method: "PATCH",
-          body: JSON.stringify({
-            clerkId: user?.id,
-            postId: postId,
-          }),
-        }
-      );
-    } catch (error) {
-      console.error("Failed to update unread message:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchComments();
-  }, [id]);
-
-  useEffect(() => {
-    navigation.addListener("beforeRemove", (e) => {
-      setStateVars({ ...stateVars, queueRefresh: true });
-      console.log("User goes back from post screen");
-    });
-  }, []);
-
-  // before returning user to screen, update unread_comments to 0
-  // only if the user is viewing their own post
   const handleReadComments = async () => {
     if (clerk_id === user!.id) {
       try {
-        const response = await fetchAPI(`/api/posts/updateUnreadComments`, {
+        console.log("Patching comments")
+        await fetchAPI(`/api/posts/updateUnreadComments`, {
           method: "PATCH",
           body: JSON.stringify({
             clerkId: user?.id,
@@ -758,6 +734,22 @@ const PostScreen = () => {
       }
     }
   };
+
+
+  useEffect(() => {
+    fetchComments();
+  }, [id]);
+
+  useEffect(() => {
+    navigation.addListener("beforeRemove", (e) => {
+      handleReadComments()
+      setStateVars({ ...stateVars, queueRefresh: true });
+      console.log("User goes back from post screen");
+    });
+  }, []);
+
+  // before returning user to screen, update unread_comments to 0
+  // only if the user is viewing their own post
 
   const handleReportPress = () => {
     Alert.alert(
@@ -772,12 +764,7 @@ const PostScreen = () => {
       ]
     );
   };
-  const handleEditing = () => {
-    router.push({
-      pathname: "/root/edit-post",
-      params: { postId: id, content: content, color: color },
-    });
-  };
+
 
   const renderCommentItem = ({
     item,
@@ -837,7 +824,10 @@ const PostScreen = () => {
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
           <View className="flex-1">
             <View className="flex-row items-center ml-6 mt-6">
-              <TouchableOpacity onPress={() => router.back()} className="mr-4">
+              <TouchableOpacity onPress={() => {
+                handleReadComments()
+                router.back()
+                }} className="mr-4">
                 <AntDesign name="caretleft" size={18} />
               </TouchableOpacity>
             </View>
@@ -898,8 +888,8 @@ const PostScreen = () => {
             </View>
             <View className="flex-1">
               {/* Comment section */}
-              <View className="h-full">
-                {loading && <ActivityIndicator size="large" color="#0076e3" />}
+              <View className="h-full mt-4">
+                {loading && <ActivityIndicator size="small" color="rgba(180,180,180,0.75)" />}
                 {error && <Text className="text-red-500 mx-4">{error}</Text>}
                 {!loading && !error && postComments.length === 0 && (
                   <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2">

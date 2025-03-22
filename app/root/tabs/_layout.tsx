@@ -43,7 +43,7 @@ const TabIcon = ({
 );
 
 const Layout = () => {
-  const { isIpad, unreadComments, unreadMessages, unreadRequests } = useGlobalContext();
+  const { isIpad, unreadComments, unreadMessages, unreadRequests, unreadPersonalPosts } = useGlobalContext();
 
   return (
     <Tabs
@@ -92,7 +92,7 @@ const Layout = () => {
             <TabIcon
               focused={focused}
               source={icons.album}
-              unread={unreadMessages + unreadRequests}
+              unread={unreadMessages + unreadRequests + unreadPersonalPosts}
               color={"#FF7272"} // Needs to be changed with message notifications
             />
           ),

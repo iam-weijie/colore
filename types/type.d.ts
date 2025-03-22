@@ -18,6 +18,7 @@ declare interface Post {
   pinned: boolean;
   color: string; //String for now. Should be changed to PostItColor
   emoji: string;
+  notified: boolean;
 }
 
 declare interface PostComment {
@@ -121,6 +122,7 @@ declare interface PostModalProps {
   invertedColors?: boolean;
   handleUpdate?: (isPinned: boolean) => void | Promise<void>;
   header: React.ReactElement;
+  isPreview?: boolean;
 }
 
 declare interface UserPostsGalleryProps {
@@ -208,3 +210,16 @@ type Stacks = {
   ids: [];
   elements: [];
 };
+
+type Prompt = {
+  title: string;
+  body: string;
+  source: ImageSourcePropType;
+};
+
+
+declare interface ActionPromptsProps {
+  friendName: string, 
+  action: { name: string };
+  handleAction: () => void;
+}

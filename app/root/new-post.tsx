@@ -1,6 +1,6 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -22,9 +22,12 @@ import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
+import { useNavigationContext } from "@/components/NavigationContext";
 
 const NewPost = () => {
   const { user } = useUser();
+  const { content, color, emoji } = useLocalSearchParams();
+  
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
@@ -34,6 +37,37 @@ const NewPost = () => {
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [fromPreview, setFromPreview] = useState(false);
+
+  // Initialize from route params when component mounts or params change
+  useEffect(() => {
+    if (content) {
+      setPostContent(Array.isArray(content) ? content[0] : content as string);
+      setFromPreview(true);
+    }
+    
+    if (color) {
+      const colorValue = Array.isArray(color) ? color[0] : color as string;
+      const savedColor = temporaryColors.find(c => c.name === colorValue);
+      if (savedColor) {
+        setSelectedColor(savedColor);
+      }
+    }
+    
+    if (emoji) {
+      setSelectedEmoji(Array.isArray(emoji) ? emoji[0] : emoji as string);
+    }
+  }, [content, color, emoji]);
+
+  // Handle back navigation
+  const handleBackNavigation = () => {
+    // If we came from preview, we need to go to the home tab
+    if (fromPreview) {
+      router.replace("/root/tabs/home");
+    } else {
+      router.back();
+    }
+  };
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -48,17 +82,15 @@ const NewPost = () => {
   };
 
   const handlePostSubmit = async () => {
-        router.push({
-          pathname: "/root/preview-post",
-          params: {
-            id: "", 
-            content: postContent, 
-            color: selectedColor.name, 
-            emoji: selectedEmoji
-          }
-        })
-        setPostContent("");
-        setSelectedEmoji(null);
+    router.push({
+      pathname: "/root/preview-post",
+      params: {
+        id: "", 
+        content: postContent, 
+        color: selectedColor.name, 
+        emoji: selectedEmoji
+      }
+    });
   };
 
   const handleChangeText = (text: string) => {
@@ -95,7 +127,7 @@ const NewPost = () => {
           <View className="flex-1">
             <View className="flex flex-row justify-center items-center mt-3 mx-6">
               <View className="flex-1">
-                <TouchableOpacity onPress={() => router.back()}>
+                <TouchableOpacity onPress={handleBackNavigation}>
                   <AntDesign name="caretleft" size={18} color="0076e3" />
                 </TouchableOpacity>
               </View>
@@ -105,7 +137,7 @@ const NewPost = () => {
               <CustomButton
                 className="w-14 h-10 rounded-full shadow-none"
                 fontSize="sm"
-                title="Post"
+                title="Next"
                 style={{backgroundColor: selectedColor.hex}}
                 padding="0"
                 onPress={handlePostSubmit}
@@ -117,7 +149,7 @@ const NewPost = () => {
             <View className="flex w-full mx-3">
               {!isEmojiSelectorVisible && (
                 <TextInput
-                  className="text-[16px] font-Jakarta mx-10 my-5"
+                  className="text-[16px] font-Jakarta mx-10 my-5 "
                   placeholder="Type something..."
                   value={postContent}
                   onChangeText={handleChangeText}
@@ -173,5 +205,6 @@ const NewPost = () => {
     </SafeAreaView>
   );
 };
+
 
 export default NewPost;

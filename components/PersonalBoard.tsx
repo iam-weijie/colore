@@ -4,6 +4,8 @@ import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
+import ActionPrompts from "./ActionPrompts";
+import { ActionType } from "@/lib/prompts";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,10 +19,15 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { Post } from "@/types/type";
+import UserProfile from "./UserProfile";
+import { Dimensions } from "react-native";
 
 type PersonalBoardProps = {
     userId: string;
 }
+  const screenHeight = Dimensions.get("screen").height;
+  const screenWidth = Dimensions.get("screen").width;
+
 
 const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   const { user } = useUser();
@@ -33,6 +40,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   const [maxPosts, setMaxPosts] = useState(0);
   const [postRefIDs, setPostRefIDS] = useState<number[]>([]);
   const [updatePinnedPosts, setUpdatePinnedPosts] = useState<boolean>(false);
+  const [action, setAction] = useState(ActionType.NONE);
 
   const fetchUserData = async () => {
     if (!isOwnBoard) {
@@ -68,6 +76,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
         }));
       
         setUpdatePinnedPosts(false)
+        getAction(formattedPosts)
         return formattedPosts
        
     
@@ -80,6 +89,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       const maxPostOnScreen = postRefIDs.length == 0 ? (isIpad ? 8 : 4) : Math.min(postRefIDs.length  + 4, (isIpad ? 12 : 7) )
       setMaxPosts(maxPostOnScreen ); 
     
+      try {
       const response = await fetchAPI(
         `/api/posts/getPersonalPosts?number=${maxPostOnScreen}&recipient_id=${userId}&user_id=${viewerId}`
       );
@@ -98,11 +108,37 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
         report_count: post.report_count || 0,
         unread_comments: post.unread_comments || 0
       }));
+      
+      getAction(formattedPosts)
       return formattedPosts;
+    } catch (error) {
+      console.log("Failed to fetch posts", error)
+    }
       
     }
    
   };
+  const AlgorithmRandomPosition = (isPinned: boolean) => {
+
+    if (isPinned) {
+      return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
+    } else if (isIpad) {
+      const top = ((Math.random() - 0.5) * 2) * screenHeight / 3 + screenHeight / 4;
+      const left = ((Math.random() - 0.5) * 2) * screenWidth / 3 + screenWidth - screenWidth / 1.75
+      return {
+        top:  top,
+        left: left
+      }
+    }
+     else {
+      const top = ((Math.random() - 0.5) * 2) * screenHeight / 4 + screenHeight / 4;
+      const left = ((Math.random() - 0.5) * 2) * screenWidth / 4 + screenWidth / 4
+      return {
+        top:  top,
+        left: left
+      }
+    }
+}
 
   const fetchNewPersonalPost = async (excludeIds: number[]) => {
     try {
@@ -115,8 +151,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       const newPostWithPosition = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: post.pinned ? 150 : Math.random() * 775 / 2,
-          left: post.pinned ? 100 : Math.random() * 475 / 2,
+          top:  AlgorithmRandomPosition(post.pinned).top,
+          left: AlgorithmRandomPosition(post.pinned).left,
         },
       }));
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];
@@ -160,6 +196,23 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     );
   }
 
+  const getAction = (iniPosts: Post[]) => {
+    console.log(iniPosts.map((p) => p.created_at))
+    if (iniPosts.length > 0) {
+     
+      const lastPost = iniPosts[0]
+      const timeDifference = (Date.now() - new Date(lastPost.created_at).getTime()) / (1000 * 60 * 60 * 24)
+
+        if (timeDifference > 3) {
+        setAction(ActionType.WHILEAGO)
+        } else { setAction(ActionType.NONE) }
+       
+        
+      } else {
+        setAction(ActionType.EMPTY)
+      }
+        
+  }
   return (
     <View className="flex-1">
       <SignedIn>
@@ -173,6 +226,18 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           showPostItText={true}
           invertColors={true}
         />
+        <ActionPrompts 
+        friendName={profileUser?.username ?? ""}
+         action={action} 
+         handleAction={() => {
+          router.push({
+            pathname: "/root/new-personal-post",
+            params: { 
+              recipient_id: userId,
+              source: 'board'
+            }
+          });
+        }}/>
       </SignedIn>
     </View>
   );

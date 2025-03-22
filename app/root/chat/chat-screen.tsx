@@ -21,7 +21,7 @@ import {
 import { useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 
 import { icons } from "@/constants/index";
 import { AntDesign } from "@expo/vector-icons";
@@ -36,7 +36,22 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent,
+} from "react-native-gesture-handler";
+import Animated, {
+  runOnJS,
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigationContext } from "@/components/NavigationContext";
+import { LinearGradient } from "expo-linear-gradient";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -62,26 +77,39 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
 }) => {
   return (
     <TouchableOpacity
-      activeOpacity={0.6}
-      onPress={() => {
-        onPress();
-      }}
+  activeOpacity={0.6}
+  onPress={onPress}
+>
+  <LinearGradient
+    colors={
+      focused
+        ? name === "Messages"
+          ? ["#FACC15", "#FB923C"] // Yellow to Orange
+          : name === "Friends"
+          ? ["#93c5fd", "#93c5fd"] // Indigo to Blue
+          : ["#CFB1FB", "#CFB1FB"] 
+        : ["#FBFBFB", "#FBFBFB"] // Default (No Gradient)
+    }
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 0 }}
+    style={{
+      minWidth: 132,
+      height: 48,
+      borderRadius: 24,
+      marginHorizontal: 8,
+      paddingHorizontal: 20,
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <Text
+      className="text-sm font-[600]"
+      style={{ color: focused ? "#FBFBFB" : "#000000" }}
     >
-      <View
-        className="min-w-[132px] h-[48px] rounded-[24px] mx-2 px-5 flex justify-center items-center"
-        style={{
-          backgroundColor: focused ? "#000000" : "#FBFBFB",
-          overflow: "visible", // Ensure content is not clipped
-        }}
-      >
-        <Text
-          className="text-sm font-[600]"
-          style={{ color: !focused ? "#000000" : "#FBFBFB" }}
-        >
-          {name} {notifications ? `(${notifications})` : null}
-        </Text>
-      </View>
-    </TouchableOpacity>
+      {name} {notifications ? `(${notifications})` : ""}
+    </Text>
+  </LinearGradient>
+</TouchableOpacity>
   );
 };
 
@@ -92,6 +120,8 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [searchText, setSearchText] = useState<string>("");
+  const [showDeleteIcon, setShowDeleteIcon] = useState<boolean>(false);
+  const { stateVars, setStateVars } = useNavigationContext();
 
   // Messages constants
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
@@ -124,7 +154,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   //Navigation
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const [selectedTab, setSelectedTab] = useState<string>(
-    tab ? tab : "Messages"
+    tab ? tab : "Friends"
   );
 
   const fetchConversations = async (): Promise<void> => {
@@ -255,36 +285,35 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     friend.friend_username.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const FriendLocation = ({ friendId }: { friendId: string }) => {
+  const FriendLocation = React.memo(({ friendId }: { friendId: string }) => {
     const [location, setLocation] = useState<string>("Loading...");
-
-    useEffect(() => {
-      const fetchUserLocation = async (userId: string) => {
-        try {
-          const response = await fetchAPI(
-            `/api/users/getUserInfo?id=${userId}`,
-            {
-              method: "GET",
-            }
-          );
-          const country = response.data?.[0]?.country || "Unknown Country";
-          const state = response.data?.[0]?.state || "Unknown State";
-          const city = response.data?.[0]?.city || "Unknown City";
-
-          setLocation(`${city}, ${state}, ${country}`);
-        } catch (error) {
-          console.error(error, "Couldn't find location");
-          setLocation("Location not available");
+  
+    const fetchUserLocation = async (userId: string) => {
+      try {
+        const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
+          method: "GET",
+        });
+  
+        if (!response?.data?.[0]) {
+          throw new Error("Invalid location data");
         }
-      };
-
-      if (friendId) {
-        fetchUserLocation(friendId);
+  
+        const { country = "Unknown Country", state = "Unknown State", city = "Unknown City" } = response.data[0];
+  
+        const newLocation = city !== state ? `${city}, ${state}, ${country}` : `${state}, ${country}`;
+        setLocation((prev) => (prev !== newLocation ? newLocation : prev));
+      } catch (error) {
+        console.error("Couldn't find location:", error);
+        setLocation("Location not available");
       }
+    };
+  
+    useEffect(() => {
+      fetchUserLocation(friendId);
     }, [friendId]);
-
+  
     return <Text className="text-gray-500 text-[12px]">{location}</Text>;
-  };
+  });
 
   const handleUnfriending = async (friendId: string) => {
     Alert.alert(
@@ -372,52 +401,131 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     </TouchableOpacity>
   );
 
-  const renderFriend = ({ item }: { item: Friendship }) => (
-    <View
-      className="flex  mb-2 p-4 rounded-[16px]"
-      style={{ backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }}
-    >
-      <View className="flex flex-row justify-between items-center mx-2">
-        <View>
-          <TouchableOpacity
-            className="flex-1"
-            activeOpacity={0.6}
-            onPress={() => handleUserProfile(item.friend_id)}
-            onLongPress={async () => handleUnfriending(item.friend_id)}
+
+ 
+
+  const FriendItem = ({ item, loading, setShowDeleteIcon }) => {
+    // Shared animated values and constants
+    const translateX = useSharedValue(0);
+    const opacity = useSharedValue(0);
+    const maxSwipe = 0;
+    const minSwipe = -70;
+  
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [
+        {
+          translateX: withSpring(translateX.value, {
+            damping: 20,
+            stiffness: 300,
+          }),
+        },
+      ],
+    }));
+  
+    const animatedOpacityStyle = useAnimatedStyle(() => ({
+      opacity: opacity.value,
+    }));
+  
+    const gestureHandler = useAnimatedGestureHandler<
+      PanGestureHandlerGestureEvent,
+      { startX: number }
+    >({
+      onStart: (_, context) => {
+        context.startX = translateX.value;
+      },
+      onActive: (event, context) => {
+        const translationX = context.startX + event.translationX;
+        opacity.value = Math.max(Math.min(translationX, maxSwipe), minSwipe) / (minSwipe);
+        translateX.value = Math.max(Math.min(translationX, maxSwipe), minSwipe);
+        runOnJS(setShowDeleteIcon)(true);
+      },
+      onEnd: () => {
+        runOnJS(setShowDeleteIcon)(false);
+        const finalOpacity = opacity.value;
+        console.log(finalOpacity)
+        opacity.value = withTiming(0);
+        translateX.value = withTiming(0, { damping: 20, stiffness: 300 });
+        if (finalOpacity > 0.95) {
+          runOnJS(handleUnfriending)(item.friend_id);
+        }
+      },
+    });
+  
+    return (
+      <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
+        <PanGestureHandler onGestureEvent={gestureHandler}>
+          <Animated.View
+            className="flex mb-2 p-4 rounded-[16px] w-full"
+            style={[animatedStyle, { backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }]}
           >
-            <View>
-              <Text className="text-[16px] font-bold ">
-                {nicknames && item.friend_id in nicknames
-                  ? nicknames[item.friend_id]
-                  : item.friend_username}
-              </Text>
-              <FriendLocation friendId={item.friend_id} />
+            <View className="flex flex-row justify-between items-center mx-2">
+              <View>
+                <TouchableOpacity
+                  className="flex-1"
+                  activeOpacity={0.6}
+                  onPress={() => handleUserProfile(item.friend_id)}
+                >
+                  <View>
+                    <Text className="text-[16px] font-bold ">
+                      {nicknames && item.friend_id in nicknames
+                        ? nicknames[item.friend_id]
+                        : item.friend_username}
+                    </Text>
+                    <FriendLocation friendId={item.friend_id} />
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View className="flex flex-row items-center justify-center ">
+                <TouchableOpacity
+                  onPress={() => {
+                    router.push({
+                      pathname: "/root/user-board/[id]",
+                      params: { id: item.friend_id, username: item.friend_username },
+                    });
+                  }}
+                >
+                  <Text className="font-JakartaSemiBold text-[12px] text-grey-500">Visit Board</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </TouchableOpacity>
-        </View>
-        <View className="flex flex-row items-center justify-center">
-          <TouchableOpacity
-            onPress={() => {
-              router.push({
-                pathname: "/root/user-board/[id]",
-                params: { id: item.friend_id, username: item.friend_username },
-              });
-            }}
-          >
-            <Image
-              source={icons.album}
-              tintColor="#000000"
-              resizeMode="contain"
-              className="w-8 h-8"
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+            {showDeleteIcon && (
+              <Animated.View
+                style={[
+                  animatedOpacityStyle,
+                  {
+                    alignSelf: "flex-end",
+                    right: -50,
+                    top: 15,
+                    padding: 5, 
+                    borderRadius: 16,
+                    backgroundColor: "#FF0000"
+                  },
+                ]}
+                className="absolute"
+              >
+                <Image 
+                  source={icons.trash} 
+                  className="w-5 h-5"
+                  tintColor={"white"}
+                />
+              </Animated.View>
+            )}
+          </Animated.View>
+        </PanGestureHandler>
+      </GestureHandlerRootView>
+    );
+  };
+  
+  const renderFriend = ({ item }) => (
+    <FriendItem item={item} loading={loading} setShowDeleteIcon={setShowDeleteIcon} />
   );
+  
 
   const renderIncomingRequest = ({ item }: { item: FriendRequest }) => (
-    <View className=" py-6 border-b border-gray-200">
+    <View  className=" py-6 border-gray-200"
+    style={{
+      borderBottomWidth: allFriendRequests?.received ? (allFriendRequests?.received.indexOf(item) < allFriendRequests?.received.length - 1 ? 1 : 0) : 0
+    }}>
       <View className="flex-row justify-between items-center">
         <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
           <Text className="font-JakartaSemiBold">
@@ -475,7 +583,11 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderOutgoingRequest = ({ item }: { item: FriendRequest }) => (
-    <View className=" py-6 border-b border-gray-200">
+    <View 
+    className=" py-6 border-gray-200"
+    style={{
+      borderBottomWidth: allFriendRequests?.sent ? (allFriendRequests?.sent.indexOf(item) < allFriendRequests?.sent.length - 1 ? 1 : 0) : 0
+    }}>
       <View>
         <TouchableOpacity
           className="flex-column justify-center items-start "
@@ -539,7 +651,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   };
 
   const handleCreateNewConversation = (): void => {
-    router.push("/root/chat/new-conversation");
+   router.push("/root/chat/new-conversation");
   };
 
   // console.log("All Friend Request", allFriendRequests?.sent);
@@ -551,8 +663,10 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     useCallback(() => {
       fetchConversations();
       fetchFriendData();
+      setStateVars({ ...stateVars, queueRefresh: true});
     }, [])
   );
+
 
   // console.log(conversations);
   // console.log("firends", friendList, "\n\nSent", allFriendRequests?.sent, "\n\nReceived", allFriendRequests?.received);
@@ -574,11 +688,14 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             <View className="flex flex-row items-center mx-4">
               <TouchableOpacity
                 onPress={handleCreateNewConversation}
-                className="w-8 h-8 ml-2 flex justify-center items-center bg-black rounded-full"
+                className="w-9 h-9 flex justify-center items-center bg-black rounded-full"
               >
-                <View className="flex justify-center items-center w-full h-full">
-                  <Text className="text-white text-2xl -mt-[3px]">+</Text>
-                </View>
+                  <Image 
+                  source={icons.search}
+                  className="w-5 h-5"
+                  tintColor="white"
+                  />
+               
               </TouchableOpacity>
             </View>
           </View>
@@ -588,10 +705,10 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             contentOffset={{ x: 10, y: 0 }}
             horizontal={true}
             showsHorizontalScrollIndicator={false}
-            className="max-h-[50px]"
+            className="max-h-[50px] min-h-auto"
           >
             <View className="flex flex-row items-center justify-between mx-6">
-              <TabNavigation
+             {/* <TabNavigation
                 name="Messages"
                 focused={selectedTab === "Messages"}
                 onPress={() => {
@@ -599,7 +716,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                   setSearchText("");
                 }}
                 notifications={toRead.length}
-              />
+              />*/}
               <TabNavigation
                 name="Friends"
                 focused={selectedTab === "Friends"}
@@ -623,9 +740,9 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>
           </ScrollView>
 
-          {selectedTab === "Messages" && (
+          {/*selectedTab === "Messages" && (
             <FlatList
-              className="rounded-[16px] mx-4"
+              className="rounded-[16px] mt-3 mx-4"
               ListHeaderComponent={
                 <View className="flex flex-row items-center mb-4 mt-4">
                   <TextInput
@@ -639,12 +756,13 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               data={loading ? skeletalConversationList : filteredConversations}
               renderItem={renderConversationItem}
               keyExtractor={(item): string => item.id}
+              showsVerticalScrollIndicator={false}
             />
-          )}
+          )*/}
 
           {selectedTab == "Friends" && (
             <FlatList
-              className="rounded-[16px] mx-4"
+              className="rounded-[16px] mt-3 mx-4"
               ListHeaderComponent={
                 <View className="flex flex-row items-center mb-4 mt-4">
                   <TextInput
@@ -661,6 +779,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
               ListEmptyComponent={
                 <Text className="text-center text-gray-500">No friends</Text>
               }
+              showsVerticalScrollIndicator={false}
             />
           )}
           {selectedTab == "Requests" && (
@@ -671,7 +790,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                 <View className="mb-2">
                 <View className="p-2">
                         <Text className="font-JakartaBold text-lg">
-                          Requests{" "}
+                          Requests
                         </Text>
                         <NotificationBubble
                           unread={
@@ -679,7 +798,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                               ? allFriendRequests.received.length
                               : 0
                           }
-                          color="#8654CF"
+                          color="#93c5fd"
                         />
                       </View>
                   <FlatList
@@ -700,7 +819,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                 </View>
 
                 {/* Bottom half: Outgoing Requests */}
-                <View className="flex-1 mt-2">
+                <View className="flex-1 flex-col mt-2">
                 <View className="p-2">
                         <Text className="font-JakartaBold text-lg">Sent </Text>
                         <NotificationBubble
@@ -709,7 +828,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                               ? allFriendRequests.sent.length
                               : 0
                           }
-                          color="#2775CC"
+                          color="#CFB1FB"
                         />
                       </View>
                   <FlatList

@@ -19,6 +19,7 @@ export async function GET(request: Request) {
         p.content,
         u.firstname,
         p.created_at,
+        p.user_id,
         p.like_count,
         p.report_count,
         p.unread_comments,
@@ -77,9 +78,13 @@ export async function GET(request: Request) {
       0
     );
 
-    const filteredPosts = postsWithComments.filter(
-      (post: any) => post.comments && post.comments.length > 0
-    );
+    const filteredPosts = postsWithComments
+  .filter((post: any) => post.comments && post.comments.length > 0)
+  .map((post: any) => ({
+    ...post,
+    comments: post.comments.filter((comment: any) => comment.id !== clerkId),
+  }));
+  
 
     return new Response(
       JSON.stringify({ toNotify: filteredPosts, unread_count: unread_comments }),

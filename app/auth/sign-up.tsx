@@ -109,8 +109,8 @@ const SignUp = () => {
         <CustomButton
           title="Continue"
           onPress={() => router.push("/root/user-info")}
-          className="w-full"
-          padding="3"
+          className="w-full bg-indigo-500"
+          padding="4"
         />
       </View>
     );
@@ -149,7 +149,7 @@ const SignUp = () => {
         <CustomButton
           title="Verify Email"
           onPress={onPressVerify}
-          className="mt-5 bg-success-500"
+          className="mt-5 bg-success-500 bg-indigo-500"
           padding="3"
         />
 
