@@ -60,7 +60,9 @@ const PreviewPost = () => {
         params: {
           content: content,
           color: color,
-          emoji: emoji
+          emoji: emoji,
+          recipient_id: recipientId,
+          username: username
         }
       });
 
