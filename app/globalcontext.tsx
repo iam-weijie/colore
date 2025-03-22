@@ -198,7 +198,7 @@ async function handleSendNotificationExternal(
       const username = "Someone"
       await sendPushNotification(
         pushToken,
-        `${username} wants posted on your board`,
+        `${username} has posted on your board`,
         `${n.content}`,
         "comment",
         {
