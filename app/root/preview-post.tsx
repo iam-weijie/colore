@@ -131,14 +131,8 @@ const PreviewPost = () => {
           }),
         });
 
-        if (recipientId == user!.id) {
-          router.replace(`/root/tabs/personal-board`);
-        } else {
-          router.replace({
-            pathname: "/root/user-board/[id]",
-            params: { id: recipientId, username: username },
-          });
-        }
+        router.back()
+        router.back()
 
         
 

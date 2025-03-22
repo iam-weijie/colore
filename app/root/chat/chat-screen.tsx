@@ -86,8 +86,8 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
         ? name === "Messages"
           ? ["#FACC15", "#FB923C"] // Yellow to Orange
           : name === "Friends"
-          ? ["#CFB1FB", "#93c5fd"] // Indigo to Blue
-          : ["#8654CF", "#2775CC"] 
+          ? ["#93c5fd", "#93c5fd"] // Indigo to Blue
+          : ["#CFB1FB", "#CFB1FB"] 
         : ["#FBFBFB", "#FBFBFB"] // Default (No Gradient)
     }
     start={{ x: 0, y: 0 }}
@@ -798,7 +798,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                               ? allFriendRequests.received.length
                               : 0
                           }
-                          color="#8654CF"
+                          color="#93c5fd"
                         />
                       </View>
                   <FlatList
@@ -828,7 +828,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                               ? allFriendRequests.sent.length
                               : 0
                           }
-                          color="#2775CC"
+                          color="#CFB1FB"
                         />
                       </View>
                   <FlatList

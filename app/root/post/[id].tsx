@@ -397,6 +397,7 @@ const PostScreen = () => {
   useFocusEffect(
     useCallback(() => {
       setAnonymousComments(anonymous === "true");
+  
       return () => {
         setStateVars({ ...stateVars, queueRefresh: true});
       }
@@ -604,13 +605,16 @@ const PostScreen = () => {
 
     const trimmedComment = newComment.trim();
 
+
     if (!trimmedComment || !id || !user?.id || !clerk_id) {
-      /*console.log("Missing required data:", { 
+      /*
+      console.log("Missing required data:", { 
           content: trimmedComment, 
           postId: id, 
           clerkId: user?.id,
           postClerkId: clerk_id 
-        });*/
+        });
+        */
       Alert.alert("Error", "Unable to submit comment. Missing required data.");
       return;
     }

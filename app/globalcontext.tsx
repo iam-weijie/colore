@@ -110,6 +110,7 @@ export async function fetchNotificationsExternal(
           }
         }
         if (n.comments) {
+          
           for (const comment of n.comments) {
             await handleSendNotificationExternal(n, comment, "Comments", pushToken);
           }
@@ -148,6 +149,7 @@ async function handleSendNotificationExternal(
   try {
     if (type === "Comments") {
       const notificationContent = content.comment_content.slice(0, 120);
+  
       await sendPushNotification(
         pushToken,
         `${content.commenter_username} responded to your post`,
@@ -157,7 +159,7 @@ async function handleSendNotificationExternal(
           route: `/root/post/${n.id}`,
           params: {
             id: n.post_id,
-            clerk_id: n.clerk_id,
+            clerk_id: n.user_id,
             content: n.content,
             nickname: n.nickname,
             firstname: n.firstname,
@@ -165,7 +167,7 @@ async function handleSendNotificationExternal(
             like_count: n.like_count,
             report_count: n.report_count,
             created_at: n.created_at,
-            unread_comments: n.unread_comments,
+            unread_comments: n.unread_comments
           },
         }
       );
@@ -205,10 +207,10 @@ async function handleSendNotificationExternal(
         }
       );
     }
-    console.log("id", n)
+
     await fetchAPI(`/api/notifications/updateNotified${type}`, {
       method: "PATCH",
-      body: JSON.stringify({ id: n.id }),
+      body: JSON.stringify({ id: content.id }),
     });
     console.log("Tried to patch")
   } catch (error) {
