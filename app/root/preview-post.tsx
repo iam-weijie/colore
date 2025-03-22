@@ -22,7 +22,7 @@ const PreviewPost = () => {
 
   // Create a default "empty" post object
   const defaultPost: Post = {
-    id: (id as string) || "", // Ensure it's a string
+    id: parseInt(id as string) || 0, // Parse it as a number with fallback to 0
     clerk_id: "",
     firstname: "",
     username: "",
@@ -34,8 +34,10 @@ const PreviewPost = () => {
     like_count: 0,
     report_count: 0,
     unread_comments: 0,
-    color: (color as string) || "", // Change when PostItColor type is available
-    emoji: emoji,
+    color: (color as string) || "", 
+    emoji: (emoji as string) || "", // Ensure emoji is string type
+    recipient_user_id: "",
+    pinned: false
   };
 
   const [post, setPost] = useState<Post>(defaultPost);
@@ -46,7 +48,16 @@ const PreviewPost = () => {
 
   const handleCloseModal = () => {
     setIsVisible(false);
-    router.back();
+    // Navigate back to new-post with current params to preserve input state
+    // Using replace instead of push to avoid adding a new entry to the navigation stack
+    router.replace({
+      pathname: "/root/new-post",
+      params: {
+        content: content,
+        color: color,
+        emoji: emoji
+      }
+    });
   };
 
   const handleSubmitPost = async () => {
@@ -147,11 +158,12 @@ const PreviewPost = () => {
           isVisible={isVisible}
           selectedPost={post} // Always a valid Post object
           handleCloseModal={handleCloseModal}
+          isPreview={true}
           header={
             <View className="absolute top-0 left-0 w-full flex flex-row items-center justify-center mt-10 pt-7 px-6">
               <View className="flex-1">
                 <TouchableOpacity
-                  onPress={() => router.back()}
+                  onPress={handleCloseModal}
                   className="mr-2"
                 >
                   <AntDesign name="caretleft" size={18} color={"white"} />
