@@ -399,6 +399,7 @@ const PostScreen = () => {
       setAnonymousComments(anonymous === "true");
   
       return () => {
+        setReplyTo(null)
         setStateVars({ ...stateVars, queueRefresh: true});
       }
     }, [])
