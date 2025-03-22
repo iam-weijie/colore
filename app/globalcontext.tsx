@@ -1,10 +1,5 @@
-import { fetchAPI } from "@/lib/fetch";
-import { useNotification } from "@/notifications/NotificationContext"; // Assuming you have a notification context to manage global state
-import { sendPushNotification } from "@/notifications/PushNotificationService";
-import { Stacks } from "@/types/type";
-import { useUser } from "@clerk/clerk-expo";
-import * as BackgroundFetch from 'expo-background-fetch';
-import * as TaskManager from 'expo-task-manager';
+// GlobalProvider.tsx
+
 import React, {
   createContext,
   useContext,
@@ -12,11 +7,17 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  Dimensions
-} from "react-native"
+import { Dimensions } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as BackgroundFetch from "expo-background-fetch";
+import * as TaskManager from "expo-task-manager";
+import { fetchAPI } from "@/lib/fetch";
+import { sendPushNotification } from "@/notifications/PushNotificationService";
+import { Stacks } from "@/types/type";
+import { useUser } from "@clerk/clerk-expo";
+import { useNotification } from "@/notifications/NotificationContext";
 
-// Types for global state
+// ===== Types & Constants =====
 type GlobalContextType = {
   stacks: Stacks[];
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
@@ -24,17 +25,217 @@ type GlobalContextType = {
   unreadComments: number;
   unreadMessages: number;
   unreadRequests: number;
+  unreadPersonalPosts: number;
   lastConnection: Date;
   isIpad: boolean;
 };
 
-// Constants
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 const screenWidth = Dimensions.get("screen").width;
+const NOTIFICATION_TASK = "background-notification-fetch";
 
-// Background Fetch Task Name
-const NOTIFICATION_TASK = 'background-notification-fetch';
+// ===== External Notification Fetch Logic =====
+// This function is designed to run in both the in-app polling and background fetch.
+// It accepts the userId and pushToken as parameters so that it does not depend on hooks.
+export async function fetchNotificationsExternal(
+  userId: string,
+  pushToken: string
+) {
+  try {
+    const [
+      userResponse,
+      commentsResponse,
+      messagesResponse,
+      postResponse,
+      friendRequestResponse,
+    ] = await Promise.all([
+      fetch(`/api/users/getUserInfo?id=${userId}`),
+      fetch(`/api/notifications/getComments?id=${userId}`),
+      fetch(`/api/notifications/getMessages?id=${userId}`),
+      fetch(`/api/notifications/getUserPersonalPosts?id=${userId}`),
+      fetch(`/api/friends/getFriendRequests?userId=${userId}`),
+    ]);
+    
+    const commentsData = await commentsResponse.json();
+    const comments = commentsData.toNotify;
 
+    const messagesData = await messagesResponse.json();
+    const messages = messagesData.toNotify;
+
+    const personalPostsData = await postResponse.json();
+    const personalPosts = personalPostsData.toNotify;
+
+    const userResponseData = await userResponse.json();
+    const mostRecentConnection = userResponseData.data[0].last_connection;
+
+    const friendRequestData = await friendRequestResponse.json();
+    const allFriendRequests = friendRequestData.data;
+
+    const friendRequestsToNotify = allFriendRequests.filter(
+      (request: any) =>
+        new Date(request.created_at) > new Date(mostRecentConnection) &&
+        request.notified === false &&
+        (request.requestor === "UID1"
+          ? request.user_id1 !== userId
+          : request.user_id2 !== userId)
+    );
+
+    const friendRequests =
+      friendRequestsToNotify.length > 0
+        ? [{ userId, requests: friendRequestsToNotify }]
+        : [];
+
+    // Combine all notifications
+    const allNotifications = [
+      ...comments,
+      ...messages,
+      ...personalPosts,
+      ...friendRequests,
+    ];
+
+    // Process each notification and send push if needed.
+    const processFetchedNotifications = async (notifications: any[]) => {
+      //console.log("notifications", notifications);
+      // Check if notifications array is empty, then return early to avoid errors
+      if (notifications.length === 0) {
+        //console.log("No new notifications to process");
+        return; // Exit the function early
+      }
+    
+      for (const n of allNotifications) {
+        //console.log("n", n)
+        if (n.messages) {
+          for (const message of n.messages) {
+            await handleSendNotificationExternal(n, message, "Messages", pushToken);
+          }
+        }
+        if (n.comments) {
+          for (const comment of n.comments) {
+            await handleSendNotificationExternal(n, comment, "Comments", pushToken);
+          }
+        }
+        if (n.requests) {
+          for (const request of n.requests) {
+            await handleSendNotificationExternal(n, request, "Requests", pushToken);
+          }
+        }
+        if(n.recipient_user_id) {
+         console.log("n", n)
+            await handleSendNotificationExternal(n, n, "Posts", pushToken);
+           
+        }
+      }
+    };
+
+   
+    processFetchedNotifications(allNotifications)
+    return allNotifications;
+  } catch (error) {
+    console.error("Error fetching notifications externally", error);
+    return
+  }
+}
+
+// Helper function used by the external fetch
+async function handleSendNotificationExternal(
+  n: any,
+  content: any,
+  type: string,
+  pushToken: string
+) {
+  if (!pushToken) return;
+  
+  try {
+    if (type === "Comments") {
+      const notificationContent = content.comment_content.slice(0, 120);
+      await sendPushNotification(
+        pushToken,
+        `${content.commenter_username} responded to your post`,
+        notificationContent,
+        "comment",
+        {
+          route: `/root/post/${n.id}`,
+          params: {
+            id: n.post_id,
+            clerk_id: n.clerk_id,
+            content: n.content,
+            nickname: n.nickname,
+            firstname: n.firstname,
+            username: n.username,
+            like_count: n.like_count,
+            report_count: n.report_count,
+            created_at: n.created_at,
+            unread_comments: n.unread_comments,
+          },
+        }
+      );
+    }
+    if (type === "Messages") {
+      const notificationContent = content.message.slice(0, 120);
+      // Optionally, fetch extra conversation info here...
+      // For brevity, that part is omitted.
+      // await sendPushNotification( ... );
+    }
+    if (type === "Requests") {
+      const username =
+        content.requestor === "UID1"
+          ? content.user1_username
+          : content.user2_username;
+      await sendPushNotification(
+        pushToken,
+        `${username} wants to be your friend!`,
+        "Click here to accept their friend request",
+        "comment",
+        {
+          route: `/root/chat`,
+          params: { tab: "Requests" },
+        }
+      );
+    }
+    if (type === "Posts") {
+      const username = "Someone"
+      await sendPushNotification(
+        pushToken,
+        `${username} wants posted on your board`,
+        `${n.content}`,
+        "comment",
+        {
+          route: `/root/tabs/personal-board`,
+          params: { },
+        }
+      );
+    }
+    console.log("id", n)
+    await fetchAPI(`/api/notifications/updateNotified${type}`, {
+      method: "PATCH",
+      body: JSON.stringify({ id: n.id }),
+    });
+    console.log("Tried to patch")
+  } catch (error) {
+    console.error("Failed to send notification externally:", error);
+  }
+}
+
+// ===== Background Fetch Task Definition =====
+// Since the background task runs outside of React hooks, we retrieve the persisted user info.
+TaskManager.defineTask(NOTIFICATION_TASK, async () => {
+  try {
+    const userId = await AsyncStorage.getItem("userId");
+    const pushToken = await AsyncStorage.getItem("pushToken");
+
+    if (!userId || !pushToken) {
+      console.warn("Background fetch: missing userId or pushToken");
+      return BackgroundFetch.Result.Failed;
+    }
+    await fetchNotificationsExternal(userId, pushToken);
+    return BackgroundFetch.Result.NewData;
+  } catch (error) {
+    console.error("Background Fetch failed:", error);
+    return BackgroundFetch.Result.Failed;
+  }
+});
+
+// ===== GlobalProvider Component =====
 export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -42,240 +243,55 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
+  const [unreadPersonalPosts, setUnreadPersonalPosts] = useState<number>(0);
   const [unreadRequests, setUnreadRequests] = useState<number>(0);
   const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
   const [isIpad, setIsIpad] = useState<boolean>(false);
-
 
   const hasUpdatedLastConnection = useRef(false);
   const { user } = useUser();
   const { pushToken } = useNotification();
 
-  // Process the fetched notifications (send push notifications for each)
-  const processFetchedNotifications = (notifications: any[]) => {
-    // console.log("notifications", notifications);
-    notifications.forEach((n) => {
-      if (n.messages) {
-        n.messages.forEach((message) => {
-          handleSendNotification(n, message, "Messages");
-        });
-      }
-      if (n.comments) {
-        n.comments.forEach((comment) => {
-          handleSendNotification(n, comment, "Comments");
-        });
-      }
-      if (n.requests) {
-        n.requests.forEach((request) => {
-          // console.log("exact request", request)
-          handleSendNotification(n, request, "Requests");
-        });
-      }
-    });
-  };
+  // In-app polling every 5 seconds
+  useEffect(() => {
+    if (user && pushToken) {
+      // When user signs in, persist the necessary info for background tasks.
+      AsyncStorage.setItem("userId", user.id);
+      AsyncStorage.setItem("pushToken", pushToken);
 
-  // Fetch notifications for both Comments and Messages
+      // Initial fetch and then polling every 5 seconds
+      fetchNotifications();
+      updateLastConnection();
+      const interval = setInterval(fetchNotifications, 5000);
+      return () => clearInterval(interval);
+      
+      
+    }
+  }, [user, pushToken]);
+
+  // In-app fetchNotifications function that uses the external function
   const fetchNotifications = async () => {
-    if (!user?.id) return; // Ensure the user is available
-
+    if (!user?.id || !pushToken) return;
     try {
-      const [
-        commentsResponse,
-        messagesResponse,
-        userResponse,
-        friendRequestResponse,
-      ] = await Promise.all([
-        fetch(`/api/notifications/getComments?id=${user.id}`),
-        fetch(`/api/notifications/getMessages?id=${user.id}`),
-        fetch(`/api/users/getUserInfo?id=${user.id}`),
-        fetch(`/api/friends/getFriendRequests?userId=${user.id}`),
-      ]);
+      const notifs = await fetchNotificationsExternal(user.id, pushToken);
 
-      // Handle the Comments response
-      const commentsData = await commentsResponse.json();
-      const comments = commentsData.toNotify;
-      const unreadCommentsCount = commentsData.unread_count;
-
-      setUnreadComments(unreadCommentsCount);
-
-      // Handle the Messages response
-      const messagesData = await messagesResponse.json();
-      const messages = messagesData.toNotify;
-      const unreadMessagesCount = messagesData.unread_count;
-
-      setUnreadMessages(unreadMessagesCount);
-
-      // Handle the Friend Requests response
-      const userResponseData = await userResponse.json();
-      // console.log(userResponseData)
-      const mostRecentConnection = userResponseData.data[0].last_connection;
-      setLastConnection(mostRecentConnection);
-
-      if (!hasUpdatedLastConnection.current) {
-        updateLastConnection();
-      }
-
-      const friendRequestData = await friendRequestResponse.json();
-      const allFriendResquests = friendRequestData.data;
-
-      const friendRequestsToNotify = allFriendResquests.filter(
-        (request) =>
-          new Date(request.created_at) > new Date(mostRecentConnection) &&
-          request.notified == false &&
-          (request.requestor == "UID1"
-            ? request.user_id1 != user.id
-            : request.user_id2 != user.id)
-      );
-      const friendRequests =
-        friendRequestsToNotify.length > 0
-          ? [{ userId: user.id, requests: friendRequestsToNotify }]
-          : [];
-
-      setUnreadRequests(friendRequestsToNotify.length);
-
-      //console.log(friendRequests)
-      // Combine both comments and messages into one list of notifications
-      const allNotifications = [...comments, ...messages, ...friendRequests];
-      setNotifications(allNotifications);
-
-      //console.log("All notificaitons", allNotifications)
-      // Process the fetched notifications (send push notifications)
-      processFetchedNotifications(allNotifications);
+      // For UI state, update unread counts, last connection, etc.
+      // (You can parse the responses as needed; here we simply set the notifications.)
+      setNotifications(notifs);
+      // (Update other state as needed based on your API responses.)
     } catch (error) {
-      console.error("Error fetching notifications", error);
+      console.error("Error in in-app fetchNotifications", error);
     }
   };
 
-  // Handle sending notifications based on content type (e.g., Comments, Messages)
-  const handleSendNotification = async (n: any, content: any, type: string) => {
-    if (!pushToken) {
-      return;
-    }
-
-    try {
-      if (type === "Comments") {
-        const notificationContent = content.comment_content.slice(0, 120);
-        await sendPushNotification(
-          pushToken,
-          `${content.commenter_username} responded to your post`, // Title
-          `${notificationContent}`, // Body (truncated content)
-          `comment`, // Type of notification
-          {
-            route: `/root/post/${n.id}`,
-            params: {
-              id: n.post_id,
-              clerk_id: n.clerk_id,
-              content: n.content,
-              nickname: n.nickname,
-              firstname: n.firstname,
-              username: n.username,
-              like_count: n.like_count,
-              report_count: n.report_count,
-              created_at: n.created_at,
-              unread_comments: n.unread_comments,
-            },
-          }
-        );
-      }
-
-      if (type === "Messages") {
-        const notificationContent = content.message.slice(0, 120);
-
-        const fetchUsername = async (id: string) => {
-          try {
-            const response = await fetchAPI(`/api/users/getUserInfo?id=${id}`);
-            const userInfo = response.data[0];
-
-            return userInfo.username || "";
-          } catch (error) {
-            console.error("Failed to fetch user data:", error);
-          }
-        };
-
-        const fetchConversation = async (id: string) => {
-          try {
-            const response = await fetchAPI(
-              `/api/chat/getConversations?id=${content.senderId}`
-            );
-
-            const conversationInfo = response.data.filter((c) => c.id == id);
-
-            //   console.log("conversationInfo", conversationInfo)
-            if (conversationInfo.length === 0) return null; // Handle empty results
-
-            return {
-              conversationId: conversationInfo[0].id,
-              conversationOtherClerk: conversationInfo[0].clerk_id,
-              conversationOtherName: conversationInfo[0].name,
-            };
-          } catch (error) {
-            console.error("Failed to fetch conversation data:", error);
-          }
-        };
-
-        const username = await fetchUsername(content.senderId);
-        const conversation = await fetchConversation(n.conversationid);
-/*
-        await sendPushNotification(
-          pushToken,
-          `${username} sent you a message`, // Title
-          `${notificationContent}`, // Body (truncated content)
-          `comment`, // Type of notification
-          {
-            route: `/root/chat/conversation?conversationId=${n.conversationid}&otherClerkId=${conversation.conversationOtherClerk}&otherName=${conversation.conversationOtherName}`,
-            params: {},
-          }
-        );
-        */
-      }
-      if (type === "Requests") {
-        // console.log("request", content)
-        const username =
-          content.requestor == "UID1"
-            ? content.user1_username
-            : content.user2_username;
-        await sendPushNotification(
-          pushToken,
-          `${username} wants to be your friend!`, // Title
-          "Click here to accept their friend request", // Body (truncated content)
-          `comment`, // Type of notification
-          {
-            route: `/root/chat`,
-            params: { tab: "Requests" },
-          }
-        );
-      }
-
-      // Mark notifications as notified in the backend
-      const updateResponse = await fetchAPI(
-        `/api/notifications/updateNotified${type}`,
-        {
-          method: "PATCH",
-          body: JSON.stringify({ id: content.id }),
-        }
-      );
-
-      if (updateResponse.error) {
-        throw new Error(updateResponse.error);
-      }
-    } catch (error) {
-      console.error("Failed to send notification:", error);
-    }
-
-    // When notification was successfully sent and  the 'notified' status is updated in the database.
-    //setNotifications([])
-  };
-
+  // Example function to update the last connection (as before)
   const updateLastConnection = async () => {
-    if (user && !hasUpdatedLastConnection.current)  {
+    if (user && !hasUpdatedLastConnection.current) {
       try {
         const response = await fetchAPI(`/api/users/updateUserLastConnection`, {
           method: "PATCH",
-          body: JSON.stringify({
-            clerkId: user?.id,
-          }),
+          body: JSON.stringify({ clerkId: user.id }),
         });
-
         if (response.error) {
           throw new Error(response.error);
         }
@@ -286,55 +302,27 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Poll notifications every 5 seconds
+  // Register the background fetch task on mount
   useEffect(() => {
     if (user) {
-      fetchNotifications(); // Initial fetch
-      const interval = setInterval(() => {
-        fetchNotifications(); // Poll notifications every 5 seconds
-      }, 5000);
-
-      return () => clearInterval(interval); // Cleanup on unmount
-    }
-  }, [user]);
-
-    // Background Fetch Task
-    const backgroundFetchTask = async () => {
-      try {
-        await fetchNotifications();
-        return BackgroundFetch.Result.NewData; // Returns new data, so it can repeat
-      } catch (error) {
-        console.error("Background Fetch failed:", error);
-        return BackgroundFetch.Result.Failed; // Mark as failed if an error occurs
-      }
-    };
-  
-    // Register Background Fetch Task on component mount
-    useEffect(() => {
-      if (user) {
-        BackgroundFetch.registerTaskAsync(NOTIFICATION_TASK, {
-          minimumInterval: 60 * 15, // 15 minutes (change this interval to fit your needs)
+      const registerBackgroundFetch = async () => {
+        await BackgroundFetch.registerTaskAsync(NOTIFICATION_TASK, {
+          minimumInterval: 60 * 15, // 15 minutes
           stopOnTerminate: false,
           startOnBoot: true,
         });
-  
-        // Start the task when the app launches
-        const registerBackgroundFetch = async () => {
-          await BackgroundFetch.setMinimumIntervalAsync(60 * 15); // Example: 15 minutes interval
-        };
-  
-        registerBackgroundFetch();
-  
-        return () => {
-          BackgroundFetch.unregisterTaskAsync(NOTIFICATION_TASK);
-        };
-      }
-    }, [user]);
+        await BackgroundFetch.setMinimumIntervalAsync(60 * 15);
+      };
+      registerBackgroundFetch();
+      return () => {
+        BackgroundFetch.unregisterTaskAsync(NOTIFICATION_TASK);
+      };
+    }
+  }, [user]);
 
   useEffect(() => {
-    const ipad = screenWidth > 500
-    setIsIpad(ipad)
-  }, [])
+    setIsIpad(screenWidth > 500);
+  }, []);
 
   return (
     <GlobalContext.Provider
@@ -344,9 +332,10 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         notifications,
         unreadComments,
         unreadMessages,
+        unreadPersonalPosts,
         unreadRequests,
         lastConnection,
-        isIpad
+        isIpad,
       }}
     >
       {children}
@@ -361,3 +350,5 @@ export const useGlobalContext = () => {
   }
   return context;
 };
+
+export default GlobalProvider;

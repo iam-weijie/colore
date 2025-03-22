@@ -18,6 +18,7 @@ declare interface Post {
   pinned: boolean;
   color: string; //String for now. Should be changed to PostItColor
   emoji: string;
+  notified: boolean;
 }
 
 declare interface PostComment {

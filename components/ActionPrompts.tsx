@@ -80,8 +80,7 @@ if (!visible) {
   }
 
   return (
-    <View className="flex-1 flex">
-      <SafeAreaView>
+
       <Modal transparent visible={visible} onRequestClose={handleClose}>
         {/* Background Overlay */}
         <Pressable className="flex-1 " onPress={handleClose}>
@@ -129,8 +128,6 @@ if (!visible) {
       </TouchableOpacity>
     </Animated.View>
     </Modal>
-    </SafeAreaView>
-    </View>
   );
 };
 

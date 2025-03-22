@@ -20,10 +20,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { Post } from "@/types/type";
 import UserProfile from "./UserProfile";
+import { Dimensions } from "react-native";
 
 type PersonalBoardProps = {
     userId: string;
 }
+  const screenHeight = Dimensions.get("screen").height;
+  const screenWidth = Dimensions.get("screen").width;
+
 
 const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   const { user } = useUser();
@@ -114,6 +118,27 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     }
    
   };
+  const AlgorithmRandomPosition = (isPinned: boolean) => {
+
+    if (isPinned) {
+      return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
+    } else if (isIpad) {
+      const top = ((Math.random() - 0.5) * 2) * screenHeight / 3 + screenHeight / 4;
+      const left = ((Math.random() - 0.5) * 2) * screenWidth / 3 + screenWidth - screenWidth / 1.75
+      return {
+        top:  top,
+        left: left
+      }
+    }
+     else {
+      const top = ((Math.random() - 0.5) * 2) * screenHeight / 4 + screenHeight / 4;
+      const left = ((Math.random() - 0.5) * 2) * screenWidth / 4 + screenWidth / 4
+      return {
+        top:  top,
+        left: left
+      }
+    }
+}
 
   const fetchNewPersonalPost = async (excludeIds: number[]) => {
     try {
@@ -126,8 +151,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       const newPostWithPosition = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top: post.pinned ? 150 : Math.random() * 775 / 2,
-          left: post.pinned ? 100 : Math.random() * 475 / 2,
+          top:  AlgorithmRandomPosition(post.pinned).top,
+          left: AlgorithmRandomPosition(post.pinned).left,
         },
       }));
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];
@@ -202,7 +227,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           invertColors={true}
         />
         <ActionPrompts 
-        friendName={profileUser?.username}
+        friendName={profileUser?.username ?? ""}
          action={action} 
          handleAction={() => {
           router.push({

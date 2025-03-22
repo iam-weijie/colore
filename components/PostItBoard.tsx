@@ -569,8 +569,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         const newPostWithPosition: PostWithPosition = {
           ...newPost,
           position: {
-            top: newPost.pinned ? 70 + Math.random() * 15 : Math.random() * 775 / 2,
-            left: newPost.pinned ? 50 + Math.random() * 15 : Math.random() * 475 / 2,
+            top: AlgorithmRandomPosition(newPost.pinned).top,
+            left: AlgorithmRandomPosition(newPost.pinned).left
           },
         };
         setPostsWithPosition((prevPosts) => [
