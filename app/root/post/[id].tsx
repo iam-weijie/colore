@@ -574,9 +574,9 @@ console.log("username", username)
                 })
               }}
               className="py-3 px-4 bg-white rounded-[24px] shadow-xs">
-                <Text className="font-JakartaBold" style={{
+                <Text className="font-JakartaSemiBold" style={{
                   color: postColor.fontColor
-                }}>Reply to Author</Text>
+                }}>Reply to {username}</Text>
               </TouchableOpacity>
             </View>
             <View 
