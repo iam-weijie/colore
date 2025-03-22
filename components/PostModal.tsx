@@ -97,6 +97,7 @@ const PostModal: React.FC<PostModalProps> = ({
   handleUpdate,
   invertedColors = false,
   header,
+  isPreview = false,
 }) => {
   const { stacks, isIpad } = useGlobalContext();
   const { user } = useUser();
@@ -539,6 +540,10 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
   const getMenuItems = (isOwner: boolean, invertedColors: boolean) => {
+    if (isPreview) {
+      return []; // Return empty array when in preview mode to disable menu
+    }
+    
     if (invertedColors) {
       return [
         {
@@ -626,7 +631,7 @@ const PostModal: React.FC<PostModalProps> = ({
             backgroundColor: postColor?.hex || "rgba(0, 0, 0, 0.5)",
           }}
         >
-          <TouchableWithoutFeedback onPress={handleCloseModal}>
+          <TouchableWithoutFeedback onPress={!isPreview ? handleCloseModal : undefined}>
             {BackgroundGridEmoji(post[currentPostIndex]?.emoji || "")}
           </TouchableWithoutFeedback>
 
@@ -658,34 +663,36 @@ const PostModal: React.FC<PostModalProps> = ({
                   {post[currentPostIndex]?.content}
                   </Text>
                 </ScrollView>
-                <View className="my-2 flex-row justify-between items-center">
-                  <View className="flex flex-row items-center">
-                    <TouchableOpacity onPress={handleCommentsPress}>
-                      <Image source={icons.comment} className="w-8 h-8" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleLikePress} className="ml-2">
-                      <MaterialCommunityIcons
-                        name={isLiked ? "heart" : "heart-outline"}
-                        size={32}
-                        color={isLiked ? "red" : "black"}
-                      />
-                    </TouchableOpacity>
-                    {/* Show like count only to post creator */}
+                {!isPreview && (
+                  <View className="my-2 flex-row justify-between items-center">
+                    <View className="flex flex-row items-center">
+                      <TouchableOpacity onPress={handleCommentsPress}>
+                        <Image source={icons.comment} className="w-8 h-8" />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={handleLikePress} className="ml-2">
+                        <MaterialCommunityIcons
+                          name={isLiked ? "heart" : "heart-outline"}
+                          size={32}
+                          color={isLiked ? "red" : "black"}
+                        />
+                      </TouchableOpacity>
+                      {/* Show like count only to post creator */}
                     {post && post.clerk_id === user?.id && (
-                      <Text className="ml-1 text-gray-600">{likeCount}</Text>
-                    )}
-                  </View>
-                  {/* Delete button for post owner */}
-                  {
-                    <DropdownMenu
-                      menuItems={getMenuItems(
-                        post[currentPostIndex]?.clerk_id === user!.id ||
-                          post[currentPostIndex]?.recipient_user_id === user!.id,
-                        invertedColors
+                        <Text className="ml-1 text-gray-600">{likeCount}</Text>
                       )}
-                    />
-                  }
-                </View>
+                    </View>
+                    {/* Delete button for post owner */}
+                    {
+                      <DropdownMenu
+                        menuItems={getMenuItems(
+                          post[currentPostIndex]?.clerk_id === user!.id ||
+                            post[currentPostIndex]?.recipient_user_id === user!.id,
+                          invertedColors
+                        )}
+                      />
+                    }
+                  </View>
+                )}
               </Animated.View>
             </GestureDetector>
           </GestureHandlerRootView>
