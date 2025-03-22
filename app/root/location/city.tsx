@@ -28,6 +28,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingRight: 12
   },
   title: {
     fontSize: 20,
@@ -209,7 +210,7 @@ const City = () => {
         </Text>
 
         <CustomButton
-          className="w-14 h-8 rounded-md mx-3"
+          className="w-16 rounded-[24px] bg-[#b8e1ff] p-2 shadow-none"
           fontSize="sm"
           title="Done"
           padding="0"

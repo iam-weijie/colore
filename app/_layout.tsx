@@ -72,9 +72,9 @@ export default function RootLayout() {
             <NavigationProvider>
               <Animated.View style={{ flex: 1 }} entering={FadeIn}>
                 <Stack>
-                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                  <Stack.Screen name="index" options={{ headerShown: false, animation: 'fade' }} />
                   <Stack.Screen name="auth" options={{ headerShown: false }} />
-                  <Stack.Screen name="root" options={{ headerShown: false }} />
+                  <Stack.Screen name="root" options={{ headerShown: false, animation: 'none' }} />
                   <Stack.Screen name="+not-found" />
                 </Stack>
               </Animated.View>
