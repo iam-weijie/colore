@@ -152,6 +152,7 @@ console.log("username", username)
       setReplyTo(null)
       setReplyView(null)
       return () => {
+        setReplyTo(null)
         setStateVars({ ...stateVars, queueRefresh: true});
       }
     }, [])
