@@ -202,7 +202,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           invertColors={true}
         />
         <ActionPrompts 
-        friendName={profileUser?.username ?? "your"}
+        friendName={profileUser?.username}
          action={action} 
          handleAction={() => {
           router.push({
