@@ -110,7 +110,7 @@ const fetchUserData = async () => {
     const daysDifference = (Date.now() - new Date(lastConnection).getTime()) / (1000 * 60 * 60 * 24)
 
 
-    if (daysDifference > 3) {
+    if (daysDifference > 1.5) {
       setAction(ActionType.TIPS)
     }
   }
