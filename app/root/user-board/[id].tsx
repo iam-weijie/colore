@@ -4,6 +4,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { icons } from "@/constants";
 import { router } from "expo-router";
+import { fetchAPI } from "@/lib/fetch";
 
 
 const UserPersonalBoard = () => {
@@ -18,6 +19,7 @@ const UserPersonalBoard = () => {
       }
     });
   };
+
 
   return (
     <SafeAreaView className="flex-1">
