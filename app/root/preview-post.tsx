@@ -51,14 +51,31 @@ const PreviewPost = () => {
     setIsVisible(false);
     // Navigate back to new-post with current params to preserve input state
     // Using replace instead of push to avoid adding a new entry to the navigation stack
-    router.replace({
-      pathname: "/root/new-post",
-      params: {
-        content: content,
-        color: color,
-        emoji: emoji
-      }
-    });
+
+    if (id) {
+      router.back()
+    } else if (personal === "true") {
+      router.replace({
+        pathname: "/root/new-personal-post",
+        params: {
+          content: content,
+          color: color,
+          emoji: emoji
+        }
+      });
+
+    }
+    else {
+      router.replace({
+        pathname: "/root/new-post",
+        params: {
+          content: content,
+          color: color,
+          emoji: emoji
+        }
+      });
+    }
+  
   };
 
   const handleSubmitPost = async () => {

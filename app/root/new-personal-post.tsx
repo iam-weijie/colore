@@ -1,7 +1,7 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -22,52 +22,89 @@ import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
-import { useNavigationContext } from "@/components/NavigationContext";
+
 
 const NewPersonalPost = () => {
   const { user } = useUser();
-  const { recipient_id, username } = useLocalSearchParams(); // Get recipient_id from params
+  const { content, color, emoji, recipient_id, username } = useLocalSearchParams();
+  
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
-  const [selectedColor, setSelectedColor] = useState<PostItColor>(temporaryColors[Math.floor(Math.random() * 4)]);
+  const [selectedColor, setSelectedColor] = useState<PostItColor>(
+    temporaryColors[Math.floor(Math.random() * 4)]
+  );
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
-  const { stateVars, setStateVars } = useNavigationContext();
+  const [fromPreview, setFromPreview] = useState(false);
+
+  // Initialize from route params when component mounts or params change
+  useEffect(() => {
+    if (content) {
+      setPostContent(Array.isArray(content) ? content[0] : content as string);
+      setFromPreview(true);
+    }
+    
+    if (color) {
+      const colorValue = Array.isArray(color) ? color[0] : color as string;
+      const savedColor = temporaryColors.find(c => c.name === colorValue);
+      if (savedColor) {
+        setSelectedColor(savedColor);
+      }
+    }
+    
+    if (emoji) {
+      setSelectedEmoji(Array.isArray(emoji) ? emoji[0] : emoji as string);
+    }
+  }, [content, color, emoji]);
+
+  // Handle back navigation
+  const handleBackNavigation = () => {
+    // If we came from preview, we need to go to the home tab
+    if (fromPreview) {
+       if (recipient_id == user!.id) {
+                router.replace(`/root/tabs/personal-board`);
+              } else {
+                router.replace({
+                  pathname: "/root/user-board/[id]",
+                  params: { id: recipient_id, username: username },
+                });
+              }
+    } else {
+      router.back();
+    }
+  };
+
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
     setIsEmojiSelectorVisible(false);
   };
 
+  // need to get user's screen size to set a min height
   const screenHeight = Dimensions.get("screen").height;
 
   const handleContentSizeChange = (event: any) => {
     setInputHeight(event.nativeEvent.contentSize.height);
   };
 
-
-    const handlePostSubmit = async () => {
-      setStateVars({
-        ...stateVars,
-        previousScreen: "new-personal-post",
-      });
-           router.push({
-                 pathname: "/root/preview-post",
-                 params: {
-                   id: "", 
-                   content: postContent, 
-                   color: selectedColor.name, 
-                   emoji: selectedEmoji, 
-                   personal: "true", 
-                   recipientId: recipient_id,
-                   username: username
-                 }
-               })
-               setPostContent("");
-               setSelectedEmoji(null);
-    };
+  const handlePostSubmit = async () => {
+         router.push({
+               pathname: "/root/preview-post",
+               params: {
+                 id: "", 
+                 content: postContent, 
+                 color: selectedColor.name, 
+                 emoji: selectedEmoji, 
+                 personal: "true", 
+                 recipientId: recipient_id,
+                 username: username
+               }
+             })
+             setPostContent("");
+             setSelectedEmoji(null);
+  };
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -83,14 +120,15 @@ const NewPersonalPost = () => {
 
   const toggleEmojiSelector = () => {
     setIsEmojiSelectorVisible((prev) => !prev);
+    // console.log(selectedEmoji);
   };
 
-  useEffect(() => {
-    if (selectedEmoji && isEmojiSelectorVisible) {
-        toggleEmojiSelector();
-      }
-    }, [selectedEmoji]);
-    
+   useEffect(() => {
+     if (selectedEmoji && isEmojiSelectorVisible) {
+       toggleEmojiSelector();
+     }
+   }, [selectedEmoji]);
+   
 
   return (
     <SafeAreaView className="flex-1">
@@ -102,12 +140,12 @@ const NewPersonalPost = () => {
           <View className="flex-1">
             <View className="flex flex-row justify-center items-center mt-3 mx-6">
               <View className="flex-1">
-                <TouchableOpacity onPress={() => router.back()}>
+                <TouchableOpacity onPress={handleBackNavigation}>
                   <AntDesign name="caretleft" size={18} color="0076e3" />
                 </TouchableOpacity>
               </View>
               <Text className="absolute text-xl font-JakartaSemiBold">
-                New Personal Post
+                New Post
               </Text>
               <CustomButton
                 className="w-14 h-10 rounded-full shadow-none"
