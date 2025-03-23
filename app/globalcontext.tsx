@@ -62,12 +62,15 @@ export async function fetchNotificationsExternal(
     
     const commentsData = await commentsResponse.json();
     const comments = commentsData.toNotify;
+    const unread_comments = commentsData.unread_count ?? 0;
 
     const messagesData = await messagesResponse.json();
     const messages = messagesData.toNotify;
+    const unread_messages = messagesData.unread_count ?? 0;
 
     const personalPostsData = await postResponse.json();
     const personalPosts = personalPostsData.toNotify;
+    const unread_posts = personalPostsData.unread_count ?? 0;
 
     const userResponseData = await userResponse.json();
     const mostRecentConnection = userResponseData.data[0].last_connection;
@@ -88,6 +91,7 @@ export async function fetchNotificationsExternal(
       friendRequestsToNotify.length > 0
         ? [{ userId, requests: friendRequestsToNotify }]
         : [];
+    const unread_requests = friendRequests?.length ?? 0;
 
     // Combine all notifications
     const allNotifications = [
@@ -134,7 +138,7 @@ export async function fetchNotificationsExternal(
 
    
     processFetchedNotifications(allNotifications)
-    return allNotifications;
+    return {notifs: allNotifications, counts: [unread_comments, unread_messages, unread_posts, unread_requests]};
   } catch (error) {
     console.error("Error fetching notifications externally", error);
     return
@@ -283,11 +287,18 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchNotifications = async () => {
     if (!user?.id || !pushToken) return;
     try {
-      const notifs = await fetchNotificationsExternal(user.id, pushToken);
-
-      // For UI state, update unread counts, last connection, etc.
+      const result = await fetchNotificationsExternal(user.id, pushToken);
+      if (result) {
+         // For UI state, update unread counts, last connection, etc.
       // (You can parse the responses as needed; here we simply set the notifications.)
-      setNotifications(notifs);
+        const { notifs, counts } = result;
+        setNotifications(notifs);
+        setUnreadComments(counts[0]);
+        setUnreadMessages(counts[1]);
+        setUnreadPersonalPosts(counts[2]);
+        setUnreadRequests(counts[3]);
+      }
+
       // (Update other state as needed based on your API responses.)
     } catch (error) {
       console.error("Error in in-app fetchNotifications", error);

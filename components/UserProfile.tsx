@@ -38,6 +38,7 @@ import {
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
+import Circle from "./Circle";
 
 // Skeleton component for post loading states
 const PostSkeleton = () => (
@@ -69,10 +70,10 @@ const PostGallerySkeleton = () => (
 const ColorGallerySkeleton = () => (
   <Animated.View 
     entering={FadeIn.duration(400)}
-    className="w-full flex-row flex-wrap justify-center"
+    className="w-[85%] self-center flex-row flex-wrap justify-start "
   >
     {[...Array(9)].map((_, i) => (
-      <View key={i} className="w-20 h-20 m-2 rounded-md bg-gray-200 opacity-70" />
+       <Circle key={i} color={"#E5E7EB"} size={50} />
     ))}
   </Animated.View>
 );
@@ -425,17 +426,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
-    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
     { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_default = [
-    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
     { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_friend = [
-    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
     { label: "Unfriend",  source: icons.close, color: "#6408DA", onPress: async () => {
       setIsHandlingFriendRequest(true);
       const response: FriendStatusType = await unfriend(
@@ -454,7 +455,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_sent = [
-    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
     {
       label: "Report",
       source: icons.email,
@@ -464,7 +465,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_received = [
-    { label: "Nickname", color: "#A7A7A7", source: icons.person, onPress: handleAddNickname },
+    { label: "Nickname", color: "#CFB1FB", source: icons.person, onPress: handleAddNickname },
     {
       label: "Report",
       color: "#DA0808",
@@ -555,7 +556,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 <Animated.View entering={FadeIn.duration(800)}>
                 { profileUser ?  (<View>
                 <Text className="text-gray-700 text-center font-Jakarta text-base">
-                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : `${profileUser?.city},`}{profileUser?.state},{" "}
+                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
                     {profileUser?.country}
                   </Text> 
                 </View>) : (
@@ -851,7 +852,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 value={query}
               />
 
-              <View className="items-center mb-[60px] mx-8">
+              <View className="items-center mb-[60px] w-4/5   mx-8">
                 {loading ? (
                   <PostGallerySkeleton />
                 ) : (

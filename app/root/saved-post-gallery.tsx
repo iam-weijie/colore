@@ -27,8 +27,10 @@ const SavedPostGallery = () => {
   const fetchPosts = async (ids: string[]) => {
     try {
       const response = await fetchAPI(`/api/posts/getPostsById?ids=${ids}`);
-     
-      return response.data || null; // Return null if no post is found
+      const posts = response.data;
+
+      const sortedPosts = posts.sort((a, b) => a.color.localeCompare(b.color));
+      return sortedPosts
     } catch (error) {
       return null;
     }

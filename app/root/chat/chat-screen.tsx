@@ -285,36 +285,6 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
     friend.friend_username.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const FriendLocation = React.memo(({ friendId }: { friendId: string }) => {
-    const [location, setLocation] = useState<string>("Loading...");
-  
-    const fetchUserLocation = async (userId: string) => {
-      try {
-        const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
-          method: "GET",
-        });
-  
-        if (!response?.data?.[0]) {
-          throw new Error("Invalid location data");
-        }
-  
-        const { country = "Unknown Country", state = "Unknown State", city = "Unknown City" } = response.data[0];
-  
-        const newLocation = city !== state ? `${city}, ${state}, ${country}` : `${state}, ${country}`;
-        setLocation((prev) => (prev !== newLocation ? newLocation : prev));
-      } catch (error) {
-        console.error("Couldn't find location:", error);
-        setLocation("Location not available");
-      }
-    };
-  
-    useEffect(() => {
-      fetchUserLocation(friendId);
-    }, [friendId]);
-  
-    return <Text className="text-gray-500 text-[12px]">{location}</Text>;
-  });
-
   const handleUnfriending = async (friendId: string) => {
     Alert.alert(
       "Unfriend", // Title
@@ -405,6 +375,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
  
 
   const FriendItem = ({ item, loading, setShowDeleteIcon }) => {
+
     // Shared animated values and constants
     const translateX = useSharedValue(0);
     const opacity = useSharedValue(0);
@@ -471,7 +442,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                         ? nicknames[item.friend_id]
                         : item.friend_username}
                     </Text>
-                    <FriendLocation friendId={item.friend_id} />
+                    <Text className="text-gray-500 text-[12px] max-w-[95%]">{item.city !== item.state ? `${item.city}, ${item.state}, ${item.country}` : `${item.state}, ${item.country}`}</Text>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -495,7 +466,8 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                   {
                     alignSelf: "flex-end",
                     right: -50,
-                    top: 15,
+                    top: "50%",
+                    transform: [{ translateY: "-10%" }],
                     padding: 5, 
                     borderRadius: 16,
                     backgroundColor: "#FF0000"
@@ -539,7 +511,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             {
               label: "Accept",
               source: icons.check,
-              color: "#08DA14",
+              color: "#93c5fd",
               onPress: async () => {
                 setHandlingFriendRequest(true);
                 const returnStats = await acceptFriendRequest(
@@ -705,7 +677,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
             contentOffset={{ x: 10, y: 0 }}
             horizontal={true}
             showsHorizontalScrollIndicator={false}
-            className="max-h-[50px] min-h-auto"
+            className="max-h-[50px] min-h-[50px]"
           >
             <View className="flex flex-row items-center justify-between mx-6">
              {/* <TabNavigation

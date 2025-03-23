@@ -100,8 +100,9 @@ const PostScreen = () => {
     (c) => c.name === color
   ) as PostItColor;
   const { stateVars, setStateVars } = useNavigationContext();
-  const { replyTo, setReplyTo, scrollTo, setScrollTo } = useGlobalContext();
+  const { replyTo, setReplyTo, scrollTo, setScrollTo, isIpad } = useGlobalContext();
   const [replyView, setReplyView] = useState<PostComment | null>(null);
+  const inputRef = useRef(null);
 
 
   const fetchCommentById = async (id: string) => {
@@ -526,6 +527,12 @@ const PostScreen = () => {
   }, [id, scrollTo]);
 
   useEffect(() => {
+    if (replyView) {
+    setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [replyView])
+
+  useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
       handleReadComments()
       setStateVars({ ...stateVars, queueRefresh: true });
@@ -598,9 +605,10 @@ const PostScreen = () => {
             </TouchableOpacity>
           </View>
           <View 
-          className="mb-6 p-6 rounded-[24px]  w-[90%] max-w-[500px] mx-auto flex flex-row items-center justify-between"
+          className="mb-6 p-6 rounded-[24px] mx-auto flex flex-row items-center justify-between"
           style={{
-            backgroundColor: postColor?.hex ?? color
+            backgroundColor: postColor?.hex ?? color,
+            width: isIpad ? "95%" : "90%"
           }}>
             <View className="flex-1">
               <TouchableOpacity onPress={() => handleUserProfile(userId)}>
@@ -658,7 +666,7 @@ const PostScreen = () => {
               {loading && <ActivityIndicator size="large" color="#0076e3" />}
               {error && <Text className="text-red-500 mx-4">{error}</Text>}
               {!loading && !error && postComments.length === 0 && (
-                <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2">
+                <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2 text-center">
                   No messages yet.
                 </Text>
               )}
@@ -687,7 +695,7 @@ const PostScreen = () => {
 className="mt-2 -mb-1 ml-5 flex flex-row"
 >
   <Text   
-  className="ml-1 text-[14px] italic"
+  className="ml-1 text-[14px] italic max-w-[80%]"
   numberOfLines={2}
   style={{
     color:"#757575"
@@ -697,6 +705,7 @@ className="mt-2 -mb-1 ml-5 flex flex-row"
 </View>}
           <View className="flex-row items-center p-4">
             <TextInput
+              ref={inputRef}
               className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
               placeholder="Write a something..."
               value={newComment}

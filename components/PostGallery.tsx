@@ -72,7 +72,8 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     <Animated.View 
     entering={FadeInDown.duration(300)}
     style={{
-      marginHorizontal: isIpad ? 5 : 0
+      marginHorizontal: isIpad ? 5 : 0,
+      maxWidth: 350 
     }}>
     <TouchableOpacity
       onPress={() => {
@@ -150,7 +151,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
           data={filteredPosts}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
-          numColumns={isIpad ? 4 : 1}
+          numColumns={isIpad ? 3 : 1}
           showsVerticalScrollIndicator={false}
         />
       )}
