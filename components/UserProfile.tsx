@@ -425,17 +425,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
-    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
     { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_default = [
-    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
     { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_friend = [
-    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
     { label: "Unfriend",  source: icons.close, color: "#6408DA", onPress: async () => {
       setIsHandlingFriendRequest(true);
       const response: FriendStatusType = await unfriend(
@@ -454,7 +454,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_sent = [
-    { label: "Nickname", source: icons.person, color: "#A7A7A7", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
     {
       label: "Report",
       source: icons.email,
@@ -464,7 +464,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_received = [
-    { label: "Nickname", color: "#A7A7A7", source: icons.person, onPress: handleAddNickname },
+    { label: "Nickname", color: "#CFB1FB", source: icons.person, onPress: handleAddNickname },
     {
       label: "Report",
       color: "#DA0808",

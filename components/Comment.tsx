@@ -295,7 +295,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 doubleTapHandler();
               }}
               onLongPress={() => {
-                if (sender_id === user!.id) {
+                if (user_id === user!.id) {
                 Alert.alert(
                   "Delete Comment",
                   "Are you sure you want to delete this comment?",

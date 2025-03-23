@@ -32,6 +32,9 @@ export async function GET(request: Request) {
         fr.user_id,
         fr.friend_id,
         fr.created_at,
+        u1.country,
+        u1.state,
+        u1.city,
         u1.username AS friend_username
       FROM friendships fr
       JOIN users u1 ON fr.friend_id = u1.clerk_id

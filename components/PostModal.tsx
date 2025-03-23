@@ -545,7 +545,7 @@ const PostModal: React.FC<PostModalProps> = ({
     }
     
     if (invertedColors) {
-      return [
+      return post[currentPostIndex]?.recipient_user_id == user!.id ? [
         {
           label: isPinned ? "Unpin" : "Pin",
           source: icons.pin,
@@ -564,7 +564,27 @@ const PostModal: React.FC<PostModalProps> = ({
           color: "#DA0808",
           onPress: handleDeletePress,
         },
+      ] : [
+        {
+          label: "Share",
+          source: icons.send,
+          color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
+          onPress: handleShare,
+        },
+        {
+          label: isSaved ? "Remove" : "Save",
+          color: "#000000",
+          source: isSaved ? icons.close : icons.bookmark,
+          onPress: () => handleSavePost(post[currentPostIndex]?.id),
+        },
+        {
+          label: "Report",
+          source: icons.email,
+          color: "#DA0808",
+          onPress: handleReportPress,
+        },
       ];
+
     }
 
     return isOwner
