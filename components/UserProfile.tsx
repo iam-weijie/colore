@@ -852,7 +852,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 value={query}
               />
 
-              <View className="items-center mb-[60px] mx-8">
+              <View className="items-center mb-[60px] w-4/5   mx-8">
                 {loading ? (
                   <PostGallerySkeleton />
                 ) : (

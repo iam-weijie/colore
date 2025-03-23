@@ -100,7 +100,7 @@ const PostScreen = () => {
     (c) => c.name === color
   ) as PostItColor;
   const { stateVars, setStateVars } = useNavigationContext();
-  const { replyTo, setReplyTo, scrollTo, setScrollTo } = useGlobalContext();
+  const { replyTo, setReplyTo, scrollTo, setScrollTo, isIpad } = useGlobalContext();
   const [replyView, setReplyView] = useState<PostComment | null>(null);
   const inputRef = useRef(null);
 
@@ -605,9 +605,10 @@ const PostScreen = () => {
             </TouchableOpacity>
           </View>
           <View 
-          className="mb-6 p-6 rounded-[24px]  w-[90%] max-w-[500px] mx-auto flex flex-row items-center justify-between"
+          className="mb-6 p-6 rounded-[24px] mx-auto flex flex-row items-center justify-between"
           style={{
-            backgroundColor: postColor?.hex ?? color
+            backgroundColor: postColor?.hex ?? color,
+            width: isIpad ? "95%" : "90%"
           }}>
             <View className="flex-1">
               <TouchableOpacity onPress={() => handleUserProfile(userId)}>
@@ -665,7 +666,7 @@ const PostScreen = () => {
               {loading && <ActivityIndicator size="large" color="#0076e3" />}
               {error && <Text className="text-red-500 mx-4">{error}</Text>}
               {!loading && !error && postComments.length === 0 && (
-                <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2">
+                <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2 text-center">
                   No messages yet.
                 </Text>
               )}
