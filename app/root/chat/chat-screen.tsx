@@ -466,7 +466,8 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                   {
                     alignSelf: "flex-end",
                     right: -50,
-                    top: 15,
+                    top: "50%",
+                    transform: [{ translateY: "-10%" }],
                     padding: 5, 
                     borderRadius: 16,
                     backgroundColor: "#FF0000"

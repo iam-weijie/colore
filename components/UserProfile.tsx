@@ -38,6 +38,7 @@ import {
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
+import Circle from "./Circle";
 
 // Skeleton component for post loading states
 const PostSkeleton = () => (
@@ -69,10 +70,10 @@ const PostGallerySkeleton = () => (
 const ColorGallerySkeleton = () => (
   <Animated.View 
     entering={FadeIn.duration(400)}
-    className="w-full flex-row flex-wrap justify-center"
+    className="w-[85%] self-center flex-row flex-wrap justify-start "
   >
     {[...Array(9)].map((_, i) => (
-      <View key={i} className="w-20 h-20 m-2 rounded-md bg-gray-200 opacity-70" />
+       <Circle key={i} color={"#E5E7EB"} size={50} />
     ))}
   </Animated.View>
 );
@@ -555,7 +556,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 <Animated.View entering={FadeIn.duration(800)}>
                 { profileUser ?  (<View>
                 <Text className="text-gray-700 text-center font-Jakarta text-base">
-                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : `${profileUser?.city},`}{profileUser?.state},{" "}
+                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
                     {profileUser?.country}
                   </Text> 
                 </View>) : (

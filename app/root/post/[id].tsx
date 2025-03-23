@@ -102,6 +102,7 @@ const PostScreen = () => {
   const { stateVars, setStateVars } = useNavigationContext();
   const { replyTo, setReplyTo, scrollTo, setScrollTo } = useGlobalContext();
   const [replyView, setReplyView] = useState<PostComment | null>(null);
+  const inputRef = useRef(null);
 
 
   const fetchCommentById = async (id: string) => {
@@ -526,6 +527,12 @@ const PostScreen = () => {
   }, [id, scrollTo]);
 
   useEffect(() => {
+    if (replyView) {
+    setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [replyView])
+
+  useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
       handleReadComments()
       setStateVars({ ...stateVars, queueRefresh: true });
@@ -687,7 +694,7 @@ const PostScreen = () => {
 className="mt-2 -mb-1 ml-5 flex flex-row"
 >
   <Text   
-  className="ml-1 text-[14px] italic"
+  className="ml-1 text-[14px] italic max-w-[80%]"
   numberOfLines={2}
   style={{
     color:"#757575"
@@ -697,6 +704,7 @@ className="mt-2 -mb-1 ml-5 flex flex-row"
 </View>}
           <View className="flex-row items-center p-4">
             <TextInput
+              ref={inputRef}
               className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
               placeholder="Write a something..."
               value={newComment}

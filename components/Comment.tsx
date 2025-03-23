@@ -249,6 +249,7 @@ export const CommentItem: React.FC<PostComment> = ({
             </View>}
             { replyingTo &&
             <View
+            className="max-w-[70%]"
               style={{
                 marginTop: 8,
                 alignSelf: user_id === user?.id ? "flex-end" : "flex-start",
@@ -269,7 +270,7 @@ export const CommentItem: React.FC<PostComment> = ({
                     style={{
                         color: replyingTo.sender_id == user_id ? "white" : "black"
                     }}
-                    numberOfLines={2}
+                    numberOfLines={4}
                     >
                         {replyingTo!.content}
                     </Text>
@@ -316,9 +317,22 @@ export const CommentItem: React.FC<PostComment> = ({
                     }},
                   ]
                 );
-              }}
+              } else {
+                Alert.alert(
+                  "Report Comment",
+                  "Are you sure you want to report this comment?",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Report",
+                      onPress: () => Linking.openURL("mailto:support@colore.ca"),
+                    },
+                  ]
+                );
+              }
             }
-              hitSlop={3}
+            }
+              hitSlop={5}
             >
               <Text
                 className="text-[14px] font-600 font-Jakarta"

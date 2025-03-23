@@ -93,7 +93,7 @@ const Layout = () => {
               focused={focused}
               source={icons.album}
               unread={unreadMessages + unreadRequests + unreadPersonalPosts}
-              color={"#FF7272"} // Needs to be changed with message notifications
+              color={"#fbb1d6"} // Needs to be changed with message notifications
             />
           ),
         }}
