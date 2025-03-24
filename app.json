@@ -19,7 +19,7 @@
       "bundleIdentifier": "com.arthur1235.colore",
       "infoPlist": {
         "UIBackgroundModes": ["fetch", "remote-notification"],
-        "NSUserTrackingUsageDescription": "We use your data to provide a better ad experience."
+        "NSUserTrackingUsageDescription": "To enhance your experience, this app collects your email address, country, state, and city. This information helps us identify users, improve our services, and provide targeted marketing. However, your data will never be shared with data brokers."
       
       }
     },
