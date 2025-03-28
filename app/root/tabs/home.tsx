@@ -7,18 +7,20 @@ import { useEffect, useState } from "react";
 
 import { icons } from "@/constants";
 import { router } from "expo-router";
-import { Dimensions, Image, SafeAreaView, TouchableOpacity, View } from "react-native";
+import { Dimensions, Image, SafeAreaView, TouchableOpacity, View, Text } from "react-native";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 
 import ActionPrompts from "@/components/ActionPrompts";
 import { ActionType } from "@/lib/prompts";
+import { GeographicalMode } from "@/types/type";
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
   const { isIpad } = useGlobalContext();
   const [action, setAction] = useState(ActionType.NONE)
+  const [geographicalMode, setGeographicalMode] = useState<GeographicalMode>('world');
 
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
@@ -72,7 +74,7 @@ const fetchUserData = async () => {
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 8 : 4}&id=${user!.id}`
+      `/api/posts/getRandomPosts?number=${isIpad ? 8 : 4}&id=${user!.id}&mode=${geographicalMode}`
     );
     return response.data;
   };
@@ -118,6 +120,43 @@ const fetchUserData = async () => {
     setAction(ActionType.TIPS)
   }
   }
+  const GeographicalModeSelector = () => {
+    const modes: GeographicalMode[] = ['city', 'state', 'country', 'world'];
+    
+  const handleGeographicalModeChange = (mode: GeographicalMode) => {
+    setGeographicalMode(mode);
+    console.log("Geographical mode changed to:", mode);
+     // Fetch posts again when mode changes
+  }
+    return (
+      <View 
+        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-l-lg p-1 shadow-lg"
+        style={{ width: 70 }}
+      >
+        {modes.map((mode) => (
+          <TouchableOpacity
+            key={mode}
+            onPress={() => handleGeographicalModeChange(mode)}
+            className={`p-2 my-1 rounded ${
+              geographicalMode === mode 
+                ? 'bg-blue-500' 
+                : 'bg-gray-200'
+            }`}
+          >
+            <Text 
+              className={`text-center text-xs ${
+                geographicalMode === mode 
+                  ? 'text-white' 
+                  : 'text-black'
+              }`}
+            >
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1">
@@ -138,11 +177,14 @@ const fetchUserData = async () => {
           handlePostsRefresh={fetchPosts}
           handleNewPostFetch={fetchNewPost}
           allowStacking={true}
+          mode={geographicalMode}
         />
-         <ActionPrompts 
-        friendName={""}
-         action={action} 
-         handleAction={() => {}}/>
+        <GeographicalModeSelector />
+        <ActionPrompts 
+          friendName={""}
+          action={action} 
+          handleAction={() => {}}
+        />
       </SignedIn>
     </SafeAreaView>
   );
