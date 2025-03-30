@@ -453,7 +453,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
   
     return (
       <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
-        <PanGestureHandler onGestureEvent={gestureHandler}>
+        <PanGestureHandler onGestureEvent={gestureHandler} >
           <Animated.View
             className="flex mb-2 p-4 rounded-[16px] w-full"
             style={[animatedStyle, { backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }]}
