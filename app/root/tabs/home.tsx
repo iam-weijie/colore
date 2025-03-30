@@ -3,17 +3,19 @@ import { fetchAPI } from "@/lib/fetch";
 import { Post, UserData } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
-import { icons } from "@/constants";
-import { router } from "expo-router";
-import { Dimensions, Image, SafeAreaView, TouchableOpacity, View, Text } from "react-native";
+import { icons, countries } from "@/constants";
+import { router, useFocusEffect } from "expo-router";
+import { Dimensions, Image, ImageSourcePropType, SafeAreaView, TouchableOpacity, View, Text } from "react-native";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
+import DropdownMenu from "@/components/DropdownMenu";
 
 import ActionPrompts from "@/components/ActionPrompts";
 import { ActionType } from "@/lib/prompts";
 import { GeographicalMode } from "@/types/type";
+import UserInfo from "../user-info";
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +23,7 @@ export default function Page() {
   const { isIpad } = useGlobalContext();
   const [action, setAction] = useState(ActionType.NONE)
   const [geographicalMode, setGeographicalMode] = useState<GeographicalMode>('world');
+  const [userInfo, setUserInfo] = useState(null);
 
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
@@ -35,6 +38,13 @@ export default function Page() {
     requestPermission();
     fetchUserData()
   }, []);
+
+  useFocusEffect(
+      useCallback(() => {
+        // Fetch all user data including location when screen is focused
+        fetchUserData();
+      }, [])
+    );
 
   const screenHeight = Dimensions.get("screen").height;
   const screenWidth = Dimensions.get("screen").width;
@@ -61,8 +71,12 @@ export default function Page() {
 }
 const fetchUserData = async () => {
     try {
-      const response = await fetchAPI(`/api/users/getUserInfoPosts?id=${user!.id}`);
-      getAction(response.posts[0]);
+      const userPosts = await fetchAPI(`/api/users/getUserInfoPosts?id=${user!.id}`);
+      const userInfo = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
+      setUserInfo(userInfo.data[0]);
+      if (userPosts.posts.length > 0) {
+      getAction(userPosts.posts[0]);
+      }
       
     } catch (error) {
       console.error("Failed to fetch user data:", error);
@@ -83,7 +97,7 @@ const fetchUserData = async () => {
     try {
       const excludeIdsParam = excludeIds.join(",");
       const response = await fetch(
-        `/api/posts/getRandomPostsExcluding?number=${1}&id=${user!.id}&exclude_ids=${excludeIdsParam}`
+        `/api/posts/getRandomPostsExcluding?number=${1}&id=${user!.id}&exclude_ids=${excludeIdsParam}&mode=${geographicalMode}`
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
@@ -120,6 +134,31 @@ const fetchUserData = async () => {
     setAction(ActionType.TIPS)
   }
   }
+
+  const getCountryFlag = (country: string) => {
+    if (country) {
+      switch (country) {
+        case "Canada":
+          return countries.canada;
+        case "USA":
+          return countries.usa;
+        case "France":
+          return countries.france;
+        case "Italy":
+          return countries.italy;
+        case "China":
+          return countries.china;
+        case "Argentina":
+          return countries.argentina;
+        default:
+          console.warn(`Country flag not found for: ${country}`);
+          return countries.canada;
+      }
+    } else {
+      console.warn(`Country flag not found for: ${country}`);
+      return countries.canada;
+    }
+  };
   const GeographicalModeSelector = () => {
     const modes: GeographicalMode[] = ['city', 'state', 'country', 'world'];
     
@@ -168,9 +207,57 @@ const fetchUserData = async () => {
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
-          <TouchableOpacity onPress={handleNewPostPress}>
-            <Image source={icons.pencil} className="w-7 h-7" />
-          </TouchableOpacity>
+          <View className="flex flex-row p-1 items-center justify-center border-2 border-black rounded-[24px] bg-[#FAFAFA]">
+          <View className="mx-2">
+          <DropdownMenu
+          icon={
+            geographicalMode === "world"
+              ? icons.globe
+              : geographicalMode === "country"
+              ? getCountryFlag(userInfo?.country)
+              : geographicalMode === "state"
+              ? icons.placeholder
+              : icons.smartcity
+          }
+          menuItems={[
+            {
+              label: "World",
+              source: icons.globe,
+              color: "#000000",
+              onPress: () => {
+                setGeographicalMode("world");
+              },
+            },
+            {
+              label: userInfo ? userInfo.country : "Country",
+              source: getCountryFlag(userInfo?.country),
+              onPress: () => {
+                setGeographicalMode("country");
+              },
+            },
+            {
+              label: userInfo ? userInfo.state :"State",
+              source: icons.placeholder,
+              onPress: () => {
+                setGeographicalMode("state");
+              },
+            },
+            {
+              label: userInfo ? userInfo.city : "City",
+              source: icons.smartcity,
+              onPress: () => {
+                setGeographicalMode("city");
+              },
+            }
+          ]}
+        />
+          </View>
+          <View className="mx-2">
+            <TouchableOpacity onPress={handleNewPostPress}>
+              <Image source={icons.pencil} className="w-7 h-7" />
+            </TouchableOpacity>
+          </View>
+        </View>
         </View>
         <PostItBoard
           userId={user!.id}
@@ -179,7 +266,6 @@ const fetchUserData = async () => {
           allowStacking={true}
           mode={geographicalMode}
         />
-        <GeographicalModeSelector />
         <ActionPrompts 
           friendName={""}
           action={action} 

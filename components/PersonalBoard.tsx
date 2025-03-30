@@ -146,7 +146,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       const response = await fetch(
         `/api/posts/getPersonalPostsExcluding?number=${1}&user_id=${user!.id}&recipient_id=${userId}&exclude_ids=${excludeIdsParam}`
       );
-      if (!response.ok) throw new Error("Network response was not ok");
+      if (!response.ok) throw new Error("Network response was not ok 1");
       const result = await response.json();
       const newPostWithPosition = result.data.map((post: Post) => ({
         ...post,

@@ -32,7 +32,41 @@ export async function GET(request: Request) {
     
         FROM posts p
         JOIN users u ON p.user_id = u.clerk_id
-        WHERE p.user_id != ${id} AND p.post_type = 'public' AND u.city != (SELECT city FROM users WHERE clerk_id = ${id})
+        WHERE p.user_id != ${id} 
+        AND p.post_type = 'public' 
+        AND u.city = (SELECT u1.city FROM users u1 WHERE u1.clerk_id = ${id})
+        ORDER BY RANDOM()
+        LIMIT ${number};
+      `;
+      return new Response(JSON.stringify({ data: response }), {
+        status: 200,
+      });
+    } else if (mode === "state") {
+      const response = await sql`
+        SELECT 
+          p.id, 
+          p.content, 
+          p.like_count, 
+          p.report_count, 
+          p.created_at,
+          p.unread_comments,
+          p.recipient_user_id,
+          p.pinned,
+          p.color,
+          p.emoji,
+          u.clerk_id,
+          u.firstname, 
+          u.lastname, 
+          u.username,
+          u.country, 
+          u.state, 
+          u.city
+    
+        FROM posts p
+        JOIN users u ON p.user_id = u.clerk_id
+        WHERE p.user_id != ${id} 
+        AND p.post_type = 'public'
+        AND u.state = (SELECT u1.state FROM users u1 WHERE u1.clerk_id = ${id})
         ORDER BY RANDOM()
         LIMIT ${number};
       `;
@@ -62,37 +96,9 @@ export async function GET(request: Request) {
     
         FROM posts p
         JOIN users u ON p.user_id = u.clerk_id
-        WHERE p.user_id != ${id} AND p.post_type = 'public' AND u.country != (SELECT state FROM users WHERE clerk_id = ${id})
-        ORDER BY RANDOM()
-        LIMIT ${number};
-      `;
-      return new Response(JSON.stringify({ data: response }), {
-        status: 200,
-      });
-    } else if (mode === "country") {
-      const response = await sql`
-        SELECT 
-          p.id, 
-          p.content, 
-          p.like_count, 
-          p.report_count, 
-          p.created_at,
-          p.unread_comments,
-          p.recipient_user_id,
-          p.pinned,
-          p.color,
-          p.emoji,
-          u.clerk_id,
-          u.firstname, 
-          u.lastname, 
-          u.username,
-          u.country, 
-          u.state, 
-          u.city
-    
-        FROM posts p
-        JOIN users u ON p.user_id = u.clerk_id
-        WHERE p.user_id != ${id} AND p.post_type = 'public' AND u.country != (SELECT country FROM users WHERE clerk_id = ${id})
+        WHERE p.user_id != ${id} 
+        AND p.post_type = 'public' 
+        AND u.country = (SELECT u1.country FROM users u1 WHERE u1.clerk_id = ${id})
         ORDER BY RANDOM()
         LIMIT ${number};
       `;
@@ -126,11 +132,13 @@ export async function GET(request: Request) {
         ORDER BY RANDOM()
         LIMIT ${number};
       `;
+
       return new Response(JSON.stringify({ data: response }), {
         status: 200,
       });
     }
 
+   
 
   } catch (error) {
     console.error(error);
