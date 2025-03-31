@@ -69,7 +69,9 @@
     "react-native-svg": "15.8.0",
     "react-native-tracking-transparency": "^0.1.2",
     "react-native-view-shot": "~4.0.3",
-    "react-native-web": "~0.19.13"
+    "react-native-web": "~0.19.13",
+    "expo-haptics": "~14.0.1",
+    "expo-av": "~15.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

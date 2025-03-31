@@ -1,9 +1,11 @@
 import NotificationBubble from "@/components/NotificationBubble";
 import { icons } from "@/constants";
 import { Tabs } from "expo-router";
-import { Alert, Image, ImageSourcePropType, View } from "react-native";
-import React, { useState, useEffect } from "react";
+import { Alert, Image, ImageSourcePropType, View, Pressable, GestureResponderEvent } from "react-native"; // Replace TouchableOpacity with Pressable
+import React from "react"; // Removed useState, useEffect as they are not used here
 import { useGlobalContext } from "@/app/globalcontext";
+// Removed useHaptics import, will call Haptics directly
+import * as Haptics from 'expo-haptics'; // Import Haptics styles
 
 const TabIcon = ({
   source,
@@ -41,6 +43,33 @@ const TabIcon = ({
     </View>
   </View>
 );
+
+// Custom TabBarButton component with Haptics
+const HapticTabBarButton = (props: any) => {
+  const { hapticsEnabled } = useGlobalContext(); // Get haptics setting from context
+  const { children, onPress, style, ...rest } = props;
+
+  const handlePress = (e: GestureResponderEvent) => {
+    if (hapticsEnabled) { // Check if haptics are enabled in settings
+      Haptics.selectionAsync(); // Use selection feedback (very light)
+    }
+    if (onPress) {
+      onPress(e); // Call original onPress handler
+    }
+  };
+
+  // Use Pressable instead of TouchableOpacity
+  return (
+    <Pressable
+      {...rest}
+      onPress={handlePress}
+      style={style} // Apply the original style passed by Tabs
+    >
+      {children}
+    </Pressable>
+  );
+};
+
 
 const Layout = () => {
   const { isIpad, unreadComments, unreadMessages, unreadRequests, unreadPersonalPosts } = useGlobalContext();
@@ -81,6 +110,7 @@ const Layout = () => {
               color={"#FF7272"} // Needs to be changed with like notifications
             />
           ),
+          tabBarButton: (props) => <HapticTabBarButton {...props} />, // Use custom button
         }}
       />
       <Tabs.Screen
@@ -96,6 +126,8 @@ const Layout = () => {
               color={"#fbb1d6"} // Needs to be changed with message notifications
             />
           ),
+          tabBarButton: (props) => <HapticTabBarButton {...props} />, // Use custom button
+        // Removed misplaced parenthesis, comma and duplicate tabBarButton
         }}
       />
       <Tabs.Screen
@@ -111,6 +143,7 @@ const Layout = () => {
               color={"#72B2FF"}
             />
           ),
+          tabBarButton: (props) => <HapticTabBarButton {...props} />, // Add custom button to profile screen
         }}
       />
     </Tabs>

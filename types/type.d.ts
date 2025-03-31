@@ -1,4 +1,5 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
+import * as Haptics from 'expo-haptics'; // Import Haptics for the style type
 
 declare interface Post {
   id: number;
@@ -95,11 +96,12 @@ declare interface ButtonProps extends TouchableOpacityProps {
     | "danger"
     | "success"
     | "oauth";
-  fontSize?: "sm" | "md" | "lg" | "xl";
+  fontSize?: "sm" | "md" | "lg" | "xl" | "2xl"; // Added "2xl"
   padding?: string;
   IconLeft?: React.ComponentType<any>;
   IconRight?: React.ComponentType<any>;
   className?: string;
+  // Haptic props removed, will be default behavior in CustomButton
 }
 
 declare interface UserPostsGalleryProps {
