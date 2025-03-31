@@ -217,6 +217,8 @@ type Prompt = {
   source: ImageSourcePropType;
 };
 
+type GeographicalMode = 'city' | 'state' | 'country' | 'world'
+
 
 declare interface ActionPromptsProps {
   friendName: string, 

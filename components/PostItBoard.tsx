@@ -19,6 +19,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { GeographicalMode } from "@/types/type";
 
 type MappingPostitProps = {
   id: number;
@@ -245,6 +246,7 @@ declare interface PostItBoardProps {
   allowStacking: boolean;
   showPostItText?: boolean;
   invertColors?: boolean;
+  mode?: GeographicalMode;
 }
 
 const PostItBoard: React.FC<PostItBoardProps> = ({
@@ -254,6 +256,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   handleUpdatePin,
   showPostItText = false,
   invertColors = false,
+  mode = "world",
 }) => {
   const [postsWithPosition, setPostsWithPosition] = useState<
     PostWithPosition[]
@@ -297,6 +300,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 }
 
   const fetchRandomPosts = async () => {
+    setLoading(true);
     try {
       const posts: Post[] = await handlePostsRefresh();
       // set positions of posts
@@ -490,6 +494,11 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     //console.log("maps", maps, maps.length)
     //console.log("stacks", stacks)
   }, [maps]);
+  useEffect(() => {
+    fetchRandomPosts();
+    console.log("mode", mode)
+  }, [mode]);
+
 
   useEffect(() => {
     fetchRandomPosts();
