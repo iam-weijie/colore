@@ -1,4 +1,5 @@
 import { useGlobalContext } from "@/app/globalcontext";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
@@ -99,7 +100,8 @@ const PostModal: React.FC<PostModalProps> = ({
   header,
   isPreview = false,
 }) => {
-  const { stacks, isIpad } = useGlobalContext();
+  const { stacks, isIpad, soundEffectsEnabled } = useGlobalContext(); // Add soundEffectsEnabled
+  const { playSoundEffect } = useSoundEffects(); // Get sound function
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
@@ -241,6 +243,10 @@ const PostModal: React.FC<PostModalProps> = ({
     if (isLoadingLike || !post[currentPostIndex]?.id || !user?.id) return;
     setIsLoadingLike(true);
     try {
+      // Play like sound if liking (not unliking) and enabled
+      if (!isLiked && soundEffectsEnabled) {
+        playSoundEffect(SoundType.Like);
+      }
       const increment = !isLiked;
       setIsLiked(increment);
       setLikeCount((prev) => (increment ? prev + 1 : prev - 1));

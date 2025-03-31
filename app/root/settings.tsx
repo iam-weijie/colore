@@ -15,11 +15,14 @@ import {
   Image,
   KeyboardAvoidingView,
   ScrollView,
+  Switch, // Import Switch
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 
 const Settings = () => {
   const { signOut } = useAuth();
@@ -33,6 +36,15 @@ const Settings = () => {
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
+
+  // Get settings state and setters from Global Context
+  const {
+    hapticsEnabled,
+    setHapticsEnabled,
+    soundEffectsEnabled,
+    setSoundEffectsEnabled,
+  } = useGlobalContext();
+  const { playSoundEffect } = useSoundEffects(); // Use the sound hook
 
   const fetchUserData = async () => {
     try {
@@ -199,8 +211,19 @@ const Settings = () => {
       fetchUserData();
       fetchSavedPosts();
       fetchLikedPosts();
-    }, [stateVars])
-  );
+    }, [stateVars]) // Add back the dependency array for useCallback
+  ); // Correctly close useFocusEffect
+
+  // Define handlers outside of useEffect
+  const handleHapticsToggle = (value: boolean) => {
+    setHapticsEnabled(value);
+    playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
+  };
+
+  const handleSoundToggle = (value: boolean) => {
+    setSoundEffectsEnabled(value);
+    playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
+  };
   return (
     <SafeAreaView className="flex-1">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
@@ -346,6 +369,40 @@ const Settings = () => {
               </TouchableOpacity>
             </View>
           </View>
+          {/* End Activity Section View */}
+
+          {/* --- New Audio & Haptics Section --- */}
+          <View className=" mx-6">
+             <Text className=" text-xl font-JakartaBold my-4 bg-[#FACC15] text-[#ffffff] rounded-[24px] px-5 py-6">
+               Audio & Haptics
+             </Text>
+             <View className="bg-[#fafafa] rounded-[32px] p-5">
+               {/* Haptics Toggle */}
+               <View className="flex flex-row items-center justify-between p-2 mb-2">
+                 <Text className="text-lg font-JakartaSemiBold">Enable Haptic Feedback</Text>
+                 <Switch
+                   trackColor={{ false: "#767577", true: "#93c5fd" }}
+                   thumbColor={hapticsEnabled ? "#ffffff" : "#f4f3f4"}
+                   ios_backgroundColor="#3e3e3e"
+                   onValueChange={handleHapticsToggle} // Use wrapped handler
+                   value={hapticsEnabled}
+                 />
+               </View>
+               {/* Sound Effects Toggle */}
+               <View className="flex flex-row items-center justify-between p-2">
+                 <Text className="text-lg font-JakartaSemiBold">Enable Sound Effects</Text>
+                 <Switch
+                   trackColor={{ false: "#767577", true: "#93c5fd" }}
+                   thumbColor={soundEffectsEnabled ? "#ffffff" : "#f4f3f4"}
+                   ios_backgroundColor="#3e3e3e"
+                   onValueChange={handleSoundToggle} // Use wrapped handler
+                   value={soundEffectsEnabled}
+                 />
+               </View>
+             </View>
+           </View>
+           {/* --- End New Section --- */}
+
 
           <View className="my-[36px]">
             <TouchableOpacity onPress={handleSignOut}>

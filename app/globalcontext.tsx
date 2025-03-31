@@ -10,6 +10,7 @@ import React, {
 import { Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as BackgroundFetch from "expo-background-fetch";
+import { BackgroundFetchResult } from "expo-background-fetch"; // Import the Result enum
 import * as TaskManager from "expo-task-manager";
 import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
@@ -32,11 +33,18 @@ type GlobalContextType = {
   setReplyTo: React.Dispatch<React.SetStateAction<string | null>>;
   scrollTo: string | null;
   setScrollTo: React.Dispatch<React.SetStateAction<string | null>>;
+  // New settings state
+  hapticsEnabled: boolean;
+  setHapticsEnabled: (value: boolean | ((prevState: boolean) => boolean)) => void; // Use custom setter type
+  soundEffectsEnabled: boolean;
+  setSoundEffectsEnabled: (value: boolean | ((prevState: boolean) => boolean)) => void; // Use custom setter type
 };
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 const screenWidth = Dimensions.get("screen").width;
 const NOTIFICATION_TASK = "background-notification-fetch";
+const HAPTICS_ENABLED_KEY = 'hapticsEnabled';
+const SOUND_EFFECTS_ENABLED_KEY = 'soundEffectsEnabled';
 
 // ===== External Notification Fetch Logic =====
 // This function is designed to run in both the in-app polling and background fetch.
@@ -237,13 +245,13 @@ TaskManager.defineTask(NOTIFICATION_TASK, async () => {
 
     if (!userId || !pushToken) {
       console.warn("Background fetch: missing userId or pushToken");
-      return BackgroundFetch.Result.Failed;
+      return BackgroundFetchResult.Failed; // Use BackgroundFetchResult enum
     }
     await fetchNotificationsExternal(userId, pushToken);
-    return BackgroundFetch.Result.NewData;
+    return BackgroundFetchResult.NewData; // Use BackgroundFetchResult enum
   } catch (error) {
     console.error("Background Fetch failed:", error);
-    return BackgroundFetch.Result.Failed;
+    return BackgroundFetchResult.Failed; // Use BackgroundFetchResult enum
   }
 });
 
@@ -261,6 +269,10 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isIpad, setIsIpad] = useState<boolean>(false);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [scrollTo, setScrollTo] = useState<string | null>(null);
+
+  // New state for settings
+  const [hapticsEnabled, setHapticsEnabledState] = useState<boolean>(true); // Default to true
+  const [soundEffectsEnabled, setSoundEffectsEnabledState] = useState<boolean>(true); // Default to true
 
   const hasUpdatedLastConnection = useRef(false);
   const { user } = useUser();
@@ -345,6 +357,39 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsIpad(screenWidth > 500);
   }, []);
 
+  // Load settings from AsyncStorage on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const hapticsSetting = await AsyncStorage.getItem(HAPTICS_ENABLED_KEY);
+        const soundSetting = await AsyncStorage.getItem(SOUND_EFFECTS_ENABLED_KEY);
+
+        if (hapticsSetting !== null) {
+          setHapticsEnabledState(JSON.parse(hapticsSetting));
+        }
+        if (soundSetting !== null) {
+          setSoundEffectsEnabledState(JSON.parse(soundSetting));
+        }
+      } catch (e) {
+        console.error("Failed to load settings.", e);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // Wrap setters to also save to AsyncStorage
+  const setHapticsEnabled = (value: boolean | ((prevState: boolean) => boolean)) => {
+    const newValue = typeof value === 'function' ? value(hapticsEnabled) : value;
+    setHapticsEnabledState(newValue);
+    AsyncStorage.setItem(HAPTICS_ENABLED_KEY, JSON.stringify(newValue)).catch(e => console.error("Failed to save haptics setting.", e));
+  };
+
+  const setSoundEffectsEnabled = (value: boolean | ((prevState: boolean) => boolean)) => {
+    const newValue = typeof value === 'function' ? value(soundEffectsEnabled) : value;
+    setSoundEffectsEnabledState(newValue);
+    AsyncStorage.setItem(SOUND_EFFECTS_ENABLED_KEY, JSON.stringify(newValue)).catch(e => console.error("Failed to save sound setting.", e));
+  };
+
   return (
     <GlobalContext.Provider
       value={{
@@ -360,7 +405,12 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         replyTo,
         setReplyTo,
         scrollTo,
-        setScrollTo
+        setScrollTo,
+        // Add new settings state and setters
+        hapticsEnabled,
+        setHapticsEnabled, // Use wrapped setter
+        soundEffectsEnabled,
+        setSoundEffectsEnabled, // Use wrapped setter
       }}
     >
       {children}

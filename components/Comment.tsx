@@ -6,6 +6,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { PostComment } from "@/types/type";
 import * as Linking from "expo-linking";
 import { useGlobalContext } from "@/app/globalcontext";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import {
     useRouter,
   } from "expo-router";
@@ -47,7 +48,8 @@ export const CommentItem: React.FC<PostComment> = ({
     const router = useRouter();
     const [showReplyIcon, setShowReplyIcon] = useState(false);
     const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
-    const { replyTo, setReplyTo, setScrollTo } = useGlobalContext()
+    const { replyTo, setReplyTo, setScrollTo, soundEffectsEnabled } = useGlobalContext() // Add soundEffectsEnabled
+    const { playSoundEffect } = useSoundEffects(); // Get sound function
 
 
     // Comment Reply
@@ -95,6 +97,10 @@ export const CommentItem: React.FC<PostComment> = ({
       if (!user || isLoadingCommentLike) return;
   
       try {
+        // Play like sound if liking (not unliking) and enabled
+        if (!commentLikes[commentId] && soundEffectsEnabled) {
+          playSoundEffect(SoundType.Like);
+        }
         setIsLoadingCommentLike(true);
         const isCurrentlyLiked = commentLikes[commentId];
   

@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { CommentItem } from "@/components/Comment";
 import { useGlobalContext } from "@/app/globalcontext";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import {
   useFocusEffect,
   useLocalSearchParams,
@@ -100,7 +101,8 @@ const PostScreen = () => {
     (c) => c.name === color
   ) as PostItColor;
   const { stateVars, setStateVars } = useNavigationContext();
-  const { replyTo, setReplyTo, scrollTo, setScrollTo, isIpad } = useGlobalContext();
+  const { replyTo, setReplyTo, scrollTo, setScrollTo, isIpad, soundEffectsEnabled } = useGlobalContext(); // Add soundEffectsEnabled
+  const { playSoundEffect } = useSoundEffects(); // Get sound function
   const [replyView, setReplyView] = useState<PostComment | null>(null);
   const inputRef = useRef(null);
 
@@ -162,6 +164,11 @@ const PostScreen = () => {
   // Updated like handler
   const handleLikePress = async () => {
     if (!id || !user?.id || isLoadingLike) return;
+
+    // Play like sound if enabled
+    if (soundEffectsEnabled) {
+      playSoundEffect(SoundType.Like);
+    }
 
     try {
       setIsLoadingLike(true);
@@ -400,6 +407,11 @@ const PostScreen = () => {
         });*/
       Alert.alert("Error", "Unable to submit comment. Missing required data.");
       return;
+    }
+
+    // Play comment sound if enabled
+    if (soundEffectsEnabled) {
+      playSoundEffect(SoundType.Comment);
     }
 
     try {
