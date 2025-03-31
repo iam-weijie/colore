@@ -491,7 +491,7 @@ const PostModal: React.FC<PostModalProps> = ({
     } finally {
       handleUpdate && handleUpdate(!isPinned)
       setIsPinned((prevIsPinned) => !prevIsPinned);
-      handleCloseModal;
+      handleCloseModal();
     }
   };
 
