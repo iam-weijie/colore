@@ -1,7 +1,7 @@
 import { useGlobalContext } from "@/app/globalcontext";
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { convertToLocal, formatDateTruncatedMonth, formatCount } from "@/lib/utils";
 import {
   Post,
   PostItColor,
@@ -287,9 +287,11 @@ const PostModal: React.FC<PostModalProps> = ({
         throw new Error(response.error);
       }
       const nicknames = response.data[0].nicknames || [];
-      return findUserNickname(nicknames, post!.clerk_id) === -1
+      const currentPost = post[currentPostIndex];
+      if (!currentPost) return ""; // Handle case where current post might not exist yet
+      return findUserNickname(nicknames, currentPost.clerk_id) === -1
         ? ""
-        : nicknames[findUserNickname(nicknames, post!.user_id)][1];
+        : nicknames[findUserNickname(nicknames, currentPost.user_id!)][1]; // Added non-null assertion for user_id based on type def comment
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     }
@@ -381,9 +383,9 @@ const PostModal: React.FC<PostModalProps> = ({
         report_count: post[currentPostIndex]?.report_count,
         created_at: post[currentPostIndex]?.created_at,
         unread_comments: post[currentPostIndex]?.unread_comments,
-        anonymous: invertedColors,
+        anonymous: invertedColors.toString(),
         color: post[currentPostIndex]?.color,
-        saved: isSaved,
+        saved: isSaved.toString(),
       },
     });
   };
@@ -487,7 +489,7 @@ const PostModal: React.FC<PostModalProps> = ({
     } catch (error) {
       console.error("Failed to update handlepin message:", error);
     } finally {
-      handleUpdate(!isPinned)
+      handleUpdate && handleUpdate(!isPinned)
       setIsPinned((prevIsPinned) => !prevIsPinned);
       handleCloseModal;
     }
@@ -698,8 +700,8 @@ const PostModal: React.FC<PostModalProps> = ({
                         />
                       </TouchableOpacity>
                       {/* Show like count only to post creator */}
-                    {post && post.clerk_id === user?.id && (
-                        <Text className="ml-1 text-gray-600">{likeCount}</Text>
+                    {post[currentPostIndex] && post[currentPostIndex].clerk_id === user?.id && (
+                        <Text className="ml-1 text-gray-600">{formatCount(likeCount)}</Text>
                       )}
                     </View>
                     {/* Delete button for post owner */}

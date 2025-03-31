@@ -1,7 +1,7 @@
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { convertToLocal, formatDateTruncatedMonth, formatCount } from "@/lib/utils";
 import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -70,7 +70,7 @@ const PostScreen = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const flatListRef = useRef(null);
+  const flatListRef = useRef<FlatList<PostCommentGroup>>(null); // Add type for FlatList ref
   const [postComments, setPostComments] = useState<PostCommentGroup[]>([]);
   const [newComment, setNewComment] = useState<string>("");
   const [nicknames, setNicknames] = useState<UserNicknamePair[]>([]);
@@ -102,7 +102,7 @@ const PostScreen = () => {
   const { stateVars, setStateVars } = useNavigationContext();
   const { replyTo, setReplyTo, scrollTo, setScrollTo, isIpad } = useGlobalContext();
   const [replyView, setReplyView] = useState<PostComment | null>(null);
-  const inputRef = useRef(null);
+  const inputRef = useRef<TextInput>(null); // Add type for TextInput ref
 
 
   const fetchCommentById = async (id: string) => {
@@ -302,7 +302,7 @@ const PostScreen = () => {
   const scrollToItem = () => {
    // Find the index of the group that contains the target comment
    const groupIndex = postComments.findIndex((p) =>
-    p.comments.some(item => item.id == scrollTo)
+    p.comments.some(item => item.id.toString() == scrollTo) // Compare as strings
   );
 
   console.log("groupIndex:", groupIndex);
@@ -343,37 +343,31 @@ const PostScreen = () => {
         throw new Error("Invalid response format");
       }
   
-      // Initialize like states from the response
-      interface CommentResponse {
-        id: number;
-        is_liked: boolean;
-        like_count: number;
-        created_at: string; // Ensure your comments have a created_at field
-      }
+      // Initialize like states from the response (using PostComment type directly)
   
       const likeStatuses: { [key: number]: boolean } = {};
       const likeCounts: { [key: number]: number } = {};
   
-      (response.data as CommentResponse[]).forEach((comment) => {
+      (response.data as PostComment[]).forEach((comment) => { // Type response data as PostComment[]
         likeStatuses[comment.id] = comment.is_liked || false;
         likeCounts[comment.id] = comment.like_count || 0;
       });
   
-      // Group comments by date
-      const groupedComments = response.data.reduce((acc, comment) => {
+      // Group comments by date using PostComment type
+      const groupedComments = (response.data as PostComment[]).reduce((acc: PostCommentGroup[], comment: PostComment) => {
         const commentDate = new Date(comment.created_at).toDateString(); // Convert to a readable date
-        const existingGroup = acc.find(group => group.date === commentDate);
-  
+        const existingGroup = acc.find((group: PostCommentGroup) => group.date === commentDate);
+
         if (existingGroup) {
-          existingGroup.comments.push(comment);
+          existingGroup.comments.push(comment); // Push PostComment
         } else {
-          acc.push({ date: commentDate, comments: [comment] });
+          acc.push({ date: commentDate, comments: [comment] }); // Create group with PostComment
         }
-  
+
         return acc;
-      }, [] as { date: string; comments: CommentResponse[] }[]);
+      }, [] as PostCommentGroup[]); // Initialize accumulator as PostCommentGroup[]
   
-      setPostComments(groupedComments);
+      setPostComments(groupedComments); // Now groupedComments should be correctly typed as PostCommentGroup[]
       setCommentLikes(likeStatuses);
       setCommentLikeCounts(likeCounts);} catch (error) {
       console.error("Failed to fetch comments:", error);
@@ -558,7 +552,7 @@ const PostScreen = () => {
           key={comment.id}
           id={comment.id}
           user_id={comment.user_id}
-          sender_id={clerk_id}
+          sender_id={clerk_id as string} // Assert clerk_id as string
           post_id={comment.post_id}
           username={
             anonymousComments ? "" :
@@ -645,7 +639,7 @@ const PostScreen = () => {
                   <Text
                     className={`${clerk_id === user?.id ? "text-gray-800" : "text-transparent"} text-center mr-1 text-sm`}
                   >
-                    {clerk_id === user?.id ? likeCount : "0"}
+                    {clerk_id === user?.id ? formatCount(likeCount) : "0"}
                   </Text>
                 </View>
                   <TouchableOpacity
@@ -722,7 +716,7 @@ className="mt-2 -mb-1 ml-5 flex flex-row"
                 newComment.length === 0 || isSubmitting || isPostDeleted
               }
               className="ml-3 w-14 h-10 rounded-full shadow-none"
-              style={{ backgroundColor: postColor ? (postColor.hex || color) : "black" }}
+              style={{ backgroundColor: postColor ? (postColor.hex || (color as string)) : "black" }} // Assert color as string
               fontSize="sm"
               padding="0"
             />

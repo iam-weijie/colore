@@ -92,3 +92,25 @@ export function calculateAge(birthday: Date): number {
   return age;
 }
 
+
+
+export function formatCount(count: number): string {
+  if (typeof count !== 'number' || isNaN(count) || count < 0) {
+    return '0';
+  }
+
+  const million = 1_000_000;
+  const thousand = 1_000;
+
+  if (count >= million) {
+    const num = count / million;
+    const formatted = num.toFixed(1);
+    return (formatted.endsWith('.0') ? formatted.slice(0, -2) : formatted) + 'm';
+  } else if (count >= thousand) {
+    const num = count / thousand;
+    const formatted = num.toFixed(1);
+    return (formatted.endsWith('.0') ? formatted.slice(0, -2) : formatted) + 'k';
+  } else {
+    return count.toString();
+  }
+}

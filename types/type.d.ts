@@ -33,6 +33,7 @@ declare interface PostComment {
   report_count: number;
   is_liked: boolean;
   postColor: string;
+  reply_comment_id?: string; // ID of the comment being replied to, if any
 }
 
 declare interface UserProfileType {

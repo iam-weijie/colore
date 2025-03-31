@@ -4,6 +4,7 @@ import PostGallery from "@/components/PostGallery";
 import { icons, temporaryColors } from "@/constants/index";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
+import { formatCount } from "@/lib/utils";
 import axios from "axios";
 import {
   acceptFriendRequest,
@@ -712,7 +713,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     } else {
                       Alert.alert("Error accepting friend request.");
                     }
-                    setFriendStatus(response);
+                    // Handle potential undefined return from acceptFriendRequest
+                    setFriendStatus(response || FriendStatus.UNKNOWN);
                     setIsHandlingFriendRequest(false);
                   }
                   if (user!.id !== userId && friendStatus.name === "sent") {
@@ -754,7 +756,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     {user!.id === userId && (
                       <View>
                         <Text className="text-white font-JakartaBold text-3xl">
-                          {friendCount}
+                          {formatCount(friendCount)}
                         </Text>
                       </View>
                     )}

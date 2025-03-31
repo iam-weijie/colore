@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
+import { formatCount } from "@/lib/utils";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
 import { PostComment } from "@/types/type";
@@ -29,6 +30,11 @@ import {
     withSpring,
     withTiming,
   } from "react-native-reanimated";
+
+// Define the context type for the gesture handler
+type GestureContext = {
+  startX: number;
+};
 
 export const CommentItem: React.FC<PostComment> = ({
     id,
@@ -181,7 +187,7 @@ export const CommentItem: React.FC<PostComment> = ({
             }
           
         }
-        translateX.value = withTiming(0, { damping: 20, stiffness: 300 }); // Use `withTiming` to reset smoothly
+        translateX.value = withTiming(0); // Use `withTiming` to reset smoothly. Removed invalid damping/stiffness for withTiming.
       },
     });
   
@@ -354,7 +360,7 @@ export const CommentItem: React.FC<PostComment> = ({
               <Text
                 className={`${user_id === user?.id ? "text-gray-600" : "text-transparent"} text-center`}
               >
-                {(user_id === user?.id ? likeCount : "0") != "0" ? likeCount : ""}
+                {(user_id === user?.id ? likeCount : 0) > 0 ? formatCount(likeCount) : ""}
               </Text>
               {user_id !== user!.id && (
                 <TouchableOpacity

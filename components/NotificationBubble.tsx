@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Alert, Text, View } from "react-native";
 import Animated, { BounceIn, FadeOut } from "react-native-reanimated";
+import { formatCount } from "../lib/utils";
 
 interface NotificationBubbleProps {
   unread: number;
@@ -19,7 +20,7 @@ const NotificationBubble: React.FC<NotificationBubbleProps> = ({ unread, color }
       className="absolute items-center font-JakartaBold justify-center w-6 h-6 rounded-full right-[2px] top-[1px]"
       style={[{ backgroundColor: color }]}
     >
-      <Text className="text-white font-bold">{unread}</Text>
+      <Text className="text-white font-bold">{formatCount(unread)}</Text>
     </Animated.View>
   );
 };
