@@ -129,7 +129,7 @@ const CountryItem = memo(({
 const LoadingComponent = () => {
   return (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="black" />
+      <ActivityIndicator size="small" color="#d1d1d1" />
       <Text style={styles.loadingText}>Loading countries...</Text>
     </View>
   );

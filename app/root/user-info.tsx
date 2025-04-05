@@ -164,7 +164,7 @@ const UserInfo = () => {
     <SafeAreaView className="flex-1">
       {loading ? (
         <View className="flex-[0.8] justify-center items-center">
-          <ActivityIndicator size="large" color="black" />
+          <ActivityIndicator size="small" color="#d1d1d1" />
         </View>
       ) : (
         <ScrollView

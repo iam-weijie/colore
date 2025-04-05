@@ -183,7 +183,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   if (loading) {
     return (
       <View className="flex-[0.8] justify-center items-center">
-        <ActivityIndicator size="large" color="black" />
+        <ActivityIndicator size="small" color="#d1d1d1" />
       </View>
     );
   }
@@ -226,7 +226,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
           showPostItText={true}
           invertColors={true}
         />
-        <ActionPrompts 
+        {/*<ActionPrompts 
         friendName={profileUser?.username ?? ""}
          action={action} 
          handleAction={() => {
@@ -237,7 +237,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
               source: 'board'
             }
           });
-        }}/>
+        }}/>*/}
       </SignedIn>
     </View>
   );

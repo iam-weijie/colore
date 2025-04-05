@@ -221,7 +221,7 @@ const State = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="black" />
+        <ActivityIndicator size="small" color="#d1d1d1" />
           <Text style={styles.loadingText}>Loading states...</Text>
         </View>
       </SafeAreaView>

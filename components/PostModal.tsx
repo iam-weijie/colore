@@ -99,6 +99,8 @@ const PostModal: React.FC<PostModalProps> = ({
   invertedColors = false,
   header,
   isPreview = false,
+  infiniteScroll = false,
+  scrollToLoad,
 }) => {
   const { stacks, isIpad, soundEffectsEnabled } = useGlobalContext(); // Add soundEffectsEnabled
   const { playSoundEffect } = useSoundEffects(); // Get sound function
@@ -120,8 +122,10 @@ const PostModal: React.FC<PostModalProps> = ({
 
   // Memoize the posts array to prevent unnecessary re-renders
   const post = useMemo(() => {
+    console.log("selectedPost", selectedPost);
+    
     const stack = stacks.find((stack) => stack.ids.includes(selectedPost.id));
-    console.log("this stack", stack, "this id", selectedPost.id);
+    console.log("stack", stack?.elements.length);
     return stack ? stack.elements : [selectedPost];
   }, [selectedPost, stacks]);
 
@@ -199,6 +203,7 @@ const PostModal: React.FC<PostModalProps> = ({
   //   },
   // });
 
+
   const swipeGesture = Gesture.Pan()
     .onStart((event) => {
       console.log("Swipe started");
@@ -208,21 +213,33 @@ const PostModal: React.FC<PostModalProps> = ({
     })
     .onEnd(() => {
       const threshold = 60;
+      const isLastPost = currentPostIndex === posts.length - 2;
+      
       if (translateX.value > threshold && currentPostIndex > 0) {
         translateX.value = withTiming(0);
         opacity.value = withTiming(0, {}, () => {
           runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
           opacity.value = withTiming(1);
         });
-      } else if (
-        translateX.value < -threshold &&
-        currentPostIndex < posts.length - 1
-      ) {
-        translateX.value = withTiming(0);
-        opacity.value = withTiming(0, {}, () => {
-          runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-          opacity.value = withTiming(1);
-        });
+      } else if (translateX.value < -threshold) {
+        if (!isLastPost) {
+          // Swipe left: go to next post
+          console.log("doesnt called for more posts");
+          translateX.value = withTiming(0);
+          opacity.value = withTiming(0, {}, () => {
+            runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+            opacity.value = withTiming(1);
+          });
+        } else if (infiniteScroll && typeof scrollToLoad === "object") {
+          // If last post and infiniteScroll is enabled
+          runOnJS(scrollToLoad)();
+          // Optionally reset translateX
+          translateX.value = withTiming(0);
+        } else {
+          console.log("what", typeof scrollToLoad, scrollToLoad);
+          // Bounce back
+          translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+        }
       } else {
         translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
       }
@@ -310,6 +327,9 @@ const PostModal: React.FC<PostModalProps> = ({
     getData();
   }, [user]);
 
+  useEffect(() => {
+console.log("currentPostIndex", currentPostIndex);
+  }, [currentPostIndex])
   const fetchUserdata = async () => {
     try {
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
@@ -665,6 +685,7 @@ const PostModal: React.FC<PostModalProps> = ({
           </TouchableWithoutFeedback>
 
           {header}
+
           <GestureHandlerRootView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <GestureDetector gesture={swipeGesture}>
               <Animated.View
@@ -725,9 +746,9 @@ const PostModal: React.FC<PostModalProps> = ({
               </Animated.View>
             </GestureDetector>
           </GestureHandlerRootView>
-          <View className="absolute top-[80%] self-center flex flex-row">
+           <View className="absolute top-[80%] self-center flex flex-row">
             {posts.length > 1 &&
-              posts.map((post, index) => {
+              posts.slice(-4).map((post, index) => {
                 return (
                   <CarrouselIndicator
                     key={post.id}

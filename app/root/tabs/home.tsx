@@ -117,9 +117,6 @@ const fetchUserData = async () => {
     }
   };
 
-  const handleNewPostPress = () => {
-    router.push("/root/new-post");
-  };
 
   const getAction = (lastPost: Post) => {
     if (lastPost) {
@@ -266,11 +263,10 @@ const fetchUserData = async () => {
           allowStacking={true}
           mode={geographicalMode}
         />
-        <ActionPrompts 
-          friendName={""}
-          action={action} 
-          handleAction={() => {}}
-        />
+         {/*<ActionPrompts 
+        friendName={""}
+         action={action} 
+         handleAction={() => {}}/>*/}
       </SignedIn>
     </SafeAreaView>
   );
