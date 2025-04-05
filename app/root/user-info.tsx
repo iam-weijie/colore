@@ -16,9 +16,11 @@ import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
+import { useAlert } from '@/notifications/AlertContext';
 
 const UserInfo = () => {
   const { user } = useUser();
+  const { showAlert } = useAlert();
   //console.log("user", user)
   const [userData, setUserData] = useState({
     city: "",
@@ -118,15 +120,22 @@ const UserInfo = () => {
 
   const handleGetStarted = async () => {
     if (!form.username || !form.userLocation) {
-      Alert.alert("Error", "Please fill out all fields.");
+      showAlert({
+        title: 'Error',
+        message: `Please fill out all fields.`,
+        type: 'ERROR',
+        status: 'error',
+      });
       return;
     }
 
     if (!verifyValidUsername(form.username)) {
-      Alert.alert(
-        "Invalid Username",
-        "Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long"
-      );
+      showAlert({
+        title: 'Invalid Username',
+        message: "Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long",
+        type: 'ERROR',
+        status: 'error',
+      });
       return;
     }
     try {
@@ -145,10 +154,12 @@ const UserInfo = () => {
           response.error.detail ===
           `Key (username)=(${form.username}) already exists.`
         ) {
-          Alert.alert(
-            "Username taken",
-            `Username ${form.username} already exists. Please try another one.`
-          );
+          showAlert({
+            title: 'Username taken',
+            message: `Username ${form.username} already exists. Please try another one.`,
+            type: 'ERROR',
+            status: 'error',
+          });
         } else {
           throw new Error(response.error);
         }

@@ -22,6 +22,7 @@ import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
+import { useAlert } from '@/notifications/AlertContext';
 
 
 const EditPost = () => {
@@ -30,6 +31,7 @@ const EditPost = () => {
   const [postContent, setPostContent] = useState<string>(`${content}`);
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
+  const { showAlert } = useAlert();
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
     temporaryColors.find(
       (c) => c.name === color
@@ -71,10 +73,12 @@ const EditPost = () => {
       setPostContent(text);
     } else {
       setPostContent(text.substring(0, maxCharacters));
-      Alert.alert(
-        "Limit Reached",
-        `You can only enter up to ${maxCharacters} characters.`
-      );
+      showAlert({
+        title: 'Limit Reached',
+        message: `You can only enter up to ${maxCharacters} characters.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   };
 

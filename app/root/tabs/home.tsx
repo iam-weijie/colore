@@ -13,6 +13,8 @@ import { useGlobalContext } from "@/app/globalcontext";
 import DropdownMenu from "@/components/DropdownMenu";
 
 import ActionPrompts from "@/components/ActionPrompts";
+import { useAlert } from '@/notifications/AlertContext';
+
 import { ActionType } from "@/lib/prompts";
 import { GeographicalMode } from "@/types/type";
 import UserInfo from "../user-info";
@@ -21,7 +23,8 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
   const { isIpad } = useGlobalContext();
-  const [action, setAction] = useState(ActionType.NONE)
+  const [action, setAction] = useState(ActionType.NONE);
+  const { showAlert } = useAlert();
   const [geographicalMode, setGeographicalMode] = useState<GeographicalMode>('world');
   const [userInfo, setUserInfo] = useState(null);
 
@@ -194,6 +197,71 @@ const fetchUserData = async () => {
     );
   };
 
+  const getCountryFlag = (country: string) => {
+    if (country) {
+      switch (country) {
+        case "Canada":
+          return countries.canada;
+        case "USA":
+          return countries.usa;
+        case "France":
+          return countries.france;
+        case "Italy":
+          return countries.italy;
+        case "China":
+          return countries.china;
+        case "Argentina":
+          return countries.argentina;
+        default:
+          console.warn(`Country flag not found for: ${country}`);
+          return countries.canada;
+      }
+    } else {
+      console.warn(`Country flag not found for: ${country}`);
+      return countries.canada;
+    }
+  };
+
+    return (
+      <View 
+        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-l-lg p-1 shadow-lg"
+        style={{ width: 70 }}
+      >
+        {modes.map((mode) => (
+          <TouchableOpacity
+            key={mode}
+            onPress={() => handleGeographicalModeChange(mode)}
+            className={`p-2 my-1 rounded ${
+              geographicalMode === mode 
+                ? 'bg-blue-500' 
+                : 'bg-gray-200'
+            }`}
+          >
+            <Text 
+              className={`text-center text-xs ${
+                geographicalMode === mode 
+                  ? 'text-white' 
+                  : 'text-black'
+              }`}
+            >
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
+
+  useEffect(() => {
+    /*showAlert({
+      title: 'Limit Reached',
+      message: `You can only enter up to 6000 characters.`,
+      type: 'ERROR',
+      status: 'error',
+    });*/
+    
+    
+  }, []);
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
@@ -263,9 +331,10 @@ const fetchUserData = async () => {
           allowStacking={true}
           mode={geographicalMode}
         />
-         {/*<ActionPrompts 
+        {/* <ActionPrompts 
         friendName={""}
          action={action} 
+         handleAction={() => {}}/>*/}
          handleAction={() => {}}/>*/}
       </SignedIn>
     </SafeAreaView>
