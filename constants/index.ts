@@ -19,6 +19,7 @@ import refresh from "@/assets/icons/refresh.png";
 import search from "@/assets/icons/search.png";
 import send from "@/assets/icons/send.png";
 import settings from "@/assets/icons/settings.png";
+import star from "@/assets/icons/star.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import login from "@/assets/images/login_squares.png";
@@ -37,6 +38,7 @@ export const icons = {
   profile,
   album,
   search,
+  star,
   trash,
   pencil,
   refresh,
