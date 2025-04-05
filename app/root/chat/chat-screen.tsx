@@ -442,7 +442,7 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                         ? nicknames[item.friend_id]
                         : item.friend_username}
                     </Text>
-                    <Text className="text-gray-500 text-[12px] max-w-[95%]">{item.city !== item.state ? `${item.city}, ${item.state}, ${item.country}` : `${item.state}, ${item.country}`}</Text>
+                    <Text className="text-gray-500 text-[12px]">{item.city !== item.state ? `${item.city}, ${item.state}, ${item.country}` : `${item.state}, ${item.country}`}</Text>
                   </View>
                 </TouchableOpacity>
               </View>

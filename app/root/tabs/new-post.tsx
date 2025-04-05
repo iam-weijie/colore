@@ -59,15 +59,6 @@ const NewPost = () => {
     }
   }, [content, color, emoji]);
 
-  // Handle back navigation
-  const handleBackNavigation = () => {
-    // If we came from preview, we need to go to the home tab
-    if (fromPreview) {
-      router.replace("/root/tabs/home");
-    } else {
-      router.back();
-    }
-  };
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -125,13 +116,10 @@ const NewPost = () => {
           onPressIn={() => Keyboard.dismiss()}
         >
           <View className="flex-1">
-            <View className="flex flex-row justify-center items-center mt-3 mx-6">
+            <View className="flex flex-row justify-between items-center mt-4 mx-8">
               <View className="flex-1">
-                <TouchableOpacity onPress={handleBackNavigation}>
-                  <AntDesign name="caretleft" size={18} color="0076e3" />
-                </TouchableOpacity>
               </View>
-              <Text className="absolute text-xl font-JakartaSemiBold">
+              <Text className="absolute text-2xl font-JakartaBold">
                 New Post
               </Text>
               <CustomButton

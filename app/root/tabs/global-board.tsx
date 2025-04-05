@@ -2,179 +2,171 @@ import PostModal from "@/components/PostModal";
 import { fetchAPI } from "@/lib/fetch";
 import { Post, UserData } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import * as React from "react";
-import { useEffect, useState, useCallback } from "react";
-
-import { icons } from "@/constants";
+import React, { useEffect, useState, useCallback } from "react";
 import { router, useFocusEffect } from "expo-router";
-import { Dimensions, Image, SafeAreaView, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  Image,
+  SafeAreaView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
-
+import { icons } from "@/constants";
 
 export default function Page() {
-  const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
   const { isIpad, stacks, setStacks } = useGlobalContext();
-  const [userInfo, setUserInfo] = useState(null);
+
+  const [userInfo, setUserInfo] = useState<UserData | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [excludedIds, setExcludedIds] = useState<number[]>([]); // Track IDs to exclude
+  const [excludedIds, setExcludedIds] = useState<number[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(true);
   const [loading, setLoading] = useState(true);
-  const skeletonPost = {
-    id: 0,
-    clerk_id: "",
-    user_id: "", 
-    firstname: "",
-    username: "",
-    content: "",
-    created_at: "",
-    city: "",
-    state: "",
-    country: "",
-    like_count: 0,
-    report_count: 0,
-    unread_comments: 0,
-    recipient_user_id: "",
-    pinned: false,
-    color: "yellow", 
-    emoji: "",
-    notified: true
-  };
+  const [error, setError] = useState<string | null>(null);
 
+  // 1) request ATT permission
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
-    if (status === "authorized") {
-      console.log("Tracking permission granted!");
-    } else {
-      console.log("Tracking permission denied or restricted.");
+    console.log(`Tracking permission ${status}`);
+  };
+
+  // 2) fetch the user profile
+  const fetchUserData = async () => {
+    try {
+      const res = await fetchAPI(`/api/users/getUserInfo?id=${user?.id}`);
+      if (res.data?.length) setUserInfo(res.data[0]);
+    } catch (e) {
+      console.error("Failed to fetch user data:", e);
+      setError("Failed to load profile");
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-        // Fetch all user data including location when screen is focused
-        setIsModalVisible(true);
-      }, []) // Add back the dependency array for useCallback
-    ); // Correctly close useFocusEffect
-
-  useEffect(() => {
-    requestPermission();
-    fetchUserData();
-    fetchPosts();
-  }, []);
-
-  const screenHeight = Dimensions.get("screen").height;
-  const screenWidth = Dimensions.get("screen").width;
-
-const fetchUserData = async () => {
-    try {
-      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
-      setUserInfo(response.data[0]);
-      
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-      setError("Failed to load profile");
-    }
-  
-
-};
-
+  // 3) fetch initial batch of posts
   const fetchPosts = async () => {
     setLoading(true);
     try {
-    const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 8 : 4}&id=${user!.id}`
-    );
-    setPosts(response.data);
-  } catch (error) {
-    console.error("Failed to fetch posts:", error);
-    setError("Failed to load posts");
-  } 
-    setLoading(false);
-}
-
-  const fetchNewPost = async (excludeIds: number[]) => {
-    try {
-      const excludeIdsParam = excludeIds.join(",");
-      const response = await fetch(
-        `/api/posts/getRandomPostsExcluding?number=${2}&id=${user!.id}&exclude_ids=${excludeIdsParam}`
+      const res = await fetchAPI(
+        `/api/posts/getRandomPosts?number=${isIpad ? 8 : 4}&id=${user?.id}`
       );
-      if (!response.ok) throw new Error("Network response was not ok");
-      const result = await response.json();
-      // Add position to the new posts
-      const newPosts = result.data;
-      if (newPosts.length > 0) {
-        setPosts((prevPosts) => {
-          // Remove the first two posts
-          const filteredPosts = prevPosts.slice(2);
-          return [...filteredPosts, ...newPosts];
-        });
-        const stackExists = stacks.some((stack) => {
-          return stack.ids.some((id) => posts.map((post) => post.id).includes(id));
-        });
-
-        if (stackExists) {
-          const updatedStacks = stacks.map((stack) => {
-            if (stack.ids.some((id) => posts.map((post) => post.id).includes(id))) {
-              return {
-                ...stack,
-                ids: [...stack.ids, ...newPosts.map((post) => post.id)],
-                elements: [...stack.elements, ...newPosts],
-              };
-            }
-            return stack;
-          });
-          setStacks(updatedStacks);
-        }
-        setExcludedIds((prev) => [...prev, ...newPosts.map((post) => post.id)]); // Track IDs to exclude
-      }
-
-    } catch (error) {
-      setError("Failed to fetch new post.");
-      console.error(error);
-      return null;
+      setPosts(res.data);
+      setExcludedIds(res.data.map((p: Post) => p.id));
+    } catch (e) {
+      console.error("Failed to fetch posts:", e);
+      setError("Failed to load posts");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // reset modal visible each time the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      setIsModalVisible(true);
+      if (user && stacks.length == 0) {  
+        fetchPosts();
+      } else if (user && stacks.length > 0) {
+        setPosts(stacks[0].elements);
+        setExcludedIds(stacks[0].ids);
+      }
+    }, [user, isIpad])
+  );
+
+  // on-mount (and whenever user / isIpad changes) load everything
   useEffect(() => {
-    if (posts.length > 3) {
-    const updatedStacks = stacks;
-     updatedStacks.push({
-        ids: posts.map((post) => post.id),
-        elements: posts,
-    })
-    setStacks(updatedStacks);
+    requestPermission();
+    if (user) {
+      fetchUserData();
+      if (stacks.length == 0) {
+      fetchPosts();
+      }
     }
-      
-  }, [posts, isModalVisible]);
+  }, [user, isIpad]);
+
+  // Ensure uniqueness of posts and ids in stack
+  useEffect(() => {
+    if (posts.length > 0) {
+      setStacks((prev) => {
+        // Ensure only the first stack is updated or created
+        const existingIds = prev.length > 0 ? prev[0].ids : [];
+        const existingElements = prev.length > 0 ? prev[0].elements : [];
+
+        // Filter out posts with duplicate IDs and elements
+        const newPosts = posts.filter(
+          (post) => !existingIds.includes(post.id)
+        );
+
+        // If there are new posts, add them to the stack
+        if (newPosts.length > 0) {
+          const newIds = [
+            ...existingIds,
+            ...newPosts.map((post) => post.id),
+          ];
+          const newElements = [
+            ...existingElements,
+            ...newPosts,
+          ];
+
+          // Remove duplicates from newIds and newElements
+          const uniqueIds = [...new Set(newIds)];
+          const uniqueElements = newElements.filter(
+            (value, index, self) =>
+              index === self.findIndex((el) => el.id === value.id)
+          );
+
+          return [
+            {
+              ids: uniqueIds,
+              elements: uniqueElements,
+            },
+          ];
+        }
+        return prev; // If no new posts, return the previous state
+      });
+    }
+  }, [posts]);
 
   const handleNewPostPress = () => {
     setIsModalVisible(false);
-    router.push("/root/new-post");
+    router.back();
   };
-
 
   const handleCloseModalPress = () => {
     setIsModalVisible(false);
     router.replace("/root/tabs/personal-board");
   };
-  console.log("stacks", stacks, "posts", posts.map((post) => post.id), "excludedIds", excludedIds);
+
+  const handleScrollToLoad = async () => {
+    console.log("Loading more posts...");
+    setLoading(true);
+    fetchPosts();
+    setLoading(false);
+  };
+
+  if (loading) return null; // or your skeleton
+
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-    <PostModal
-    isVisible={isModalVisible}
-    selectedPost={loading ? skeletonPost : posts[0]}
-    handleCloseModal={handleCloseModalPress}
-    header={
-      <View className="absolute top-5 right-7 flex-row items-center justify-center ">
-          <TouchableOpacity onPress={handleNewPostPress}>
-            <Image source={icons.pencil} tintColor="black" className="w-7 h-7 p-7 rounded-[50%]" />
-          </TouchableOpacity>
-        </View>
-    }
-    />
+        <PostModal
+          isVisible={isModalVisible}
+          selectedPost={posts[0]}
+          handleCloseModal={handleCloseModalPress}
+          header={
+            <View className="absolute top-5 right-7 flex-row items-center justify-center">
+              <TouchableOpacity onPress={handleNewPostPress}>
+                <Image
+                  source={icons.pencil}
+                  tintColor="black"
+                  className="w-7 h-7 p-2 rounded-full"
+                />
+              </TouchableOpacity>
+            </View>
+          }
+          infiniteScroll={true}
+          scrollToLoad={handleScrollToLoad}
+        />
       </SignedIn>
     </SafeAreaView>
   );

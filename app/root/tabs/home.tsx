@@ -101,9 +101,6 @@ const fetchUserData = async () => {
     }
   };
 
-  const handleNewPostPress = () => {
-    router.push("/root/new-post");
-  };
 
   const getAction = (lastPost: Post) => {
     if (lastPost) {
@@ -129,9 +126,6 @@ const fetchUserData = async () => {
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
-          <TouchableOpacity onPress={handleNewPostPress}>
-            <Image source={icons.pencil} className="w-7 h-7" />
-          </TouchableOpacity>
         </View>
         <PostItBoard
           userId={user!.id}
@@ -139,10 +133,10 @@ const fetchUserData = async () => {
           handleNewPostFetch={fetchNewPost}
           allowStacking={true}
         />
-         <ActionPrompts 
+         {/*<ActionPrompts 
         friendName={""}
          action={action} 
-         handleAction={() => {}}/>
+         handleAction={() => {}}/>*/}
       </SignedIn>
     </SafeAreaView>
   );

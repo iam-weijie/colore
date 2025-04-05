@@ -5,14 +5,17 @@ import check from "@/assets/icons/check.png";
 import close from "@/assets/icons/close.png";
 import comment from "@/assets/icons/comment.png";
 import email from "@/assets/icons/email.png";
+import globe from "@/assets/icons/globe.png";
 import google from "@/assets/icons/google.png";
 import heart from "@/assets/icons/heart.png";
 import home from "@/assets/icons/home.png";
 import lock from "@/assets/icons/lock.png";
+import menu from "@/assets/icons/menu.png";
 import note from "@/assets/icons/note.png";
 import palette from "@/assets/icons/palette.png";
 import pencil from "@/assets/icons/pencil.png";
 import person from "@/assets/icons/person.png";
+import plus from "@/assets/icons/plus.png";
 import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
 import refresh from "@/assets/icons/refresh.png";
@@ -29,6 +32,7 @@ export const icons = {
   person,
   email,
   lock,
+  globe,
   google,
   check,
   home,
@@ -36,6 +40,8 @@ export const icons = {
   chat,
   close,
   profile,
+  menu,
+  plus,
   album,
   search,
   star,

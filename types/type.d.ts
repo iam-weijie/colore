@@ -125,6 +125,8 @@ declare interface PostModalProps {
   handleUpdate?: (isPinned: boolean) => void | Promise<void>;
   header: React.ReactElement;
   isPreview?: boolean;
+  infiniteScroll?: boolean;
+  scrollToLoad?: () => void;
 }
 
 declare interface UserPostsGalleryProps {
