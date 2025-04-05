@@ -97,7 +97,7 @@ const Layout = () => {
         },
       }}
     >
-      <Tabs.Screen
+     { <Tabs.Screen
         name="home"
         options={{
           title: "Home",
@@ -106,6 +106,22 @@ const Layout = () => {
             <TabIcon
               focused={focused}
               source={icons.home}
+              unread={0}
+              color={"#FF7272"} // Needs to be changed with like notifications
+            />
+          ),
+          tabBarButton: (props) => <HapticTabBarButton {...props} />, // Use custom button
+        }}
+      />}
+       <Tabs.Screen
+        name="global-board"
+        options={{
+          title: "global-board",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon
+              focused={focused}
+              source={icons.star}
               unread={0}
               color={"#FF7272"} // Needs to be changed with like notifications
             />
@@ -121,7 +137,7 @@ const Layout = () => {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
-              source={icons.album}
+              source={icons.home}
               unread={unreadMessages + unreadRequests + unreadPersonalPosts}
               color={"#fbb1d6"} // Needs to be changed with message notifications
             />

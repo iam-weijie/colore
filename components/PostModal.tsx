@@ -121,6 +121,7 @@ const PostModal: React.FC<PostModalProps> = ({
   // Memoize the posts array to prevent unnecessary re-renders
   const post = useMemo(() => {
     const stack = stacks.find((stack) => stack.ids.includes(selectedPost.id));
+    console.log("this stack", stack, "this id", selectedPost.id);
     return stack ? stack.elements : [selectedPost];
   }, [selectedPost, stacks]);
 
@@ -150,6 +151,7 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   };
 
+  console.log("stacks1", stacks);
   // Fetch like status only when post or user changes
   useEffect(() => {
     if (!user?.id || !post[currentPostIndex]?.id) return;

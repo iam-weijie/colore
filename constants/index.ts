@@ -21,6 +21,7 @@ import smartcity from "@/assets/icons/smart-city-2.png";
 import search from "@/assets/icons/search.png";
 import send from "@/assets/icons/send.png";
 import settings from "@/assets/icons/settings.png";
+import star from "@/assets/icons/star.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import placeholder from "@/assets/icons/placeholder.png";
@@ -49,6 +50,7 @@ export const icons = {
   profile,
   album,
   search,
+  star,
   trash,
   pencil,
   placeholder,
