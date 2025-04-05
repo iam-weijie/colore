@@ -7,6 +7,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { useNavigationContext } from "@/components/NavigationContext";
 import ScrollingText from "./ScrollingText";
+import { useAlert } from '@/notifications/AlertContext';
 
 // Define the State interface
 interface State {
@@ -107,6 +108,7 @@ const State = () => {
   const { country, countryId, previousScreen } = useLocalSearchParams();
   const [statesList, setStatesList] = useState<State[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showAlert } = useAlert();
 
   // Format the country name in the title
   const formattedCountryName = useCallback(() => {
@@ -169,7 +171,12 @@ const State = () => {
       
     } catch (error) {
       console.error("Error saving location:", error);
-      Alert.alert("Error", "Failed to save your location. Please try again.");
+      showAlert({
+        title: 'Limit Error',
+        message: `Failed to save your location. Please try again.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   }, [country, stateVars, user, setStateVars]);
 

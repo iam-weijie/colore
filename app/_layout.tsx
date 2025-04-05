@@ -4,6 +4,7 @@ import { NavigationProvider } from "@/components/NavigationContext";
 import { NotificationProvider } from '../notifications/NotificationContext';
 import SplashVideo from "@/components/SplashVideo";
 import { GlobalProvider } from "@/app/globalcontext";
+import { AlertProvider } from "@/notifications/AlertContext";
 import { tokenCache } from "@/lib/auth";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
 import { useFonts } from "expo-font";
@@ -31,7 +32,7 @@ export default function RootLayout() {
     "Jakarta-ExtraLight": require("../assets/fonts/PlusJakartaSans-ExtraLight.ttf"),
     "Jakarta-Light": require("../assets/fonts/PlusJakartaSans-Light.ttf"),
     "Jakarta-Medium": require("../assets/fonts/PlusJakartaSans-Medium.ttf"),
-    Jakarta: require("../assets/fonts/PlusJakartaSans-Regular.ttf"),
+    "Jakarta": require("../assets/fonts/PlusJakartaSans-Regular.ttf"),
     "Jakarta-SemiBold": require("../assets/fonts/PlusJakartaSans-SemiBold.ttf"),
   });
 
@@ -69,6 +70,7 @@ export default function RootLayout() {
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
         <ClerkLoaded>
           <GlobalProvider>
+            <AlertProvider>
             <NavigationProvider>
               <Animated.View style={{ flex: 1 }} entering={FadeIn}>
                 <Stack>
@@ -79,6 +81,7 @@ export default function RootLayout() {
                 </Stack>
               </Animated.View>
             </NavigationProvider>
+            </AlertProvider>
           </GlobalProvider>
         </ClerkLoaded>
       </ClerkProvider>

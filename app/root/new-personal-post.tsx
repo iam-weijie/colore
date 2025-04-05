@@ -22,11 +22,14 @@ import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
+import { useAlert } from '@/notifications/AlertContext';
 
 
 const NewPersonalPost = () => {
   const { user } = useUser();
   const { content, color, emoji, recipient_id, username } = useLocalSearchParams();
+  const { showAlert } = useAlert();
+  
   
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
@@ -111,10 +114,12 @@ const NewPersonalPost = () => {
       setPostContent(text);
     } else {
       setPostContent(text.substring(0, maxCharacters));
-      Alert.alert(
-        "Limit Reached",
-        `You can only enter up to ${maxCharacters} characters.`
-      );
+      showAlert({
+        title: 'Limit Reached',
+        message: `You can only enter up to ${maxCharacters} characters.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   };
 

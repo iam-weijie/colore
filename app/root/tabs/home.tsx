@@ -12,13 +12,16 @@ import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 
 import ActionPrompts from "@/components/ActionPrompts";
+import { useAlert } from '@/notifications/AlertContext';
+
 import { ActionType } from "@/lib/prompts";
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
   const { isIpad } = useGlobalContext();
-  const [action, setAction] = useState(ActionType.NONE)
+  const [action, setAction] = useState(ActionType.NONE);
+  const { showAlert } = useAlert();
 
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
@@ -119,6 +122,16 @@ const fetchUserData = async () => {
   }
   }
 
+  useEffect(() => {
+    /*showAlert({
+      title: 'Limit Reached',
+      message: `You can only enter up to 6000 characters.`,
+      type: 'ERROR',
+      status: 'error',
+    });*/
+    
+    
+  }, []);
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
@@ -139,10 +152,10 @@ const fetchUserData = async () => {
           handleNewPostFetch={fetchNewPost}
           allowStacking={true}
         />
-         <ActionPrompts 
+        {/* <ActionPrompts 
         friendName={""}
          action={action} 
-         handleAction={() => {}}/>
+         handleAction={() => {}}/>*/}
       </SignedIn>
     </SafeAreaView>
   );

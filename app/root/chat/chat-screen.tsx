@@ -52,6 +52,7 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { LinearGradient } from "expo-linear-gradient";
+import { useAlert } from '@/notifications/AlertContext';
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -115,6 +116,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
 
 const ChatScreen: React.FC<ChatScreenProps> = () => {
   const { user } = useUser();
+  const { showAlert } = useAlert();
 
   // User experience
   const [loading, setLoading] = useState<boolean>(false);
@@ -335,9 +337,19 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                 friendId
               );
               if (response === FriendStatus.NONE) {
-                Alert.alert("You have unfriended this user.");
+                showAlert({
+                  title: 'Unfriended',
+                  message: "You have unfriended this user.",
+                  type: 'FRIEND_REQUEST',
+                  status: 'success',
+                });
               } else {
-                Alert.alert("Error unfriending this user.");
+                showAlert({
+                  title: 'Error',
+                  message: `Error unfriending this user.`,
+                  type: 'ERROR',
+                  status: 'error',
+                });
               }
               fetchFriendData();
               setHandlingFriendRequest(false);
