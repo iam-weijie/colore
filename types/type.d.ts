@@ -221,6 +221,17 @@ type Prompt = {
   source: ImageSourcePropType;
 };
 
+type AlertProps = {
+  title: string;
+  message: string;
+  type: string;
+  status: "success" | "error" | "warning";
+  duration?: number;
+  onClose?: () => void;
+  action?: () => void;
+  actionText?: string;
+}
+
 
 declare interface ActionPromptsProps {
   friendName: string, 

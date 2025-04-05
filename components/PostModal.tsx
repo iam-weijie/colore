@@ -46,6 +46,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { captureRef } from "react-native-view-shot";
 import DropdownMenu from "./DropdownMenu";
+import { useAlert } from '@/notifications/AlertContext';
 
 
 const { width, height } = Dimensions.get("window");
@@ -111,6 +112,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const [likeCount, setLikeCount] = useState<number>(0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
+   const { showAlert } = useAlert();
   const router = useRouter();
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -282,7 +284,12 @@ const PostModal: React.FC<PostModalProps> = ({
       if (response.error) {
         setIsLiked(!increment);
         setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
-        Alert.alert("Error", "Unable to update like status.");
+        showAlert({
+          title: 'Error',
+          message: "Unable to update like status.",
+          type: 'ERROR',
+          status: 'error',
+        });
         return;
       }
 
@@ -345,10 +352,17 @@ console.log("currentPostIndex", currentPostIndex);
   };
 
   const handleDeletePress = async () => {
-    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
-      { text: "Cancel" },
-      { text: "Delete", onPress: handleDelete },
-    ]);
+    handleCloseModal();
+    
+    showAlert({
+      title: 'Delete Post',
+      message: "Are you sure you want to delete this post?",
+      type: 'DELETE',
+      status: 'success',
+      action: () => handleDelete(),
+      actionText: "Delete",
+      duration: 5000,
+    });
   };
 
   const handleReportPress = () => {
@@ -384,14 +398,24 @@ console.log("currentPostIndex", currentPostIndex);
       if (response.error) {
         throw new Error(response.error);
       }
-
-      Alert.alert("Post deleted successfully");
-      handleCloseModal();
+     handleCloseModal();
+      
+     showAlert({
+        title: 'Post deleted',
+        message: "Your post has been deleted successfully.",
+        type: 'DELETE',
+        status: 'error',
+      });
 
       
     } catch (error) {
       console.error("Failed to delete post:", error);
-      Alert.alert("Error", "Failed to delete post. Please try again.");
+      showAlert({
+        title: 'Error',
+        message: "Failed to delete post. Please try again.",
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   };
 
@@ -578,7 +602,7 @@ console.log("currentPostIndex", currentPostIndex);
         {
           label: isPinned ? "Unpin" : "Pin",
           source: icons.pin,
-          color: "rgba(180,180,180,0.95)",
+          color: "#000000",
           onPress: handlePin,
         },
         {
@@ -691,11 +715,11 @@ console.log("currentPostIndex", currentPostIndex);
               <Animated.View
                 entering={FadeInUp.duration(400)}
                 exiting={FadeOutDown.duration(250)}
-                className="bg-white px-6 py-4 rounded-[20px]  w-[80%] max-w-[500px] mx-auto"
+                className="bg-white px-6 py-4 rounded-[24px] w-[80%] max-w-[500px] mx-auto"
                 style={[
                   animatedStyle,
                   {
-                    minHeight:isIpad ? 250 : 205,
+                    minHeight:isIpad ? 250 : 200,
                     maxHeight: isIpad ? "55%" : "40%",
                     backgroundColor: "rgba(255, 255, 255, 1)",
                   },

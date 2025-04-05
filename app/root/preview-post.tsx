@@ -9,11 +9,13 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAlert } from '@/notifications/AlertContext';
  
 
 const PreviewPost = () => {
   const { user } = useUser();
   const [isVisible, setIsVisible] = useState<boolean>(true);
+  const { showAlert } = useAlert();
   const { id, content, color, emoji, personal, recipientId, username } =
     useLocalSearchParams();
   const [isPosting, setIsPosting] = useState(false);
@@ -88,7 +90,12 @@ const PreviewPost = () => {
 
       if (cleanedContent === "") {
         setIsPosting(false); // Ensure state is reset
-        Alert.alert("Error", "Post content cannot be empty.");
+        showAlert({
+          title: 'Error',
+          message: `Post cannot be empty.`,
+          type: 'ERROR',
+          status: 'error',
+        });
         return;
       }
 
@@ -105,18 +112,33 @@ const PreviewPost = () => {
 
         router.replace(`/root/tabs/profile`);
         setTimeout(() => {
-          Alert.alert("Success", "Post updated successfully.");
+          showAlert({
+            title: 'Success',
+            message: `Post updated successfully.`,
+            type: 'UPDATE',
+            status: 'success',
+          });
         }, 500);
       } catch (error) {
         console.log(error);
-        Alert.alert("Error", "An error occurred. Please try again.");
+        showAlert({
+          title: 'Error',
+          message: `An error occurred. Please try again.`,
+          type: 'ERROR',
+          status: 'error',
+        });
       } finally {
         setIsPosting(false);
       }
     } else if (personal === "true") {
       const cleanedContent = content;
       if (cleanedContent === "") {
-        Alert.alert("Error", "Post content cannot be empty.");
+        showAlert({
+          title: 'Error',
+          message: `Post cannot be empty.`,
+          type: 'ERROR',
+          status: 'error',
+        });
         return;
       }
       try {
@@ -137,10 +159,20 @@ const PreviewPost = () => {
         
 
         setTimeout(() => {
-          Alert.alert("Success", "Post created.");
+          showAlert({
+            title: 'Success',
+            message: `Post created.`,
+            type: 'POST',
+            status: 'success',
+          });
         }, 500);
       } catch (error) {
-        Alert.alert("Error", "An error occurred. Please try again.");
+        showAlert({
+          title: 'Error',
+          message: `An error occurred. Please try again.`,
+          type: 'ERROR',
+          status: 'error',
+        });
       } finally {
         setIsPosting(false);
       }
@@ -148,7 +180,12 @@ const PreviewPost = () => {
       setIsPosting(true);
       const cleanedContent = content;
       if (cleanedContent === "") {
-        Alert.alert("Error", "Post content cannot be empty.");
+        showAlert({
+          title: 'Error',
+          message: `Post cannot be empty.`,
+          type: 'ERROR',
+          status: 'error',
+        });
         return;
       }
       try {
@@ -165,10 +202,20 @@ const PreviewPost = () => {
         router.replace(`/root/tabs/home`);
 
         setTimeout(() => {
-          Alert.alert("Success", "Post created.");
+          showAlert({
+            title: 'Success',
+            message: `Post created.`,
+            type: 'POST',
+            status: 'success',
+          });
         }, 500);
       } catch (error) {
-        Alert.alert("Error", "An error occurred. Please try again.");
+        showAlert({
+          title: 'Error',
+          message: `An error occurred. Please try again.`,
+          type: 'ERROR',
+          status: 'error',
+        });
       } finally {
         setIsPosting(false);
       }

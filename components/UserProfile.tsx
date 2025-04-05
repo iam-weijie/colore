@@ -38,6 +38,7 @@ import {
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
+import { useAlert } from '@/notifications/AlertContext';
 import Circle from "./Circle";
 
 // Skeleton component for post loading states
@@ -82,6 +83,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
   const { isIpad } = useGlobalContext(); 
   const [nickname, setNickname] = useState<string>("");
+  const { showAlert } = useAlert();
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [emojiLoading, setEmojiLoading] = useState(true);
@@ -409,12 +411,22 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           friendId: userId,
         }),
       });
-      Alert.alert("Friend request sent!");
+      showAlert({
+        title: 'Friend request sent!',
+        message: "You have sent a friend request to this user.",
+        type: 'FRIEND_REQUEST',
+        status: 'success',
+      });
       setFriendStatus(FriendStatus.SENT);
       setIsHandlingFriendRequest(false);
     } catch (error) {
       console.error("Failed to send friend request:", error);
-      Alert.alert("Error sending friend request.");
+      showAlert({
+        title: 'Error',
+        message: `Error sending friend request.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   };
 
@@ -426,17 +438,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
-    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
     { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_default = [
-    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
     { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_friend = [
-    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
     { label: "Unfriend",  source: icons.close, color: "#6408DA", onPress: async () => {
       setIsHandlingFriendRequest(true);
       const response: FriendStatusType = await unfriend(
@@ -444,9 +456,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         userId
       );
       if (response === FriendStatus.NONE) {
-        Alert.alert("You have unfriended this user.");
+        showAlert({
+          title: 'Unfriended',
+          message: "You have unfriended this user.",
+          type: 'FRIEND_REQUEST',
+          status: 'success',
+        });
       } else {
-        Alert.alert("Error unfriending this user.");
+        showAlert({
+          title: 'Error',
+          message: `Error unfriending this user.`,
+          type: 'ERROR',
+          status: 'error',
+        });
       }
       setFriendStatus(response);
       setIsHandlingFriendRequest(false);
@@ -455,7 +477,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_sent = [
-    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
     {
       label: "Report",
       source: icons.email,
@@ -465,7 +487,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_received = [
-    { label: "Nickname", color: "#CFB1FB", source: icons.person, onPress: handleAddNickname },
+    { label: "Nickname", color: "#000000", source: icons.person, onPress: handleAddNickname },
     {
       label: "Report",
       color: "#DA0808",
@@ -708,9 +730,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                       user!.id
                     );
                     if (response === FriendStatus.FRIENDS) {
-                      Alert.alert("Friend request accepted!");
+                      showAlert({
+                        title: 'New friend!',
+                        message: "You have accepted this friend request.",
+                        type: 'FRIEND_REQUEST',
+                        status: 'success',
+                      });
                     } else {
-                      Alert.alert("Error accepting friend request.");
+                      showAlert({
+                        title: 'Error',
+                        message: `Error accepting this friend request.`,
+                        type: 'ERROR',
+                        status: 'error',
+                      });
                     }
                     setFriendStatus(response);
                     setIsHandlingFriendRequest(false);
@@ -720,9 +752,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     const response: FriendStatusType =
                       await cancelFriendRequest(user!.id, userId);
                     if (response === FriendStatus.NONE) {
-                      Alert.alert("Friend request cancelled.");
+                      showAlert({
+                        title: 'Cancelled',
+                        message: "Friend request cancelled.",
+                        type: 'UPDATE',
+                        status: 'success',
+                      });
                     } else {
-                      Alert.alert("Error cancelling friend request.");
+                      showAlert({
+                        title: 'Error',
+                        message: `Error cancelling this friend request.`,
+                        type: 'ERROR',
+                        status: 'error',
+                      });
                     }
                     setFriendStatus(response);
                     setIsHandlingFriendRequest(false);

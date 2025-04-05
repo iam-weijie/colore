@@ -21,6 +21,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAlert } from '@/notifications/AlertContext';
 import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 
@@ -36,6 +37,7 @@ const Settings = () => {
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
+  const { showAlert } = useAlert();
 
   // Get settings state and setters from Global Context
   const {
@@ -93,10 +95,12 @@ const Settings = () => {
 
   const handleUsernameUpdate = async () => {
     if (!verifyValidUsername(newUsername)) {
-      Alert.alert(
-        "Invalid Username",
-        "Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long"
-      );
+      showAlert({
+        title: 'Invalid Username',
+        message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
+        type: 'ERROR',
+        status: 'error',
+      });
       return;
     }
 
@@ -113,20 +117,33 @@ const Settings = () => {
       //console.log("Changed Username", response)
       if (response.error) {
         if (response.error.includes("already taken")) {
-          Alert.alert(
-            "Username taken",
-            `Username ${username} already exists. Please try another one.`
-          );
+
+      showAlert({
+        title: 'Username taken',
+        message: `Username ${username} already exists. Please try another one.`,
+        type: 'ERROR',
+        status: 'error',
+      });
         } else {
           throw new Error(response.error);
         }
       } else {
-        Alert.alert("Success", "Username updated successfully");
+        showAlert({
+          title: 'New Username',
+          message: `Username updated successfully to ${newUsername}.`,
+          type: 'UPDATE',
+          status: 'success',
+        });
         await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to update username:", error);
-      Alert.alert("Error", "Failed to update username. Please try again.");
+      showAlert({
+        title: 'Error',
+        message: `Failed to update username. Please try again.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -142,10 +159,12 @@ const Settings = () => {
     }
 
     if (!verifyValidEmail(newEmail)) {
-      Alert.alert(
-        "Email address is invalid.",
-        "Please enter a valid email address."
-      );
+      showAlert({
+        title: 'Email address is invalid. ',
+        message: `Please enter a valid email address.`,
+        type: 'ERROR',
+        status: 'error',
+      });
       return;
     }
     setLoading(true);
@@ -160,20 +179,32 @@ const Settings = () => {
 
       if (response.error) {
         if (response.error.includes("already taken")) {
-          Alert.alert(
-            "Email taken",
-            `Email ${newEmail} already exists. Please try another one.`
-          );
+          showAlert({
+            title: 'Email taken',
+            message: `Email ${newEmail} already exists. Please try another one.`,
+            type: 'ERROR',
+            status: 'error',
+          });
         } else {
           throw new Error(response.error);
         }
       } else {
-        Alert.alert("Success", "Email updated successfully");
+        showAlert({
+          title: 'Success',
+          message: `Email updated successfully to ${newEmail}.`,
+          type: 'UPDATE',
+          status: 'success',
+        });
         await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to update email:", error);
-      Alert.alert("Error", "Failed to update email. Please try again.");
+      showAlert({
+        title: 'Error',
+        message: `Failed to update email. Please try again.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -197,7 +228,12 @@ const Settings = () => {
       router.replace("/auth/log-in");
     } catch (error) {
       console.error("Error signing out:", error);
-      Alert.alert("Error", "Failed to sign out. Please try again.");
+      showAlert({
+        title: 'Error',
+        message: `Failed to sign out.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   };
 

@@ -6,6 +6,7 @@ import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useAlert } from '@/notifications/AlertContext';
 import { CommentItem } from "@/components/Comment";
 import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
@@ -53,6 +54,7 @@ const PostScreen = () => {
   const { user } = useUser();
   const router = useRouter();
   const navigation = useNavigation();
+  const { showAlert } = useAlert();
   const {
     id = "",
     clerk_id = "",
@@ -191,7 +193,12 @@ const PostScreen = () => {
         // Revert optimistic update if failed
         setIsLiked(isLiked);
         setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
-        Alert.alert("Error", "Unable to update like status. Please try again.");
+        showAlert({
+          title: 'Error',
+          message: `Unable to update like status`,
+          type: 'ERROR',
+          status: 'error',
+        });
         return;
       }
 
@@ -203,10 +210,12 @@ const PostScreen = () => {
       // Revert optimistic update
       setIsLiked(isLiked);
       setLikeCount((prev) => (!isLiked ? prev - 1 : prev + 1));
-      Alert.alert(
-        "Error",
-        "Unable to update like status. Please check your connection."
-      );
+      showAlert({
+        title: 'Error',
+        message: `Unable to update like status. Please check your connection.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     } finally {
       setIsLoadingLike(false);
     }
@@ -242,7 +251,12 @@ const PostScreen = () => {
           ...prev,
           [commentId]: prev[commentId] + (isCurrentlyLiked ? 1 : -1),
         }));
-        Alert.alert("Error", "Unable to update like status");
+        showAlert({
+          title: 'Error',
+          message: `Unable to update like status. Please check your connection.`,
+          type: 'ERROR',
+          status: 'error',
+        });
         return;
       }
 
@@ -404,8 +418,14 @@ const PostScreen = () => {
           postId: id, 
           clerkId: user?.id,
           postClerkId: clerk_id 
-        });*/
-      Alert.alert("Error", "Unable to submit comment. Missing required data.");
+        });
+        */
+      showAlert({
+        title: 'Error',
+        message: `Unable to submit comment. Missing required data.`,
+        type: 'ERROR',
+        status: 'error',
+      });
       return;
     }
 
@@ -440,7 +460,12 @@ const PostScreen = () => {
       await fetchComments();
     } catch (error) {
       console.error("Failed to submit comment:", error);
-      Alert.alert("Error", "Failed to submit comment. Please try again.");
+      showAlert({
+        title: 'Error',
+        message: `Failed to submit comment. Please try again.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     } finally {
       setIsSubmitting(false); // End submission regardless of success/failure
     }
@@ -460,12 +485,21 @@ const PostScreen = () => {
       await fetchAPI(`/api/posts/deletePost?id=${id}`, {
         method: "DELETE",
       });
-
-      Alert.alert("Post deleted.");
       router.back();
+      showAlert({
+        title: 'Post deleted.',
+        message: `This post has been deleted.`,
+        type: 'DELETE',
+        status: 'success',
+      });
     } catch (error) {
       setIsPostDeleted(false);
-      Alert.alert("Error deleting post");
+      showAlert({
+        title: 'Error',
+        message: `An error occured. This post has not been deleted.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   };
   const handleDeleteCommentPress = async (id: number) => {
@@ -485,10 +519,20 @@ const PostScreen = () => {
         method: "DELETE",
       });
 
-      Alert.alert("Comment deleted.");
+      showAlert({
+        title: 'Comment deleted.',
+        message: `This comment has been deleted.`,
+        type: 'DELETE',
+        status: 'success',
+      });
       fetchComments();
     } catch (error) {
-      Alert.alert("Error", "Failed to delete comment.");
+      showAlert({
+        title: 'Error',
+        message: `An error occured. This comment has not been deleted.`,
+        type: 'ERROR',
+        status: 'error',
+      });
       console.error("Failed to delete comment:", error);
     }
   };
@@ -508,10 +552,12 @@ const PostScreen = () => {
       setNewComment(text);
     } else {
       setNewComment(text.substring(0, maxCharacters));
-      Alert.alert(
-        "Limit Reached",
-        `You can only enter up to ${maxCharacters} characters.`
-      );
+      showAlert({
+        title: 'Limit Reached',
+        message: `You can only enter up to ${maxCharacters} characters.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   };
 
