@@ -52,7 +52,7 @@ export default function Page() {
     setLoading(true);
     try {
       const res = await fetchAPI(
-        `/api/posts/getRandomPosts?number=${isIpad ? 10 : 5}&id=${user?.id}`
+        `/api/posts/getRandomPosts?number=${isIpad ? 10 : 6}&id=${user?.id}`
       );
       setPosts(res.data);
       selectedPostRef.current = res.data[0];

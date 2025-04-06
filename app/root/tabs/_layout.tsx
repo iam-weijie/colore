@@ -21,13 +21,13 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
 
 
   return (
-    <View className={`flex flex-column  items-center justify-center ${label == "Post" ? '-mt-4' : ''} ${isCenter ? '-mt-16' : ''}`}>
+    <View className={`flex flex-column  items-center justify-center  ${isCenter ? '-mt-16' : ''}`}>
   
       <View className={`flex items-center justify-center ${isCenter ? `${ focused ? 'bg-black' : 'bg-[#FAFAFA]'} w-16 h-16 rounded-full shadow-md`: ''}`}>
       
         <Animated.Image
           source={source}
-          className={`flex-1 ${ label == "Post" ? 'w-6 w-6' : 'w-7 h-7'}`}
+          className={`flex-1 ${ label == "Create" || "Boards" ? 'w-6 w-6' : 'w-7 h-7'}`}
           style={[
             { tintColor: isCenter ? `${focused ? '#fff' : '#888'}` : focused ? "#000" : '#888'}
           ]}
@@ -36,7 +36,7 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
         {unread > 0 && <View className='absolute top-1 right-1'><NotificationBubble unread={unread} color={color} /></View>}
       </View>
       <View>
-        <Text className={`w-full txt-center text-xs font-JakartaSemiBold ${label == "Post" ? '-mt-2' : '-mt-1'}`} style={[{ color: focused ? "#000" : '#888' }]}>
+        <Text className={`w-full txt-center text-xs font-JakartaSemiBold -mt-1`} style={[{ color: focused ? "#000" : '#888' }]}>
           {label}
         </Text>
       </View>
@@ -138,6 +138,23 @@ const Layout: React.FC = () => {
           tabBarButton: (props) => <HapticTabBarButton {...props} />,
         }}
       />
+       <Tabs.Screen
+        name="personal-board"
+        options={{
+          title: 'Boards',
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon
+              source={icons.menu}
+              focused={focused}
+              unread={0}
+              color="#72B2FF"
+             label="Boards"
+            />
+          ),
+          tabBarButton: (props) => <HapticTabBarButton {...props} />,
+        }}
+      />
       <Tabs.Screen
         name="home"
         options={{
@@ -149,32 +166,17 @@ const Layout: React.FC = () => {
               focused={focused}
               unread={unreadPersonalPosts}
               color="#E2C7FF"
-              label="Global"
-            />
-          ),
-          tabBarButton: (props) => <HapticTabBarButton {...props} />,
-        }} />
-      <Tabs.Screen
-        name="personal-board"
-        options={{
-          title: 'Personal Board',
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              source={icons.menu}
-              focused={focused}
-              unread={0}
-              color="#72B2FF"
+              
               isCenter
             />
           ),
           tabBarButton: (props) => <HapticTabBarButton {...props} />,
-        }}
-      />
+        }} />
+     
       <Tabs.Screen
-        name="new-post"
+        name="create"
         options={{
-          title: 'New Post',
+          title: 'Create',
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon
@@ -182,7 +184,7 @@ const Layout: React.FC = () => {
               focused={focused}
               unread={0}
               color="#fbb1d6"
-              label="Post"
+              label="Create"
             />
           ),
           tabBarButton: (props) => <HapticTabBarButton {...props} />,

@@ -865,7 +865,7 @@ const PostModal: React.FC<PostModalProps> = ({
             </View>
            ) : (<View className="absolute top-[80%] self-center flex flex-row">
             {posts.length > 1 &&
-              posts.slice(-4).map((post, index) => {
+              posts.map((post, index) => {
                 return (
                   <CarrouselIndicator
                     key={post.id}

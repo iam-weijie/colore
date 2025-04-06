@@ -20,6 +20,7 @@ declare interface Post {
   color: string; //String for now. Should be changed to PostItColor
   emoji: string;
   notified: boolean;
+  prompt_id: number;
 }
 
 declare interface PostComment {
