@@ -177,6 +177,40 @@ const fetchUserData = async () => {
     console.log("Geographical mode changed to:", mode);
      // Fetch posts again when mode changes
   }
+ 
+
+  const getCountryFlag = (country: string) => {
+    if (country) {
+      switch (country) {
+        case "Canada":
+          return countries.canada;
+        case "USA":
+          return countries.usa;
+        case "France":
+          return countries.france;
+        case "Italy":
+          return countries.italy;
+        case "China":
+          return countries.china;
+        case "Argentina":
+          return countries.argentina;
+        default:
+          console.warn(`Country flag not found for: ${country}`);
+          return countries.canada;
+      }
+    } else {
+      console.warn(`Country flag not found for: ${country}`);
+      return countries.canada;
+    }
+  };
+  const GeographicalModeSelector = () => {
+    const modes: GeographicalMode[] = ['city', 'state', 'country', 'world'];
+    
+  const handleGeographicalModeChange = (mode: GeographicalMode) => {
+    setGeographicalMode(mode);
+    console.log("Geographical mode changed to:", mode);
+     // Fetch posts again when mode changes
+  }
     return (
       <View 
         className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-l-lg p-1 shadow-lg"
@@ -207,10 +241,6 @@ const fetchUserData = async () => {
     );
   };
 
-
-  
- 
-
   useEffect(() => {
     /*showAlert({
       title: 'Limit Reached',
@@ -228,26 +258,26 @@ const fetchUserData = async () => {
           <Image
             source={require("@/assets/colore-word-logo.png")}
             style={{ width: 105, height: 45 }}
+            className="shadow-sm"
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
-          <View className="flex flex-row p-1 items-center justify-center border-2 border-black rounded-[24px] bg-[#FAFAFA]">
+          <View className="flex flex-row p-1 items-center justify-center">
           <View className="mx-2">
           <DropdownMenu
           icon={
             geographicalMode === "world"
-              ? icons.globe
+              ? icons.planet
               : geographicalMode === "country"
               ? getCountryFlag(userInfo?.country)
               : geographicalMode === "state"
-              ? icons.placeholder
+              ? icons.vineyard
               : icons.smartcity
           }
           menuItems={[
             {
               label: "World",
-              source: icons.globe,
-              color: "#000000",
+              source: icons.planet,
               onPress: () => {
                 setGeographicalMode("world");
               },
@@ -261,7 +291,7 @@ const fetchUserData = async () => {
             },
             {
               label: userInfo ? userInfo.state :"State",
-              source: icons.placeholder,
+              source: icons.vineyard,
               onPress: () => {
                 setGeographicalMode("state");
               },
@@ -275,11 +305,6 @@ const fetchUserData = async () => {
             }
           ]}
         />
-          </View>
-          <View className="mx-2">
-            <TouchableOpacity onPress={handleNewPostPress}>
-              <Image source={icons.pencil} className="w-7 h-7" />
-            </TouchableOpacity>
           </View>
         </View>
         </View>

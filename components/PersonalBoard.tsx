@@ -177,7 +177,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     useCallback(() => {
       fetchUserData();
       fetchPersonalPosts;
-      setShouldRefresh((prev) => prev + 1); // Increment refresh counter
+      //setShouldRefresh((prev) => prev + 1); // Increment refresh counter
     }, [userId])
   );
 
