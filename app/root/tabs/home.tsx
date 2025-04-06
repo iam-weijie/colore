@@ -85,7 +85,7 @@ const fetchUserData = async () => {
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 10 : 5}&id=${user!.id}`
+      `/api/posts/getRandomPosts?number=${isIpad ? 10 : 6}&id=${user!.id}`
     );
     return response.data;
   };
