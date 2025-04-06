@@ -97,19 +97,19 @@ if (!visible) {
       w-[90%]
       left-[50%]
       -ml-[45%]
-      p-3 
+      p-6 
       bg-[#FAFAFA]
-      rounded-[32px] 
+      rounded-[48px] 
       shadow-xs
       bottom-5  
-      h-[15%] 
+      h-[30%] 
       overflow-hidden"
     >
       <TouchableOpacity
       className="
       flex-1
       flex 
-      flex-row 
+      flex-col 
       items-center 
       justify-start"
       hitSlop={3}
@@ -117,14 +117,13 @@ if (!visible) {
       <View>
         <Image
           source={randomPrompt.source}
-          className="w-14 h-14 mx-4"
+          className="w-20 h-20 my-2"
           resizeMode="contain"
         />
       </View>
-      <View className="flex-1 relative flex flex-col items-start justify-between mr-2 mb-1">
-        <Text className="text-lg font-JakartaSemiBold">{randomPrompt.title}</Text>
-        <Text className="text-[14px]">{randomPrompt.body}</Text>
-      </View>
+
+        <Text className="text-lg font-JakartaSemiBold my-2">{randomPrompt.title}</Text>
+        <Text className="text-[14px] max-w-[85%]">{randomPrompt.body}</Text>
       </TouchableOpacity>
     </Animated.View>
     </Modal>

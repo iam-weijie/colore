@@ -4,16 +4,17 @@ import React, { useEffect, useRef, useState } from "react";
 type MenuItem = {
   label: string;
   source: ImageSourcePropType;
-  color: string;
+  color?: string;
   onPress: () => void;
 };
 
 type DropdownMenuProps = {
+  icon?: ImageSourcePropType;
   menuItems: MenuItem[];
   customMenuWidth?: number;
 };
 
-const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth }) => {
+const DropdownMenu: React.FC<DropdownMenuProps> = ({ icon, menuItems, customMenuWidth }) => {
   const [visible, setVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<View>(null);
@@ -68,13 +69,18 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
 
   return (
     <View className="relative">
+      {icon ? (
+        <TouchableOpacity onPress={handlePress} ref={triggerRef}>
+        <Image source={icon} className="w-7 h-7" />
+        </TouchableOpacity>
+      ) : 
       <TouchableOpacity onPress={handlePress} ref={triggerRef}>
         <View className="flex flex-row justify-center items-center h-6 w-6">
           <View className="w-1 h-1 bg-gray-600 rounded-full mr-1" />
           <View className="w-1 h-1 bg-gray-600 rounded-full mr-1" />
           <View className="w-1 h-1 bg-gray-600 rounded-full" />
         </View>
-      </TouchableOpacity>
+      </TouchableOpacity>}
 
       <Modal transparent visible={visible} onRequestClose={handleClose}>
         {/* Background Overlay */}
@@ -108,7 +114,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems, customMenuWidth 
                   source={item.source}
                   tintColor={item.color}
                   resizeMode="contain"
-                  className="w-5 h-5 mr-2"
+                  className="w-6 h-6 mr-2"
                   style={{ opacity: 0.8 }}
                 />
                 <Text className="font-JakartaSemiBold text-[16px]" style={{ color: item.color }}>{item.label}</Text>

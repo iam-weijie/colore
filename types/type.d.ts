@@ -222,6 +222,10 @@ type Prompt = {
   source: ImageSourcePropType;
 };
 
+type GeographicalMode = 'city' | 'state' | 'country' | 'world'
+
+type GeographicalMode = 'city' | 'state' | 'country' | 'world'
+
 type AlertProps = {
   title: string;
   message: string;
