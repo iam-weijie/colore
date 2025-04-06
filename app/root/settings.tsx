@@ -417,9 +417,9 @@ const Settings = () => {
                <View className="flex flex-row items-center justify-between p-2 mb-2">
                  <Text className="text-lg font-JakartaSemiBold">Enable Haptic Feedback</Text>
                  <Switch
-                   trackColor={{ false: "#767577", true: "#93c5fd" }}
+                   trackColor={{ false: "#767577", true: "#FACC15" }}
                    thumbColor={hapticsEnabled ? "#ffffff" : "#f4f3f4"}
-                   ios_backgroundColor="#3e3e3e"
+                   ios_backgroundColor="#888888"
                    onValueChange={handleHapticsToggle} // Use wrapped handler
                    value={hapticsEnabled}
                  />
@@ -428,9 +428,9 @@ const Settings = () => {
                <View className="flex flex-row items-center justify-between p-2">
                  <Text className="text-lg font-JakartaSemiBold">Enable Sound Effects</Text>
                  <Switch
-                   trackColor={{ false: "#767577", true: "#93c5fd" }}
+                   trackColor={{ false: "#767577", true: "#FACC15" }}
                    thumbColor={soundEffectsEnabled ? "#ffffff" : "#f4f3f4"}
-                   ios_backgroundColor="#3e3e3e"
+                   ios_backgroundColor="#888888"
                    onValueChange={handleSoundToggle} // Use wrapped handler
                    value={soundEffectsEnabled}
                  />

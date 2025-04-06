@@ -21,22 +21,24 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
 
 
   return (
-    <View className="flex flex-column  items-center justify-center" style={[isCenter && styles.centerContainer]}>
+    <View className={`flex flex-column  items-center justify-center ${label == "Post" ? '-mt-4' : ''} ${isCenter ? '-mt-16' : ''}`}>
   
-      <View className={`flex items-center justify-center ${isCenter ? 'w-16 h-16 bg-black rounded-full shadow-md': ''}`}>
+      <View className={`flex items-center justify-center ${isCenter ? `${ focused ? 'bg-black' : 'bg-[#FAFAFA]'} w-16 h-16 rounded-full shadow-md`: ''}`}>
       
         <Animated.Image
           source={source}
-          className='flex-1 w-7 h-7'
+          className={`flex-1 ${ label == "Post" ? 'w-6 w-6' : 'w-7 h-7'}`}
           style={[
-            { tintColor: isCenter ? '#fff' : focused ? "#000" : '#000'}
+            { tintColor: isCenter ? `${focused ? '#fff' : '#888'}` : focused ? "#000" : '#888'}
           ]}
           resizeMode="contain"
         />
-        {unread > 0 && <NotificationBubble unread={unread} color={color} />}
+        {unread > 0 && <View className='absolute top-1 right-1'><NotificationBubble unread={unread} color={color} /></View>}
       </View>
       <View>
-        <Text className="w-full" style={{ color: focused ? "#000" : '#000', fontSize: 12 }}></Text>
+        <Text className={`w-full txt-center text-xs font-JakartaSemiBold ${label == "Post" ? '-mt-2' : '-mt-1'}`} style={[{ color: focused ? "#000" : '#888' }]}>
+          {label}
+        </Text>
       </View>
     </View>
   );
@@ -120,16 +122,16 @@ const Layout: React.FC = () => {
       }}
     >
       <Tabs.Screen
-        name="global-board"
+        name="starring-gallery"
         options={{
-          title: 'Global Board',
+          title: 'Starring',
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon
               source={icons.star}
               focused={focused}
-              unread={unreadMessages}
-              color="#72B2FF"
+              unread={0}
+              color="#ffe640"
               label="Starring"
             />
           ),
@@ -145,8 +147,8 @@ const Layout: React.FC = () => {
             <TabIcon
               source={icons.globe}
               focused={focused}
-              unread={unreadComments}
-              color="#72B2FF"
+              unread={unreadPersonalPosts}
+              color="#E2C7FF"
               label="Global"
             />
           ),
@@ -161,7 +163,7 @@ const Layout: React.FC = () => {
             <TabIcon
               source={icons.menu}
               focused={focused}
-              unread={unreadPersonalPosts}
+              unread={0}
               color="#72B2FF"
               isCenter
             />
@@ -181,7 +183,6 @@ const Layout: React.FC = () => {
               unread={0}
               color="#fbb1d6"
               label="Post"
-              style={{ marginTop: -10 }}
             />
           ),
           tabBarButton: (props) => <HapticTabBarButton {...props} />,
@@ -210,7 +211,7 @@ const Layout: React.FC = () => {
 
 const styles = StyleSheet.create({
   centerContainer: {
-    marginTop: -60,
+    marginTop: -50,
     zIndex: 10
   }
 });

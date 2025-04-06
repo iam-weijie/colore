@@ -30,7 +30,7 @@ const UserPersonalBoard = () => {
     <SafeAreaView className="flex-1">
       <View className="flex-row justify-between items-center mx-7 mt-3">
         <Text className="text-2xl font-JakartaBold mt-4">My Board</Text>
-        <View className="flex flex-row mt-4 p-1 items-center justify-center border-2 border-black rounded-[24px] bg-[#FAFAFA]">
+        {/*<View className="flex flex-row mt-4 p-1 items-center justify-center border-2 border-black rounded-[24px] bg-[#FAFAFA]">
           <View className="mx-2">
           <TouchableOpacity
             onPress={() => router.push("/root/chat/chat-screen")}
@@ -43,7 +43,7 @@ const UserPersonalBoard = () => {
               <Image source={icons.pencil} className="w-7 h-7" />
             </TouchableOpacity>
           </View>
-        </View>
+        </View>*/}
       </View>
       <SignedIn>
         <PersonalBoard userId={user!.id} />

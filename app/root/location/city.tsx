@@ -197,7 +197,7 @@ const City = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#d1d1d1" />
+        <ActivityIndicator size="small" color="#888888" />
           <Text style={styles.loadingText}>Loading cities...</Text>
         </View>
       </SafeAreaView>

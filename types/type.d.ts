@@ -232,6 +232,7 @@ type AlertProps = {
   actionText?: string;
 }
 
+type Position = { top: number; left: number };
 
 declare interface ActionPromptsProps {
   friendName: string, 

@@ -15,6 +15,8 @@ import ActionPrompts from "@/components/ActionPrompts";
 import { useAlert } from '@/notifications/AlertContext';
 
 import { ActionType } from "@/lib/prompts";
+import { Audio } from 'expo-av';
+
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
@@ -32,8 +34,16 @@ export default function Page() {
     }
   };
 
+  const requestAudioPermissions = async () => {
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permission to access audio is required!');
+    }
+  };
+
   useEffect(() => {
     requestPermission();
+    requestAudioPermissions();
     fetchUserData()
   }, []);
 
@@ -75,7 +85,7 @@ const fetchUserData = async () => {
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 8 : 4}&id=${user!.id}`
+      `/api/posts/getRandomPosts?number=${isIpad ? 10 : 5}&id=${user!.id}`
     );
     return response.data;
   };
@@ -135,7 +145,7 @@ const fetchUserData = async () => {
         <View className="flex-row justify-between items-center mx-7 mt-5">
           <Image
             source={require("@/assets/colore-word-logo.png")}
-            style={{ width: 120, height: 50 }}
+            style={{ width: 105, height: 45 }}
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />

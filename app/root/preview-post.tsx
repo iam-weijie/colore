@@ -71,7 +71,7 @@ const PreviewPost = () => {
     }
     else {
       router.replace({
-        pathname: "/root/new-post",
+        pathname: "/root/tabs/new-post",
         params: {
           content: content,
           color: color,
@@ -199,7 +199,7 @@ const PreviewPost = () => {
           }),
         });
 
-        router.replace(`/root/tabs/home`);
+        router.replace(`/root/tabs/new-post`);
 
         setTimeout(() => {
           showAlert({

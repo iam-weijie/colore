@@ -209,7 +209,7 @@ const NewConversation = (): React.ReactElement => {
             </View>
             {loading ? (
               <View className="flex-[0.8] justify-center items-center">
-                <ActivityIndicator size="small" color="#d1d1d1" />
+                <ActivityIndicator size="small" color="#888888" />
               </View>
             ) : error ? (
               <Text>{error}</Text>
