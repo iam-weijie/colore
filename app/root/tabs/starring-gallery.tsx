@@ -2,14 +2,16 @@ import PostModal from "@/components/PostModal";
 import { fetchAPI } from "@/lib/fetch";
 import { Post, UserData } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { router, useFocusEffect } from "expo-router";
 import {
   Dimensions,
   Image,
   SafeAreaView,
   TouchableOpacity,
+  Text,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
@@ -22,9 +24,11 @@ export default function Page() {
   const [userInfo, setUserInfo] = useState<UserData | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const selectedPostRef = useRef<Post | null>(null);
 
   // 1) request ATT permission
   const requestPermission = async () => {
@@ -48,9 +52,10 @@ export default function Page() {
     setLoading(true);
     try {
       const res = await fetchAPI(
-        `/api/posts/getRandomPosts?number=${isIpad ? 8 : 4}&id=${user?.id}`
+        `/api/posts/getRandomPosts?number=${isIpad ? 10 : 5}&id=${user?.id}`
       );
       setPosts(res.data);
+      selectedPostRef.current = res.data[0];
       setExcludedIds(res.data.map((p: Post) => p.id));
     } catch (e) {
       console.error("Failed to fetch posts:", e);
@@ -66,10 +71,12 @@ export default function Page() {
       setIsModalVisible(true);
       if (user && stacks.length == 0) {  
         fetchPosts();
+        
       } else if (user && stacks.length > 0) {
         setPosts(stacks[0].elements);
         setExcludedIds(stacks[0].ids);
       }
+      
     }, [user, isIpad])
   );
 
@@ -128,40 +135,47 @@ export default function Page() {
   }, [posts]);
 
   const handleNewPostPress = () => {
+    router.replace("/root/tabs/home");
     setIsModalVisible(false);
-    router.back();
+   
   };
 
   const handleCloseModalPress = () => {
+    router.replace("/root/tabs/home");
     setIsModalVisible(false);
-    router.replace("/root/tabs/personal-board");
   };
 
   const handleScrollToLoad = async () => {
-    console.log("Loading more posts...");
     setLoading(true);
     fetchPosts();
     setLoading(false);
   };
 
-  if (loading) return null; // or your skeleton
+  if (!selectedPostRef.current) return null; // or your skeleton
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center">
+        <ActivityIndicator 
+        size={"small"}
+        color={"#888"}
+        ></ActivityIndicator>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
         <PostModal
           isVisible={isModalVisible}
-          selectedPost={posts[0]}
+          selectedPost={selectedPostRef.current}
           handleCloseModal={handleCloseModalPress}
           header={
-            <View className="absolute top-5 right-7 flex-row items-center justify-center">
-              <TouchableOpacity onPress={handleNewPostPress}>
-                <Image
-                  source={icons.pencil}
-                  tintColor="black"
-                  className="w-7 h-7 p-2 rounded-full"
-                />
-              </TouchableOpacity>
+            <View className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center">
+              <Text className="text-2xl font-JakartaBold text-white text-center">
+                This is a prompt
+              </Text>
             </View>
           }
           infiniteScroll={true}

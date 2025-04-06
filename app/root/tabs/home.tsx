@@ -18,6 +18,8 @@ import { useAlert } from '@/notifications/AlertContext';
 import { ActionType } from "@/lib/prompts";
 import { GeographicalMode } from "@/types/type";
 import UserInfo from "../user-info";
+import { Audio } from 'expo-av';
+
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +39,16 @@ export default function Page() {
     }
   };
 
+  const requestAudioPermissions = async () => {
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permission to access audio is required!');
+    }
+  };
+
   useEffect(() => {
     requestPermission();
+    requestAudioPermissions();
     fetchUserData()
   }, []);
 
@@ -91,7 +101,7 @@ const fetchUserData = async () => {
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 8 : 4}&id=${user!.id}&mode=${geographicalMode}`
+      `/api/posts/getRandomPosts?number=${isIpad ? 10 : 5}&id=${user!.id}`
     );
     return response.data;
   };
@@ -197,60 +207,9 @@ const fetchUserData = async () => {
     );
   };
 
-  const getCountryFlag = (country: string) => {
-    if (country) {
-      switch (country) {
-        case "Canada":
-          return countries.canada;
-        case "USA":
-          return countries.usa;
-        case "France":
-          return countries.france;
-        case "Italy":
-          return countries.italy;
-        case "China":
-          return countries.china;
-        case "Argentina":
-          return countries.argentina;
-        default:
-          console.warn(`Country flag not found for: ${country}`);
-          return countries.canada;
-      }
-    } else {
-      console.warn(`Country flag not found for: ${country}`);
-      return countries.canada;
-    }
-  };
 
-    return (
-      <View 
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-l-lg p-1 shadow-lg"
-        style={{ width: 70 }}
-      >
-        {modes.map((mode) => (
-          <TouchableOpacity
-            key={mode}
-            onPress={() => handleGeographicalModeChange(mode)}
-            className={`p-2 my-1 rounded ${
-              geographicalMode === mode 
-                ? 'bg-blue-500' 
-                : 'bg-gray-200'
-            }`}
-          >
-            <Text 
-              className={`text-center text-xs ${
-                geographicalMode === mode 
-                  ? 'text-white' 
-                  : 'text-black'
-              }`}
-            >
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
+  
+ 
 
   useEffect(() => {
     /*showAlert({
@@ -268,7 +227,7 @@ const fetchUserData = async () => {
         <View className="flex-row justify-between items-center mx-7 mt-5">
           <Image
             source={require("@/assets/colore-word-logo.png")}
-            style={{ width: 120, height: 50 }}
+            style={{ width: 105, height: 45 }}
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
@@ -331,11 +290,6 @@ const fetchUserData = async () => {
           allowStacking={true}
           mode={geographicalMode}
         />
-        {/* <ActionPrompts 
-        friendName={""}
-         action={action} 
-         handleAction={() => {}}/>*/}
-         handleAction={() => {}}/>*/}
       </SignedIn>
     </SafeAreaView>
   );

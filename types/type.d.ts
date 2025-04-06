@@ -234,6 +234,7 @@ type AlertProps = {
 
 type GeographicalMode = 'city' | 'state' | 'country' | 'world'
 
+type Position = { top: number; left: number };
 
 declare interface ActionPromptsProps {
   friendName: string, 

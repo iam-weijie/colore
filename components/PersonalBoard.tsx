@@ -21,6 +21,7 @@ import { useCallback } from 'react';
 import { Post } from "@/types/type";
 import UserProfile from "./UserProfile";
 import { Dimensions } from "react-native";
+import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
 
 type PersonalBoardProps = {
     userId: string;
@@ -86,7 +87,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     }
     else {
       const viewerId = user!.id;
-      const maxPostOnScreen = postRefIDs.length == 0 ? (isIpad ? 8 : 4) : Math.min(postRefIDs.length  + 4, (isIpad ? 12 : 7) )
+      const maxPostOnScreen = postRefIDs.length == 0 ? (isIpad ? 10 : 5) : Math.min(postRefIDs.length  + 4, (isIpad ? 14 : 8) )
       setMaxPosts(maxPostOnScreen ); 
     
       try {
@@ -118,7 +119,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     }
    
   };
-  const AlgorithmRandomPosition = (isPinned: boolean) => {
+  const AlgorithmNewPosition = (isPinned: boolean) => {
 
     if (isPinned) {
       return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
@@ -151,8 +152,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       const newPostWithPosition = result.data.map((post: Post) => ({
         ...post,
         position: {
-          top:  AlgorithmRandomPosition(post.pinned).top,
-          left: AlgorithmRandomPosition(post.pinned).left,
+          top:  AlgorithmNewPosition(post.pinned).top,
+          left: AlgorithmNewPosition(post.pinned).left,
         },
       }));
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];
@@ -183,7 +184,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   if (loading) {
     return (
       <View className="flex-[0.8] justify-center items-center">
-        <ActivityIndicator size="small" color="#d1d1d1" />
+        <ActivityIndicator size="small" color="#888888" />
       </View>
     );
   }

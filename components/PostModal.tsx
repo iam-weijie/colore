@@ -19,6 +19,7 @@ import {
   Alert,
   Dimensions,
   Image,
+  ImageSourcePropType,
   Platform,
   ScrollView,
   Share,
@@ -92,6 +93,54 @@ const CarrouselIndicator = ({ id, index }: { id: number; index: number }) => {
   );
 };
 
+const InteractionButton = ({ label, onPress, icon, color }:
+  { label: string, onPress: () => void, icon: ImageSourcePropType, color: string }) => {
+
+  const bounce = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: bounce.value }],
+    };
+  });
+
+  const handlePressIn = () => {
+    bounce.value = withSpring(1.1, { damping: 5 });
+  };
+
+  const handlePressOut = () => {
+    bounce.value = withSpring(1, { damping: 5 });
+  };
+
+  return (
+    <View className="flex-column items-center justify-center mx-4">
+      <Animated.View 
+      style={animatedStyle}
+      entering={FadeInUp.duration(200)}>
+        <TouchableOpacity
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={0.9}
+          className="flex-row items-center justify-center w-14 h-14 rounded-full bg-white shadow-md"
+        >
+          <Image
+            source={icon}
+            className={
+              label === 'Reply' ? 'w-5 h-5' :
+              label === 'Hard agree' ? 'w-7 h-7' :
+              'w-8 h-8'
+            }
+            tintColor={color}
+          />
+        </TouchableOpacity>
+      </Animated.View>
+      <Text className="text-[12px] font-JakartaSemiBold shadow-md text-white mt-2">
+        {label}
+      </Text>
+    </View>
+  );
+};
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
   selectedPost,
@@ -107,6 +156,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
+  const [currentPost, setCurrentPost] = useState<Post>(selectedPost);
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
   const [posts, setPosts] = useState<Post[]>([]);
   const [likeCount, setLikeCount] = useState<number>(0);
@@ -124,12 +174,10 @@ const PostModal: React.FC<PostModalProps> = ({
 
   // Memoize the posts array to prevent unnecessary re-renders
   const post = useMemo(() => {
-    console.log("selectedPost", selectedPost);
     
     const stack = stacks.find((stack) => stack.ids.includes(selectedPost.id));
-    console.log("stack", stack?.elements.length);
     return stack ? stack.elements : [selectedPost];
-  }, [selectedPost, stacks]);
+  }, [stacks]);
 
   useEffect(() => {
     fetchUserdata();
@@ -139,6 +187,7 @@ const PostModal: React.FC<PostModalProps> = ({
   useEffect(() => {
     if (post.length) {
       setPosts(post);
+      setCurrentPost(post[currentPostIndex]);
     }
   }, [post]);
 
@@ -157,53 +206,30 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   };
 
-  console.log("stacks1", stacks);
+  useEffect(() => {
+    setCurrentPost(post[currentPostIndex]);
+
+    if (infiniteScroll && typeof scrollToLoad === "function" && currentPostIndex + 1 === posts.length - 1) {
+      // If last post and infiniteScroll is enabled
+      runOnJS(scrollToLoad)();
+      console.log("loaded more posts", selectedPost.id);
+      
+    } 
+  }, [currentPostIndex])
   // Fetch like status only when post or user changes
   useEffect(() => {
-    if (!user?.id || !post[currentPostIndex]?.id) return;
+    if (!user?.id || !currentPost?.id) return;
     fetchLikeStatus();
-    setIsPinned(post[currentPostIndex]?.pinned)
+    setIsPinned(currentPost?.pinned)
   }, [post, currentPostIndex, user?.id]);
 
   const dateCreated = convertToLocal(
-    new Date(post[currentPostIndex]?.created_at || "")
+    new Date(currentPost?.created_at || "")
   );
   const formattedDate = formatDateTruncatedMonth(dateCreated);
   const postColor = temporaryColors.find(
-    (color) => color.name === post[currentPostIndex]?.color
+    (color) => color.name === currentPost?.color
   ) as PostItColor;
-
-  // Handle swipe gestures
-  // const gestureHandler = useAnimatedGestureHandler({
-  //   onStart: (_, context) => {
-  //     console.log("Gesture started");
-  //     context.startX = translateX.value;
-  //   },
-  //   onActive: (event, context) => {
-  //     translateX.value = (context.startX as number) + event.translationX;
-  //   },
-  //   onEnd: () => {
-  //     const threshold = 60;
-  //     if (translateX.value > threshold && currentPostIndex > 0) {
-  //       translateX.value = withTiming(0);
-  //       opacity.value = withTiming(0, {}, () => {
-  //         runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
-  //         opacity.value = withTiming(1);
-  //       });
-  //     } else if (
-  //       translateX.value < -threshold &&
-  //       currentPostIndex < posts.length - 1
-  //     ) {
-  //       translateX.value = withTiming(0);
-  //       opacity.value = withTiming(0, {}, () => {
-  //         runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-  //         opacity.value = withTiming(1);
-  //       });
-  //     } else {
-  //       translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-  //     }
-  //   },
-  // });
 
 
   const swipeGesture = Gesture.Pan()
@@ -214,8 +240,10 @@ const PostModal: React.FC<PostModalProps> = ({
       translateX.value = event.translationX;
     })
     .onEnd(() => {
-      const threshold = 60;
-      const isLastPost = currentPostIndex === posts.length - 2;
+      const threshold = 15;
+      const isLastPost = currentPostIndex === posts.length - 1;
+
+
       
       if (translateX.value > threshold && currentPostIndex > 0) {
         translateX.value = withTiming(0);
@@ -226,19 +254,12 @@ const PostModal: React.FC<PostModalProps> = ({
       } else if (translateX.value < -threshold) {
         if (!isLastPost) {
           // Swipe left: go to next post
-          console.log("doesnt called for more posts");
           translateX.value = withTiming(0);
           opacity.value = withTiming(0, {}, () => {
             runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
             opacity.value = withTiming(1);
           });
-        } else if (infiniteScroll && typeof scrollToLoad === "object") {
-          // If last post and infiniteScroll is enabled
-          runOnJS(scrollToLoad)();
-          // Optionally reset translateX
-          translateX.value = withTiming(0);
         } else {
-          console.log("what", typeof scrollToLoad, scrollToLoad);
           // Bounce back
           translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
         }
@@ -261,7 +282,7 @@ const PostModal: React.FC<PostModalProps> = ({
   }));
 
   const handleLikePress = async () => {
-    if (isLoadingLike || !post[currentPostIndex]?.id || !user?.id) return;
+    if (isLoadingLike || !currentPost?.id || !user?.id) return;
     setIsLoadingLike(true);
     try {
       // Play like sound if liking (not unliking) and enabled
@@ -275,7 +296,7 @@ const PostModal: React.FC<PostModalProps> = ({
       const response = await fetchAPI(`/api/posts/updateLikeCount`, {
         method: "PATCH",
         body: JSON.stringify({
-          postId: post[currentPostIndex].id,
+          postId: currentPost.id,
           userId: user.id,
           increment,
         }),
@@ -334,15 +355,12 @@ const PostModal: React.FC<PostModalProps> = ({
     getData();
   }, [user]);
 
-  useEffect(() => {
-console.log("currentPostIndex", currentPostIndex);
-  }, [currentPostIndex])
   const fetchUserdata = async () => {
     try {
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
       const savePostsList = response.data[0].saved_posts;
       const savedStatus = savePostsList?.includes(
-        `${post[currentPostIndex]?.id}`
+        `${currentPost?.id}`
       ) ?? false;
       setSavedPosts(savePostsList);
       setIsSaved(savedStatus);
@@ -359,7 +377,9 @@ console.log("currentPostIndex", currentPostIndex);
       message: "Are you sure you want to delete this post?",
       type: 'DELETE',
       status: 'success',
-      action: () => handleDelete(),
+      action: () => {
+        handleDelete()
+      },
       actionText: "Delete",
       duration: 5000,
     });
@@ -377,10 +397,10 @@ console.log("currentPostIndex", currentPostIndex);
       router.push({
         pathname: "/root/edit-post",
         params: {
-          postId: post[currentPostIndex]?.id,
-          content: post[currentPostIndex]?.content,
-          color: post[currentPostIndex]?.color,
-          emoji: post[currentPostIndex]?.emoji,
+          postId: currentPost?.id,
+          content: currentPost?.content,
+          color: currentPost?.color,
+          emoji: currentPost?.emoji,
         },
       });
     }, 750);
@@ -389,7 +409,7 @@ console.log("currentPostIndex", currentPostIndex);
   const handleDelete = async () => {
     try {
       const response = await fetchAPI(
-        `/api/posts/deletePost?id=${post[currentPostIndex]!.id}`,
+        `/api/posts/deletePost?id=${currentPost!.id}`,
         {
           method: "DELETE",
         }
@@ -399,13 +419,6 @@ console.log("currentPostIndex", currentPostIndex);
         throw new Error(response.error);
       }
      handleCloseModal();
-      
-     showAlert({
-        title: 'Post deleted',
-        message: "Your post has been deleted successfully.",
-        type: 'DELETE',
-        status: 'error',
-      });
 
       
     } catch (error) {
@@ -416,6 +429,13 @@ console.log("currentPostIndex", currentPostIndex);
         type: 'ERROR',
         status: 'error',
       });
+    } finally {
+      showAlert({
+        title: 'Post deleted',
+        message: "Your post has been deleted successfully.",
+        type: 'DELETE',
+        status: 'success',
+      });
     }
   };
 
@@ -425,16 +445,16 @@ console.log("currentPostIndex", currentPostIndex);
     router.push({
       pathname: "/root/post/[id]",
       params: {
-        id: post[currentPostIndex]?.id,
-        clerk_id: post[currentPostIndex]?.clerk_id,
-        content: post[currentPostIndex]?.content,
-        username: post[currentPostIndex]?.username,
-        like_count: post[currentPostIndex]?.like_count,
-        report_count: post[currentPostIndex]?.report_count,
-        created_at: post[currentPostIndex]?.created_at,
-        unread_comments: post[currentPostIndex]?.unread_comments,
+        id: currentPost?.id,
+        clerk_id: currentPost?.clerk_id,
+        content: currentPost?.content,
+        username: currentPost?.username,
+        like_count: currentPost?.like_count,
+        report_count: currentPost?.report_count,
+        created_at: currentPost?.created_at,
+        unread_comments: currentPost?.unread_comments,
         anonymous: invertedColors,
-        color: post[currentPostIndex]?.color,
+        color: currentPost?.color,
         saved: isSaved,
       },
     });
@@ -512,7 +532,7 @@ console.log("currentPostIndex", currentPostIndex);
       }
 
       const result = await Share.share({
-        message: `${post[currentPostIndex]?.content.trim()} \n\nDownload Coloré here:https://apps.apple.com/ca/app/coloré/id6738930845`,
+        message: `${currentPost?.content.trim()} \n\nDownload Coloré here:https://apps.apple.com/ca/app/coloré/id6738930845`,
         url: imageToShare, // Share the captured image (uri or base64)
       });
 
@@ -532,7 +552,7 @@ console.log("currentPostIndex", currentPostIndex);
         method: "PATCH",
         body: JSON.stringify({
           userId: user!.id,
-          postId: post[currentPostIndex]?.id,
+          postId: currentPost?.id,
           pinnedStatus: !isPinned,
         }),
       });
@@ -598,7 +618,7 @@ console.log("currentPostIndex", currentPostIndex);
     }
     
     if (invertedColors) {
-      return post[currentPostIndex]?.recipient_user_id == user!.id ? [
+      return currentPost?.recipient_user_id == user!.id ? [
         {
           label: isPinned ? "Unpin" : "Pin",
           source: icons.pin,
@@ -628,7 +648,7 @@ console.log("currentPostIndex", currentPostIndex);
           label: isSaved ? "Remove" : "Save",
           color: "#000000",
           source: isSaved ? icons.close : icons.bookmark,
-          onPress: () => handleSavePost(post[currentPostIndex]?.id),
+          onPress: () => handleSavePost(currentPost?.id),
         },
         {
           label: "Report",
@@ -658,7 +678,7 @@ console.log("currentPostIndex", currentPostIndex);
             label: isSaved ? "Remove" : "Save",
             color: "#000000",
             source: isSaved ? icons.close : icons.bookmark,
-            onPress: () => handleSavePost(post[currentPostIndex]?.id),
+            onPress: () => handleSavePost(currentPost?.id),
           },
           {
             label: "Delete",
@@ -678,7 +698,7 @@ console.log("currentPostIndex", currentPostIndex);
             label: isSaved ? "Remove" : "Save",
             color: "#000000",
             source: isSaved ? icons.close : icons.bookmark,
-            onPress: () => handleSavePost(post[currentPostIndex]?.id),
+            onPress: () => handleSavePost(currentPost?.id),
           },
           {
             label: "Report",
@@ -705,7 +725,7 @@ console.log("currentPostIndex", currentPostIndex);
           }}
         >
           <TouchableWithoutFeedback onPress={!isPreview ? handleCloseModal : undefined}>
-            {BackgroundGridEmoji(post[currentPostIndex]?.emoji || "")}
+            {BackgroundGridEmoji(currentPost?.emoji || "")}
           </TouchableWithoutFeedback>
 
           {header}
@@ -734,7 +754,7 @@ console.log("currentPostIndex", currentPostIndex);
 
                 <ScrollView>
                   <Text className="text-[16px] p-1 my-4 font-Jakarta">
-                  {post[currentPostIndex]?.content}
+                  {currentPost?.content}
                   </Text>
                 </ScrollView>
                 {!isPreview && (
@@ -759,8 +779,8 @@ console.log("currentPostIndex", currentPostIndex);
                     {
                       <DropdownMenu
                         menuItems={getMenuItems(
-                          post[currentPostIndex]?.clerk_id === user!.id ||
-                            post[currentPostIndex]?.recipient_user_id === user!.id,
+                          currentPost?.clerk_id === user!.id ||
+                            currentPost?.recipient_user_id === user!.id,
                           invertedColors
                         )}
                       />
@@ -770,7 +790,80 @@ console.log("currentPostIndex", currentPostIndex);
               </Animated.View>
             </GestureDetector>
           </GestureHandlerRootView>
-           <View className="absolute top-[80%] self-center flex flex-row">
+           {infiniteScroll ? (
+            <View className="absolute top-[75%] self-center flex flex-row items-center justify-center">
+              <InteractionButton 
+              label="Nay"
+              icon={icons.close}
+              color={"#FF0000"}
+              onPress={() => {
+                setCurrentPostIndex((prevIndex) => {
+                  const newIndex = prevIndex + 1;
+                  if (newIndex < 0) {
+                    return posts.length - 1; // Loop back to the last post
+                  } else if (newIndex >= posts.length) {
+                    return 0; // Loop back to the first post
+                  }
+                  return newIndex;
+                }
+                );
+                translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+                opacity.value = withTiming(0, {}, () => {
+                  runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+                  opacity.value = withTiming(1);
+                }
+                );
+                if (soundEffectsEnabled) {
+                  //playSoundEffect(SoundType.Dislike);
+                }
+              }}
+              />
+              <InteractionButton 
+              label="Reply"
+              icon={icons.plus}
+              color={postColor?.fontColor || "rgba(0, 0, 0, 0.5)"}
+              onPress={() => {
+                handleCloseModal();
+                router.push({  
+                  pathname: "/root/new-personal-post",
+                  params: {
+                    recipient_id: currentPost?.clerk_id,
+                    source: "board"
+                  },
+              })
+             
+              if (soundEffectsEnabled) {  
+                //playSoundEffect(SoundType.Reply);
+              }
+            }}
+              />
+              <InteractionButton 
+              label="Hard agree"
+              icon={icons.check}
+              color={"#000000"}
+              onPress={() => {
+                setCurrentPostIndex((prevIndex) => {
+                  const newIndex = prevIndex + 1;
+                  if (newIndex < 0) {
+                    return posts.length - 1; // Loop back to the last post
+                  } else if (newIndex >= posts.length) {
+                    return 0; // Loop back to the first post
+                  }
+                  return newIndex;
+                });
+                translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+                opacity.value = withTiming(0, {}, () => {
+                  runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+                  opacity.value = withTiming(1);
+                });
+                if (soundEffectsEnabled) {
+                  //playSoundEffect(SoundType.Like);
+                }
+              }}
+              />
+
+            </View>
+           ) : (<View className="absolute top-[80%] self-center flex flex-row">
             {posts.length > 1 &&
               posts.slice(-4).map((post, index) => {
                 return (
@@ -781,7 +874,7 @@ console.log("currentPostIndex", currentPostIndex);
                   />
                 );
               })}
-          </View>
+          </View>)}
         </View>
       </ReactNativeModal>
   );

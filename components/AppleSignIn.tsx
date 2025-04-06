@@ -123,7 +123,7 @@ const handleSignUpOrSignIn = async (existingUser, identityToken, email, appleId)
         />
       ) : (
         <View className="w-full rounded-full p-6 -mt-8 bg-black">
-         <ActivityIndicator size="small" color="#d1d1d1" />
+         <ActivityIndicator size="small" color="#888888" />
         </View>
       )}
 

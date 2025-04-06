@@ -564,6 +564,7 @@ const PostScreen = () => {
     if (clerk_id === user!.id) {
       try {
         console.log("Patching comments")
+        
         await fetchAPI(`/api/posts/updateUnreadComments`, {
           method: "PATCH",
           body: JSON.stringify({
@@ -720,7 +721,7 @@ const PostScreen = () => {
           <View className="flex-1">
             {/* Comment section */}
             <View className="h-full">
-              {loading && <ActivityIndicator size="small" color="#d1d1d1" />}
+              {loading && <ActivityIndicator size="small" color="#888888" />}
               {error && <Text className="text-red-500 mx-4">{error}</Text>}
               {!loading && !error && postComments.length === 0 && (
                 <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2 text-center">
