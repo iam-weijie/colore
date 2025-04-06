@@ -18,7 +18,9 @@ import person from "@/assets/icons/person.png";
 import plus from "@/assets/icons/plus.png";
 import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
+import planet from "@/assets/icons/planet-earth.png";
 import refresh from "@/assets/icons/refresh.png";
+import vineyard from "@/assets/icons/vineyard.png";
 import smartcity from "@/assets/icons/smart-city-2.png";
 import search from "@/assets/icons/search.png";
 import send from "@/assets/icons/send.png";
@@ -48,7 +50,7 @@ export const icons = {
   home,
   pin,
   chat,
-  globe,
+  planet,
   close,
   profile,
   menu,
@@ -69,10 +71,11 @@ export const icons = {
   note,
   send,
   bookmark,
+  vineyard
 };
 
 export const countries = {
-canada,
+  canada,
   usa,
   france,
   italy,
