@@ -24,8 +24,8 @@ const Circle: React.FC<CircleProps> = ({
         borderRadius: size / 2,
         margin: 5,
         // Only adding the border style - minimal change needed
-        borderWidth: selected ? 2 : 0,
-        borderColor: "black",
+        borderWidth: 2,
+        borderColor: selected ? "black" : "white",
         ...style,
       }}
     />

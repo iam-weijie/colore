@@ -7,7 +7,8 @@ import { useEffect, useState, useCallback } from "react";
 
 import { icons, countries } from "@/constants";
 import { router, useFocusEffect } from "expo-router";
-import { Dimensions, Image, ImageSourcePropType, SafeAreaView, TouchableOpacity, View, Text } from "react-native";
+import { Dimensions, Image, Modal, ImageSourcePropType, Pressable,  SafeAreaView, TouchableOpacity, View, Text } from "react-native";
+import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming } from "react-native-reanimated";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 import DropdownMenu from "@/components/DropdownMenu";
@@ -20,15 +21,19 @@ import { GeographicalMode } from "@/types/type";
 import UserInfo from "../user-info";
 import { Audio } from 'expo-av';
 
+import {ChatScreen, NotificationScreen} from "../chat/chat-screen";
+import NotificationBubble from "@/components/NotificationBubble";
+
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
-  const { isIpad } = useGlobalContext();
+  const { isIpad, unreadComments, unreadPersonalPosts, unreadRequests } = useGlobalContext();
   const [action, setAction] = useState(ActionType.NONE);
   const { showAlert } = useAlert();
   const [geographicalMode, setGeographicalMode] = useState<GeographicalMode>('world');
   const [userInfo, setUserInfo] = useState(null);
+  const [selectedModal, setSelectedModal] = useState<Function | null>(null);
 
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
@@ -229,26 +234,46 @@ const fetchUserData = async () => {
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
-          <View className="flex flex-row p-1 items-center justify-center gap-3">
+          <View className="flex flex-row p-1 items-center justify-center gap-4">
             <TouchableOpacity
             onPress={() => {
-              router.push("/root/chat/chat-screen");
+              //router.push("/root/chat/chat-screen");
+              setSelectedModal(() => <ChatScreen/>)
+              console.log("selectedModal", !!selectedModal)
             }}>
+           <View>
             <Image
               source={icons.addUser}
-              className="w-5 h-5"
-              style={{ tintColor: "#888" }}
+              className="w-6 h-6"
+              style={{ tintColor: "#000" }}
             />
+            <View className="absolute top-0 right-[4px]">
+            <NotificationBubble
+              unread={unreadRequests}
+              color={"#FF0000"}
+        />
+        </View>
+            </View>
             </TouchableOpacity>
          <TouchableOpacity
-         onPress={() => {}}>
+         onPress={() => {
+          setSelectedModal(() => <NotificationScreen/>)
+         }}>
+          <View>
             <Image
               source={icons.notification}
-              className="w-5 h-5"
-              style={{ tintColor: "#888" }}
+              className="w-6 h-6"
+              style={{ tintColor: "#000" }}
             />
+            <View className="absolute top-[1px] right-[8px]">
+            <NotificationBubble
+              unread={unreadComments + unreadPersonalPosts}
+              color={"#FF0000"}
+        />
+        </View>
+            </View>
             </TouchableOpacity>
-           
+            
           <View className="mx-2">
        
           <DropdownMenu
@@ -306,7 +331,105 @@ const fetchUserData = async () => {
         friendName={""}
          action={action} 
          handleAction={() => {}}/>*/}
+         {!!selectedModal && <ModalPage children={selectedModal} isVisible={!!selectedModal} onClose={() => {setSelectedModal(null)}} />}
       </SignedIn>
     </SafeAreaView>
+  );
+}
+
+const ModalPage = ({ children, isVisible, onClose }: {children: any, isVisible: boolean, onClose: () => void}) => {
+  console.log("isVisible", isVisible)
+  const [visible, setVisible] = useState(isVisible);
+
+  const translateY = useSharedValue(500); 
+  const modalOpacity = useSharedValue(0);
+
+  const animatedOpacity = useAnimatedStyle(() => {
+        return {
+          opacity: modalOpacity.value
+        } 
+      })
+
+  const animatedStyle = useAnimatedStyle(() => {
+          return {
+            transform: [{ translateY: translateY.value }],
+          };
+          
+        });
+
+        useEffect(() => {
+       // Spring animation to slide in
+          translateY.value = withSpring(0, {  
+            damping: 18,
+            stiffness: 125,
+            mass: 1,});  // Slide in to 0 with spring effect
+      }, [visible, children]);  // Dependency array ensures useEffect runs when either action or friendName changes
+
+    useEffect(() => {
+  if (!visible) {
+    modalOpacity.value = withTiming(0, {
+      duration: 200
+    })
+  } else {
+    modalOpacity.value = withTiming(0.2, {
+      duration: 200
+    })
+  }
+    }, [visible])
+
+    
+  const handleClose = () => {
+    translateY.value = withSpring(500, { 
+      damping: 18,
+      stiffness: 125,
+      mass: 1, });  // Slide out to off-screen
+    modalOpacity.value = withTiming(0, {
+      duration: 200
+    })
+    setTimeout(() => {
+    setVisible(false);
+    onClose();
+    }
+    , 500);
+    
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        handleClose() // Set visible to false when navigating away
+      };
+    }, [])
+  );
+  console.log("children", children, typeof children)
+  return (
+    <Modal transparent visible={visible} onRequestClose={handleClose}>
+       <Pressable className="flex-1 " onPress={handleClose}>
+                 <Animated.View
+                            style={[animatedOpacity, {backgroundColor: "black"}]}
+                            className="flex-1 absolute top-0 left-0 right-0 bottom-0"
+                          />
+        </Pressable>
+        <Animated.View
+             style={[
+               animatedStyle,]}
+             className="
+             absolute 
+             w-[92%]
+             min-h-[55%]
+             max-h-[65%]
+             left-[50%]
+             -ml-[46%]
+             p-6
+             bg-[#FAFAFA]
+             rounded-[48px] 
+             shadow-xs
+             bottom-5  
+             overflow-hidden"
+           >
+        {children}
+      </Animated.View>
+    </Modal>
+    
   );
 }

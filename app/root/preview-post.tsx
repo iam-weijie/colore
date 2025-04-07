@@ -71,7 +71,7 @@ const PreviewPost = () => {
     }
     else {
       router.replace({
-        pathname: "/root/tabs/new-post",
+        pathname: "/root/new-post",
         params: {
           content: content,
           color: color,
@@ -153,8 +153,7 @@ const PreviewPost = () => {
           }),
         });
 
-        router.back()
-        router.back()
+        router.replace(`/root/tabs/create`);
 
         
 
@@ -199,7 +198,7 @@ const PreviewPost = () => {
           }),
         });
 
-        router.replace(`/root/tabs/new-post`);
+        router.replace(`/root/tabs/create`);
 
         setTimeout(() => {
           showAlert({
@@ -230,31 +229,29 @@ const PreviewPost = () => {
           handleCloseModal={handleCloseModal}
           isPreview={true}
           header={
-            <View className="absolute top-0 left-0 w-full flex flex-row items-center justify-center mt-10 pt-7 px-6">
-              <View className="flex-1">
-                <TouchableOpacity
+            <View className="flex-1 h-full absolute top-0 left-0 w-full flex flex-row items-center justify-center mt-10 pt-7 px-6">
+      
+              <View className="flex-1 w-full absolute top-9 flex flex-row items-center ">
+              <TouchableOpacity
                   onPress={handleCloseModal}
                   className="mr-2"
                 >
                   <AntDesign name="caretleft" size={18} color={"white"} />
                 </TouchableOpacity>
-              </View>
-              <View className="absolute top-9 ">
-                <Text className="font-JakartaSemiBold text-[#ffffff] text-xl ">
+                <Text className="font-JakartaSemiBold text-[#ffffff] text-2xl ">
                   Preview
                 </Text>
-              </View>
-              <View>
-                <CustomButton
-                  className="w-14 h-10 rounded-full shadow-none"
-                  fontSize="sm"
-                  title="Post"
-                  style={{ backgroundColor: "black" }}
-                  padding="0"
-                  onPress={handleSubmitPost}
-                  disabled={false}
-                />
-              </View>
+              </View> 
+              <View className="flex-1 absolute flex items-center w-full bottom-[20%]">
+            <CustomButton
+              className="w-[50%] h-16 rounded-full shadow-none bg-black"
+              fontSize="lg"
+              title="Submit"
+              padding="0"
+              onPress={handleSubmitPost}
+              //disabled={!postContent || isPosting}
+            />
+            </View>
             </View>
           }
         />

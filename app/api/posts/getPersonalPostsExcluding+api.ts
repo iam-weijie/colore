@@ -33,6 +33,8 @@ export async function GET(request: Request) {
         p.pinned,
         p.color,
         p.emoji,
+        p.board_id,
+        p.prompt_id,
         p.recipient_user_id,
         u.clerk_id,
         u.firstname, 

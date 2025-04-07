@@ -58,7 +58,7 @@ const ItemContainer = ({label, icon, iconColor, onPress}:
                     </View>
                   </LinearGradient>
                   
-                    <Text className="text-[16px] font-bold text-[#000] ">
+                    <Text className="text-[14px] font-bold text-[#000] ">
                       {label}
                     </Text>
                     </View>
