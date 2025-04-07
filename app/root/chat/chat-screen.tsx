@@ -55,6 +55,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAlert } from '@/notifications/AlertContext';
 import NewConversation from "./new-conversation";
+import * as Haptics from 'expo-haptics';
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -82,7 +83,9 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
     <TouchableOpacity
     className={`flex-1 py-3 w-full ${focused ? 'border-b-2 border-black' : ''}`}
   activeOpacity={0.6}
-  onPress={onPress}
+  onPress={() => {
+    onPress()
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);}}
 >
   <View className="flex flex-row items-center justify-center">
     <Text

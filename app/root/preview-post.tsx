@@ -17,7 +17,7 @@ const PreviewPost = () => {
   const { user } = useUser();
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const { showAlert } = useAlert();
-  const { id, content, color, emoji, personal, recipientId, username } =
+  const { id, content, color, emoji, personal, recipientId, username, expiration } =
     useLocalSearchParams();
   const [isPosting, setIsPosting] = useState(false);
   const [postColor, setPostColor] = useState<PostItColor>(
@@ -59,7 +59,7 @@ const PreviewPost = () => {
       router.back()
     } else if (personal === "true") {
       router.replace({
-        pathname: "/root/new-personal-post",
+        pathname: "/root/new-post",
         params: {
           content: content,
           color: color,
@@ -108,6 +108,7 @@ const PreviewPost = () => {
             postId: id,
             color: postColor.name,
             emoji: emoji,
+            expires_at: `(NOW() + INTERVAL ${expiration})`
           }),
         });
 
@@ -152,6 +153,7 @@ const PreviewPost = () => {
             recipientId: recipientId,
             color: postColor.name,
             emoji: emoji,
+            expires_at: `(NOW() + INTERVAL ${expiration})`
           }),
         });
 
@@ -198,6 +200,7 @@ const PreviewPost = () => {
             clerkId: user!.id,
             color: postColor.name,
             emoji: emoji,
+            expires_at: `(NOW() + INTERVAL ${expiration})`
           }),
         });
 
@@ -242,7 +245,7 @@ const PreviewPost = () => {
                 >
                   <AntDesign name="caretleft" size={18} color={"white"} />
                 </TouchableOpacity>
-                <Text className="font-JakartaSemiBold text-[#ffffff] text-xl ">
+                <Text className="font-JakartaSemiBold text-[#ffffff] text-2xl ">
                   Preview
                 </Text>
               </View> 

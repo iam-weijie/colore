@@ -125,7 +125,12 @@ const Create = () => {
             icon={icons.menu}
             iconColor="#FAFAFA"
             onPress={() => {
-              //router.push("/root/new-group");
+              router.push({
+                pathname: "root/new-board",
+                params: {
+                  type: 'personal',
+                }
+              });
             }
             }
           />
@@ -134,7 +139,12 @@ const Create = () => {
             icon={icons.globe}
             iconColor="#FAFAFA"
             onPress={() => {
-              //router.push("/root/new-collection");
+              router.push({
+                pathname: "root/new-board",
+                params: {
+                  type: 'community',
+                }
+              });
             }
             }
           />

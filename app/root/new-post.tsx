@@ -42,6 +42,10 @@ const NewPost = () => {
   const [isPosting, setIsPosting] = useState(false);
   const [fromPreview, setFromPreview] = useState(false);
 
+  const [selectExpirationDate, setSelectExpirationDate] = useState<string>('14 days')
+
+  const expirationDate = ['1 day', '3 days', '7 days', '14 days']
+
   // Initialize from route params when component mounts or params change
   useEffect(() => {
     if (content) {
@@ -84,7 +88,8 @@ const NewPost = () => {
         id: "", 
         content: postContent, 
         color: selectedColor.name, 
-        emoji: selectedEmoji
+        emoji: selectedEmoji,
+        expiration: selectExpirationDate
       }
     });
   } else {
@@ -98,7 +103,8 @@ const NewPost = () => {
                      emoji: selectedEmoji, 
                      personal: "true", 
                      recipientId: recipient_id,
-                     username: username
+                     username: username,
+                     expiration: selectExpirationDate
                    }
                  })
   }
@@ -140,7 +146,8 @@ const NewPost = () => {
          
         >
           <View className="flex-1" >
-            <View className="flex flex-row justify-start items-center mt-6 mx-8">
+            <View className="flex flex-row justify-between items-center mt-6 mx-8">
+            <View className="flex flex-row justify-start items-center ">
                 <TouchableOpacity onPress={() => router.back()} className="mr-2">
                   <AntDesign name="caretleft" size={18} color="black" />
                 </TouchableOpacity>
@@ -149,6 +156,11 @@ const NewPost = () => {
                 New Post
               </Text>
               </View>
+              
+               
+              
+
+              
            
               
               {/*<CustomButton
@@ -161,7 +173,36 @@ const NewPost = () => {
                 disabled={!postContent || isPosting}
               />*/}
             </View>
-           <View className="flex-1 m-6 rounded-[48px]" style={{backgroundColor: selectedColor.hex}}>
+            {!!username ? (
+                  <TouchableOpacity>
+                  <Image
+                  source={icons.addUser}
+                  className="w-6 h-6"
+                  tintColor={selectedColor.fontColor} />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                  onPress={() => {
+                    const currentIndex = expirationDate.indexOf(selectExpirationDate);
+                    if (currentIndex < expirationDate.length - 1) {
+                      setSelectExpirationDate(expirationDate[currentIndex + 1])
+                    } else {
+                      setSelectExpirationDate(expirationDate[0])
+                    }
+                  }}>
+                   <Text className="  text-center text-[14px] font-JakartaBold" style={{
+                    color: selectedColor.fontColor
+                   }}>
+                   Expire in : {selectExpirationDate}
+                 </Text>
+                 </TouchableOpacity>
+                )
+                }
+            </View>
+
+           <View className="flex-1 m-6 rounded-[48px]" style={{
+            backgroundColor: selectedColor.hex
+            }}>
             <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
           <View className="flex-1 flex-column justify-center items-center ">
             <View className="flex w-full mx-3">

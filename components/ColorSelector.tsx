@@ -20,7 +20,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({
         <View className="flex flex-row items-center justify-center">
           {selectedColor.id === color.id && <Text className="text-[14px] font-JakartaBold text-white">Selected</Text>}
         <Circle
-          key={color.id}
+          key={color.hex}
           color={color.hex}
           size={30}
           selected={selectedColor.id === color.id}
