@@ -604,17 +604,19 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   };
 
   const handleGatherPosts = () => {
-    const ref = maps[maps.length - 1].coordinates;
-    const newPostsPostions = postsWithPosition.map((post) => ({
-      id: post.id,
-      coordinates: {
-        x_coordinate: ref.x_coordinate,
-        y_coordinate: ref.y_coordinate,
-      },
-    }));
-    //console.log("newPostsPostions")
-    setMap(newPostsPostions);
-    //console.log("new posts", newPostsPostions)
+    //console.log("handleGatherPosts");
+    if (maps.length > 0) {
+      const ref = maps[maps.length - 1].coordinates;
+      const newPostsPostions = postsWithPosition.map((post) => ({
+        id: post.id,
+        coordinates: {
+          x_coordinate: ref.x_coordinate,
+          y_coordinate: ref.y_coordinate,
+        },
+      }));
+      setMap(newPostsPostions);
+      //console.log("new posts", newPostsPostions)
+    }
   };
 
   //console.log("remaingring loaded", stacks)
