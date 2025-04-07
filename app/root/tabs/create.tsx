@@ -29,8 +29,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAlert } from '@/notifications/AlertContext';
 
 
-const ItemContainer = ({label, icon, iconColor, onPress}: 
-  {label: string, icon: ImageSourcePropType, iconColor: string, onPress: () => void}) => {
+const ItemContainer = ({label, caption, icon, iconColor, onPress}: 
+  {label: string, caption: string, icon: ImageSourcePropType, iconColor: string, onPress: () => void}) => {
     return (
       <TouchableOpacity
       className="relative flex  mb-3 py-4 pl-3 pr-7 rounded-[24px] w-full"
@@ -57,10 +57,14 @@ const ItemContainer = ({label, icon, iconColor, onPress}:
                     />
                     </View>
                   </LinearGradient>
-                  
+                    <View className="flex flex-col items-start">
                     <Text className="text-[14px] font-bold text-[#000] ">
                       {label}
                     </Text>
+                    {caption && <Text className="text-[12px] text-gray-400 ">
+                      {caption}
+                    </Text>}
+                    </View>
                     </View>
                     <Image
                       source={icons.chevron}
@@ -97,7 +101,8 @@ const Create = () => {
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}>
           <ItemContainer
-            label="New global post"
+            label="Send global note"
+            caption="A thought for the world to see"
             icon={icons.plus}
             iconColor="#FAFAFA"
             onPress={() => {
@@ -106,7 +111,8 @@ const Create = () => {
             }
           />
           <ItemContainer
-            label="New personal post"
+            label="Write a personal note"
+            caption="A thought for your friends board"
             icon={icons.pencil}
             iconColor="#FAFAFA"
             onPress={() => {
@@ -121,7 +127,7 @@ const Create = () => {
             }
           />
           <ItemContainer
-            label="New personal board"
+            label="Create a board"
             icon={icons.menu}
             iconColor="#FAFAFA"
             onPress={() => {

@@ -7,14 +7,19 @@ import { router, useFocusEffect } from "expo-router";
 import {
   Dimensions,
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
   SafeAreaView,
   TouchableOpacity,
   Text,
+  TextInput,
+  TouchableWithoutFeedback,
   View,
   ActivityIndicator,
 } from "react-native";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
+import CustomButton from "@/components/CustomButton";
 import { icons } from "@/constants";
 
 export default function Page() {
@@ -25,7 +30,9 @@ export default function Page() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [promptContent, setPromptContent] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [hasSubmittedPrompt, setHasSubmittedPrompt] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const selectedPostRef = useRef<Post | null>(null);
@@ -134,9 +141,21 @@ export default function Page() {
     }
   }, [posts]);
 
-  const handleNewPostPress = () => {
-    router.replace("/root/tabs/home");
-    setIsModalVisible(false);
+  const handlePromptSubmit = async () => {
+     try {
+           await fetchAPI("/api/prompts/newPrompt", {
+             method: "POST",
+             body: JSON.stringify({
+               content: promptContent,
+               clerkId: user!.id,
+             }),
+           });
+          }
+        catch(error) {
+          console.error("Couldn't submit prompt", error)
+        } finally {
+          setHasSubmittedPrompt(true)
+        }
    
   };
 
@@ -168,13 +187,59 @@ export default function Page() {
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
-        <PostModal
+        {hasSubmittedPrompt ? (<PostModal
           isVisible={isModalVisible}
           selectedPost={selectedPostRef.current}
           handleCloseModal={handleCloseModalPress}
           infiniteScroll={true}
           scrollToLoad={handleScrollToLoad}
-        />
+        />) : (
+            <TouchableWithoutFeedback
+                    onPress={() => Keyboard.dismiss()}
+                    onPressIn={() => Keyboard.dismiss()}
+                  >
+          <View className="flex-1">
+           
+            <View className="mt-3 mx-7">
+              <Text className="text-2xl font-JakartaBold my-4">Starring</Text>
+            </View>
+          <View className="flex-[0.85] flex-column items-center justify-center ">
+            <View className="flex w-full flex-col items-center justify-center">
+              <Text className="my-4 text-[#888] text-[12px] font-JakartaSemiBold"> Answer this prompt to see other people's response </Text>
+              <Text className="text-[24px] font-JakartaBold">Promts</Text>
+            </View>
+            <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
+               <View>
+                              <TextInput
+                                className="text-[20px] text-black p-5 rounded-[24px] font-JakartaBold mx-10 "
+                                placeholder="Type something..."
+                                value={promptContent}
+                                onChangeText={setPromptContent}
+                                autoFocus
+                                multiline
+                                scrollEnabled
+                                style={{
+                                  paddingTop: 10,
+                                  paddingBottom: 0,
+                                  minHeight: 200,
+                                  maxHeight: 300,
+                                  textAlignVertical: "top",
+                                }}
+                              />
+                              </View>
+            </KeyboardAvoidingView>
+             <CustomButton
+              className="w-[50%] h-16 rounded-full shadow-none bg-black"
+              fontSize="lg"
+              title="Next"
+              padding="0"
+              onPress={handlePromptSubmit}
+              //disabled={}//navigationIndex < (type === 'community' ? tabs.length - 1 : tabs.length - 2)}
+            />
+          </View>
+          </View>
+          </TouchableWithoutFeedback>
+        )}
       </SignedIn>
     </SafeAreaView>
   );

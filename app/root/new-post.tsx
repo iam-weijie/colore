@@ -3,9 +3,10 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
+  ActivityIndicator,
   Dimensions,
   Image,
+  FlatList,
   Keyboard,
   KeyboardAvoidingView,
   Text,
@@ -22,15 +23,20 @@ import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor } from "@/types/type";
+import { PostItColor, UserNicknamePair } from "@/types/type";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from '@/notifications/AlertContext';
+import ModalSheet from "@/components/Modal";
 
 const NewPost = () => {
   const { user } = useUser();
-  const { content, color, emoji, recipient_id, username } = useLocalSearchParams();
+  const { postId, content, color, emoji, recipient_id, username } = useLocalSearchParams();
   const { showAlert } = useAlert();
   
+  const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [userUsername, setUserUsername] = useState<string>(username);
+  const [recipientId, setRecipientId] = useState<string>(recipient_id);
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
@@ -80,12 +86,12 @@ const NewPost = () => {
   };
 
   const handlePostSubmit = async () => {
-    if (!!recipient_id) {
+    if (!recipientId) {
     console.log("normal post")
     router.push({
       pathname: "/root/preview-post",
       params: {
-        id: "", 
+        id: postId ?? "",
         content: postContent, 
         color: selectedColor.name, 
         emoji: selectedEmoji,
@@ -102,9 +108,8 @@ const NewPost = () => {
                      color: selectedColor.name, 
                      emoji: selectedEmoji, 
                      personal: "true", 
-                     recipientId: recipient_id,
-                     username: username,
-                     expiration: selectExpirationDate
+                     recipientId: recipientId,
+                     username: userUsername
                    }
                  })
   }
@@ -130,6 +135,13 @@ const NewPost = () => {
     // console.log(selectedEmoji);
   };
 
+  const selectedUserInfo = (info: UserNicknamePair) => {
+    setSelectedUser(info);
+    setRecipientId(info[0]);
+    setUserUsername(info[1]);
+    setIsModalVisible(false)
+  }
+
    useEffect(() => {
      if (selectedEmoji && isEmojiSelectorVisible) {
        toggleEmojiSelector();
@@ -153,7 +165,7 @@ const NewPost = () => {
                 </TouchableOpacity>
                 <View className="">
               <Text className="  text-center text-xl font-JakartaBold text-black">
-                New Post
+                {postId ? 'Edit Post' : 'New Post'}
               </Text>
               </View>
               
@@ -174,11 +186,16 @@ const NewPost = () => {
               />*/}
             </View>
             {!!username ? (
-                  <TouchableOpacity>
+                  <TouchableOpacity
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setTimeout(() => setIsModalVisible(true), 100);
+                  }
+                    }>
                   <Image
                   source={icons.addUser}
                   className="w-6 h-6"
-                  tintColor={selectedColor.fontColor} />
+                  tintColor={"#000"} />
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
@@ -190,11 +207,11 @@ const NewPost = () => {
                       setSelectExpirationDate(expirationDate[0])
                     }
                   }}>
-                   <Text className="  text-center text-[14px] font-JakartaBold" style={{
+                   {!postId && <Text className="  text-center text-[14px] font-JakartaBold" style={{
                     color: selectedColor.fontColor
                    }}>
                    Expire in : {selectExpirationDate}
-                 </Text>
+                 </Text>}
                  </TouchableOpacity>
                 )
                 }
@@ -235,7 +252,7 @@ const NewPost = () => {
               
               </KeyboardAvoidingView>
               <View className="flex-1 absolute m-4 left-4 top-2" >
-                <Text className="text-[16px] font-JakartaBold text-white">{username ? `To: ${username}` : ''}</Text>
+                <Text className="text-[16px] font-JakartaBold text-white">{userUsername ? `To: ${userUsername}` : ''}</Text>
               </View>
               <View  className="flex-1 flex-col items-end absolute p-4 right-0" >
               <ColorSelector
@@ -291,10 +308,118 @@ const NewPost = () => {
        
           </View>
         </TouchableWithoutFeedback>
+        {isModalVisible &&
+        <ModalSheet
+        isVisible={isModalVisible}
+         onClose={() => {setIsModalVisible(false)}}>
+           <FindUser selectedUserInfo={selectedUserInfo} />
+          </ModalSheet>}
       </SignedIn>
       </SafeAreaView>
   );
 };
 
+
+const FindUser = ({ selectedUserInfo }) => {
+const { user } = useUser();
+
+const [users, setUsers] = useState<UserNicknamePair[]>([]);
+const [searchText, setSearchText] = useState<string>("");
+
+const [error, setError] = useState<string | null>(null);
+const [loading, setLoading] = useState<boolean>(false);
+
+console.log("Modal Showed")
+useEffect(() => {
+  fetchUsers(); 
+}, [])
+const fetchUsers = async () => {
+        setLoading(true);
+        try {
+          // //console.log("user: ", user!.id);
+          const response = await fetchAPI(`/api/chat/searchUsers?id=${user!.id}`, {
+            method: "GET",
+          });
+          if (response.error) {
+            //console.log("Error fetching user data");
+            //console.log("response data: ", response.data);
+            //console.log("response status: ", response.status);
+            // //console.log("response: ", response);
+            throw new Error(response.error);
+          }
+          //console.log("response: ", response.data);
+          const nicknames = response.data;
+          //console.log("nicknames: ", nicknames);
+          setUsers(nicknames);
+          return;
+        } catch (err) {
+          console.error("Failed to fetch user data:", err);
+          setError("Failed to fetch nicknames.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+   const renderUser = ({
+      item,
+    }: {
+      item: UserNicknamePair;
+    }): React.ReactElement => (
+      <TouchableOpacity
+        onPress={() => {
+          selectedUserInfo(item)
+        }}
+        //disabled={creatingChat}
+        className="p-4"
+      >
+        <View className="flex flex-row justify-between items-center">
+          <Text className="text-[14px] font-JakartaBold text-black left-2">{item[1]}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+
+    const filteredUsers =
+    searchText.length > 0
+      ? users.filter(
+          (user) =>
+            user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
+        )
+      : [];
+
+    return (
+       <View>
+        <View className="w-full self-center items-center">
+          <Text className="my-2 text-[16px] font-JakartaBold">
+            Find User
+          </Text>
+        </View>
+                  <View className="flex-grow mt-4 mx-4">
+                                  <TextInput
+                                    className="w-full h-12 px-3 -pt-1 bg-[#EAEAEA] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                                    placeholder="Search users..."
+                                    placeholderTextColor="#888"
+                                    value={searchText}
+                                    onChangeText={(text): void => setSearchText(text)}
+                                  />
+                                </View>
+                                {loading ? (
+                                              <View className="flex-[0.8] mt-4 justify-center items-center">
+                                                <ActivityIndicator size="small" color="#888888" />
+                                              </View>
+                                            ) : error ? (
+                                              <Text>{error}</Text>
+                                            ) : (
+                                              <FlatList
+                                              className="mt-4 pb-4 mb-10"
+                                              contentContainerStyle={{ paddingBottom: 80 }} 
+                                                data={filteredUsers}
+                                                renderItem={renderUser}
+                                                keyExtractor={(item): string => String(item[0])}
+                                                showsVerticalScrollIndicator={false}
+                                              />
+                                            )}
+                  </View>
+    )
+}
 
 export default NewPost;

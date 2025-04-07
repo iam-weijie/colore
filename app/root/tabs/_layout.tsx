@@ -28,16 +28,15 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
       
         <Animated.Image
           source={source}
-          className={`flex-1 ${ label == "Create" || "Boards" ? 'w-6 w-6' : 'w-7 h-7'}`}
+          className={`flex-1 ${['Create', 'Boards'].includes(label) ? 'w-5 h-5' : 'w-6 h-6'}`}
           style={[
-            { tintColor: isCenter ? `${focused ? '#fff' : '#888'}` : focused ? "#000" :  color}
+            { tintColor: isCenter ? `${focused ? '#fff' : '#888'}` : focused ? color :  "#888"}
           ]}
           resizeMode="contain"
         />
-        {unread > 0 && <View className='absolute top-1 right-1'><NotificationBubble unread={unread} color={"#FF0000"} /></View>}
       </View>
       <View>
-        <Text className={`w-full txt-center text-xs font-JakartaSemiBold -mt-1`} style={[{ color: focused ? "#000" : color }]}>
+        <Text className={`w-full txt-center text-xs font-JakartaSemiBold -mt-1`} style={[{ color: focused ? color : "#888" }]}>
           {label}
         </Text>
       </View>
@@ -115,10 +114,13 @@ const Layout: React.FC = () => {
   const currentTab = getFocusedTabRouteName(navigationState);
 
   const isCreateFocused = currentTab === "create";
+  const isBoardFocused = currentTab === "personal-board";
   
   const dynamicShadow = isCreateFocused
     ? '-6px -3px 13px 3px rgba(251, 177, 214, 0.25), 5px 4px 13px 3px rgba(147, 197, 253, 0.25)'
-    : '-6px -3px 13px 3px rgba(250,230,64,0.15), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)';
+    : ( isBoardFocused 
+      ? '-6px -3px 13px 3px rgba(251, 177, 214, 0.25), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)'
+      : '-6px -3px 13px 3px rgba(250,230,64,0.15), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)');
 
   return (
     <Tabs
@@ -141,6 +143,23 @@ const Layout: React.FC = () => {
         },
       }}
     >
+        <Tabs.Screen
+        name="personal-board"
+        options={{
+          title: 'Boards',
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon
+              source={icons.menu}
+              focused={focused}
+              unread={0}
+              color="#000000"
+             label="Boards"
+            />
+          ),
+          tabBarButton: (props) => <HapticTabBarButton {...props} />,
+        }}
+      />
       <Tabs.Screen
         name="starring-gallery"
         options={{
@@ -158,23 +177,7 @@ const Layout: React.FC = () => {
           tabBarButton: (props) => <HapticTabBarButton {...props} />,
         }}
       />
-       <Tabs.Screen
-        name="personal-board"
-        options={{
-          title: 'Boards',
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon
-              source={icons.menu}
-              focused={focused}
-              unread={0}
-              color="#8654CF"
-             label="Boards"
-            />
-          ),
-          tabBarButton: (props) => <HapticTabBarButton {...props} />,
-        }}
-      />
+     
       <Tabs.Screen
         name="home"
         options={{
@@ -220,7 +223,7 @@ const Layout: React.FC = () => {
               source={icons.profile}
               focused={focused}
               unread={unreadComments + unreadRequests}
-              color="#2775CC"
+              color="#000000"
               label="Profile"
             />
           ),

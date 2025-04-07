@@ -17,12 +17,14 @@ const PreviewPost = () => {
   const { user } = useUser();
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const { showAlert } = useAlert();
-  const { id, content, color, emoji, personal, recipientId, username, expiration } =
+  const { id, content, color, emoji, personal, recipientId, username } =
     useLocalSearchParams();
   const [isPosting, setIsPosting] = useState(false);
   const [postColor, setPostColor] = useState<PostItColor>(
     temporaryColors.find((c) => c.name === color) as PostItColor
   );
+
+  console.log("params", recipientId, personal)
 
   // Create a default "empty" post object
   const defaultPost: Post = {
@@ -107,8 +109,7 @@ const PreviewPost = () => {
             content: cleanedContent,
             postId: id,
             color: postColor.name,
-            emoji: emoji,
-            expires_at: `(NOW() + INTERVAL ${expiration})`
+            emoji: emoji
           }),
         });
 
@@ -152,8 +153,7 @@ const PreviewPost = () => {
             clerkId: user!.id,
             recipientId: recipientId,
             color: postColor.name,
-            emoji: emoji,
-            expires_at: `(NOW() + INTERVAL ${expiration})`
+            emoji: emoji
           }),
         });
 
@@ -199,8 +199,7 @@ const PreviewPost = () => {
             content: content,
             clerkId: user!.id,
             color: postColor.name,
-            emoji: emoji,
-            expires_at: `(NOW() + INTERVAL ${expiration})`
+            emoji: emoji
           }),
         });
 

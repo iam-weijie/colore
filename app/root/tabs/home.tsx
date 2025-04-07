@@ -20,6 +20,10 @@ import { GeographicalMode } from "@/types/type";
 import UserInfo from "../user-info";
 import { Audio } from 'expo-av';
 
+import {ChatScreen, NotificationScreen} from "../chat/chat-screen";
+import NotificationBubble from "@/components/NotificationBubble";
+import ModalSheet from "@/components/Modal";
+
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +33,7 @@ export default function Page() {
   const { showAlert } = useAlert();
   const [geographicalMode, setGeographicalMode] = useState<GeographicalMode>('world');
   const [userInfo, setUserInfo] = useState(null);
+  const [selectedModal, setSelectedModal] = useState<Function | null>(null);
 
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
@@ -266,6 +271,11 @@ const fetchUserData = async () => {
           allowStacking={true}
           mode={geographicalMode}
         />
+        {/* <ActionPrompts 
+        friendName={""}
+         action={action} 
+         handleAction={() => {}}/>*/}
+         {!!selectedModal && <ModalSheet children={selectedModal} isVisible={!!selectedModal} onClose={() => {setSelectedModal(null)}} />}
       </SignedIn>
     </SafeAreaView>
   );
