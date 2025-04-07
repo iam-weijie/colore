@@ -30,14 +30,14 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
           source={source}
           className={`flex-1 ${ label == "Create" || "Boards" ? 'w-6 w-6' : 'w-7 h-7'}`}
           style={[
-            { tintColor: isCenter ? `${focused ? '#fff' : '#888'}` : focused ? "#000" : '#888'}
+            { tintColor: isCenter ? `${focused ? '#fff' : '#888'}` : focused ? "#000" :  color}
           ]}
           resizeMode="contain"
         />
-        {unread > 0 && <View className='absolute top-1 right-1'><NotificationBubble unread={unread} color={color} /></View>}
+        {unread > 0 && <View className='absolute top-1 right-1'><NotificationBubble unread={unread} color={"#FF0000"} /></View>}
       </View>
       <View>
-        <Text className={`w-full txt-center text-xs font-JakartaSemiBold -mt-1`} style={[{ color: focused ? "#000" : '#888' }]}>
+        <Text className={`w-full txt-center text-xs font-JakartaSemiBold -mt-1`} style={[{ color: focused ? "#000" : color }]}>
           {label}
         </Text>
       </View>
@@ -151,7 +151,7 @@ const Layout: React.FC = () => {
               source={icons.star}
               focused={focused}
               unread={0}
-              color="#ffe640"
+              color="#EFD41D"
               label="Starring"
             />
           ),
@@ -168,7 +168,7 @@ const Layout: React.FC = () => {
               source={icons.menu}
               focused={focused}
               unread={0}
-              color="#72B2FF"
+              color="#8654CF"
              label="Boards"
             />
           ),
@@ -203,7 +203,7 @@ const Layout: React.FC = () => {
               source={icons.plus}
               focused={focused}
               unread={0}
-              color="#fbb1d6"
+              color="#D82C82"
               label="Create"
             />
           ),
@@ -220,7 +220,7 @@ const Layout: React.FC = () => {
               source={icons.profile}
               focused={focused}
               unread={unreadComments + unreadRequests}
-              color="#72B2FF"
+              color="#2775CC"
               label="Profile"
             />
           ),

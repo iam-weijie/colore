@@ -144,39 +144,6 @@ const fetchUserData = async () => {
     setAction(ActionType.TIPS)
   }
   }
-
-  const getCountryFlag = (country: string) => {
-    if (country) {
-      switch (country) {
-        case "Canada":
-          return countries.canada;
-        case "USA":
-          return countries.usa;
-        case "France":
-          return countries.france;
-        case "Italy":
-          return countries.italy;
-        case "China":
-          return countries.china;
-        case "Argentina":
-          return countries.argentina;
-        default:
-          console.warn(`Country flag not found for: ${country}`);
-          return countries.canada;
-      }
-    } else {
-      console.warn(`Country flag not found for: ${country}`);
-      return countries.canada;
-    }
-  };
-  const GeographicalModeSelector = () => {
-    const modes: GeographicalMode[] = ['city', 'state', 'country', 'world'];
-    
-  const handleGeographicalModeChange = (mode: GeographicalMode) => {
-    setGeographicalMode(mode);
-    console.log("Geographical mode changed to:", mode);
-     // Fetch posts again when mode changes
-  }
  
 
   const getCountryFlag = (country: string) => {
@@ -203,43 +170,7 @@ const fetchUserData = async () => {
       return countries.canada;
     }
   };
-  const GeographicalModeSelector = () => {
-    const modes: GeographicalMode[] = ['city', 'state', 'country', 'world'];
-    
-  const handleGeographicalModeChange = (mode: GeographicalMode) => {
-    setGeographicalMode(mode);
-    console.log("Geographical mode changed to:", mode);
-     // Fetch posts again when mode changes
-  }
-    return (
-      <View 
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-l-lg p-1 shadow-lg"
-        style={{ width: 70 }}
-      >
-        {modes.map((mode) => (
-          <TouchableOpacity
-            key={mode}
-            onPress={() => handleGeographicalModeChange(mode)}
-            className={`p-2 my-1 rounded ${
-              geographicalMode === mode 
-                ? 'bg-blue-500' 
-                : 'bg-gray-200'
-            }`}
-          >
-            <Text 
-              className={`text-center text-xs ${
-                geographicalMode === mode 
-                  ? 'text-white' 
-                  : 'text-black'
-              }`}
-            >
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
+ 
 
   useEffect(() => {
     /*showAlert({

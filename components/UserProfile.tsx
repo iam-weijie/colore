@@ -563,8 +563,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
               <View className="p-8 flex flex-column items-center justify-center ">
                 <Animated.View entering={FadeIn.duration(800)}>
-                { (nickname || profileUser?.username) ? (<View className="flex flex-row items-center justify-center">
-                   <Text className={`text-[24px] font-JakartaBold`}>
+                { (nickname || profileUser?.username) ? (<View className="flex flex-row items-center justify-center mb-2">
+                   <Text className={`text-[20px] font-JakartaBold`}>
                     {nickname
                       ? nickname
                       : profileUser?.username
@@ -572,18 +572,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                         : `${profileUser?.firstname?.charAt(0)}.`}
                   </Text> 
                 </View>) : <View>
-                 <Text className={`text-[24px] bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
+                 <Text className={`text-[20px] bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
                  </View>}
                 </Animated.View>
                 <Animated.View entering={FadeIn.duration(800)}>
                 { profileUser ?  (<View>
-                <Text className="text-gray-700 text-center font-Jakarta text-base">
+                <Text className=" text-[14px] text-gray-600 text-center font-Jakarta">
                     {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
                     {profileUser?.country}
                   </Text> 
                 </View>) : (
                   <View>
-                  <Text className="text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta text-base"> Location updating... </Text>
+                  <Text className="text-[14px] text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta"> Location updating... </Text>
                   </View>)}
                 </Animated.View>
               </View>
@@ -715,7 +715,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               <TouchableOpacity
                 onPress={async () => {
                   if (user!.id === userId) {
-                    router.push("/root/chat/chat-screen");
+                    //router.push("/root/chat/chat-screen");
                   }
                   if (
                     (user!.id !== userId && friendStatus.name === "unknown") ||

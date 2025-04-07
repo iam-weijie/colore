@@ -18,6 +18,7 @@ import EmojiSelector from "react-native-emoji-selector";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import ColorSelector from "@/components/ColorSelector";
+import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
@@ -114,19 +115,24 @@ const NewPost = () => {
    
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1" style={{backgroundColor: selectedColor.hex}} >
       <SignedIn>
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
+         
         >
-          <View className="flex-1">
-            <View className="flex flex-row justify-between items-center mt-4 mx-8">
-            <View className="flex-1">
-                <TouchableOpacity onPress={() => router.back()}>
-                  <AntDesign name="caretleft" size={18} color="0076e3" />
+          <View className="flex-1" >
+            <View className="flex flex-row justify-start items-center mt-6 mx-8">
+                <TouchableOpacity onPress={() => router.back()} className="mr-2">
+                  <AntDesign name="caretleft" size={18} color="white" />
                 </TouchableOpacity>
+                <View className="">
+              <Text className="  text-center text-2xl font-JakartaBold text-white">
+                New Post
+              </Text>
               </View>
+           
               
               {/*<CustomButton
                 className="w-14 h-10 rounded-full shadow-none"
@@ -138,17 +144,14 @@ const NewPost = () => {
                 disabled={!postContent || isPosting}
               />*/}
             </View>
-            <View className="flex-1 absolute self-center items-center justify-center mt-4">
-              <Text className="  text-center text-xl font-JakartaBold">
-                New Post
-              </Text>
-              </View>
+           
             <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
-          <View className="flex h-full flex-column justify-between items-center pb-4">
+          <View className="flex-1 flex-column justify-center items-center ">
             <View className="flex w-full mx-3">
               {!isEmojiSelectorVisible && (
+                <View>
                 <TextInput
-                  className="text-[16px] font-Jakarta mx-10 my-5 "
+                  className="text-[20px] text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
                   placeholder="Type something..."
                   value={postContent}
                   onChangeText={handleChangeText}
@@ -164,10 +167,17 @@ const NewPost = () => {
                     textAlignVertical: "top",
                   }}
                 />
+                </View>
               )}
             </View>
     
-            <View className=" w-full flex flex-row justify-center items-center mb-12">
+           
+             
+              </View>
+              
+              </KeyboardAvoidingView>
+            
+              <View  className="flex-1 absolute p-4 right-0 h-screen" >
               <ColorSelector
                 colors={temporaryColors}
                 selectedColor={selectedColor}
@@ -181,13 +191,20 @@ const NewPost = () => {
                     {selectedEmoji}
                   </Text>
                 ) : (
-                  <Image source={icons.wink} className="w-8 h-9 m-1" />
+                  <Image source={icons.wink} className="w-8 h-9 m-1" tintColor={'#FFFFFF'} />
                 )}
               </TouchableOpacity>
               </View>
-             
-              </View>
-              </KeyboardAvoidingView>
+              <View className="flex-1 absolute flex items-center w-full bottom-[10%]">
+            <CustomButton
+              className="w-[50%] h-16 rounded-full shadow-none bg-black"
+              fontSize="lg"
+              title="Continue"
+              padding="0"
+              onPress={handlePostSubmit}
+              disabled={!postContent || isPosting}
+            />
+            </View>
 
             {isEmojiSelectorVisible && (
               <View className="w-full h-screen bg-white">
@@ -198,10 +215,11 @@ const NewPost = () => {
                 />
               </View>
             )}
+       
           </View>
         </TouchableWithoutFeedback>
       </SignedIn>
-    </SafeAreaView>
+      </SafeAreaView>
   );
 };
 
