@@ -229,8 +229,28 @@ const fetchUserData = async () => {
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
-          <View className="flex flex-row p-1 items-center justify-center">
+          <View className="flex flex-row p-1 items-center justify-center gap-3">
+            <TouchableOpacity
+            onPress={() => {
+              router.push("/root/chat/chat-screen");
+            }}>
+            <Image
+              source={icons.addUser}
+              className="w-5 h-5"
+              style={{ tintColor: "#888" }}
+            />
+            </TouchableOpacity>
+         <TouchableOpacity
+         onPress={() => {}}>
+            <Image
+              source={icons.notification}
+              className="w-5 h-5"
+              style={{ tintColor: "#888" }}
+            />
+            </TouchableOpacity>
+           
           <View className="mx-2">
+       
           <DropdownMenu
           icon={
             geographicalMode === "world"

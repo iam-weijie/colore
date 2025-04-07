@@ -21,6 +21,19 @@ declare interface Post {
   emoji: string;
   notified: boolean;
   prompt_id: number;
+  board_id: number;
+  reply_to: number;
+}
+
+declare interface Board {
+  id: number;
+  title: string;
+  user_id: string;
+  members_id: string[];
+  board_type: string;
+  restrictions: string[];
+  created_at: string;
+  number_of_posts: number;
 }
 
 declare interface PostComment {
@@ -124,7 +137,7 @@ declare interface PostModalProps {
   handleCloseModal: () => void;
   invertedColors?: boolean;
   handleUpdate?: (isPinned: boolean) => void | Promise<void>;
-  header: React.ReactElement;
+  header?: React.ReactElement;
   isPreview?: boolean;
   infiniteScroll?: boolean;
   scrollToLoad?: () => void;

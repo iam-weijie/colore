@@ -438,10 +438,10 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
       <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
         <PanGestureHandler onGestureEvent={gestureHandler} >
           <Animated.View
-            className="flex mb-2 p-4 rounded-[16px] w-full"
+            className="flex mb-3 p-4 rounded-[24px] w-full"
             style={[animatedStyle, { backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }]}
           >
-            <View className="flex flex-row justify-between items-center mx-2">
+            <View className="flex-1 flex-row justify-between items-center mx-2">
               <View>
                 <TouchableOpacity
                   className="flex-1"
@@ -467,7 +467,11 @@ const ChatScreen: React.FC<ChatScreenProps> = () => {
                     });
                   }}
                 >
-                  <Text className="font-JakartaSemiBold text-[12px] text-grey-500">Visit Board</Text>
+                   <Image 
+                  source={icons.chevron} 
+                  className="w-5 h-5"
+                  tintColor={"black"}
+                />
                 </TouchableOpacity>
               </View>
             </View>

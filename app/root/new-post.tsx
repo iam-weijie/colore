@@ -122,12 +122,13 @@ const NewPost = () => {
         >
           <View className="flex-1">
             <View className="flex flex-row justify-between items-center mt-4 mx-8">
-              <View className="flex-1">
+            <View className="flex-1">
+                <TouchableOpacity onPress={() => router.back()}>
+                  <AntDesign name="caretleft" size={18} color="0076e3" />
+                </TouchableOpacity>
               </View>
-              <Text className="absolute text-2xl font-JakartaBold">
-                New Post
-              </Text>
-              <CustomButton
+              
+              {/*<CustomButton
                 className="w-14 h-10 rounded-full shadow-none"
                 fontSize="sm"
                 title="Next"
@@ -135,8 +136,13 @@ const NewPost = () => {
                 padding="0"
                 onPress={handlePostSubmit}
                 disabled={!postContent || isPosting}
-              />
+              />*/}
             </View>
+            <View className="flex-1 absolute self-center items-center justify-center mt-4">
+              <Text className="  text-center text-xl font-JakartaBold">
+                New Post
+              </Text>
+              </View>
             <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
           <View className="flex h-full flex-column justify-between items-center pb-4">
             <View className="flex w-full mx-3">

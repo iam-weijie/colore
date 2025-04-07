@@ -12,6 +12,10 @@ import home from "@/assets/icons/home.png";
 import lock from "@/assets/icons/lock.png";
 import menu from "@/assets/icons/menu.png";
 import note from "@/assets/icons/note.png";
+import notification from "@/assets/icons/notification.png";
+import addUser from "@/assets/icons/add-user.png";
+import chevron from "@/assets/icons/chevron.png";
+import hamburgerMenu from "@/assets/icons/hamburger-menu.png";
 import palette from "@/assets/icons/palette.png";
 import pencil from "@/assets/icons/pencil.png";
 import person from "@/assets/icons/person.png";
@@ -71,7 +75,11 @@ export const icons = {
   note,
   send,
   bookmark,
-  vineyard
+  vineyard,
+  chevron,
+  notification,
+  hamburgerMenu,
+  addUser
 };
 
 export const countries = {
