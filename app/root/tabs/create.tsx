@@ -110,7 +110,13 @@ const Create = () => {
             icon={icons.pencil}
             iconColor="#FAFAFA"
             onPress={() => {
-              router.push("/root/new-personal-post");
+              router.push({
+                pathname: "root/new-post",
+                params: {
+                  recipient_id: user!.id,
+                  username: "Yourself"
+                }
+              });
             }
             }
           />

@@ -10,6 +10,7 @@ import React, { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAlert } from '@/notifications/AlertContext';
+import * as Haptics from 'expo-haptics';
  
 
 const PreviewPost = () => {
@@ -129,6 +130,7 @@ const PreviewPost = () => {
         });
       } finally {
         setIsPosting(false);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
     } else if (personal === "true") {
       const cleanedContent = content;
@@ -174,6 +176,7 @@ const PreviewPost = () => {
         });
       } finally {
         setIsPosting(false);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
     } else {
       setIsPosting(true);
@@ -217,6 +220,7 @@ const PreviewPost = () => {
         });
       } finally {
         setIsPosting(false);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
     }
   };
@@ -238,7 +242,7 @@ const PreviewPost = () => {
                 >
                   <AntDesign name="caretleft" size={18} color={"white"} />
                 </TouchableOpacity>
-                <Text className="font-JakartaSemiBold text-[#ffffff] text-2xl ">
+                <Text className="font-JakartaSemiBold text-[#ffffff] text-xl ">
                   Preview
                 </Text>
               </View> 

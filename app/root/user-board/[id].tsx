@@ -12,9 +12,10 @@ const UserPersonalBoard = () => {
   
   const handleNewPost = () => { 
     router.push({
-      pathname: "/root/new-personal-post",
+      pathname: "/root/new-post",
       params: { 
         recipient_id: id,
+        username: username,
         source: 'board'
       }
     });

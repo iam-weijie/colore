@@ -28,7 +28,7 @@ import { useAlert } from '@/notifications/AlertContext';
 
 const NewPost = () => {
   const { user } = useUser();
-  const { content, color, emoji } = useLocalSearchParams();
+  const { content, color, emoji, recipient_id, username } = useLocalSearchParams();
   const { showAlert } = useAlert();
   
   const [postContent, setPostContent] = useState("");
@@ -76,6 +76,8 @@ const NewPost = () => {
   };
 
   const handlePostSubmit = async () => {
+    if (!!recipient_id) {
+    console.log("normal post")
     router.push({
       pathname: "/root/preview-post",
       params: {
@@ -85,6 +87,21 @@ const NewPost = () => {
         emoji: selectedEmoji
       }
     });
+  } else {
+    console.log("personal post")
+       router.push({
+                   pathname: "/root/preview-post",
+                   params: {
+                     id: "", 
+                     content: postContent, 
+                     color: selectedColor.name, 
+                     emoji: selectedEmoji, 
+                     personal: "true", 
+                     recipientId: recipient_id,
+                     username: username
+                   }
+                 })
+  }
   };
 
   const handleChangeText = (text: string) => {
@@ -115,7 +132,7 @@ const NewPost = () => {
    
 
   return (
-    <SafeAreaView className="flex-1" style={{backgroundColor: selectedColor.hex}} >
+    <SafeAreaView className="flex-1" >
       <SignedIn>
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
@@ -125,10 +142,10 @@ const NewPost = () => {
           <View className="flex-1" >
             <View className="flex flex-row justify-start items-center mt-6 mx-8">
                 <TouchableOpacity onPress={() => router.back()} className="mr-2">
-                  <AntDesign name="caretleft" size={18} color="white" />
+                  <AntDesign name="caretleft" size={18} color="black" />
                 </TouchableOpacity>
                 <View className="">
-              <Text className="  text-center text-2xl font-JakartaBold text-white">
+              <Text className="  text-center text-xl font-JakartaBold text-black">
                 New Post
               </Text>
               </View>
@@ -144,7 +161,7 @@ const NewPost = () => {
                 disabled={!postContent || isPosting}
               />*/}
             </View>
-           
+           <View className="flex-1 m-6 rounded-[48px]" style={{backgroundColor: selectedColor.hex}}>
             <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
           <View className="flex-1 flex-column justify-center items-center ">
             <View className="flex w-full mx-3">
@@ -176,15 +193,25 @@ const NewPost = () => {
               </View>
               
               </KeyboardAvoidingView>
-            
-              <View  className="flex-1 absolute p-4 right-0 h-screen" >
+              <View className="flex-1 absolute m-4 left-4 top-2" >
+                <Text className="text-[16px] font-JakartaBold text-white">{username ? `To: ${username}` : ''}</Text>
+              </View>
+              <View  className="flex-1 flex-col items-end absolute p-4 right-0" >
               <ColorSelector
                 colors={temporaryColors}
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
                 //onColorSelect={setSelectedColor}
               />
-
+              <View className="flex flex-row items-center">
+              {selectedEmoji && <TouchableOpacity
+              onPress={() => {setSelectedEmoji(null)}}>
+                <Image
+                  source={icons.close}
+                  className="w-7 h-7"
+                  tintColor={'#fff'}
+                  />
+              </TouchableOpacity>}
               <TouchableOpacity onPress={toggleEmojiSelector}>
                 {selectedEmoji ? (
                   <Text style={{ fontSize: 35, margin: 1 }}>
@@ -194,6 +221,8 @@ const NewPost = () => {
                   <Image source={icons.wink} className="w-8 h-9 m-1" tintColor={'#FFFFFF'} />
                 )}
               </TouchableOpacity>
+              </View>
+              </View>
               </View>
               <View className="flex-1 absolute flex items-center w-full bottom-[10%]">
             <CustomButton
@@ -210,6 +239,9 @@ const NewPost = () => {
               <View className="w-full h-screen bg-white">
                 <EmojiSelector
                   onEmojiSelected={(emoji) => {
+                    if (emoji === selectedEmoji) {
+                      setSelectedEmoji(null);
+                    }
                     setSelectedEmoji(emoji);
                   }}
                 />
