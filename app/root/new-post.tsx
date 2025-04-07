@@ -410,7 +410,7 @@ const fetchUsers = async () => {
                                               <Text>{error}</Text>
                                             ) : (
                                               <FlatList
-                                              className="mt-4 pb-4 mb-10"
+                                              className={`mt-4 pb-4 ${filteredUsers.length > 0 ? 'mb-20' : ''}`}
                                               contentContainerStyle={{ paddingBottom: 80 }} 
                                                 data={filteredUsers}
                                                 renderItem={renderUser}
