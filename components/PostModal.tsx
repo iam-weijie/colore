@@ -728,7 +728,11 @@ const PostModal: React.FC<PostModalProps> = ({
             {BackgroundGridEmoji(currentPost?.emoji || "")}
           </TouchableWithoutFeedback>
 
-          {header}
+          {header ??  <View className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center">
+              <Text className="text-2xl font-JakartaBold text-white text-center">
+                {currentPost?.prompt_id ? 'This is a prompt' : ''}
+              </Text>
+            </View>}
 
           <GestureHandlerRootView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <GestureDetector gesture={swipeGesture}>

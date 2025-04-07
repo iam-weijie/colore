@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import NotificationBubble from '@/components/NotificationBubble';
 import { icons } from '@/constants';
 import { useGlobalContext } from '@/app/globalcontext';
+import { useNavigationState } from '@react-navigation/native';
 import { useNavigationContext } from "@/components/NavigationContext";
 import { transform } from '@babel/core';
 
@@ -97,8 +98,27 @@ const HapticTabBarButton: React.FC<HapticTabBarButtonProps> = ({ children, onPre
 };
 
 
+const getFocusedTabRouteName = (state: any): string | undefined => {
+  if (!state) return undefined;
+  const route = state.routes[state.index];
+  if (route.state) {
+    // Recurse into nested navigators
+    return getFocusedTabRouteName(route.state);
+  }
+  return route.name;
+};
+
+
 const Layout: React.FC = () => {
   const { isIpad, unreadComments, unreadMessages, unreadRequests, unreadPersonalPosts } = useGlobalContext();
+  const navigationState = useNavigationState((state) => state);
+  const currentTab = getFocusedTabRouteName(navigationState);
+
+  const isCreateFocused = currentTab === "create";
+  
+  const dynamicShadow = isCreateFocused
+    ? '-6px -3px 13px 3px rgba(251, 177, 214, 0.25), 5px 4px 13px 3px rgba(147, 197, 253, 0.25)'
+    : '-6px -3px 13px 3px rgba(250,230,64,0.15), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)';
 
   return (
     <Tabs
@@ -117,7 +137,7 @@ const Layout: React.FC = () => {
           paddingBottom: isIpad ? 0 : 20,
           marginHorizontal: 30,
           marginBottom: 35,
-          boxShadow: '-6px -3px 13px 3px rgba(250,230,64,0.15), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)',
+          boxShadow: dynamicShadow,
         },
       }}
     >

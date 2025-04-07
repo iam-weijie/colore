@@ -143,6 +143,7 @@ export default function Page() {
   const handleCloseModalPress = () => {
     router.replace("/root/tabs/home");
     setIsModalVisible(false);
+    setStacks([])
   };
 
   const handleScrollToLoad = async () => {
@@ -171,13 +172,6 @@ export default function Page() {
           isVisible={isModalVisible}
           selectedPost={selectedPostRef.current}
           handleCloseModal={handleCloseModalPress}
-          header={
-            <View className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center">
-              <Text className="text-2xl font-JakartaBold text-white text-center">
-                This is a prompt
-              </Text>
-            </View>
-          }
           infiniteScroll={true}
           scrollToLoad={handleScrollToLoad}
         />
