@@ -1,6 +1,6 @@
 import { PostItColor } from "@/types/type";
 import React from "react";
-import { View } from "react-native";
+import { View, Text } from "react-native";
 import Circle from "./Circle";
 
 interface ColorSelectorProps {
@@ -15,8 +15,10 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({
   onColorSelect,
 }) => {
   return (
-    <View className="flex-column">
+    <View className="flex-column items-end justify-start ">
       {colors.map((color) => (
+        <View className="flex flex-row items-center justify-center">
+          {selectedColor.id === color.id && <Text className="text-[14px] font-JakartaBold text-white">Selected</Text>}
         <Circle
           key={color.id}
           color={color.hex}
@@ -24,6 +26,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({
           selected={selectedColor.id === color.id}
           onPress={() => onColorSelect(color)}
         />
+        </View>
       ))}
     </View>
   );

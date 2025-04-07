@@ -3,6 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import {Image, Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming } from "react-native-reanimated";
 import { AlertProps } from "@/types/type";
+import * as Haptics from 'expo-haptics';
 import { icons } from "@/constants";
 
 
@@ -38,6 +39,12 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
 if (onAnimationFinish) {
       setTimeout(() => {
         console.log("Animation completed");
+        if (status == 'success') {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } else if (status == 'error') {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        }
+        else {}
         setVisible(false);
         if (onClose) onClose(); // Hide the modal after the animation completes
       }
