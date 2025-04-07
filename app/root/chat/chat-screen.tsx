@@ -623,26 +623,27 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     </View>
   );
 
-   const renderUser = ({
-      item,
-    }: {
-      item: UserNicknamePair;
-    }): React.ReactElement => (
-      <TouchableOpacity
-        onPress={() => {
-          router.push({
-            pathname: "/root/profile/[id]",
-            params: { id: item[0] },
-          });
-        }}
-        //disabled={creatingChat}
-        className="p-4 my-2 border-b border-gray-200"
-      >
-        <View className="flex flex-row justify-between items-center">
-          <Text className="text-[14px] font-JakartaBold text-black left-2">{item[1]}</Text>
-        </View>
-      </TouchableOpacity>
-    );
+
+       const renderUser = ({
+          item,
+        }: {
+          item: UserNicknamePair;
+        }): React.ReactElement => (
+          <TouchableOpacity
+          onPress={() => {
+            router.push({
+              pathname: "/root/profile/[id]",
+              params: { id: item[0] },
+            });
+          }}
+            //disabled={creatingChat}
+            className="p-4"
+          >
+            <View className="flex flex-row justify-between items-center">
+              <Text className="text-[14px] font-JakartaBold text-black left-2">{item[1]}</Text>
+            </View>
+          </TouchableOpacity>
+        );
     {
       /* <CustomButton
           title="Chat"
@@ -773,7 +774,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                                         <Text>{error}</Text>
                                       ) : (
                                         <FlatList
+                                          className={`${filteredUsers.length > 0 ? 'mb-20' : ''}`}
                                           data={filteredUsers}
+                                          contentContainerStyle={{ paddingBottom: 80 }} 
                                           renderItem={renderUser}
                                           keyExtractor={(item): string => String(item[0])}
                                           showsVerticalScrollIndicator={false}
