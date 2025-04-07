@@ -395,7 +395,7 @@ const PostModal: React.FC<PostModalProps> = ({
     }, 250);
     setTimeout(() => {
       router.push({
-        pathname: "/root/edit-post",
+        pathname: "/root/new-post",
         params: {
           postId: currentPost?.id,
           content: currentPost?.content,

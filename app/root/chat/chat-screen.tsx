@@ -87,7 +87,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
     onPress()
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);}}
 >
-  <View className="flex flex-row items-center justify-center">
+  <View className="flex flex-row items-center justify-center w-full">
     <Text
       className="text-[16px] text-center font-[600]"
       style={{ color: focused ? "#000" : "#888" }}
@@ -465,13 +465,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             style={[animatedStyle, { backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }]}
           >
             <View className="flex-1 flex-row justify-between items-center">
-              <View>
+              <View className="flex-1 w-full">
                 <TouchableOpacity
                   className="flex-1"
                   activeOpacity={0.6}
                   onPress={() => handleUserProfile(item.friend_id)}
                 >
-                  <View>
+                  <View className="mr-2">
                     <Text className="text-[14px] font-bold ">
                       {nicknames && item.friend_id in nicknames
                         ? nicknames[item.friend_id]
@@ -540,7 +540,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     }}>
       <View className="flex-row justify-between items-center">
         <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
-          <Text className="font-JakartaSemiBold text-[14px]">
+          <Text className="font-JakartaBold text-[14px]">
             {nicknames && item.senderId in nicknames
               ? nicknames[item.senderId]
               : item.senderUsername}
@@ -605,7 +605,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           className="flex-column justify-center items-start "
           onPress={() => handleUserProfile(item.receiverId)}
         >
-          <Text className="font-JakartaSemiBold">
+          <Text className="font-JakartaBold">
             {nicknames && item.receiverId in nicknames
               ? nicknames[item.receiverId]
               : item.receiverUsername}
@@ -810,7 +810,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                 <View className="mb-2">
                 <View className="p-2">
                 <View className="flex-row items-center justify-start">
-                        <Text className="font-JakartaBold text-[14px]">Request </Text>
+                        <Text className="font-JakartaBold text-[16px]">Request </Text>
                         <View className="absolute top-[50%] right-3">
                         <NotificationBubble
                           unread={
@@ -844,7 +844,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                 <View className="flex-1 flex-col mt-2">
                 <View className="p-2">
                   <View className="flex-row items-center justify-start">
-                        <Text className="font-JakartaBold text-[14px]">Sent </Text>
+                        <Text className="font-JakartaBold text-[16px]">Sent </Text>
                         <View className="absolute top-[50%] right-3">
                         <NotificationBubble
                           unread={

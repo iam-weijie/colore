@@ -30,7 +30,8 @@ export async function POST(request: Request) {
         emoji,
         like_count,
         report_count,
-        pinned
+        pinned,
+        expires_at
       )
       VALUES (
         ${clerkId},
@@ -41,7 +42,8 @@ export async function POST(request: Request) {
         ${emoji},
         0,
         0,
-        FALSE
+        FALSE,
+        NOW() + INTERVAL '14 days'
       )
       RETURNING id, color, recipient_user_id
     `;

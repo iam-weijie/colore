@@ -14,13 +14,14 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({
   selectedColor,
   onColorSelect,
 }) => {
+
   return (
     <View className="flex-column items-end justify-start ">
       {colors.map((color) => (
         <View className="flex flex-row items-center justify-center">
           {selectedColor.id === color.id && <Text className="text-[14px] font-JakartaBold text-white">Selected</Text>}
         <Circle
-          key={color.hex}
+          key={color.name}
           color={color.hex}
           size={30}
           selected={selectedColor.id === color.id}
