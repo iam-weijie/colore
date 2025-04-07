@@ -9,6 +9,7 @@ declare interface Post {
   username: string;
   content: string;
   created_at: string;
+  expires_at: string;
   city: string;
   state: string;
   country: string;
@@ -23,12 +24,14 @@ declare interface Post {
   prompt_id: number;
   board_id: number;
   reply_to: number;
+ 
 }
 
 declare interface Board {
   id: number;
   title: string;
   user_id: string;
+  description: string;
   members_id: string[];
   board_type: string;
   restrictions: string[];
