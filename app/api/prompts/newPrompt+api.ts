@@ -5,7 +5,7 @@ export async function POST(request: Request) {
     const sql = neon(process.env.DATABASE_URL!);
 
     // Parse incoming JSON from the request body
-    const { content, clerkId } = await request.json();
+    const { clerkId, cue, content, theme } = await request.json();
 
     if (!content || !clerkId) {
       return new Response(
@@ -16,8 +16,8 @@ export async function POST(request: Request) {
 
     // Execute the SQL query
     const [insertedPrompt] = await sql`
-      INSERT INTO prompts (user_id, content, created_at, expires_at)
-      VALUES (${clerkId}, ${content}, NOW(), NOW() + INTERVAL '3 days')
+      INSERT INTO prompts (user_id, cue, content, theme, created_at, expires_at)
+      VALUES (${clerkId}, ${cue}, ${content}, ${theme}, NOW(), NOW() + INTERVAL '3 days')
       RETURNING id, content, expires_at;
     `;
 

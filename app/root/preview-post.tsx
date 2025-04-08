@@ -252,7 +252,7 @@ const PreviewPost = () => {
             <CustomButton
               className="w-[50%] h-16 rounded-full shadow-none bg-black"
               fontSize="lg"
-              title="Submit"
+              title="submit"
               padding="0"
               onPress={handleSubmitPost}
               //disabled={!postContent || isPosting}

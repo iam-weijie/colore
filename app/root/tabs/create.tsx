@@ -27,57 +27,8 @@ import { PostItColor } from "@/types/type";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAlert } from '@/notifications/AlertContext';
+import ItemContainer from "@/components/ItemContainer";
 
-
-const ItemContainer = ({label, caption, icon, iconColor, onPress}: 
-  {label: string, caption: string, icon: ImageSourcePropType, iconColor: string, onPress: () => void}) => {
-    return (
-      <TouchableOpacity
-      className="relative flex  mb-3 py-4 pl-3 pr-7 rounded-[24px] w-full"
-      style={{ 
-        backgroundColor: "#FAFAFA" }}
-      activeOpacity={0.6}
-      onPress={() => {
-        onPress();
-      }}
-    >
-              <View className="flex-1 flex flex-row items-center justify-between w-full">
-                  <View className="flex-row items-center justify-start">
-                  <LinearGradient
-                      colors={['#fbb1d6', '#93c5fd']} // 🎨 your gradient colors
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      className="rounded-[16px] p-[4px] mx-3" // outer border rounding and padding
-                    >
-                    <View className="flex-row items-center rounded-[14px] p-2">
-                    <Image
-                      source={icon}
-                      className="w-5 h-5"
-                      style={{ tintColor: iconColor }}
-                    />
-                    </View>
-                  </LinearGradient>
-                    <View className="flex flex-col items-start">
-                    <Text className="text-[14px] font-bold text-[#000] ">
-                      {label}
-                    </Text>
-                    {caption && <Text className="text-[12px] text-gray-400 ">
-                      {caption}
-                    </Text>}
-                    </View>
-                    </View>
-                    <Image
-                      source={icons.chevron}
-                      className="w-5 h-5"
-                      style={{ tintColor: "#000" }}
-                    />
-                  </View>
-               
-             
-            </TouchableOpacity>
-            
-    )
-}
 const Create = () => {
   const { user } = useUser();
   const { content, color, emoji } = useLocalSearchParams();
@@ -100,6 +51,29 @@ const Create = () => {
         className="flex-1 mt-4 mx-6"
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}>
+          <View className="my-2 ml-2">
+            <Text className="text-[16px] font-JakartaBold text-[#c1c1c1]"> Notes</Text>
+          </View>
+           <ItemContainer
+            label="Answer a prompt"
+            caption="You against a thought"
+            icon={icons.heart}
+            iconColor="#FAFAFA"
+            onPress={() => {
+              router.push("/root/new-post");
+            }
+            }
+          />
+          <ItemContainer
+            label="Send temporary note"
+            caption="Quick or it will disappear!"
+            icon={icons.lock}
+            iconColor="#FAFAFA"
+            onPress={() => {
+              router.push("/root/new-post");
+            }
+            }
+          />
           <ItemContainer
             label="Send global note"
             caption="A thought for the world to see"
@@ -126,6 +100,9 @@ const Create = () => {
             }
             }
           />
+          <View className="my-2 ml-2">
+            <Text className="text-[16px] font-JakartaBold text-[#c1c1c1]"> Boards </Text>
+          </View>
           <ItemContainer
             label="Create a board"
             icon={icons.menu}

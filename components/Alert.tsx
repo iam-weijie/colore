@@ -7,7 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { icons } from "@/constants";
 
 
-const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status, duration, onClose, action, actionText }) => {
+const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status, duration, onClose, action, actionText, color }) => {
 
   const [visible, setVisible] = useState<boolean>(true)
   const [onAnimationFinish, setOnAnimationFinish] = useState(false)
@@ -23,13 +23,13 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
 
      // Animate progress bar
     loadingBarWidth.value = withTiming(100, {
-    duration: duration ?? 1200
+    duration: duration ?? (status === 'error' ? 200 : 400)
   });
 
     const timeout = setTimeout(() => {
       translateY.value = withSpring(-200, { damping: 25, stiffness: 75, mass: 0.75 }); // Slide out // Tell context to remove it
       setOnAnimationFinish(true);
-    }, duration ?? 1200);
+    }, duration ?? (status === 'error' ? 200 : 400));
   
     return () => clearTimeout(timeout);
   }, []);
@@ -48,7 +48,7 @@ if (onAnimationFinish) {
         setVisible(false);
         if (onClose) onClose(); // Hide the modal after the animation completes
       }
-      , 500); // Match this duration with the animation duration
+      , duration ?? (status === 'error' ? 200 : 400)); // Match this duration with the animation duration
     }
 }, [onAnimationFinish]);
 
@@ -94,10 +94,11 @@ if (onAnimationFinish) {
       <Animated.View
        style={[
         animatedStyle, {
-          backgroundColor: type === "ERROR" ? "#FAFAFA"
+          backgroundColor: color ? color 
+          : (type === "ERROR" ? "#FAFAFA"
            : (type === "POST" ? "#93c5fd" 
             : (type === "UPDATE" ? "#fbb1d6" 
-              : (type === "DELETE") ? "#ffe640" : "#CFB1FB" ) ),
+              : (type === "DELETE") ? "#ffe640" : "#CFB1FB" ) )),
           opacity: 1,
        }]}
        className="

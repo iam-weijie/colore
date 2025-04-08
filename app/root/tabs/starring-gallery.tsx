@@ -5,8 +5,8 @@ import { SignedIn, useUser } from "@clerk/clerk-expo";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { router, useFocusEffect } from "expo-router";
 import {
+  Animated,
   Dimensions,
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   SafeAreaView,
@@ -20,10 +20,66 @@ import {
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 import CustomButton from "@/components/CustomButton";
-import { icons } from "@/constants";
+import { icons, temporaryColors } from "@/constants";
+import { PostItColor, Prompt } from "@/types/type";
+import { useAlert } from '@/notifications/AlertContext';
+
+const screenWidth = Dimensions.get('window').width;
+
+const RenderPromptCard = ({item, userId, promptContent, updatePromptContent, handlePromptSubmit} : {
+  item: Prompt, userId: string, promptContent: string, updatePromptContent: (text: string) => void, handlePromptSubmit: (item: Prompt) => void }) => { 
+
+    return (
+      <TouchableWithoutFeedback
+      className="flex-1"
+      onPress={() => Keyboard.dismiss()}
+      onPressIn={() => Keyboard.dismiss()}
+    >
+  <View className="flex-1 flex-column items-center justify-center mt-4 mb-8 py-8 rounded-[48px]" 
+  style={{
+    backgroundColor: item.color ?? 'yellow',
+    width: screenWidth * 0.85}}>
+  <View className="w-[85%] flex-1 mx-auto flex-col items-center justify-center">
+
+  <Text className="my-1 text-[14px] font-JakartaBold text-white">{item.theme}</Text>
+    <Text 
+    
+    className="text-[24px] text-center font-JakartaBold text-[#FAFAFA]">{item.cue}...</Text>
+  </View>
+  <KeyboardAvoidingView behavior="padding" className="flex-1 my-6 flex w-full">
+     <View className="mt-2">
+                    <TextInput
+                      className="text-[16px] text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
+                      placeholder="Type something..."
+                      value={promptContent}
+                      onChangeText={updatePromptContent}
+                      multiline
+                      scrollEnabled
+                      style={{
+                        paddingTop: 10,
+                        paddingBottom: 0,
+                        minHeight: 200,
+                        maxHeight: 300,
+                        textAlignVertical: "top",
+                      }}
+                    />
+                    </View>
+  </KeyboardAvoidingView>
+   <CustomButton
+    className=" my-4 w-[50%] h-16 rounded-full shadow-none bg-black"
+    fontSize="lg"
+    title="submit"
+    padding="0"
+    onPress={() => {handlePromptSubmit(item)}}
+    //disabled={}//navigationIndex < (type === 'community' ? tabs.length - 1 : tabs.length - 2)}
+  />
+</View>
+</TouchableWithoutFeedback>
+);}
 
 export default function Page() {
   const { user } = useUser();
+  const { showAlert } = useAlert();
   const { isIpad, stacks, setStacks } = useGlobalContext();
 
   const [userInfo, setUserInfo] = useState<UserData | null>(null);
@@ -31,17 +87,26 @@ export default function Page() {
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [promptContent, setPromptContent] = useState<string>("");
+  
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [selectedColor, setSelectedColor] = useState<PostItColor>(
+      temporaryColors[Math.floor(Math.random() * 4)]
+    );
   const [loading, setLoading] = useState(true);
   const [hasSubmittedPrompt, setHasSubmittedPrompt] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const selectedPostRef = useRef<Post | null>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const inputRef = useRef<TextInput>(null);
 
   // 1) request ATT permission
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
     console.log(`Tracking permission ${status}`);
   };
+
+ 
 
   // 2) fetch the user profile
   const fetchUserData = async () => {
@@ -72,6 +137,29 @@ export default function Page() {
     }
   };
 
+  const fetchPrompts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetchAPI(
+        `/api/prompts/getPrompts`
+      );
+       // Filter out duplicates based on item.cue
+    const uniquePrompts = response.data.filter((value, index, self) => 
+      index === self.findIndex((t) => (
+        t.cue === value.cue // Compare by cue
+      ))
+    );
+
+    setPrompts(uniquePrompts);
+
+    } catch (error) {
+      console.error("Failed to fetch posts:", error);
+      setError("Failed to load posts");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // reset modal visible each time the screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -87,9 +175,11 @@ export default function Page() {
     }, [user, isIpad])
   );
 
+
   // on-mount (and whenever user / isIpad changes) load everything
   useEffect(() => {
     requestPermission();
+    fetchPrompts()
     if (user) {
       fetchUserData();
       if (stacks.length == 0) {
@@ -141,23 +231,7 @@ export default function Page() {
     }
   }, [posts]);
 
-  const handlePromptSubmit = async () => {
-     try {
-           await fetchAPI("/api/prompts/newPrompt", {
-             method: "POST",
-             body: JSON.stringify({
-               content: promptContent,
-               clerkId: user!.id,
-             }),
-           });
-          }
-        catch(error) {
-          console.error("Couldn't submit prompt", error)
-        } finally {
-          setHasSubmittedPrompt(true)
-        }
-   
-  };
+
 
   const handleCloseModalPress = () => {
     router.replace("/root/tabs/home");
@@ -184,6 +258,90 @@ export default function Page() {
     );
   }
 
+  const defaultPrompts: Prompt[] = [
+    {
+      id: 0,
+      cue: "What is the least",
+      content: "",
+      theme: "Life",
+      engagement: 0,
+      color: '#ffe640'
+    },
+    {
+      id: 1,
+      cue: "The world would be better if",
+      content: "",
+      theme: "Self-esteem",
+      engagement: 0,
+      color: '#93c5fd'
+    },{
+      id: 2,
+      cue: "Stupid people do",
+      content: "",
+      theme: "School",
+      engagement: 0,
+      color: '#CFB1FB'
+    }]
+
+  const updatePromptContent = (text: string) => {
+    const maxCharacters = 40
+    if (text.length <= maxCharacters) {
+     setPromptContent(text)
+      
+    } else {
+      setPromptContent(text.substring(0, maxCharacters))
+      showAlert({
+        title: 'Limit Reached',
+        message: `You can only enter up to ${maxCharacters} characters.`,
+        type: 'ERROR',
+        status: 'error',
+      });
+
+    }
+    }
+
+  // Reset prompt content on scroll
+  const handleScrollBeginDrag = () => {
+    setPromptContent('');
+    if (inputRef.current) {
+      inputRef.current.blur(); // Optionally blur the input on scroll
+    }
+  }
+
+  const handlePromptSubmit = async (item: Prompt) => {
+    try {
+          await fetchAPI("/api/prompts/newPrompt", {
+            method: "POST",
+            body: JSON.stringify({
+              content: `${item.cue} ${promptContent.toLocaleLowerCase()}`,
+              clerkId: user!.id,
+              theme: item.theme,
+              cue: item.cue
+            }),
+          });
+
+          showAlert({
+            title: 'Prompt Submitted',
+            message: `Your prompt was submitted successfully.`,
+            type: 'POST',
+            status: 'success',
+            color: item.color
+          });
+         }
+       catch(error) {
+         console.error("Couldn't submit prompt", error)
+         showAlert({
+          title: 'Error',
+          message: `Your prompt was not submitted.`,
+          type: 'ERROR',
+          status: 'error',
+        });
+       } finally {
+         console.log("submitted")
+       }
+  
+ };
+
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
@@ -203,40 +361,65 @@ export default function Page() {
             <View className="mt-3 mx-7">
               <Text className="text-2xl font-JakartaBold my-4">Starring</Text>
             </View>
-          <View className="flex-[0.85] flex-column items-center justify-center ">
-            <View className="flex w-full flex-col items-center justify-center">
-              <Text className="my-4 text-[#888] text-[12px] font-JakartaSemiBold"> Answer this prompt to see other people's response </Text>
-              <Text className="text-[24px] font-JakartaBold">Promts</Text>
-            </View>
-            <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
-               <View>
-                              <TextInput
-                                className="text-[20px] text-black p-5 rounded-[24px] font-JakartaBold mx-10 "
-                                placeholder="Type something..."
-                                value={promptContent}
-                                onChangeText={setPromptContent}
-                                autoFocus
-                                multiline
-                                scrollEnabled
-                                style={{
-                                  paddingTop: 10,
-                                  paddingBottom: 0,
-                                  minHeight: 200,
-                                  maxHeight: 300,
-                                  textAlignVertical: "top",
-                                }}
-                              />
-                              </View>
-            </KeyboardAvoidingView>
-             <CustomButton
-              className="w-[50%] h-16 rounded-full shadow-none bg-black"
-              fontSize="lg"
-              title="Next"
-              padding="0"
-              onPress={handlePromptSubmit}
-              //disabled={}//navigationIndex < (type === 'community' ? tabs.length - 1 : tabs.length - 2)}
-            />
-          </View>
+            <Text className="my-2 text-center text-[#888] text-[12px] font-JakartaSemiBold"> Create a prompt with the given cues to view other people's responses </Text>
+            {loading ? (
+              <ActivityIndicator size={"small"} color={"#888"}/>
+            ) 
+            : (<Animated.FlatList
+                data={prompts}
+                keyExtractor={(item) => item.id.toString()}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: (screenWidth - screenWidth * 0.85) / 2 }}
+                scrollEventThrottle={16}
+                decelerationRate="fast"
+                onScroll={
+                    Animated.event(
+                  [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                  { useNativeDriver: true }
+                )
+        
+              }
+                onScrollBeginDrag={handleScrollBeginDrag} 
+                snapToInterval={screenWidth * 0.85 + 12} // Width + gap
+                ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+                renderItem={({ item, index }) => {
+                  const inputRange = [
+                    (index - 1) * (screenWidth * 0.85 + 12),
+                    index * (screenWidth * 0.85 + 12),
+                    (index + 1) * (screenWidth * 0.85 + 12)
+                  ];
+
+                  const scale = scrollX.interpolate({
+                    inputRange,
+                    outputRange: [0.92, 1, 0.92],
+                    extrapolate: 'clamp',
+                  });
+
+                  const shadowOpacity = scrollX.interpolate({
+                    inputRange,
+                    outputRange: [0.1, 0.3, 0.1],
+                    extrapolate: 'clamp',
+                  });
+
+    return (
+      <Animated.View
+        style={{
+          transform: [{ scale }],
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 12,
+          elevation: 6, // Android shadow
+        }}
+      >
+        {RenderPromptCard({ item: item, userId: user!.id, promptContent: promptContent, updatePromptContent, handlePromptSubmit})}
+      </Animated.View>
+    );
+  }}
+/>)}
+
           </View>
           </TouchableWithoutFeedback>
         )}
@@ -244,3 +427,5 @@ export default function Page() {
     </SafeAreaView>
   );
 }
+
+

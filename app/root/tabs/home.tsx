@@ -35,6 +35,7 @@ export default function Page() {
   const [geographicalMode, setGeographicalMode] = useState<GeographicalMode>('world');
   const [userInfo, setUserInfo] = useState(null);
   const [selectedModal, setSelectedModal] = useState<Function | null>(null);
+  const [activeModalTitle, setActiveModalTitle] = useState<string>("");
 
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
@@ -240,13 +241,13 @@ const fetchUserData = async () => {
             onPress={() => {
               //router.push("/root/chat/chat-screen");
               setSelectedModal(() => <ChatScreen/>)
-              console.log("selectedModal", !!selectedModal)
+              setActiveModalTitle("Socials")
             }}>
            <View>
             <Image
               source={icons.addUser}
-              className="w-6 h-6"
-              style={{ tintColor: "#000" }}
+              className="w-5 h-5"
+              style={{ tintColor: "#888" }}
             />
             <View className="absolute top-0 right-[4px]">
             <NotificationBubble
@@ -259,12 +260,13 @@ const fetchUserData = async () => {
          <TouchableOpacity
          onPress={() => {
           setSelectedModal(() => <NotificationScreen/>)
+          setActiveModalTitle("Notifications")
          }}>
           <View>
             <Image
               source={icons.notification}
-              className="w-6 h-6"
-              style={{ tintColor: "#000" }}
+              className="w-5 h-5"
+              style={{ tintColor: "#888" }}
             />
             <View className="absolute top-[1px] right-[8px]">
             <NotificationBubble
@@ -280,12 +282,12 @@ const fetchUserData = async () => {
           <DropdownMenu
           icon={
             geographicalMode === "world"
-              ? icons.planet
-              : geographicalMode === "country"
-              ? getCountryFlag(userInfo?.country)
-              : geographicalMode === "state"
-              ? icons.vineyard
-              : icons.smartcity
+            ? icons.planet
+            : geographicalMode === "country"
+            ? getCountryFlag(userInfo?.country)
+            : geographicalMode === "state"
+            ? icons.vineyard
+            : icons.smartcity
           }
           menuItems={[
             {
@@ -332,7 +334,16 @@ const fetchUserData = async () => {
         friendName={""}
          action={action} 
          handleAction={() => {}}/>*/}
-         {!!selectedModal && <ModalSheet children={selectedModal} isVisible={!!selectedModal} onClose={() => {setSelectedModal(null)}} />}
+         {!!selectedModal && 
+         <ModalSheet 
+         children={selectedModal} 
+         title={activeModalTitle} 
+         isVisible={!!selectedModal} 
+         onClose={() => {
+          setSelectedModal(null)
+          setActiveModalTitle("")}
+         
+          } />}
       </SignedIn>
     </SafeAreaView>
   );

@@ -66,9 +66,10 @@ export default function RootLayout() {
   }
 
   return (
-    <NotificationProvider>
+    
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
         <ClerkLoaded>
+        <NotificationProvider>
           <GlobalProvider>
             <AlertProvider>
             <NavigationProvider>
@@ -83,8 +84,9 @@ export default function RootLayout() {
             </NavigationProvider>
             </AlertProvider>
           </GlobalProvider>
+          </NotificationProvider>
         </ClerkLoaded>
       </ClerkProvider>
-    </NotificationProvider>
+   
   );
 }

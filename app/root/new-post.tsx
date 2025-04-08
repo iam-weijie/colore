@@ -23,10 +23,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor, UserNicknamePair } from "@/types/type";
+import { PostItColor, UserNicknamePair, Friendship } from "@/types/type";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from '@/notifications/AlertContext';
 import ModalSheet from "@/components/Modal";
+import {
+  fetchFriends
+} from "@/lib/friend";
 
 const NewPost = () => {
   const { user } = useUser();
@@ -286,7 +289,7 @@ const NewPost = () => {
             <CustomButton
               className="w-[50%] h-16 rounded-full shadow-none bg-black"
               fontSize="lg"
-              title="Continue"
+              title="continue"
               padding="0"
               onPress={handlePostSubmit}
               disabled={!postContent || isPosting}
@@ -310,6 +313,7 @@ const NewPost = () => {
         </TouchableWithoutFeedback>
         {isModalVisible &&
         <ModalSheet
+        title="Find a user"
         isVisible={isModalVisible}
          onClose={() => {setIsModalVisible(false)}}>
            <FindUser selectedUserInfo={selectedUserInfo} />
@@ -324,6 +328,7 @@ const FindUser = ({ selectedUserInfo }) => {
 const { user } = useUser();
 
 const [users, setUsers] = useState<UserNicknamePair[]>([]);
+  const [friendList, setFriendList] = useState<UserNicknamePair[]>([]);
 const [searchText, setSearchText] = useState<string>("");
 
 const [error, setError] = useState<string | null>(null);
@@ -332,7 +337,16 @@ const [loading, setLoading] = useState<boolean>(false);
 console.log("Modal Showed")
 useEffect(() => {
   fetchUsers(); 
+  fetchFriendList();
 }, [])
+
+  const fetchFriendList = async () => {
+    const data = await fetchFriends(user!.id);
+    console.log("friend", data)
+    const friend = data.map((f) => [f.friend_id, f.friend_username])
+    setFriendList(friend);
+  };
+
 const fetchUsers = async () => {
         setLoading(true);
         try {
@@ -388,11 +402,6 @@ const fetchUsers = async () => {
 
     return (
        <View>
-        <View className="w-full self-center items-center">
-          <Text className="my-2 text-[16px] font-JakartaBold">
-            Find User
-          </Text>
-        </View>
                   <View className="flex-grow mt-4 mx-4">
                                   <TextInput
                                     className="w-full h-12 px-3 -pt-1 bg-[#EAEAEA] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
@@ -410,9 +419,9 @@ const fetchUsers = async () => {
                                               <Text>{error}</Text>
                                             ) : (
                                               <FlatList
-                                              className={`mt-4 pb-4 ${filteredUsers.length > 0 ? 'mb-20' : ''}`}
+                                              className={`mt-4 pb-4`}
                                               contentContainerStyle={{ paddingBottom: 80 }} 
-                                                data={filteredUsers}
+                                                data={filteredUsers.length > 0 ? filteredUsers : friendList}
                                                 renderItem={renderUser}
                                                 keyExtractor={(item): string => String(item[0])}
                                                 showsVerticalScrollIndicator={false}
