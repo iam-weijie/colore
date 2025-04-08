@@ -280,6 +280,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // In-app polling every 5 seconds
   useEffect(() => {
+    
     if (user && pushToken) {
       // When user signs in, persist the necessary info for background tasks.
       AsyncStorage.setItem("userId", user.id);
@@ -288,11 +289,10 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       // Initial fetch and then polling every 5 seconds
       fetchNotifications();
       updateLastConnection();
+  
       const interval = setInterval(fetchNotifications, 5000);
       return () => clearInterval(interval);
-      
-      
-    }
+    } 
   }, [user, pushToken]);
 
   // In-app fetchNotifications function that uses the external function
@@ -335,6 +335,26 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // Register New Push Token
+
+const sendTokenDB = async (token) => {
+      // PushToken to Database
+
+      console.log("sending it")
+      try {
+        await fetchAPI(`/api/notifications/updatePushToken`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            clerkId: user?.id,
+            pushToken: token,
+          })
+        })
+    }
+  catch(error) {
+      console.error("Failed to update unread message:", error);
+    }
+    }
+
   // Register the background fetch task on mount
   useEffect(() => {
     if (user) {
@@ -355,6 +375,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     setIsIpad(screenWidth > 500);
+    sendTokenDB(pushToken);
   }, []);
 
   // Load settings from AsyncStorage on mount

@@ -113,7 +113,7 @@ const EditPost = () => {
               <CustomButton
                 className="w-14 h-10 rounded-full shadow-none"
                 fontSize="sm"
-                title="Next"
+                title="next"
                 style={{backgroundColor: selectedColor.hex}}
                 padding="0"
                 onPress={handlePostUpdate}

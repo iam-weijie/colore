@@ -8,8 +8,8 @@ import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeI
 
 
 
-const ModalSheet = ({ children, isVisible, onClose }: {children: any, isVisible: boolean, onClose: () => void}) => {
-    console.log("isVisible", isVisible)
+const ModalSheet = ({ children, title, isVisible, onClose }: {children: any, title: string, isVisible: boolean, onClose: () => void}) => {
+   
     const [visible, setVisible] = useState(isVisible);
   
     const translateY = useSharedValue(500); 
@@ -98,6 +98,11 @@ const ModalSheet = ({ children, isVisible, onClose }: {children: any, isVisible:
                bottom-5  
                overflow-hidden"
              >
+              <View className="w-full flex items-center justify-center mb-2">
+                <Text className="text-[16px] font-JakartaBold">
+                  {title}
+                </Text>
+              </View>
           {children}
         </Animated.View>
       </Modal>

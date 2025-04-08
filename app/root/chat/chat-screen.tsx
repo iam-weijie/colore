@@ -52,10 +52,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationContext } from "@/components/NavigationContext";
-import { LinearGradient } from "expo-linear-gradient";
 import { useAlert } from '@/notifications/AlertContext';
-import NewConversation from "./new-conversation";
-import * as Haptics from 'expo-haptics';
+import TabNavigation from "@/components/TabNavigation";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -66,40 +64,8 @@ declare interface FriendRequestList {
   received: FriendRequest[];
 }
 
-type TabNavigationProps = {
-  name: string;
-  focused: boolean;
-  onPress: () => void;
-  notifications: number;
-};
 
-const TabNavigation: React.FC<TabNavigationProps> = ({
-  name,
-  focused,
-  onPress,
-  notifications,
-}) => {
-  return (
-    <TouchableOpacity
-    className={`flex-1 py-3 w-full ${focused ? 'border-b-2 border-black' : ''}`}
-  activeOpacity={0.6}
-  onPress={() => {
-    onPress()
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);}}
->
-  <View className="flex flex-row items-center justify-center w-full">
-    <Text
-      className="text-[16px] text-center font-[600]"
-      style={{ color: focused ? "#000" : "#888" }}
-    >
-      {name}
-    </Text>
-    {notifications > 0 && <View className="absolute right-2 top-[50%] -mt-1"><NotificationBubble unread={notifications} color={"#FF0000"} /></View>}
-    </View>
- 
-</TouchableOpacity>
-  );
-};
+
 
 export const ChatScreen: React.FC<ChatScreenProps> = () => {
   const { user } = useUser();
@@ -534,10 +500,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   const renderIncomingRequest = ({ item }: { item: FriendRequest }) => (
     <View 
-    className="py-2 border-gray-200 my-2"
-    style={{
-      borderBottomWidth: allFriendRequests?.received ? (allFriendRequests?.received.indexOf(item) < allFriendRequests?.received.length - 1 ? 1 : 0) : 0
-    }}>
+    className="py-2 my-2">
       <View className="flex-row justify-between items-center">
         <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
           <Text className="font-JakartaBold text-[14px]">
@@ -596,10 +559,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   const renderOutgoingRequest = ({ item }: { item: FriendRequest }) => (
     <View 
-    className="py-2 border-gray-200 my-2"
-    style={{
-      borderBottomWidth: allFriendRequests?.sent ? (allFriendRequests?.sent.indexOf(item) < allFriendRequests?.sent.length - 1 ? 1 : 0) : 0
-    }}>
+    className="py-2 my-2">
       <View>
         <TouchableOpacity
           className="flex-column justify-center items-start "
@@ -776,7 +736,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                                         <FlatList
                                           className={`${filteredUsers.length > 0 ? 'mb-20' : ''}`}
                                           data={filteredUsers}
-                                          contentContainerStyle={{ paddingBottom: 80 }} 
+                                          contentContainerStyle={{ paddingBottom: 40 }} 
                                           renderItem={renderUser}
                                           keyExtractor={(item): string => String(item[0])}
                                           showsVerticalScrollIndicator={false}
@@ -797,6 +757,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                 </View>*/
               //}
               data={filteredFriendList}
+              contentContainerStyle={{ paddingBottom: 40 }} 
               renderItem={renderFriend}
               keyExtractor={(item) => item.id.toString()}
               ListEmptyComponent={
@@ -829,6 +790,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   <FlatList
                      className="px-2 rounded-[24px]"
                     data={allFriendRequests?.received}
+                    contentContainerStyle={{ paddingBottom: 20 }} 
                     renderItem={renderIncomingRequest}
                     keyExtractor={(item) => item.id.toString()}
                     ListEmptyComponent={
@@ -863,6 +825,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   <FlatList
                     className="px-2 rounded-[24px]"
                     data={allFriendRequests?.sent}
+                    contentContainerStyle={{ paddingBottom: 20 }} 
                     renderItem={renderOutgoingRequest}
                     keyExtractor={(item) => item.id.toString()}
                     ListEmptyComponent={

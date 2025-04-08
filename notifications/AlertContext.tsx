@@ -11,6 +11,7 @@ type AlertOptions = {
   status: AlertStatus;
   duration?: number;
   action?: () => void;
+  color?: string;
   actionText?: string;
 };
 

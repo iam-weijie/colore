@@ -71,7 +71,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ icon, menuItems, customMenu
     <View className="relative">
       {icon ? (
         <TouchableOpacity onPress={handlePress} ref={triggerRef}>
-        <Image source={icon} className="w-7 h-7" />
+        <Image source={icon} className="w-6 h-6" />
         </TouchableOpacity>
       ) : 
       <TouchableOpacity onPress={handlePress} ref={triggerRef}>

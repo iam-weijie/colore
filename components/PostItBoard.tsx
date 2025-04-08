@@ -220,10 +220,9 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       {showText && (
         <View className="absolute text-black w-full h-full items-center justify-center">
           <Text
-            className="font-[500] text-black"
+            className="text-[12px] font-[500] text-black"
             style={{
               color: fontColor,
-              fontSize: 14,
               padding: 18,
               fontStyle: "italic",
             }}

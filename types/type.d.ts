@@ -39,6 +39,21 @@ declare interface Board {
   number_of_posts: number;
 }
 
+declare interface DraftPost {
+content: string;
+recipient_id: string;
+color: string;
+emoji: string;
+}
+
+declare interface DraftBoard {
+user_id: string;
+title: string;
+board_type: string;
+restriction: string;
+description: string;
+}
+
 declare interface PostComment {
   id: number;
   post_id: number;
@@ -233,9 +248,12 @@ type Stacks = {
 };
 
 type Prompt = {
-  title: string;
-  body: string;
-  source: ImageSourcePropType;
+  id: number;
+  cue: string;
+  content: string;
+  theme: string;
+  engagement: number;
+  color?: string;
 };
 
 type AlertProps = {
@@ -247,6 +265,7 @@ type AlertProps = {
   onClose?: () => void;
   action?: () => void;
   actionText?: string;
+  color?: string;
 }
 
 type GeographicalMode = 'city' | 'state' | 'country' | 'world'
