@@ -3,9 +3,10 @@ import React, { useEffect, useState, useRef } from "react";
 import { Animated, Image, View, Text, StyleSheet, Pressable, GestureResponderEvent } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import NotificationBubble from '@/components/NotificationBubble';
-import { icons } from '@/constants';
+import { icons, images } from '@/constants';
 import { useGlobalContext } from '@/app/globalcontext';
 import { useNavigationState } from '@react-navigation/native';
+import MaskedView from '@react-native-masked-view/masked-view';
 import { useNavigationContext } from "@/components/NavigationContext";
 import { transform } from '@babel/core';
 
@@ -25,18 +26,40 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
     <View className={`flex flex-column  items-center justify-center  ${isCenter ? '-mt-16' : ''}`}>
   
       <View className={`flex items-center justify-center ${isCenter ? `${ focused ? 'bg-black' : 'bg-[#FAFAFA]'} w-16 h-16 rounded-full shadow-md`: ''}`}>
-      
+      {focused && !isCenter && <View className='absolute'>
+      <MaskedView
+      style={{ width: 60, height: 60 }}
+        maskElement={
+    <Image
+      source={
+        label == "Boards" ? images.highlight1 :
+        (label == "Starring" ? images.highlight2 : 
+          (label == "Create" ? images.highlight3 :
+            images.highlight4
+          )
+        )
+      }
+      style={{
+        width: 60,
+        height: 60,
+      }}
+    />
+  }
+>
+  <View style={{ flex: 1, backgroundColor: color }} />
+</MaskedView>
+      </View>}
         <Animated.Image
           source={source}
           className={`flex-1 ${['Create', 'Boards'].includes(label) ? 'w-5 h-5' : 'w-6 h-6'}`}
           style={[
-            { tintColor: isCenter ? `${focused ? '#fff' : '#888'}` : focused ? color :  "#888"}
+            { tintColor: isCenter ? `${focused ? '#fff' : '#888'}` : focused ? "#000" :  "#888"}
           ]}
           resizeMode="contain"
         />
       </View>
       <View>
-        <Text className={`w-full txt-center text-xs font-JakartaBold -mt-1`} style={[{ color: focused ? color : "#888" }]}>
+        <Text className={`w-full txt-center text-xs font-JakartaBold -mt-1`} style={[{ color: focused ? "#000"  : "#888" }]}>
           {label}
         </Text>
       </View>
@@ -115,12 +138,15 @@ const Layout: React.FC = () => {
 
   const isCreateFocused = currentTab === "create";
   const isBoardFocused = currentTab === "personal-board";
+  const isStarringFocused = currentTab === "starring-gallery";
   
   const dynamicShadow = isCreateFocused
     ? '-6px -3px 13px 3px rgba(251, 177, 214, 0.25), 5px 4px 13px 3px rgba(147, 197, 253, 0.25)'
     : ( isBoardFocused 
       ? '-6px -3px 13px 3px rgba(251, 177, 214, 0.25), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)'
-      : '-6px -3px 13px 3px rgba(250,230,64,0.15), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)');
+      : (isStarringFocused 
+        ?  '-6px -3px 13px 3px rgba(250,230,64,0.15), 5px 4px 13px 3px rgba(251, 177, 214, 0.25)'
+        : '-6px -3px 13px 3px rgba(250,230,64,0.15), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)'));
 
   return (
     <Tabs
@@ -153,7 +179,7 @@ const Layout: React.FC = () => {
               source={icons.menu}
               focused={focused}
               unread={0}
-              color="#000000"
+              color="#CFB1FB"
              label="Boards"
             />
           ),
@@ -170,7 +196,7 @@ const Layout: React.FC = () => {
               source={icons.star}
               focused={focused}
               unread={0}
-              color="#EFD41D"
+              color="#ffe640"
               label="Starring"
             />
           ),
@@ -206,7 +232,7 @@ const Layout: React.FC = () => {
               source={icons.plus}
               focused={focused}
               unread={0}
-              color="#D82C82"
+              color="#fbb1d6"
               label="Create"
             />
           ),
@@ -223,7 +249,7 @@ const Layout: React.FC = () => {
               source={icons.profile}
               focused={focused}
               unread={unreadComments + unreadRequests}
-              color="#000000"
+              color="#93c5fd"
               label="Profile"
             />
           ),

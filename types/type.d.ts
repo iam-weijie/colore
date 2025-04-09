@@ -26,6 +26,12 @@ declare interface Post {
   reply_to: number;
  
 }
+declare interface ActionPromptsProps {
+  friendName: string, 
+  action: { name: string };
+  handleAction: () => void;
+}
+
 
 declare interface Board {
   id: number;
@@ -272,8 +278,9 @@ type GeographicalMode = 'city' | 'state' | 'country' | 'world'
 
 type Position = { top: number; left: number };
 
-declare interface ActionPromptsProps {
-  friendName: string, 
-  action: { name: string };
-  handleAction: () => void;
-}
+type RadioButtonProps = {
+  label: string;
+  selected: boolean;
+  onSelect: () => void;
+};
+

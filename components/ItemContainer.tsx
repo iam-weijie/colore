@@ -10,8 +10,8 @@ import { icons, temporaryColors } from "@/constants";
 import { LinearGradient } from 'expo-linear-gradient';
 
 
-const ItemContainer = ({label, caption, icon, iconColor, onPress}: 
-  {label: string, caption?: string, icon: ImageSourcePropType, iconColor: string, onPress: () => void}) => {
+const ItemContainer = ({label, caption, icon, colors, iconColor, onPress}: 
+  {label: string, caption?: string, icon: ImageSourcePropType, colors:[string, string, ...string[]], iconColor: string, onPress: () => void}) => {
     return (
       <TouchableOpacity
       className="relative flex  mb-3 py-4 pl-3 pr-7 rounded-[24px] w-full"
@@ -25,7 +25,7 @@ const ItemContainer = ({label, caption, icon, iconColor, onPress}:
               <View className="flex-1 flex flex-row items-center justify-between w-full">
                   <View className="flex-row items-center justify-start">
                   <LinearGradient
-                      colors={['#fbb1d6', '#93c5fd']} // 🎨 your gradient colors
+                      colors={colors} // 🎨 your gradient colors
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       className="rounded-[16px] p-[4px] mx-3" // outer border rounding and padding
@@ -38,7 +38,7 @@ const ItemContainer = ({label, caption, icon, iconColor, onPress}:
                     />
                     </View>
                   </LinearGradient>
-                    <View className="flex flex-col items-start">
+                    <View className="flex flex-col items-start max-w-[70%]">
                     <Text className="text-[14px] font-bold text-[#000] ">
                       {label}
                     </Text>
