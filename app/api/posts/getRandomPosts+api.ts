@@ -22,6 +22,7 @@ export async function GET(request: Request) {
           p.pinned,
           p.color,
           p.emoji,
+          p.prompt_id,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -54,6 +55,7 @@ export async function GET(request: Request) {
           p.pinned,
           p.color,
           p.emoji,
+          p.prompt_id,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -86,6 +88,7 @@ export async function GET(request: Request) {
           p.pinned,
           p.color,
           p.emoji,
+          p.prompt_id,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -118,18 +121,19 @@ export async function GET(request: Request) {
           p.pinned,
           p.color,
           p.emoji,
-          p.board_id,
           p.prompt_id,
+          p.board_id,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
           u.username,
           u.country, 
           u.state, 
-          u.city
-    
+          u.city,
+          pr.content as prompt
         FROM posts p
         JOIN users u ON p.user_id = u.clerk_id
+        JOIN prompts pr ON p.prompt_id = pr.id
         WHERE p.user_id != ${id} AND p.post_type = 'public'
         ORDER BY RANDOM()
         LIMIT ${number};

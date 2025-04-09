@@ -70,6 +70,7 @@ const RenderPromptCard = ({item, userId, promptContent, updatePromptContent, han
     fontSize="lg"
     title="submit"
     padding="0"
+    disabled={promptContent.length === 0}
     onPress={() => {handlePromptSubmit(item)}}
     //disabled={}//navigationIndex < (type === 'community' ? tabs.length - 1 : tabs.length - 2)}
   />
@@ -126,6 +127,7 @@ export default function Page() {
       const res = await fetchAPI(
         `/api/posts/getRandomPosts?number=${isIpad ? 10 : 6}&id=${user?.id}`
       );
+    
       setPosts(res.data);
       selectedPostRef.current = res.data[0];
       setExcludedIds(res.data.map((p: Post) => p.id));
@@ -144,6 +146,25 @@ export default function Page() {
         `/api/prompts/getPrompts`
       );
        // Filter out duplicates based on item.cue
+    const hasRecentPrompt = response.data.find((p) => p.user_id == user!.id)
+
+      console.log("has submitted prompt", hasSubmittedPrompt, typeof user!.id)
+      console.log(response.data.find(p => {
+        return String(p.user_id).trim() === String(user!.id).trim();
+      }))
+  
+    if (hasRecentPrompt) {
+
+      const daysDifference = (Date.now() - new Date(hasRecentPrompt.created_at).getTime()) / (1000 * 60 * 60 * 24)
+
+      console.log("Days difference", daysDifference)
+      if (daysDifference > 0.75) {
+        setHasSubmittedPrompt(hasRecentPrompt);
+      }
+     
+    }
+  
+
     const uniquePrompts = response.data.filter((value, index, self) => 
       index === self.findIndex((t) => (
         t.cue === value.cue // Compare by cue
@@ -337,6 +358,7 @@ export default function Page() {
           status: 'error',
         });
        } finally {
+        setHasSubmittedPrompt(true);
          console.log("submitted")
        }
   

@@ -33,7 +33,7 @@ import {
 
 const NewPost = () => {
   const { user } = useUser();
-  const { postId, content, color, emoji, recipient_id, username, prompt, prompt_id } = useLocalSearchParams();
+  const { postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId } = useLocalSearchParams();
   const { showAlert } = useAlert();
   
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
@@ -51,7 +51,7 @@ const NewPost = () => {
   const [isPosting, setIsPosting] = useState(false);
   const [fromPreview, setFromPreview] = useState(false);
 
-  const [selectExpirationDate, setSelectExpirationDate] = useState<string>('14 days')
+  const [selectExpirationDate, setSelectExpirationDate] = useState<string>(expiration)
 
   const expirationDate = ['1 day', '3 days', '7 days', '14 days']
 
@@ -89,8 +89,8 @@ const NewPost = () => {
   };
 
   const handlePostSubmit = async () => {
-    if (!recipientId) {
-    console.log("normal post")
+    if (expiration) {
+    console.log("expiration post")
     router.push({
       pathname: "/root/preview-post",
       params: {
@@ -101,18 +101,41 @@ const NewPost = () => {
         expiration: selectExpirationDate
       }
     });
-  } else {
-    console.log("personal post")
+  } else if (promptId) {
+    router.push({
+      pathname: "/root/preview-post",
+      params: {
+        id: postId ?? "",
+        content: postContent, 
+        color: selectedColor.name, 
+        emoji: selectedEmoji,
+        prompt: prompt,
+        promptId: promptId
+      }
+    });
+  }  else if (recipientId) {
+    router.push({
+      pathname: "/root/preview-post",
+      params: {
+        id: "", 
+        content: postContent, 
+        color: selectedColor.name, 
+        emoji: selectedEmoji, 
+        personal: "true", 
+        recipientId: recipientId,
+        username: userUsername
+      }
+    })
+  }
+  else {
+    console.log("normal post")
        router.push({
                    pathname: "/root/preview-post",
                    params: {
                      id: "", 
                      content: postContent, 
                      color: selectedColor.name, 
-                     emoji: selectedEmoji, 
-                     personal: "true", 
-                     recipientId: recipientId,
-                     username: userUsername
+                     emoji: selectedEmoji,
                    }
                  })
   }
@@ -161,7 +184,7 @@ const NewPost = () => {
          
         >
           <View className="flex-1" >
-            <View className="flex flex-row justify-between items-center mt-6 mx-8">
+            <View className="flex flex-row justify-between items-center my-6 mx-8">
             <View className="flex flex-row w-full justify-between items-center ">
                 <TouchableOpacity onPress={() => router.back()} className="mr-2">
                   <AntDesign name="caretleft" size={18} color="black" />
@@ -188,15 +211,33 @@ const NewPost = () => {
                   className="w-5 h-5"
                   tintColor={"#000"} />
                   </TouchableOpacity>
-                ) : (
+                )  : prompt ? (
                   <TouchableOpacity
+                  activeOpacity={0.9} 
                   onPress={() => {
+                    // handle other condition
+                  }}>
+                    <Image
+                      source={icons.fire}
+                      className="w-6 h-6"
+                      tintColor="#000"
+                    />
+                  </TouchableOpacity>
+                )   : (
+                  <TouchableOpacity
+                  activeOpacity={expiration ? 0.6 : 1}
+                  style={{
+                    opacity: expiration ? 1 : 0
+                  }}
+                  onPress={() => {
+                    if (expiration) {
                     const currentIndex = expirationDate.indexOf(selectExpirationDate);
                     if (currentIndex < expirationDate.length - 1) {
                       setSelectExpirationDate(expirationDate[currentIndex + 1])
                     } else {
                       setSelectExpirationDate(expirationDate[0])
                     }
+                  }
                   }}>
                                       <Image
                                       source={icons.timer}
@@ -223,7 +264,13 @@ const NewPost = () => {
          
             </View>
 
-           <View className="flex-1 m-6 rounded-[48px]" style={{
+            {prompt && <View className="my-6 mx-10">
+              <Text className="text-[24px] text-center font-JakartaBold text-black">
+                {prompt}
+                </Text>
+            </View>}
+
+           <View className="flex-1 mx-6 mt-0 rounded-[48px]" style={{
             backgroundColor: selectedColor.hex
             }}>
             <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
@@ -292,7 +339,7 @@ const NewPost = () => {
             <CustomButton
               className="w-[50%] h-16 rounded-full shadow-none bg-black"
               fontSize="lg"
-              title="continue"
+              title={prompt ? "submit" : "continue"}
               padding="0"
               onPress={handlePostSubmit}
               disabled={!postContent || isPosting}
@@ -407,7 +454,7 @@ const fetchUsers = async () => {
        <View>
                   <View className="flex-grow mt-4 mx-4">
                                   <TextInput
-                                    className="w-full h-12 px-3 -pt-1 bg-[#EAEAEA] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                                    className="w-full h-12 px-3 -pt-1 bg-[#F1F1F1] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
                                     placeholder="Search users..."
                                     placeholderTextColor="#888"
                                     value={searchText}

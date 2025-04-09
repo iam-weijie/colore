@@ -94,7 +94,7 @@ const CarrouselIndicator = ({ id, index }: { id: number; index: number }) => {
 };
 
 const InteractionButton = ({ label, onPress, icon, color }:
-  { label: string, onPress: () => void, icon: ImageSourcePropType, color: string }) => {
+  { label: string, onPress: () => void, icon?: ImageSourcePropType, color: string }) => {
 
   const bounce = useSharedValue(1);
 
@@ -124,7 +124,8 @@ const InteractionButton = ({ label, onPress, icon, color }:
           activeOpacity={0.9}
           className="flex-row items-center justify-center w-14 h-14 rounded-full bg-white shadow-md"
         >
-          <Image
+          
+          {label === 'Reply' ? (<Image
             source={icon}
             className={
               label === 'Reply' ? 'w-5 h-5' :
@@ -132,7 +133,23 @@ const InteractionButton = ({ label, onPress, icon, color }:
               'w-8 h-8'
             }
             tintColor={color}
-          />
+          />) :
+          label === 'Hard agree' ? (
+            <Text 
+          style={{
+            fontSize: 40
+          }}>
+            🤩
+          </Text>
+          ) 
+          : (
+            <Text 
+          style={{
+            fontSize: 40
+          }}>
+            😤
+          </Text>
+          )}
         </TouchableOpacity>
       </Animated.View>
       <Text className="text-[12px] font-JakartaSemiBold shadow-md text-white mt-2">
@@ -729,8 +746,8 @@ const PostModal: React.FC<PostModalProps> = ({
           </TouchableWithoutFeedback>
 
           {header ??  <View className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center">
-              <Text className="text-2xl font-JakartaBold text-white text-center">
-                {currentPost?.prompt_id ? 'This is a prompt' : ''}
+              <Text className="text-2xl font-JakartaBold text-white text-center w-[85%]">
+                {currentPost?.prompt}
               </Text>
             </View>}
 
@@ -800,26 +817,42 @@ const PostModal: React.FC<PostModalProps> = ({
               label="Nay"
               icon={icons.close}
               color={"#FF0000"}
-              onPress={() => {
-                setCurrentPostIndex((prevIndex) => {
-                  const newIndex = prevIndex + 1;
-                  if (newIndex < 0) {
-                    return posts.length - 1; // Loop back to the last post
-                  } else if (newIndex >= posts.length) {
-                    return 0; // Loop back to the first post
+              onPress={async () => {
+
+                try {
+                  console.log("Patching prompts")
+                  
+                  await fetchAPI(`/api/prompts/updateEngagement`, {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      clerkId: user?.id,
+                      promptId: currentPost?.prompt_id
+                    }),
+                  });
+                } catch (error) {
+                  console.error("Failed to update unread comments:", error);
+                } finally {
+                  setCurrentPostIndex((prevIndex) => {
+                    const newIndex = prevIndex + 1;
+                    if (newIndex < 0) {
+                      return posts.length - 1; // Loop back to the last post
+                    } else if (newIndex >= posts.length) {
+                      return 0; // Loop back to the first post
+                    }
+                    return newIndex;
                   }
-                  return newIndex;
+                  );
+                  translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+                  opacity.value = withTiming(0, {}, () => {
+                    runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+                    opacity.value = withTiming(1);
+                  }
+                  );
+                  if (soundEffectsEnabled) {
+                    //playSoundEffect(SoundType.Dislike);
+                  }
                 }
-                );
-                translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-                opacity.value = withTiming(0, {}, () => {
-                  runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-                  opacity.value = withTiming(1);
-                }
-                );
-                if (soundEffectsEnabled) {
-                  //playSoundEffect(SoundType.Dislike);
-                }
+             
               }}
               />
               <InteractionButton 
@@ -828,13 +861,26 @@ const PostModal: React.FC<PostModalProps> = ({
               color={postColor?.fontColor || "rgba(0, 0, 0, 0.5)"}
               onPress={() => {
                 handleCloseModal();
-                router.push({  
-                  pathname: "/root/new-personal-post",
-                  params: {
-                    recipient_id: currentPost?.clerk_id,
-                    source: "board"
-                  },
-              })
+                if (currentPost?.prompt_id) {
+                  router.push({  
+                    pathname: "/root/new-post",
+                    params: {
+                      promptId: currentPost?.prompt_id,
+                      prompt: currentPost?.prompt,
+                      source: "board"
+                    },
+                })
+                } else {
+                  router.push({  
+                    pathname: "/root/new-post",
+                    params: {
+                      recipient_id: currentPost?.clerk_id,
+                      username: currentPost?.username,
+                      source: "board"
+                    },
+                })
+                }
+              
              
               if (soundEffectsEnabled) {  
                 //playSoundEffect(SoundType.Reply);
@@ -845,24 +891,40 @@ const PostModal: React.FC<PostModalProps> = ({
               label="Hard agree"
               icon={icons.check}
               color={"#000000"}
-              onPress={() => {
-                setCurrentPostIndex((prevIndex) => {
-                  const newIndex = prevIndex + 1;
-                  if (newIndex < 0) {
-                    return posts.length - 1; // Loop back to the last post
-                  } else if (newIndex >= posts.length) {
-                    return 0; // Loop back to the first post
+              onPress={async () => {
+               
+               try {
+                  await fetchAPI(`/api/prompts/updateEngagement`, {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      clerkId: user?.id,
+                      promptId: currentPost?.prompt_id
+                    }),
+                  });
+                } catch (error) {
+                  console.error("Failed to update:", error);
+                } finally {
+                  setCurrentPostIndex((prevIndex) => {
+                    const newIndex = prevIndex + 1;
+                    if (newIndex < 0) {
+                      return posts.length - 1; // Loop back to the last post
+                    } else if (newIndex >= posts.length) {
+                      return 0; // Loop back to the first post
+                    }
+                    return newIndex;
                   }
-                  return newIndex;
-                });
-                translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-                opacity.value = withTiming(0, {}, () => {
-                  runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-                  opacity.value = withTiming(1);
-                });
-                if (soundEffectsEnabled) {
-                  //playSoundEffect(SoundType.Like);
+                  );
+                  translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+                  opacity.value = withTiming(0, {}, () => {
+                    runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+                    opacity.value = withTiming(1);
+                  }
+                  );
+                  if (soundEffectsEnabled) {
+                    //playSoundEffect(SoundType.Dislike);
+                  }
                 }
+              
               }}
               />
 

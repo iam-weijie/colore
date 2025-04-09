@@ -61,8 +61,36 @@ const Create = () => {
             colors={['#fbb1d6', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
-            onPress={() => {
-              router.push("/root/new-post");
+            onPress={async () => {
+
+              let prompt;
+
+              try {
+                    const response = await fetchAPI(
+                      `/api/prompts/getPrompts`
+                    );
+                 
+                    const uniquePrompts = response.data.filter((value, index, self) => 
+                      index === self.findIndex((t) => (
+                        t.cue === value.cue // Compare by cue
+                      ))
+                    );
+
+                    prompt = uniquePrompts[0];
+              
+                  } catch (error) {
+                    console.error("Failed to fetch posts:", error);
+                  } finally {
+                    router.push({
+                      pathname: "root/new-post",
+                      params: {
+                        prompt: prompt.content,
+                        promptId: prompt.id
+                      }
+                    });
+                  }
+
+             
             }
             }
           />
@@ -78,7 +106,12 @@ const Create = () => {
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
-              router.push("/root/new-post");
+              router.push({
+                pathname: "root/new-post",
+                params: {
+                  expiration: '3 days' 
+                }
+              });
             }
             }
           />
@@ -90,7 +123,9 @@ const Create = () => {
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
-              router.push("/root/new-post");
+              router.push({
+                pathname: "root/new-post"
+              });
             }
             }
           />

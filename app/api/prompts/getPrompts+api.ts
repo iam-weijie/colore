@@ -11,12 +11,14 @@ export async function GET(request: Request) {
     const response = await sql`
       SELECT 
       p.id,
+      p.user_id,
       p.cue,
       p.content,
       p.theme,
-      p.engagement 
+      p.engagement,
+      p.created_at 
       FROM prompts p
-      ORDER BY p.engagement DESC
+      ORDER BY RANDOM()
       LIMIT 15;
     `;
 
@@ -29,14 +31,15 @@ export async function GET(request: Request) {
     // Map the response to ensure each prompt's fields are assigned correctly
     const promptsData: Prompt[] = response.map((p) => ({
       id: p.id, // Explicitly assign `id`
+      user_id: p.user_id,
       cue: p.cue,
       content: p.content, // Explicitly assign `content`
       theme: p.theme, // Explicitly assign `theme`
       engagement: p.engagement, // Explicitly assign `engagement`
+      created_at: p.created_at,
       color: temporaryColors[Math.floor(Math.random() * 4)].hex, // Add color property
     }));
 
-    console.log("prompts", promptsData)
     // Return the posts data with the color property
     return new Response(JSON.stringify({ data: promptsData }), { status: 200 });
   } catch (error) {
