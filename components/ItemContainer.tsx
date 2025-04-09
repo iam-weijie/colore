@@ -10,8 +10,8 @@ import { icons, temporaryColors } from "@/constants";
 import { LinearGradient } from 'expo-linear-gradient';
 
 
-const ItemContainer = ({label, caption, icon, colors, iconColor, onPress}: 
-  {label: string, caption?: string, icon: ImageSourcePropType, colors:[string, string, ...string[]], iconColor: string, onPress: () => void}) => {
+const ItemContainer = ({label, caption, icon, colors, iconColor, actionIcon, onPress}: 
+  {label: string, caption?: string, icon: ImageSourcePropType, colors:[string, string, ...string[]], iconColor: string, actionIcon?: ImageSourcePropType,  onPress: () => void}) => {
     return (
       <TouchableOpacity
       className="relative flex  mb-3 py-4 pl-3 pr-7 rounded-[24px] w-full"
@@ -34,7 +34,7 @@ const ItemContainer = ({label, caption, icon, colors, iconColor, onPress}:
                     <Image
                       source={icon}
                       className="w-5 h-5"
-                      style={{ tintColor: iconColor }}
+                      style={{ tintColor: "#FAFAFA" }}
                     />
                     </View>
                   </LinearGradient>
@@ -47,11 +47,11 @@ const ItemContainer = ({label, caption, icon, colors, iconColor, onPress}:
                     </Text>}
                     </View>
                     </View>
-                    <Image
-                      source={icons.chevron}
+                    {actionIcon && <Image
+                      source={actionIcon}
                       className="w-5 h-5"
-                      style={{ tintColor: "#000" }}
-                    />
+                      style={{ tintColor: iconColor }}
+                    />}
                   </View>
                
              

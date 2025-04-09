@@ -19,7 +19,7 @@ import EmojiSelector from "react-native-emoji-selector";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from "@/components/CustomButton";
-import { icons, temporaryColors } from "@/constants";
+import { icons, images, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
 import { useNavigationContext } from "@/components/NavigationContext";
@@ -27,6 +27,7 @@ import { useAlert } from '@/notifications/AlertContext';
 import TabNavigation from "@/components/TabNavigation";
 import ItemContainer from "@/components/ItemContainer";
 import ModalSheet from "@/components/Modal";
+import MaskedView from '@react-native-masked-view/masked-view';
 import { UniqueSelection, NumberSelection } from "@/components/Selector";
 
 const NewPost = () => {
@@ -38,10 +39,12 @@ const NewPost = () => {
 
   const [boardDescription, setBoardDescription] = useState("");
   const [boardRestriction, setBoardRestriction] = useState<string[]>([]);
-  const [boardMaxPosts, setBoardMaxPosts] = useState<number>(4);
+  const [boardMaxPosts, setBoardMaxPosts] = useState<number | null>(null);
+  const [selectedPrivacy, setSelectedPrivacy] = useState("Private");
+  const [selectedComments, setSelectedComments] = useState("Allowed");
   const [boardComplete, setBoardComplete] = useState<boolean>(false);
 
-  const [selectedModal, setSelectedModal] = useState<any>();
+  const [selectedModal, setSelectedModal] = useState<any | null>(null);
   const [selectedModalTitle, setSelectedModalTitle] = useState<string>("");
   const [inputHeight, setInputHeight] = useState(40);
   const [navigationIndex, setNavigationIndex] = useState<number>(0)
@@ -93,6 +96,7 @@ Perfect for open discussions or quiet sharing.`,
     {
       label: "Preying eyes",
       caption: "Choose who can see you board.",
+      restriction: ["Private", "Everyone"],
       icon: icons.hide,
       iconColor: "#FAFAFA",
       onPress: () => {
@@ -100,13 +104,14 @@ Perfect for open discussions or quiet sharing.`,
         if (!restric) {
           return
         }
-        setSelectedModal(<UniqueSelection options={restric.options} description={restric.description} onSelect={handleSelectedRectriction} />)
+        setSelectedModal(<UniqueSelection options={restric.options} description={restric.description} selected={selectedPrivacy} onSelect={handleSelectedRectriction} />)
         setSelectedModalTitle("Privacy")
       }
     },
     {
       label: "Allow Comments",
       caption: "Can you receive comments?",
+      restriction: ["commentsAllowed", "commentsDisabled"],
       icon: icons.comment,
       iconColor: "#FAFAFA",
       onPress: () => {
@@ -119,13 +124,14 @@ Perfect for open discussions or quiet sharing.`,
             label: option.label === "commentsDisabled" ? "Disabled" : "Allowed"
           };
         });
-        setSelectedModal(<UniqueSelection options={cleanedOptions} description={restric.description} onSelect={handleSelectedRectriction} />)
+        setSelectedModal(<UniqueSelection options={cleanedOptions} description={restric.description} selected={selectedComments} onSelect={handleSelectedRectriction} />)
         setSelectedModalTitle("Comments")
       }
     },
     {
       label: "# Notes",
       caption: "Select how many notes can be displayed!",
+      restriction: ["4", "5", "6", "7", "8"],
       icon: icons.globe,
       iconColor: "#FAFAFA",
       onPress: () => {
@@ -175,12 +181,15 @@ Perfect for open discussions or quiet sharing.`,
         setBoardRestriction((prev) => prev.filter((r) => r !== "Everyone"))
         setBoardRestriction((prev) => prev.filter((r) => r !== "Private"))
         setBoardRestriction((prev) => [...prev, option])
+        setSelectedPrivacy(option)
       }
 
       if (option === "Allowed" || option === "Disabled") {
         setBoardRestriction((prev) => prev.filter((r) => r !== "commentsAllowed"))
         setBoardRestriction((prev) => prev.filter((r) => r !== "commentsDisabled"))
-        setBoardRestriction((prev) => [...prev, option])
+        const fullOption = option === "Allowed" ? "commentsAllowed" : "commentsDisabled";
+        setBoardRestriction((prev) => [...prev, fullOption])
+        setSelectedPrivacy(option)
       }
      
     }
@@ -188,6 +197,9 @@ Perfect for open discussions or quiet sharing.`,
 
   useEffect(() => {
 console.log("restriction", boardRestriction)
+if (boardRestriction.length === 3) {
+  setBoardComplete(true)
+} else {setBoardComplete(false)}
   }, [boardRestriction])
   const handleContentSizeChange = (event: any) => {
     setInputHeight(event.nativeEvent.contentSize.height);
@@ -196,10 +208,11 @@ console.log("restriction", boardRestriction)
   const handleMaxPost = (max: number) => {
     console.log("Selected max:", max, "Current boardMaxPosts:", boardMaxPosts);
   
-    if (max !== boardMaxPosts) {
+    if (!boardRestriction.some((r) => ["4", "5", "6", "7", "8"].includes(r))) {
       // Remove the old max from restrictions and add the new one
+      console.log("number",boardRestriction.filter((r) => r !== ["4", "5", "6", "7", "8"].find((i) => i === r)))
       setBoardRestriction((prev) => [
-        ...prev.filter((r) => r !== `${boardMaxPosts}`),
+        ...prev.filter((r) => r !== ["4", "5", "6", "7", "8"].find((i) => i === r)),
         `${max}`,
       ]);
   
@@ -217,25 +230,78 @@ console.log("restriction", boardRestriction)
 
 
   const handleChangeText = (text: string) => {
-    if (text.length <= maxTitleCharacters && text.length <= maxDescriptionCharacters) {
+    if (navigationIndex === 0) {
+    if (text.length <= maxTitleCharacters) {
       
-      if (navigationIndex == 0) {
-        setBoardTitle(text);}
-      else {setBoardDescription(text);}
+     
+        setBoardTitle(text)
       
     } else {
-      if (navigationIndex == 0) {
+      
       setBoardTitle(text.substring(0, maxTitleCharacters));
-      } else { setBoardDescription(text.substring(0, maxDescriptionCharacters));}
+     
+
       showAlert({
         title: 'Limit Reached',
-        message: `You can only enter up to ${navigationIndex == 0 ? maxTitleCharacters : maxDescriptionCharacters} characters.`,
+        message: `You can only enter up to ${maxTitleCharacters} characters.`,
         type: 'ERROR',
         status: 'error',
       });
 
     }
+  }
+  if (navigationIndex === 1) {
+    console.log("text", text, text.length <= maxDescriptionCharacters)
+    if (text.length <= maxDescriptionCharacters) {
+      setBoardDescription(text)
+    } else {
+      setBoardDescription(text.substring(0, maxDescriptionCharacters));
+
+      showAlert({
+        title: 'Limit Reached',
+        message: `You can only enter up to ${maxDescriptionCharacters} characters.`,
+        type: 'ERROR',
+        status: 'error',
+      });
+
+    }
+    }
   };
+
+  const handleBoardSubmit = async () => {
+       try {
+               await fetchAPI("/api/boards/newBoard", {
+                 method: "POST",
+                 body: JSON.stringify({
+                  clerkId: user!.id,
+                  title: boardTitle,
+                  description: boardDescription,
+                  type: "personal",
+                  restrictions: boardRestriction
+                 }),
+               });
+     
+              
+              }
+            catch(error) {
+              console.error("Couldn't submit prompt", error)
+              showAlert({
+               title: 'Error',
+               message: `Your prompt was not submitted.`,
+               type: 'ERROR',
+               status: 'error',
+             });
+            } finally {
+              showAlert({
+                title: 'Prompt Submitted',
+                message: `Your prompt was submitted successfully.`,
+                type: 'POST',
+                status: 'success',
+                color: selectedColor.hex
+              });
+              console.log("submitted")
+            }
+  }
 
   const alertFieldEmpty = () => {
  
@@ -252,6 +318,8 @@ useEffect(() => {
 setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
 }, [navigationIndex])
 
+
+
   return (
     <SafeAreaView className="flex-1" >
       <SignedIn>
@@ -267,15 +335,18 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
                   <AntDesign name="caretleft" size={18} color="black" />
                 </TouchableOpacity>
                   <View className="">
-                              <Text className="  text-center text-xl font-JakartaBold text-black">
+                              <Text className="  text-center text-[18px] font-JakartaBold text-black">
                                 New Board
                               </Text>
                               </View>
- <TouchableOpacity
-                  onPress={() => {}}>
+                  <TouchableOpacity
+                  onPress={() => {}}
+                  activeOpacity={1}
+                  className="opacity-0">
+                    
                   <Image
                   source={icons.addUser}
-                  className="w-6 h-6"
+                  className="w-5 h-5"
                   tintColor={"#000"} />
                   </TouchableOpacity>
               
@@ -314,7 +385,8 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
                 onPress={() => {
                   setNavigationIndex(0)
                 }}
-                notifications={0}/>
+                notifications={0}
+                color={selectedColor.hex}/>
                 <TabNavigation
                 name={tabs[1]}
                 focused={navigationIndex === 1}
@@ -325,7 +397,8 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
                   }
                   setNavigationIndex(1)
                 }}
-                notifications={0}/>
+                notifications={0}
+                color={selectedColor.hex}/>
                 <TabNavigation
                 name={tabs[2]}
                 focused={navigationIndex === 2}
@@ -336,7 +409,8 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
                     }
                   setNavigationIndex(2)
                 }}
-                notifications={0}/>
+                notifications={0}
+                color={selectedColor.hex}/>
             </View>
 
            <View className="flex-1 m-6 rounded-[48px]" style={{backgroundColor: selectedColor.hex}}>
@@ -347,7 +421,7 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
                 <View>
                 <TextInput
                   className="text-[20px] text-center text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
-                  placeholder={navigationIndex === 0 ? "Choose a name..." : "Add a description... "}
+                  placeholder={navigationIndex === 0 ? "Choose a name..." : "What is this board about... "}
                   value={navigationIndex === 0 ? boardTitle : boardDescription}
                   onChangeText={handleChangeText}
                   onContentSizeChange={handleContentSizeChange}
@@ -371,16 +445,23 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
               </View>
               
               </KeyboardAvoidingView>
-              {boardTitle &&
-              <View className="flex-1 absolute m-6 top-2 items-start py-5 px-6 bg-[#FAFAFA] rounded-[24px]" >
-                <Text className="text-[14px] font-JakartaBold text-center text-black">{boardTitle ? `Title: ${boardTitle}` : ''}</Text>
-                {boardDescription && <Text 
+              <View className="absolute m-6">
+              {navigationIndex == 0 &&
+              <View className="mb-2  items-start py-5 px-6 bg-[#FAFAFA] rounded-[24px]" >
+                <Text className="text-[14px] font-JakartaBold text-center text-black">{`Title: ${boardTitle}`}</Text>
+              
+              </View>}
+              {navigationIndex == 1  && 
+              <View className=" items-start py-5 px-6 bg-[#FAFAFA] rounded-[24px]" >
+              <Text 
                 className="text-[14px] font-JakartaBold text-center text-black"
                 numberOfLines={1}
                 ellipsizeMode='tail'>
-                  {boardDescription ? `Description: ${boardDescription.slice(0, 20)}` : ''}</Text>}
-              </View>}
+                  { `Description: ${boardDescription.slice(0, 20)}`}</Text>
+                  </View>}
+                  </View>
               </View>) : (
+                <View className="flex-1">
                 <ScrollView className="flex-1 mt-4 mx-6 py-6">
                 {restrictionsPersonalBoard.map((item) => (
                   <ItemContainer 
@@ -388,12 +469,36 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
                     caption={item.caption}
                     icon={item.icon}
                     colors={['#fbb1d6', selectedColor.hex] as [string, string]}
-                    iconColor={item.iconColor}
+                    actionIcon={boardRestriction.some((r) => item.restriction.includes(r)) && icons.check}
+                    iconColor={"#22c722"}
                     onPress={item.onPress}
                     />
                 ))}
                 
                 </ScrollView>
+                <View className="bottom-40  items-center justify-center">
+                  <View className='absolute flex-1'>
+                          <MaskedView
+                          style={{ width: 170, height: 90 }}
+                            maskElement={
+                        <Image
+                          source={ images.highlightLg1 
+                          }
+                          style={{
+                            width: 170,
+                            height: 90,
+                          }}
+                        />
+                      }
+                    >
+                      <View style={{ flex: 1, backgroundColor: "#FFF" }} />
+                    </MaskedView>
+                          </View>
+                <Text className=" font-JakartaBold text-[14px] text-black">
+                  {`Restrictions: ${boardRestriction.length} / 3`}
+                </Text>
+                </View>
+                </View>
               )}
               </View>
               <View className="flex-1 absolute flex items-center w-full bottom-[10%]">
@@ -416,9 +521,14 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
                   return
                 }
 
+                handleBoardSubmit()
+
                }
               }}
-              //disabled={}//navigationIndex < (type === 'community' ? tabs.length - 1 : tabs.length - 2)}
+              disabled={
+                (boardTitle.length === 0 || (navigationIndex === 2 && boardRestriction.length !== 3))
+
+              }//navigationIndex < (type === 'community' ? tabs.length - 1 : tabs.length - 2)}
             />
             </View>
        

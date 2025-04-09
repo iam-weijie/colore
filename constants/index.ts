@@ -43,6 +43,7 @@ import highlight1 from "@/assets/images/highlight-1.png";
 import highlight2 from "@/assets/images/highlight-2.png";
 import highlight3 from "@/assets/images/highlight-3.png";
 import highlight4 from "@/assets/images/highlight-4.png";
+import highlightLg1 from "@/assets/images/highlight-large-1.png";
 
 import { PostItColor } from "@/types/type";
 
@@ -107,7 +108,8 @@ export const images = {
   highlight1,
   highlight2,
   highlight3,
-  highlight4
+  highlight4,
+  highlightLg1
 };
 
 

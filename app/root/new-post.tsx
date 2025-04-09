@@ -167,7 +167,7 @@ const NewPost = () => {
                   <AntDesign name="caretleft" size={18} color="black" />
                 </TouchableOpacity>
                 <View className="">
-              <Text className="  text-center text-xl font-JakartaBold text-black">
+              <Text className="  text-center text-[18px] font-JakartaBold text-black">
                 {postId ? 'Edit Post' : 'New Post'}
               </Text>
               </View>
@@ -185,7 +185,7 @@ const NewPost = () => {
                     }>
                   <Image
                   source={icons.addUser}
-                  className="w-6 h-6"
+                  className="w-5 h-5"
                   tintColor={"#000"} />
                   </TouchableOpacity>
                 ) : (
