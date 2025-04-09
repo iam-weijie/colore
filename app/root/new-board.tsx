@@ -201,30 +201,26 @@ if (boardRestriction.length === 3) {
   setBoardComplete(true)
 } else {setBoardComplete(false)}
   }, [boardRestriction])
+
   const handleContentSizeChange = (event: any) => {
     setInputHeight(event.nativeEvent.contentSize.height);
   };
 
-  const handleMaxPost = (max: number) => {
-    console.log("Selected max:", max, "Current boardMaxPosts:", boardMaxPosts);
+const handleMaxPost = (max: number) => {
+  const numberRestrictions = ["4", "5", "6", "7", "8"];
   
-    if (!boardRestriction.some((r) => ["4", "5", "6", "7", "8"].includes(r))) {
-      // Remove the old max from restrictions and add the new one
-      console.log("number",boardRestriction.filter((r) => r !== ["4", "5", "6", "7", "8"].find((i) => i === r)))
-      setBoardRestriction((prev) => [
-        ...prev.filter((r) => r !== ["4", "5", "6", "7", "8"].find((i) => i === r)),
-        `${max}`,
-      ]);
-  
-      // Update max posts
-      setBoardMaxPosts(max);
-  
-      // Log separately, since boardMaxPosts won't update right away
-      console.log("Updating max to:", max);
-    } else {
-      console.log("Max is already selected:", max);
-    }
-  };
+  console.log("Current restrictions:", boardRestriction);
+  console.log("Setting max to:", max);
+
+  setBoardRestriction(prev => {
+    const filtered = prev.filter(r => !numberRestrictions.includes(r));
+    const newRestrictions = [...filtered, `${max}`];
+    console.log("New restrictions:", newRestrictions);
+    return newRestrictions;
+  });
+
+  setBoardMaxPosts(max);
+};
   
 
 
@@ -281,7 +277,8 @@ if (boardRestriction.length === 3) {
                  }),
                });
      
-              
+              router.back()
+              router.push(`/root/tabs/personal-board`)
               }
             catch(error) {
               console.error("Couldn't submit prompt", error)
@@ -299,6 +296,7 @@ if (boardRestriction.length === 3) {
                 status: 'success',
                 color: selectedColor.hex
               });
+
               console.log("submitted")
             }
   }

@@ -17,7 +17,7 @@ const PreviewPost = () => {
   const { user } = useUser();
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const { showAlert } = useAlert();
-  const { id, content, color, emoji, personal, recipientId, username } =
+  const { id, content, color, emoji, personal, recipientId, username, expiration, prompt, promptId, boardId } =
     useLocalSearchParams();
   const [isPosting, setIsPosting] = useState(false);
   const [postColor, setPostColor] = useState<PostItColor>(
@@ -78,7 +78,9 @@ const PreviewPost = () => {
         params: {
           content: content,
           color: color,
-          emoji: emoji
+          emoji: emoji,
+          promptId: promptId,
+          prompt: prompt
         }
       });
     }
@@ -180,7 +182,8 @@ const PreviewPost = () => {
         setIsPosting(false);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
-    } else {
+    }
+    else {
       setIsPosting(true);
       const cleanedContent = content;
       if (cleanedContent === "") {
@@ -193,13 +196,16 @@ const PreviewPost = () => {
         return;
       }
       try {
+        console.log("trying...")
         await fetchAPI("/api/posts/newPost", {
           method: "POST",
           body: JSON.stringify({
             content: content,
             clerkId: user!.id,
             color: postColor.name,
-            emoji: emoji
+            emoji: emoji,
+            expiration: expiration,
+            promptId: promptId
           }),
         });
 
@@ -244,9 +250,7 @@ const PreviewPost = () => {
                 >
                   <AntDesign name="caretleft" size={18} color={"white"} />
                 </TouchableOpacity>
-                <Text className="font-JakartaSemiBold text-[#ffffff] text-2xl ">
-                  Preview
-                </Text>
+
               </View> 
               <View className="flex-1 absolute flex items-center w-full bottom-[20%]">
             <CustomButton

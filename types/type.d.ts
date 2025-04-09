@@ -22,6 +22,7 @@ declare interface Post {
   emoji: string;
   notified: boolean;
   prompt_id: number;
+  prompt: string;
   board_id: number;
   reply_to: number;
  
@@ -259,6 +260,7 @@ type Prompt = {
   content: string;
   theme: string;
   engagement: number;
+  created_at: string,
   color?: string;
 };
 
