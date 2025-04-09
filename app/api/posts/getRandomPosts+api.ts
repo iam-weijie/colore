@@ -133,7 +133,7 @@ export async function GET(request: Request) {
           pr.content as prompt
         FROM posts p
         JOIN users u ON p.user_id = u.clerk_id
-        JOIN prompts pr ON p.prompt_id = pr.id
+        LEFT JOIN prompts pr ON p.prompt_id = pr.id
         WHERE p.user_id != ${id} AND p.post_type = 'public'
         ORDER BY RANDOM()
         LIMIT ${number};
