@@ -35,7 +35,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
+  Keyboard,
 } from "react-native";
 import {
   GestureHandlerRootView,
@@ -680,6 +682,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   // console.log("firends", friendList, "\n\nSent", allFriendRequests?.sent, "\n\nReceived", allFriendRequests?.received);
 
   return (
+    <TouchableWithoutFeedback
+    className="flex-1"
+    onPress={() => Keyboard.dismiss()}
+    onPressIn={() => Keyboard.dismiss()}>
       <View className="flex-1">
 
           
@@ -719,7 +725,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           <View>
             <View className="flex-grow mt-4 mx-4">
                             <TextInput
-                              className="w-full h-12 px-3 -pt-1 bg-[#EAEAEA] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                              className="w-full h-12 px-3 -pt-1 bg-[#F1F1F1] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
                               placeholder="Search users..."
                               placeholderTextColor="#888"
                               value={searchText}
@@ -734,9 +740,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                                         <Text>{error}</Text>
                                       ) : (
                                         <FlatList
-                                          className={`${filteredUsers.length > 0 ? 'mb-20' : ''}`}
+                                          
                                           data={filteredUsers}
-                                          contentContainerStyle={{ paddingBottom: 40 }} 
+                                          contentContainerStyle={{ 
+                                            paddingBottom: 40, 
+                                            minHeight: screenHeight * 0.4,
+                                            maxHeight: screenHeight * 0.6
+                                          }} 
                                           renderItem={renderUser}
                                           keyExtractor={(item): string => String(item[0])}
                                           showsVerticalScrollIndicator={false}
@@ -745,19 +755,22 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>}
           {selectedTab == "Friends" && (
             <FlatList
-              className="rounded-[16px] mt-3 mx-4"
-             // ListHeaderComponent={
-                /*<View className="flex flex-row items-center mb-4 mt-4">
+              className="rounded-[16px] mt-3 mx-4 "
+              
+              ListHeaderComponent={
+                <View className="flex flex-row items-center my-2 ">
                   <TextInput
-                    className="w-full h-12 px-5 -pt-2 rounded-[16px] bg-[#F1F1F1] text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                    className="w-full h-12 px-3 -pt-1 rounded-[16px] bg-[#F1F1F1] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
                     placeholder="Search friend..."
                     value={searchText}
                     onChangeText={(text): void => setSearchText(text)}
                   />
-                </View>*/
-              //}
+                </View>
+              }
               data={filteredFriendList}
-              contentContainerStyle={{ paddingBottom: 40 }} 
+              contentContainerStyle={{ 
+                paddingBottom: 40,
+              minHeight: screenHeight * 0.46 }} 
               renderItem={renderFriend}
               keyExtractor={(item) => item.id.toString()}
               ListEmptyComponent={
@@ -823,7 +836,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                         </View>
                       </View>
                   <FlatList
-                    className="px-2 rounded-[24px]"
+                    className="px-2 rounded-[24px] "
                     data={allFriendRequests?.sent}
                     contentContainerStyle={{ paddingBottom: 20 }} 
                     renderItem={renderOutgoingRequest}
@@ -843,6 +856,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>
           )}
         </View>
+        </TouchableWithoutFeedback>
   );
 };
 

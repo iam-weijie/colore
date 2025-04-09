@@ -1,54 +1,119 @@
 // components/RadioButton.tsx
 import React, {useState, useEffect, useRef } from 'react';
-import { ScrollView, Animated, Dimensions, FlatList, Image, View, Text, TouchableOpacity } from 'react-native';
+import { ScrollView, Animated, Dimensions, Easing, FlatList, Image, View, Text, TouchableOpacity } from 'react-native';
 import { RadioButtonProps } from '@/types/type';
 import { images } from "@/constants/index";
 import MaskedView from '@react-native-masked-view/masked-view';
 
 const { width } = Dimensions.get('window');
 
-export const RadioButton: React.FC<RadioButtonProps> = ({ label, selected, onSelect })=> {
+export const RadioButton: React.FC<RadioButtonProps> = ({ label, selected, onSelect }) => {
+    const scaleValue = new Animated.Value(0);
+    const opacityValue = new Animated.Value(0);
+    const borderColorValue = new Animated.Value(selected ? 1 : 0);
+    
+    // Border color animation
+    const borderColor = borderColorValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['#9ca3af', '#000000'] // gray-400 to black
+    });
 
-    return(
+    // Handle selection animations
+    useEffect(() => {
+        // Border color transition
+        Animated.timing(borderColorValue, {
+            toValue: selected ? 1 : 0,
+            duration: 200,
+            useNativeDriver: false
+        }).start();
+
+        // Selection animation
+        if (selected) {
+            Animated.parallel([
+                Animated.spring(scaleValue, {
+                    toValue: 1,
+                    friction: 3,
+                    useNativeDriver: true
+                }),
+                Animated.timing(opacityValue, {
+                    toValue: 1,
+                    duration: 300,
+                    easing: Easing.out(Easing.quad),
+                    useNativeDriver: true
+                })
+            ]).start();
+        } else {
+            Animated.parallel([
+                Animated.timing(scaleValue, {
+                    toValue: 0,
+                    duration: 150,
+                    useNativeDriver: true
+                }),
+                Animated.timing(opacityValue, {
+                    toValue: 0,
+                    duration: 150,
+                    useNativeDriver: true
+                })
+            ]).start();
+        }
+    }, [selected]);
+
+    return (
         <TouchableOpacity
-        className="flex-row items-center justify-start my-2"
-        onPress={onSelect}>
-            <View className={`flex-row items-center justify-center w-5 h-5 p-3 rounded-full z-[10]  border-2 ${selected ? 'border-black' : 'border-gray-400'}`}>
-                {selected && 
-                <View className='absolute -z-[1]'>
-                  <MaskedView
-                      style={{ width: 40, height: 40 }}
-                        maskElement={
-                    <Image
-                      source={
-                       images.highlight2
-                      }
-                      style={{
-                        width: 40,
-                        height: 40,
-                      }}
-                    />
-                  }
-                >
-                  <View style={{ flex: 1, backgroundColor: "#93c5fd" }} />
-                </MaskedView>
-                </View>}
-            </View>
-            <Text className={`ml-2 text-[14px] ${selected ? 'text-black' : 'text-gray-400'}  font-JakartaBold`}>
+            className="flex-row items-center justify-start my-2"
+            activeOpacity={0.7}
+            onPress={onSelect}
+        >
+            <Animated.View 
+                className="flex-row items-center justify-center w-5 h-5 p-3 rounded-full z-[10] border-2"
+                style={{ borderColor }}
+            >
+                {selected && (
+                    <>
+                        {/* Animated highlight background */}
+                        <Animated.View 
+                            className='absolute -z-[1]'
+                            style={{
+                                opacity: opacityValue,
+                                transform: [{ scale: scaleValue }]
+                            }}
+                        >
+                            <MaskedView
+                                style={{ width: 40, height: 40 }}
+                                maskElement={
+                                    <Image
+                                        source={images.highlight2}
+                                        style={{ width: 40, height: 40 }}
+                                    />
+                                }
+                            >
+                                <View style={{ flex: 1, backgroundColor: "#93c5fd" }} />
+                            </MaskedView>
+                        </Animated.View>
+                        
+                    </>
+                )}
+            </Animated.View>
+            
+            <Text className={`ml-2 text-[14px] ${selected ? 'text-black' : 'text-gray-400'} font-JakartaBold`}>
                 {label}
             </Text>
         </TouchableOpacity>
-    )
-}
+    );
+};
 
-export const UniqueSelection = ({ options, description, onSelect }) => {
+export const UniqueSelection = ({ options, selected, description, onSelect }) => {
 
-    const [selected, setSelected] = useState<string>(options[0].label);
+    const [selectedOption, setSelectedOption] = useState<string>(selected);
     const handleSelect = (option: string) => {
-        setSelected(option)
         onSelect(option)
     }
     
+    useEffect(() => {
+   
+      handleSelect(options[0].label)
+    }, [])
+
     return (
         <View className="flex-1 mx-2 w-full mb-4">
             <Text className='text-center text-gray-400 text-[12px] mx-4 my-4'>
@@ -58,8 +123,10 @@ export const UniqueSelection = ({ options, description, onSelect }) => {
                 return (
                 <RadioButton
                 label={option.label}
-                selected={selected === option.label}
-                onSelect={() => {handleSelect(option.label)}} />
+                selected={selectedOption === option.label}
+                onSelect={() => {
+                  setSelectedOption(option.label)
+                  handleSelect(option.label)}} />
             )
               
             })}
@@ -138,7 +205,7 @@ export const NumberSelection = ({ maxNum, minNum, onSelect }) => {
     };
   
     return (
-      <View className="flex-1 min-h-[120px]">
+      <View className="flex-1 min-h-[180px]">
         <FlatList
           ref={flatListRef}
           data={numberList}

@@ -162,7 +162,7 @@ const Layout: React.FC = () => {
           borderRadius: 50,
           paddingRight: 15,
           paddingLeft: 15,
-          paddingBottom: isIpad ? 0 : 20,
+          paddingBottom: isIpad ? 0 : 18,
           marginHorizontal: 30,
           marginBottom: 35,
           boxShadow: dynamicShadow,

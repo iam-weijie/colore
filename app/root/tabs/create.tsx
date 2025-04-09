@@ -59,7 +59,8 @@ const Create = () => {
             caption="You and a random thought"
             icon={icons.fire}
             colors={['#fbb1d6', '#93c5fd'] as [string, string]}
-            iconColor="#FAFAFA"
+            iconColor="#888"
+            actionIcon={icons.chevron}
             onPress={() => {
               router.push("/root/new-post");
             }
@@ -74,7 +75,8 @@ const Create = () => {
             caption="Quick or it will disappear!"
             icon={icons.timer}
             colors={['#fbb1d6', '#93c5fd'] as [string, string]}
-            iconColor="#FAFAFA"
+            iconColor="#888"
+            actionIcon={icons.chevron}
             onPress={() => {
               router.push("/root/new-post");
             }
@@ -85,7 +87,8 @@ const Create = () => {
             caption="A thought for the world to see"
             icon={icons.plus}
             colors={['#fbb1d6', '#93c5fd'] as [string, string]}
-            iconColor="#FAFAFA"
+            iconColor="#888"
+            actionIcon={icons.chevron}
             onPress={() => {
               router.push("/root/new-post");
             }
@@ -96,7 +99,8 @@ const Create = () => {
             caption="A thought for your friends board"
             icon={icons.pencil}
             colors={['#fbb1d6', '#93c5fd'] as [string, string]}
-            iconColor="#FAFAFA"
+            iconColor="#888"
+            actionIcon={icons.chevron}
             onPress={() => {
               router.push({
                 pathname: "root/new-post",
@@ -115,7 +119,8 @@ const Create = () => {
             label="Create a board"
             icon={icons.menu}
             colors={['#fbb1d6', '#93c5fd'] as [string, string]}
-            iconColor="#FAFAFA"
+            iconColor="#888"
+            actionIcon={icons.chevron}
             onPress={() => {
               router.push({
                 pathname: "root/new-board",

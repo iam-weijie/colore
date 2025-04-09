@@ -48,7 +48,7 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
       {alertOptions && visible && (
         <AlertNotification
           {...alertOptions}
-          duration={alertOptions.duration ?? 4000}
+          duration={alertOptions.duration ?? 2000}
           onClose={hideAlert}
         />
       )}
