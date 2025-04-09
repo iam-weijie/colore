@@ -143,10 +143,10 @@ const Layout: React.FC = () => {
   const dynamicShadow = isCreateFocused
     ? '-6px -3px 13px 3px rgba(251, 177, 214, 0.25), 5px 4px 13px 3px rgba(147, 197, 253, 0.25)'
     : ( isBoardFocused 
-      ? '-6px -3px 13px 3px rgba(251, 177, 214, 0.25), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)'
+      ? '-6px -3px 13px 3px rgba(147, 197, 253, 0.25), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)'
       : (isStarringFocused 
         ?  '-6px -3px 13px 3px rgba(250,230,64,0.15), 5px 4px 13px 3px rgba(251, 177, 214, 0.25)'
-        : '-6px -3px 13px 3px rgba(250,230,64,0.15), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)'));
+        : '-6px -3px 13px 3px rgba(250,230,64,0.15), 5px 4px 13px 3px rgba(147, 197, 253, 0.25)'));
 
   return (
     <Tabs
