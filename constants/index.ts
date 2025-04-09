@@ -7,8 +7,10 @@ import comment from "@/assets/icons/comment.png";
 import email from "@/assets/icons/email.png";
 import globe from "@/assets/icons/globe.png";
 import google from "@/assets/icons/google.png";
+import fire from "@/assets/icons/fire.png";
 import heart from "@/assets/icons/heart.png";
 import home from "@/assets/icons/home.png";
+import hide from "@/assets/icons/hide.png";
 import lock from "@/assets/icons/lock.png";
 import menu from "@/assets/icons/menu.png";
 import note from "@/assets/icons/note.png";
@@ -30,10 +32,17 @@ import search from "@/assets/icons/search.png";
 import send from "@/assets/icons/send.png";
 import settings from "@/assets/icons/settings.png";
 import star from "@/assets/icons/star.png";
+import timer from "@/assets/icons/timer.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import placeholder from "@/assets/icons/placeholder.png";
+
+
 import login from "@/assets/images/login_squares.png";
+import highlight1 from "@/assets/images/highlight-1.png";
+import highlight2 from "@/assets/images/highlight-2.png";
+import highlight3 from "@/assets/images/highlight-3.png";
+import highlight4 from "@/assets/images/highlight-4.png";
 
 import { PostItColor } from "@/types/type";
 
@@ -56,6 +65,9 @@ export const icons = {
   chat,
   planet,
   close,
+  fire,
+  hide,
+  timer,
   profile,
   menu,
   plus,
@@ -92,6 +104,10 @@ export const countries = {
 }
 export const images = {
   login,
+  highlight1,
+  highlight2,
+  highlight3,
+  highlight4
 };
 
 

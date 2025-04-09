@@ -33,7 +33,7 @@ import {
 
 const NewPost = () => {
   const { user } = useUser();
-  const { postId, content, color, emoji, recipient_id, username } = useLocalSearchParams();
+  const { postId, content, color, emoji, recipient_id, username, prompt, prompt_id } = useLocalSearchParams();
   const { showAlert } = useAlert();
   
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
@@ -162,7 +162,7 @@ const NewPost = () => {
         >
           <View className="flex-1" >
             <View className="flex flex-row justify-between items-center mt-6 mx-8">
-            <View className="flex flex-row justify-start items-center ">
+            <View className="flex flex-row w-full justify-between items-center ">
                 <TouchableOpacity onPress={() => router.back()} className="mr-2">
                   <AntDesign name="caretleft" size={18} color="black" />
                 </TouchableOpacity>
@@ -176,19 +176,7 @@ const NewPost = () => {
               
 
               
-           
-              
-              {/*<CustomButton
-                className="w-14 h-10 rounded-full shadow-none"
-                fontSize="sm"
-                title="Next"
-                style={{backgroundColor: selectedColor.hex}}
-                padding="0"
-                onPress={handlePostSubmit}
-                disabled={!postContent || isPosting}
-              />*/}
-            </View>
-            {!!username ? (
+              {!!username ? (
                   <TouchableOpacity
                   onPress={() => {
                     Keyboard.dismiss();
@@ -210,14 +198,29 @@ const NewPost = () => {
                       setSelectExpirationDate(expirationDate[0])
                     }
                   }}>
-                   {!postId && <Text className="  text-center text-[14px] font-JakartaBold" style={{
-                    color: selectedColor.fontColor
-                   }}>
-                   Expire in : {selectExpirationDate}
+                                      <Image
+                                      source={icons.timer}
+                                      className="w-6 h-6"
+                                      tintColor={"#000"} />
+                                      {!postId && <Text className="absolute top-1 right-4 flex-1 w-full min-w-[75px]  text-center text-[12px] font-JakartaSemiBold text-gray-400" >
+                  {selectExpirationDate}
                  </Text>}
                  </TouchableOpacity>
+                 
                 )
                 }
+              
+              {/*<CustomButton
+                className="w-14 h-10 rounded-full shadow-none"
+                fontSize="sm"
+                title="Next"
+                style={{backgroundColor: selectedColor.hex}}
+                padding="0"
+                onPress={handlePostSubmit}
+                disabled={!postContent || isPosting}
+              />*/}
+            </View>
+         
             </View>
 
            <View className="flex-1 m-6 rounded-[48px]" style={{

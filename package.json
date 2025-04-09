@@ -71,7 +71,8 @@
     "react-native-view-shot": "~4.0.3",
     "react-native-web": "~0.19.13",
     "expo-haptics": "~14.0.1",
-    "expo-av": "~15.0.2"
+    "expo-av": "~15.0.2",
+    "@react-native-masked-view/masked-view": "0.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

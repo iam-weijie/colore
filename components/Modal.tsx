@@ -87,7 +87,7 @@ const ModalSheet = ({ children, title, isVisible, onClose }: {children: any, tit
                className="
                absolute 
                w-[92%]
-               min-h-[55%]
+               
                max-h-[65%]
                left-[50%]
                -ml-[46%]
