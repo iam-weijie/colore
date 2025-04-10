@@ -33,7 +33,7 @@ import {
 
 const NewPost = () => {
   const { user } = useUser();
-  const { postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId } = useLocalSearchParams();
+  const { postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
   const { showAlert } = useAlert();
   
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
@@ -123,7 +123,8 @@ const NewPost = () => {
         emoji: selectedEmoji, 
         personal: "true", 
         recipientId: recipientId,
-        username: userUsername
+        username: userUsername,
+        boardId: boardId
       }
     })
   }

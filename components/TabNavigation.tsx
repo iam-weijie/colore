@@ -34,9 +34,12 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
     onPress()
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);}}
 >
-  {focused && <View className='absolute flex-1 w-full -mt-2'>
+  {focused && <View className='absolute flex-1 w-full -mt-2 '>
         <MaskedView
-        style={{ width: 110, height: 60 }}
+        style={{ 
+          width: 110, 
+          height: 60,
+         left: (name == 'Mine' || name == 'Discover') ? 30 : 0}}
           maskElement={
       <Image
         source={ images.highlightLg1 

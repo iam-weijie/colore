@@ -36,14 +36,18 @@ import {
 } from "react-native-gesture-handler";
 import ReactNativeModal from "react-native-modal";
 import Animated, {
+  BounceIn,
+  Easing,
   FadeInUp,
   FadeOutDown,
   runOnJS,
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
+  withSequence,
   withSpring,
   withTiming,
+  ZoomIn
 } from "react-native-reanimated";
 import { captureRef } from "react-native-view-shot";
 import DropdownMenu from "./DropdownMenu";
@@ -93,71 +97,108 @@ const CarrouselIndicator = ({ id, index }: { id: number; index: number }) => {
   );
 };
 
-const InteractionButton = ({ label, onPress, icon, color }:
-  { label: string, onPress: () => void, icon?: ImageSourcePropType, color: string }) => {
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-  const bounce = useSharedValue(1);
+const InteractionButton = ({ 
+  label, 
+  onPress, 
+  icon, 
+  color 
+}: { 
+  label: string, 
+  onPress: () => void, 
+  icon?: ImageSourcePropType, 
+  color: string 
+}) => {
+  // Animation values
+  const scale = useSharedValue(0.8);
+  const opacity = useSharedValue(0);
+  const yOffset = useSharedValue(100);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: bounce.value }],
-    };
-  });
+  // Enter animation
+  React.useEffect(() => {
+    scale.value = withSpring(1, {
+      damping: 10,
+      stiffness: 100
+    });
+    opacity.value = withTiming(1, { duration: 300 });
+    yOffset.value = withSpring(0, {
+      damping: 15,
+      stiffness: 120
+    });
+  }, []);
 
-  const handlePressIn = () => {
-    bounce.value = withSpring(1.1, { damping: 5 });
+  // Press animation
+  const handlePress = () => {
+    scale.value = withSequence(
+      withTiming(0.95, { duration: 80 }),
+      withSpring(1, {
+        damping: 5,
+        stiffness: 300
+      })
+    );
+    onPress();
   };
 
-  const handlePressOut = () => {
-    bounce.value = withSpring(1, { damping: 5 });
-  };
+  // Animated styles
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [
+      { scale: scale.value },
+      { translateY: yOffset.value }
+    ]
+  }));
+
+  const emojiStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
 
   return (
     <View className="flex-column items-center justify-center mx-4">
-      <Animated.View 
-      style={animatedStyle}
-      entering={FadeInUp.duration(200)}>
-        <TouchableOpacity
-          onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
+      <Animated.View style={containerStyle}>
+        <AnimatedTouchable
+          onPress={handlePress}
           activeOpacity={0.9}
           className="flex-row items-center justify-center w-14 h-14 rounded-full bg-white shadow-md"
         >
-          
-          {label === 'Reply' ? (<Image
-            source={icon}
-            className={
-              label === 'Reply' ? 'w-5 h-5' :
-              label === 'Hard agree' ? 'w-7 h-7' :
-              'w-8 h-8'
-            }
-            tintColor={color}
-          />) :
-          label === 'Hard agree' ? (
-            <Text 
-          style={{
-            fontSize: 40
-          }}>
-            🤩
-          </Text>
-          ) 
-          : (
-            <Text 
-          style={{
-            fontSize: 40
-          }}>
-            😤
-          </Text>
+          {label === 'Reply' ? (
+            <Image
+              source={icon}
+              className={
+                label === 'Reply' ? 'w-5 h-5' :
+                label === 'Hard agree' ? 'w-7 h-7' :
+                'w-8 h-8'
+              }
+              tintColor={color}
+            />
+          ) : label === 'Hard agree' ? (
+            <Animated.Text 
+              style={[emojiStyle, { fontSize: 40 }]}
+            >
+              🤩
+            </Animated.Text>
+          ) : (
+            <Animated.Text 
+              style={[emojiStyle, { fontSize: 40 }]}
+            >
+              😤
+            </Animated.Text>
           )}
-        </TouchableOpacity>
+        </AnimatedTouchable>
       </Animated.View>
-      <Text className="text-[12px] font-JakartaSemiBold shadow-md text-white mt-2">
+      
+      <Animated.Text 
+        className="text-[12px] font-JakartaSemiBold shadow-md text-white mt-2"
+        style={{ opacity: opacity.value }}
+      >
         {label}
-      </Text>
+      </Animated.Text>
     </View>
   );
 };
+
+const AnimatedView = Animated.createAnimatedComponent(View);
+
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
   selectedPost,
@@ -726,6 +767,27 @@ const PostModal: React.FC<PostModalProps> = ({
         ];
   };
 
+  const backgroundColor = useSharedValue(postColor?.hex || "rgba(0, 0, 0, 0.5)");
+  const prevColor = React.useRef(backgroundColor.value);
+
+  // Animate color change
+  useEffect(() => {
+    if (prevColor.current !== (postColor?.hex || "rgba(0, 0, 0, 0.5)")) {
+      backgroundColor.value = withTiming(
+        postColor?.hex || "rgba(0, 0, 0, 0.5)",
+        {
+          duration: 300,
+          easing: Easing.inOut(Easing.quad)
+        }
+      );
+      prevColor.current = postColor?.hex || "rgba(0, 0, 0, 0.5)";
+    }
+  }, [postColor]);
+
+  const animatedBackgroundStyle = useAnimatedStyle(() => ({
+    backgroundColor: backgroundColor.value,
+  }));
+
   return (
       <ReactNativeModal
         isVisible={isVisible}
@@ -733,13 +795,15 @@ const PostModal: React.FC<PostModalProps> = ({
         backdropOpacity={1}
         onBackdropPress={handleCloseModal}
       >
-        <View
+        <AnimatedView
           ref={viewRef}
           className="flex-1 absolute w-screen h-screen justify-center z-[10]"
-          style={{
-            marginLeft: isIpad ? -60 : -19,
-            backgroundColor: postColor?.hex || "rgba(0, 0, 0, 0.5)",
-          }}
+          style={[
+            animatedBackgroundStyle,
+            {
+              marginLeft: isIpad ? -60 : -19,
+            }
+          ]}
         >
           <TouchableWithoutFeedback onPress={!isPreview ? handleCloseModal : undefined}>
             {BackgroundGridEmoji(currentPost?.emoji || "")}
@@ -813,7 +877,7 @@ const PostModal: React.FC<PostModalProps> = ({
           </GestureHandlerRootView>
            {infiniteScroll ? (
             <View className="absolute top-[75%] self-center flex flex-row items-center justify-center">
-              <InteractionButton 
+              {currentPost?.prompt_id && <InteractionButton 
               label="Nay"
               icon={icons.close}
               color={"#FF0000"}
@@ -854,7 +918,7 @@ const PostModal: React.FC<PostModalProps> = ({
                 }
              
               }}
-              />
+              />}
               <InteractionButton 
               label="Reply"
               icon={icons.plus}
@@ -887,7 +951,7 @@ const PostModal: React.FC<PostModalProps> = ({
               }
             }}
               />
-              <InteractionButton 
+              {currentPost?.prompt_id && <InteractionButton 
               label="Hard agree"
               icon={icons.check}
               color={"#000000"}
@@ -926,7 +990,7 @@ const PostModal: React.FC<PostModalProps> = ({
                 }
               
               }}
-              />
+              />}
 
             </View>
            ) : (<View className="absolute top-[80%] self-center flex flex-row">
@@ -941,7 +1005,7 @@ const PostModal: React.FC<PostModalProps> = ({
                 );
               })}
           </View>)}
-        </View>
+        </AnimatedView>
       </ReactNativeModal>
   );
 };
