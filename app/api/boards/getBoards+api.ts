@@ -20,13 +20,14 @@ export async function GET(request: Request) {
       b.members_id,
       b.user_id,
       b.board_type,
-      b.created_at,
+      b.created_at
       FROM boards b
-      JOIN users u ON p.user_id = u.clerk_id
+      JOIN users u ON b.user_id = u.clerk_id
       WHERE b.user_id = '${user_id}'
       ORDER BY b.created_at ASC;
     `;
    
+
     const response = await sql(query);
     return new Response(JSON.stringify({ data: response }), {
       status: 200,

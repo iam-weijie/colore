@@ -148,12 +148,14 @@ const PreviewPost = () => {
         return;
       }
       try {
-        await fetchAPI("/api/posts/newPersonalPost", {
+        await fetchAPI("/api/posts/newPost", {
           method: "POST",
           body: JSON.stringify({
             content: cleanedContent,
             clerkId: user!.id,
             recipientId: recipientId,
+            boardId: boardId,
+            postType: 'personal',
             color: postColor.name,
             emoji: emoji
           }),

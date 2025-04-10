@@ -44,6 +44,7 @@ declare interface Board {
   restrictions: string[];
   created_at: string;
   number_of_posts: number;
+  color?: string;
 }
 
 declare interface DraftPost {

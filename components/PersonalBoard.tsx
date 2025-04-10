@@ -18,19 +18,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
-import { Post } from "@/types/type";
+import { Post, Board } from "@/types/type";
 import UserProfile from "./UserProfile";
 import { Dimensions } from "react-native";
 import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
 
 type PersonalBoardProps = {
     userId: string;
+    boardId: number;
 }
   const screenHeight = Dimensions.get("screen").height;
   const screenWidth = Dimensions.get("screen").width;
 
 
-const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
+const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
   const { user } = useUser();
   const {isIpad} = useGlobalContext();
   const [loading, setLoading] = useState(true);
@@ -64,9 +65,11 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
       const existingPostIds = postRefIDs;
     
       try {
-        const response = await fetchAPI(`/api/posts/getPostsById?ids=${existingPostIds}`);
-        const updatedPosts: Post[] = response.data;
+        const posts = await fetchAPI(`/api/posts/getPostsById?ids=${existingPostIds}`);
+
+        const updatedPosts: Post[] = boardId == 0 ? posts.data : posts.data.filter((p: Post) => p.board_id == boardId);
     
+       
         const formattedPosts = updatedPosts.map((post: Post) => ({
           ...post,
           recipient_user_id: post.recipient_user_id,
@@ -77,7 +80,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
         }));
       
         setUpdatePinnedPosts(false)
-        getAction(formattedPosts)
+        //getAction(formattedPosts)
         return formattedPosts
        
     
@@ -88,7 +91,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     else {
       const viewerId = user!.id;
       const maxPostOnScreen = postRefIDs.length == 0 ? (isIpad ? 10 : 6) : Math.min(postRefIDs.length  + 4, (isIpad ? 14 : 8) )
-      setMaxPosts(maxPostOnScreen ); 
+      setMaxPosts(maxPostOnScreen); 
     
       try {
       const response = await fetchAPI(
@@ -99,9 +102,12 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
         isOwnBoard || (!isOwnBoard && post.clerk_id == user!.id) || (post.pinned)
       ));
   
-          
+      const boardOnlyPosts = boardId === 0 ? filteredPosts : filteredPosts.filter((p: Post) => p.board_id == boardId);
+
+      console.log("posts", )
+    
       // Validate and format each post
-      const formattedPosts = filteredPosts.map((post: Post) => ({
+      const formattedPosts = boardOnlyPosts.map((post: Post) => ({
         ...post,
         recipient_user_id: post.recipient_user_id,
         pinned: post.pinned,
@@ -110,7 +116,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
         unread_comments: post.unread_comments || 0
       }));
       
-      getAction(formattedPosts)
+      //getAction(formattedPosts)
       return formattedPosts;
     } catch (error) {
       console.log("Failed to fetch posts", error)
@@ -176,7 +182,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
   useFocusEffect(
     useCallback(() => {
       fetchUserData();
-      fetchPersonalPosts;
+      fetchPersonalPosts();
       //setShouldRefresh((prev) => prev + 1); // Increment refresh counter
     }, [userId])
   );
@@ -243,5 +249,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId }) => {
     </View>
   );
 }
+
+
 
 export default PersonalBoard;

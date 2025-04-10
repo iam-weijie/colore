@@ -4,9 +4,9 @@ const sql = neon(process.env.DATABASE_URL!);
 
 export async function POST(request: Request) {
   try {
-    const { content, clerkId, color = "yellow", emoji = null, expiration = '14 days', promptId, boardId } = await request.json();
+    const { content, clerkId, color = "yellow", emoji = null, expiration = '14 days', postType = 'public', recipientId, promptId, boardId } = await request.json();
 
-    console.log("all params", content, clerkId, color, emoji , expiration, promptId, boardId)
+    console.log("all params", content, clerkId, color, emoji , expiration, postType, recipientId, promptId, boardId)
     if (!content || !clerkId) {
       return Response.json(
         { error: "content and clerkId are required" },
@@ -27,9 +27,9 @@ export async function POST(request: Request) {
     // Fix 3: Ensure proper parenthesis placement
     const [insertedPost] = await sql`
       INSERT INTO posts 
-        (user_id, content, like_count, report_count, color, emoji, expires_at, prompt_id, board_id)
+        (user_id, content, like_count, report_count, post_type, recipient_user_id, color, emoji, expires_at, prompt_id, board_id)
       VALUES 
-        (${clerkId}, ${content}, 0, 0, ${color}, ${emoji}, NOW() + ${expiration}::INTERVAL, ${promptId}, ${boardId})
+        (${clerkId}, ${content}, 0, 0, ${postType}, ${recipientId}, ${color}, ${emoji}, NOW() + ${expiration}::INTERVAL, ${promptId}, ${boardId})
       RETURNING id, color, expires_at;
     `;
 
