@@ -17,6 +17,8 @@ import {
   FriendStatusType,
   RawFriendRequest,
   UserNicknamePair,
+  Post,
+  PostComment
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from "@react-navigation/native";
@@ -56,6 +58,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from '@/notifications/AlertContext';
 import TabNavigation from "@/components/TabNavigation";
+import { useGlobalContext } from "@/app/globalcontext";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -863,6 +866,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   const { user } = useUser();
   const { showAlert } = useAlert();
+  const { storedNotifications } = useGlobalContext()
+
+  // Notifications
+  const [commentsNotif, setCommentsNotif] = useState<PostComment[]>();
+  const [postsNotif, setPostsNotif] = useState<Post[]>();
 
   // User experience
   const [loading, setLoading] = useState<boolean>(false);
@@ -877,56 +885,18 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   );
 
 
-  const handleUnfriending = async (friendId: string) => {
-    Alert.alert(
-      "Unfriend", // Title
-      "Are you sure you want to unfriend this person?", // Message
-      [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Unfriending Cancelled"),
-          style: "cancel", // Makes the Cancel button stand out
-        },
-        {
-          text: "Unfriend",
-          onPress: async () => {
-            try {
-              setHandlingFriendRequest(true);
-              const response: FriendStatusType = await unfriend(
-                user!.id,
-                friendId
-              );
-              if (response === FriendStatus.NONE) {
-                showAlert({
-                  title: 'Unfriended',
-                  message: "You have unfriended this user.",
-                  type: 'FRIEND_REQUEST',
-                  status: 'success',
-                });
-              } else {
-                showAlert({
-                  title: 'Error',
-                  message: `Error unfriending this user.`,
-                  type: 'ERROR',
-                  status: 'error',
-                });
-              }
-              fetchFriendData();
-              setHandlingFriendRequest(false);
-            } catch (error) {
-              console.error("Couldn't unfriend that person...", error);
-            }
-          }, // Replace with your API call
-          style: "destructive", // Red color for emphasis
-        },
-      ],
-      { cancelable: true } // Close alert by tapping outside
-    );
-  };
+  const removeNotification = (id: string) => {}
 
   // RENDER LISTS ------ START
 
-  const FriendItem = ({ item, loading, setShowDeleteIcon }) => {
+  const NotificationItem = ({ item, loading, setShowDeleteIcon }) => {
+
+    // Find post info for comments
+    let post;
+    if (!item.recipient_user_id) {
+     post = storedNotifications.find((n) => n.comments.includes(item))
+    }
+  
 
     // Shared animated values and constants
     const translateX = useSharedValue(0);
@@ -969,16 +939,17 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
         opacity.value = withTiming(0);
         translateX.value = withTiming(0, { damping: 20, stiffness: 300 });
         if (finalOpacity > 0.95) {
-          runOnJS(handleUnfriending)(item.friend_id);
+          runOnJS(removeNotification)(item.friend_id);
         }
       },
     });
+
   
     return (
       <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
         <PanGestureHandler onGestureEvent={gestureHandler} >
           <Animated.View
-            className="flex mb-3 py-4 px-2 rounded-[24px] w-full"
+            className="flex  py-4 px-2 rounded-[24px] w-full"
             style={[animatedStyle, { backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }]}
           >
             <View className="flex-1 flex-row justify-between items-center">
@@ -986,32 +957,40 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
                 <TouchableOpacity
                   className="flex-1"
                   activeOpacity={0.6}
-                  onPress={() => handleUserProfile(item.friend_id)}
-                >
-                  <View>
-                    <Text className="text-[14px] font-bold ">
-                      {nicknames && item.friend_id in nicknames
-                        ? nicknames[item.friend_id]
-                        : item.friend_username}
-                    </Text>
-                    <Text className="text-gray-500 text-[12px]">{item.city !== item.state ? `${item.city}, ${item.state}, ${item.country}` : `${item.state}, ${item.country}`}</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <View className="flex flex-row items-center justify-center ">
-                <TouchableOpacity
                   onPress={() => {
+                    
                     router.push({
-                      pathname: "/root/user-board/[id]",
-                      params: { id: item.friend_id, username: item.friend_username },
-                    });
-                  }}
+                      pathname: `/root/post/${item.id ?? post.id}`,
+                      params: {
+                        id: item.id ?? post.id,
+                        clerk_id: item.clerk_id ?? post.user_id,
+                        content: item.content ?? post.content ,
+                        username: item.username ?? post.username ?? "",
+                        like_count: item.like_count ?? post.like_count ?? "",
+                        report_count: item.report_count ?? post.report_count ?? "",
+                        created_at: item.created_at ?? post.created_at ?? "",
+                        unread_comments: item.unread_comments ?? post.unread_comments ?? "",
+                        color: item.color ?? post.color ?? ""
+                      },
+                    })
+                  
+                  }}//handleUserProfile(item.friend_id)}
                 >
-                   <Image 
-                  source={icons.chevron} 
-                  className="w-5 h-5"
-                  tintColor={"black"}
-                />
+                  <View className="flex flex-row mb-1">
+                    <Text className="text-[14px] font-JakartaBold ">
+                      {item.commenter_username ?? item.username ?? ""}
+                    </Text>
+                    {item.commenter_username && <Text className="text-[14px] font-JakartaSemiBold ">
+                     {" "} has commented your posts.
+                    </Text>}
+                    {item.content && <Text className="text-[14px] font-JakartaSemiBold ">
+                     {" "} has send you a posts.
+                    </Text>}
+                  </View>
+                  <View>
+                  <Text className="text-[12px] text-gray-400 font-Jakarta ">{item.comment_content ?? item.content ?? ""}
+                  </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1044,8 +1023,8 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
     );
   };
   
-  const renderFriend = ({ item }) => (
-    <FriendItem item={item} loading={loading} setShowDeleteIcon={setShowDeleteIcon} />
+  const renderNotif = ({ item }) => (
+    <NotificationItem item={item} loading={loading} setShowDeleteIcon={setShowDeleteIcon} />
   );
   
 
@@ -1055,6 +1034,28 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
 
   // USE EFFECT ------- START
 
+  useEffect(() => {
+
+    const commentsArray: PostComment[] = [];
+    const postsArray: Post[] = [];
+    
+    storedNotifications.forEach((notif) => {
+      if (notif.comments) {
+        commentsArray.push(...notif.comments);
+      }
+    
+      if (notif.recipient_user_id) {
+        console.log("here")
+        postsArray.push(notif);
+      }
+    });
+    
+    setCommentsNotif(commentsArray);
+    setPostsNotif(postsArray);
+
+  }, [storedNotifications])
+
+  console.log("stored notifs", storedNotifications, "post", postsNotif, "comments", commentsNotif)
 
   return (
       <View className="flex-1">
@@ -1069,7 +1070,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
                   setSelectedTab("Comments");
                   //setSearchText("");
                 }}
-                notifications={0}
+                notifications={commentsNotif?.length ?? 0}
               />
               <TabNavigation
                 name="Likes"
@@ -1084,9 +1085,52 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
                 name="Posts"
                 focused={selectedTab === "Posts"}
                 onPress={() => setSelectedTab("Posts")}
-                notifications={0}
+                notifications={postsNotif?.length ?? 0}
               />
             </View>
+
+            {selectedTab === "Comments" &&  
+            <FlatList
+              className="rounded-[16px] mt-3 mx-4 "
+              data={commentsNotif}
+              contentContainerStyle={{ 
+                paddingBottom: 40,
+              minHeight: screenHeight * 0.46 }} 
+              renderItem={renderNotif}
+              keyExtractor={(item) => item.id.toString()}
+              ListEmptyComponent={
+                <Text className="text-center text-gray-500">No new notification</Text>
+              }
+              showsVerticalScrollIndicator={false}
+            />}
+            {selectedTab === "Posts" &&  
+            <FlatList
+              className="rounded-[16px] mt-3 mx-4 "
+              data={postsNotif}
+              contentContainerStyle={{ 
+                paddingBottom: 40,
+              minHeight: screenHeight * 0.46 }} 
+              renderItem={renderNotif}
+              keyExtractor={(item) => item.id.toString()}
+              ListEmptyComponent={
+                <Text className="text-center text-gray-500">No new notification</Text>
+              }
+              showsVerticalScrollIndicator={false}
+            />}
+            {selectedTab === "Likes" &&  
+            <FlatList
+              className="rounded-[16px] mt-3 mx-4 "
+              data={[]}
+              contentContainerStyle={{ 
+                paddingBottom: 40,
+              minHeight: screenHeight * 0.46 }} 
+              renderItem={renderNotif}
+              keyExtractor={(item) => item.id.toString()}
+              ListEmptyComponent={
+                <Text className="text-center text-gray-500">No new notification</Text>
+              }
+              showsVerticalScrollIndicator={false}
+            />}
 
         </View>
   );

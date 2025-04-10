@@ -53,50 +53,13 @@ import { captureRef } from "react-native-view-shot";
 import DropdownMenu from "./DropdownMenu";
 import { useAlert } from '@/notifications/AlertContext';
 import InteractionButton from "./InteractionButton";
+import CarrouselIndicator from "./CarrouselIndicator";
+import EmojiExplosionModal from "./EmojiExplosiveModal";
 
 
 const { width, height } = Dimensions.get("window");
 
-const CarrouselIndicator = ({ id, index }: { id: number; index: number }) => {
-  // Shared values for animation
-  const width = useSharedValue(2);
-  const opacity = useSharedValue(0.5);
 
-  // Animate when `id` or `index` changes
-  useEffect(() => {
-    if (id === index) {
-      width.value = withTiming(50, { duration: 250 }); // Animate width to 50
-      opacity.value = withTiming(1, { duration: 250 }); // Animate opacity to 1
-    } else {
-      width.value = withTiming(8, { duration: 250 }); // Animate width back to 2
-      opacity.value = withTiming(0.5, { duration: 250 }); // Animate opacity back to 0.5
-    }
-  }, [id, index]);
-
-  // Animated styles
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      width: width.value,
-      opacity: opacity.value,
-    };
-  });
-
-  return (
-    <Animated.View
-      style={[
-        {
-          borderRadius: 999, // Fully rounded corners
-          padding: 2,
-          minWidth: 8,
-          height: 8,
-          backgroundColor: "white",
-          marginHorizontal: 4,
-        },
-        animatedStyle, // Apply animated styles
-      ]}
-    />
-  );
-};
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
@@ -117,10 +80,12 @@ const PostModal: React.FC<PostModalProps> = ({
   const [nickname, setNickname] = useState<string>("");
   const [currentPost, setCurrentPost] = useState<Post>(selectedPost);
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [posts, setPosts] = useState<Post[]>([]);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
+  const [showEmojiModal, setShowEmojiModal] = useState<boolean>(false);
    const { showAlert } = useAlert();
   const router = useRouter();
   const translateX = useSharedValue(0);
@@ -167,6 +132,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
   useEffect(() => {
     setCurrentPost(post[currentPostIndex]);
+
 
     if (infiniteScroll && typeof scrollToLoad === "function" && currentPostIndex + 1 === posts.length - 1) {
       // If last post and infiniteScroll is enabled
@@ -437,6 +403,10 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   };
 
+  const handleInteractionPress = (emoji: string) => {
+    setSelectedEmoji(emoji)
+  }
+
   // Capture the content as soon as the component mounts (first render)
   useEffect(() => {
     if (isVisible) {
@@ -524,11 +494,14 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   };
 
+
   useEffect(() => {
     if (imageUri) {
       // console.log("Image URI has been set:", imageUri);
     }
   }, [imageUri]);
+
+
 
   // COMPONENT RENDER
 
@@ -685,6 +658,20 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   }, [postColor]);
 
+
+  useEffect(() => {
+
+    const timeoutId = setTimeout(() => {
+      setSelectedEmoji(post[currentPostIndex]?.emoji);
+    }, 300);
+  
+    return () => clearTimeout(timeoutId);
+  }, [post, currentPost])
+
+  useEffect(() => {
+console.log(selectedEmoji, "emojic")
+  }, [selectedEmoji])
+
   const animatedBackgroundStyle = useAnimatedStyle(() => ({
     backgroundColor: backgroundColor.value,
   }));
@@ -710,11 +697,14 @@ const PostModal: React.FC<PostModalProps> = ({
             {BackgroundGridEmoji(currentPost?.emoji || "")}
           </TouchableWithoutFeedback>
 
-          {header ??  <View className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center">
+          {header ??  <Animated.View 
+          className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center"
+          entering={FadeInUp.duration(200)}
+          exiting={FadeOutDown.duration(200)}>
               <Text className="text-2xl font-JakartaBold text-white text-center w-[85%]">
                 {currentPost?.prompt}
               </Text>
-            </View>}
+            </Animated.View>}
 
           <GestureHandlerRootView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <GestureDetector gesture={swipeGesture}>
@@ -783,7 +773,7 @@ const PostModal: React.FC<PostModalProps> = ({
               icon={icons.close}
               color={"#FF0000"}
               onPress={async () => {
-
+               
                 try {
                   console.log("Patching prompts")
                   
@@ -797,6 +787,8 @@ const PostModal: React.FC<PostModalProps> = ({
                 } catch (error) {
                   console.error("Failed to update unread comments:", error);
                 } finally {
+                  handleInteractionPress("😤")
+                  const timeoutId = setTimeout(() => {
                   setCurrentPostIndex((prevIndex) => {
                     const newIndex = prevIndex + 1;
                     if (newIndex < 0) {
@@ -816,6 +808,8 @@ const PostModal: React.FC<PostModalProps> = ({
                   if (soundEffectsEnabled) {
                     //playSoundEffect(SoundType.Dislike);
                   }
+                }, 2000)
+                return () => clearTimeout(timeoutId);
                 }
              
               }}
@@ -852,12 +846,13 @@ const PostModal: React.FC<PostModalProps> = ({
               }
             }}
               />
-              {currentPost?.prompt_id && <InteractionButton 
+              {currentPost?.prompt_id && 
+                <InteractionButton 
               label="Hard agree"
               icon={icons.check}
               color={"#000000"}
               onPress={async () => {
-               
+                
                try {
                   await fetchAPI(`/api/prompts/updateEngagement`, {
                     method: "PATCH",
@@ -869,6 +864,8 @@ const PostModal: React.FC<PostModalProps> = ({
                 } catch (error) {
                   console.error("Failed to update:", error);
                 } finally {
+                  handleInteractionPress("🤩")
+                  const timeoutId = setTimeout(() => {
                   setCurrentPostIndex((prevIndex) => {
                     const newIndex = prevIndex + 1;
                     if (newIndex < 0) {
@@ -888,6 +885,10 @@ const PostModal: React.FC<PostModalProps> = ({
                   if (soundEffectsEnabled) {
                     //playSoundEffect(SoundType.Dislike);
                   }
+                }, 2000)
+
+                return () => clearTimeout(timeoutId);
+
                 }
               
               }}
@@ -906,7 +907,27 @@ const PostModal: React.FC<PostModalProps> = ({
                 );
               })}
           </View>)}
+        
         </AnimatedView>
+        {!!selectedEmoji && 
+          
+          
+          <View className="absolute -top-[150px] self-center inset-0">
+            <EmojiExplosionModal
+              isVisible={!!selectedEmoji}
+              verticalForce={50}
+              radius={1000}
+              emojiSize="text-[150px]"
+              duration={7000}
+              emoji={selectedEmoji}
+              onComplete={() => {
+                setSelectedEmoji("")
+                console.log("done")
+              }}
+            />
+          </View>
+          }
+        
       </ReactNativeModal>
   );
 };

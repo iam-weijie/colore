@@ -29,7 +29,7 @@ import ModalSheet from "@/components/Modal";
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
-  const { isIpad } = useGlobalContext();
+  const { isIpad, storedNotifications } = useGlobalContext();
   const [action, setAction] = useState(ActionType.NONE);
   const { showAlert } = useAlert();
   const [geographicalMode, setGeographicalMode] = useState<GeographicalMode>('world');
@@ -191,7 +191,7 @@ const fetchUserData = async () => {
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
-          <View className="flex flex-row p-1 items-center justify-center gap-3">
+          <View className="flex flex-row p-1 items-center justify-center gap-4">
             <TouchableOpacity
             onPress={() => {
               //router.push("/root/chat/chat-screen");
@@ -201,7 +201,7 @@ const fetchUserData = async () => {
             <Image
               source={icons.addUser}
               className="w-5 h-5"
-              style={{ tintColor: "#888" }}
+              style={{ tintColor: "#000" }}
             />
             </TouchableOpacity>
          <TouchableOpacity
@@ -212,8 +212,14 @@ const fetchUserData = async () => {
             <Image
               source={icons.notification}
               className="w-5 h-5"
-              style={{ tintColor: "#888" }}
+              style={{ tintColor: "#000" }}
             />
+            <View className="absolute right-2">
+            <NotificationBubble
+            unread={storedNotifications.length ?? 0}
+            color={"#FF0000"}
+            />
+            </View>
             </TouchableOpacity>
           
            

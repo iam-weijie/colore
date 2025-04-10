@@ -25,7 +25,7 @@ declare interface Post {
   prompt: string;
   board_id: number;
   reply_to: number;
- 
+  
 }
 declare interface ActionPromptsProps {
   friendName: string, 
@@ -265,21 +265,9 @@ type Prompt = {
   color?: string;
 };
 
-type AlertProps = {
-  title: string;
-  message: string;
-  type: string;
-  status: "success" | "error" | "warning";
-  duration?: number;
-  onClose?: () => void;
-  action?: () => void;
-  actionText?: string;
-  color?: string;
-}
 
 type GeographicalMode = 'city' | 'state' | 'country' | 'world'
 
-type GeographicalMode = 'city' | 'state' | 'country' | 'world'
 
 type AlertProps = {
   title: string;

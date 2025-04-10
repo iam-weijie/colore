@@ -7,12 +7,13 @@ import { Dimensions, Image, Modal, ImageSourcePropType, Pressable,  SafeAreaView
 import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming } from "react-native-reanimated";
 
 
+const screenHeight = Dimensions.get('screen').height
 
 const ModalSheet = ({ children, title, isVisible, onClose }: {children: any, title: string, isVisible: boolean, onClose: () => void}) => {
    
     const [visible, setVisible] = useState(isVisible);
   
-    const translateY = useSharedValue(500); 
+    const translateY = useSharedValue(screenHeight); 
     const modalOpacity = useSharedValue(0);
   
     const animatedOpacity = useAnimatedStyle(() => {
@@ -31,10 +32,10 @@ const ModalSheet = ({ children, title, isVisible, onClose }: {children: any, tit
           useEffect(() => {
          // Spring animation to slide in
             translateY.value = withSpring(0, {  
-              damping: 18,
-              stiffness: 125,
+              damping: 25,
+              stiffness: 90,
               mass: 1,});  // Slide in to 0 with spring effect
-        }, [visible, children]);  // Dependency array ensures useEffect runs when either action or friendName changes
+        }, [visible, children]);  
   
       useEffect(() => {
     if (!visible) {
@@ -50,9 +51,9 @@ const ModalSheet = ({ children, title, isVisible, onClose }: {children: any, tit
   
       
     const handleClose = () => {
-      translateY.value = withSpring(500, { 
-        damping: 18,
-        stiffness: 125,
+      translateY.value = withSpring(screenHeight, { 
+        damping: 25,
+        stiffness: 90,
         mass: 1, });  // Slide out to off-screen
       modalOpacity.value = withTiming(0, {
         duration: 200
@@ -61,7 +62,7 @@ const ModalSheet = ({ children, title, isVisible, onClose }: {children: any, tit
       setVisible(false);
       onClose();
       }
-      , 500);
+      , 200);
       
     };
   

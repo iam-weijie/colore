@@ -99,17 +99,35 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       setMaxPosts(maxPostOnScreen); 
     
       try {
-      const response = await fetchAPI(
-        `/api/posts/getPersonalPosts?number=${maxPostOnScreen}&recipient_id=${userId}&user_id=${viewerId}`
+    
+      
+      const board = await fetchAPI(
+        `/api/boards/getBoardById?id=${boardId}`
       );
-  
-      const filteredPosts = response.data.filter((post: Post) => (
-        isOwnBoard || (!isOwnBoard && post.clerk_id == user!.id) || (post.pinned)
-      ));
+      let filteredPosts;
+      let posts;
+      
+      console.log("resctriction", board.data.restrictions.includes("Everyone"))
+      if (board.data.restrictions.includes("Everyone")) {
+        posts = await fetchAPI(
+          `/api/posts/getPostByBoardId?id=${boardId}`
+        );
+        filteredPosts =  posts.data 
+      
+      } else {
+         posts = await fetchAPI(
+          `/api/posts/getPersonalPosts?number=${maxPostOnScreen}&recipient_id=${userId}&user_id=${viewerId}`
+        );
+        filteredPosts = posts.data.filter((post: Post) => (
+          isOwnBoard || (!isOwnBoard && post.clerk_id == user!.id) || (post.pinned)
+        ));
+      }
+      
+     
   
       const boardOnlyPosts = boardId === 0 ? filteredPosts : filteredPosts.filter((p: Post) => p.board_id == boardId);
 
-      console.log("posts", )
+      console.log("posts", filteredPosts)
     
       // Validate and format each post
       const formattedPosts = boardOnlyPosts.map((post: Post) => ({

@@ -145,6 +145,8 @@ export default function Page() {
       const response = await fetchAPI(
         `/api/prompts/getPrompts`
       );
+
+      
        // Filter out duplicates based on item.cue
     const hasRecentPrompt = response.data.find((p) => p.user_id == user!.id)
 
@@ -333,8 +335,13 @@ export default function Page() {
           status: 'error',
         });
        } finally {
-        setHasSubmittedPrompt(true);
-         console.log("submitted")
+        const timeoutId = setTimeout(() => {
+          setHasSubmittedPrompt(true);
+        }, 2000);
+      
+        return () => clearTimeout(timeoutId);
+      
+       
        }
   
  };

@@ -33,7 +33,7 @@ const UserPersonalBoard = () => {
           {username}'s Board
         </Text>
 
-        <TouchableOpacity onPress={handleNewPost}>
+        <TouchableOpacity className="opacity-0" onPress={() => {}}>
           <Image source={icons.pencil} className="w-7 h-7" />
         </TouchableOpacity>
       </View>

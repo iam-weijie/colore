@@ -23,6 +23,7 @@ type GlobalContextType = {
   stacks: Stacks[];
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
   notifications: any[];
+  storedNotifications: any[];
   unreadComments: number;
   unreadMessages: number;
   unreadRequests: number;
@@ -261,6 +262,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [stacks, setStacks] = useState<Stacks[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [storedNotifications, setStoredNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
   const [unreadPersonalPosts, setUnreadPersonalPosts] = useState<number>(0);
@@ -295,6 +297,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     } 
   }, [user, pushToken]);
 
+
+
   // In-app fetchNotifications function that uses the external function
   const fetchNotifications = async () => {
     if (!user?.id || !pushToken) return;
@@ -304,6 +308,11 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
          // For UI state, update unread counts, last connection, etc.
       // (You can parse the responses as needed; here we simply set the notifications.)
         const { notifs, counts } = result;
+        if (notifs.length > 0) {
+          const prevNotifications = storedNotifications;
+          setStoredNotifications([...prevNotifications, ...notifs]);
+        }
+        
         setNotifications(notifs);
         setUnreadComments(counts[0]);
         setUnreadMessages(counts[1]);
@@ -316,6 +325,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Error in in-app fetchNotifications", error);
     }
   };
+
 
   // Example function to update the last connection (as before)
   const updateLastConnection = async () => {
@@ -417,6 +427,7 @@ const sendTokenDB = async (token) => {
         stacks,
         setStacks,
         notifications,
+        storedNotifications,
         unreadComments,
         unreadMessages,
         unreadPersonalPosts,

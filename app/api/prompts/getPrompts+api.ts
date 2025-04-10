@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       p.engagement,
       p.created_at 
       FROM prompts p
-      ORDER BY RANDOM()
+      ORDER BY p.created_at DESC
       LIMIT 15;
     `;
 

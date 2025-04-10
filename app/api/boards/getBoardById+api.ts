@@ -7,6 +7,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const id = url.searchParams.get("id"); // Retrieve the 'ids' query param
 
+   
     const response = await sql`
       SELECT *
       FROM boards b
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
     }
 
     // Return the posts data in the response
-    return new Response(JSON.stringify({ data: response }), { status: 200 });
+    return new Response(JSON.stringify({ data: response[0] }), { status: 200 });
   } catch (error) {
     console.error("Database error:", error);
     return new Response(JSON.stringify({ error: "Failed to fetch board" }), {

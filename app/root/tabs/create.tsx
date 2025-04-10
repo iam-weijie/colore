@@ -76,7 +76,8 @@ const Create = () => {
                       ))
                     );
 
-                    prompt = uniquePrompts[0];
+                    let randomIndex = Math.floor(Math.random() * uniquePrompts.length);
+                    prompt = uniquePrompts[randomIndex];
               
                   } catch (error) {
                     console.error("Failed to fetch posts:", error);

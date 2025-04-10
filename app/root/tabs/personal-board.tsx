@@ -214,7 +214,10 @@ const UserPersonalBoard = () => {
           <ModalSheet 
             isVisible={!!selectedBoard}
             title={selectedBoardTitle}
-            onClose={() => {setSelectedBoard(null)}}
+            onClose={() => {
+              
+              setSelectedBoard(null)
+            }}
             >
               {selectedBoard}
               </ModalSheet>
