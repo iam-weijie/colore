@@ -154,9 +154,11 @@ export async function GET(request: Request) {
      u.username,
      u.country, 
      u.state, 
-     u.city
+     u.city,
+     pr.content as prompt
    FROM posts p
    JOIN users u ON p.user_id = u.clerk_id
+   LEFT JOIN prompts pr ON p.prompt_id = pr.id
    WHERE p.user_id != '${id}' 
      AND p.post_type = 'public'
      ${excludeClause}

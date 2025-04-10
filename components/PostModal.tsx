@@ -693,8 +693,8 @@ console.log(selectedEmoji, "emojic")
             }
           ]}
         >
-          <TouchableWithoutFeedback onPress={!isPreview ? handleCloseModal : undefined}>
-            {BackgroundGridEmoji(currentPost?.emoji || "")}
+          <TouchableWithoutFeedback onPress={!isPreview ? handleCloseModal : undefined} >
+            {BackgroundGridEmoji("")}
           </TouchableWithoutFeedback>
 
           {header ??  <Animated.View 
@@ -918,7 +918,7 @@ console.log(selectedEmoji, "emojic")
               verticalForce={50}
               radius={1000}
               emojiSize="text-[150px]"
-              duration={7000}
+              duration={8000}
               emoji={selectedEmoji}
               onComplete={() => {
                 setSelectedEmoji("")
