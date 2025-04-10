@@ -7,12 +7,15 @@ import { useEffect, useState, useCallback } from "react";
 
 import { icons, countries } from "@/constants";
 import { router, useFocusEffect } from "expo-router";
-import { Dimensions, Image, ImageSourcePropType, SafeAreaView, TouchableOpacity, View, Text } from "react-native";
+import { Dimensions, Image, Modal, ImageSourcePropType, Pressable,  SafeAreaView, TouchableOpacity, View, Text } from "react-native";
+import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming } from "react-native-reanimated";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 import DropdownMenu from "@/components/DropdownMenu";
 
 import ActionPrompts from "@/components/ActionPrompts";
+import { useAlert } from '@/notifications/AlertContext';
+
 import { useAlert } from '@/notifications/AlertContext';
 
 import { ActionType } from "@/lib/prompts";
@@ -178,16 +181,6 @@ const fetchUserData = async () => {
   };
  
 
-  useEffect(() => {
-    /*showAlert({
-      title: 'Limit Reached',
-      message: `You can only enter up to 6000 characters.`,
-      type: 'ERROR',
-      status: 'error',
-    });*/
-    
-    
-  }, []);
 
   return (
     <SafeAreaView className="flex-1">
@@ -297,3 +290,4 @@ const fetchUserData = async () => {
     </SafeAreaView>
   );
 }
+

@@ -6,6 +6,7 @@ import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useAlert } from '@/notifications/AlertContext';
 import { CommentItem } from "@/components/Comment";
 import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook

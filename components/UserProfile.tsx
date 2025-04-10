@@ -38,6 +38,7 @@ import {
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
+import { useAlert } from '@/notifications/AlertContext';
 import Circle from "./Circle";
 import { useAlert } from '@/notifications/AlertContext';
 
