@@ -158,7 +158,7 @@ export default function Page() {
       const daysDifference = (Date.now() - new Date(hasRecentPrompt.created_at).getTime()) / (1000 * 60 * 60 * 24)
 
       console.log("Days difference", daysDifference)
-      if (daysDifference > 0.75) {
+      if (daysDifference < 0.75) {
         setHasSubmittedPrompt(hasRecentPrompt);
       }
      
@@ -278,31 +278,6 @@ export default function Page() {
       </SafeAreaView>
     );
   }
-
-  const defaultPrompts: Prompt[] = [
-    {
-      id: 0,
-      cue: "What is the least",
-      content: "",
-      theme: "Life",
-      engagement: 0,
-      color: '#ffe640'
-    },
-    {
-      id: 1,
-      cue: "The world would be better if",
-      content: "",
-      theme: "Self-esteem",
-      engagement: 0,
-      color: '#93c5fd'
-    },{
-      id: 2,
-      cue: "Stupid people do",
-      content: "",
-      theme: "School",
-      engagement: 0,
-      color: '#CFB1FB'
-    }]
 
   const updatePromptContent = (text: string) => {
     const maxCharacters = 40
