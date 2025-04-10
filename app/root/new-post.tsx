@@ -51,6 +51,8 @@ const NewPost = () => {
   const [isPosting, setIsPosting] = useState(false);
   const [fromPreview, setFromPreview] = useState(false);
 
+  console.log("new post", content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId)
+
   const [selectExpirationDate, setSelectExpirationDate] = useState<string>(expiration)
 
   const expirationDate = ['1 day', '3 days', '7 days', '14 days']

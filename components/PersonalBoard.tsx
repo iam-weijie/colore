@@ -22,6 +22,7 @@ import { Post, Board } from "@/types/type";
 import UserProfile from "./UserProfile";
 import { Dimensions } from "react-native";
 import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
+import InteractionButton from "./InteractionButton";
 
 type PersonalBoardProps = {
     userId: string;
@@ -37,6 +38,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<any>(null);
+  const [username, setUsername] = useState<string>("");
   const [shouldRefresh, setShouldRefresh] = useState(0); // Add a refresh counter
   const isOwnBoard = !userId || userId === user?.id;
   const [maxPosts, setMaxPosts] = useState(0);
@@ -45,15 +47,18 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
   const [action, setAction] = useState(ActionType.NONE);
 
   const fetchUserData = async () => {
-    if (!isOwnBoard) {
+    
       try {
-        const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`);
+        const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
+          method: 'GET'
+        });
+
         setProfileUser(response.data[0]);
       } catch (error) {
         console.error("Failed to fetch user data:", error);
         setError("Failed to load profile");
       }
-    }
+    
     setLoading(false);
   };
 
@@ -125,6 +130,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
     }
    
   };
+
+
   const AlgorithmNewPosition = (isPinned: boolean) => {
 
     if (isPinned) {
@@ -181,8 +188,10 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
 
   useFocusEffect(
     useCallback(() => {
+      setLoading(true);
       fetchUserData();
       fetchPersonalPosts();
+      console.log("ran")
       //setShouldRefresh((prev) => prev + 1); // Increment refresh counter
     }, [userId])
   );
@@ -220,8 +229,12 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       }
         
   }
+
   return (
-    <View className="flex-1">
+    <View className="flex-1"
+    style={{
+      height: screenHeight
+    }}>
       <SignedIn>
         <PostItBoard 
           key={shouldRefresh} // Add key to force re-render when shouldRefresh changes
@@ -244,7 +257,26 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
               source: 'board'
             }
           });
+          
         }}/>*/}
+         <View className="flex-1 absolute bottom-5 self-center">
+                  <InteractionButton
+                  label="Reply"
+                  color="#8654CF"
+                  icon={icons.plus}
+                  onPress={() => {
+                                router.push({
+                                  pathname: "root/new-post",
+                                  params: {
+                                    recipient_id: userId,
+                                    username: profileUser?.username,
+                                    boardId: boardId
+                                  }
+                                });
+                              }
+                            }
+                  />
+                </View>
       </SignedIn>
     </View>
   );

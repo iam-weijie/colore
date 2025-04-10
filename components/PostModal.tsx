@@ -52,6 +52,7 @@ import Animated, {
 import { captureRef } from "react-native-view-shot";
 import DropdownMenu from "./DropdownMenu";
 import { useAlert } from '@/notifications/AlertContext';
+import InteractionButton from "./InteractionButton";
 
 
 const { width, height } = Dimensions.get("window");
@@ -94,106 +95,6 @@ const CarrouselIndicator = ({ id, index }: { id: number; index: number }) => {
         animatedStyle, // Apply animated styles
       ]}
     />
-  );
-};
-
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
-const InteractionButton = ({ 
-  label, 
-  onPress, 
-  icon, 
-  color 
-}: { 
-  label: string, 
-  onPress: () => void, 
-  icon?: ImageSourcePropType, 
-  color: string 
-}) => {
-  // Animation values
-  const scale = useSharedValue(0.8);
-  const opacity = useSharedValue(0);
-  const yOffset = useSharedValue(100);
-
-  // Enter animation
-  React.useEffect(() => {
-    scale.value = withSpring(1, {
-      damping: 10,
-      stiffness: 100
-    });
-    opacity.value = withTiming(1, { duration: 300 });
-    yOffset.value = withSpring(0, {
-      damping: 15,
-      stiffness: 120
-    });
-  }, []);
-
-  // Press animation
-  const handlePress = () => {
-    scale.value = withSequence(
-      withTiming(0.95, { duration: 80 }),
-      withSpring(1, {
-        damping: 5,
-        stiffness: 300
-      })
-    );
-    onPress();
-  };
-
-  // Animated styles
-  const containerStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [
-      { scale: scale.value },
-      { translateY: yOffset.value }
-    ]
-  }));
-
-  const emojiStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }]
-  }));
-
-  return (
-    <View className="flex-column items-center justify-center mx-4">
-      <Animated.View style={containerStyle}>
-        <AnimatedTouchable
-          onPress={handlePress}
-          activeOpacity={0.9}
-          className="flex-row items-center justify-center w-14 h-14 rounded-full bg-white shadow-md"
-        >
-          {label === 'Reply' ? (
-            <Image
-              source={icon}
-              className={
-                label === 'Reply' ? 'w-5 h-5' :
-                label === 'Hard agree' ? 'w-7 h-7' :
-                'w-8 h-8'
-              }
-              tintColor={color}
-            />
-          ) : label === 'Hard agree' ? (
-            <Animated.Text 
-              style={[emojiStyle, { fontSize: 40 }]}
-            >
-              🤩
-            </Animated.Text>
-          ) : (
-            <Animated.Text 
-              style={[emojiStyle, { fontSize: 40 }]}
-            >
-              😤
-            </Animated.Text>
-          )}
-        </AnimatedTouchable>
-      </Animated.View>
-      
-      <Animated.Text 
-        className="text-[12px] font-JakartaSemiBold shadow-md text-white mt-2"
-        style={{ opacity: opacity.value }}
-      >
-        {label}
-      </Animated.Text>
-    </View>
   );
 };
 

@@ -140,7 +140,7 @@ const Create = () => {
               router.push({
                 pathname: "root/new-post",
                 params: {
-                  recipient_id: user!.id,
+                  recipientId: user!.id,
                   username: "Yourself"
                 }
               });

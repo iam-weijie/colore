@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import {
   ActivityIndicator,
@@ -9,13 +9,15 @@ import {
   Image,
   Text,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { fetchAPI } from "@/lib/fetch";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import PersonalBoard from "@/components/PersonalBoard";
 import { icons, temporaryColors } from "@/constants";
 import TabNavigation from "@/components/TabNavigation";
+import ModalSheet from "@/components/Modal";
 import { Board } from "@/types/type";
+import InteractionButton from "@/components/InteractionButton";
 
 const UserPersonalBoard = () => {
   const router = useRouter();
@@ -27,7 +29,7 @@ const UserPersonalBoard = () => {
   const [selectedBoardTitle, setSelectedBoardTitle] = useState<string>("");
   const [selectedBoardId, setSelectedBoardId] = useState<number>(0);
   const [selectedBoardUserInfo, setSelectedBoardUserInfo] = useState<string>("");
-  const [selectedBoard, setSelectedBoard] = useState<any>();
+  const [selectedBoard, setSelectedBoard] = useState<any | null>(null);
   const [myBoards, setMyBoards] = useState<any>();
   const [discoverBoards, setDiscoverBoards] = useState<any>();
 
@@ -112,10 +114,15 @@ const UserPersonalBoard = () => {
     }
   }
 
-  useEffect(() => {
-    fetchPersonalBoards()
-    fetchDiscoverBoards()
-  }, [])
+
+    useFocusEffect(
+      useCallback(() => {
+        fetchPersonalBoards()
+        fetchDiscoverBoards()
+        //setShouldRefresh((prev) => prev + 1); // Increment refresh counter
+      }, [])
+    );
+  
 
 
   // ITEM RENDER --START
@@ -155,7 +162,7 @@ const UserPersonalBoard = () => {
           backgroundColor: item.color ?? "#ff00f0",
         }}
       >
-        <View className="w-full bg-white/90 rounded-xl p-">
+        <View className="w-full bg-white/90 rounded-2xl py-3 px-2">
           <Text className="text-[14px] font-JakartaBold text-black text-center drop-shadow-md">
             {item.title}
           </Text>
@@ -176,38 +183,15 @@ const UserPersonalBoard = () => {
   return (
     <SafeAreaView className="flex-1">
       <View className="flex-row justify-between items-center mx-7 mt-3 ">
-      {!!selectedBoard  && <TouchableOpacity onPress={() => {
-        setSelectedBoard(null)
-        setSelectedBoardTitle("")
-        setSelectedBoardUserInfo("")
-        setSelectedBoardId(0)
-      }}>
-                  <AntDesign name="caretleft" size={18} color="0076e3" />
-                </TouchableOpacity>}
-        <Text className={`text-${!!selectedBoard  ? '[18px]' : '2xl'} font-JakartaBold`}>
-          {!!selectedBoard ? selectedBoardTitle : 'Boards'}
+
+        <Text className={`text-2xl font-JakartaBold`}>
+          Boards
           </Text>
-            {!!selectedBoard  && <TouchableOpacity
-                              onPress={() => {
-                                 router.push({
-                                                pathname: "root/new-post",
-                                                params: {
-                                                  recipient_id: user!.id,
-                                                  boardId: selectedBoardId,
-                                                  username: "Yourself"
-                                                }
-                                              });
-                              }
-                                }>
-                              <Image
-                              source={icons.plus}
-                              className="w-5 h-5"
-                              tintColor={"#000"} />
-                              </TouchableOpacity>}
+        
       </View>
       <SignedIn>
         <View className="flex-1">
-        {!selectedBoard  && <View className="flex flex-row items-start justify-between mt-4 mx-8 mb-4  ">
+        <View className="flex flex-row items-start justify-between mt-4 mx-8 mb-4  ">
               <TabNavigation
                 name={"Mine"}
                 focused={selectedTab === "MyBoards"}
@@ -224,10 +208,18 @@ const UserPersonalBoard = () => {
                 }}
                 notifications={0}
                 color={"#93c5fd"}/>
-            </View>}
+            </View>
             {!loading ? (<View className="flex-1 overflow-hidden my-4">
-        {!!selectedBoard ? (selectedBoard) 
-        : selectedTab === "MyBoards" ? (
+        {!!selectedBoard &&
+          <ModalSheet 
+            isVisible={!!selectedBoard}
+            title={selectedBoardTitle}
+            onClose={() => {setSelectedBoard(null)}}
+            >
+              {selectedBoard}
+              </ModalSheet>
+}
+        {selectedTab === "MyBoards" ? (
         <View className="flex-1">
           <BoardGallery
             boards={myBoards}
@@ -248,6 +240,7 @@ const UserPersonalBoard = () => {
         )}
        
         </View>
+       
       </SignedIn>
     </SafeAreaView>
   );
@@ -256,3 +249,31 @@ const UserPersonalBoard = () => {
 export default UserPersonalBoard;
 
 
+/*
+
+  {!!selectedBoard  && <TouchableOpacity onPress={() => {
+        setSelectedBoard(null)
+        setSelectedBoardTitle("")
+        setSelectedBoardUserInfo("")
+        setSelectedBoardId(0)
+      }}>
+                  <AntDesign name="caretleft" size={18} color="0076e3" />
+                </TouchableOpacity>}
+
+  {!!selectedBoard  && <TouchableOpacity
+                              onPress={() => {
+                                 router.push({
+                                                pathname: "root/new-post",
+                                                params: {
+                                                  recipient_id: user!.id,
+                                                  boardId: selectedBoardId,
+                                                  username: "Yourself"
+                                                }
+                                              });
+                              }
+                                }>
+                              <Image
+                              source={icons.plus}
+                              className="w-5 h-5"
+                              tintColor={"#000"} />
+                              </TouchableOpacity>}*/

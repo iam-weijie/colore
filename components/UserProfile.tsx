@@ -40,7 +40,6 @@ import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
 import { useAlert } from '@/notifications/AlertContext';
 import Circle from "./Circle";
-import { useAlert } from '@/notifications/AlertContext';
 
 // Skeleton component for post loading states
 const PostSkeleton = () => (

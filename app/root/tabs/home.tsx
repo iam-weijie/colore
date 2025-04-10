@@ -16,8 +16,6 @@ import DropdownMenu from "@/components/DropdownMenu";
 import ActionPrompts from "@/components/ActionPrompts";
 import { useAlert } from '@/notifications/AlertContext';
 
-import { useAlert } from '@/notifications/AlertContext';
-
 import { ActionType } from "@/lib/prompts";
 import { GeographicalMode } from "@/types/type";
 import UserInfo from "../user-info";
