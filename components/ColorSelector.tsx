@@ -47,7 +47,9 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({
               marginRight: 8,
             }}
           >
-            <Text className="text-[14px] font-JakartaBold text-white">Selected</Text>
+            <Text className="text-[14px] font-JakartaBold text-white">
+              Selected
+              </Text>
           </Animated.View>
           <Circle
             color={color.hex}

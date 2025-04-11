@@ -180,17 +180,13 @@ const UserPersonalBoard = () => {
             setSelectedBoardUserInfo(item.user_id);
             setSelectedBoardId(item.id);
           }}
-          className="relative rounded-[36px] h-[225px] w-[170px] overflow-hidden m-2 shadow-2xl"
+          className="relative rounded-[32px] h-[225px] w-[170px] overflow-hidden m-2 shadow-2xl"
           style={{
             backgroundColor: item.color ?? "#ff00f0",
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.15,
-            shadowRadius: 20,
           }}
         >
           {/* Gradient overlay at bottom */}
-          <View className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
+          <View className="absolute bottom-0 left-0 right-0 h-1/3" />
           
           {/* Optional image placeholder - you could replace this with actual board cover images */}
           {item.imageUrl ? (
@@ -200,13 +196,13 @@ const UserPersonalBoard = () => {
               resizeMode="cover"
             />
           ) : (
-            <View className="absolute w-full h-full bg-black/10" />
+            <View className="absolute w-full h-full " />
           )}
           
           {/* Title and metadata at bottom */}
-          <View className="absolute bottom-2 w-full p-3">
+          <View className="absolute bottom-2 w-full p-3 left-2">
             <Text 
-              className="text-white text-[16px] font-JakartaBold mb-1 drop-shadow-md"
+              className="text-white text-[16px] font-JakartaBold  drop-shadow-md"
               numberOfLines={2}
             >
               {item.title}
@@ -214,7 +210,7 @@ const UserPersonalBoard = () => {
             
             {/* Additional metadata - you can customize these */}
             <View className="flex-row items-center">
-              <Text className="text-white/80 text-[12px] font-JakartaSemiBold mr-2">
+              <Text className="text-white/80 text-[12px] font-JakartaSemiBold ">
                 {item.pins?.length || 0} notes
               </Text>r
               {item.isPrivate && (
