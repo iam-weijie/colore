@@ -9,6 +9,7 @@ import {
   Image,
   Text,
 } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { useRouter, useFocusEffect } from "expo-router";
 import { fetchAPI } from "@/lib/fetch";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -128,46 +129,104 @@ const UserPersonalBoard = () => {
   // ITEM RENDER --START
 
   const BoardGallery = ({ boards }) => {
-    const [allBoards, setAllBoards] = useState<any | null>(null);
   
-    useEffect(() => {
-      if (allBoards) {
-        setAllBoards(boards)
-      }
-    }, [])
+
     return (
       <FlatList
       className="flex-1"
       data={boards}
       keyExtractor={(item) => item.id.toString()}
       numColumns={2}
-      renderItem={BoardContainer}
+      renderItem={({ item }) => <BoardContainer item={item} />}
+      contentContainerStyle={{
+        paddingHorizontal: 8,
+        paddingBottom: 20,
+      }}
+      columnWrapperStyle={{
+        justifyContent: 'space-between',
+        paddingHorizontal: 8,
+        marginBottom: 16,
+      }}
+      showsVerticalScrollIndicator={false}
+      ListFooterComponent={<View className="h-20" />} // Add some bottom padding
+      // Optimize performance
+      initialNumToRender={4}
+      maxToRenderPerBatch={4}
+      windowSize={5}
+      removeClippedSubviews={true}
     />
     )
   }
 
 
   const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
+  
+    
     return (
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => {
-          setSelectedBoard(() => <PersonalBoard userId={user!.id} boardId={item.id} />);
-          setSelectedBoardTitle(item.title);
-          setSelectedBoardUserInfo(item.user_id);
-          setSelectedBoardId(item.id);
-        }}
-        className="flex-1 items-center justify-end rounded-3xl h-[225px] max-w-[170px] p-4 m-4 shadow-lg"
-        style={{
-          backgroundColor: item.color ?? "#ff00f0",
-        }}
+      <Animated.View
+        entering={FadeIn.duration(400).springify().delay(item.id % 10 * 100)}r
       >
-        <View className="w-full bg-white/90 rounded-2xl py-3 px-2">
-          <Text className="text-[14px] font-JakartaBold text-black text-center drop-shadow-md">
-            {item.title}
-          </Text>
-        </View>
-      </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => {
+            setSelectedBoard(() => <PersonalBoard userId={user!.id} boardId={item.id} />);
+            setSelectedBoardTitle(item.title);
+            setSelectedBoardUserInfo(item.user_id);
+            setSelectedBoardId(item.id);
+          }}
+          className="relative rounded-[36px] h-[225px] w-[170px] overflow-hidden m-2 shadow-2xl"
+          style={{
+            backgroundColor: item.color ?? "#ff00f0",
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.15,
+            shadowRadius: 20,
+          }}
+        >
+          {/* Gradient overlay at bottom */}
+          <View className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
+          
+          {/* Optional image placeholder - you could replace this with actual board cover images */}
+          {item.imageUrl ? (
+            <Image 
+              source={{ uri: item.imageUrl }}
+              className="absolute w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="absolute w-full h-full bg-black/10" />
+          )}
+          
+          {/* Title and metadata at bottom */}
+          <View className="absolute bottom-2 w-full p-3">
+            <Text 
+              className="text-white text-[16px] font-JakartaBold mb-1 drop-shadow-md"
+              numberOfLines={2}
+            >
+              {item.title}
+            </Text>
+            
+            {/* Additional metadata - you can customize these */}
+            <View className="flex-row items-center">
+              <Text className="text-white/80 text-[12px] font-JakartaSemiBold mr-2">
+                {item.pins?.length || 0} notes
+              </Text>r
+              {item.isPrivate && (
+                <View className="bg-black/30 rounded-full p-1">
+                  <LockClosedIcon size={12} color="white" />
+                </View>
+              )}
+            </View>
+          </View>
+          
+          {/* Optional "New" badge */}
+          {item.isNew && (
+            <View className="absolute top-2 left-2 bg-red-500 px-2 py-1 rounded-full">
+              <Text className="text-white text-[10px] font-JakartaBold">NEW</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </Animated.View>
     );
   };
   
