@@ -129,7 +129,13 @@ const UserPersonalBoard = () => {
   // ITEM RENDER --START
 
   const BoardGallery = ({ boards }) => {
+    const [allBoards, setAllBoards] = useState<any | null>(null);
   
+    useEffect(() => {
+      if (allBoards) {
+        setAllBoards(boards)
+      }
+    }, [])
 
     return (
       <FlatList
