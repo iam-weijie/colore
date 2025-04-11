@@ -367,6 +367,8 @@ const PostModal: React.FC<PostModalProps> = ({
   const handleCommentsPress = () => {
     handleCloseModal();
 
+    console.log()
+
     router.push({
       pathname: "/root/post/[id]",
       params: {

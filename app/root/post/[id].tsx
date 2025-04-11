@@ -95,7 +95,7 @@ const PostScreen = () => {
     useState<boolean>(false);
 
   const maxCharacters = 6000;
-  const userId = Array.isArray(clerk_id) ? clerk_id[0] : clerk_id;
+  const userId = clerk_id;
   const screenHeight = Dimensions.get("screen").height;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPostDeleted, setIsPostDeleted] = useState(false);
@@ -108,6 +108,7 @@ const PostScreen = () => {
   const [replyView, setReplyView] = useState<PostComment | null>(null);
   const inputRef = useRef(null);
 
+  console.log("user", userId, clerk_id)
 
   const fetchCommentById = async (id: string) => {
     try {
