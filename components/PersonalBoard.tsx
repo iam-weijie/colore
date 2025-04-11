@@ -110,16 +110,19 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       let posts;
       
      
-      if (board) {
-        if (board.data.restrictions.includes("Everyone")) {
+      if (board && board.data.restrictions.includes("Everyone")) {
+      
         posts = await fetchAPI(
           `/api/posts/getPostsByBoardId?id=${boardId}`
         );
         filteredPosts =  posts.data 
-
-      }
+        
+    
       
       } else {
+        console.log(
+          "Ran2"
+        )
          posts = await fetchAPI(
           `/api/posts/getPersonalPosts?number=${maxPostOnScreen}&recipient_id=${userId}&user_id=${viewerId}`
         );
@@ -214,7 +217,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       setLoading(true);
       fetchUserData();
       fetchPersonalPosts();
-      console.log("ran")
       //setShouldRefresh((prev) => prev + 1); // Increment refresh counter
     }, [userId])
   );

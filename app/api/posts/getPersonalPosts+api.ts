@@ -46,8 +46,10 @@ export async function GET(request: Request) {
       LIMIT ${number};
     `;
 
+
    
     const response = await sql(query);
+
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
