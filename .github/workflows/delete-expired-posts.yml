@@ -2,26 +2,26 @@ name: Delete Expired Posts
 
 on:
   schedule:
-    - cron: '0 * * * *' # Runs every hour
-  workflow_dispatch: # Allows manual run
+    - cron: '0 * * * *' # ⏰ Every hour (UTC)
+  workflow_dispatch: # 🧪 Allow manual runs
 
 jobs:
-  deleteExpiredPosts:
+  cleanup:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: 📥 Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: 🟢 Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm install
 
-      - name: Run cleanup script
-        run: node cleanup.js
+      - name: 🧹 Run cleanup script
+        run: npm run cleanup
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ env.DATABASE_URL }}
