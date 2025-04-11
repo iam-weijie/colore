@@ -33,11 +33,11 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       JOIN boards b ON p.board_id = b.id
+      LEFT JOIN prompts pr ON p.prompt_id = pr.id
       WHERE p.board_id = ${boardId}
       ORDER BY p.created_at ASC;
       `;
 
-      console.log("res", response)
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });

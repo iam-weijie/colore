@@ -113,9 +113,10 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       if (board) {
         if (board.data.restrictions.includes("Everyone")) {
         posts = await fetchAPI(
-          `/api/posts/getPostByBoardId?id=${boardId}`
+          `/api/posts/getPostsByBoardId?id=${boardId}`
         );
         filteredPosts =  posts.data 
+
       }
       
       } else {

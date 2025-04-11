@@ -695,16 +695,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                       : 32,
                   }}
                 >
-                  {user!.id === profileUser?.clerk_id && (
-                    <View style={{ marginTop: isCollapsed ? 0 : 20 }}>
-                      <Image
-                        source={icons.chat}
-                        tintColor="#333333"
-                        resizeMode="contain"
-                        className="w-12 h-12"
-                      />
-                    </View>
-                  )}
+                
 
                   <View className="items-center">
                     <Text className="text-[#333333] font-JakartaBold text-[15px] text-center">
