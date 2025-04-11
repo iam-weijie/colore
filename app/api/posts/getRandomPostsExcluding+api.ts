@@ -138,24 +138,26 @@ export async function GET(request: Request) {
    // Construct the full SQL query
    const query = `
    SELECT 
-     p.id, 
-     p.content, 
-     p.like_count, 
-     p.report_count, 
-     p.created_at,
-     p.unread_comments,
-     p.recipient_user_id,
-     p.pinned,
-     p.color,
-     p.emoji,
-     u.clerk_id,
-     u.firstname, 
-     u.lastname, 
-     u.username,
-     u.country, 
-     u.state, 
-     u.city,
-     pr.content as prompt
+      p.id, 
+      p.content, 
+      p.like_count, 
+      p.report_count, 
+      p.created_at,
+      p.unread_comments,
+      p.recipient_user_id,
+      p.pinned,
+      p.color,
+      p.emoji,
+      p.prompt_id,
+      p.board_id,
+      u.clerk_id,
+      u.firstname, 
+      u.lastname, 
+      u.username,
+      u.country, 
+      u.state, 
+      u.city,
+      pr.content as prompt
    FROM posts p
    JOIN users u ON p.user_id = u.clerk_id
    LEFT JOIN prompts pr ON p.prompt_id = pr.id

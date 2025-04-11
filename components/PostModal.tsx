@@ -676,6 +676,8 @@ console.log(selectedEmoji, "emojic")
     backgroundColor: backgroundColor.value,
   }));
 
+
+  console.log("current", currentPost)
   return (
       <ReactNativeModal
         isVisible={isVisible}
@@ -697,7 +699,8 @@ console.log(selectedEmoji, "emojic")
             {BackgroundGridEmoji("")}
           </TouchableWithoutFeedback>
 
-          {header ??  <Animated.View 
+          {header}
+          {currentPost?.prompt &&  <Animated.View 
           className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center"
           entering={FadeInUp.duration(200)}
           exiting={FadeOutDown.duration(200)}>
@@ -916,7 +919,7 @@ console.log(selectedEmoji, "emojic")
             <EmojiExplosionModal
               isVisible={!!selectedEmoji}
               verticalForce={50}
-              radius={1000}
+              radius={800}
               emojiSize="text-[150px]"
               duration={8000}
               emoji={selectedEmoji}

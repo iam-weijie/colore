@@ -226,7 +226,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     setError(null);
     try {
       const response = await fetchAPI(
-        `/api/users/getUserInfoPosts?id=${userId}`,
+        `/api/posts/getUserPosts?id=${user!.id}`,
         {
           method: "GET",
         }
@@ -239,6 +239,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       setUnreadComments(unread_comments);
       setProfileUser(userInfo);
       setUserPosts(posts);
+
 
       // Fetch country emoji
       await fetchCountryEmoji(userInfo.country);
