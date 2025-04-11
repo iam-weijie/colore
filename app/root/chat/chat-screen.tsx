@@ -453,7 +453,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                 </TouchableOpacity>
               </View>
               <View className="flex flex-row items-center justify-center ">
-                <TouchableOpacity
+                {/*<TouchableOpacity
                   onPress={() => {
                     router.push({
                       pathname: "/root/user-board/[id]",
@@ -466,7 +466,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   className="w-5 h-5"
                   tintColor={"black"}
                 />
-                </TouchableOpacity>
+                </TouchableOpacity>*/}
               </View>
             </View>
             {showDeleteIcon && (
@@ -757,19 +757,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                                       )}
             </View>}
           {selectedTab == "Friends" && (
+            <View className="flex-1">
+              <View className="flex flex-row items-center mt-4 w-[90%] mx-auto ">
+              <TextInput
+                className="w-full h-12 px-3 -pt-1 rounded-[16px] bg-[#F1F1F1] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                placeholder="Search friend..."
+                value={searchText}
+                onChangeText={(text): void => setSearchText(text)}
+              />
+            </View>
             <FlatList
               className="rounded-[16px] mt-3 mx-4 "
               
-              ListHeaderComponent={
-                <View className="flex flex-row items-center my-2 ">
-                  <TextInput
-                    className="w-full h-12 px-3 -pt-1 rounded-[16px] bg-[#F1F1F1] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Search friend..."
-                    value={searchText}
-                    onChangeText={(text): void => setSearchText(text)}
-                  />
-                </View>
-              }
+            
               data={filteredFriendList}
               contentContainerStyle={{ 
                 paddingBottom: 40,
@@ -781,6 +781,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               }
               showsVerticalScrollIndicator={false}
             />
+            </View>
           )}
           {selectedTab == "Requests" && (
             <View className="flex-1 mt-3 mx-4">

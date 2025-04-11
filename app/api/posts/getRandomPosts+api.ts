@@ -10,6 +10,7 @@ export async function GET(request: Request) {
 
     // comments table to be joined later :]
     if (mode === "city") {
+      console.log("selected city")
       const response = await sql`
         SELECT 
           p.id, 
