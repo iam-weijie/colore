@@ -1,5 +1,7 @@
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
+import { fetchAPI } from "@/lib/fetch";
+import { useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import React, {
   createContext,
@@ -37,6 +39,8 @@ export const NotificationProvider = ({
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
 
+  const { user } = useUser();
+
   useEffect(() => {
     const registerForPushNotifications = async () => {
       if (Device.isDevice) {
@@ -55,7 +59,13 @@ export const NotificationProvider = ({
         }
 
         const tokenData = await Notifications.getExpoPushTokenAsync();
+
+        
         setPushToken(tokenData.data);
+
+        // Sending PushToken to Database
+        sendTokenDB(tokenData.data)
+
         // console.log("Expo Push Token:", tokenData.data);
       } else {
         console.warn("Must use a physical device for push notifications.");
@@ -123,6 +133,22 @@ export const NotificationProvider = ({
     };
   }, []);
 
+  const sendTokenDB = async (token) => {
+    // PushToken to Database
+    try {
+      await fetchAPI(`/api/notifications/updatePushToken`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user?.id,
+          pushToken: token,
+        })
+      })
+  }
+catch(error) {
+    console.error("Failed to update unread message:", error);
+  }
+  }
+  
   const scheduleNotification = async (title: string, body: string) => {
     await Notifications.scheduleNotificationAsync({
       content: {

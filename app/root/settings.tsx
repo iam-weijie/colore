@@ -15,11 +15,15 @@ import {
   Image,
   KeyboardAvoidingView,
   ScrollView,
+  Switch, // Import Switch
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
+import { useAlert } from '@/notifications/AlertContext';
 
 const Settings = () => {
   const { signOut } = useAuth();
@@ -33,6 +37,16 @@ const Settings = () => {
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
+
+  // Get settings state and setters from Global Context
+  const {
+    hapticsEnabled,
+    setHapticsEnabled,
+    soundEffectsEnabled,
+    setSoundEffectsEnabled,
+  } = useGlobalContext();
+  const { playSoundEffect } = useSoundEffects(); // Use the sound hook
+  const { showAlert } = useAlert();
 
   const fetchUserData = async () => {
     try {
@@ -81,10 +95,12 @@ const Settings = () => {
 
   const handleUsernameUpdate = async () => {
     if (!verifyValidUsername(newUsername)) {
-      Alert.alert(
-        "Invalid Username",
-        "Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long"
-      );
+      showAlert({
+        title: 'Invalid Username',
+        message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
+        type: 'ERROR',
+        status: 'error',
+      });
       return;
     }
 
@@ -101,20 +117,33 @@ const Settings = () => {
       //console.log("Changed Username", response)
       if (response.error) {
         if (response.error.includes("already taken")) {
-          Alert.alert(
-            "Username taken",
-            `Username ${username} already exists. Please try another one.`
-          );
+
+      showAlert({
+        title: 'Username taken',
+        message: `Username ${username} already exists. Please try another one.`,
+        type: 'ERROR',
+        status: 'error',
+      });
         } else {
           throw new Error(response.error);
         }
       } else {
-        Alert.alert("Success", "Username updated successfully");
+        showAlert({
+          title: 'New Username',
+          message: `Username updated successfully to ${newUsername}.`,
+          type: 'UPDATE',
+          status: 'success',
+        });
         await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to update username:", error);
-      Alert.alert("Error", "Failed to update username. Please try again.");
+      showAlert({
+        title: 'Error',
+        message: `Failed to update username. Please try again.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -130,10 +159,12 @@ const Settings = () => {
     }
 
     if (!verifyValidEmail(newEmail)) {
-      Alert.alert(
-        "Email address is invalid.",
-        "Please enter a valid email address."
-      );
+      showAlert({
+        title: 'Email address is invalid. ',
+        message: `Please enter a valid email address.`,
+        type: 'ERROR',
+        status: 'error',
+      });
       return;
     }
     setLoading(true);
@@ -148,20 +179,32 @@ const Settings = () => {
 
       if (response.error) {
         if (response.error.includes("already taken")) {
-          Alert.alert(
-            "Email taken",
-            `Email ${newEmail} already exists. Please try another one.`
-          );
+          showAlert({
+            title: 'Email taken',
+            message: `Email ${newEmail} already exists. Please try another one.`,
+            type: 'ERROR',
+            status: 'error',
+          });
         } else {
           throw new Error(response.error);
         }
       } else {
-        Alert.alert("Success", "Email updated successfully");
+        showAlert({
+          title: 'Success',
+          message: `Email updated successfully to ${newEmail}.`,
+          type: 'UPDATE',
+          status: 'success',
+        });
         await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to update email:", error);
-      Alert.alert("Error", "Failed to update email. Please try again.");
+      showAlert({
+        title: 'Error',
+        message: `Failed to update email. Please try again.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -185,7 +228,12 @@ const Settings = () => {
       router.replace("/auth/log-in");
     } catch (error) {
       console.error("Error signing out:", error);
-      Alert.alert("Error", "Failed to sign out. Please try again.");
+      showAlert({
+        title: 'Error',
+        message: `Failed to sign out.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   };
 
@@ -199,8 +247,19 @@ const Settings = () => {
       fetchUserData();
       fetchSavedPosts();
       fetchLikedPosts();
-    }, [stateVars])
-  );
+    }, [stateVars]) // Add back the dependency array for useCallback
+  ); // Correctly close useFocusEffect
+
+  // Define handlers outside of useEffect
+  const handleHapticsToggle = (value: boolean) => {
+    setHapticsEnabled(value);
+    playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
+  };
+
+  const handleSoundToggle = (value: boolean) => {
+    setSoundEffectsEnabled(value);
+    playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
+  };
   return (
     <SafeAreaView className="flex-1">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
@@ -346,6 +405,40 @@ const Settings = () => {
               </TouchableOpacity>
             </View>
           </View>
+          {/* End Activity Section View */}
+
+          {/* --- New Audio & Haptics Section --- */}
+          <View className=" mx-6">
+             <Text className=" text-xl font-JakartaBold my-4 bg-[#FACC15] text-[#ffffff] rounded-[24px] px-5 py-6">
+               Audio & Haptics
+             </Text>
+             <View className="bg-[#fafafa] rounded-[32px] p-5">
+               {/* Haptics Toggle */}
+               <View className="flex flex-row items-center justify-between p-2 mb-2">
+                 <Text className="text-lg font-JakartaSemiBold">Enable Haptic Feedback</Text>
+                 <Switch
+                   trackColor={{ false: "#767577", true: "#FACC15" }}
+                   thumbColor={hapticsEnabled ? "#ffffff" : "#f4f3f4"}
+                   ios_backgroundColor="#888888"
+                   onValueChange={handleHapticsToggle} // Use wrapped handler
+                   value={hapticsEnabled}
+                 />
+               </View>
+               {/* Sound Effects Toggle */}
+               <View className="flex flex-row items-center justify-between p-2">
+                 <Text className="text-lg font-JakartaSemiBold">Enable Sound Effects</Text>
+                 <Switch
+                   trackColor={{ false: "#767577", true: "#FACC15" }}
+                   thumbColor={soundEffectsEnabled ? "#ffffff" : "#f4f3f4"}
+                   ios_backgroundColor="#888888"
+                   onValueChange={handleSoundToggle} // Use wrapped handler
+                   value={soundEffectsEnabled}
+                 />
+               </View>
+             </View>
+           </View>
+           {/* --- End New Section --- */}
+
 
           <View className="my-[36px]">
             <TouchableOpacity onPress={handleSignOut}>

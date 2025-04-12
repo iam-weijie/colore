@@ -94,15 +94,12 @@ if (!visible) {
         animatedStyle,]}
       className="
       absolute 
-      w-[90%]
-      left-[50%]
-      -ml-[45%]
       p-6 
       bg-[#FAFAFA]
       rounded-[48px] 
       shadow-xs
       bottom-5  
-      h-[30%] 
+      h-[100%] 
       overflow-hidden"
     >
       <TouchableOpacity

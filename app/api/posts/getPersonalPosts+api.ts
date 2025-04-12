@@ -26,6 +26,8 @@ export async function GET(request: Request) {
         p.pinned,
         p.color,
         p.emoji,
+        p.board_id,
+        p.prompt_id,
         p.recipient_user_id,
         u.clerk_id,
         u.firstname, 
@@ -33,17 +35,21 @@ export async function GET(request: Request) {
         u.username,
         u.country, 
         u.state, 
-        u.city
+        u.city,
+        pr.content as prompt
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
+      LEFT JOIN prompts pr ON p.prompt_id = pr.id
       WHERE p.recipient_user_id = '${recipientId}'
         AND p.post_type = 'personal'
       ORDER BY p.created_at DESC
       LIMIT ${number};
     `;
 
+
    
     const response = await sql(query);
+
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });

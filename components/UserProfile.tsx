@@ -38,6 +38,7 @@ import {
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
+import { useAlert } from '@/notifications/AlertContext';
 import Circle from "./Circle";
 
 // Skeleton component for post loading states
@@ -82,6 +83,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
   const { isIpad } = useGlobalContext(); 
   const [nickname, setNickname] = useState<string>("");
+  const { showAlert } = useAlert();
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [emojiLoading, setEmojiLoading] = useState(true);
@@ -105,25 +107,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
   const isEditable = user!.id === userId;
 
-  const skeletonPost = (id: number) => {
-    return({
-    id: id,
-    clerk_id: "",
-    firstname: "",
-    username: "",
-    content: "",
-    created_at: "",
-    city: "",
-    country: "",
-    like_count: 0,
-    report_count: 0,
-    unread_comments: 0,
-    color: "#E5E7EB", //String for now. Should be changed to PostItColor
-    emoji: "",
-    recipient_user_id: "",
-    pinned: false
-  })
-  }
+  console.log("user received: ", userId)
+
 
   function findUserNickname(
     userArray: UserNicknamePair[],
@@ -198,7 +183,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   );
 
   useEffect(() => {
-    setIsCollapsed(user!.id != userId || isIpad);
+    setIsCollapsed(user!.id !== userId || isIpad);
     const getData = async () => {
       const data = await fetchCurrentNickname();
       setNickname(data);
@@ -224,7 +209,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     setError(null);
     try {
       const response = await fetchAPI(
-        `/api/users/getUserInfoPosts?id=${userId}`,
+        `/api/posts/getUserPosts?id=${userId}`,
         {
           method: "GET",
         }
@@ -237,6 +222,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       setUnreadComments(unread_comments);
       setProfileUser(userInfo);
       setUserPosts(posts);
+
 
       // Fetch country emoji
       await fetchCountryEmoji(userInfo.country);
@@ -271,133 +257,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     router.push("/root/profile/nickname");
   };
 
- /* if (error)
-    return (
-      <SafeAreaView className="flex-1">
-        <View className="flex flex-row items-center justify-between">
-          <Text>An error occurred. Please try again Later. 
-            {error}
-          </Text>
-          <View className="flex flex-row items-right">
-            {isEditable && (
-              <TouchableOpacity
-                onPress={() => router.push("/root/settings")}
-                className="p-2"
-              >
-                <Image
-                  source={icons.settings}
-                  className="w-7 h-7"
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      </SafeAreaView>
-    );*/
-  const checkIfChatExists = async (user2: UserNicknamePair) => {
-    try {
-      // //console.log("user: ", user!.id);
-      const response = await fetchAPI(
-        `/api/chat/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.error) {
-        //console.log("Error fetching user data");
-        //console.log("response data: ", response.data);
-        //console.log("response status: ", response.status);
-        // //console.log("response: ", response);
-        throw new Error(response.error);
-      }
-      //console.log("response: ", response.data.length);
-      if (response.data.length > 0) {
-        setConvId(response.data[0].id);
-        /*router.push(
-         `/root/chat/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`
-         
-        );*/
-        router.push({
-          pathname: "/root/new-personal-post",
-          params: {
-            recipient_id: user!.id,
-            source: "board"
-          },
-        });
-      }
-      return response.data.length > 0;
-    } catch (err) {
-      console.error("Failed to fetch user data:", err);
-      setError("Failed to fetch nicknames.");
-      return false;
-    }
-  };
-  const startChat = async (otherUser: UserNicknamePair) => {
-    //console.log(`Starting chat with ${otherUser[1]}`);
-    const exists = await checkIfChatExists(otherUser);
-    //console.log("conversationExists: ", exists);
-    if (exists) {
-      //console.log("Chat already exists, sending user to conversation with Id: ", convId);
-    } else {
-      setLoading(true);
-      try {
-        const response = await fetchAPI(`/api/chat/newConversation`, {
-          method: "POST",
-          body: JSON.stringify({
-            clerkId_1: user!.id,
-            clerkId_2: otherUser[0],
-          }),
-        });
-        if (response.error) {
-          //console.log("Error creating conversation");
-          //console.log("response data: ", response.data);
-          //console.log("response status: ", response.status);
-          // //console.log("response: ", response);
-          throw new Error(response.error);
-        }
-        //console.log("Chat was successfully created, attempting to get conversation information to push user there");
-        try {
-          const result = await fetchAPI(
-            `/api/chat/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
-            {
-              method: "GET",
-            }
-          );
-          if (result.error) {
-            //console.log("Error fetching conversation data");
-            //console.log("response data: ", result.data);
-            //console.log("response status: ", result.status);
-            // //console.log("response: ", response);
-            throw new Error(result.error);
-          } else {
-            const conversation = result.data[0];
-            //console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
-           /* router.push(
-              `/root/chat/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
-            );*/
-            router.push({
-              pathname: "/root/new-personal-post",
-              params: {
-                recipient_id: user!.id,
-                source: "board"
-              },
-            });
-          }
-        } catch (err) {
-          console.error("Failed to fetch conversation data:", err);
-          setError(
-            "Chat was successfully created, but failed to send user to conversation."
-          );
-        }
-      } catch (err) {
-        console.error("Failed to create new conversation:", err);
-        setError("Failed to create new conversation");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+
+
 
   const handleSendFriendRequest = async () => {
     try {
@@ -409,12 +270,22 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           friendId: userId,
         }),
       });
-      Alert.alert("Friend request sent!");
+      showAlert({
+        title: 'Friend request sent!',
+        message: "You have sent a friend request to this user.",
+        type: 'FRIEND_REQUEST',
+        status: 'success',
+      });
       setFriendStatus(FriendStatus.SENT);
       setIsHandlingFriendRequest(false);
     } catch (error) {
       console.error("Failed to send friend request:", error);
-      Alert.alert("Error sending friend request.");
+      showAlert({
+        title: 'Error',
+        message: `Error sending friend request.`,
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   };
 
@@ -426,17 +297,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   // don't load the "send friend request"
   // option if the friend status can't be determined
   const menuItems_unloaded = [
-    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
     { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_default = [
-    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
     { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
   ];
 
   const menuItems_friend = [
-    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
     { label: "Unfriend",  source: icons.close, color: "#6408DA", onPress: async () => {
       setIsHandlingFriendRequest(true);
       const response: FriendStatusType = await unfriend(
@@ -444,9 +315,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         userId
       );
       if (response === FriendStatus.NONE) {
-        Alert.alert("You have unfriended this user.");
+        showAlert({
+          title: 'Unfriended',
+          message: "You have unfriended this user.",
+          type: 'FRIEND_REQUEST',
+          status: 'success',
+        });
       } else {
-        Alert.alert("Error unfriending this user.");
+        showAlert({
+          title: 'Error',
+          message: `Error unfriending this user.`,
+          type: 'ERROR',
+          status: 'error',
+        });
       }
       setFriendStatus(response);
       setIsHandlingFriendRequest(false);
@@ -455,7 +336,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_sent = [
-    { label: "Nickname", source: icons.person, color: "#CFB1FB", onPress: handleAddNickname },
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
     {
       label: "Report",
       source: icons.email,
@@ -465,7 +346,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   ];
 
   const menuItems_received = [
-    { label: "Nickname", color: "#CFB1FB", source: icons.person, onPress: handleAddNickname },
+    { label: "Nickname", color: "#000000", source: icons.person, onPress: handleAddNickname },
     {
       label: "Report",
       color: "#DA0808",
@@ -541,8 +422,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
               <View className="p-8 flex flex-column items-center justify-center ">
                 <Animated.View entering={FadeIn.duration(800)}>
-                { (nickname || profileUser?.username) ? (<View className="flex flex-row items-center justify-center">
-                   <Text className={`text-[24px] font-JakartaBold`}>
+                { (nickname || profileUser?.username) ? (<View className="flex flex-row items-center justify-center mb-2">
+                   <Text className={`text-[20px] font-JakartaBold`}>
                     {nickname
                       ? nickname
                       : profileUser?.username
@@ -550,18 +431,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                         : `${profileUser?.firstname?.charAt(0)}.`}
                   </Text> 
                 </View>) : <View>
-                 <Text className={`text-[24px] bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
+                 <Text className={`text-[20px] bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
                  </View>}
                 </Animated.View>
                 <Animated.View entering={FadeIn.duration(800)}>
                 { profileUser ?  (<View>
-                <Text className="text-gray-700 text-center font-Jakarta text-base">
+                <Text className=" text-[14px] text-gray-600 text-center font-Jakarta">
                     {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
                     {profileUser?.country}
                   </Text> 
                 </View>) : (
                   <View>
-                  <Text className="text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta text-base"> Location updating... </Text>
+                  <Text className="text-[14px] text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta"> Location updating... </Text>
                   </View>)}
                 </Animated.View>
               </View>
@@ -672,16 +553,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                       : 32,
                   }}
                 >
-                  {user!.id === profileUser?.clerk_id && (
-                    <View style={{ marginTop: isCollapsed ? 0 : 20 }}>
-                      <Image
-                        source={icons.chat}
-                        tintColor="#333333"
-                        resizeMode="contain"
-                        className="w-12 h-12"
-                      />
-                    </View>
-                  )}
+                
 
                   <View className="items-center">
                     <Text className="text-[#333333] font-JakartaBold text-[15px] text-center">
@@ -693,7 +565,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
               <TouchableOpacity
                 onPress={async () => {
                   if (user!.id === userId) {
-                    router.push("/root/chat/chat-screen");
+                    //router.push("/root/chat/chat-screen");
                   }
                   if (
                     (user!.id !== userId && friendStatus.name === "unknown") ||
@@ -708,9 +580,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                       user!.id
                     );
                     if (response === FriendStatus.FRIENDS) {
-                      Alert.alert("Friend request accepted!");
+                      showAlert({
+                        title: 'New friend!',
+                        message: "You have accepted this friend request.",
+                        type: 'FRIEND_REQUEST',
+                        status: 'success',
+                      });
                     } else {
-                      Alert.alert("Error accepting friend request.");
+                      showAlert({
+                        title: 'Error',
+                        message: `Error accepting this friend request.`,
+                        type: 'ERROR',
+                        status: 'error',
+                      });
                     }
                     setFriendStatus(response);
                     setIsHandlingFriendRequest(false);
@@ -720,9 +602,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     const response: FriendStatusType =
                       await cancelFriendRequest(user!.id, userId);
                     if (response === FriendStatus.NONE) {
-                      Alert.alert("Friend request cancelled.");
+                      showAlert({
+                        title: 'Cancelled',
+                        message: "Friend request cancelled.",
+                        type: 'UPDATE',
+                        status: 'success',
+                      });
                     } else {
-                      Alert.alert("Error cancelling friend request.");
+                      showAlert({
+                        title: 'Error',
+                        message: `Error cancelling this friend request.`,
+                        type: 'ERROR',
+                        status: 'error',
+                      });
                     }
                     setFriendStatus(response);
                     setIsHandlingFriendRequest(false);
@@ -852,7 +744,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                 value={query}
               />
 
-              <View className="items-center mb-[60px] w-4/5   mx-8">
+              <View className="items-center mb-[70px] w-4/5   mx-8">
                 {loading ? (
                   <PostGallerySkeleton />
                 ) : (
@@ -901,3 +793,109 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 };
 
 export default UserProfile;
+
+/*
+  const checkIfChatExists = async (user2: UserNicknamePair) => {
+    try {
+      // //console.log("user: ", user!.id);
+      const response = await fetchAPI(
+        `/api/chat/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.error) {
+        //console.log("Error fetching user data");
+        //console.log("response data: ", response.data);
+        //console.log("response status: ", response.status);
+        // //console.log("response: ", response);
+        throw new Error(response.error);
+      }
+      //console.log("response: ", response.data.length);
+      if (response.data.length > 0) {
+        setConvId(response.data[0].id);
+        /*router.push(
+         `/root/chat/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`
+         
+        );
+        router.push({
+          pathname: "/root/new-personal-post",
+          params: {
+            recipient_id: user!.id,
+            source: "board"
+          },
+        });
+      }
+      return response.data.length > 0;
+    } catch (err) {
+      console.error("Failed to fetch user data:", err);
+      setError("Failed to fetch nicknames.");
+      return false;
+    }
+  };
+  const startChat = async (otherUser: UserNicknamePair) => {
+    //console.log(`Starting chat with ${otherUser[1]}`);
+    const exists = await checkIfChatExists(otherUser);
+    //console.log("conversationExists: ", exists);
+    if (exists) {
+      //console.log("Chat already exists, sending user to conversation with Id: ", convId);
+    } else {
+      setLoading(true);
+      try {
+        const response = await fetchAPI(`/api/chat/newConversation`, {
+          method: "POST",
+          body: JSON.stringify({
+            clerkId_1: user!.id,
+            clerkId_2: otherUser[0],
+          }),
+        });
+        if (response.error) {
+          //console.log("Error creating conversation");
+          //console.log("response data: ", response.data);
+          //console.log("response status: ", response.status);
+          // //console.log("response: ", response);
+          throw new Error(response.error);
+        }
+        //console.log("Chat was successfully created, attempting to get conversation information to push user there");
+        try {
+          const result = await fetchAPI(
+            `/api/chat/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
+            {
+              method: "GET",
+            }
+          );
+          if (result.error) {
+            //console.log("Error fetching conversation data");
+            //console.log("response data: ", result.data);
+            //console.log("response status: ", result.status);
+            // //console.log("response: ", response);
+            throw new Error(result.error);
+          } else {
+            const conversation = result.data[0];
+            //console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
+           router.push(
+              `/root/chat/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
+            );
+            router.push({
+              pathname: "/root/new-personal-post",
+              params: {
+                recipient_id: user!.id,
+                source: "board"
+              },
+            });
+          }
+        } catch (err) {
+          console.error("Failed to fetch conversation data:", err);
+          setError(
+            "Chat was successfully created, but failed to send user to conversation."
+          );
+        }
+      } catch (err) {
+        console.error("Failed to create new conversation:", err);
+        setError("Failed to create new conversation");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+  */

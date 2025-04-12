@@ -10,6 +10,7 @@ import React, {
 import { Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as BackgroundFetch from "expo-background-fetch";
+import { BackgroundFetchResult } from "expo-background-fetch"; // Import the Result enum
 import * as TaskManager from "expo-task-manager";
 import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
@@ -22,6 +23,7 @@ type GlobalContextType = {
   stacks: Stacks[];
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
   notifications: any[];
+  storedNotifications: any[];
   unreadComments: number;
   unreadMessages: number;
   unreadRequests: number;
@@ -32,11 +34,18 @@ type GlobalContextType = {
   setReplyTo: React.Dispatch<React.SetStateAction<string | null>>;
   scrollTo: string | null;
   setScrollTo: React.Dispatch<React.SetStateAction<string | null>>;
+  // New settings state
+  hapticsEnabled: boolean;
+  setHapticsEnabled: (value: boolean | ((prevState: boolean) => boolean)) => void; // Use custom setter type
+  soundEffectsEnabled: boolean;
+  setSoundEffectsEnabled: (value: boolean | ((prevState: boolean) => boolean)) => void; // Use custom setter type
 };
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 const screenWidth = Dimensions.get("screen").width;
 const NOTIFICATION_TASK = "background-notification-fetch";
+const HAPTICS_ENABLED_KEY = 'hapticsEnabled';
+const SOUND_EFFECTS_ENABLED_KEY = 'soundEffectsEnabled';
 
 // ===== External Notification Fetch Logic =====
 // This function is designed to run in both the in-app polling and background fetch.
@@ -237,13 +246,13 @@ TaskManager.defineTask(NOTIFICATION_TASK, async () => {
 
     if (!userId || !pushToken) {
       console.warn("Background fetch: missing userId or pushToken");
-      return BackgroundFetch.Result.Failed;
+      return BackgroundFetchResult.Failed; // Use BackgroundFetchResult enum
     }
     await fetchNotificationsExternal(userId, pushToken);
-    return BackgroundFetch.Result.NewData;
+    return BackgroundFetchResult.NewData; // Use BackgroundFetchResult enum
   } catch (error) {
     console.error("Background Fetch failed:", error);
-    return BackgroundFetch.Result.Failed;
+    return BackgroundFetchResult.Failed; // Use BackgroundFetchResult enum
   }
 });
 
@@ -253,6 +262,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [stacks, setStacks] = useState<Stacks[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [storedNotifications, setStoredNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
   const [unreadPersonalPosts, setUnreadPersonalPosts] = useState<number>(0);
@@ -262,12 +272,17 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [scrollTo, setScrollTo] = useState<string | null>(null);
 
+  // New state for settings
+  const [hapticsEnabled, setHapticsEnabledState] = useState<boolean>(true); // Default to true
+  const [soundEffectsEnabled, setSoundEffectsEnabledState] = useState<boolean>(true); // Default to true
+
   const hasUpdatedLastConnection = useRef(false);
   const { user } = useUser();
   const { pushToken } = useNotification();
 
   // In-app polling every 5 seconds
   useEffect(() => {
+    
     if (user && pushToken) {
       // When user signs in, persist the necessary info for background tasks.
       AsyncStorage.setItem("userId", user.id);
@@ -276,12 +291,13 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       // Initial fetch and then polling every 5 seconds
       fetchNotifications();
       updateLastConnection();
+  
       const interval = setInterval(fetchNotifications, 5000);
       return () => clearInterval(interval);
-      
-      
-    }
+    } 
   }, [user, pushToken]);
+
+
 
   // In-app fetchNotifications function that uses the external function
   const fetchNotifications = async () => {
@@ -292,6 +308,11 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
          // For UI state, update unread counts, last connection, etc.
       // (You can parse the responses as needed; here we simply set the notifications.)
         const { notifs, counts } = result;
+        if (notifs.length > 0) {
+          const prevNotifications = storedNotifications;
+          setStoredNotifications([...prevNotifications, ...notifs]);
+        }
+        
         setNotifications(notifs);
         setUnreadComments(counts[0]);
         setUnreadMessages(counts[1]);
@@ -304,6 +325,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Error in in-app fetchNotifications", error);
     }
   };
+
 
   // Example function to update the last connection (as before)
   const updateLastConnection = async () => {
@@ -322,6 +344,26 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     }
   };
+
+  // Register New Push Token
+
+const sendTokenDB = async (token) => {
+      // PushToken to Database
+
+      console.log("sending it")
+      try {
+        await fetchAPI(`/api/notifications/updatePushToken`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            clerkId: user?.id,
+            pushToken: token,
+          })
+        })
+    }
+  catch(error) {
+      console.error("Failed to update unread message:", error);
+    }
+    }
 
   // Register the background fetch task on mount
   useEffect(() => {
@@ -343,7 +385,41 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     setIsIpad(screenWidth > 500);
+    sendTokenDB(pushToken);
   }, []);
+
+  // Load settings from AsyncStorage on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const hapticsSetting = await AsyncStorage.getItem(HAPTICS_ENABLED_KEY);
+        const soundSetting = await AsyncStorage.getItem(SOUND_EFFECTS_ENABLED_KEY);
+
+        if (hapticsSetting !== null) {
+          setHapticsEnabledState(JSON.parse(hapticsSetting));
+        }
+        if (soundSetting !== null) {
+          setSoundEffectsEnabledState(JSON.parse(soundSetting));
+        }
+      } catch (e) {
+        console.error("Failed to load settings.", e);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // Wrap setters to also save to AsyncStorage
+  const setHapticsEnabled = (value: boolean | ((prevState: boolean) => boolean)) => {
+    const newValue = typeof value === 'function' ? value(hapticsEnabled) : value;
+    setHapticsEnabledState(newValue);
+    AsyncStorage.setItem(HAPTICS_ENABLED_KEY, JSON.stringify(newValue)).catch(e => console.error("Failed to save haptics setting.", e));
+  };
+
+  const setSoundEffectsEnabled = (value: boolean | ((prevState: boolean) => boolean)) => {
+    const newValue = typeof value === 'function' ? value(soundEffectsEnabled) : value;
+    setSoundEffectsEnabledState(newValue);
+    AsyncStorage.setItem(SOUND_EFFECTS_ENABLED_KEY, JSON.stringify(newValue)).catch(e => console.error("Failed to save sound setting.", e));
+  };
 
   return (
     <GlobalContext.Provider
@@ -351,6 +427,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         stacks,
         setStacks,
         notifications,
+        storedNotifications,
         unreadComments,
         unreadMessages,
         unreadPersonalPosts,
@@ -360,7 +437,12 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         replyTo,
         setReplyTo,
         scrollTo,
-        setScrollTo
+        setScrollTo,
+        // Add new settings state and setters
+        hapticsEnabled,
+        setHapticsEnabled, // Use wrapped setter
+        soundEffectsEnabled,
+        setSoundEffectsEnabled, // Use wrapped setter
       }}
     >
       {children}

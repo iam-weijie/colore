@@ -7,24 +7,43 @@ import comment from "@/assets/icons/comment.png";
 import email from "@/assets/icons/email.png";
 import globe from "@/assets/icons/globe.png";
 import google from "@/assets/icons/google.png";
+import fire from "@/assets/icons/fire.png";
 import heart from "@/assets/icons/heart.png";
 import home from "@/assets/icons/home.png";
+import hide from "@/assets/icons/hide.png";
 import lock from "@/assets/icons/lock.png";
+import menu from "@/assets/icons/menu.png";
 import note from "@/assets/icons/note.png";
+import notification from "@/assets/icons/notification.png";
+import addUser from "@/assets/icons/add-user.png";
+import chevron from "@/assets/icons/chevron.png";
+import hamburgerMenu from "@/assets/icons/hamburger-menu.png";
 import palette from "@/assets/icons/palette.png";
 import pencil from "@/assets/icons/pencil.png";
 import person from "@/assets/icons/person.png";
+import plus from "@/assets/icons/plus.png";
 import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
+import planet from "@/assets/icons/planet-earth.png";
 import refresh from "@/assets/icons/refresh.png";
+import vineyard from "@/assets/icons/vineyard.png";
 import smartcity from "@/assets/icons/smart-city-2.png";
 import search from "@/assets/icons/search.png";
 import send from "@/assets/icons/send.png";
 import settings from "@/assets/icons/settings.png";
+import star from "@/assets/icons/star.png";
+import timer from "@/assets/icons/timer.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import placeholder from "@/assets/icons/placeholder.png";
+
+
 import login from "@/assets/images/login_squares.png";
+import highlight1 from "@/assets/images/highlight-1.png";
+import highlight2 from "@/assets/images/highlight-2.png";
+import highlight3 from "@/assets/images/highlight-3.png";
+import highlight4 from "@/assets/images/highlight-4.png";
+import highlightLg1 from "@/assets/images/highlight-large-1.png";
 
 import { PostItColor } from "@/types/type";
 
@@ -39,16 +58,23 @@ export const icons = {
   person,
   email,
   lock,
+  globe,
   google,
   check,
   home,
   pin,
   chat,
-  globe,
+  planet,
   close,
+  fire,
+  hide,
+  timer,
   profile,
+  menu,
+  plus,
   album,
   search,
+  star,
   trash,
   pencil,
   placeholder,
@@ -62,10 +88,15 @@ export const icons = {
   note,
   send,
   bookmark,
+  vineyard,
+  chevron,
+  notification,
+  hamburgerMenu,
+  addUser
 };
 
 export const countries = {
-canada,
+  canada,
   usa,
   france,
   italy,
@@ -74,6 +105,11 @@ canada,
 }
 export const images = {
   login,
+  highlight1,
+  highlight2,
+  highlight3,
+  highlight4,
+  highlightLg1
 };
 
 

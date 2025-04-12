@@ -2,9 +2,10 @@ import { useGlobalContext } from "@/app/globalcontext";
 import PostIt from "@/components/PostIt";
 import PostModal from "@/components/PostModal";
 import { icons, temporaryColors } from "@/constants";
-import { Post, PostWithPosition } from "@/types/type";
+import { Post, PostWithPosition, Position } from "@/types/type";
 import { SignedIn } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
+import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
 import { useEffect, useRef, useState, useMemo } from "react";
 import {
   ActivityIndicator,
@@ -95,6 +96,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       }
       return newStackedPosition; // Update with new position
     });
+    //console.log("newStackedPosition", newStackedPosition);
   }, [newStackedPosition]); // This runs only when newStackedPosition changes
 
   // Original `useEffect` for handling position updates
@@ -218,15 +220,13 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       {showText && (
         <View className="absolute text-black w-full h-full items-center justify-center">
           <Text
-            className="font-[500] text-black"
+            className="text-[14px] font-[500] text-black"
             style={{
               color: fontColor,
-              fontSize: 16,
-              padding: 15,
-              numberOfLines: 3,
+              padding: 18,
               fontStyle: "italic",
             }}
-            numberOfLines={3}
+            numberOfLines={5}
             ellipsizeMode="tail"
           >
             {post.content}
@@ -277,7 +277,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const screenHeight = Dimensions.get("screen").height;
   const screenWidth = Dimensions.get("screen").width;
 
-  const AlgorithmRandomPosition = (isPinned: boolean) => {
+ const AlgorithmNewPosition = (isPinned: boolean) => {
 
     if (isPinned) {
       return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
@@ -304,13 +304,19 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     try {
       const posts: Post[] = await handlePostsRefresh();
       // set positions of posts
-      const postsWithPositions = posts.map((post: Post) => ({
-        ...post,
-        position: {
-          top:  AlgorithmRandomPosition(post.pinned).top,
-          left: AlgorithmRandomPosition(post.pinned).left,
-        },
-      }));
+
+      const postsWithPositions: Array<Post & { position: Position }> = [];
+      // pick some “seed” position for the very first post
+      let prevPosition: Position = { top: 0, left: 0 };
+
+      for (const post of posts) {
+        // compute new position based on the last one
+        const position = AlgorithmRandomPosition(post.pinned, prevPosition);
+        postsWithPositions.push({ ...post, position });
+        // “remember” it for the next iteration
+        prevPosition = position;
+      }
+
       // Initialize each post as a stack
       setStacks((prevStack) => prevStack.filter((stack) => stacks))
       setPostsWithPosition(postsWithPositions);
@@ -339,6 +345,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       console.error(error);
     } finally {
       setLoading(false);
+
+      cleanStoredPosition();
     }
   };
 
@@ -578,8 +586,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         const newPostWithPosition: PostWithPosition = {
           ...newPost,
           position: {
-            top: AlgorithmRandomPosition(newPost.pinned).top,
-            left: AlgorithmRandomPosition(newPost.pinned).left
+            top: AlgorithmNewPosition(newPost.pinned).top,
+            left: AlgorithmNewPosition(newPost.pinned).left
           },
         };
         setPostsWithPosition((prevPosts) => [
@@ -634,7 +642,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
               {
                 /*loading */ false && (
                   <View className="flex-[0.8] justify-center items-center">
-                    <ActivityIndicator size="large" color="black" />
+                    <ActivityIndicator size="small" color="#888888" />
                   </View>
                 )
               }

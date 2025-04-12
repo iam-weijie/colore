@@ -7,23 +7,35 @@ import { useEffect, useState, useCallback } from "react";
 
 import { icons, countries } from "@/constants";
 import { router, useFocusEffect } from "expo-router";
-import { Dimensions, Image, ImageSourcePropType, SafeAreaView, TouchableOpacity, View, Text } from "react-native";
+import { Dimensions, Image, Modal, ImageSourcePropType, Pressable,  SafeAreaView, TouchableOpacity, View, Text } from "react-native";
+import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming } from "react-native-reanimated";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 import DropdownMenu from "@/components/DropdownMenu";
 
 import ActionPrompts from "@/components/ActionPrompts";
+import { useAlert } from '@/notifications/AlertContext';
+
 import { ActionType } from "@/lib/prompts";
 import { GeographicalMode } from "@/types/type";
 import UserInfo from "../user-info";
+import { Audio } from 'expo-av';
+
+import {ChatScreen, NotificationScreen} from "../chat/chat-screen";
+import NotificationBubble from "@/components/NotificationBubble";
+import ModalSheet from "@/components/Modal";
+
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
-  const { isIpad } = useGlobalContext();
-  const [action, setAction] = useState(ActionType.NONE)
+  const { isIpad, storedNotifications } = useGlobalContext();
+  const [action, setAction] = useState(ActionType.NONE);
+  const { showAlert } = useAlert();
   const [geographicalMode, setGeographicalMode] = useState<GeographicalMode>('world');
   const [userInfo, setUserInfo] = useState(null);
+  const [selectedModal, setSelectedModal] = useState<Function | null>(null);
+  const [activeModalTitle, setActiveModalTitle] = useState<string>("");
 
   const requestPermission = async () => {
     const status = await requestTrackingPermission();
@@ -34,8 +46,16 @@ export default function Page() {
     }
   };
 
+  const requestAudioPermissions = async () => {
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permission to access audio is required!');
+    }
+  };
+
   useEffect(() => {
     requestPermission();
+    requestAudioPermissions();
     fetchUserData()
   }, []);
 
@@ -88,7 +108,7 @@ const fetchUserData = async () => {
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 8 : 4}&id=${user!.id}&mode=${geographicalMode}`
+      `/api/posts/getRandomPosts?number=${isIpad ? 10 : 6}&id=${user!.id}&mode=${geographicalMode}`
     );
     return response.data;
   };
@@ -117,9 +137,6 @@ const fetchUserData = async () => {
     }
   };
 
-  const handleNewPostPress = () => {
-    router.push("/root/new-post");
-  };
 
   const getAction = (lastPost: Post) => {
     if (lastPost) {
@@ -134,6 +151,7 @@ const fetchUserData = async () => {
     setAction(ActionType.TIPS)
   }
   }
+ 
 
   const getCountryFlag = (country: string) => {
     if (country) {
@@ -159,43 +177,8 @@ const fetchUserData = async () => {
       return countries.canada;
     }
   };
-  const GeographicalModeSelector = () => {
-    const modes: GeographicalMode[] = ['city', 'state', 'country', 'world'];
-    
-  const handleGeographicalModeChange = (mode: GeographicalMode) => {
-    setGeographicalMode(mode);
-    console.log("Geographical mode changed to:", mode);
-     // Fetch posts again when mode changes
-  }
-    return (
-      <View 
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-l-lg p-1 shadow-lg"
-        style={{ width: 70 }}
-      >
-        {modes.map((mode) => (
-          <TouchableOpacity
-            key={mode}
-            onPress={() => handleGeographicalModeChange(mode)}
-            className={`p-2 my-1 rounded ${
-              geographicalMode === mode 
-                ? 'bg-blue-500' 
-                : 'bg-gray-200'
-            }`}
-          >
-            <Text 
-              className={`text-center text-xs ${
-                geographicalMode === mode 
-                  ? 'text-white' 
-                  : 'text-black'
-              }`}
-            >
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
+ 
+
 
   return (
     <SafeAreaView className="flex-1">
@@ -203,27 +186,59 @@ const fetchUserData = async () => {
         <View className="flex-row justify-between items-center mx-7 mt-5">
           <Image
             source={require("@/assets/colore-word-logo.png")}
-            style={{ width: 120, height: 50 }}
+            style={{ width: 105, height: 45 }}
+            className="shadow-sm"
             resizeMode="contain"
             accessibilityLabel="Colore logo"
           />
-          <View className="flex flex-row p-1 items-center justify-center border-2 border-black rounded-[24px] bg-[#FAFAFA]">
+          <View className="flex flex-row p-1 items-center justify-center gap-4">
+            <TouchableOpacity
+            onPress={() => {
+              //router.push("/root/chat/chat-screen");
+              setSelectedModal(() => <ChatScreen/>)
+              setActiveModalTitle("Socials")
+            }}>
+            <Image
+              source={icons.addUser}
+              className="w-5 h-5"
+              style={{ tintColor: "#000" }}
+            />
+            </TouchableOpacity>
+         <TouchableOpacity
+         onPress={() => {
+          setSelectedModal(() => <NotificationScreen/>)
+          setActiveModalTitle("Notifications")
+         }}>
+            <Image
+              source={icons.notification}
+              className="w-5 h-5"
+              style={{ tintColor: "#000" }}
+            />
+            <View className="absolute right-2">
+            <NotificationBubble
+            unread={storedNotifications.length ?? 0}
+            color={"#FF0000"}
+            />
+            </View>
+            </TouchableOpacity>
+          
+           
           <View className="mx-2">
+       
           <DropdownMenu
           icon={
             geographicalMode === "world"
-              ? icons.globe
-              : geographicalMode === "country"
-              ? getCountryFlag(userInfo?.country)
-              : geographicalMode === "state"
-              ? icons.placeholder
-              : icons.smartcity
+            ? icons.planet
+            : geographicalMode === "country"
+            ? getCountryFlag(userInfo?.country)
+            : geographicalMode === "state"
+            ? icons.vineyard
+            : icons.smartcity
           }
           menuItems={[
             {
               label: "World",
-              source: icons.globe,
-              color: "#000000",
+              source: icons.planet,
               onPress: () => {
                 setGeographicalMode("world");
               },
@@ -237,7 +252,7 @@ const fetchUserData = async () => {
             },
             {
               label: userInfo ? userInfo.state :"State",
-              source: icons.placeholder,
+              source: icons.vineyard,
               onPress: () => {
                 setGeographicalMode("state");
               },
@@ -252,11 +267,6 @@ const fetchUserData = async () => {
           ]}
         />
           </View>
-          <View className="mx-2">
-            <TouchableOpacity onPress={handleNewPostPress}>
-              <Image source={icons.pencil} className="w-7 h-7" />
-            </TouchableOpacity>
-          </View>
         </View>
         </View>
         <PostItBoard
@@ -266,12 +276,22 @@ const fetchUserData = async () => {
           allowStacking={true}
           mode={geographicalMode}
         />
-        <ActionPrompts 
-          friendName={""}
-          action={action} 
-          handleAction={() => {}}
-        />
+        {/* <ActionPrompts 
+        friendName={""}
+         action={action} 
+         handleAction={() => {}}/>*/}
+         {!!selectedModal && 
+         <ModalSheet 
+         children={selectedModal} 
+         title={activeModalTitle} 
+         isVisible={!!selectedModal} 
+         onClose={() => {
+          setSelectedModal(null)
+          setActiveModalTitle("")}
+         
+          } />}
       </SignedIn>
     </SafeAreaView>
   );
 }
+

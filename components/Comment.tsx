@@ -6,6 +6,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { PostComment } from "@/types/type";
 import * as Linking from "expo-linking";
 import { useGlobalContext } from "@/app/globalcontext";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import {
     useRouter,
   } from "expo-router";
@@ -47,7 +48,9 @@ export const CommentItem: React.FC<PostComment> = ({
     const router = useRouter();
     const [showReplyIcon, setShowReplyIcon] = useState(false);
     const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
-    const { replyTo, setReplyTo, setScrollTo } = useGlobalContext()
+    const { replyTo, setReplyTo, setScrollTo, soundEffectsEnabled } = useGlobalContext() // Add soundEffectsEnabled
+    const [onlyEmoji, setOnlyEmoji] = useState(false);
+    const { playSoundEffect } = useSoundEffects(); // Get sound function
 
 
     // Comment Reply
@@ -95,6 +98,10 @@ export const CommentItem: React.FC<PostComment> = ({
       if (!user || isLoadingCommentLike) return;
   
       try {
+        // Play like sound if liking (not unliking) and enabled
+        if (!commentLikes[commentId] && soundEffectsEnabled) {
+          playSoundEffect(SoundType.Like);
+        }
         setIsLoadingCommentLike(true);
         const isCurrentlyLiked = commentLikes[commentId];
   
@@ -185,6 +192,13 @@ export const CommentItem: React.FC<PostComment> = ({
       },
     });
   
+    const isOnlyEmoji = (text: string): boolean => {
+      // Unicode regex pattern to match emoji characters
+      const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Modifier}|\p{Emoji_Component}|\p{Emoji})+$/u;
+    
+      return emojiRegex.test(text);
+    };
+
     const doubleTapHandler = () => {
       setTapCount((prevCount) => prevCount + 1);
     };
@@ -213,7 +227,12 @@ export const CommentItem: React.FC<PostComment> = ({
         },
       ],
     }));
-  
+
+    useEffect(() => {
+      if (content) {
+        setOnlyEmoji(isOnlyEmoji(content));
+      }
+    }, [content]);
     return (
       <GestureHandlerRootView
         style={{ justifyContent: "center", alignItems: "center" }}
@@ -257,7 +276,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 <TouchableOpacity
                 onPress={() => {setScrollTo(`${replyingTo.id}`)}}>
                 <View 
-                className="flex flex-row rounded-[20px] p-3"
+                className="flex flex-row rounded-[20px] py-3 px-4"
                 style={{
                   backgroundColor: replyingTo.sender_id == user_id
                       ? postColor
@@ -282,13 +301,13 @@ export const CommentItem: React.FC<PostComment> = ({
             className="py-3 px-4 rounded-[20px] max-w-[70%]"
             style={{
               backgroundColor:
-              user_id === user?.id
+              onlyEmoji ? "rgba(0,0,0,0)" : (user_id === user?.id
                 ? "black"
                 : user_id == sender_id
                   ? postColor
-                  : "#e5e7eb",
+                  : "#e5e7eb"),
             
-            marginTop:  6,
+            marginTop:  onlyEmoji ? -6 : 6,
             }}>
             <TouchableOpacity
               activeOpacity={0.85}
@@ -335,8 +354,8 @@ export const CommentItem: React.FC<PostComment> = ({
               hitSlop={5}
             >
               <Text
-                className="text-[14px] font-600 font-Jakarta"
-                style={{ color: user_id === user?.id ? "white" : "black" }}
+                className="font-600 font-Jakarta"
+                style={{ fontSize: onlyEmoji ? 50 : 14, color: user_id === user?.id ? "white" : "black" }}
               >
                 {content}
               </Text>
