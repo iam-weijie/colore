@@ -9,7 +9,7 @@ import {
   cancelFriendRequest,
   unfriend,
 } from "@/lib/friend";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import {
   ConversationItem,
   FriendRequest,
@@ -578,9 +578,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           <Text className="text-gray-500 italic text-xs">
             Since{" "}
             {typeof item.createdAt === "string"
-              ? formatDateTruncatedMonth(
-                  convertToLocal(new Date(item.createdAt))
-                )
+              ? getRelativeTime(convertToLocal(new Date(item.createdAt)))
               : "No date"}
           </Text>
         </TouchableOpacity>

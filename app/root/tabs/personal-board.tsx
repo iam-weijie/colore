@@ -170,7 +170,7 @@ const UserPersonalBoard = () => {
     
     return (
       <Animated.View
-        entering={FadeIn.duration(400).springify().delay(item.id % 10 * 100)}r
+        entering={FadeIn.duration(400).springify().delay(item.id % 10 * 100)}
       >
         <TouchableOpacity
           activeOpacity={0.9}
@@ -212,7 +212,7 @@ const UserPersonalBoard = () => {
             <View className="flex-row items-center">
               <Text className="text-white/80 text-[12px] font-JakartaSemiBold ">
                 {item.pins?.length || 0} notes
-              </Text>r
+              </Text>
               {item.isPrivate && (
                 <View className="bg-black/30 rounded-full p-1">
                   <LockClosedIcon size={12} color="white" />

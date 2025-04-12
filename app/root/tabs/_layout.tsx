@@ -23,9 +23,9 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
 
 
   return (
-    <View className={`flex flex-column  items-center justify-center  ${isCenter && '-mt-16' }`}>
+    <View className={`flex flex-column items-center justify-center ${isCenter ? '-mt-16' : ''}`}>
   
-      <View className={`flex items-center justify-center ${isCenter && `${ focused ? 'bg-black' : 'bg-[#FAFAFA]'} w-16 h-16 rounded-full shadow-md`}`}>
+      <View className={`flex items-center justify-center ${isCenter ? (focused ? 'bg-black' : 'bg-[#FAFAFA]') + ' w-16 h-16 rounded-full shadow-md' : ''}`}>
       {focused && !isCenter && <View className='absolute'>
       <MaskedView
       style={{ width: 60, height: 60 }}
@@ -53,7 +53,7 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
           source={source}
           className={`flex-1 ${['Create', 'Boards'].includes(label ?? "") ? 'w-5 h-5' : 'w-6 h-6'}`}
           style={[
-            { tintColor: isCenter ? `${focused ? '#fff' : '#888'}` : focused ? "#000" :  "#888"}
+            { tintColor: isCenter ? (focused ? '#fff' : '#888') : focused ? "#000" :  "#888"}
           ]}
           resizeMode="contain"
         />

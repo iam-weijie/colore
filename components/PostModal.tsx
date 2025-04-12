@@ -2,7 +2,7 @@ import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import {
   Post,
   PostItColor,
@@ -151,7 +151,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const dateCreated = convertToLocal(
     new Date(currentPost?.created_at || "")
   );
-  const formattedDate = formatDateTruncatedMonth(dateCreated);
+  const formattedDate = getRelativeTime(dateCreated);
   const postColor = temporaryColors.find(
     (color) => color.name === currentPost?.color
   ) as PostItColor;
