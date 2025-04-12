@@ -16,7 +16,6 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import PersonalBoard from "@/components/PersonalBoard";
 import { icons, temporaryColors } from "@/constants";
 import TabNavigation from "@/components/TabNavigation";
-import ModalSheet from "@/components/Modal";
 import { Board } from "@/types/type";
 import InteractionButton from "@/components/InteractionButton";
 
@@ -27,9 +26,6 @@ const UserPersonalBoard = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [selectedTab, setSelectedTab] = useState<string>("MyBoards");
-  const [selectedBoardTitle, setSelectedBoardTitle] = useState<string>("");
-  const [selectedBoardId, setSelectedBoardId] = useState<number>(0);
-  const [selectedBoardUserInfo, setSelectedBoardUserInfo] = useState<string>("");
   const [selectedBoard, setSelectedBoard] = useState<any | null>(null);
   const [myBoards, setMyBoards] = useState<any>();
   const [discoverBoards, setDiscoverBoards] = useState<any>();
@@ -175,10 +171,20 @@ const UserPersonalBoard = () => {
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => {
-            setSelectedBoard(() => <PersonalBoard userId={user!.id} boardId={item.id} />);
-            setSelectedBoardTitle(item.title);
-            setSelectedBoardUserInfo(item.user_id);
-            setSelectedBoardId(item.id);
+
+            if (item.id == 0) {
+              router.push({
+                pathname: "/root/user-board/[id]",
+                params: { id: `${user!.id}`, username: "personal board" },
+              });
+            } else {
+              router.push({
+                pathname: "/root/user-board/[id]",
+                params: { id: `${item.user_id}`, username: item.title },
+              });
+            }
+          
+
           }}
           className="relative rounded-[32px] h-[225px] w-[170px] overflow-hidden m-2 shadow-2xl"
           style={{
@@ -271,18 +277,6 @@ const UserPersonalBoard = () => {
                 color={"#93c5fd"}/>
             </View>
             {!loading ? (<View className="flex-1 overflow-hidden my-4">
-        {!!selectedBoard &&
-          <ModalSheet 
-            isVisible={!!selectedBoard}
-            title={selectedBoardTitle}
-            onClose={() => {
-              
-              setSelectedBoard(null)
-            }}
-            >
-              {selectedBoard}
-              </ModalSheet>
-}
         {selectedTab === "MyBoards" ? (
         <View className="flex-1">
           <BoardGallery

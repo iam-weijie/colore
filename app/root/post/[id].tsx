@@ -50,13 +50,12 @@ interface PostCommentGroup {
 
 
 
-const PostScreen = () => {
+const PostScreen = ({ id }: {id: string}) => {
   const { user } = useUser();
   const router = useRouter();
   const navigation = useNavigation();
   const { showAlert } = useAlert();
   const {
-    id = "",
     clerk_id = "",
     content = "",
     nickname,
@@ -108,7 +107,6 @@ const PostScreen = () => {
   const [replyView, setReplyView] = useState<PostComment | null>(null);
   const inputRef = useRef(null);
 
-  console.log("user", userId, clerk_id)
 
   const fetchCommentById = async (id: string) => {
     try {
@@ -324,7 +322,7 @@ const PostScreen = () => {
   const scrollToItem = () => {
    // Find the index of the group that contains the target comment
    const groupIndex = postComments.findIndex((p) =>
-    p.comments.some(item => item.id == scrollTo)
+    p.comments.some(item => item.id.toString() == scrollTo)
   );
 
   console.log("groupIndex:", groupIndex);
@@ -338,7 +336,7 @@ const PostScreen = () => {
   const fetchComments = async () => {
     //setLoading(true);
     setError(null);
-
+console.log("happend", "id", id)
     if (!id || !user?.id) {
       console.error("Missing required parameters:", {
         postId: id,
@@ -644,7 +642,7 @@ const PostScreen = () => {
     <SignedIn>
       <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
         <View className="flex-1">
-          <View className="flex-row justify-between items-center mx-6 my-6">
+         {/* <View className="flex-row justify-between items-center mx-6 my-6">
             <TouchableOpacity onPress={() => router.back()} className="mr-4">
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
@@ -663,8 +661,8 @@ const PostScreen = () => {
                 color: postColor?.fontColor ?? color 
               }}>Reply to {anonymousComments ? "Author" : username}</Text>
             </TouchableOpacity>
-          </View>
-          <View 
+          </View>*/}
+          {/*<View 
           className="mb-6 p-6 rounded-[24px] mx-auto flex flex-row items-center justify-between"
           style={{
             backgroundColor: postColor?.hex ?? color,
@@ -701,7 +699,6 @@ const PostScreen = () => {
             </View>
             <View className="flex flex-row justify-center items-center">
                 <View>
-                  {/* Only show like count to post creator */}
                   <Text
                     className={`${clerk_id === user?.id ? "text-gray-800" : "text-transparent"} text-center mr-1 text-sm`}
                   >
@@ -719,7 +716,7 @@ const PostScreen = () => {
                     />
                   </TouchableOpacity>
                 </View>
-          </View>
+          </View>*/}
           <View className="flex-1">
             {/* Comment section */}
             <View className="h-full">

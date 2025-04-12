@@ -10,6 +10,7 @@ import google from "@/assets/icons/google.png";
 import fire from "@/assets/icons/fire.png";
 import heart from "@/assets/icons/heart.png";
 import home from "@/assets/icons/home.png";
+import home1 from "@/assets/icons/home1.png";
 import hide from "@/assets/icons/hide.png";
 import lock from "@/assets/icons/lock.png";
 import menu from "@/assets/icons/menu.png";
@@ -62,6 +63,7 @@ export const icons = {
   google,
   check,
   home,
+  home1,
   pin,
   chat,
   planet,

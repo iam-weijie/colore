@@ -24,7 +24,7 @@ const InteractionButton = ({
   label: string, 
   onPress: () => void, 
   icon?: ImageSourcePropType, 
-  color: string 
+  color?: string 
 }) => {
   // Animation values
   const scale = useSharedValue(0.8);
