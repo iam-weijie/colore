@@ -131,7 +131,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const dateCreated = convertToLocal(
     new Date(currentPost?.created_at || "")
   );
-  const formattedDate = formatDateTruncatedMonth(dateCreated);
+  const formattedDate = getRelativeTime(dateCreated);
   const postColor = temporaryColors.find(
     (color) => color.name === currentPost?.color
   ) as PostItColor;
