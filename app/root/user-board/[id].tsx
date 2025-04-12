@@ -23,6 +23,7 @@ const UserPersonalBoard = () => {
 
 console.log("info pass to user profile", id, username, boardId)
 
+
   return (
     <SafeAreaView className="flex-1">
       <View className="flex-row justify-between items-center mx-7 mt-6">
