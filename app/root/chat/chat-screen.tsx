@@ -9,7 +9,7 @@ import {
   cancelFriendRequest,
   unfriend,
 } from "@/lib/friend";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import {
   ConversationItem,
   FriendRequest,
@@ -470,11 +470,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     label={nicknames && item.receiverId in nicknames
       ? nicknames[item.receiverId]
       : item.receiverUsername}
-    caption={typeof item.createdAt === "string"
-      ? formatDateTruncatedMonth(
-          convertToLocal(new Date(item.createdAt))
-        )
-      : "No date"}
+    caption={
+          getRelativeTime(convertToLocal(new Date(item.createdAt)))
+      }
     colors={["#CFB1FB", "#CFB1FB"]}
     icon={icons.send}
     actionIcon={icons.chevron}

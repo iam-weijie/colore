@@ -1,7 +1,7 @@
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -750,9 +750,7 @@ export default PostScreen;
               </TouchableOpacity>
               <Text className="text-sm text-gray-700">
                 {typeof created_at === "string"
-                  ? formatDateTruncatedMonth(
-                      convertToLocal(new Date(created_at))
-                    )
+                  ? getRelativeTime(convertToLocal(new Date(created_at)))
                   : "No date"}
               </Text>
               <TouchableWithoutFeedback

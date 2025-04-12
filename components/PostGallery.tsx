@@ -1,7 +1,7 @@
 import PostModal from "@/components/PostModal";
 import { useGlobalContext } from "@/app/globalcontext";
 import { temporaryColors } from "@/constants";
-import { formatDateTruncatedMonth } from "@/lib/utils";
+import { formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { Link, useFocusEffect } from "expo-router";
@@ -93,7 +93,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
         </Text>
         <View className="flex-row justify-between">
           <Text className="font-Jakarta text-gray-500">
-            {item.created_at ? formatDateTruncatedMonth(new Date(item.created_at)) : ""}
+            {item.created_at ? getRelativeTime(new Date(item.created_at)) : ""}
           </Text>
         </View>
         {item.clerk_id == user!.id && item.unread_comments > 0 && (
