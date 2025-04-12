@@ -107,8 +107,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
   const isEditable = user!.id === userId;
 
-  console.log("user received: ", userId)
-
 
   function findUserNickname(
     userArray: UserNicknamePair[],

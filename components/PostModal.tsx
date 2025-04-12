@@ -35,6 +35,7 @@ import {
   PanGestureHandler,
 } from "react-native-gesture-handler";
 import ReactNativeModal from "react-native-modal";
+import ModalSheet from "@/components/Modal";
 import Animated, {
   BounceIn,
   Easing,
@@ -55,6 +56,7 @@ import { useAlert } from '@/notifications/AlertContext';
 import InteractionButton from "./InteractionButton";
 import CarrouselIndicator from "./CarrouselIndicator";
 import EmojiExplosionModal from "./EmojiExplosiveModal";
+import PostScreen from "@/app/root/post/[id]";
 
 
 const { width, height } = Dimensions.get("window");
@@ -86,7 +88,8 @@ const PostModal: React.FC<PostModalProps> = ({
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
   const [showEmojiModal, setShowEmojiModal] = useState<boolean>(false);
-   const { showAlert } = useAlert();
+  const [selectedBoard, setSelectedBoard] = useState<any | null>(null);
+  const { showAlert } = useAlert();
   const router = useRouter();
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -365,11 +368,12 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
   const handleCommentsPress = () => {
-    handleCloseModal();
-
+   // handleCloseModal();
+   setSelectedBoard(() => <PostScreen id={currentPost?.id.toString()} />);
     console.log()
 
-    router.push({
+    {/*
+  router.push({
       pathname: "/root/post/[id]",
       params: {
         id: currentPost?.id,
@@ -385,6 +389,8 @@ const PostModal: React.FC<PostModalProps> = ({
         saved: isSaved,
       },
     });
+    */}
+  
   };
 
   const handleSavePost = async (postId: number) => {
@@ -679,7 +685,7 @@ console.log(selectedEmoji, "emojic")
   }));
 
 
-  console.log("current", currentPost)
+  //console.log("current", currentPost)
   return (
       <ReactNativeModal
         isVisible={isVisible}
@@ -932,6 +938,18 @@ console.log(selectedEmoji, "emojic")
             />
           </View>
           }
+            {!!selectedBoard &&
+          <ModalSheet 
+            isVisible={!!selectedBoard}
+            title={"Comments"}
+            onClose={() => {
+              
+              setSelectedBoard(null)
+            }}
+            >
+              {selectedBoard}
+              </ModalSheet>
+}
         
       </ReactNativeModal>
   );

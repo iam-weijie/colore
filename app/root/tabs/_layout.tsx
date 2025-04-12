@@ -19,47 +19,24 @@ interface TabIconProps {
   isCenter?: boolean;
 }
 
-const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label, isCenter = false }) => {
+const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label}) => {
 
 
   return (
-    <View className={`flex flex-column  items-center justify-center  ${isCenter && '-mt-16' }`}>
+    <View className={`flex flex-column  items-center justify-center  `}>
   
-      <View className={`flex items-center justify-center ${isCenter && `${ focused ? 'bg-black' : 'bg-[#FAFAFA]'} w-16 h-16 rounded-full shadow-md`}`}>
-      {focused && !isCenter && <View className='absolute'>
-      <MaskedView
-      style={{ width: 60, height: 60 }}
-        maskElement={
-    <Image
-      source={
-        label == "Boards" ? images.highlight1 :
-        (label == "Starring" ? images.highlight2 : 
-          (label == "Create" ? images.highlight3 :
-            images.highlight4
-          )
-        )
-      }
-      style={{
-        width: 60,
-        height: 60,
-      }}
-    />
-  }
->
-  <View style={{ flex: 1, backgroundColor: color }} />
-</MaskedView>
+      <View className={`flex items-center justify-center  w-11 h-11 rounded-full`}>
+      {focused && <View className='absolute'>
       </View>}
-        <Animated.Image
+         <Animated.Image
           source={source}
-          className={`flex-1 ${['Create', 'Boards'].includes(label ?? "") ? 'w-5 h-5' : 'w-6 h-6'}`}
-          style={[
-            { tintColor: isCenter ? `${focused ? '#fff' : '#888'}` : focused ? "#000" :  "#888"}
-          ]}
-          resizeMode="contain"
+          className={`flex-1 w-10 h-10 shadow-sm`}
+          
+          resizeMode="cover"
         />
       </View>
       <View>
-        <Text className={`w-full txt-center text-xs font-JakartaBold -mt-1`} style={[{ color: focused ? "#000"  : "#888" }]}>
+        <Text className={`w-full text-center text-xs font-JakartaBold`} style={[{ color: focused ? "#000"  : "#888" }]}>
           {label}
         </Text>
       </View>
@@ -143,7 +120,7 @@ const Layout: React.FC = () => {
   const dynamicShadow = isCreateFocused
     ? '-6px -3px 13px 3px rgba(251, 177, 214, 0.25), 5px 4px 13px 3px rgba(147, 197, 253, 0.25)'
     : ( isBoardFocused 
-      ? '-6px -3px 13px 3px rgba(147, 197, 253, 0.25), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)'
+      ? '-6px -3px 13px 3px rgba(2, 0.25), 5px 4px 13px 3px rgba(202, 177, 251, 0.25)'
       : (isStarringFocused 
         ?  '-6px -3px 13px 3px rgba(250,230,64,0.25), 5px 4px 13px 3px rgba(251, 177, 214, 0.25)'
         : '-6px -3px 13px 3px rgba(250,230,64,0.25), 5px 4px 13px 3px rgba(147, 197, 253, 0.25)'));
@@ -158,14 +135,11 @@ const Layout: React.FC = () => {
           justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: '#fafafa',
-          height: 85,
-          borderRadius: 50,
+          height: 100,
           paddingRight: 15,
           paddingLeft: 15,
-          paddingBottom: isIpad ? 0 : 18,
-          marginHorizontal: 30,
-          marginBottom: 35,
-          boxShadow: dynamicShadow,
+          paddingBottom: isIpad ? 0 : 25,
+          boxShadow: "0px 0px 14px 3px rgba(0, 0, 0, 0.05)",
         },
       }}
     >
@@ -211,12 +185,11 @@ const Layout: React.FC = () => {
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon
-              source={icons.globe}
+              source={icons.home}
               focused={focused}
               unread={unreadPersonalPosts}
               color="#E2C7FF"
-              
-              isCenter
+              label='Home'
             />
           ),
           tabBarButton: (props) => <HapticTabBarButton {...props} />,

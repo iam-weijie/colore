@@ -22,6 +22,7 @@ const UserPersonalBoard = () => {
   };
 
 
+
   return (
     <SafeAreaView className="flex-1">
       <View className="flex-row justify-between items-center mx-7 mt-6">
@@ -30,7 +31,7 @@ const UserPersonalBoard = () => {
         </TouchableOpacity>
 
         <Text className="text-xl font-JakartaBold">
-          {username}'s Board
+          {username}
         </Text>
 
         <TouchableOpacity className="opacity-0" onPress={() => {}}>

@@ -211,8 +211,8 @@ const fetchUserData = async () => {
          }}>
             <Image
               source={icons.notification}
-              className="w-5 h-5"
-              style={{ tintColor: "#000" }}
+              className="w-9 h-9 shadow-sm"
+              resizeMode="cover"
             />
             <View className="absolute right-2">
             <NotificationBubble
