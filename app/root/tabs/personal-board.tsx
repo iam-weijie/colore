@@ -166,7 +166,7 @@ const UserPersonalBoard = () => {
     
     return (
       <Animated.View
-        entering={FadeIn.duration(400).springify().delay(item.id % 10 * 100)}r
+        entering={FadeIn.duration(400).springify().delay(item.id % 10 * 100)}
       >
         <TouchableOpacity
           activeOpacity={0.9}
@@ -175,12 +175,12 @@ const UserPersonalBoard = () => {
             if (item.id == 0) {
               router.push({
                 pathname: "/root/user-board/[id]",
-                params: { id: `${user!.id}`, username: "personal board" },
+                params: { id: `${user!.id}`, username: "Personal board" },
               });
             } else {
               router.push({
                 pathname: "/root/user-board/[id]",
-                params: { id: `${item.user_id}`, username: item.title },
+                params: { id: `${item.user_id}`, username: item.title, boardId: item.id },
               });
             }
           
@@ -216,12 +216,16 @@ const UserPersonalBoard = () => {
             
             {/* Additional metadata - you can customize these */}
             <View className="flex-row items-center">
-              <Text className="text-white/80 text-[12px] font-JakartaSemiBold ">
-                {item.pins?.length || 0} notes
-              </Text>r
+              {item.id > 0 && <Text className="text-white/80 text-[12px] font-JakartaSemiBold ">
+                {item.count || 0} notes
+              </Text>}
               {item.isPrivate && (
-                <View className="bg-black/30 rounded-full p-1">
-                  <LockClosedIcon size={12} color="white" />
+                <View className="">
+                  <Image
+                  source={icons.lock}
+                  tintColor={"white"}
+                  className="w-4 h-4"
+                  />
                 </View>
               )}
             </View>
@@ -229,7 +233,7 @@ const UserPersonalBoard = () => {
           
           {/* Optional "New" badge */}
           {item.isNew && (
-            <View className="absolute top-2 left-2 bg-red-500 px-2 py-1 rounded-full">
+            <View className="absolute top-4 left-4 bg-red-500 px-2 py-1 rounded-full">
               <Text className="text-white text-[10px] font-JakartaBold">NEW</Text>
             </View>
           )}
@@ -248,8 +252,8 @@ const UserPersonalBoard = () => {
   }, [selectedBoard])
 
   return (
-    <SafeAreaView className="flex-1">
-      <View className="flex-row justify-between items-center mx-7 mt-3 ">
+<View className="flex-1 ">
+      <View className="flex-1 flex-row max-h-[15%] justify-between items-end pl-11  bg-[#FAFAFA]">
 
         <Text className={`text-2xl font-JakartaBold`}>
           Boards
@@ -258,12 +262,20 @@ const UserPersonalBoard = () => {
       </View>
       <SignedIn>
         <View className="flex-1">
-        <View className="flex flex-row items-start justify-between mt-4 mx-8 mb-4  ">
+        <View className="flex flex-row items-center justify-start bg-[#FAFAFA]">
               <TabNavigation
                 name={"Mine"}
                 focused={selectedTab === "MyBoards"}
                 onPress={() => {
                   setSelectedTab("MyBoards")
+                }}
+                notifications={0}
+                color={"#CFB1FB"}/>
+                 <TabNavigation
+                name={"Community"}
+                focused={selectedTab === "Community"}
+                onPress={() => {
+                  setSelectedTab("Community")
                 }}
                 notifications={0}
                 color={"#CFB1FB"}/>
@@ -300,7 +312,7 @@ const UserPersonalBoard = () => {
         </View>
        
       </SignedIn>
-    </SafeAreaView>
+</View>
   );
 };
 

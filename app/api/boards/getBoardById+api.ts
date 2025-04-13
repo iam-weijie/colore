@@ -7,11 +7,11 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const id = url.searchParams.get("id"); // Retrieve the 'ids' query param
 
-   
+
     const response = await sql`
       SELECT *
-      FROM boards b
-      WHERE b.id = ${id}
+      FROM boards
+      WHERE id = ${id}
     `;
 
     if (response.length === 0) {

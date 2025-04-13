@@ -36,7 +36,7 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
         />
       </View>
       <View>
-        <Text className={`w-full text-center text-xs font-JakartaBold`} style={[{ color: focused ? "#000"  : "#888" }]}>
+        <Text className={`w-full text-center text-xs font-JakartaBold`} style={[{ color: focused ? "#000"  : "#C8C8C8" }]}>
           {label}
         </Text>
       </View>
@@ -136,8 +136,8 @@ const Layout: React.FC = () => {
           alignItems: 'center',
           backgroundColor: '#fafafa',
           height: 100,
-          paddingRight: 15,
-          paddingLeft: 15,
+          paddingRight: 25,
+          paddingLeft: 25,
           paddingBottom: isIpad ? 0 : 25,
           boxShadow: "0px 0px 14px 3px rgba(0, 0, 0, 0.05)",
         },

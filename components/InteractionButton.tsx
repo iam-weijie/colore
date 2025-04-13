@@ -81,7 +81,7 @@ const InteractionButton = ({
             <Image
               source={icon}
               className={
-                label === 'Reply' ? 'w-5 h-5' :
+                label === 'Reply' ? 'w-9 h-9' :
                 label === 'Hard agree' ? 'w-7 h-7' :
                 'w-8 h-8'
               }

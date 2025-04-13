@@ -23,6 +23,7 @@ import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -36,20 +37,21 @@ const RenderPromptCard = ({item, userId, promptContent, updatePromptContent, han
       onPressIn={() => Keyboard.dismiss()}
     >
   <View className="flex-1 flex-column items-center justify-center mt-4 mb-8 py-8 rounded-[48px]" 
-  style={{
-    backgroundColor: item.color ?? 'yellow',
-    width: screenWidth * 0.85}}>
+ style={{
+  backgroundColor:  item.color ?? "yellow",
+  width: screenWidth * 0.85}}>
+
   <View className="w-[85%] flex-1 mx-auto flex-col items-center justify-center">
 
-  <Text className="my-1 text-[14px] font-JakartaBold text-white">{item.theme}</Text>
+  <Text className="my-1 text-[14px] font-JakartaBold text-[#FAFAFA]">{item.theme}</Text>
     <Text 
     
-    className="text-[24px] text-center font-JakartaBold text-[#FAFAFA]">{item.cue}...</Text>
+    className="text-[24px] text-center font-JakartaBold text-[#FFF]">{item.cue}...</Text>
   </View>
   <KeyboardAvoidingView behavior="padding" className="flex-1 my-6 flex w-full">
      <View className="mt-2">
                     <TextInput
-                      className="text-[16px] text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
+                      className="text-[16px] text-[#FFF] p-5 rounded-[24px] font-JakartaBold mx-10 "
                       placeholder="Type something..."
                       value={promptContent}
                       onChangeText={updatePromptContent}
@@ -347,8 +349,7 @@ export default function Page() {
  };
 
   return (
-    <SafeAreaView className="flex-1">
-      <SignedIn>
+    <View className="flex-1">
         {hasSubmittedPrompt ? (<PostModal
           isVisible={isModalVisible}
           selectedPost={selectedPostRef.current}
@@ -361,15 +362,16 @@ export default function Page() {
                     onPressIn={() => Keyboard.dismiss()}
                   >
           <View className="flex-1">
-           
-            <View className="mt-3 mx-7">
+          
+                 <View className="flex-1 flex-row max-h-[18%] justify-between items-end pl-11  bg-[#FAFAFA]">
               <Text className="text-2xl font-JakartaBold my-4">Starring</Text>
             </View>
-            <Text className="my-2 text-center text-[#888] text-[12px] font-JakartaSemiBold"> Create a prompt with the given cues to view other people's responses </Text>
+            <Text className="mt-4 mb-2 text-center text-[#CCCCCC] text-[12px] font-JakartaSemiBold"> Create a prompt with the given cues to view other people's responses </Text>
             {loading ? (
               <ActivityIndicator size={"small"} color={"#888"}/>
             ) 
             : (<Animated.FlatList
+                className="flex-1"
                 data={prompts}
                 keyExtractor={(item) => item.id.toString()}
                 horizontal
@@ -411,9 +413,9 @@ export default function Page() {
       <Animated.View
         style={{
           transform: [{ scale }],
-          shadowColor: '#000',
+          shadowColor: item.color,
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
+          shadowOpacity: 0.7,
           shadowRadius: 12,
           elevation: 6, // Android shadow
         }}
@@ -427,8 +429,8 @@ export default function Page() {
           </View>
           </TouchableWithoutFeedback>
         )}
-      </SignedIn>
-    </SafeAreaView>
+
+    </View>
   );
 }
 

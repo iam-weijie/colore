@@ -109,19 +109,30 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       let filteredPosts;
       let posts;
       
+      console.log("board", board, boardId)
      
-      if (board && board.data.restrictions.includes("Everyone")) {
-      
+      if (board) {
         posts = await fetchAPI(
           `/api/posts/getPostsByBoardId?id=${boardId}`
         );
+
+        if (board.data.restrictions.includes("Everyone")) {
+          console.log(
+            "Ran1"
+          )
         filteredPosts =  posts.data 
+      } else {
+        console.log(
+          "Ran2"
+        )
+        filteredPosts = posts.data.rfilter((p: Post) => p.recipient_user_id == userId);
+      }
         
     
       
       } else {
         console.log(
-          "Ran2"
+          "Ran3"
         )
          posts = await fetchAPI(
           `/api/posts/getPersonalPosts?number=${maxPostOnScreen}&recipient_id=${userId}&user_id=${viewerId}`
@@ -135,7 +146,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
   
       const boardOnlyPosts = boardId === 0 ? filteredPosts : filteredPosts.filter((p: Post) => p.board_id == boardId);
 
-      console.log("posts", filteredPosts)
     
       // Validate and format each post
       const formattedPosts = boardOnlyPosts.map((post: Post) => ({

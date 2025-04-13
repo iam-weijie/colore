@@ -160,9 +160,10 @@ export const CommentItem: React.FC<PostComment> = ({
     const translateX = useSharedValue(0);
   
     // Maximum swipe distance
-    const maxSwipe = 50; // Adjust as needed
-    const minSwipe = -50; // Adjust as needed
+    const maxSwipe = user_id != user!.id ? 30 : 0; // Adjust as needed
+    const minSwipe = user_id == user!.id ?  -30 : 0; // Adjust as needed
   
+
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
       GestureContext
@@ -174,12 +175,15 @@ export const CommentItem: React.FC<PostComment> = ({
         // Calculate the translation, limit swipe range
         const translationX = context.startX + event.translationX;
         translateX.value = Math.max(Math.min(translationX, maxSwipe), minSwipe);
+
+        if (Math.abs(translateX.value) > 5) {
         runOnJS(setShowReplyIcon)(true)
+        }
       },
       onEnd: () => {
         runOnJS(setShowReplyIcon)(false)
         const offSetX = translateX.value
-        if (Math.abs(offSetX) > 30 ) {
+        if (Math.abs(offSetX) > 25 ) {
             
             if (replyTo == `${id}`) {
                 runOnJS(setReplyTo)(null);
@@ -285,7 +289,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 }}
                 >
                     <Text 
-                    className="ml-1 text-[14px] italic"
+                    className="ml-1 text-xs italic"
                     style={{
                         color: replyingTo.sender_id == user_id ? "white" : "black"
                     }}
@@ -305,7 +309,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 ? "black"
                 : user_id == sender_id
                   ? postColor
-                  : "#e5e7eb"),
+                  : "#EEEEEE"),
             
             marginTop:  onlyEmoji ? -6 : 6,
             }}>
@@ -355,7 +359,7 @@ export const CommentItem: React.FC<PostComment> = ({
             >
               <Text
                 className="font-600 font-Jakarta"
-                style={{ fontSize: onlyEmoji ? 50 : 14, color: user_id === user?.id ? "white" : "black" }}
+                style={{ fontSize: onlyEmoji ? 50 : 12, color: user_id === user?.id ? "white" : "black" }}
               >
                 {content}
               </Text>
@@ -399,12 +403,12 @@ export const CommentItem: React.FC<PostComment> = ({
               <View
                 style={{
                   alignSelf: user_id == user?.id ? "flex-end" : "flex-start",
-                  [user_id === user?.id ? "right" : "left"]: -50,
+                  [user_id === user?.id ? "right" : "left"]: -40,
                   bottom: 0,
                 }}
                 className="absolute"
               >
-               <Text className="text-grey-300 text-[14px] font-JakartaSemiBold">{replyTo == `${id}` ? `Cancel` : `Reply`}</Text>
+               <Text className="text-grey-300 text-xs font-Jakarta">{replyTo == `${id}` ? `Cancel` : `Reply`}</Text>
               </View>
             )}
           </Animated.View>

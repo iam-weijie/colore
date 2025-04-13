@@ -35,15 +35,15 @@ const Create = () => {
   const { showAlert } = useAlert();
   
   return (
-    <SafeAreaView className="flex-1">
-      <SignedIn>
+    <View className="flex-1">
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
         >
           
-          <View className="flex-row justify-between items-center mx-7 mt-3">
-                 <Text className="text-2xl font-JakartaBold mt-4">Create</Text>
+                    
+            <View className="flex-1 flex-row max-h-[18%] justify-between items-end pl-11  bg-[#FAFAFA]">
+                 <Text className="text-2xl font-JakartaBold my-4">Create</Text>
               
                </View>
         </TouchableWithoutFeedback>
@@ -119,7 +119,7 @@ const Create = () => {
           <ItemContainer
             label="Send global note"
             caption="A thought for the world to see"
-            icon={icons.plus}
+            icon={icons.globe}
             colors={['#fbb1d6', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
@@ -153,7 +153,7 @@ const Create = () => {
           </View>
           <ItemContainer
             label="Create a board"
-            icon={icons.menu}
+            icon={icons.bookmark}
             colors={['#fbb1d6', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
@@ -169,8 +169,7 @@ const Create = () => {
           />
       
         </ScrollView>
-      </SignedIn>
-    </SafeAreaView>
+    </View>
   );
 };
 

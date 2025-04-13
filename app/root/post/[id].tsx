@@ -25,6 +25,7 @@ import {
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -50,7 +51,7 @@ interface PostCommentGroup {
 
 
 
-const PostScreen = ({ id }: {id: string}) => {
+const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const { user } = useUser();
   const router = useRouter();
   const navigation = useNavigation();
@@ -411,7 +412,7 @@ console.log("happend", "id", id)
 
     const trimmedComment = newComment.trim();
 
-    if (!trimmedComment || !id || !user?.id || !clerk_id) {
+    if (!trimmedComment || !id || !user?.id || !clerkId) {
       /*console.log("Missing required data:", { 
           content: trimmedComment, 
           postId: id, 
@@ -443,7 +444,7 @@ console.log("happend", "id", id)
           content: trimmedComment,
           postId: id,
           clerkId: user.id,
-          postClerkId: clerk_id,
+          postClerkId: clerkId,
           replyId: replyTo ?? null
         }),
       });
@@ -616,7 +617,7 @@ console.log("happend", "id", id)
           key={comment.id}
           id={comment.id}
           user_id={comment.user_id}
-          sender_id={clerk_id}
+          sender_id={comment.sender_id}
           post_id={comment.post_id}
           username={
             anonymousComments ? "" :
@@ -638,11 +639,93 @@ console.log("happend", "id", id)
   };
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 min-h-[300px]">
     <SignedIn>
-      <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
+         <Pressable className="flex-1 " onPress={() => 
+                  {
+                    Keyboard.dismiss()
+                  }
+                  } />
         <View className="flex-1">
-         {/* <View className="flex-row justify-between items-center mx-6 my-6">
+        
+          <View className="flex-1">
+            {/* Comment section */}
+            <View className="h-full">
+              {loading && <ActivityIndicator size="small" color="#888888" />}
+              {error && <Text className="text-red-500 mx-4">{error}</Text>}
+              {!loading && !error && postComments.length === 0 && (
+                <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2 text-center">
+                  No messages yet.
+                </Text>
+              )}
+              {!loading && !error && postComments.length > 0 && (
+                <FlatList
+                  ref={flatListRef}
+                  data={postComments}
+                  className="rounded-[20px] max-h-[400px] "
+                  renderItem={renderCommentItem}
+                  keyExtractor={(item) => item.date as unknown as string}
+                  contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+                  style={{ flexGrow: 1 }}
+                  extraData={postComments}
+                  onContentSizeChange={() => {
+                    flatListRef.current?.scrollToEnd({ animated: true });
+                  }}
+                  showsVerticalScrollIndicator={false}
+                />
+              )}
+            </View>
+          </View>
+
+<View className="flex flex-col">
+{replyView && 
+<View
+className="mt-2 -mb-1 ml-5 flex flex-row"
+>
+  <Text   
+  className="ml-1 text-[14px] italic max-w-[80%]"
+  numberOfLines={2}
+  style={{
+    color:"#757575"
+  }}
+            >Reply to : {replyView.content}
+            </Text>
+</View>}
+          <View className="flex-row items-center p-2">
+            <TextInput
+              ref={inputRef}
+              className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
+              placeholder="Write a something..."
+              value={newComment}
+              multiline
+              scrollEnabled
+              onChangeText={handleChangeText}
+              onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
+              editable={!isSubmitting && !isSubmitting}
+            />
+            <CustomButton
+              title={isSubmitting ? "..." : "Send"}
+              onPress={handleCommentSubmit}
+              disabled={
+                newComment.length === 0 || isSubmitting || isPostDeleted
+              }
+              className="ml-3 w-14 h-10 rounded-full shadow-none"
+              style={{ backgroundColor: postColor ? (postColor.hex || color) : "black" }}
+              fontSize="sm"
+              padding="0"
+            />
+          </View>
+          </View>
+        </View>
+    </SignedIn>
+  </SafeAreaView>
+  );
+};
+
+export default PostScreen;
+
+
+ {/* <View className="flex-row justify-between items-center mx-6 my-6">
             <TouchableOpacity onPress={() => router.back()} className="mr-4">
               <AntDesign name="caretleft" size={18} />
             </TouchableOpacity>
@@ -717,79 +800,3 @@ console.log("happend", "id", id)
                   </TouchableOpacity>
                 </View>
           </View>*/}
-          <View className="flex-1">
-            {/* Comment section */}
-            <View className="h-full">
-              {loading && <ActivityIndicator size="small" color="#888888" />}
-              {error && <Text className="text-red-500 mx-4">{error}</Text>}
-              {!loading && !error && postComments.length === 0 && (
-                <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2 text-center">
-                  No messages yet.
-                </Text>
-              )}
-              {!loading && !error && postComments.length > 0 && (
-                <FlatList
-                  ref={flatListRef}
-                  data={postComments}
-                  className="rounded-[20px] mx-4"
-                  renderItem={renderCommentItem}
-                  keyExtractor={(item) => item.date as unknown as string}
-                  contentContainerStyle={{ padding: 16 }}
-                  style={{ flexGrow: 1 }}
-                  extraData={postComments}
-                  onContentSizeChange={() => {
-                    flatListRef.current?.scrollToEnd({ animated: true });
-                  }}
-                  showsVerticalScrollIndicator={false}
-                />
-              )}
-            </View>
-          </View>
-
-<View className="flex flex-col">
-{replyView && 
-<View
-className="mt-2 -mb-1 ml-5 flex flex-row"
->
-  <Text   
-  className="ml-1 text-[14px] italic max-w-[80%]"
-  numberOfLines={2}
-  style={{
-    color:"#757575"
-  }}
-            >Reply to : {replyView.content}
-            </Text>
-</View>}
-          <View className="flex-row items-center p-4">
-            <TextInput
-              ref={inputRef}
-              className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
-              placeholder="Write a something..."
-              value={newComment}
-              multiline
-              scrollEnabled
-              onChangeText={handleChangeText}
-              onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
-              editable={!isSubmitting && !isSubmitting}
-            />
-            <CustomButton
-              title={isSubmitting ? "..." : "Send"}
-              onPress={handleCommentSubmit}
-              disabled={
-                newComment.length === 0 || isSubmitting || isPostDeleted
-              }
-              className="ml-3 w-14 h-10 rounded-full shadow-none"
-              style={{ backgroundColor: postColor ? (postColor.hex || color) : "black" }}
-              fontSize="sm"
-              padding="0"
-            />
-          </View>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </SignedIn>
-  </SafeAreaView>
-  );
-};
-
-export default PostScreen;
