@@ -43,8 +43,12 @@ declare interface Board {
   board_type: string;
   restrictions: string[];
   created_at: string;
-  number_of_posts: number;
   color?: string;
+  count?: number;
+  isNew?: boolean;
+  isPrivate?: boolean;
+  commentAllowed: boolean;
+  imageUrl?: string;
 }
 
 declare interface DraftPost {

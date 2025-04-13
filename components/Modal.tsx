@@ -3,7 +3,18 @@ import * as React from "react";
 import { useEffect, useState, useCallback } from "react";
 
 import { router, useFocusEffect } from "expo-router";
-import { Dimensions, Image, Modal, ImageSourcePropType, Pressable,  SafeAreaView, TouchableOpacity, View, Text } from "react-native";
+import { Dimensions, 
+  Image, 
+  Modal, 
+  ImageSourcePropType,
+  Keyboard,
+  KeyboardAvoidingView, 
+  Pressable,  
+  SafeAreaView, 
+  TouchableOpacity, 
+  View, 
+  Text, 
+  } from "react-native";
 import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming } from "react-native-reanimated";
 
 
@@ -76,7 +87,16 @@ const ModalSheet = ({ children, title, isVisible, onClose }: {children: any, tit
     console.log("children", children, typeof children)
     return (
       <Modal transparent visible={visible} onRequestClose={handleClose}>
-         <Pressable className="flex-1 " onPress={handleClose}>
+          <KeyboardAvoidingView 
+            behavior={'height'}
+            style={{ flex: 1 }}
+  >
+         <Pressable className="flex-1 " onPress={() => 
+          {
+            handleClose()
+            Keyboard.dismiss()
+          }
+          }>
                    <Animated.View
                               style={[animatedOpacity, {backgroundColor: "black"}]}
                               className="flex-1 absolute top-0 left-0 right-0 bottom-0"
@@ -106,6 +126,7 @@ const ModalSheet = ({ children, title, isVisible, onClose }: {children: any, tit
               </View>
           {children}
         </Animated.View>
+        </KeyboardAvoidingView>
       </Modal>
       
     );

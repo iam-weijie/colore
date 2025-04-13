@@ -23,13 +23,14 @@ import { Audio } from 'expo-av';
 
 import {ChatScreen, NotificationScreen} from "../chat/chat-screen";
 import NotificationBubble from "@/components/NotificationBubble";
+import ItemContainer from "@/components/ItemContainer";
 import ModalSheet from "@/components/Modal";
 
 
 export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
-  const { isIpad, storedNotifications } = useGlobalContext();
+  const { isIpad, unreadComments, unreadPersonalPosts } = useGlobalContext();
   const [action, setAction] = useState(ActionType.NONE);
   const { showAlert } = useAlert();
   const [geographicalMode, setGeographicalMode] = useState<GeographicalMode>('world');
@@ -211,62 +212,84 @@ const fetchUserData = async () => {
          }}>
             <Image
               source={icons.notification}
-              className="w-9 h-9 shadow-sm"
+              className="w-6 h-6 shadow-sm"
               resizeMode="cover"
             />
             <View className="absolute right-2">
             <NotificationBubble
-            unread={storedNotifications.length ?? 0}
+            unread={unreadComments + unreadPersonalPosts?? 0}
             color={"#FF0000"}
             />
             </View>
             </TouchableOpacity>
           
-           
-          <View className="mx-2">
-       
-          <DropdownMenu
-          icon={
-            geographicalMode === "world"
-            ? icons.planet
-            : geographicalMode === "country"
-            ? getCountryFlag(userInfo?.country)
-            : geographicalMode === "state"
-            ? icons.vineyard
-            : icons.smartcity
-          }
-          menuItems={[
-            {
-              label: "World",
-              source: icons.planet,
-              onPress: () => {
-                setGeographicalMode("world");
-              },
-            },
-            {
-              label: userInfo ? userInfo.country : "Country",
-              source: getCountryFlag(userInfo?.country),
-              onPress: () => {
-                setGeographicalMode("country");
-              },
-            },
-            {
-              label: userInfo ? userInfo.state :"State",
-              source: icons.vineyard,
-              onPress: () => {
-                setGeographicalMode("state");
-              },
-            },
-            {
-              label: userInfo ? userInfo.city : "City",
-              source: icons.smartcity,
-              onPress: () => {
-                setGeographicalMode("city");
-              },
-            }
-          ]}
-        />
-          </View>
+          <TouchableOpacity
+          onPress={() => {
+            setSelectedModal(() => 
+              <View>
+                 <ItemContainer 
+                    label={"World"}
+                    caption={"See notes from around the world!"}
+                    icon={icons.globe}
+                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    actionIcon={geographicalMode == "world" && icons.check}
+                    iconColor={"#22c722"}
+                    onPress={() => {
+                      setGeographicalMode("world")
+                      setSelectedModal(null)
+                      setActiveModalTitle("")
+                    }}
+                    />
+                     <ItemContainer 
+                    label={`${userInfo?.country}`}
+                    caption={`So... what is going on in ${userInfo?.country}?`}
+                    icon={icons.globe}
+                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    actionIcon={geographicalMode == "country" && icons.check}
+                    iconColor={"#22c722"}
+                    onPress={() => {
+                      setGeographicalMode("country")
+                      setSelectedModal(null)
+                      setActiveModalTitle("")
+                    }}
+                    />
+                       <ItemContainer 
+                    label={`${userInfo?.state}`}
+                    caption={`Living in ${userInfo?.state}!`}
+                    icon={icons.globe}
+                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    actionIcon={geographicalMode == "state" && icons.check}
+                    iconColor={"#22c722"}
+                    onPress={() => {
+                      setGeographicalMode("state")
+                      setSelectedModal(null)
+                      setActiveModalTitle("")
+                    }}
+                    />
+                       <ItemContainer 
+                    label={`${userInfo?.city}`}
+                    caption={`Everything that happens in ${userInfo?.city} stays there.`}
+                    icon={icons.globe}
+                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    actionIcon={geographicalMode == "city" && icons.check}
+                    iconColor={"#22c722"}
+                    onPress={() => {
+                      setGeographicalMode("city")
+                      setSelectedModal(null)
+                      setActiveModalTitle("")
+                    }}
+                    />
+              </View>
+
+            )
+            setActiveModalTitle("Select a region")
+          }}
+          >
+          <Image
+              source={icons.planet}
+              className="w-6 h-6"
+            />
+          </TouchableOpacity>
         </View>
         </View>
         <PostItBoard

@@ -8,7 +8,7 @@ import { fetchAPI } from "@/lib/fetch";
 
 
 const UserPersonalBoard = () => {
-  const { id, username } = useLocalSearchParams();
+  const { id, username, boardId } = useLocalSearchParams();
   
   const handleNewPost = () => { 
     router.push({
@@ -21,7 +21,7 @@ const UserPersonalBoard = () => {
     });
   };
 
-
+console.log("info pass to user profile", id, username, boardId)
 
   return (
     <SafeAreaView className="flex-1">
@@ -38,7 +38,7 @@ const UserPersonalBoard = () => {
           <Image source={icons.pencil} className="w-7 h-7" />
         </TouchableOpacity>
       </View>
-      <PersonalBoard userId={id as string} />
+      <PersonalBoard userId={id as string} boardId={boardId} />
     </SafeAreaView>
   );
 };
