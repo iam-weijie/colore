@@ -24,7 +24,7 @@ const PreviewPost = () => {
     temporaryColors.find((c) => c.name === color) as PostItColor
   );
 
-  console.log("params", recipientId, personal)
+  console.log("params", id)
 
   // Create a default "empty" post object
   const defaultPost: Post = {
@@ -89,9 +89,10 @@ const PreviewPost = () => {
 
   const handleSubmitPost = async () => {
     setIsPosting(true);
-
+    console.log("cam here", id)
     if (id) {
       const cleanedContent = content;
+      console.log("cam here 2", id)
 
       if (cleanedContent === "") {
         setIsPosting(false); // Ensure state is reset
@@ -137,6 +138,7 @@ const PreviewPost = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
     } else if (personal === "true") {
+      console.log("cam here 3", id)
       const cleanedContent = content;
       if (cleanedContent === "") {
         showAlert({
@@ -187,6 +189,7 @@ const PreviewPost = () => {
     }
     else {
       setIsPosting(true);
+      console.log("cam here 4", id)
       const cleanedContent = content;
       if (cleanedContent === "") {
         showAlert({

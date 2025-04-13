@@ -51,7 +51,7 @@ const NewPost = () => {
   const [isPosting, setIsPosting] = useState(false);
   const [fromPreview, setFromPreview] = useState(false);
 
-  console.log("new post", content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId)
+  console.log("new post", postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId)
 
   const [selectExpirationDate, setSelectExpirationDate] = useState<string>(expiration)
 
@@ -135,7 +135,7 @@ const NewPost = () => {
        router.push({
                    pathname: "/root/preview-post",
                    params: {
-                     id: "", 
+                     id: postId ?? "", 
                      content: postContent, 
                      color: selectedColor.name, 
                      emoji: selectedEmoji,
