@@ -346,7 +346,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
   const handleCommentsPress = () => {
    // handleCloseModal();
-   setSelectedBoard(() => <PostScreen id={currentPost?.id.toString()} />);
+   setSelectedBoard(() => <PostScreen id={currentPost?.id.toString()} clerkId={currentPost?.clerk_id} />);
     console.log()
 
     {/*
