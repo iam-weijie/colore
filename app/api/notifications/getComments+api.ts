@@ -81,6 +81,22 @@ export async function GET(request: Request) {
     }
 
 
+    if (postsWithComments.length === 0) {
+      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
+        status: 200,
+      });
+    }
+
+
+    if (postsWithComments.length === 0) {
+      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
+        status: 200,
+      });
+    }
+
+    console.log("response", postsWithComments.length, postsWithComments
+      .filter((post: any) => post.comments))
+
     const filteredPosts = postsWithComments
   .filter((post: any) => post.comments) // 
 
