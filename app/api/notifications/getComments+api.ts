@@ -50,14 +50,13 @@ export async function GET(request: Request) {
               SELECT 1 
               FROM comment_likes cl 
               WHERE cl.comment_id = c.id 
-              AND cl.user_id = ${clerkId || ""}
+              AND cl.user_id = ${clerkId}
             ) THEN TRUE 
             ELSE FALSE 
           END AS is_liked
         FROM comments c
         JOIN users u ON c.user_id = u.clerk_id
         WHERE c.post_id = p.id
-          AND c.notified = FALSE  -- Only fetch comments where notified is false
         ORDER BY c.created_at DESC
         LIMIT p.unread_comments
       ) c ON TRUE
@@ -65,7 +64,7 @@ export async function GET(request: Request) {
         SELECT TRUE AS is_liked
         FROM comment_likes cl
         WHERE cl.comment_id = c.id
-        AND cl.user_id = ${clerkId || ""}
+        AND cl.user_id = ${clerkId}
       ) cl ON TRUE
       WHERE u.clerk_id = ${clerkId}
       GROUP BY p.id, u.firstname, u.username
@@ -75,9 +74,21 @@ export async function GET(request: Request) {
 
     // Sum up all unread_comments
 
+    if (postsWithComments.length === 0) {
+      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
+        status: 200,
+      });
+    }
+
+    console.log("response", postsWithComments.length, postsWithComments
+      .filter((post: any) => post.comments))
+
     const filteredPosts = postsWithComments
-  .filter((post: any) => post.comments && post.comments.length > 0)
-  .map((post: any) => ({
+  .filter((post: any) => post.comments) // 
+
+    const postWithUnreadComments = filteredPosts
+    .filter((post: any) => post.comments.some((c: any) => !c.notified))
+    .map((post: any) => ({
     ...post,
     comments: post.comments.filter((comment: any) => comment.id !== clerkId),
   }));
@@ -86,10 +97,18 @@ export async function GET(request: Request) {
     (sum: number, post: any) => sum + (post.unread_comments || 0),
     0
   );
+
+  const storedPosts = postsWithComments
+  .filter((post: any) => post.comments)
+  .map((post: any) => ({
+    ...post,
+    comments: post.comments.filter((comment: any) => comment.id !== clerkId),
+  }));
   
 
+  console.log("stored", storedPosts.length)
     return new Response(
-      JSON.stringify({ toNotify: filteredPosts, unread_count: unread_comments }),
+      JSON.stringify({ toNotify: postWithUnreadComments, toStore: storedPosts, unread_count: unread_comments }),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
