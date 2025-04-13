@@ -10,11 +10,12 @@ import {
   UserNicknamePair,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
+import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   Alert,
   Dimensions,
@@ -684,6 +685,16 @@ console.log(selectedEmoji, "emojic")
     backgroundColor: backgroundColor.value,
   }));
 
+  useFocusEffect(
+    useCallback(() => {
+      // Screen is focused
+  
+      return () => {
+        handleCloseModal();
+        setSelectedBoard(null)
+      };
+    }, [])
+  );
 
   //console.log("current", currentPost)
   return (
@@ -827,7 +838,7 @@ console.log(selectedEmoji, "emojic")
               />}
               <InteractionButton 
               label="Reply"
-              icon={icons.plus}
+              icon={icons.pencil}
               color={postColor?.fontColor || "rgba(0, 0, 0, 0.5)"}
               onPress={() => {
                 handleCloseModal();

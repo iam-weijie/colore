@@ -189,6 +189,7 @@ export default function Page() {
   useFocusEffect(
     useCallback(() => {
       setIsModalVisible(true);
+
       if (user && stacks.length == 0) {  
         fetchPosts();
         
@@ -259,9 +260,9 @@ export default function Page() {
 
 
   const handleCloseModalPress = () => {
-    router.replace("/root/tabs/home");
+    router.push("/root/tabs/home");
     setIsModalVisible(false);
-    setStacks([])
+    //setStacks([])
   };
 
   const handleScrollToLoad = async () => {
@@ -348,6 +349,7 @@ export default function Page() {
   
  };
 
+ console.log("postref", selectedPostRef)
   return (
     <View className="flex-1">
         {hasSubmittedPrompt ? (<PostModal

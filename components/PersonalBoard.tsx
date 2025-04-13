@@ -303,7 +303,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
          <View className="flex-1 absolute bottom-5 self-center">
                   <InteractionButton
                   label="Reply"
-                  icon={icons.plus}
+                  icon={icons.pencil}
                   onPress={() => {
                                 router.push({
                                   pathname: "root/new-post",
