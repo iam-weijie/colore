@@ -74,10 +74,6 @@ export async function GET(request: Request) {
     `;
 
     // Sum up all unread_comments
-    const unread_comments = postsWithComments.reduce(
-      (sum: number, post: any) => sum + (post.unread_comments || 0),
-      0
-    );
 
     const filteredPosts = postsWithComments
   .filter((post: any) => post.comments && post.comments.length > 0)
@@ -85,8 +81,12 @@ export async function GET(request: Request) {
     ...post,
     comments: post.comments.filter((comment: any) => comment.id !== clerkId),
   }));
+
+  const unread_comments = filteredPosts.reduce(
+    (sum: number, post: any) => sum + (post.unread_comments || 0),
+    0
+  );
   
-  console.log("res", filteredPosts)
 
     return new Response(
       JSON.stringify({ toNotify: filteredPosts, unread_count: unread_comments }),

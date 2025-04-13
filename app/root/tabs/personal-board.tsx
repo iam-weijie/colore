@@ -29,6 +29,7 @@ const UserPersonalBoard = () => {
   const [selectedBoard, setSelectedBoard] = useState<any | null>(null);
   const [myBoards, setMyBoards] = useState<any>();
   const [discoverBoards, setDiscoverBoards] = useState<any>();
+  const [communityBoards, setCommunityBoards] = useState<any>();
 
   const handleNewPost = () => {
     router.push({
@@ -83,6 +84,36 @@ const UserPersonalBoard = () => {
     }
   }
 
+  const fetchCommunityBoards = async () => {
+    try {
+      setLoading(true)
+      const response = await fetchAPI(`/api/boards/getCommunityBoards?user_id=${user!.id}`,
+          {
+            method: "GET",
+          }
+      )
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+
+      
+          const boardsWithColor = response.data.map((board: any, index: number) => ({
+            ...board,
+            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+          }));
+        
+          setCommunityBoards(boardsWithColor);
+
+        
+
+    } catch (error) {
+      console.error("Failed to fetch board data:", error);
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const fetchDiscoverBoards = async () => {
     try {
       setLoading(true)
@@ -116,6 +147,7 @@ const UserPersonalBoard = () => {
       useCallback(() => {
         fetchPersonalBoards()
         fetchDiscoverBoards()
+        fetchCommunityBoards()
         //setShouldRefresh((prev) => prev + 1); // Increment refresh counter
       }, [])
     );
@@ -133,6 +165,7 @@ const UserPersonalBoard = () => {
       }
     }, [])
 
+ 
     return (
       <FlatList
       className="flex-1"
@@ -150,6 +183,11 @@ const UserPersonalBoard = () => {
         marginBottom: 16,
       }}
       showsVerticalScrollIndicator={false}
+      ListEmptyComponent={<View>
+        <Text>
+          No Boards Yet.
+        </Text>
+      </View>}
       ListFooterComponent={<View className="h-20" />} // Add some bottom padding
       // Optimize performance
       initialNumToRender={4}
@@ -294,7 +332,14 @@ const UserPersonalBoard = () => {
           <BoardGallery
             boards={myBoards}
             />
-          </View>) : (
+          </View>) :
+          selectedTab === "Community" ?  (
+        <View className="flex-1">
+                  <BoardGallery
+                  boards={communityBoards}
+                  />
+                </View>
+          ) : (
         <View className="flex-1">
           <BoardGallery
           boards={discoverBoards}
