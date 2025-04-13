@@ -64,7 +64,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
     >
       {name}
     </Text>
-    {notifications > 0 && <View className="absolute right-2 top-[50%] -mt-1"><NotificationBubble unread={notifications} color={"#FF0000"} /></View>}
+    {notifications > 0 && <View className="absolute right-1 mt-1 top-[50%]"><NotificationBubble unread={notifications} color={"#FF0000"} /></View>}
     </View>
  
 </TouchableOpacity>

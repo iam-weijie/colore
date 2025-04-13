@@ -71,6 +71,7 @@ export async function fetchNotificationsExternal(
     
     const commentsData = await commentsResponse.json();
     const comments = commentsData.toNotify;
+    const storedComments = commentsData.toStore;
     const unread_comments = commentsData.unread_count ?? 0;
 
     const messagesData = await messagesResponse.json();
@@ -79,6 +80,7 @@ export async function fetchNotificationsExternal(
 
     const personalPostsData = await postResponse.json();
     const personalPosts = personalPostsData.toNotify;
+    const storedPosts = personalPostsData.toStore;
     const unread_posts = personalPostsData.unread_count ?? 0;
 
     const userResponseData = await userResponse.json();
@@ -110,6 +112,10 @@ export async function fetchNotificationsExternal(
       ...friendRequests,
     ];
 
+    const allStoredNotifications = [
+      ...storedComments,
+      ...storedPosts
+    ]
     // Process each notification and send push if needed.
     const processFetchedNotifications = async (notifications: any[]) => {
       //console.log("notifications", notifications);
@@ -147,7 +153,7 @@ export async function fetchNotificationsExternal(
 
    
     processFetchedNotifications(allNotifications)
-    return {notifs: allNotifications, counts: [unread_comments, unread_messages, unread_posts, unread_requests]};
+    return {notifs: allNotifications, history: allStoredNotifications, counts: [unread_comments, unread_messages, unread_posts, unread_requests]};
   } catch (error) {
     console.error("Error fetching notifications externally", error);
     return
@@ -307,10 +313,13 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       if (result) {
          // For UI state, update unread counts, last connection, etc.
       // (You can parse the responses as needed; here we simply set the notifications.)
-        const { notifs, counts } = result;
+        const { notifs, history, counts } = result;
         if (notifs.length > 0) {
           const prevNotifications = storedNotifications;
           setStoredNotifications([...prevNotifications, ...notifs]);
+        } else {
+          console.log("history", history.length)
+          setStoredNotifications(history)
         }
         
         setNotifications(notifs);

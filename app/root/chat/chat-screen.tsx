@@ -882,10 +882,10 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   //Navigation
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const [selectedTab, setSelectedTab] = useState<string>(
-    tab ? tab : "Likes"
+    tab ? tab : "Posts"
   );
 
-
+console.log("stored notification", storedNotifications.length)
   const removeNotification = (id: string) => {}
 
   // RENDER LISTS ------ START
@@ -894,8 +894,14 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
 
     // Find post info for comments
     let post;
+  
     if (!item.recipient_user_id) {
-     post = storedNotifications.find((n) => n.comments.includes(item))
+     // 🔍 Find the post (notification) that contains the specific comment
+  const post = storedNotifications.find(n =>
+    n.comments?.some((comment) => comment.id === item.id)
+  );
+
+   // post = storedNotifications.find((n) => n.comments.includes(item))
     }
   
 
@@ -959,21 +965,12 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
                   className="flex-1"
                   activeOpacity={0.6}
                   onPress={() => {
-                    
+                    if (item.recipient_user_id) {
                     router.push({
-                      pathname: `/root/post/${item.id ?? post.id}`,
-                      params: {
-                        id: item.id ?? post.id,
-                        clerk_id: item.clerk_id ?? post.user_id,
-                        content: item.content ?? post.content ,
-                        username: item.username ?? post.username ?? "",
-                        like_count: item.like_count ?? post.like_count ?? "",
-                        report_count: item.report_count ?? post.report_count ?? "",
-                        created_at: item.created_at ?? post.created_at ?? "",
-                        unread_comments: item.unread_comments ?? post.unread_comments ?? "",
-                        color: item.color ?? post.color ?? ""
-                      },
-                    })
+                      pathname: "/root/user-board/[id]",
+                      params: { id: `${user!.id}`, username: `Personal board`},
+                    });
+                  }
                   
                   }}//handleUserProfile(item.friend_id)}
                 >
@@ -1056,10 +1053,9 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
 
   }, [storedNotifications])
 
-  console.log("stored notifs", storedNotifications, "post", postsNotif, "comments", commentsNotif)
 
   return (
-      <View className="flex-1">
+      <View className="flex-1 max-h-[450px]">
 
           
             <View className="w-full flex-row items-start justify-between ">
@@ -1074,6 +1070,12 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
                 notifications={commentsNotif?.length ?? 0}
               />
               <TabNavigation
+                name="Posts"
+                focused={selectedTab === "Posts"}
+                onPress={() => setSelectedTab("Posts")}
+                notifications={postsNotif?.length ?? 0}
+              />
+              <TabNavigation
                 name="Likes"
                 focused={selectedTab === "Likes"}
                 onPress={() => {
@@ -1082,17 +1084,11 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
                 }}
                 notifications={0}
               />
-              <TabNavigation
-                name="Posts"
-                focused={selectedTab === "Posts"}
-                onPress={() => setSelectedTab("Posts")}
-                notifications={postsNotif?.length ?? 0}
-              />
             </View>
 
             {selectedTab === "Comments" &&  
             <FlatList
-              className="rounded-[16px] mt-3 mx-4 "
+              className="rounded-[16px] mx-2 "
               data={commentsNotif}
               contentContainerStyle={{ 
                 paddingBottom: 40,
@@ -1106,10 +1102,11 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
             />}
             {selectedTab === "Posts" &&  
             <FlatList
-              className="rounded-[16px] mt-3 mx-4 "
+              className="rounded-[16px] mx-2"
               data={postsNotif}
               contentContainerStyle={{ 
                 paddingBottom: 40,
+                justifyContent: 'center',
               minHeight: screenHeight * 0.46 }} 
               renderItem={renderNotif}
               keyExtractor={(item) => item.id.toString()}

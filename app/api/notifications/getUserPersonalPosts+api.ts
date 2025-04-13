@@ -37,14 +37,13 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       WHERE p.recipient_user_id = ${clerkId}
-        AND p.post_type = 'personal' 
-        AND p.notified = false
+        AND p.post_type = 'personal'
         AND p.user_id != ${clerkId}
     ORDER BY p.unread_comments DESC, p.created_at DESC;
   `;
 
     if (response.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], unread_count: 0 }), {
+      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
         status: 200,
       });
     }
@@ -66,7 +65,11 @@ export async function GET(request: Request) {
       notified: post.notified
     }));
 
-    return new Response(JSON.stringify({ toNotify: userPosts, unread_count: userPosts.length }), {
+    
+    const filterPosts = userPosts.filter((p) => !p.notified)
+    console.log("user post", userPosts.length, filterPosts.length)
+
+    return new Response(JSON.stringify({ toNotify: filterPosts, toStore: userPosts, unread_count: userPosts.length }), {
       status: 200,
     });
   } catch (error) {
