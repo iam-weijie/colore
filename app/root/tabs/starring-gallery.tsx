@@ -357,6 +357,7 @@ export default function Page() {
   
  };
 
+ console.log("postref", selectedPostRef)
   return (
     <View className="flex-1">
       <EmojiBackground 

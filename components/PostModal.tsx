@@ -662,6 +662,16 @@ console.log(selectedEmoji, "emojic")
     backgroundColor: backgroundColor.value,
   }));
 
+  useFocusEffect(
+    useCallback(() => {
+      // Screen is focused
+  
+      return () => {
+        handleCloseModal();
+        setSelectedBoard(null)
+      };
+    }, [])
+  );
 
   //console.log("current", currentPost)
 >>>>>>> ff0b969 (Implement code changes to enhance functionality and improve performance across various modules.)
@@ -799,7 +809,7 @@ console.log(selectedEmoji, "emojic")
               />}
               <InteractionButton 
               label="Reply"
-              icon={icons.plus}
+              icon={icons.pencil}
               color={postColor?.fontColor || "rgba(0, 0, 0, 0.5)"}
               onPress={() => {
                 handleCloseModal();
