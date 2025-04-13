@@ -125,7 +125,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
         console.log(
           "Ran2"
         )
-        filteredPosts = posts.data.rfilter((p: Post) => p.recipient_user_id == userId);
+        filteredPosts = posts.data.filter((p: Post) => p.recipient_user_id == userId);
       }
         
     
@@ -137,6 +137,10 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
          posts = await fetchAPI(
           `/api/posts/getPersonalPosts?number=${maxPostOnScreen}&recipient_id=${userId}&user_id=${viewerId}`
         );
+
+        if (posts.length === 1) {
+          return
+        }
         filteredPosts = posts.data.filter((post: Post) => (
           isOwnBoard || (!isOwnBoard && post.clerk_id == user!.id) || (post.pinned)
         ));
@@ -198,7 +202,9 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       );
       if (!response.ok) throw new Error("Network response was not ok 1");
       const result = await response.json();
-      const newPostWithPosition = result.data.map((post: Post) => ({
+      if (result.length == 0) {return}
+      const filteredForBoard = result.data.filter((p) => p.board_id == boardId)
+      const newPostWithPosition = filteredForBoard.map((post: Post) => ({
         ...post,
         position: {
           top:  AlgorithmNewPosition(post.pinned).top,
