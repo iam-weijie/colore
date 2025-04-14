@@ -59,6 +59,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from '@/notifications/AlertContext';
 import TabNavigation from "@/components/TabNavigation";
 import { useGlobalContext } from "@/app/globalcontext";
+import ItemContainer from "@/components/ItemContainer";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -382,119 +383,21 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   const FriendItem = ({ item, loading, setShowDeleteIcon }) => {
 
-    // Shared animated values and constants
-    const translateX = useSharedValue(0);
-    const opacity = useSharedValue(0);
-    const maxSwipe = 0;
-    const minSwipe = -70;
-  
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [
-        {
-          translateX: withSpring(translateX.value, {
-            damping: 20,
-            stiffness: 300,
-          }),
-        },
-      ],
-    }));
-  
-    const animatedOpacityStyle = useAnimatedStyle(() => ({
-      opacity: opacity.value,
-    }));
-  
-    const gestureHandler = useAnimatedGestureHandler<
-      PanGestureHandlerGestureEvent,
-      { startX: number }
-    >({
-      onStart: (_, context) => {
-        context.startX = translateX.value;
-      },
-      onActive: (event, context) => {
-        const translationX = context.startX + event.translationX;
-        opacity.value = Math.max(Math.min(translationX, maxSwipe), minSwipe) / (minSwipe);
-        translateX.value = Math.max(Math.min(translationX, maxSwipe), minSwipe);
-        runOnJS(setShowDeleteIcon)(true);
-      },
-      onEnd: () => {
-        runOnJS(setShowDeleteIcon)(false);
-        const finalOpacity = opacity.value;
-        console.log(finalOpacity)
-        opacity.value = withTiming(0);
-        translateX.value = withTiming(0, { damping: 20, stiffness: 300 });
-        if (finalOpacity > 0.95) {
-          runOnJS(handleUnfriending)(item.friend_id);
-        }
-      },
-    });
   
     return (
-      <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
-        <PanGestureHandler onGestureEvent={gestureHandler} >
-          <Animated.View
-            className="flex mb-3 py-4 px-2 rounded-[24px] w-full"
-            style={[animatedStyle, { backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }]}
-          >
-            <View className="flex-1 flex-row justify-between items-center">
-              <View className="flex-1 w-full">
-                <TouchableOpacity
-                  className="flex-1"
-                  activeOpacity={0.6}
-                  onPress={() => handleUserProfile(item.friend_id)}
-                >
-                  <View className="mr-2">
-                    <Text className="text-[14px] font-bold ">
-                      {nicknames && item.friend_id in nicknames
-                        ? nicknames[item.friend_id]
-                        : item.friend_username}
-                    </Text>
-                    <Text className="text-gray-500 text-[12px]">{item.city !== item.state ? `${item.city}, ${item.state}, ${item.country}` : `${item.state}, ${item.country}`}</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <View className="flex flex-row items-center justify-center ">
-                {/*<TouchableOpacity
-                  onPress={() => {
-                    router.push({
-                      pathname: "/root/user-board/[id]",
-                      params: { id: item.friend_id, username: item.friend_username },
-                    });
-                  }}
-                >
-                   <Image 
-                  source={icons.chevron} 
-                  className="w-5 h-5"
-                  tintColor={"black"}
-                />
-                </TouchableOpacity>*/}
-              </View>
-            </View>
-            {showDeleteIcon && (
-              <Animated.View
-                style={[
-                  animatedOpacityStyle,
-                  {
-                    alignSelf: "flex-end",
-                    right: -50,
-                    top: "50%",
-                    transform: [{ translateY: "-10%" }],
-                    padding: 5, 
-                    borderRadius: 16,
-                    backgroundColor: "#FF0000"
-                  },
-                ]}
-                className="absolute"
-              >
-                <Image 
-                  source={icons.trash} 
-                  className="w-5 h-5"
-                  tintColor={"white"}
-                />
-              </Animated.View>
-            )}
-          </Animated.View>
-        </PanGestureHandler>
-      </GestureHandlerRootView>
+      <ItemContainer 
+      label={nicknames && item.friend_id in nicknames
+        ? nicknames[item.friend_id]
+        : item.friend_username}
+      caption={item.city !== item.state ? `${item.city}, ${item.state}, ${item.country}` : `${item.state}, ${item.country}`}
+      colors={["#93c5fd", "#93c5fd"]}
+      icon={icons.addUser}
+      iconColor="#000"
+      actionIcon={icons.chevron}
+      onPress={() => {
+        handleUserProfile(item.friend_id)
+      }}
+      />
     );
   };
   
@@ -563,29 +466,24 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderOutgoingRequest = ({ item }: { item: FriendRequest }) => (
-    <View 
-    className="py-2 my-2">
-      <View>
-        <TouchableOpacity
-          className="flex-column justify-center items-start "
-          onPress={() => handleUserProfile(item.receiverId)}
-        >
-          <Text className="font-JakartaBold">
-            {nicknames && item.receiverId in nicknames
-              ? nicknames[item.receiverId]
-              : item.receiverUsername}
-          </Text>
-          <Text className="text-gray-500 italic text-xs">
-            Since{" "}
-            {typeof item.createdAt === "string"
-              ? formatDateTruncatedMonth(
-                  convertToLocal(new Date(item.createdAt))
-                )
-              : "No date"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <ItemContainer 
+    label={nicknames && item.receiverId in nicknames
+      ? nicknames[item.receiverId]
+      : item.receiverUsername}
+    caption={typeof item.createdAt === "string"
+      ? formatDateTruncatedMonth(
+          convertToLocal(new Date(item.createdAt))
+        )
+      : "No date"}
+    colors={["#CFB1FB", "#CFB1FB"]}
+    icon={icons.send}
+    actionIcon={icons.chevron}
+    iconColor="#000"
+    onPress={() => {
+      handleUserProfile(item.receiverId)
+    }}
+    />
+
   );
 
 
@@ -758,7 +656,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>}
           {selectedTab == "Friends" && (
             <View className="flex-1">
-              <View className="flex flex-row items-center mt-4 w-[90%] mx-auto ">
+              <View className="flex flex-row items-center w-[90%] mx-auto ">
               <TextInput
                 className="w-full h-12 px-3 -pt-1 rounded-[16px] bg-[#F1F1F1] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
                 placeholder="Search friend..."
@@ -767,7 +665,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               />
             </View>
             <FlatList
-              className="rounded-[16px] mt-3 mx-4 "
+              className="rounded-[16px] mt-3"
               
             
               data={filteredFriendList}
@@ -823,7 +721,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                 </View>
 
                 {/* Bottom half: Outgoing Requests */}
-                <View className="flex-1 flex-col mt-2">
+                <View className=" flex-col mt-2">
                 <View className="p-2">
                   <View className="flex-row items-center justify-start">
                         <Text className="font-JakartaBold text-[16px]">Sent </Text>
@@ -840,9 +738,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                         </View>
                       </View>
                   <FlatList
-                    className="px-2 rounded-[24px] "
+                    className="rounded-[24px] "
                     data={allFriendRequests?.sent}
-                    contentContainerStyle={{ paddingBottom: 20 }} 
+                    contentContainerStyle={{ 
+                      paddingBottom: 20 }} 
                     renderItem={renderOutgoingRequest}
                     keyExtractor={(item) => item.id.toString()}
                     ListEmptyComponent={
@@ -885,7 +784,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
     tab ? tab : "Posts"
   );
 
-console.log("stored notification", storedNotifications.length)
+//console.log("stored notification", storedNotifications.length)
   const removeNotification = (id: string) => {}
 
   // RENDER LISTS ------ START
@@ -904,120 +803,26 @@ console.log("stored notification", storedNotifications.length)
    // post = storedNotifications.find((n) => n.comments.includes(item))
     }
   
-
-    // Shared animated values and constants
-    const translateX = useSharedValue(0);
-    const opacity = useSharedValue(0);
-    const maxSwipe = 0;
-    const minSwipe = -70;
-  
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [
-        {
-          translateX: withSpring(translateX.value, {
-            damping: 20,
-            stiffness: 300,
-          }),
-        },
-      ],
-    }));
-  
-    const animatedOpacityStyle = useAnimatedStyle(() => ({
-      opacity: opacity.value,
-    }));
-  
-    const gestureHandler = useAnimatedGestureHandler<
-      PanGestureHandlerGestureEvent,
-      { startX: number }
-    >({
-      onStart: (_, context) => {
-        context.startX = translateX.value;
-      },
-      onActive: (event, context) => {
-        const translationX = context.startX + event.translationX;
-        opacity.value = Math.max(Math.min(translationX, maxSwipe), minSwipe) / (minSwipe);
-        translateX.value = Math.max(Math.min(translationX, maxSwipe), minSwipe);
-        runOnJS(setShowDeleteIcon)(true);
-      },
-      onEnd: () => {
-        runOnJS(setShowDeleteIcon)(false);
-        const finalOpacity = opacity.value;
-        console.log(finalOpacity)
-        opacity.value = withTiming(0);
-        translateX.value = withTiming(0, { damping: 20, stiffness: 300 });
-        if (finalOpacity > 0.95) {
-          runOnJS(removeNotification)(item.friend_id);
-        }
-      },
-    });
-
   
     return (
-      <GestureHandlerRootView style={{ justifyContent: "center", alignItems: "center" }}>
-        <PanGestureHandler onGestureEvent={gestureHandler} >
-          <Animated.View
-            className="flex  py-4 px-2 rounded-[24px] w-full"
-            style={[animatedStyle, { backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }]}
-          >
-            <View className="flex-1 flex-row justify-between items-center">
-              <View>
-                <TouchableOpacity
-                  className="flex-1"
-                  activeOpacity={0.6}
-                  onPress={() => {
-                    if (item.recipient_user_id) {
-                    router.push({
-                      pathname: "/root/user-board/[id]",
-                      params: { id: `${user!.id}`, username: `Personal board`},
-                    });
-                  }
-                  
-                  }}//handleUserProfile(item.friend_id)}
-                >
-                  <View className="flex flex-row mb-1">
-                    <Text className="text-[14px] font-JakartaBold ">
-                      {item.commenter_username ?? item.username ?? ""}
-                    </Text>
-                    {item.commenter_username && <Text className="text-[14px] font-JakartaSemiBold ">
-                     {" "} has commented your posts.
-                    </Text>}
-                    {item.content && <Text className="text-[14px] font-JakartaSemiBold ">
-                     {" "} has send you a posts.
-                    </Text>}
-                  </View>
-                  <View>
-                  <Text className="text-[12px] text-gray-400 font-Jakarta ">{item.comment_content ?? item.content ?? ""}
-                  </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </View>
-            {showDeleteIcon && (
-              <Animated.View
-                style={[
-                  animatedOpacityStyle,
-                  {
-                    alignSelf: "flex-end",
-                    right: -50,
-                    top: "50%",
-                    transform: [{ translateY: "-10%" }],
-                    padding: 5, 
-                    borderRadius: 16,
-                    backgroundColor: "#FF0000"
-                  },
-                ]}
-                className="absolute"
-              >
-                <Image 
-                  source={icons.trash} 
-                  className="w-5 h-5"
-                  tintColor={"white"}
-                />
-              </Animated.View>
-            )}
-          </Animated.View>
-        </PanGestureHandler>
-      </GestureHandlerRootView>
+      <ItemContainer 
+      label={`${item.commenter_username ?? item.username} has ${item.commenter_username ? 'has commented a post.' : 'sent you a post'}`}
+      caption={`${item.comment_content ?? item.content ?? ""}`} 
+      colors={["#93c5fd", "#93c5fd"]}
+      icon={item.comment_content ? icons.comment : icons.pencil}
+      actionIcon={icons.chevron}
+      iconColor="#000"
+      onPress={() => {
+        if (item.recipient_user_id) {
+          router.push({
+            pathname: "/root/user-board/[id]",
+            params: { id: `${user!.id}`, username: `Personal board`},
+          });
+        }
+      }}
+      />
+      
+      
     );
   };
   
@@ -1058,7 +863,7 @@ console.log("stored notification", storedNotifications.length)
       <View className="flex-1 max-h-[450px]">
 
           
-            <View className="w-full flex-row items-start justify-between ">
+            <View className="flex-row items-start justify-between mx-2">
 
             <TabNavigation
                 name="Comments"
@@ -1088,7 +893,7 @@ console.log("stored notification", storedNotifications.length)
 
             {selectedTab === "Comments" &&  
             <FlatList
-              className="rounded-[16px] mx-2 "
+              className="rounded-[16px]"
               data={commentsNotif}
               contentContainerStyle={{ 
                 paddingBottom: 40,
@@ -1102,7 +907,7 @@ console.log("stored notification", storedNotifications.length)
             />}
             {selectedTab === "Posts" &&  
             <FlatList
-              className="rounded-[16px] mx-2"
+              className="rounded-[16px]"
               data={postsNotif}
               contentContainerStyle={{ 
                 paddingBottom: 40,
@@ -1117,7 +922,7 @@ console.log("stored notification", storedNotifications.length)
             />}
             {selectedTab === "Likes" &&  
             <FlatList
-              className="rounded-[16px] mt-3 mx-4 "
+              className="rounded-[16px] "
               data={[]}
               contentContainerStyle={{ 
                 paddingBottom: 40,

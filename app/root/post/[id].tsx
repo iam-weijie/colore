@@ -561,24 +561,6 @@ console.log("happend", "id", id)
     }
   };
 
-  const handleReadComments = async () => {
-    if (clerk_id === user!.id) {
-      try {
-        console.log("Patching comments")
-        
-        await fetchAPI(`/api/posts/updateUnreadComments`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            clerkId: user?.id,
-            postId: id,
-            postClerkId: clerk_id,
-          }),
-        });
-      } catch (error) {
-        console.error("Failed to update unread comments:", error);
-      }
-    }
-  };
 
 
   useEffect(() => {
@@ -591,6 +573,7 @@ console.log("happend", "id", id)
     }
   }, [replyView])
 
+  /*
   useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
       handleReadComments()
@@ -598,6 +581,7 @@ console.log("happend", "id", id)
       console.log("User goes back from post screen");
     });
   }, []);
+  */
 
   const renderCommentItem = ({
     item,

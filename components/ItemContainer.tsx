@@ -14,7 +14,7 @@ const ItemContainer = ({label, caption, icon, colors, iconColor, actionIcon, onP
   {label: string, caption?: string, icon: ImageSourcePropType, colors:[string, string, ...string[]], iconColor: string, actionIcon?: ImageSourcePropType,  onPress: () => void}) => {
     return (
       <TouchableOpacity
-      className="relative flex  mb-3 py-4 pl-3 pr-7 rounded-[24px] w-full"
+      className="relative flex  mb-3 py-4 pl-3 pr-7 rounded-[24px] w-full "
       style={{ 
         backgroundColor: "#FAFAFA" }}
       activeOpacity={0.6}

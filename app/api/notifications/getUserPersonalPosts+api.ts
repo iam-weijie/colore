@@ -67,7 +67,7 @@ export async function GET(request: Request) {
 
     
     const filterPosts = userPosts.filter((p) => !p.notified)
-    console.log("user post", userPosts.length, filterPosts.length)
+   // console.log("user post", userPosts.length, filterPosts.length)
 
     return new Response(JSON.stringify({ toNotify: filterPosts, toStore: userPosts, unread_count: userPosts.length }), {
       status: 200,
