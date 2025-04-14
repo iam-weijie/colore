@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     `;
 
 
-    console.log("response", response)
+    //console.log("response", response)
     return new Response(
       JSON.stringify({ 
         success: true,

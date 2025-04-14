@@ -766,7 +766,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   const { user } = useUser();
   const { showAlert } = useAlert();
-  const { storedNotifications } = useGlobalContext()
+  const { storedNotifications, unreadComments, unreadPersonalPosts } = useGlobalContext()
 
   // Notifications
   const [commentsNotif, setCommentsNotif] = useState<PostComment[]>();
