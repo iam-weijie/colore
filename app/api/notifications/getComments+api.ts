@@ -80,8 +80,6 @@ export async function GET(request: Request) {
       });
     }
 
-    console.log("response", postsWithComments.length, postsWithComments
-      .filter((post: any) => post.comments))
 
     const filteredPosts = postsWithComments
   .filter((post: any) => post.comments) // 

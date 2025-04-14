@@ -623,7 +623,7 @@ console.log("happend", "id", id)
   };
 
   return (
-    <SafeAreaView className="flex-1 min-h-[300px]">
+    <SafeAreaView className="flex-1 min-h-[350px]">
     <SignedIn>
          <Pressable className="flex-1 " onPress={() => 
                   {

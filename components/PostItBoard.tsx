@@ -555,10 +555,14 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       setSelectedPost(null);
 
       
-      //("Post to remove", selectedPost.id)
+    console.log("Post to remove", selectedPost.id)
       setPostsWithPosition((prevPosts) => {
         const updatePosts = prevPosts.filter((post) => post.id !== postId);
-
+        console.log(
+          "post id list", "\n\n", 
+          "Prev", prevPosts.map((p) => p.id), "\n\n",
+          "Post",  postsWithPosition.map((p) => p.id), "\n\n", 
+           "update", updatePosts.map((p) => p.id), "\n\n")
         return updatePosts;
       });
 
