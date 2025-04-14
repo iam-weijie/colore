@@ -1,4 +1,5 @@
 import { useGlobalContext } from "@/app/globalcontext";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
@@ -18,6 +19,7 @@ import {
   Alert,
   Dimensions,
   Image,
+  ImageSourcePropType,
   Platform,
   ScrollView,
   Share,
@@ -34,61 +36,32 @@ import {
 } from "react-native-gesture-handler";
 import ReactNativeModal from "react-native-modal";
 import Animated, {
+  BounceIn,
+  Easing,
   FadeInUp,
   FadeOutDown,
   runOnJS,
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
+  withSequence,
   withSpring,
   withTiming,
+  ZoomIn
 } from "react-native-reanimated";
 import { captureRef } from "react-native-view-shot";
 import DropdownMenu from "./DropdownMenu";
+import { useAlert } from '@/notifications/AlertContext';
+import InteractionButton from "./InteractionButton";
+import CarrouselIndicator from "./CarrouselIndicator";
+import EmojiExplosionModal from "./EmojiExplosiveModal";
 
 
 const { width, height } = Dimensions.get("window");
 
-const CarrouselIndicator = ({ id, index }: { id: number; index: number }) => {
-  // Shared values for animation
-  const width = useSharedValue(2);
-  const opacity = useSharedValue(0.5);
 
-  // Animate when `id` or `index` changes
-  useEffect(() => {
-    if (id === index) {
-      width.value = withTiming(50, { duration: 250 }); // Animate width to 50
-      opacity.value = withTiming(1, { duration: 250 }); // Animate opacity to 1
-    } else {
-      width.value = withTiming(8, { duration: 250 }); // Animate width back to 2
-      opacity.value = withTiming(0.5, { duration: 250 }); // Animate opacity back to 0.5
-    }
-  }, [id, index]);
 
-  // Animated styles
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      width: width.value,
-      opacity: opacity.value,
-    };
-  });
-
-  return (
-    <Animated.View
-      style={[
-        {
-          borderRadius: 999, // Fully rounded corners
-          padding: 2,
-          minWidth: 8,
-          height: 8,
-          backgroundColor: "white",
-          marginHorizontal: 4,
-        },
-        animatedStyle, // Apply animated styles
-      ]}
-    />
-  );
-};
+const AnimatedView = Animated.createAnimatedComponent(View);
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -98,15 +71,22 @@ const PostModal: React.FC<PostModalProps> = ({
   invertedColors = false,
   header,
   isPreview = false,
+  infiniteScroll = false,
+  scrollToLoad,
 }) => {
-  const { stacks, isIpad } = useGlobalContext();
+  const { stacks, isIpad, soundEffectsEnabled } = useGlobalContext(); // Add soundEffectsEnabled
+  const { playSoundEffect } = useSoundEffects(); // Get sound function
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
+  const [currentPost, setCurrentPost] = useState<Post>(selectedPost);
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [posts, setPosts] = useState<Post[]>([]);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
+  const [showEmojiModal, setShowEmojiModal] = useState<boolean>(false);
+   const { showAlert } = useAlert();
   const router = useRouter();
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -118,9 +98,10 @@ const PostModal: React.FC<PostModalProps> = ({
 
   // Memoize the posts array to prevent unnecessary re-renders
   const post = useMemo(() => {
+    
     const stack = stacks.find((stack) => stack.ids.includes(selectedPost.id));
     return stack ? stack.elements : [selectedPost];
-  }, [selectedPost, stacks]);
+  }, [stacks]);
 
   useEffect(() => {
     fetchUserdata();
@@ -130,6 +111,7 @@ const PostModal: React.FC<PostModalProps> = ({
   useEffect(() => {
     if (post.length) {
       setPosts(post);
+      setCurrentPost(post[currentPostIndex]);
     }
   }, [post]);
 
@@ -148,52 +130,32 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   };
 
+  useEffect(() => {
+    setCurrentPost(post[currentPostIndex]);
+
+
+    if (infiniteScroll && typeof scrollToLoad === "function" && currentPostIndex + 1 === posts.length - 1) {
+      // If last post and infiniteScroll is enabled
+      runOnJS(scrollToLoad)();
+      console.log("loaded more posts", selectedPost.id);
+      
+    } 
+  }, [currentPostIndex])
   // Fetch like status only when post or user changes
   useEffect(() => {
-    if (!user?.id || !post[currentPostIndex]?.id) return;
+    if (!user?.id || !currentPost?.id) return;
     fetchLikeStatus();
-    setIsPinned(post[currentPostIndex]?.pinned)
+    setIsPinned(currentPost?.pinned)
   }, [post, currentPostIndex, user?.id]);
 
   const dateCreated = convertToLocal(
-    new Date(post[currentPostIndex]?.created_at || "")
+    new Date(currentPost?.created_at || "")
   );
   const formattedDate = formatDateTruncatedMonth(dateCreated);
   const postColor = temporaryColors.find(
-    (color) => color.name === post[currentPostIndex]?.color
+    (color) => color.name === currentPost?.color
   ) as PostItColor;
 
-  // Handle swipe gestures
-  // const gestureHandler = useAnimatedGestureHandler({
-  //   onStart: (_, context) => {
-  //     console.log("Gesture started");
-  //     context.startX = translateX.value;
-  //   },
-  //   onActive: (event, context) => {
-  //     translateX.value = (context.startX as number) + event.translationX;
-  //   },
-  //   onEnd: () => {
-  //     const threshold = 60;
-  //     if (translateX.value > threshold && currentPostIndex > 0) {
-  //       translateX.value = withTiming(0);
-  //       opacity.value = withTiming(0, {}, () => {
-  //         runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
-  //         opacity.value = withTiming(1);
-  //       });
-  //     } else if (
-  //       translateX.value < -threshold &&
-  //       currentPostIndex < posts.length - 1
-  //     ) {
-  //       translateX.value = withTiming(0);
-  //       opacity.value = withTiming(0, {}, () => {
-  //         runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-  //         opacity.value = withTiming(1);
-  //       });
-  //     } else {
-  //       translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-  //     }
-  //   },
-  // });
 
   const swipeGesture = Gesture.Pan()
     .onStart((event) => {
@@ -203,22 +165,29 @@ const PostModal: React.FC<PostModalProps> = ({
       translateX.value = event.translationX;
     })
     .onEnd(() => {
-      const threshold = 60;
+      const threshold = 15;
+      const isLastPost = currentPostIndex === posts.length - 1;
+
+
+      
       if (translateX.value > threshold && currentPostIndex > 0) {
         translateX.value = withTiming(0);
         opacity.value = withTiming(0, {}, () => {
           runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
           opacity.value = withTiming(1);
         });
-      } else if (
-        translateX.value < -threshold &&
-        currentPostIndex < posts.length - 1
-      ) {
-        translateX.value = withTiming(0);
-        opacity.value = withTiming(0, {}, () => {
-          runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-          opacity.value = withTiming(1);
-        });
+      } else if (translateX.value < -threshold) {
+        if (!isLastPost) {
+          // Swipe left: go to next post
+          translateX.value = withTiming(0);
+          opacity.value = withTiming(0, {}, () => {
+            runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+            opacity.value = withTiming(1);
+          });
+        } else {
+          // Bounce back
+          translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+        }
       } else {
         translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
       }
@@ -238,9 +207,13 @@ const PostModal: React.FC<PostModalProps> = ({
   }));
 
   const handleLikePress = async () => {
-    if (isLoadingLike || !post[currentPostIndex]?.id || !user?.id) return;
+    if (isLoadingLike || !currentPost?.id || !user?.id) return;
     setIsLoadingLike(true);
     try {
+      // Play like sound if liking (not unliking) and enabled
+      if (!isLiked && soundEffectsEnabled) {
+        playSoundEffect(SoundType.Like);
+      }
       const increment = !isLiked;
       setIsLiked(increment);
       setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
@@ -248,7 +221,7 @@ const PostModal: React.FC<PostModalProps> = ({
       const response = await fetchAPI(`/api/posts/updateLikeCount`, {
         method: "PATCH",
         body: JSON.stringify({
-          postId: post[currentPostIndex].id,
+          postId: currentPost.id,
           userId: user.id,
           increment,
         }),
@@ -257,7 +230,12 @@ const PostModal: React.FC<PostModalProps> = ({
       if (response.error) {
         setIsLiked(!increment);
         setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
-        Alert.alert("Error", "Unable to update like status.");
+        showAlert({
+          title: 'Error',
+          message: "Unable to update like status.",
+          type: 'ERROR',
+          status: 'error',
+        });
         return;
       }
 
@@ -307,7 +285,7 @@ const PostModal: React.FC<PostModalProps> = ({
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
       const savePostsList = response.data[0].saved_posts;
       const savedStatus = savePostsList?.includes(
-        `${post[currentPostIndex]?.id}`
+        `${currentPost?.id}`
       ) ?? false;
       setSavedPosts(savePostsList);
       setIsSaved(savedStatus);
@@ -317,10 +295,19 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
   const handleDeletePress = async () => {
-    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
-      { text: "Cancel" },
-      { text: "Delete", onPress: handleDelete },
-    ]);
+    handleCloseModal();
+    
+    showAlert({
+      title: 'Delete Post',
+      message: "Are you sure you want to delete this post?",
+      type: 'DELETE',
+      status: 'success',
+      action: () => {
+        handleDelete()
+      },
+      actionText: "Delete",
+      duration: 5000,
+    });
   };
 
   const handleReportPress = () => {
@@ -333,12 +320,12 @@ const PostModal: React.FC<PostModalProps> = ({
     }, 250);
     setTimeout(() => {
       router.push({
-        pathname: "/root/edit-post",
+        pathname: "/root/new-post",
         params: {
-          postId: post[currentPostIndex]?.id,
-          content: post[currentPostIndex]?.content,
-          color: post[currentPostIndex]?.color,
-          emoji: post[currentPostIndex]?.emoji,
+          postId: currentPost?.id,
+          content: currentPost?.content,
+          color: currentPost?.color,
+          emoji: currentPost?.emoji,
         },
       });
     }, 750);
@@ -347,7 +334,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const handleDelete = async () => {
     try {
       const response = await fetchAPI(
-        `/api/posts/deletePost?id=${post[currentPostIndex]!.id}`,
+        `/api/posts/deletePost?id=${currentPost!.id}`,
         {
           method: "DELETE",
         }
@@ -356,33 +343,45 @@ const PostModal: React.FC<PostModalProps> = ({
       if (response.error) {
         throw new Error(response.error);
       }
-
-      Alert.alert("Post deleted successfully");
-      handleCloseModal();
+     handleCloseModal();
 
       
     } catch (error) {
       console.error("Failed to delete post:", error);
-      Alert.alert("Error", "Failed to delete post. Please try again.");
+      showAlert({
+        title: 'Error',
+        message: "Failed to delete post. Please try again.",
+        type: 'ERROR',
+        status: 'error',
+      });
+    } finally {
+      showAlert({
+        title: 'Post deleted',
+        message: "Your post has been deleted successfully.",
+        type: 'DELETE',
+        status: 'success',
+      });
     }
   };
 
   const handleCommentsPress = () => {
     handleCloseModal();
 
+    console.log()
+
     router.push({
       pathname: "/root/post/[id]",
       params: {
-        id: post[currentPostIndex]?.id,
-        clerk_id: post[currentPostIndex]?.clerk_id,
-        content: post[currentPostIndex]?.content,
-        username: post[currentPostIndex]?.username,
-        like_count: post[currentPostIndex]?.like_count,
-        report_count: post[currentPostIndex]?.report_count,
-        created_at: post[currentPostIndex]?.created_at,
-        unread_comments: post[currentPostIndex]?.unread_comments,
+        id: currentPost?.id,
+        clerk_id: currentPost?.clerk_id,
+        content: currentPost?.content,
+        username: currentPost?.username,
+        like_count: currentPost?.like_count,
+        report_count: currentPost?.report_count,
+        created_at: currentPost?.created_at,
+        unread_comments: currentPost?.unread_comments,
         anonymous: invertedColors,
-        color: post[currentPostIndex]?.color,
+        color: currentPost?.color,
         saved: isSaved,
       },
     });
@@ -405,6 +404,10 @@ const PostModal: React.FC<PostModalProps> = ({
       //handleUpdate
     }
   };
+
+  const handleInteractionPress = (emoji: string) => {
+    setSelectedEmoji(emoji)
+  }
 
   // Capture the content as soon as the component mounts (first render)
   useEffect(() => {
@@ -460,7 +463,7 @@ const PostModal: React.FC<PostModalProps> = ({
       }
 
       const result = await Share.share({
-        message: `${post[currentPostIndex]?.content.trim()} \n\nDownload Coloré here:https://apps.apple.com/ca/app/coloré/id6738930845`,
+        message: `${currentPost?.content.trim()} \n\nDownload Coloré here:https://apps.apple.com/ca/app/coloré/id6738930845`,
         url: imageToShare, // Share the captured image (uri or base64)
       });
 
@@ -480,7 +483,7 @@ const PostModal: React.FC<PostModalProps> = ({
         method: "PATCH",
         body: JSON.stringify({
           userId: user!.id,
-          postId: post[currentPostIndex]?.id,
+          postId: currentPost?.id,
           pinnedStatus: !isPinned,
         }),
       });
@@ -493,11 +496,14 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   };
 
+
   useEffect(() => {
     if (imageUri) {
       // console.log("Image URI has been set:", imageUri);
     }
   }, [imageUri]);
+
+
 
   // COMPONENT RENDER
 
@@ -546,11 +552,11 @@ const PostModal: React.FC<PostModalProps> = ({
     }
     
     if (invertedColors) {
-      return post[currentPostIndex]?.recipient_user_id == user!.id ? [
+      return currentPost?.recipient_user_id == user!.id ? [
         {
           label: isPinned ? "Unpin" : "Pin",
           source: icons.pin,
-          color: "rgba(180,180,180,0.95)",
+          color: "#000000",
           onPress: handlePin,
         },
         {
@@ -576,7 +582,7 @@ const PostModal: React.FC<PostModalProps> = ({
           label: isSaved ? "Remove" : "Save",
           color: "#000000",
           source: isSaved ? icons.close : icons.bookmark,
-          onPress: () => handleSavePost(post[currentPostIndex]?.id),
+          onPress: () => handleSavePost(currentPost?.id),
         },
         {
           label: "Report",
@@ -606,7 +612,7 @@ const PostModal: React.FC<PostModalProps> = ({
             label: isSaved ? "Remove" : "Save",
             color: "#000000",
             source: isSaved ? icons.close : icons.bookmark,
-            onPress: () => handleSavePost(post[currentPostIndex]?.id),
+            onPress: () => handleSavePost(currentPost?.id),
           },
           {
             label: "Delete",
@@ -626,7 +632,7 @@ const PostModal: React.FC<PostModalProps> = ({
             label: isSaved ? "Remove" : "Save",
             color: "#000000",
             source: isSaved ? icons.close : icons.bookmark,
-            onPress: () => handleSavePost(post[currentPostIndex]?.id),
+            onPress: () => handleSavePost(currentPost?.id),
           },
           {
             label: "Report",
@@ -637,6 +643,43 @@ const PostModal: React.FC<PostModalProps> = ({
         ];
   };
 
+  const backgroundColor = useSharedValue(postColor?.hex || "rgba(0, 0, 0, 0.5)");
+  const prevColor = React.useRef(backgroundColor.value);
+
+  // Animate color change
+  useEffect(() => {
+    if (prevColor.current !== (postColor?.hex || "rgba(0, 0, 0, 0.5)")) {
+      backgroundColor.value = withTiming(
+        postColor?.hex || "rgba(0, 0, 0, 0.5)",
+        {
+          duration: 300,
+          easing: Easing.inOut(Easing.quad)
+        }
+      );
+      prevColor.current = postColor?.hex || "rgba(0, 0, 0, 0.5)";
+    }
+  }, [postColor]);
+
+
+  useEffect(() => {
+
+    const timeoutId = setTimeout(() => {
+      setSelectedEmoji(post[currentPostIndex]?.emoji);
+    }, 300);
+  
+    return () => clearTimeout(timeoutId);
+  }, [post, currentPost])
+
+  useEffect(() => {
+console.log(selectedEmoji, "emojic")
+  }, [selectedEmoji])
+
+  const animatedBackgroundStyle = useAnimatedStyle(() => ({
+    backgroundColor: backgroundColor.value,
+  }));
+
+
+  console.log("current", currentPost)
   return (
       <ReactNativeModal
         isVisible={isVisible}
@@ -644,29 +687,40 @@ const PostModal: React.FC<PostModalProps> = ({
         backdropOpacity={1}
         onBackdropPress={handleCloseModal}
       >
-        <View
+        <AnimatedView
           ref={viewRef}
           className="flex-1 absolute w-screen h-screen justify-center z-[10]"
-          style={{
-            marginLeft: isIpad ? -60 : -19,
-            backgroundColor: postColor?.hex || "rgba(0, 0, 0, 0.5)",
-          }}
+          style={[
+            animatedBackgroundStyle,
+            {
+              marginLeft: isIpad ? -60 : -19,
+            }
+          ]}
         >
-          <TouchableWithoutFeedback onPress={!isPreview ? handleCloseModal : undefined}>
-            {BackgroundGridEmoji(post[currentPostIndex]?.emoji || "")}
+          <TouchableWithoutFeedback onPress={!isPreview ? handleCloseModal : undefined} >
+            {BackgroundGridEmoji("")}
           </TouchableWithoutFeedback>
 
           {header}
+          {currentPost?.prompt &&  <Animated.View 
+          className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center"
+          entering={FadeInUp.duration(200)}
+          exiting={FadeOutDown.duration(200)}>
+              <Text className="text-2xl font-JakartaBold text-white text-center w-[85%]">
+                {currentPost?.prompt}
+              </Text>
+            </Animated.View>}
+
           <GestureHandlerRootView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <GestureDetector gesture={swipeGesture}>
               <Animated.View
                 entering={FadeInUp.duration(400)}
                 exiting={FadeOutDown.duration(250)}
-                className="bg-white px-6 py-4 rounded-[20px]  w-[80%] max-w-[500px] mx-auto"
+                className="bg-white px-6 py-4 rounded-[24px] w-[80%] max-w-[500px] mx-auto"
                 style={[
                   animatedStyle,
                   {
-                    minHeight:isIpad ? 250 : 205,
+                    minHeight:isIpad ? 250 : 200,
                     maxHeight: isIpad ? "55%" : "40%",
                     backgroundColor: "rgba(255, 255, 255, 1)",
                   },
@@ -681,7 +735,7 @@ const PostModal: React.FC<PostModalProps> = ({
 
                 <ScrollView>
                   <Text className="text-[16px] p-1 my-4 font-Jakarta">
-                  {post[currentPostIndex]?.content}
+                  {currentPost?.content}
                   </Text>
                 </ScrollView>
                 {!isPreview && (
@@ -706,8 +760,8 @@ const PostModal: React.FC<PostModalProps> = ({
                     {
                       <DropdownMenu
                         menuItems={getMenuItems(
-                          post[currentPostIndex]?.clerk_id === user!.id ||
-                            post[currentPostIndex]?.recipient_user_id === user!.id,
+                          currentPost?.clerk_id === user!.id ||
+                            currentPost?.recipient_user_id === user!.id,
                           invertedColors
                         )}
                       />
@@ -717,7 +771,136 @@ const PostModal: React.FC<PostModalProps> = ({
               </Animated.View>
             </GestureDetector>
           </GestureHandlerRootView>
-          <View className="absolute top-[80%] self-center flex flex-row">
+           {infiniteScroll ? (
+            <View className="absolute top-[75%] self-center flex flex-row items-center justify-center">
+              {currentPost?.prompt_id && <InteractionButton 
+              label="Nay"
+              icon={icons.close}
+              color={"#FF0000"}
+              onPress={async () => {
+               
+                try {
+                  console.log("Patching prompts")
+                  
+                  await fetchAPI(`/api/prompts/updateEngagement`, {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      clerkId: user?.id,
+                      promptId: currentPost?.prompt_id
+                    }),
+                  });
+                } catch (error) {
+                  console.error("Failed to update unread comments:", error);
+                } finally {
+                  handleInteractionPress("😤")
+                  const timeoutId = setTimeout(() => {
+                  setCurrentPostIndex((prevIndex) => {
+                    const newIndex = prevIndex + 1;
+                    if (newIndex < 0) {
+                      return posts.length - 1; // Loop back to the last post
+                    } else if (newIndex >= posts.length) {
+                      return 0; // Loop back to the first post
+                    }
+                    return newIndex;
+                  }
+                  );
+                  translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+                  opacity.value = withTiming(0, {}, () => {
+                    runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+                    opacity.value = withTiming(1);
+                  }
+                  );
+                  if (soundEffectsEnabled) {
+                    //playSoundEffect(SoundType.Dislike);
+                  }
+                }, 2000)
+                return () => clearTimeout(timeoutId);
+                }
+             
+              }}
+              />}
+              <InteractionButton 
+              label="Reply"
+              icon={icons.plus}
+              color={postColor?.fontColor || "rgba(0, 0, 0, 0.5)"}
+              onPress={() => {
+                handleCloseModal();
+                if (currentPost?.prompt_id) {
+                  router.push({  
+                    pathname: "/root/new-post",
+                    params: {
+                      promptId: currentPost?.prompt_id,
+                      prompt: currentPost?.prompt,
+                      source: "board"
+                    },
+                })
+                } else {
+                  router.push({  
+                    pathname: "/root/new-post",
+                    params: {
+                      recipient_id: currentPost?.clerk_id,
+                      username: currentPost?.username,
+                      source: "board"
+                    },
+                })
+                }
+              
+             
+              if (soundEffectsEnabled) {  
+                //playSoundEffect(SoundType.Reply);
+              }
+            }}
+              />
+              {currentPost?.prompt_id && 
+                <InteractionButton 
+              label="Hard agree"
+              icon={icons.check}
+              color={"#000000"}
+              onPress={async () => {
+                
+               try {
+                  await fetchAPI(`/api/prompts/updateEngagement`, {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      clerkId: user?.id,
+                      promptId: currentPost?.prompt_id
+                    }),
+                  });
+                } catch (error) {
+                  console.error("Failed to update:", error);
+                } finally {
+                  handleInteractionPress("🤩")
+                  const timeoutId = setTimeout(() => {
+                  setCurrentPostIndex((prevIndex) => {
+                    const newIndex = prevIndex + 1;
+                    if (newIndex < 0) {
+                      return posts.length - 1; // Loop back to the last post
+                    } else if (newIndex >= posts.length) {
+                      return 0; // Loop back to the first post
+                    }
+                    return newIndex;
+                  }
+                  );
+                  translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+                  opacity.value = withTiming(0, {}, () => {
+                    runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+                    opacity.value = withTiming(1);
+                  }
+                  );
+                  if (soundEffectsEnabled) {
+                    //playSoundEffect(SoundType.Dislike);
+                  }
+                }, 2000)
+
+                return () => clearTimeout(timeoutId);
+
+                }
+              
+              }}
+              />}
+
+            </View>
+           ) : (<View className="absolute top-[80%] self-center flex flex-row">
             {posts.length > 1 &&
               posts.map((post, index) => {
                 return (
@@ -728,8 +911,28 @@ const PostModal: React.FC<PostModalProps> = ({
                   />
                 );
               })}
+          </View>)}
+        
+        </AnimatedView>
+        {!!selectedEmoji && 
+          
+          
+          <View className="absolute -top-[150px] self-center inset-0">
+            <EmojiExplosionModal
+              isVisible={!!selectedEmoji}
+              verticalForce={50}
+              radius={800}
+              emojiSize="text-[150px]"
+              duration={8000}
+              emoji={selectedEmoji}
+              onComplete={() => {
+                setSelectedEmoji("")
+                console.log("done")
+              }}
+            />
           </View>
-        </View>
+          }
+        
       </ReactNativeModal>
   );
 };

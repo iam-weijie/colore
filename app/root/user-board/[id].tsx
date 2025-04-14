@@ -12,9 +12,10 @@ const UserPersonalBoard = () => {
   
   const handleNewPost = () => { 
     router.push({
-      pathname: "/root/new-personal-post",
+      pathname: "/root/new-post",
       params: { 
         recipient_id: id,
+        username: username,
         source: 'board'
       }
     });
@@ -32,7 +33,7 @@ const UserPersonalBoard = () => {
           {username}'s Board
         </Text>
 
-        <TouchableOpacity onPress={handleNewPost}>
+        <TouchableOpacity className="opacity-0" onPress={() => {}}>
           <Image source={icons.pencil} className="w-7 h-7" />
         </TouchableOpacity>
       </View>

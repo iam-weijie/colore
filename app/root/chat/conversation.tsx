@@ -317,7 +317,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
         <View className="flex-1 bg-gray-100 ">
           {loading ? (
             <View className="flex-[0.8] justify-center items-center">
-              <ActivityIndicator size="large" color="black" />
+             <ActivityIndicator size="small" color="#888888" />
             </View>
           ) : messages.length === 0 ? (
             <View className="flex-1 justify-center items-center">

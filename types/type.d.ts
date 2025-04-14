@@ -1,4 +1,5 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
+import * as Haptics from 'expo-haptics'; // Import Haptics for the style type
 
 declare interface Post {
   id: number;
@@ -8,6 +9,7 @@ declare interface Post {
   username: string;
   content: string;
   created_at: string;
+  expires_at: string;
   city: string;
   state: string;
   country: string;
@@ -19,6 +21,45 @@ declare interface Post {
   color: string; //String for now. Should be changed to PostItColor
   emoji: string;
   notified: boolean;
+  prompt_id: number;
+  prompt: string;
+  board_id: number;
+  reply_to: number;
+  
+}
+declare interface ActionPromptsProps {
+  friendName: string, 
+  action: { name: string };
+  handleAction: () => void;
+}
+
+
+declare interface Board {
+  id: number;
+  title: string;
+  user_id: string;
+  description: string;
+  members_id: string[];
+  board_type: string;
+  restrictions: string[];
+  created_at: string;
+  number_of_posts: number;
+  color?: string;
+}
+
+declare interface DraftPost {
+content: string;
+recipient_id: string;
+color: string;
+emoji: string;
+}
+
+declare interface DraftBoard {
+user_id: string;
+title: string;
+board_type: string;
+restriction: string;
+description: string;
 }
 
 declare interface PostComment {
@@ -95,11 +136,12 @@ declare interface ButtonProps extends TouchableOpacityProps {
     | "danger"
     | "success"
     | "oauth";
-  fontSize?: "sm" | "md" | "lg" | "xl";
+  fontSize?: "sm" | "md" | "lg" | "xl" | "2xl"; // Added "2xl"
   padding?: string;
   IconLeft?: React.ComponentType<any>;
   IconRight?: React.ComponentType<any>;
   className?: string;
+  // Haptic props removed, will be default behavior in CustomButton
 }
 
 declare interface UserPostsGalleryProps {
@@ -121,8 +163,10 @@ declare interface PostModalProps {
   handleCloseModal: () => void;
   invertedColors?: boolean;
   handleUpdate?: (isPinned: boolean) => void | Promise<void>;
-  header: React.ReactElement;
+  header?: React.ReactElement;
   isPreview?: boolean;
+  infiniteScroll?: boolean;
+  scrollToLoad?: () => void;
 }
 
 declare interface UserPostsGalleryProps {
@@ -212,16 +256,36 @@ type Stacks = {
 };
 
 type Prompt = {
-  title: string;
-  body: string;
-  source: ImageSourcePropType;
+  id: number;
+  cue: string;
+  content: string;
+  theme: string;
+  engagement: number;
+  created_at: string,
+  color?: string;
 };
+
 
 type GeographicalMode = 'city' | 'state' | 'country' | 'world'
 
 
-declare interface ActionPromptsProps {
-  friendName: string, 
-  action: { name: string };
-  handleAction: () => void;
+type AlertProps = {
+  title: string;
+  message: string;
+  type: string;
+  status: "success" | "error" | "warning";
+  duration?: number;
+  onClose?: () => void;
+  action?: () => void;
+  actionText?: string;
+  color?: string;
 }
+
+type Position = { top: number; left: number };
+
+type RadioButtonProps = {
+  label: string;
+  selected: boolean;
+  onSelect: () => void;
+};
+

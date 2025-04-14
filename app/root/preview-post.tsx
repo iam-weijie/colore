@@ -9,17 +9,22 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAlert } from '@/notifications/AlertContext';
+import * as Haptics from 'expo-haptics';
  
 
 const PreviewPost = () => {
   const { user } = useUser();
   const [isVisible, setIsVisible] = useState<boolean>(true);
-  const { id, content, color, emoji, personal, recipientId, username } =
+  const { showAlert } = useAlert();
+  const { id, content, color, emoji, personal, recipientId, username, expiration, prompt, promptId, boardId } =
     useLocalSearchParams();
   const [isPosting, setIsPosting] = useState(false);
   const [postColor, setPostColor] = useState<PostItColor>(
     temporaryColors.find((c) => c.name === color) as PostItColor
   );
+
+  console.log("params", recipientId, personal)
 
   // Create a default "empty" post object
   const defaultPost: Post = {
@@ -56,7 +61,7 @@ const PreviewPost = () => {
       router.back()
     } else if (personal === "true") {
       router.replace({
-        pathname: "/root/new-personal-post",
+        pathname: "/root/new-post",
         params: {
           content: content,
           color: color,
@@ -73,7 +78,9 @@ const PreviewPost = () => {
         params: {
           content: content,
           color: color,
-          emoji: emoji
+          emoji: emoji,
+          promptId: promptId,
+          prompt: prompt
         }
       });
     }
@@ -88,7 +95,12 @@ const PreviewPost = () => {
 
       if (cleanedContent === "") {
         setIsPosting(false); // Ensure state is reset
-        Alert.alert("Error", "Post content cannot be empty.");
+        showAlert({
+          title: 'Error',
+          message: `Post cannot be empty.`,
+          type: 'ERROR',
+          status: 'error',
+        });
         return;
       }
 
@@ -99,59 +111,94 @@ const PreviewPost = () => {
             content: cleanedContent,
             postId: id,
             color: postColor.name,
-            emoji: emoji,
+            emoji: emoji
           }),
         });
 
         router.replace(`/root/tabs/profile`);
         setTimeout(() => {
-          Alert.alert("Success", "Post updated successfully.");
+          showAlert({
+            title: 'Success',
+            message: `Post updated successfully.`,
+            type: 'UPDATE',
+            status: 'success',
+          });
         }, 500);
       } catch (error) {
         console.log(error);
-        Alert.alert("Error", "An error occurred. Please try again.");
+        showAlert({
+          title: 'Error',
+          message: `An error occurred. Please try again.`,
+          type: 'ERROR',
+          status: 'error',
+        });
       } finally {
         setIsPosting(false);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
     } else if (personal === "true") {
       const cleanedContent = content;
       if (cleanedContent === "") {
-        Alert.alert("Error", "Post content cannot be empty.");
+        showAlert({
+          title: 'Error',
+          message: `Post cannot be empty.`,
+          type: 'ERROR',
+          status: 'error',
+        });
         return;
       }
       try {
-        await fetchAPI("/api/posts/newPersonalPost", {
+        await fetchAPI("/api/posts/newPost", {
           method: "POST",
           body: JSON.stringify({
             content: cleanedContent,
             clerkId: user!.id,
             recipientId: recipientId,
+            boardId: boardId,
+            postType: 'personal',
             color: postColor.name,
-            emoji: emoji,
+            emoji: emoji
           }),
         });
 
-        router.back()
-        router.back()
+        router.replace(`/root/tabs/create`);
 
         
 
         setTimeout(() => {
-          Alert.alert("Success", "Post created.");
+          showAlert({
+            title: 'Success',
+            message: `Post created.`,
+            type: 'POST',
+            status: 'success',
+          });
         }, 500);
       } catch (error) {
-        Alert.alert("Error", "An error occurred. Please try again.");
+        showAlert({
+          title: 'Error',
+          message: `An error occurred. Please try again.`,
+          type: 'ERROR',
+          status: 'error',
+        });
       } finally {
         setIsPosting(false);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
-    } else {
+    }
+    else {
       setIsPosting(true);
       const cleanedContent = content;
       if (cleanedContent === "") {
-        Alert.alert("Error", "Post content cannot be empty.");
+        showAlert({
+          title: 'Error',
+          message: `Post cannot be empty.`,
+          type: 'ERROR',
+          status: 'error',
+        });
         return;
       }
       try {
+        console.log("trying...")
         await fetchAPI("/api/posts/newPost", {
           method: "POST",
           body: JSON.stringify({
@@ -159,18 +206,31 @@ const PreviewPost = () => {
             clerkId: user!.id,
             color: postColor.name,
             emoji: emoji,
+            expiration: expiration,
+            promptId: promptId
           }),
         });
 
-        router.replace(`/root/tabs/home`);
+        router.replace(`/root/tabs/create`);
 
         setTimeout(() => {
-          Alert.alert("Success", "Post created.");
+          showAlert({
+            title: 'Success',
+            message: `Post created.`,
+            type: 'POST',
+            status: 'success',
+          });
         }, 500);
       } catch (error) {
-        Alert.alert("Error", "An error occurred. Please try again.");
+        showAlert({
+          title: 'Error',
+          message: `An error occurred. Please try again.`,
+          type: 'ERROR',
+          status: 'error',
+        });
       } finally {
         setIsPosting(false);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
     }
   };
@@ -183,31 +243,27 @@ const PreviewPost = () => {
           handleCloseModal={handleCloseModal}
           isPreview={true}
           header={
-            <View className="absolute top-0 left-0 w-full flex flex-row items-center justify-center mt-10 pt-7 px-6">
-              <View className="flex-1">
-                <TouchableOpacity
+            <View className="flex-1 h-full absolute top-0 left-0 w-full flex flex-row items-center justify-center mt-10 pt-7 px-6">
+      
+              <View className="flex-1 w-full absolute top-9 flex flex-row items-center ">
+              <TouchableOpacity
                   onPress={handleCloseModal}
                   className="mr-2"
                 >
                   <AntDesign name="caretleft" size={18} color={"white"} />
                 </TouchableOpacity>
-              </View>
-              <View className="absolute top-9 ">
-                <Text className="font-JakartaSemiBold text-[#ffffff] text-xl ">
-                  Preview
-                </Text>
-              </View>
-              <View>
-                <CustomButton
-                  className="w-14 h-10 rounded-full shadow-none"
-                  fontSize="sm"
-                  title="Post"
-                  style={{ backgroundColor: "black" }}
-                  padding="0"
-                  onPress={handleSubmitPost}
-                  disabled={false}
-                />
-              </View>
+
+              </View> 
+              <View className="flex-1 absolute flex items-center w-full bottom-[20%]">
+            <CustomButton
+              className="w-[50%] h-16 rounded-full shadow-none bg-black"
+              fontSize="lg"
+              title="submit"
+              padding="0"
+              onPress={handleSubmitPost}
+              //disabled={!postContent || isPosting}
+            />
+            </View>
             </View>
           }
         />
