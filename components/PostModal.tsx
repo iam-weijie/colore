@@ -394,6 +394,26 @@ const PostModal: React.FC<PostModalProps> = ({
   
   };
 
+  const handleReadComments = async () => {
+    console.log("came in here.")
+    if (currentPost.clerk_id === user!.id) {
+      try {
+        console.log("Patching comments")
+        
+        await fetchAPI(`/api/posts/updateUnreadComments`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            clerkId: user?.id,
+            postId: currentPost?.id,
+            postClerkId: currentPost.clerk_id,
+          }),
+        });
+      } catch (error) {
+        console.error("Failed to update unread comments:", error);
+      }
+    }
+  };
+
   const handleSavePost = async (postId: number) => {
     try {
       await fetchAPI(`/api/users/updateUserSavedPosts`, {
@@ -954,7 +974,8 @@ console.log(selectedEmoji, "emojic")
             isVisible={!!selectedBoard}
             title={"Comments"}
             onClose={() => {
-              
+              handleReadComments()
+              console.log("has closed.")
               setSelectedBoard(null)
             }}
             >

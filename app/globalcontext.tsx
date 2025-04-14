@@ -318,7 +318,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           const prevNotifications = storedNotifications;
           setStoredNotifications([...prevNotifications, ...notifs]);
         } else {
-          console.log("history", history.length)
+         // console.log("history", history.length)
           setStoredNotifications(history)
         }
         

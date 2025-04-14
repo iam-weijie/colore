@@ -106,7 +106,7 @@ export async function GET(request: Request) {
   }));
   
 
-  console.log("stored", storedPosts.length)
+  //console.log("stored", storedPosts.length)
     return new Response(
       JSON.stringify({ toNotify: postWithUnreadComments, toStore: storedPosts, unread_count: unread_comments }),
       {
