@@ -1,6 +1,6 @@
 import PostItBoard from "@/components/PostItBoard";
 import { fetchAPI } from "@/lib/fetch";
-import { Post, UserData } from "@/types/type";
+import { Post, PostWithPosition, UserData } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import * as React from "react";
 import { useEffect, useState, useCallback } from "react";
@@ -13,7 +13,7 @@ import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 import DropdownMenu from "@/components/DropdownMenu";
 
-import ActionPrompts from "@/components/ActionPrompts";
+import Action from "@/components/InfoScreen";
 import { useAlert } from '@/notifications/AlertContext';
 
 import { ActionType } from "@/lib/prompts";
@@ -114,7 +114,9 @@ const fetchUserData = async () => {
     return response.data;
   };
 
+  let i = 0;
   const fetchNewPost = async (excludeIds: number[]) => {
+    i += 1;
     try {
       const excludeIdsParam = excludeIds.join(",");
       const response = await fetch(
@@ -123,13 +125,15 @@ const fetchUserData = async () => {
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
       // Add position to the new post
-      const newPostWithPosition = result.data.map((post: Post) => ({
+      const newPostWithPosition = result.data.map((post: PostWithPosition) => ({
         ...post,
         position: {
           top:  AlgorithmRandomPosition(false).top,
           left: AlgorithmRandomPosition(false).left,
         },
       }));
+
+      console.log("new post id: ", newPostWithPosition[0], "trial", i)
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];
     } catch (error) {
       setError("Failed to fetch new post.");
@@ -299,7 +303,7 @@ const fetchUserData = async () => {
           allowStacking={true}
           mode={geographicalMode}
         />
-        {/* <ActionPrompts 
+        {/* <Action 
         friendName={""}
          action={action} 
          handleAction={() => {}}/>*/}

@@ -4,7 +4,7 @@ import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
-import ActionPrompts from "./ActionPrompts";
+import Action from "./InfoScreen";
 import { ActionType } from "@/lib/prompts";
 import { useEffect, useState } from "react";
 import {
@@ -287,7 +287,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
           showPostItText={true}
           invertColors={true}
         />
-        {/*<ActionPrompts 
+        {/*<Action 
         friendName={profileUser?.username ?? ""}
          action={action} 
          handleAction={() => {

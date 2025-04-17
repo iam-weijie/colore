@@ -1,4 +1,4 @@
-import { TextInputProps, TouchableOpacityProps } from "react-native";
+import { ImageSourcePropType, TextInputProps, TouchableOpacityProps } from "react-native";
 import * as Haptics from 'expo-haptics'; // Import Haptics for the style type
 
 declare interface Post {
@@ -27,10 +27,17 @@ declare interface Post {
   reply_to: number;
   
 }
-declare interface ActionPromptsProps {
-  friendName: string, 
-  action: { name: string };
-  handleAction: () => void;
+declare interface InfoScreenProps {
+  title: string;
+  subtitle?: string;
+  image: ImageSourcePropType;
+  content: string;
+  onAgree: () => void;
+}
+
+declare interface EmojiBackgroundProps {
+  emoji: string;
+  color: string;
 }
 
 
