@@ -687,8 +687,10 @@ console.log(selectedEmoji, "emojic")
       // Screen is focused
   
       return () => {
-        handleCloseModal();
-        setSelectedBoard(null)
+        setTimeout(() => {
+          handleCloseModal();
+          setSelectedBoard(null)
+        }, 250);
       };
     }, [])
   );
