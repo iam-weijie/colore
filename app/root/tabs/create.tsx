@@ -28,6 +28,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAlert } from '@/notifications/AlertContext';
 import ItemContainer from "@/components/ItemContainer";
+import EmojiBackground from "@/components/EmojiBackground";
 
 const Create = () => {
   const { user } = useUser();
@@ -40,19 +41,24 @@ const Create = () => {
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
         >
+       
           
                     
-            <View className="flex-1 flex-row max-h-[18%] justify-between items-end pl-11  bg-[#FAFAFA]">
+            <View className="flex-1 flex-row max-h-[18%] justify-between items-end pl-11  bg-[#FAFAFA] z-10">
                  <Text className="text-2xl font-JakartaBold my-4">Create</Text>
               
                </View>
         </TouchableWithoutFeedback>
+        <EmojiBackground 
+        emoji=""
+        color="#93c5fd"
+        />
         <ScrollView 
         className="flex-1 mt-4 mx-6"
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}>
           <View className="my-3 ml-2">
-            <Text className="text-[16px] font-JakartaBold text-gray-400"> Prompts</Text>
+            <Text className="text-[16px] font-JakartaBold text-gray-100"> Prompts</Text>
           </View>
           <ItemContainer
             label="Answer a prompt"
@@ -96,7 +102,7 @@ const Create = () => {
             }
           />
           <View className="my-2 ml-2">
-            <Text className="text-[16px] font-JakartaBold  text-gray-400"> Notes</Text>
+            <Text className="text-[16px] font-JakartaBold  text-gray-100"> Notes</Text>
           </View>
        
           <ItemContainer
@@ -149,7 +155,7 @@ const Create = () => {
             }
           />
           <View className="my-2 ml-2">
-            <Text className="text-[16px] font-JakartaBold  text-gray-400"> Boards </Text>
+            <Text className="text-[16px] font-JakartaBold  text-gray-100"> Boards </Text>
           </View>
           <ItemContainer
             label="Create a board"

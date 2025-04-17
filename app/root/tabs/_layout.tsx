@@ -30,7 +30,7 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
       </View>}
          <Animated.Image
           source={source}
-          className={`flex-1 w-10 h-10 shadow-sm`}
+          className={`flex-1 w-10 h-10`}
           
           resizeMode="cover"
         />
@@ -134,7 +134,7 @@ const Layout: React.FC = () => {
           flexDirection: 'row',
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: '#fafafa',
+          backgroundColor: '#ffffff',
           height: 100,
           paddingRight: 25,
           paddingLeft: 25,

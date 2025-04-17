@@ -261,26 +261,24 @@ const Settings = () => {
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
   };
   return (
-    <SafeAreaView className="flex-1">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
-        <View className="flex flex-row items-center px-4 pt-2">
-          <View>
-            <TouchableOpacity onPress={() => router.back()} className="mr-2">
-              <AntDesign name="caretleft" size={18} />
-            </TouchableOpacity>
-          </View>
-          <View>
-            <Text className="font-JakartaBold text-2xl">Settings</Text>
-          </View>
-        </View>
         <ScrollView className="flex-1">
           <View className=" mx-6">
-            <Text className="text-xl font-JakartaBold my-4 bg-[#93c5fd] text-[#ffffff] rounded-[24px] px-5 py-6">
-              Account
-            </Text>
-            <View className="bg-[#fafafa] rounded-[32px] p-5">
+          <View className=" my-4 bg-[#fff] text-[#000] rounded-[24px] p-5">
+             <Text 
+             className="text-lg font-JakartaBold"
+             style={{
+              maxWidth: 80,
+              borderBottomWidth: 4, 
+              borderBottomColor: '#93c5fd', // pink for example
+              paddingBottom: -4 
+             }}>
+               Account
+             </Text>
+             </View>
+            <View className="bg-white rounded-[32px] p-5">
               <View className="flex flex-row items-center justify-between -mb-14 p-2">
-                <Text className="text-lg font-JakartaSemiBold my-2">
+                <Text className="text-[16px] font-JakartaSemiBold my-2">
                   Username
                 </Text>
               </View>
@@ -299,7 +297,7 @@ const Settings = () => {
                 }}
               />
               <View className="flex flex-row items-center justify-between -mb-14 p-2">
-                <Text className="text-lg font-JakartaSemiBold mb-2">
+                <Text className="text-[16px]  font-JakartaSemiBold mb-2">
                   Email Address
                 </Text>
               </View>
@@ -320,7 +318,7 @@ const Settings = () => {
               />
               <View className="mb-4 mx-2 pr-[20px]">
                 <View className="flex flex-row items-center justify-between mb-4">
-                  <Text className="text-lg  font-JakartaSemiBold ">
+                  <Text className="text-[16px]   font-JakartaSemiBold ">
                     Location
                   </Text>
                   <TouchableOpacity
@@ -338,10 +336,19 @@ const Settings = () => {
             </View>
           </View>
           <View className=" mx-6">
-            <Text className=" text-xl font-JakartaBold my-4 bg-[#CFB1FB] text-[#ffffff]  rounded-[24px] px-5 py-6">
-              Activity
-            </Text>
-            <View className="bg-[#fafafa] rounded-[32px] p-5">
+          <View className=" my-4 bg-[#fff] text-[#000] rounded-[24px] p-5">
+             <Text 
+             className="text-lg font-JakartaBold"
+             style={{
+              maxWidth: 80,
+              borderBottomWidth: 4, 
+              borderBottomColor: '#CFB1FB', // pink for example
+              paddingBottom: -4 
+             }}>
+               Activity
+             </Text>
+             </View>
+            <View className="bg-white rounded-[32px] p-5">
               <TouchableOpacity
                 activeOpacity={0.6}
                 onPress={() => {
@@ -356,7 +363,7 @@ const Settings = () => {
               >
                 <View className="flex flex-row items-center justify-between p-2">
                   <View>
-                    <Text className="text-lg font-JakartaSemiBold my-2">
+                    <Text className="text-[16px] font-JakartaSemiBold my-2">
                       Saved Posts
                     </Text>
                   </View>
@@ -387,7 +394,7 @@ const Settings = () => {
               >
                 <View className="flex flex-row items-center justify-between p-2">
                   <View>
-                    <Text className="text-lg font-JakartaSemiBold my-2">
+                    <Text className="text-[16px] font-JakartaSemiBold my-2">
                       Liked Posts
                     </Text>
                   </View>
@@ -409,13 +416,22 @@ const Settings = () => {
 
           {/* --- New Audio & Haptics Section --- */}
           <View className=" mx-6">
-             <Text className=" text-xl font-JakartaBold my-4 bg-[#FACC15] text-[#ffffff] rounded-[24px] px-5 py-6">
+            <View className=" my-4 bg-[#fff] text-[#000] rounded-[24px] p-5">
+             <Text 
+             className="text-lg font-JakartaBold"
+             style={{
+              maxWidth: 150,
+              borderBottomWidth: 4, 
+              borderBottomColor: '#FACC15', // pink for example
+              paddingBottom: -4 
+             }}>
                Audio & Haptics
              </Text>
-             <View className="bg-[#fafafa] rounded-[32px] p-5">
+             </View>
+             <View className="bg-white rounded-[32px] p-5">
                {/* Haptics Toggle */}
                <View className="flex flex-row items-center justify-between p-2 mb-2">
-                 <Text className="text-lg font-JakartaSemiBold">Enable Haptic Feedback</Text>
+                 <Text className="text-[16px] font-JakartaSemiBold">Enable Haptic Feedback</Text>
                  <Switch
                    trackColor={{ false: "#767577", true: "#FACC15" }}
                    thumbColor={hapticsEnabled ? "#ffffff" : "#f4f3f4"}
@@ -426,7 +442,7 @@ const Settings = () => {
                </View>
                {/* Sound Effects Toggle */}
                <View className="flex flex-row items-center justify-between p-2">
-                 <Text className="text-lg font-JakartaSemiBold">Enable Sound Effects</Text>
+                 <Text className="text-[16px] font-JakartaSemiBold">Enable Sound Effects</Text>
                  <Switch
                    trackColor={{ false: "#767577", true: "#FACC15" }}
                    thumbColor={soundEffectsEnabled ? "#ffffff" : "#f4f3f4"}
@@ -449,7 +465,6 @@ const Settings = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
   );
 };
 

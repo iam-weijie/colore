@@ -38,8 +38,11 @@ import {
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
+import TabNavigation from "./TabNavigation";
 import { useAlert } from '@/notifications/AlertContext';
 import Circle from "./Circle";
+import Settings from "@/app/root/settings";
+import BoardGallery from "./BoardGallery";
 
 // Skeleton component for post loading states
 const PostSkeleton = () => (
@@ -81,9 +84,12 @@ const ColorGallerySkeleton = () => (
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
+  const router = useRouter();
   const { isIpad } = useGlobalContext(); 
-  const [nickname, setNickname] = useState<string>("");
   const { showAlert } = useAlert();
+
+
+  const [nickname, setNickname] = useState<string>("");
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [emojiLoading, setEmojiLoading] = useState(true);
@@ -93,17 +99,22 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
   const { stateVars, setStateVars } = useNavigationContext();
-  const router = useRouter();
+
+  const [myBoards, setMyBoards] = useState<any>();
+  const [communityBoards, setCommunityBoards] = useState<any>();
+
+
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
+
+
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
     FriendStatus.UNKNOWN
   );
   const [friendCount, setFriendCount] = useState<number>(0);
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isFocusedOnProfile, setIsFocusedOnProfile] = useState<boolean>(true);
+  const [selectedTab, setSelectedTab] = useState<string>("Profile");
 
   const isEditable = user!.id === userId;
 
@@ -167,6 +178,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     useCallback(() => {
       // Reload user data when screen is focused (e.g., after location change)
       fetchUserData();
+      fetchPersonalBoards();
+      fetchCommunityBoards();
       // Reload nickname data
       const getData = async () => {
         const data = await fetchCurrentNickname();
@@ -181,7 +194,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   );
 
   useEffect(() => {
-    setIsCollapsed(user!.id !== userId || isIpad);
     const getData = async () => {
       const data = await fetchCurrentNickname();
       setNickname(data);
@@ -232,18 +244,84 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
+  const fetchPersonalBoards = async () => {
+    console.log("isMe?", userId === user!.id)
+      try {
+        setLoading(true)
+        const response = await fetchAPI(`/api/boards/getBoards?user_id=${userId}`,
+            {
+              method: "GET",
+            }
+        )
+        if (response.error) {
+          throw new Error(response.error);
+        }
+  
+        const personalBoard =  {
+          id: 0,
+          title: "Personal Board",
+          user_id: userId,
+          description: "Your window to the world!",
+          members_id: [userId],
+          board_type: 'personal',
+          restrictions: ['personal', 'commentsAllowed', '5'],
+          created_at: Date.now(),
+          color: "#93c5fd"
+        }
+  
+          if (response.data) {
+            const boardsWithColor = response.data.map((board: any, index: number) => ({
+              ...board,
+              color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            }));
+          
+            setMyBoards([...boardsWithColor, personalBoard]);
+          } else {
+           
+            setMyBoards(personalBoard)
+          }
+  
+      } catch (error) {
+        console.error("Failed to fetch board data:", error);
+      } finally {
+        setLoading(false)
+      }
+    }
+
+  const fetchCommunityBoards = async () => {
+      try {
+        setLoading(true)
+        const response = await fetchAPI(`/api/boards/getCommunityBoards?user_id=${userId}`,
+            {
+              method: "GET",
+            }
+        )
+        if (response.error) {
+          throw new Error(response.error);
+        }
+  
+  
+        
+            const boardsWithColor = response.data.map((board: any, index: number) => ({
+              ...board,
+              color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            }));
+          
+            setCommunityBoards(boardsWithColor);
+  
+          
+  
+      } catch (error) {
+        console.error("Failed to fetch board data:", error);
+      } finally {
+        setLoading(false)
+      }
+    }
+
   useEffect(() => {
     fetchUserData();
   }, [isFocusedOnProfile]);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchUserData();
-      return () => {
-        setStateVars({ ...stateVars, queueRefresh: true});
-      }
-    }, [])
-  );
 
 
   const handleAddNickname = () => {
@@ -353,89 +431,56 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     },
   ];
 
-  function toggleExpanded() {
-    setIsExpanded(!isExpanded);
-    setIsFocusedOnProfile(isExpanded);
-    //console.log("FocusOnProfil", isFocusedOnProfile, "isExpanded", isExpanded, "isCollapsed", isCollapsed, "Query", query.length)
+const Menu = ({status}: {status: FriendStatusType}) => {
+  let menu;
+  switch (status) {
+    case FriendStatus.FRIENDS:
+      return menu = menuItems_friend
+    case FriendStatus.SENT:
+      return menu = menuItems_sent
+    case FriendStatus.RECEIVED:
+      return menu = menuItems_received
+    case FriendStatus.NONE:
+      return menu = menuItems_default
+    case FriendStatus.UNKNOWN:
+      return menu = menuItems_unloaded
   }
 
   return (
-    <View className="flex-1 mt-3">
-      {!isFocusedOnProfile ||
-        (query.length < 1 && (
-          <View>
-            <View className="mx-7 mb-2">
-              {!isEditable && (
-                <View className="flex flex-row items-center justify-between pb-3">
-                  <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="mr-4"
-                  >
-                    <AntDesign name="caretleft" size={18} />
-                  </TouchableOpacity>
-                  <View className="flex flex-row items-right">
-                    {friendStatus === FriendStatus.FRIENDS && (
-                      <DropdownMenu
-                        menuItems={menuItems_friend}
+    <DropdownMenu
+                        menuItems={menu}
                         customMenuWidth={150}
                       />
-                    )}
-                    {friendStatus === FriendStatus.SENT && (
-                      <DropdownMenu
-                        menuItems={menuItems_sent}
-                        customMenuWidth={150}
-                      />
-                    )}
-                    {friendStatus === FriendStatus.RECEIVED && (
-                      <DropdownMenu
-                        menuItems={menuItems_received}
-                        customMenuWidth={150}
-                      />
-                    )}
-                    {friendStatus === FriendStatus.NONE && (
-                      <DropdownMenu
-                        menuItems={menuItems_default}
-                        customMenuWidth={150}
-                      />
-                    )}
-                    {friendStatus === FriendStatus.UNKNOWN && (
-                      <DropdownMenu
-                        menuItems={menuItems_unloaded}
-                        customMenuWidth={150}
-                      />
-                    )}
-                  </View>
-                </View>
-              )}
+  )
 
-              <View className="relative flex flex-row items-center justify-end">
-                {isEditable && (
-                  <TouchableOpacity
-                    onPress={() => router.push("/root/settings")}
-                  >
-                    <Image source={icons.settings} className="w-7 h-7 top-5" />
-                  </TouchableOpacity>
-                )}
-              </View>
 
-              <View className="p-8 flex flex-column items-center justify-center ">
+}
+
+  return (
+    <View className="absolute w-full h-full flex-1 ">
+
+            
+
+           {/* HEADER */}
+            <View className="h-[20%] flex-row justify-start items-end bg-white">
+           
+              <View className="flex-row w-full  justify-between items-center pl-11 pr-6">
                 <Animated.View entering={FadeIn.duration(800)}>
-                { (nickname || profileUser?.username) ? (<View className="flex flex-row items-center justify-center mb-2">
-                   <Text className={`text-[20px] font-JakartaBold`}>
+                { (nickname || profileUser?.username) ? (
+                
+                   <Text className={`text-2xl font-JakartaBold`}>
                     {nickname
                       ? nickname
                       : profileUser?.username
                         ? `${profileUser?.username}`
-                        : `${profileUser?.firstname?.charAt(0)}.`}
+                        : `${profileUser?.firstname?.charAt(0)}.`} {emojiLoading ? "" : countryEmoji}
                   </Text> 
-                </View>) : <View>
-                 <Text className={`text-[20px] bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
-                 </View>}
-                </Animated.View>
-                <Animated.View entering={FadeIn.duration(800)}>
-                { profileUser ?  (<View>
-                <Text className=" text-[14px] text-gray-600 text-center font-Jakarta">
-                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
+                ) : 
+                 <Text className={`text-2xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
+                 }
+                    { profileUser ?  (<View className="max-w-[200px]">
+                <Text className=" text-xs text-gray-600 text-left font-Jakarta">
+                    {profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
                     {profileUser?.country}
                   </Text> 
                 </View>) : (
@@ -443,124 +488,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   <Text className="text-[14px] text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta"> Location updating... </Text>
                   </View>)}
                 </Animated.View>
-              </View>
-            </View>
-
-            <View className="flex-row  items-center"
-            style={{
-              justifyContent: isIpad ? "space-between" : "space-around",
-              marginHorizontal: isIpad ? "10%" : 8,
-            }}>
-              {isEditable ? (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (currentSubscreen !== "colors")
-                      setCurrentSubscreen("colors");
-                    if (currentSubscreen === "colors")
-                      setCurrentSubscreen("posts");
-                  }}
-                  className="flex-1  bg-gray-200 items-center"
-                  style={{
-                    justifyContent:
-                      user!.id === userId ? "space-between" : "center",
-                    padding: user!.id === userId ? 20 : 5,
-                    height: isCollapsed ? (isIpad ? 60 : 50) : 150,
-                    maxWidth: isIpad ? 350 : 135,
-                    borderRadius: isCollapsed
-                      ? user!.id === userId
-                        ? 24
-                        : 20
-                      : 32,
-                  }}
-                >
-                  {!isCollapsed && (
-                    <View className="w-full flex flex-row items-start">
-                      <Text className="text-[#333333] font-JakartaBold text-3xl">
-                        {currentSubscreen !== "colors"
-                          ? temporaryColors.length
-                          : userPosts.length}
-                      </Text>
-                    </View>
-                  )}
-                  {!isCollapsed && (
-                    <View>
-                      {currentSubscreen !== "colors" && (
-                        <Image
-                          source={icons.palette}
-                          tintColor={
-                            currentSubscreen === "colors"
-                              ? "#93c5fd"
-                              : "#333333"
-                          }
-                          resizeMode="contain"
-                          className="w-10 h-10 -mt-4"
-                        />
-                      )}
-                      {currentSubscreen !== "posts" && (
-                        <Image
-                          source={icons.home}
-                          tintColor={
-                            currentSubscreen === "posts" ? "#93c5fd" : "#333333"
-                          }
-                          resizeMode="contain"
-                          className="w-10 h-10 -mt-4"
-                        />
-                      )}
-                    </View>
-                  )}
-
-                  <View>
-                    {currentSubscreen !== "colors" && (
-                      <Text className="text-[#333333] font-JakartaBold text-[16px]">
-                        {isCollapsed
-                          ? `Colors (${temporaryColors.length})`
-                          : "Colors"}
-                      </Text>
-                    )}
-                    {currentSubscreen !== "posts" && (
-                      <Text className="text-[#333333] font-JakartaBold text-[16px]">
-                        Posts
-                      </Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (user!.id === userId) {
-                      router.push("/root/tabs/personal-board");
-                    } else {
-                     
-                      router.push({
-                        pathname: "/root/user-board/[id]",
-                        params: { id: `${profileUser?.clerk_id}`, username: profileUser?.username },
-                      });
-                    }
-                  }}
-                  className="flex-1 bg-gray-200 items-center justify-between"
-                  style={{
-                    justifyContent:
-                    user!.id === userId ? "space-between" : "center",
-                    padding: user!.id === userId ? 20 : 5,
-                    maxWidth: isIpad ? 350 : 135,
-                    height: isCollapsed ? (isIpad ? 60 : 50) : 150,
-                    borderRadius: isCollapsed
-                      ? user!.id === userId
-                        ? 24
-                        : 20
-                      : 32,
-                  }}
-                >
                 
-
-                  <View className="items-center">
-                    <Text className="text-[#333333] font-JakartaBold text-[15px] text-center">
-                      Visit board
+                {isEditable ? (
+                  <View className="flex-row gap-6 mr-7">
+                    <View>
+                    <Text className="text-lg font-JakartaSemiBold">
+                      {userPosts.length}
                     </Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
+                    <Text className="text-xs font-JakartaSemiBold">
+                      Posts
+                    </Text>
+                    </View>
+                    <View className="flex-column items-start justify-center">
+                    <Text className="text-lg font-JakartaSemiBold">
+                      {friendCount}
+                    </Text>
+                    <Text className="text-xs font-JakartaSemiBold">
+                      Friends
+                    </Text>
+                    </View>
+                </View>) :
+                (<TouchableOpacity
                 onPress={async () => {
                   if (user!.id === userId) {
                     //router.push("/root/chat/chat-screen");
@@ -617,67 +565,31 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     setFriendStatus(response);
                     setIsHandlingFriendRequest(false);
                   }
-                  if (user!.id !== userId && friendStatus.name === "friends") {
-                      startChat([
-                        profileUser!.clerk_id,
-                        nickname || profileUser!.username,
-                      ] as UserNicknamePair);
-                  }
                 }}
-                className="flex-1 items-center justify-between"
+                className="items-center justify-between px-4"
                 style={{
                   backgroundColor: user!.id === userId ? "#93c5fd" : "#000000",
                   justifyContent:
                     user!.id === userId ? "space-between" : "center",
                   padding: user!.id === userId ? 20 : 5,
-                  maxWidth: isIpad ? 350 : 135,
-                  height: isCollapsed ? (isIpad ? 60 : 50) : 150,
-                  borderRadius: isCollapsed
-                    ? user!.id === userId
+                  height: (isIpad ? 60 : 40),
+                  borderRadius: user!.id === userId
                       ? 24
-                      : 20
-                    : 32,
+                      : 16,
                 }}
               >
-                {!isCollapsed && (
-                  <View className="w-full flex flex-row items-start">
-                    {user!.id === userId && (
-                      <View>
-                        <Text className="text-white font-JakartaBold text-3xl">
-                          {friendCount}
-                        </Text>
-                      </View>
-                    )}
-                    {user!.id !== userId && (
-                      <View>
-                        <Text className="text-white font-JakartaBold text-4xl">
-                          +
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                )}
 
-                {!isCollapsed && (
-                  <View>
-                    <FontAwesome5
-                      name="user-friends"
-                      size={30}
-                      color="white"
-                      marginTop={-20}
-                    />
-                  </View>
-                )}
+               
                 {user!.id === userId && (
                   <View>
-                    <Text className="text-white font-JakartaBold text-[16px]">
+                    <Text className="text-white font-JakartaBold text-sm">
                       Friends
                     </Text>
                   </View>
                 )}
                 {user!.id !== userId && friendStatus.name === "unknown" && (
                   <View>
-                    <Text className="text-white font-JakartaBold text-[14px]">
+                    <Text className="text-white font-JakartaBold text-sm">
                       Add friend
                     </Text>
                   </View>
@@ -686,7 +598,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   friendStatus.name !== "friends" &&
                   friendStatus.name === "none" && (
                     <View>
-                      <Text className="text-white font-JakartaBold text-[14px]">
+                      <Text className="text-white font-JakartaBold text-sm">
                         Add friend
                       </Text>
                     </View>
@@ -695,7 +607,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   friendStatus.name !== "friends" &&
                   friendStatus.name === "sent" && (
                     <View>
-                      <Text className="text-white font-JakartaBold text-[12px]">
+                      <Text className="text-white font-JakartaBold text-sm">
                         Cancel request
                       </Text>
                     </View>
@@ -704,46 +616,107 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                   friendStatus.name !== "friends" &&
                   friendStatus.name === "received" && (
                     <View>
-                      <Text className="text-white font-JakartaBold text-[12px]">
+                      <Text className="text-white font-JakartaBold text-sm">
                         Accept request
                       </Text>
                     </View>
                   )}
                 {user!.id !== userId && friendStatus.name === "friends" && (
                   <View>
-                    <Text className="text-white font-JakartaBold text-[14px]">
+                    <Text className="text-white font-JakartaBold text-sm">
                       Message
                     </Text>
                   </View>
                 )}
-              </TouchableOpacity>
+              </TouchableOpacity>)}
+              </View>
+            </View>
+            
+         
+
+            {/* NAVIGATE AWAY */}
+            <View className="absolute top-14"
+            style={{
+              [!isEditable ? 'left' : 'right'] :  16,
+            }}>
+      {!isEditable && 
+                <View className="absolute">
+                  <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="mr-4"
+                  >
+                    <AntDesign name="caretleft" size={18} />
+                  </TouchableOpacity>
+                </View>}
             </View>
 
-            <View className="mx-7 mt-5"></View>
-          </View>
-        ))}
-
-      {isEditable ? (
-        <View className="items-center flex-1 mt-5">
-          {currentSubscreen === "colors" ? (
-            <View className="items-center">
-              {loading ? (
-                <ColorGallerySkeleton />
-              ) : (
-                <ColorGallery />
-              )}
+            {/* TAB SELECTION */}
+            <View className="flex flex-row items-center justify-start bg-white pl-2 pr-6">
+              <TabNavigation
+                name={"Profile"}
+                focused={selectedTab === "Profile"}
+                onPress={() => {
+                  setSelectedTab("Profile")
+                }}
+                notifications={0}
+                color={"#CFB1FB"}/>
+              
+              {isEditable && 
+                <TabNavigation
+                name={"Posts"}
+                focused={selectedTab === "Posts"}
+                onPress={() => {
+                 setSelectedTab("Posts")
+                }}
+                notifications={unreadComments}
+                color={"#93c5fd"}/>}
+                {isEditable &&
+                <TabNavigation
+                name={"Settings"}
+                focused={selectedTab === "Settings"}
+                onPress={() => {
+                 setSelectedTab("Settings")
+                }}
+                notifications={0}
+                color={"#93c5fd"}/>}
+                
+                 {!isEditable && 
+                  <TabNavigation
+                  name={"Boards"}
+                  focused={selectedTab === "Boards"}
+                  onPress={() => {
+                    setSelectedTab("Boards")
+                  }}
+                  notifications={0}
+                  color={"#CFB1FB"}/>
+                }
+                {!isEditable &&
+                  <TabNavigation
+                  name={"Communities"}
+                  focused={selectedTab === "Communities"}
+                  onPress={() => {
+                    setSelectedTab("Communities")
+                  }}
+                  notifications={0}
+                  color={"#CFB1FB"}/>
+                }
             </View>
-          ) : currentSubscreen === "posts" && (
-            <View className="items-center flex-1 w-full">
+
+            {/* TABS */}
+            {selectedTab === "Profile" && <View className="flex-1">
+            
+            </View>}
+
+            {selectedTab === "Posts" && <View className="flex-1 bg-[#FAFAFA] pb-24">
+              <View className="items-center  w-full">
               <TextInput
-                className="w-4/5  h-12 px-5 rounded-[16px] bg-gray-200 mb-6 "
+                className="w-4/5  h-12 px-5 rounded-[16px] bg-[#F1F1F1] mt-6"
                 placeholder="Search"
                 onChangeText={setQuery}
                 value={query}
               />
-
-              <View className="items-center mb-[70px] w-4/5   mx-8">
-                {loading ? (
+              </View>
+              {loading ? (
                   <PostGallerySkeleton />
                 ) : (
                   <PostGallery
@@ -751,41 +724,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     profileUserId={user!.id}
                     handleUpdate={fetchUserData}
                     query={query}
-                    header={
-                      <View className="w-full mx-8 flex flex-row items-center justify-between">
-                        <View>
-                          <Text className="text-lg font-JakartaSemiBold">
-                            Most Recent {unreadComments > 0 ? `(${unreadComments})` : ""}
-                          </Text>
-                        </View>
-                        <View>
-                          <TouchableOpacity
-                            activeOpacity={0.3}
-                            onPress={() => toggleExpanded()}
-                            className="w-full "
-                          >
-                            <Text className="text-gray-400 font-JakartaBold text-[14px]">
-                              {!isExpanded ? "See more" : "See less"}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    }
                   />
                 )}
-              </View>
-            </View>
-          )}
-        </View>
-      ) : (
-        <View className="items-center">
-          {loading ? (
-            <ColorGallerySkeleton />
-          ) : (
-            <ColorGallery />
-          )}
-        </View>
-      )}
+            </View>}
+
+            {selectedTab === "Boards" && <View className="flex-1 pt-4">
+            <BoardGallery boards={myBoards} />
+            </View>}
+
+            {selectedTab === "Communities" && <View className="flex-1 pt-4">
+            <BoardGallery boards={communityBoards} />
+            </View>}
+
+            {selectedTab === "Settings" && <View className="flex-1 bg-[#FAFAFA]">
+            <Settings />
+            </View>}
+        
+       
+
     </View>
   );
 };

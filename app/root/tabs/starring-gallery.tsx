@@ -20,10 +20,14 @@ import {
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 import CustomButton from "@/components/CustomButton";
+import ModalSheet from "@/components/Modal";
+import InfoScreen from "@/components/InfoScreen";
+import EmojiBackground from "@/components/EmojiBackground";
 import { icons, temporaryColors } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
 import { LinearGradient } from 'expo-linear-gradient';
+
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -38,20 +42,20 @@ const RenderPromptCard = ({item, userId, promptContent, updatePromptContent, han
     >
   <View className="flex-1 flex-column items-center justify-center mt-4 mb-8 py-8 rounded-[48px]" 
  style={{
-  backgroundColor:  item.color ?? "yellow",
+  backgroundColor:  "white",
   width: screenWidth * 0.85}}>
 
   <View className="w-[85%] flex-1 mx-auto flex-col items-center justify-center">
 
-  <Text className="my-1 text-[14px] font-JakartaBold text-[#FAFAFA]">{item.theme}</Text>
+  <Text className="my-1 text-[14px] font-JakartaBold text-[#888]">{item.theme}</Text>
     <Text 
     
-    className="text-[24px] text-center font-JakartaBold text-[#FFF]">{item.cue}...</Text>
+    className="text-[24px] text-center font-JakartaBold text-[#000]">{item.cue}...</Text>
   </View>
   <KeyboardAvoidingView behavior="padding" className="flex-1 my-6 flex w-full">
      <View className="mt-2">
                     <TextInput
-                      className="text-[16px] text-[#FFF] p-5 rounded-[24px] font-JakartaBold mx-10 "
+                      className="text-[16px] text-[#000] p-5 rounded-[24px] font-JakartaBold mx-10 "
                       placeholder="Type something..."
                       value={promptContent}
                       onChangeText={updatePromptContent}
@@ -102,6 +106,8 @@ export default function Page() {
   const selectedPostRef = useRef<Post | null>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const inputRef = useRef<TextInput>(null);
+
+  const [selectedModal, setSelectedModal] = useState<any>();
 
   // 1) request ATT permission
   const requestPermission = async () => {
@@ -188,6 +194,16 @@ export default function Page() {
   // reset modal visible each time the screen comes into focus
   useFocusEffect(
     useCallback(() => {
+      setSelectedModal(
+        <InfoScreen
+        title="Your Turn!"
+        content="Dive into creative exploration.
+                  Pick a cue, write your thoughts, and see how others responded to similar prompts.
+                  Every post is a chance to express and discover."
+        image={icons.star}
+        onAgree={() => {setSelectedModal(null)}}
+        />
+      )
       setIsModalVisible(true);
 
       if (user && stacks.length == 0) {  
@@ -200,6 +216,7 @@ export default function Page() {
       
     }, [user, isIpad])
   );
+
 
 
   // on-mount (and whenever user / isIpad changes) load everything
@@ -256,6 +273,8 @@ export default function Page() {
       });
     }
   }, [posts]);
+
+
 
 
 
@@ -351,6 +370,13 @@ export default function Page() {
 
   return (
     <View className="flex-1">
+      <EmojiBackground 
+        emoji="😳"
+        color="#ffe640"
+        />
+          <View className="flex-1 flex-row max-h-[18%] justify-between items-end pl-11  bg-[#FAFAFA]">
+              <Text className="text-2xl font-JakartaBold my-4">Starring</Text>
+            </View>
         {hasSubmittedPrompt ? (<PostModal
           isVisible={isModalVisible}
           selectedPost={selectedPostRef.current}
@@ -364,10 +390,8 @@ export default function Page() {
                   >
           <View className="flex-1">
           
-                 <View className="flex-1 flex-row max-h-[18%] justify-between items-end pl-11  bg-[#FAFAFA]">
-              <Text className="text-2xl font-JakartaBold my-4">Starring</Text>
-            </View>
-            <Text className="mt-4 mb-2 text-center text-[#CCCCCC] text-[12px] font-JakartaSemiBold"> Create a prompt with the given cues to view other people's responses </Text>
+               
+            <Text className="mt-4 mb-2 text-center text-[#FAFAFA] text-[12px] font-JakartaSemiBold"> Create a prompt with the given cues to view other people's responses </Text>
             {loading ? (
               <ActivityIndicator size={"small"} color={"#888"}/>
             ) 
@@ -414,9 +438,9 @@ export default function Page() {
       <Animated.View
         style={{
           transform: [{ scale }],
-          shadowColor: item.color,
+          shadowColor: "#000",
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.7,
+          shadowOpacity: 0.07,
           shadowRadius: 12,
           elevation: 6, // Android shadow
         }}
@@ -430,7 +454,13 @@ export default function Page() {
           </View>
           </TouchableWithoutFeedback>
         )}
-
+  {/* !!selectedModal && 
+  <ModalSheet
+  title=""
+  isVisible={!!selectedModal}
+  onClose={() => {setSelectedModal(null)}}>
+   {selectedModal}
+  </ModalSheet>*/}
     </View>
   );
 }

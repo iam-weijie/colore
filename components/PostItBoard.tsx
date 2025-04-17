@@ -484,6 +484,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   };
 
 
+
   const reorderPost = (topPost: PostWithPosition) => {
     setPostsWithPosition((prevPosts: PostWithPosition[]) => [
       ...prevPosts.filter((post) => post.id !== topPost.id), // Remove the moved post
@@ -548,14 +549,16 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     const existingPostIds = postsWithPosition.map((post) => post.id);
     handleUpdatePin(existingPostIds)
   }
+  let i = 0;
 
   const handleCloseModal = async () => {
+    i += 1;
     if (selectedPost && !isPinned) {
       const postId = selectedPost.id;
-      setSelectedPost(null);
-
       
-    console.log("Post to remove", selectedPost.id)
+     
+      
+    console.log("Post to remove", selectedPost.id, "tria;l", i)
       setPostsWithPosition((prevPosts) => {
         const updatePosts = prevPosts.filter((post) => post.id !== postId);
         console.log(
@@ -586,23 +589,18 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
       const newPost = await handleNewPostFetch(existingPostIds);
 
-      if (newPost && !existingPostIds.includes(newPost.id)) {
-        const newPostWithPosition: PostWithPosition = {
-          ...newPost,
-          position: {
-            top: AlgorithmNewPosition(newPost.pinned).top,
-            left: AlgorithmNewPosition(newPost.pinned).left
-          },
-        };
+      console.log("new post id", newPost.id)
+
+  
+        const newPostWithPosition: PostWithPosition = newPost;
         setPostsWithPosition((prevPosts) => [
           ...prevPosts,
           newPostWithPosition,
         ]);
         updatePostPosition(0, 0, newPostWithPosition);
-      }
-
-      // Wait for React state updates to finish before using remainingPosts
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      
+        setSelectedPost(null);
+      
     } else {
       setSelectedPost(null)
     }

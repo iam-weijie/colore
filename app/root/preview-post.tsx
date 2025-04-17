@@ -246,18 +246,8 @@ const PreviewPost = () => {
           handleCloseModal={handleCloseModal}
           isPreview={true}
           header={
-            <View className="flex-1 h-full absolute top-0 left-0 w-full flex flex-row items-center justify-center mt-10 pt-7 px-6">
-      
-              <View className="flex-1 w-full absolute top-9 flex flex-row items-center ">
-              <TouchableOpacity
-                  onPress={handleCloseModal}
-                  className="mr-2"
-                >
-                  <AntDesign name="caretleft" size={18} color={"white"} />
-                </TouchableOpacity>
-
-              </View> 
-              <View className="flex-1 absolute flex items-center w-full bottom-[20%]">
+          
+              <View className="flex-1 absolute flex items-center w-full bottom-[15%]">
             <CustomButton
               className="w-[50%] h-16 rounded-full shadow-none bg-black"
               fontSize="lg"
@@ -266,7 +256,19 @@ const PreviewPost = () => {
               onPress={handleSubmitPost}
               //disabled={!postContent || isPosting}
             />
-            </View>
+               <TouchableOpacity
+                  onPress={handleCloseModal}
+                  className="mt-4"
+                >
+                  <Text 
+                  className="text-white font-JakartaBold text-[16px]"
+                  style={{
+                    borderBottomWidth: 2,
+                    borderBottomColor: "#fff"
+                  }}>
+                    Go back
+                  </Text>
+                </TouchableOpacity>
             </View>
           }
         />
