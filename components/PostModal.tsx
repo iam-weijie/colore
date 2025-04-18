@@ -58,6 +58,7 @@ import InteractionButton from "./InteractionButton";
 import CarrouselIndicator from "./CarrouselIndicator";
 import EmojiExplosionModal from "./EmojiExplosiveModal";
 import PostScreen from "@/app/root/post/[id]";
+import ItemContainer from "./ItemContainer";
 
 
 const { width, height } = Dimensions.get("window");
@@ -745,9 +746,28 @@ console.log(selectedEmoji, "emojic")
           className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center"
           entering={FadeInUp.duration(200)}
           exiting={FadeOutDown.duration(200)}>
-              <Text className="text-2xl font-JakartaBold text-white text-center w-[85%]">
-                {currentPost?.prompt}
-              </Text>
+            <View 
+            className="w-[75%]"
+            style={{
+              transform: [{rotate: `${(Math.random() - 0.5)*10}deg` }]
+            }}
+            >
+             <ItemContainer 
+             label={currentPost?.prompt}
+             icon={icons.fire}
+             colors={[currentPost?.color, "#FFB512"]}
+             iconColor="#000"
+             onPress={() => {
+              router.push({
+                pathname: "/root/new-post",
+                params: {
+                  prompt: currentPost?.prompt,
+                  promptId: currentPost?.prompt_id
+                }
+              })
+             }}
+             />
+             </View>
             </Animated.View>}
 
           <GestureHandlerRootView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
