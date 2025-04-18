@@ -9,6 +9,7 @@ export async function POST(request: Request) {
       recipientId,
       color = "yellow",
       emoji,
+      pinned = false
     } = await request.json();
 
     // console.log(content, clerkId, recipientId, color, emoji);
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
         ${emoji},
         0,
         0,
-        FALSE,
+        ${pinned},
         NOW() + INTERVAL '14 days'
       )
       RETURNING id, color, recipient_user_id
