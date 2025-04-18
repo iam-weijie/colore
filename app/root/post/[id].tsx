@@ -39,6 +39,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 
 import * as Linking from "expo-linking";
 import { SafeAreaView } from "react-native-safe-area-context";
+import React from "react";
 
 interface GestureContext {
   startX: number;
@@ -594,7 +595,11 @@ console.log("happend", "id", id)
     return (
       <View style={{ marginBottom: 15 }}>
       {/* Show the date as the header */}
-      <Text className="text-gray-500 text-center text-[12px]">{item.date}</Text>
+      <Text className="text-gray-500 text-center text-[12px]">{
+      
+      getRelativeTime(item.date)
+      
+      }</Text>
 
       {/* Render each comment in the group */}
       {item.comments.map((comment, index) => (
