@@ -43,6 +43,7 @@ import { useAlert } from '@/notifications/AlertContext';
 import Circle from "./Circle";
 import Settings from "@/app/root/settings";
 import BoardGallery from "./BoardGallery";
+import PersonalBoard from "./PersonalBoard";
 
 // Skeleton component for post loading states
 const PostSkeleton = () => (
@@ -462,7 +463,7 @@ const Menu = ({status}: {status: FriendStatusType}) => {
             
 
            {/* HEADER */}
-            <View className="h-[20%] flex-row justify-start items-end bg-white">
+            <View className="h-[18%] flex-row justify-start items-end bg-white">
            
               <View className="flex-row w-full  justify-between items-center pl-11 pr-6">
                 <Animated.View entering={FadeIn.duration(800)}>
@@ -704,7 +705,7 @@ const Menu = ({status}: {status: FriendStatusType}) => {
 
             {/* TABS */}
             {selectedTab === "Profile" && <View className="flex-1">
-            
+            <PersonalBoard userId={userId} boardId={0}/>
             </View>}
 
             {selectedTab === "Posts" && <View className="flex-1 bg-[#FAFAFA] pb-24">
