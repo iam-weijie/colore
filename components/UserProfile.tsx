@@ -93,6 +93,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [nickname, setNickname] = useState<string>("");
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [emojiLoading, setEmojiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
@@ -250,7 +251,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   };
 
   const fetchPersonalBoards = async () => {
-    setLoading(true)
+    setProfileLoading(true)
       try {
         
         const response = await fetchAPI(`/api/boards/getBoards?user_id=${userId}`,
@@ -289,7 +290,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       } catch (error) {
         console.error("Failed to fetch board data:", error);
       } finally {
-        setLoading(false)
+        setProfileLoading(false)
       }
     }
 
@@ -755,13 +756,13 @@ const Menu = ({status}: {status: FriendStatusType}) => {
 
             {/* TABS */}
             {selectedTab === "Profile" && <View className="flex-1 items-center justify-center">
-              {!loading || personalPosts ? (
+              {!profileLoading ? (
                 <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} ${isIpad && '-mt-[10px]'}`}>
                   <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>)
               : (
                 <View className="flex-1 items-center justify-center">
                 <ColoreActivityIndicator text="Summoning Bob..." />
-                </View>
+                </View>r
               )}
             </View>}
 

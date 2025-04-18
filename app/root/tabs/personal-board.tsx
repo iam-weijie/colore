@@ -156,10 +156,7 @@ const UserPersonalBoard = () => {
 
 
 
-  // USE EFFECTS
-  useEffect(() => {
-    console.log("selected", selectedBoard, !!selectedBoard)
-  }, [selectedBoard])
+
 
   return (
 <View className="flex-1 bg-[#FAFAFA]">
