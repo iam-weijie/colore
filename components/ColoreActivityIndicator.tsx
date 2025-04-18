@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -24,22 +24,23 @@ const ColoreActivityIndicator = ({
   const colorCycle = useSharedValue(0);
 
   // Continuous animations
-  rotation.value = withRepeat(
-    withTiming(360, { duration: 1800, easing: Easing.linear }),
-    -1
-  );
-
-  pulse.value = withRepeat(
-    withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-    -1,
-    true
-  );
-
-  colorCycle.value = withRepeat(
-    withTiming(colors.length, { duration: 4000, easing: Easing.linear }),
-    -1
-  );
-
+  useEffect(() => {
+    rotation.value = withRepeat(
+      withTiming(360, { duration: 1800, easing: Easing.linear }),
+      -1
+    );
+  
+    pulse.value = withRepeat(
+      withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  
+    colorCycle.value = withRepeat(
+      withTiming(colors.length, { duration: 4000, easing: Easing.linear }),
+      -1
+    );
+  }, []);
   const ringStyle = useAnimatedStyle(() => {
     const colorTop = interpolateColor(
       colorCycle.value % colors.length,
