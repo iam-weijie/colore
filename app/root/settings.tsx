@@ -438,9 +438,9 @@ const Settings = () => {
            {/* --- End New Section --- */}
 
 
-          <View className="my-[36px]">
+          <View className=" my-4 p-5 bg-white mx-6 rounded-[24px]">
             <TouchableOpacity onPress={handleSignOut}>
-              <Text className="font-JakartaBold text-xl text-red-500 text-center">
+              <Text className="font-JakartaBold text-lg text-red-500 text-center">
                 Sign Out
               </Text>
             </TouchableOpacity>

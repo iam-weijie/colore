@@ -8,7 +8,6 @@ import Action from "./InfoScreen";
 import { ActionType } from "@/lib/prompts";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   Text,
   TouchableOpacity,
@@ -23,6 +22,7 @@ import UserProfile from "./UserProfile";
 import { Dimensions } from "react-native";
 import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
 import InteractionButton from "./InteractionButton";
+import ColoreActivityIndicator from "./ColoreActivityIndicator";
 
 type PersonalBoardProps = {
     userId: string;
@@ -239,9 +239,9 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
 
   if (loading) {
     return (
-      <View className="flex-[0.8] justify-center items-center">
-        <ActivityIndicator size="small" color="#888888" />
-      </View>
+      <View className="flex-1 items-center justify-center">
+                <ColoreActivityIndicator text="Summoning Bob..." />
+                </View>
     );
   }
 

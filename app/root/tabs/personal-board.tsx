@@ -1,10 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import {
-  ActivityIndicator,
-  FlatList,
-  SafeAreaView,
-  TouchableOpacity,
+
   View,
   Image,
   Text,
@@ -20,6 +17,7 @@ import { Board } from "@/types/type";
 import EmojiBackground from "@/components/EmojiBackground";
 import InteractionButton from "@/components/InteractionButton";
 import BoardGallery from "@/components/BoardGallery"
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 const UserPersonalBoard = () => {
   const router = useRouter();
@@ -220,11 +218,8 @@ const UserPersonalBoard = () => {
           />
         </View>)}
         </View>) : (
-          <View className="flex-1 flex-row items-center justify-center">
-            <ActivityIndicator
-            size={"small"}
-            color={"#888"}
-            />
+          <View className="flex-1 items-center justify-center">
+          <ColoreActivityIndicator text="Summoning Bob..." />
           </View>
         )}
        

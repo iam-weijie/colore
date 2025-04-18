@@ -2,7 +2,6 @@ import { useUser } from "@clerk/clerk-expo";
 import { router, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Dimensions,
   FlatList,
@@ -29,6 +28,7 @@ import ColorSelector from "@/components/ColorSelector";
 import BoardGallery from "@/components/BoardGallery";
 import ItemContainer from "@/components/ItemContainer";
 import { icons } from "@/constants";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 const UserInfo = () => {
   const { user } = useUser();
@@ -66,7 +66,7 @@ const UserInfo = () => {
   const maxCharacters = 3000;
   const fetchUserData = async () => {
     try {
-      setLoading(true);
+      
       const response = await fetchAPI(
         `/api/users/getUserInfo?id=${user!.id}`,
         {
@@ -89,8 +89,6 @@ const UserInfo = () => {
       return response.data[0];
     } catch (error) {
       console.error("Failed to fetch user data:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -111,7 +109,7 @@ const UserInfo = () => {
       }
  const fetchDiscoverBoards = async () => {
      try {
-       setLoading(true)
+      
        const response = await fetchAPI(`/api/boards/getDiscoverBoards`,
            {
              method: "GET",
@@ -139,9 +137,7 @@ const UserInfo = () => {
  
      } catch (error) {
        console.error("Failed to fetch board data:", error);
-     } finally {
-       setLoading(false)
-     }
+     } 
    }
 
   const fetchUsers = async () => {
@@ -162,6 +158,7 @@ const UserInfo = () => {
   useEffect(() => {
     
     const getData = async () => {
+      setLoading(true);
       const data = await fetchUserData();
       const post = await fetchPersonalPosts();
 
@@ -173,10 +170,9 @@ const UserInfo = () => {
         data.country &&
         data.email &&
         data.username &&
-        post.length > 0 &&
-        joinedCommunities.length > 0
+        post.length > 0
       ) {
-        //rrouter.replace("/root/tabs/home");
+        router.replace("/root/tabs/home");
       } else {
         setUserData({
           city: data.city,
@@ -186,14 +182,16 @@ const UserInfo = () => {
           username: data.username,
         });
       }
+    
+        setLoading(false)
+      
+     
     };
     getData();
-  }, [user]);
-
-  useEffect(() => {
     fetchDiscoverBoards();
     fetchUsers();
-  }, [])
+  }, [user]);
+
 
   const submitPost = async () => {
     setLoading(true)
@@ -591,8 +589,12 @@ const UserInfo = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-    <CarouselPage
-      isActive={step == step}
+      { loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ColoreActivityIndicator text="Summoning Bob..." />
+        </View>
+      ) : 
+      ( <CarouselPage
       label={pages[step].label}
       caption={pages[step].caption}
       color={pages[step].color}
@@ -602,7 +604,7 @@ const UserInfo = () => {
       disabled={pages[step].disabled}
     >
       {pages[step].children}
-    </CarouselPage>
+    </CarouselPage>)}
   </SafeAreaView>
   );
 };

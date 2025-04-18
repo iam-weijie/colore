@@ -5,14 +5,14 @@ import {
   FlatList, 
   Text, 
   TouchableOpacity, 
-  View, 
-  ActivityIndicator, 
+  View,
   StyleSheet,
   Dimensions
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { addStatesToCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import ScrollingText from "./ScrollingText";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 // Define simpler interfaces for better performance
 interface State {
@@ -128,10 +128,9 @@ const CountryItem = memo(({
 // Simple loading component with no animations
 const LoadingComponent = () => {
   return (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator size="small" color="#888888" />
-      <Text style={styles.loadingText}>Loading countries...</Text>
-    </View>
+    <View className="flex-1 items-center justify-center">
+            <ColoreActivityIndicator text="Loading Countries..." />
+      </View>
   );
 };
 

@@ -18,7 +18,6 @@ import {
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
@@ -33,6 +32,8 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 import { useNavigationContext } from "@/components/NavigationContext";
 
@@ -635,7 +636,9 @@ console.log("happend", "id", id)
           <View className="flex-1">
             {/* Comment section */}
             <View className="h-full">
-              {loading && <ActivityIndicator size="small" color="#888888" />}
+              {loading &&  <View className="flex-1 items-center justify-center">
+                <ColoreActivityIndicator text="Summoning Bob..." />
+                </View>}
               {error && <Text className="text-red-500 mx-4">{error}</Text>}
               {!loading && !error && postComments.length === 0 && (
                 <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2 text-center">

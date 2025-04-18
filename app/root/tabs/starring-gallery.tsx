@@ -15,7 +15,6 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   View,
-  ActivityIndicator,
 } from "react-native";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
@@ -28,6 +27,7 @@ import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import RenderPromptCard from "@/components/RenderPromptCard";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 
 const screenWidth = Dimensions.get('window').width;
@@ -382,7 +382,9 @@ export default function Page() {
                
             <Text className="mt-4 mb-2 text-center text-[#FAFAFA] text-[12px] font-JakartaSemiBold"> Create a prompt with the given cues to view other people's responses </Text>
             {loading ? (
-              <ActivityIndicator size={"small"} color={"#888"}/>
+              <View className="flex-1 items-center justify-center">
+                <ColoreActivityIndicator text="Summoning Bob..." />
+                </View>
             ) 
             : (<Animated.FlatList
                 className="flex-1"

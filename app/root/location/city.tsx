@@ -4,10 +4,11 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { useUser } from "@clerk/clerk-expo";
 import { Href, router, useLocalSearchParams } from "expo-router";
-import { FlatList, Text, TouchableOpacity, View, ActivityIndicator, StyleSheet } from "react-native";
+import { FlatList, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScrollingText from "./ScrollingText";
 import { generateAcronym, isNameTooLong } from "./cacheStore";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 // Interface for City and State
 interface City {
@@ -196,10 +197,9 @@ const City = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#888888" />
-          <Text style={styles.loadingText}>Loading cities...</Text>
-        </View>
+        <View className="flex-1 items-center justify-center">
+                <ColoreActivityIndicator text="Loading cities..." />
+                </View>
       </SafeAreaView>
     );
   }

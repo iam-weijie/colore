@@ -8,7 +8,6 @@ import { fetchAPI } from "@/lib/fetch";
 import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
 import { useEffect, useRef, useState, useMemo } from "react";
 import {
-  ActivityIndicator,
   Animated,
   Dimensions,
   Easing,
@@ -21,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { GeographicalMode } from "@/types/type";
+import ColoreActivityIndicator from "./ColoreActivityIndicator";
 
 type MappingPostitProps = {
   id: number;
@@ -644,9 +644,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             <View className="flex-1 w-full h-full">
               {
                 /*loading */ false && (
-                  <View className="flex-[0.8] justify-center items-center">
-                    <ActivityIndicator size="small" color="#888888" />
-                  </View>
+                  <View className="flex-1 items-center justify-center">
+                <ColoreActivityIndicator text="Summoning Bob..." />
+                </View>
                 )
               }
               <ScrollView
