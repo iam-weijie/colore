@@ -762,7 +762,7 @@ const Menu = ({status}: {status: FriendStatusType}) => {
               : (
                 <View className="flex-1 items-center justify-center">
                 <ColoreActivityIndicator text="Summoning Bob..." />
-                </View>r
+                </View>
               )}
             </View>}
 
