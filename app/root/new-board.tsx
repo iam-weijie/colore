@@ -475,23 +475,7 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
                 
                 </ScrollView>
                 <View className="bottom-40  items-center justify-center">
-                  <View className='absolute flex-1'>
-                          <MaskedView
-                          style={{ width: 170, height: 90 }}
-                            maskElement={
-                        <Image
-                          source={ images.highlightLg1 
-                          }
-                          style={{
-                            width: 170,
-                            height: 90,
-                          }}
-                        />
-                      }
-                    >
-                      <View style={{ flex: 1, backgroundColor: "#FFF" }} />
-                    </MaskedView>
-                          </View>
+                 
                 <Text className=" font-JakartaBold text-[14px] text-black">
                   {`Restrictions: ${boardRestriction.length} / 3`}
                 </Text>

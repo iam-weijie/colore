@@ -722,7 +722,7 @@ const Menu = ({status}: {status: FriendStatusType}) => {
             {/* TABS */}
             {selectedTab === "Profile" && <View className="flex-1 items-center justify-center">
               {personalPosts ? (
-                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} ${isIpad && '-mt-[10px]'}`}><PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}}/></View>)
+                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'}  -mt-[15px]`}><PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}}/></View>)
               : (
                 <ActivityIndicator size={"small"}/>
               )}
