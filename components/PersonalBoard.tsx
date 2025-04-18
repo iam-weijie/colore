@@ -23,6 +23,7 @@ import { Dimensions } from "react-native";
 import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
 import InteractionButton from "./InteractionButton";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
+import React from "react";
 
 type PersonalBoardProps = {
     userId: string;

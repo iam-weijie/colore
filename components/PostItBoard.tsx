@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { GeographicalMode } from "@/types/type";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
+import React from "react";
 
 type MappingPostitProps = {
   id: number;
