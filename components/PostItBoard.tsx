@@ -630,6 +630,13 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     }
   };
 
+  if (postsWithPosition.length == 0) {
+    return (
+      <View className="flex-1 items-center justify-center">
+          <ColoreActivityIndicator text="Summoning Bob... Maybe he will find posts" />
+          </View>
+    )
+  }
   //console.log("remaingring loaded", stacks)
   return (
     <View className="flex-1 mb-[80px]">

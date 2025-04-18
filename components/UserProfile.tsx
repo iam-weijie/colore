@@ -250,6 +250,32 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
+  const post = {
+    id: -1,
+    clerk_id: userId,
+    user_id: userId, // this is supposed to be a temporary fix to prevent weird type mismatch errors
+    firstname: "",
+    username: "",
+    content: "Hi, I am a new Colore User!",
+    created_at: "",
+    expires_at: "",
+    city: "",
+    state: "",
+    country: "",
+    like_count: 0,
+    report_count: 0,
+    unread_comments: 0,
+    recipient_user_id: "",
+    pinned: true,
+    color: "yellow", //String for now. Should be changed to PostItColor
+    emoji: "",
+    notified: true,
+    prompt_id: -1,
+    prompt: "",
+    board_id: 0,
+    reply_to: -1,
+  }
+
   const fetchPersonalBoards = async () => {
     setProfileLoading(true)
       try {
@@ -333,31 +359,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       
       if (filteredPosts.length == 0 || response.length == 0) {
         setDisableInteractions(true)
-        const post = {
-          id: -1,
-          clerk_id: userId,
-          user_id: userId, // this is supposed to be a temporary fix to prevent weird type mismatch errors
-          firstname: "",
-          username: "",
-          content: "Hi, I am a new Colore User!",
-          created_at: "",
-          expires_at: "",
-          city: "",
-          state: "",
-          country: "",
-          like_count: 0,
-          report_count: 0,
-          unread_comments: 0,
-          recipient_user_id: "",
-          pinned: true,
-          color: "yellow", //String for now. Should be changed to PostItColor
-          emoji: "",
-          notified: true,
-          prompt_id: -1,
-          prompt: "",
-          board_id: 0,
-          reply_to: -1,
-        }
 
         setPersonalPosts([post])
 
@@ -617,6 +618,16 @@ const Menu = ({status}: {status: FriendStatusType}) => {
                     setFriendStatus(response);
                     setIsHandlingFriendRequest(false);
                   }
+                  if (user!.id !== userId && friendStatus.name === "friends") {
+                    router.push({  
+                      pathname: "/root/new-post",
+                      params: {
+                        recipient_id: userId,
+                        username: profileUser?.username,
+                        source: "board"
+                      },
+                  })
+                  }
                 }}
                 className="items-center justify-between px-4"
                 style={{
@@ -757,12 +768,11 @@ const Menu = ({status}: {status: FriendStatusType}) => {
             {/* TABS */}
             {selectedTab === "Profile" && <View className="flex-1 items-center justify-center">
               {!profileLoading ? (
-                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} ${isIpad && '-mt-[10px]'}`}>
+                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
                   <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>)
               : (
-                <View className="flex-1 items-center justify-center">
-                <ColoreActivityIndicator text="Summoning Bob..." />
-                </View>
+                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
+                  <PostContainer selectedPosts={[post]} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>
               )}
             </View>}
 
