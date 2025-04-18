@@ -2,7 +2,7 @@ import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import {
   PostModalProps,
 } from "@/types/type";

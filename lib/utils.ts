@@ -122,7 +122,7 @@ export const AlgorithmRandomPosition = (isPinned: boolean, prevPost: Position) =
   const screenHeight = Dimensions.get("window").height / 1.97;
   const screenWidth  = Dimensions.get("window").width / 1.8;
 
-  // pinned notes still get their fixed “stuck” spot
+  // pinned notes still get their fixed "stuck" spot
   if (isPinned) {
     return {
       top:  60 + Math.random() * 10,
@@ -130,7 +130,7 @@ export const AlgorithmRandomPosition = (isPinned: boolean, prevPost: Position) =
     };
   }
 
-  // minimum “push” in px, maximum is half the screen
+  // minimum "push" in px, maximum is half the screen
   const MIN_OFFSET = 40;
   const MAX_OFFSET_Y = screenHeight  / 1.25;
   const MAX_OFFSET_X = screenWidth;
@@ -174,3 +174,58 @@ export const AlgorithmRandomPosition = (isPinned: boolean, prevPost: Position) =
 
   return { top: newTop, left: newLeft };
 };
+
+/**
+ * Formats a date to a relative time string (e.g., "just now", "1m", "2h", "3d", "1w", "2mo", "1y")
+ * @param date The date to format (Date object or string)
+ * @returns A string representing the relative time
+ */
+export function getRelativeTime(date: Date | string): string {
+  const now = new Date();
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Get time difference in milliseconds
+  const diff = now.getTime() - dateObj.getTime();
+  
+  // Convert to seconds
+  const seconds = Math.floor(diff / 1000);
+  
+  // Less than a minute
+  if (seconds < 60) {
+    return 'just now';
+  }
+  
+  // Minutes (less than an hour)
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+  
+  // Hours (less than a day)
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h`;
+  }
+  
+  // Days (less than a week)
+  const days = Math.floor(hours / 24);
+  if (days < 7) {
+    return `${days}d`;
+  }
+  
+  // Weeks (less than a month)
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) {
+    return `${weeks}w`;
+  }
+  
+  // Months (less than a year)
+  const months = Math.floor(days / 30);
+  if (months < 12) {
+    return `${months}mo`;
+  }
+  
+  // Years
+  const years = Math.floor(days / 365);
+  return `${years}y`;
+}

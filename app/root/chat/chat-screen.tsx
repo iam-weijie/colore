@@ -9,7 +9,7 @@ import {
   cancelFriendRequest,
   unfriend,
 } from "@/lib/friend";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import {
   ConversationItem,
   FriendRequest,
