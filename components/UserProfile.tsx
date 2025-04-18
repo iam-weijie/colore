@@ -458,7 +458,7 @@ const Menu = ({status}: {status: FriendStatusType}) => {
 }
 
   return (
-    <View className="absolute w-full h-full flex-1 ">
+    <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
 
             
 
