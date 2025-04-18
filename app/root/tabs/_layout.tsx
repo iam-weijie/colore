@@ -89,7 +89,7 @@ const HapticTabBarButton: React.FC<HapticTabBarButtonProps> = ({ children, onPre
       style={style} // Apply only the passed style to Pressable
       {...rest}
     >
-      <Animated.View style={animatedStyle}> {/* Wrap children in Animated.View */}
+      <Animated.View style={[animatedStyle, {alignItems: 'center'}]}> {/* Wrap children in Animated.View */}
         {children}
       </Animated.View>
     </Pressable>

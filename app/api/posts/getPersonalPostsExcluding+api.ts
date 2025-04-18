@@ -56,7 +56,9 @@ export async function GET(request: Request) {
 
     const response = await sql(query);
 
-    return new Response(JSON.stringify({ data: response }), {
+    const personalPosts = response.filter((p) => !p.board_id)
+
+    return new Response(JSON.stringify({ data: personalPosts }), {
       status: 200,
     });
   } catch (error) {

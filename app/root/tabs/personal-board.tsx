@@ -73,7 +73,7 @@ const UserPersonalBoard = () => {
             color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           }));
         
-          setMyBoards([...boardsWithColor, personalBoard]);
+          setMyBoards([personalBoard, ...boardsWithColor]);
         } else {
          
           setMyBoards(personalBoard)

@@ -1,5 +1,6 @@
 import React, { useEffect, useState  } from "react";
 import { useUser } from "@clerk/clerk-expo";
+import { useGlobalContext } from "@/app/globalcontext";
 import {
   ActivityIndicator,
   FlatList,
@@ -16,8 +17,9 @@ import { Board } from "@/types/type";
   
 const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
   
-     const router = useRouter();
-      const { user } = useUser();
+  const router = useRouter();
+  const { user } = useUser();
+
 
     return (
       <Animated.View
@@ -99,6 +101,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
 
   const BoardGallery = ({ boards }) => {
     const [allBoards, setAllBoards] = useState<any | null>(null);
+    const { isIpad } = useGlobalContext();
   
     useEffect(() => {
       if (allBoards) {
@@ -109,35 +112,39 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
  
     return (
       <FlatList
-      className="flex-1"
-      data={boards}
-      keyExtractor={(item) => item.id.toString()}
-      numColumns={2}
-      renderItem={({ item }) => <BoardContainer item={item} />}
-      contentContainerStyle={{
-        paddingHorizontal: 8,
-        paddingBottom: 20,
-      }}
-      columnWrapperStyle={{
-        justifyContent: 'space-between',
-        paddingHorizontal: 8,
-        marginBottom: 16,
-      }}
-      showsVerticalScrollIndicator={false}
-      ListEmptyComponent={
-      <View className="flex-1 flex-row items-center justify-center">
-        <Text>
-          No Boards Yet.
-        </Text>
-      </View>
-      }
-      ListFooterComponent={<View className="h-20" />} // Add some bottom padding
-      // Optimize performance
-      initialNumToRender={4}
-      maxToRenderPerBatch={4}
-      windowSize={5}
-      removeClippedSubviews={true}
-    />
+  className="flex-1"
+  data={boards}
+  keyExtractor={(item) => item.id.toString()}
+  numColumns={isIpad ? 8 : 2}
+  renderItem={({ item }) => <BoardContainer item={item} />}
+  contentContainerStyle={{
+    paddingHorizontal: isIpad ? 16 : 8, // More padding on iPad
+    paddingBottom: 20,
+  }}
+  columnWrapperStyle={isIpad ? {
+    justifyContent: 'flex-start', // Align items from left
+    gap: 12, // Consistent gap between items
+    marginBottom: 16,
+  } : {
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    marginBottom: 16,
+  }}
+  showsVerticalScrollIndicator={false}
+  ListEmptyComponent={
+    <View className="flex-1 items-center justify-center p-8">
+      <Text className="text-gray-500">
+        No Boards Yet.
+      </Text>
+    </View>
+  }
+  ListFooterComponent={<View className="h-20" />}
+  // Performance optimizations
+  initialNumToRender={isIpad ? 16 : 4} // Render 2 full rows initially on iPad
+  maxToRenderPerBatch={isIpad ? 16 : 4}
+  windowSize={isIpad ? 10 : 5} // Larger window for iPad
+  removeClippedSubviews={true}
+/>
     )
   }
 

@@ -44,7 +44,7 @@ import Circle from "./Circle";
 import Settings from "@/app/root/settings";
 import BoardGallery from "./BoardGallery";
 import PersonalBoard from "./PersonalBoard";
-
+import PostContainer from "./PostContainer";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View 
@@ -117,6 +117,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [isFocusedOnProfile, setIsFocusedOnProfile] = useState<boolean>(true);
   const [selectedTab, setSelectedTab] = useState<string>("Profile");
 
+  const [personalPosts, setPersonalPosts] = useState<Post[]>([]);
+
   const isEditable = user!.id === userId;
 
 
@@ -181,6 +183,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       fetchUserData();
       fetchPersonalBoards();
       fetchCommunityBoards();
+      fetchPersonalPosts();
       // Reload nickname data
       const getData = async () => {
         const data = await fetchCurrentNickname();
@@ -319,6 +322,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       }
     }
 
+  const fetchPersonalPosts = async () => {
+      const response = await fetchAPI(
+        `/api/posts/getPersonalPosts?number=${8}&recipient_id=${userId}&user_id=${user!.id}`
+      );
+  
+      const filteredPosts = response.data.filter((p) => p.pinned)
+      console.log("personal post", filteredPosts)
+      setPersonalPosts(filteredPosts)
+  
+    }
+  
+
   useEffect(() => {
     fetchUserData();
   }, [isFocusedOnProfile]);
@@ -369,6 +384,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const handleReportPress = () => {
     Linking.openURL("mailto:support@colore.ca");
   };
+
 
   // to prevent database errors,
   // don't load the "send friend request"
@@ -463,7 +479,7 @@ const Menu = ({status}: {status: FriendStatusType}) => {
             
 
            {/* HEADER */}
-            <View className="h-[18%] flex-row justify-start items-end bg-white">
+            <View className="h-[18%] flex-row justify-start items-end bg-white z-[100]">
            
               <View className="flex-row w-full  justify-between items-center pl-11 pr-6">
                 <Animated.View entering={FadeIn.duration(800)}>
@@ -636,7 +652,7 @@ const Menu = ({status}: {status: FriendStatusType}) => {
          
 
             {/* NAVIGATE AWAY */}
-            <View className="absolute top-14"
+            <View className="absolute top-14 z-[101]"
             style={{
               [!isEditable ? 'left' : 'right'] :  16,
             }}>
@@ -652,7 +668,7 @@ const Menu = ({status}: {status: FriendStatusType}) => {
             </View>
 
             {/* TAB SELECTION */}
-            <View className="flex flex-row items-center justify-start bg-white pl-2 pr-6">
+            <View className="flex flex-row items-center justify-start bg-white pl-2 pr-6 z-[100]">
               <TabNavigation
                 name={"Profile"}
                 focused={selectedTab === "Profile"}
@@ -704,8 +720,12 @@ const Menu = ({status}: {status: FriendStatusType}) => {
             </View>
 
             {/* TABS */}
-            {selectedTab === "Profile" && <View className="flex-1">
-            <PersonalBoard userId={userId} boardId={0}/>
+            {selectedTab === "Profile" && <View className="flex-1 items-center justify-center">
+              {personalPosts ? (
+                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} ${isIpad && '-mt-[10px]'}`}><PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}}/></View>)
+              : (
+                <ActivityIndicator size={"small"}/>
+              )}
             </View>}
 
             {selectedTab === "Posts" && <View className="flex-1 bg-[#FAFAFA] pb-24">

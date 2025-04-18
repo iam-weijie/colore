@@ -79,6 +79,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
     return forceStack(post.id); // Memoize newStackedPosition to prevent recalculation
   }, [forceStack, post.id]);
 
+
   // Separate useEffect for setNewPosition
   useEffect(() => {
     setNewPosition((prev) => {
