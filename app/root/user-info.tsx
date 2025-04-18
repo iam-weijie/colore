@@ -172,7 +172,7 @@ const UserInfo = () => {
         data.username &&
         post.length > 0
       ) {
-        router.replace("/root/tabs/home");
+        //rrouter.replace("/root/tabs/home");
       } else {
         setUserData({
           city: data.city,
