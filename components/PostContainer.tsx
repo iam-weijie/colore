@@ -115,11 +115,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
     return stack ? stack.elements : selectedPosts;
   }, [stacks, selectedPosts]);
 
-  console.log(
-    "post length: ", post.length, "\n\n",
-    "selectedPosts length: ", selectedPosts.length, 
-    "included in stack: ", stacks.find((stack) => stack.ids.includes(selectedPosts[0].id)))
-
 
   useEffect(() => {
     fetchUserdata();
