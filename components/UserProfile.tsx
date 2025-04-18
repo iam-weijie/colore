@@ -27,7 +27,6 @@ import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   Text,
@@ -45,6 +44,7 @@ import Settings from "@/app/root/settings";
 import BoardGallery from "./BoardGallery";
 import PersonalBoard from "./PersonalBoard";
 import PostContainer from "./PostContainer";
+import ColoreActivityIndicator from "./ColoreActivityIndicator";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View 
@@ -250,9 +250,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   };
 
   const fetchPersonalBoards = async () => {
-    console.log("isMe?", userId === user!.id)
+    setLoading(true)
       try {
-        setLoading(true)
+        
         const response = await fetchAPI(`/api/boards/getBoards?user_id=${userId}`,
             {
               method: "GET",
@@ -755,11 +755,13 @@ const Menu = ({status}: {status: FriendStatusType}) => {
 
             {/* TABS */}
             {selectedTab === "Profile" && <View className="flex-1 items-center justify-center">
-              {personalPosts ? (
+              {!loading || personalPosts ? (
                 <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} ${isIpad && '-mt-[10px]'}`}>
                   <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>)
               : (
-                <ActivityIndicator size={"small"}/>
+                <View className="flex-1 items-center justify-center">
+                <ColoreActivityIndicator text="Summoning Bob..." />
+                </View>
               )}
             </View>}
 

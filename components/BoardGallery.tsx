@@ -2,7 +2,6 @@ import React, { useEffect, useState  } from "react";
 import { useUser } from "@clerk/clerk-expo";
 import { useGlobalContext } from "@/app/globalcontext";
 import {
-  ActivityIndicator,
   FlatList,
   SafeAreaView,
   TouchableOpacity,

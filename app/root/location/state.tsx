@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, memo } from "react";
 import { router, useLocalSearchParams, Href } from "expo-router";
-import { FlatList, Text, TouchableOpacity, ActivityIndicator, View, Alert, StyleSheet } from "react-native";
+import { FlatList, Text, TouchableOpacity, View, Alert, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getStatesFromCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import { useUser } from "@clerk/clerk-expo";
@@ -8,6 +8,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { useNavigationContext } from "@/components/NavigationContext";
 import ScrollingText from "./ScrollingText";
 import { useAlert } from '@/notifications/AlertContext';
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 // Define the State interface
 interface State {
@@ -227,9 +228,8 @@ const State = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#888888" />
-          <Text style={styles.loadingText}>Loading states...</Text>
+        <View className="flex-1 items-center justify-center">
+            <ColoreActivityIndicator text="Summoning Bob..." />
         </View>
       </SafeAreaView>
     );

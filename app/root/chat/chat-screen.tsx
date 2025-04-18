@@ -29,7 +29,6 @@ import { icons } from "@/constants/index";
 import { AntDesign } from "@expo/vector-icons";
 import {
   Alert,
-  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
@@ -60,6 +59,7 @@ import { useAlert } from '@/notifications/AlertContext';
 import TabNavigation from "@/components/TabNavigation";
 import { useGlobalContext } from "@/app/globalcontext";
 import ItemContainer from "@/components/ItemContainer";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -634,8 +634,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                             />
                           </View>
                           {loading ? (
-                                        <View className="flex-[0.8] justify-center items-center">
-                                          <ActivityIndicator size="small" color="#888888" />
+                                        <View className="flex-1 items-center justify-center">
+                                        <ColoreActivityIndicator text="Summoning Bob..." />
                                         </View>
                                       ) : error ? (
                                         <Text>{error}</Text>

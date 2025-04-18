@@ -3,7 +3,6 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   Image,
   FlatList,
@@ -30,6 +29,7 @@ import ModalSheet from "@/components/Modal";
 import {
   fetchFriends
 } from "@/lib/friend";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 const NewPost = () => {
   const { user } = useUser();
@@ -465,9 +465,9 @@ const fetchUsers = async () => {
                                   />
                                 </View>
                                 {loading ? (
-                                              <View className="flex-[0.8] mt-4 justify-center items-center">
-                                                <ActivityIndicator size="small" color="#888888" />
-                                              </View>
+                                               <View className="flex-1 items-center justify-center">
+                                               <ColoreActivityIndicator text="Summoning Bob..." />
+                                               </View>
                                             ) : error ? (
                                               <Text>{error}</Text>
                                             ) : (
