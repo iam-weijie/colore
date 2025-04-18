@@ -266,13 +266,7 @@ const Settings = () => {
           <View className=" mx-6">
           <View className=" my-4 bg-[#fff] text-[#000] rounded-[24px] p-5">
              <Text 
-             className="text-lg font-JakartaBold"
-             style={{
-              maxWidth: 80,
-              borderBottomWidth: 4, 
-              borderBottomColor: '#93c5fd', // pink for example
-              paddingBottom: -4 
-             }}>
+             className="text-lg font-JakartaBold">
                Account
              </Text>
              </View>
@@ -338,13 +332,7 @@ const Settings = () => {
           <View className=" mx-6">
           <View className=" my-4 bg-[#fff] text-[#000] rounded-[24px] p-5">
              <Text 
-             className="text-lg font-JakartaBold"
-             style={{
-              maxWidth: 80,
-              borderBottomWidth: 4, 
-              borderBottomColor: '#CFB1FB', // pink for example
-              paddingBottom: -4 
-             }}>
+             className="text-lg font-JakartaBold">
                Activity
              </Text>
              </View>
@@ -418,13 +406,7 @@ const Settings = () => {
           <View className=" mx-6">
             <View className=" my-4 bg-[#fff] text-[#000] rounded-[24px] p-5">
              <Text 
-             className="text-lg font-JakartaBold"
-             style={{
-              maxWidth: 150,
-              borderBottomWidth: 4, 
-              borderBottomColor: '#FACC15', // pink for example
-              paddingBottom: -4 
-             }}>
+             className="text-lg font-JakartaBold">
                Audio & Haptics
              </Text>
              </View>
