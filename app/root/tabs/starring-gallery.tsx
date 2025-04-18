@@ -40,14 +40,14 @@ const RenderPromptCard = ({item, userId, promptContent, updatePromptContent, han
       onPress={() => Keyboard.dismiss()}
       onPressIn={() => Keyboard.dismiss()}
     >
-  <View className="flex-1 flex-column items-center justify-center mt-4 mb-8 py-8 rounded-[48px]" 
+  <View className="flex-1 flex-column items-center justify-center mt-4 mb-8 py-8 rounded-[48px] " 
  style={{
   backgroundColor:  "white",
   width: screenWidth * 0.85}}>
 
   <View className="w-[85%] flex-1 mx-auto flex-col items-center justify-center">
 
-  <Text className="my-1 text-[14px] font-JakartaBold text-[#888]">{item.theme}</Text>
+  <Text className="my-1 text-[14px] font-JakartaBold text-[#CCC]">{item.theme}</Text>
     <Text 
     
     className="text-[24px] text-center font-JakartaBold text-[#000]">{item.cue}...</Text>
@@ -290,7 +290,7 @@ export default function Page() {
     setLoading(false);
   };
 
-  if (!selectedPostRef.current) return null; // or your skeleton
+ // if (!selectedPostRef.current) return null; // or your skeleton
 
   if (loading) {
     return (

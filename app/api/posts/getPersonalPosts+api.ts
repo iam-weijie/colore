@@ -42,6 +42,7 @@ export async function GET(request: Request) {
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
       WHERE p.recipient_user_id = '${recipientId}'
         AND p.post_type = 'personal'
+        AND (p.board_id IS NULL OR p.board_id < 0)
       ORDER BY p.created_at DESC
       LIMIT ${number};
     `;
@@ -50,6 +51,8 @@ export async function GET(request: Request) {
    
     const response = await sql(query);
 
+
+    console.log("personal post", response)
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });

@@ -180,6 +180,18 @@ declare interface PostModalProps {
   scrollToLoad?: () => void;
 }
 
+declare interface PostContainerProps {
+  selectedPosts: Post[];
+  handleCloseModal: () => void;
+  invertedColors?: boolean;
+  handleUpdate?: (isPinned: boolean) => void | Promise<void>;
+  infiniteScroll?: boolean;
+  header?: React.ReactElement;
+  isPreview?: boolean;
+  infiniteScroll?: boolean;
+  scrollToLoad?: () => void;
+}
+
 declare interface UserPostsGalleryProps {
   posts: Post[];
 }
