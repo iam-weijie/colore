@@ -27,11 +27,12 @@ import { icons, temporaryColors } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
 import { LinearGradient } from 'expo-linear-gradient';
+import RenderPromptCard from "@/components/RenderPromptCard";
 
 
 const screenWidth = Dimensions.get('window').width;
 
-const RenderPromptCard = ({item, userId, promptContent, updatePromptContent, handlePromptSubmit} : {
+/*const RenderPromptCard = ({item, userId, promptContent, updatePromptContent, handlePromptSubmit} : {
   item: Prompt, userId: string, promptContent: string, updatePromptContent: (text: string) => void, handlePromptSubmit: (item: Prompt) => void }) => { 
 
     return (
@@ -82,7 +83,7 @@ const RenderPromptCard = ({item, userId, promptContent, updatePromptContent, han
   />
 </View>
 </TouchableWithoutFeedback>
-);}
+);}*/
 
 export default function Page() {
   const { user } = useUser();
@@ -290,18 +291,6 @@ export default function Page() {
     setLoading(false);
   };
 
- // if (!selectedPostRef.current) return null; // or your skeleton
-
-  if (loading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center">
-        <ActivityIndicator 
-        size={"small"}
-        color={"#888"}
-        ></ActivityIndicator>
-      </SafeAreaView>
-    );
-  }
 
   const updatePromptContent = (text: string) => {
     const maxCharacters = 40
@@ -445,7 +434,13 @@ export default function Page() {
           elevation: 6, // Android shadow
         }}
       >
-        {RenderPromptCard({ item: item, userId: user!.id, promptContent: promptContent, updatePromptContent, handlePromptSubmit})}
+        <RenderPromptCard
+  item={item}
+  userId={user!.id}
+  promptContent={promptContent}
+  updatePromptContent={updatePromptContent}
+  handlePromptSubmit={handlePromptSubmit}
+/>
       </Animated.View>
     );
   }}

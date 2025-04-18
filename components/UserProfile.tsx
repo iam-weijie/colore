@@ -118,6 +118,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [selectedTab, setSelectedTab] = useState<string>("Profile");
 
   const [personalPosts, setPersonalPosts] = useState<Post[]>([]);
+  const [disableInteractions, setDisableInteractions] = useState<boolean>(false);
 
   const isEditable = user!.id === userId;
 
@@ -328,8 +329,41 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
       );
   
       const filteredPosts = response.data.filter((p) => p.pinned)
-      console.log("personal post", filteredPosts)
-      setPersonalPosts(filteredPosts)
+      
+      if (filteredPosts.length == 0 || response.length == 0) {
+        setDisableInteractions(true)
+        const post = {
+          id: -1,
+          clerk_id: userId,
+          user_id: userId, // this is supposed to be a temporary fix to prevent weird type mismatch errors
+          firstname: "",
+          username: "",
+          content: "Hi, I am a new Colore User!",
+          created_at: "",
+          expires_at: "",
+          city: "",
+          state: "",
+          country: "",
+          like_count: 0,
+          report_count: 0,
+          unread_comments: 0,
+          recipient_user_id: "",
+          pinned: true,
+          color: "yellow", //String for now. Should be changed to PostItColor
+          emoji: "",
+          notified: true,
+          prompt_id: -1,
+          prompt: "",
+          board_id: 0,
+          reply_to: -1,
+        }
+
+        setPersonalPosts([post])
+
+      } else {
+        setPersonalPosts(filteredPosts)
+      }
+     
   
     }
   
@@ -722,7 +756,8 @@ const Menu = ({status}: {status: FriendStatusType}) => {
             {/* TABS */}
             {selectedTab === "Profile" && <View className="flex-1 items-center justify-center">
               {personalPosts ? (
-                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} ${isIpad && '-mt-[10px]'}`}><PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}}/></View>)
+                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} ${isIpad && '-mt-[10px]'}`}>
+                  <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>)
               : (
                 <ActivityIndicator size={"small"}/>
               )}
