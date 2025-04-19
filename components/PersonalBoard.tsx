@@ -359,6 +359,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
           <InteractionButton 
           label={"Reply"}
           showLabel={false}
+          icon={icons.pencil}
           color="#000"
           onPress={() => {
             router.push({
