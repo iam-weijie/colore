@@ -109,7 +109,7 @@ const fetchUserData = async () => {
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 10 : 6}&id=${user!.id}&mode=${geographicalMode}`
+      `/api/posts/getRandomPosts?number=${isIpad ? 24 : 16}&id=${user!.id}&mode=${geographicalMode}`
     );
     return response.data;
   };
@@ -186,9 +186,9 @@ const fetchUserData = async () => {
 
 
   return (
-    <SafeAreaView className="flex-1">
+    <View className="flex-1 pt-16 bg-white">
       <SignedIn>
-        <View className="flex-row justify-between items-center mx-7 mt-5">
+        <View className="flex-row justify-between items-center px-7 pt-5 bg-white mb-2">
           <Image
             source={require("@/assets/colore-word-logo.png")}
             style={{ width: 105, height: 45 }}
@@ -318,7 +318,7 @@ const fetchUserData = async () => {
          
           } />}
       </SignedIn>
-    </SafeAreaView>
+    </View>
   );
 }
 

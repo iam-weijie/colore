@@ -139,7 +139,7 @@ const Layout: React.FC = () => {
           paddingRight: 25,
           paddingLeft: 25,
           paddingBottom: isIpad ? 0 : 25,
-          boxShadow: "0px 0px 14px 3px rgba(0, 0, 0, 0.05)",
+          //boxShadow: "0px 0px 14px 3px rgba(0, 0, 0, 0.05)",
         },
       }}
     >

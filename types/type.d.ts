@@ -170,7 +170,7 @@ declare interface UserProfileProps {
 
 declare interface PostModalProps {
   isVisible: boolean;
-  selectedPost: Post;
+  selectedPosts: Post[];
   handleCloseModal: () => void;
   invertedColors?: boolean;
   handleUpdate?: (isPinned: boolean) => void | Promise<void>;
@@ -195,6 +195,15 @@ declare interface PostContainerProps {
 declare interface UserPostsGalleryProps {
   posts: Post[];
 }
+
+type MappingPostitProps = {
+  id: number;
+  coordinates: {
+    x_coordinate: number;
+    y_coordinate: number;
+  };
+};
+
 
 declare interface InputFieldProps extends TextInputProps {
   label: string;

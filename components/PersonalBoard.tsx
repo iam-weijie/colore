@@ -1,5 +1,7 @@
 import { useGlobalContext } from "@/app/globalcontext";
 import PostItBoard from "@/components/PostItBoard";
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
@@ -9,6 +11,7 @@ import { ActionType } from "@/lib/prompts";
 import { useEffect, useState } from "react";
 import {
   Image,
+  Pressable,
   Text,
   TouchableOpacity,
   View,
@@ -20,9 +23,10 @@ import { useCallback } from 'react';
 import { Post, Board } from "@/types/type";
 import UserProfile from "./UserProfile";
 import { Dimensions } from "react-native";
-import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
 import InteractionButton from "./InteractionButton";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
+import { MotiView } from 'moti';
+import { Easing } from 'react-native-reanimated';
 import React from "react";
 
 type PersonalBoardProps = {
@@ -46,6 +50,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
   const [postRefIDs, setPostRefIDS] = useState<number[]>([]);
   const [updatePinnedPosts, setUpdatePinnedPosts] = useState<boolean>(false);
   const [action, setAction] = useState(ActionType.NONE);
+  const screenHeight = Dimensions.get('window').height;
+  const [boardTilt, setBoardTilt] = useState({ x: 0, y: 0 });
 
   const fetchUserData = async () => {
     
@@ -96,7 +102,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
     }
     else {
       const viewerId = user!.id;
-      const maxPostOnScreen = postRefIDs.length == 0 ? (isIpad ? 10 : 6) : Math.min(postRefIDs.length  + 4, (isIpad ? 14 : 8) )
+      const maxPostOnScreen = postRefIDs.length == 0 ? (isIpad ? 24 : 16) : Math.min(postRefIDs.length  + 14, (isIpad ? 24 : 18) )
       setMaxPosts(maxPostOnScreen); 
     
       try {
@@ -254,72 +260,121 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
     );
   }
 
-  const getAction = (iniPosts: Post[]) => {
-    console.log(iniPosts.map((p) => p.created_at))
-    if (iniPosts.length > 0) {
-     
-      const lastPost = iniPosts[0]
-      const timeDifference = (Date.now() - new Date(lastPost.created_at).getTime()) / (1000 * 60 * 60 * 24)
+    // Parallax effect handler
+    const handleParallax = (event) => {
+      const { locationX, locationY } = event.nativeEvent;
+      const centerX = event.nativeEvent.pageX / Dimensions.get('window').width;
+      const centerY = event.nativeEvent.pageY / Dimensions.get('window').height;
+      
+      setBoardTilt({
+        x: (centerX - 0.5) * 5, // -2.5° to +2.5° tilt
+        y: (centerY - 0.5) * -3 // Reverse tilt for natural feel
+      });
+    };
+  
 
-        if (timeDifference > 3) {
-        setAction(ActionType.WHILEAGO)
-        } else { setAction(ActionType.NONE) }
-       
-        
-      } else {
-        setAction(ActionType.EMPTY)
-      }
-        
-  }
 
   return (
-    <View className="flex-1"
-    style={{
-      height: screenHeight
-    }}>
-      <SignedIn>
-        <PostItBoard 
-          key={shouldRefresh} // Add key to force re-render when shouldRefresh changes
-          userId={userId}
-          handlePostsRefresh={fetchPersonalPosts}
-          handleNewPostFetch={fetchNewPersonalPost}
-          handleUpdatePin={(ids) => updatePinPosts(ids)}
-          allowStacking={true}
-          showPostItText={true}
-          invertColors={true}
-        />
-        {/*<Action 
-        friendName={profileUser?.username ?? ""}
-         action={action} 
-         handleAction={() => {
-          router.push({
-            pathname: "/root/new-personal-post",
-            params: { 
-              recipient_id: userId,
-              source: 'board'
-            }
-          });
-          
-        }}/>*/}
-         <View className="flex-1 absolute bottom-5 self-center">
-                  <InteractionButton
-                  label="Reply"
-                  icon={icons.pencil}
-                  onPress={() => {
-                                router.push({
-                                  pathname: "root/new-post",
-                                  params: {
-                                    recipient_id: userId,
-                                    username: profileUser?.username,
-                                    boardId: boardId
-                                  }
-                                });
-                              }
-                            }
-                  />
-                </View>
-      </SignedIn>
-    </View>
+    <View 
+  className="flex-1 relative overflow-hidden" 
+  style={{ height: screenHeight }}
+  onTouchMove={handleParallax}
+  onTouchEnd={() => setBoardTilt({ x: 0, y: 0 })}
+>
+  {/* Animated Gradient Background */}
+  <MotiView
+    from={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ type: 'timing', duration: 800 }}
+    className="absolute inset-0"
+  >
+    <LinearGradient
+      colors={['#fdf4ff', '#f0f9ff', '#f3e8ff']} // softer pink, blue, purple
+      locations={[0, 0.5, 1]}
+      style={{ flex: 1 }}
+    />
+  </MotiView>
+
+  <SignedIn>
+    {/* Interactive Cork Board */}
+    <MotiView
+      from={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{
+        type: 'spring',
+        damping: 10,
+        mass: 0.5
+      }}
+      className="flex-1 mx-4 my-6 rounded-[48px] overflow-hidden"
+      style={{
+        backgroundColor: 'rgba(250, 250, 250, 0.88)',
+        borderWidth: 1,
+        borderColor: 'rgba(140, 140, 140, 0.25)',
+        transform: [
+          { perspective: 1000 },
+          { rotateX: `${boardTilt.y}deg` },
+          { rotateY: `${boardTilt.x}deg` }
+        ],
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+      }}
+    >
+      <PostItBoard
+        key={shouldRefresh}
+        userId={userId}
+        handlePostsRefresh={fetchPersonalPosts}
+        handleNewPostFetch={fetchNewPersonalPost}
+        handleUpdatePin={(ids) => updatePinPosts(ids)}
+        allowStacking={true}
+        showPostItText={true}
+        invertColors={false}
+      />
+    </MotiView>
+
+    <MotiView
+      from={{ translateY: 100, opacity: 0 }}
+      animate={{ translateY: 0, opacity: 1 }}
+      transition={{
+        type: 'spring',
+        damping: 10,
+        mass: 0.8,
+        delay: 300
+      }}
+      className="absolute bottom-6 self-center z-50"
+      style={{
+        shadowColor: '#f0f9ff',
+        shadowOpacity: 0.25,
+        shadowOffset: { width: 0, height: 4 },
+        shadowRadius: 10,
+        elevation: 6,
+      }}
+    >
+      
+      <View
+        className="mb-6"
+      >
+      
+          <InteractionButton 
+          label={"Reply"}
+          showLabel={false}
+          color="#000"
+          onPress={() => {
+            router.push({
+              pathname: "root/new-post",
+              params: { recipient_id: userId, username: profileUser?.username, boardId }
+            })
+          }}
+          />
+       
+      </View>
+    </MotiView>
+
+
+  </SignedIn>
+</View>
+
   );
 }
 

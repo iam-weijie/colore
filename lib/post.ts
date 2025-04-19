@@ -120,3 +120,15 @@ export const handleSavePost = async (postId: number, isSaved: boolean, userId: s
         console.error("Failed to update unread message:", error);
       } 
     };
+
+export   const distanceBetweenPosts = (
+        x_ref: number,
+        y_ref: number,
+        x: number,
+        y: number
+      ) => {
+        const x_diff = x_ref - x;
+        const y_diff = y_ref - y;
+        const distance = Math.sqrt(x_diff ** 2 + y_diff ** 2);
+        return distance;
+      };

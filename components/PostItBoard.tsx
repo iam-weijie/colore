@@ -1,5 +1,5 @@
 import { useGlobalContext } from "@/app/globalcontext";
-import PostIt from "@/components/PostIt";
+import DraggablePostIt from "./DraggablePostIt";
 import PostModal from "@/components/PostModal";
 import { icons, temporaryColors } from "@/constants";
 import { Post, PostWithPosition, Position } from "@/types/type";
@@ -13,32 +13,19 @@ import {
   Easing,
   Image, 
   PanResponder,
+  Pressable,
   RefreshControl,
   ScrollView,
   Text,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { GeographicalMode } from "@/types/type";
+import { GeographicalMode, MappingPostitProps } from "@/types/type";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import React from "react";
+import { distanceBetweenPosts } from "@/lib/post";
 
-type MappingPostitProps = {
-  id: number;
-  coordinates: {
-    x_coordinate: number;
-    y_coordinate: number;
-  };
-};
 
-type DraggablePostItProps = {
-  post: PostWithPosition;
-  updateIndex: () => void;
-  updatePosition: (x: number, y: number, post: PostWithPosition) => void;
-  onPress: () => void;
-  forceStack: (id: number) => MappingPostitProps;
-  showText?: boolean;
-};
 
 const screenHeight = Dimensions.get("screen").height;
 const screenWidth = Dimensions.get("screen").width;
@@ -53,191 +40,7 @@ const MappingPostIt = ({ id, coordinates }: MappingPostitProps) => {
   };
 };
 
-const DraggablePostIt: React.FC<DraggablePostItProps> = ({
-  post,
-  updateIndex,
-  updatePosition,
-  onPress,
-  forceStack,
-  showText = false,
-}) => {
-  const position = useRef(new Animated.ValueXY()).current;
-  const clickThreshold = 2;
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [fontColor, setFontColor] = useState<string>("#0000ff");
-  const { stacks, setStacks } = useGlobalContext();
-  const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(null);
-  const [isPinned, setIsPinned] = useState<boolean>(post.pinned);
 
-  const hasUpdatedPosition = useRef(false);
-
-  const getFontColorHex = (colorName: string | undefined) => {
-    const foundColor = temporaryColors.find((c) => c.name === colorName);
-    setFontColor(foundColor?.fontColor || "#ff0000");
-  };
-
-  const newStackedPosition = useMemo(() => {
-    return forceStack(post.id); // Memoize newStackedPosition to prevent recalculation
-  }, [forceStack, post.id]);
-
-
-  // Separate useEffect for setNewPosition
-  useEffect(() => {
-    setNewPosition((prev) => {
-      const prevX = prev?.coordinates?.x_coordinate ?? 0;
-      const prevY = prev?.coordinates?.y_coordinate ?? 0;
-
-      const newX = newStackedPosition.coordinates.x_coordinate;
-      const newY = newStackedPosition.coordinates.y_coordinate;
-
-      if (
-        Math.abs(prevX - newX) < 1 &&
-        Math.abs(prevY - newY) < 1
-      ) {
-        return prev; // No change, do not trigger re-render
-      }
-      return newStackedPosition; // Update with new position
-    });
-    //console.log("newStackedPosition", newStackedPosition);
-  }, [newStackedPosition]); // This runs only when newStackedPosition changes
-
-  // Original `useEffect` for handling position updates
-  useEffect(() => {
-    if (isPinned) return;
-    const listenerId = position.addListener(({ x, y }) => {
-      updatePosition(x, y, post);
-    });
-
-    return () => {
-      position.removeListener(listenerId);
-    };
-  }, [position, updatePosition, post]);
-  useEffect(() => {
-   // console.log("id", post.id, "is pinned?", post.pinned)
-    setIsPinned(post.pinned)
-  }, [post])
-
-  useEffect(() => {
-    if (isPinned) return;
-    if (stacks.length === 1 && newPosition && !hasUpdatedPosition.current) {
-      const dx =
-        newPosition.coordinates.x_coordinate -
-        post.position.left -
-        position.x.__getValue();
-      const dy =
-        newPosition.coordinates.y_coordinate -
-        post.position.top -
-        position.y.__getValue();
-
-      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-        Animated.timing(position, {
-          toValue: { x: dx + Math.random() * 15, y: dy + Math.random() * 15 },
-          duration: 150,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: false,
-        }).start();
-        hasUpdatedPosition.current = true;
-      }
-    }
-  }, [forceStack, newPosition, stacks]);
-
-  useEffect(() => {
-    getFontColorHex(post.color);
-  }, [post.color]);
-
-  useEffect(() => {
-    if (stacks.length == 0) {
-      hasUpdatedPosition.current = false; // Reset the flag when the stack is empty
-    }
-  }, [stacks]);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        
-        updateIndex();
-        if (isPinned) {
-          onPress()
-          return
-        };
-        setIsDragging(true);
-        position.extractOffset();
-      },
-      onPanResponderMove: (event, gestureState) => {
-        if (!isPinned) {
-          position.setValue({ x: gestureState.dx, y: gestureState.dy });
-        }
-      },
-      onPanResponderRelease: (event, gestureState) => {
-        if (isPinned) return;
-        const dx = gestureState.dx;
-        const dy = gestureState.dy;
-        position.extractOffset();
-
-        if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
-          onPress();
-        }
-        setIsDragging(false);
-      },
-    })
-  ).current;
-
-  return (
-    <Animated.View
-      {...panResponder.panHandlers}
-      style={{
-        transform: position.getTranslateTransform(),
-        opacity: 1,
-        position: "absolute",
-        top: post.position.top,
-        left: post.position.left
-      }}
-    >
-      <TouchableWithoutFeedback onPress={onPress}>
-        <PostIt color={post.color || "yellow"} />
-      </TouchableWithoutFeedback>
-      {isPinned && (
-        <View className="absolute text-black h-full -top-2 -left-2">
-          <View className="p-[6px] rounded-full bg-[#fafafa] flex-row items-center justify-start">
-          <Image 
-           source={icons.pin}
-           tintColor="black"
-           resizeMode="contain"
-           className="w-7 h-7"
-           style={{
-            opacity: 0.8,
-            transform: [{ scaleX: -1 }] // This flips the image vertically
-          }}/>
-           </View>
-        
-      </View>
-      )}
-      {!showText && (
-        <View className="absolute text-black w-full h-full items-center justify-center">
-          <Text style={{ fontSize: 50 }}>{post.emoji && post.emoji}</Text>
-        </View>
-      )}
-      {showText && (
-        <View className="absolute text-black w-full h-full items-center justify-center">
-          <Text
-            className="text-[14px] font-[500] text-black"
-            style={{
-              color: fontColor,
-              padding: 18,
-              fontStyle: "italic",
-            }}
-            numberOfLines={5}
-            ellipsizeMode="tail"
-          >
-            {post.content}
-          </Text>
-        </View>
-      )}
-    </Animated.View>
-  );
-};
 
 declare interface PostItBoardProps {
   userId: string;
@@ -271,35 +74,15 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   );
   const [isPinned, setIsPinned] = useState<boolean>(false);
   const [maps, setMap] = useState<MappingPostitProps[]>([]);
+  const [isPanningMode, setIsPanningMode] = useState(true);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const innerScrollViewRef = useRef<ScrollView>(null);
 
   if (!userId) {
     return null;
   }
 
-  const screenHeight = Dimensions.get("screen").height;
-  const screenWidth = Dimensions.get("screen").width;
-
- const AlgorithmNewPosition = (isPinned: boolean) => {
-
-    if (isPinned) {
-      return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
-    } else if (isIpad) {
-      const top = ((Math.random() - 0.5) * 2) * screenHeight / 3 + screenHeight / 4;
-      const left = ((Math.random() - 0.5) * 2) * screenWidth / 3 + screenWidth - screenWidth / 1.75
-      return {
-        top:  top,
-        left: left
-      }
-    }
-     else {
-      const top = ((Math.random() - 0.5) * 2) * screenHeight / 4 + screenHeight / 4;
-      const left = ((Math.random() - 0.5) * 2) * screenWidth / 4 + screenWidth / 4
-      return {
-        top:  top,
-        left: left
-      }
-    }
-}
 
   const fetchRandomPosts = async () => {
     setLoading(true);
@@ -309,15 +92,19 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
       const postsWithPositions: Array<Post & { position: Position }> = [];
       // pick some “seed” position for the very first post
-      let prevPosition: Position = { top: 0, left: 0 };
+      let prevPosition = {
+        top: Math.random() * (screenHeight - 160),
+        left: Math.random() * (screenWidth - 160),
+      };
 
-      for (const post of posts) {
-        // compute new position based on the last one
-        const position = AlgorithmRandomPosition(post.pinned, prevPosition);
-        postsWithPositions.push({ ...post, position });
-        // “remember” it for the next iteration
-        prevPosition = position;
-      }
+      
+        for (const post of posts) {
+          const position = AlgorithmRandomPosition(post.pinned, null, posts.length);
+          if (position) {
+            postsWithPositions.push({ ...post, position });
+          }
+        }
+      
 
       // Initialize each post as a stack
       setStacks((prevStack) => prevStack.filter((stack) => stacks))
@@ -455,17 +242,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     setStacks(updatedStacks);
   };
 
-  const distanceBetweenPosts = (
-    x_ref: number,
-    y_ref: number,
-    x: number,
-    y: number
-  ) => {
-    const x_diff = x_ref - x;
-    const y_diff = y_ref - y;
-    const distance = Math.sqrt(x_diff ** 2 + y_diff ** 2);
-    return distance;
-  };
+
   const updatePostPosition = (
     dx: number,
     dy: number,
@@ -483,6 +260,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       ...prevMap.filter((p) => p.id !== id),
       postItCoordinates,
     ]);
+    
   };
 
 
@@ -505,15 +283,17 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     //console.log("maps", maps, maps.length)
     //console.log("stacks", stacks)
   }, [maps]);
+
   useEffect(() => {
     fetchRandomPosts();
     console.log("mode", mode)
   }, [mode]);
 
+  const handleLayout = () => {
+    scrollViewRef.current?.scrollTo({ x: screenWidth, animated: false });
+    innerScrollViewRef.current?.scrollTo({ y: screenHeight, animated: false });
+  };
 
-  useEffect(() => {
-    fetchRandomPosts();
-  }, []);
 
   const forceStack = (id: number) => {
     return maps.find((p) => p.id == id);
@@ -639,66 +419,104 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     )
   }
   //console.log("remaingring loaded", stacks)
+
+
   return (
-    <View className="flex-1 mb-[80px]">
-      <SignedIn>
-        <TouchableWithoutFeedback
-          className="flex-1 w-full h-full"
-          onLongPress={handleGatherPosts}
+    <View className="flex-1 bg-[#FAFAFAr]">
+  <SignedIn>
+      {/*<Pressable
+      className="flex-1"
+  onTouchStart={() => {
+    console.log("Started")
+    panTimer.current = setTimeout(() => {
+      setIsPanningMode(true);
+      console.log("true")
+    }, 200);
+  }}
+  onTouchEnd={() => {
+    if (panTimer.current) clearTimeout(panTimer.current);
+    setIsPanningMode(false);
+    console.log("ended", isPanningMode)
+  }}
+  style={{ flex: 1 }}
+>*/}
+      {error ? (
+        <View className="flex-1 items-center justify-center">
+        <ColoreActivityIndicator text="There seems to be an error..." />
+        </View>
+      ) : (
+        <ScrollView
+          ref={scrollViewRef}
+          onLayout={handleLayout}
+          style={{ flex: 1 }}
+          maximumZoomScale={3}
+          minimumZoomScale={1}
+          bounces={false}
+          contentContainerStyle={{
+            width: screenWidth * 3,
+            height: screenHeight * 3,
+          }}
+          scrollEnabled={isPanningMode}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={handleReloadPosts}
+            />
+          }
+          horizontal={true}
+          nestedScrollEnabled
         >
-          {error ? (
-            <Text>{error}</Text>
-          ) : (
-            <View className="flex-1 w-full h-full">
-              {
-                /*loading */ false && (
-                  <View className="flex-1 items-center justify-center">
-                <ColoreActivityIndicator text="Summoning Bob..." />
-                </View>
-                )
-              }
-              <ScrollView
-                refreshControl={
-                  <RefreshControl
-                    refreshing={loading}
-                    onRefresh={handleReloadPosts}
-                  />
-                }
-                style={{ position: "absolute", width: "100%", height: "100%" }}
-              />
-
-              <View className="relative">
-                {postsWithPosition.map((post, index) => {
-                  return (
-                    <DraggablePostIt
-                      key={post.id}
-                      updateIndex={() => reorderPost(post)}
-                      updatePosition={(dx, dy, post) =>
+          <ScrollView
+            ref={innerScrollViewRef}
+            onLayout={handleLayout}
+            nestedScrollEnabled
+            scrollEnabled={isPanningMode}
+            contentContainerStyle={{
+              width: screenWidth * 3,
+              height: screenHeight * 3,
+            }}
+            
+          >
+            <View className=" flex-1 w-full h-full relative">
+              {postsWithPosition.map((post, index) => {
+                return (
+                  <DraggablePostIt
+                    key={post.id}
+                    updateIndex={() => reorderPost(post)}
+                    updatePosition={(dx, dy, post) =>
+                      
                         updatePostPosition(dx, dy, post)
-                      }
-                      post={post}
-                      forceStack={forceStack}
-                      onPress={() => handlePostPress(post)}
-                      showText={showPostItText}
-                    />
-                  );
-                })}
-              </View>
-
-              {selectedPost && (
-                <PostModal
-                  isVisible={!!selectedPost}
-                  selectedPost={selectedPost}
-                  handleCloseModal={handleCloseModal}
-                  handleUpdate={(isPinned: boolean) => handleIsPinned(isPinned)}
-                  invertedColors={invertColors}
-                />
-              )}
+                        
+                    }
+                    post={post}
+                    forceStack={forceStack}
+                    onPress={() => handlePostPress(post)}
+                    showText={showPostItText}
+                    enabledPan={() => {
+                      setIsPanningMode((prev) => !prev)
+                      console.log("did something")}}
+                  />
+                );
+              })}
             </View>
-          )}
-        </TouchableWithoutFeedback>
-      </SignedIn>
-    </View>
+
+            {selectedPost && (
+              <PostModal
+                isVisible={!!selectedPost}
+                selectedPosts={[selectedPost]}
+                handleCloseModal={handleCloseModal}
+                handleUpdate={(isPinned: boolean) => handleIsPinned(isPinned)}
+                invertedColors={invertColors}
+              />
+            )}
+          </ScrollView>
+        </ScrollView>
+      )}
+      {/*</Pressable>*/}
+  </SignedIn>
+</View>
   );
 };
 

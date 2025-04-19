@@ -17,7 +17,7 @@ import PostContainer from "./PostContainer";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
-  selectedPost,
+  selectedPosts,
   handleCloseModal,
   handleUpdate,
   invertedColors = false,
@@ -37,7 +37,7 @@ const PostModal: React.FC<PostModalProps> = ({
   >
     
     <PostContainer 
-    selectedPosts={[selectedPost]} 
+    selectedPosts={selectedPosts} 
     handleCloseModal={handleCloseModal} 
     handleUpdate={handleUpdate} 
     invertedColors={invertedColors} 

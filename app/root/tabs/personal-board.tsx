@@ -159,7 +159,7 @@ const UserPersonalBoard = () => {
 
 
   return (
-<View className="flex-1 bg-[#FAFAFA]">
+<View className="flex-1">
       <View className="flex-1 flex-row max-h-[16%] justify-between items-end pl-11  pr-6  bg-white z-10">
 
         <Text className={`text-2xl font-JakartaBold`}>

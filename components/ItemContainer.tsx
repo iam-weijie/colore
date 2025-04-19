@@ -96,7 +96,9 @@ const ItemContainer = ({
               {label}
             </Text>
             {caption && (
-              <Text className="text-[12px] text-gray-400">
+              <Text 
+              className="text-[12px] text-gray-400"
+              numberOfLines={2}>
                 {caption}
               </Text>
             )}

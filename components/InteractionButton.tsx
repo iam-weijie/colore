@@ -18,11 +18,13 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const InteractionButton = ({ 
   label, 
   onPress, 
+  showLabel,
   icon, 
   color 
 }: { 
   label: string, 
   onPress: () => void, 
+  showLabel: boolean,
   icon?: ImageSourcePropType, 
   color?: string 
 }) => {
@@ -103,12 +105,12 @@ const InteractionButton = ({
         </AnimatedTouchable>
       </Animated.View>
       
-      <Animated.Text 
+      {showLabel && <Animated.Text 
         className="text-[12px] font-JakartaSemiBold shadow-md text-white mt-2"
         style={{ opacity: opacity.value }}
       >
         {label}
-      </Animated.Text>
+      </Animated.Text>}
     </View>
   );
 };

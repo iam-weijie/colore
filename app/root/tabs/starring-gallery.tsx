@@ -368,7 +368,7 @@ export default function Page() {
             </View>
         {hasSubmittedPrompt ? (<PostModal
           isVisible={isModalVisible}
-          selectedPost={selectedPostRef.current}
+          selectedPosts={posts}
           handleCloseModal={handleCloseModalPress}
           infiniteScroll={true}
           scrollToLoad={handleScrollToLoad}

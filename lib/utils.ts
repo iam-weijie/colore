@@ -97,6 +97,10 @@ export function calculateAge(birthday: Date): number {
 }
 
 let storedPosition: Position[] = [];
+const POSTIT_WIDTH = 160;
+const POSTIT_HEIGHT = 160;
+const POSTIT_AREA = POSTIT_WIDTH * POSTIT_HEIGHT;
+let accumulatedArea = 0;
 
 export const cleanStoredPosition = () => {
   storedPosition = [];
@@ -117,63 +121,61 @@ const isOverlapping = (newPos: Position, positions: Position[]) => {
   return false; // No overlap
 };
 
-// Algorithm for random position generation
-export const AlgorithmRandomPosition = (isPinned: boolean, prevPost: Position) => {
-  const screenHeight = Dimensions.get("window").height / 1.97;
-  const screenWidth  = Dimensions.get("window").width / 1.8;
 
-  // pinned notes still get their fixed "stuck" spot
+export const AlgorithmRandomPosition = (
+  isPinned: boolean,
+  _: any,
+  postItCount: number
+) => {
+  const screenWidth = Dimensions.get("window").width * 3;
+  const screenHeight = Dimensions.get("window").height * 3;
+  const screenArea = screenWidth * screenHeight;
+
+  const minTargetArea = Math.min(postItCount * 0.03 * screenArea, screenArea); // can't exceed 100%
+r
+
   if (isPinned) {
     return {
-      top:  60 + Math.random() * 10,
+      top: 60 + Math.random() * 10,
       left: 40 + Math.random() * 10,
+      rotate: `${Math.random() * 4 - 2}deg`,
     };
   }
 
-  // minimum "push" in px, maximum is half the screen
-  const MIN_OFFSET = 40;
-  const MAX_OFFSET_Y = screenHeight  / 1.25;
-  const MAX_OFFSET_X = screenWidth;
+  const MAX_RETRIES = 20;
+  let attempts = 0;
 
-  // decide whether the prev note was closer to top or bottom
-  const directionY = prevPost.top < screenHeight / 2 ? +1 : -1;
-  const directionX = prevPost.left < screenWidth / 2 ? +1 : -1;
+  while (attempts < MAX_RETRIES) {
+    const top = Math.random() * (screenHeight - POSTIT_HEIGHT);
+    const left = Math.random() * (screenWidth - POSTIT_WIDTH);
 
-  // pick a random offset in [MIN_OFFSET, MAX_OFFSET]
-  const offsetY = MIN_OFFSET + Math.random() * (MAX_OFFSET_Y - MIN_OFFSET);
-  const offsetX = MIN_OFFSET + Math.random() * (MAX_OFFSET_X - MIN_OFFSET);
+    let minDistance = Infinity;
 
-  // compute and clamp to screen bounds
-  let newTop  = prevPost.top + directionY * offsetY;
-  let newLeft = prevPost.left + directionX * offsetX + 15;
+    for (const pos of storedPosition) {
+      const dx = pos.left - left;
+      const dy = pos.top - top;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < minDistance) minDistance = distance;
+    }
 
-  newTop  = Math.min(Math.max(newTop, 0), screenHeight);
-  newLeft = Math.min(Math.max(newLeft, 0), screenWidth);
+    // Calculate how much area this placement adds based on overlap
+    const overlapFactor = Math.max(0.2, Math.min(1, minDistance / POSTIT_WIDTH)); // scaled 0.2 to 1
+    const effectiveArea = POSTIT_AREA * overlapFactor;
 
-  // Check if storedPosition is empty
-  if (storedPosition.length === 0) {
-    // If empty, no need to check overlap, just return the position
-    storedPosition = [{ top: newTop, left: newLeft }];
-    return { top: newTop, left: newLeft };
+    const rotate = `${Math.floor(Math.random() * 16 - 8)}deg`;
+    const newPosition = { top, left, rotate };
+
+    storedPosition.push({ top, left });
+    accumulatedArea += effectiveArea;
+
+    return newPosition;
   }
 
-  // Check for overlap if there are already stored positions
-  let retries = 5;
-  while (isOverlapping({ top: newTop, left: newLeft }, storedPosition) && retries > 0) {
-    // Retry generating a new position if overlap occurs
-    newTop = prevPost.top + directionY * (MIN_OFFSET + Math.random() * (MAX_OFFSET_Y - MIN_OFFSET));
-    newLeft = prevPost.left + directionX * (MIN_OFFSET + Math.random() * (MAX_OFFSET_X - MIN_OFFSET));
-    newTop  = Math.min(Math.max(newTop, 0), screenHeight);
-    newLeft = Math.min(Math.max(newLeft, 0), screenWidth) + 15;
-    retries--;
-  }
-
-
-  // Save new position to storedPosition if no overlap
-  storedPosition = [...storedPosition, { top: newTop, left: newLeft }];
-
-  return { top: newTop, left: newLeft };
+  console.warn("Could not place post-it after retries");
+  return null;
 };
+
+
 
 /**
  * Formats a date to a relative time string (e.g., "just now", "1m", "2h", "3d", "1w", "2mo", "1y")
