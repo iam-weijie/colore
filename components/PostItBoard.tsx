@@ -422,7 +422,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
 
   return (
-    <View className="flex-1 bg-[#FAFAFAr]">
+    <View className="flex-1 bg-[#FAFAFA]">
   <SignedIn>
       {/*<Pressable
       className="flex-1"

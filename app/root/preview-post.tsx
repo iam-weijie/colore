@@ -242,7 +242,7 @@ const PreviewPost = () => {
       <View className="flex-1">
         <PostModal
           isVisible={isVisible}
-          selectedPost={post} // Always a valid Post object
+          selectedPosts={[post]} // Always a valid Post object
           handleCloseModal={handleCloseModal}
           isPreview={true}
           header={

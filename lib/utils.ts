@@ -132,7 +132,7 @@ export const AlgorithmRandomPosition = (
   const screenArea = screenWidth * screenHeight;
 
   const minTargetArea = Math.min(postItCount * 0.03 * screenArea, screenArea); // can't exceed 100%
-r
+
 
   if (isPinned) {
     return {
