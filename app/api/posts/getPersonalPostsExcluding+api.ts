@@ -36,6 +36,7 @@ export async function GET(request: Request) {
         p.board_id,
         p.prompt_id,
         p.recipient_user_id,
+        p.unread,
         u.clerk_id,
         u.firstname, 
         u.lastname, 

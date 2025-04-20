@@ -102,7 +102,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
     }
     else {
       const viewerId = user!.id;
-      const maxPostOnScreen = postRefIDs.length == 0 ? (isIpad ? 24 : 16) : Math.min(postRefIDs.length  + 14, (isIpad ? 24 : 18) )
+      const maxPostOnScreen = postRefIDs.length == 0 ? (isIpad ? 48 : 32) : Math.min(postRefIDs.length  + 14, (isIpad ? 24 : 18) )
       setMaxPosts(maxPostOnScreen); 
     
       try {

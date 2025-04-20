@@ -109,7 +109,7 @@ const fetchUserData = async () => {
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 24 : 16}&id=${user!.id}&mode=${geographicalMode}`
+      `/api/posts/getRandomPosts?number=${isIpad ? 48 : 32}&id=${user!.id}&mode=${geographicalMode}`
     );
     return response.data;
   };
@@ -221,7 +221,7 @@ const fetchUserData = async () => {
             />
             <View className="absolute right-2">
             <NotificationBubble
-            unread={unreadComments + unreadPersonalPosts?? 0}
+            unread={unreadComments + unreadPersonalPosts}
             color={"#FF0000"}
             />
             </View>

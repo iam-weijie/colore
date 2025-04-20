@@ -25,6 +25,7 @@ declare interface Post {
   prompt: string;
   board_id: number;
   reply_to: number;
+  unread: boolean;
   
 }
 declare interface InfoScreenProps {

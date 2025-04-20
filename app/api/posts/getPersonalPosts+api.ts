@@ -29,6 +29,7 @@ export async function GET(request: Request) {
         p.board_id,
         p.prompt_id,
         p.recipient_user_id,
+        p.unread,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -52,7 +53,7 @@ export async function GET(request: Request) {
     const response = await sql(query);
 
 
-    console.log("personal post", response)
+   //console.log("personal post", response)
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });

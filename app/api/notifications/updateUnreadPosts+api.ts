@@ -3,8 +3,8 @@ import { neon } from "@neondatabase/serverless";
 export async function PATCH(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
-    const post = await request.json()
-    const postId = post.id;
+    const { postId } = await request.json()
+
 
     if (!postId) {
       return new Response(
@@ -26,6 +26,8 @@ export async function PATCH(request: Request) {
         { status: 404, headers: { "Content-Type": "application/json" } }
       );
     }
+
+    console.log("updated", postId)
 
     return new Response(
       JSON.stringify({ success: true, message: "Post notified status updated", data: response }),

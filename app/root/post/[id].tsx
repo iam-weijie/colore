@@ -670,19 +670,31 @@ console.log("happend", "id", id)
           </View>
 
 <View className="flex flex-col">
-{replyView && 
-<View
-className="mt-2 -mb-1 ml-5 flex flex-row"
->
-  <Text   
-  className="ml-1 text-[14px] italic max-w-[80%]"
-  numberOfLines={2}
-  style={{
-    color:"#757575"
-  }}
-            >Reply to : {replyView.content}
-            </Text>
-</View>}
+{replyView && (
+  <View className="mt-2 mb-1 ml-2 pl-3 flex-row items-center border-l-2 border-gray-200">
+    <Image
+    source={icons.chevron}
+    className="mr-4 h-4 w-4"
+    tintColor={"#9e9e9e"}
+    />
+    <Text 
+      className="text-sm text-gray-500 max-w-[85%]"
+      numberOfLines={2}
+    >
+      {replyView.content}
+    </Text>
+    <TouchableOpacity 
+      onPress={() => setReplyView(null)}
+      className="ml-2 p-1"
+    >
+      <Image
+    source={icons.close}
+    className="ml-5 h-5 w-5"
+    tintColor={"#9e9e9e"}
+    />
+    </TouchableOpacity>
+  </View>
+)}
           <View className="flex-row items-center p-2">
             <TextInput
               ref={inputRef}

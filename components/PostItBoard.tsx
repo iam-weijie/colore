@@ -298,8 +298,23 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const forceStack = (id: number) => {
     return maps.find((p) => p.id == id);
   };
-  const handlePostPress = (post: PostWithPosition) => {
+  const handlePostPress = async (post: PostWithPosition) => {
     // Ensure all required properties are present
+
+    if (post.unread) {
+      console.log("unread updating")
+        try {
+              await fetchAPI(`/api/notifications/updateUnreadPosts`, {
+                method: "PATCH",
+                body: JSON.stringify({
+                  postId: post.id,
+                })
+              })
+          }
+        catch(error) {
+            console.error("Failed to update unread message:", error);
+          }
+    }
     const formattedPost: PostWithPosition = {
       id: post.id,
       clerk_id: post.clerk_id,
@@ -334,7 +349,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   let i = 0;
 
   const handleCloseModal = async () => {
-    i += 1;
+
     if (selectedPost && !isPinned) {
       const postId = selectedPost.id;
       
@@ -449,7 +464,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
           ref={scrollViewRef}
           onLayout={handleLayout}
           style={{ flex: 1 }}
-          decelerationRate={0.7}
+          decelerationRate={0.9}
           maximumZoomScale={3}
           minimumZoomScale={1}
           contentContainerStyle={{

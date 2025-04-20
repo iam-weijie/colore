@@ -23,6 +23,18 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
     return (
       <Animated.View
         entering={FadeIn.duration(400).springify().delay(item.id % 10 * 100)}
+        className="relative rounded-[32px] h-[225px] w-[170px] overflow-hidden m-2 shadow-sm border-2"
+        style={{
+          borderRadius: 28,
+          backgroundColor: item.color,
+          borderColor: "#ffffff80",
+          height: 225,
+          width: 170,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.1,
+          shadowRadius: 5,
+        }}
       >
         <TouchableOpacity
           activeOpacity={0.9}
@@ -42,10 +54,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
           
 
           }}
-          className="relative rounded-[32px] h-[225px] w-[170px] overflow-hidden m-2 shadow-2xl"
-          style={{
-            backgroundColor: item.color ?? "#ff00f0",
-          }}
+        className="flex-1"
         >
           {/* Gradient overlay at bottom */}
           <View className="absolute bottom-0 left-0 right-0 h-1/3" />

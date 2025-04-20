@@ -22,7 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor, UserNicknamePair, Friendship } from "@/types/type";
+import { PostItColor, UserNicknamePair, Post } from "@/types/type";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from '@/notifications/AlertContext';
 import ModalSheet from "@/components/Modal";
@@ -30,52 +30,34 @@ import {
   fetchFriends
 } from "@/lib/friend";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+import ItemContainer from "@/components/ItemContainer";
+import { useGlobalContext } from "../globalcontext";
 
 const NewPost = () => {
   const { user } = useUser();
   const { postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
+  const { setDraftPost, draftPost } = useGlobalContext();
   const { showAlert } = useAlert();
   
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [userUsername, setUserUsername] = useState<string>(username);
   const [recipientId, setRecipientId] = useState<string>(recipient_id);
-  const [postContent, setPostContent] = useState("");
+  const [postContent, setPostContent] = useState(content ?? "");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors[Math.floor(Math.random() * 4)]
+    temporaryColors.find((c) => c.name === color ) ?? temporaryColors[Math.floor(Math.random() * 4)]
   );
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
-  const [isPosting, setIsPosting] = useState(false);
-  const [fromPreview, setFromPreview] = useState(false);
 
-  console.log("new post", postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId)
 
   const [selectExpirationDate, setSelectExpirationDate] = useState<string>(expiration)
 
   const expirationDate = ['1 day', '3 days', '7 days', '14 days']
 
-  // Initialize from route params when component mounts or params change
-  useEffect(() => {
-    if (content) {
-      setPostContent(Array.isArray(content) ? content[0] : content as string);
-      setFromPreview(true);
-    }
-    
-    if (color) {
-      const colorValue = Array.isArray(color) ? color[0] : color as string;
-      const savedColor = temporaryColors.find(c => c.name === colorValue);
-      if (savedColor) {
-        setSelectedColor(savedColor);
-      }
-    }
-    
-    if (emoji) {
-      setSelectedEmoji(Array.isArray(emoji) ? emoji[0] : emoji as string);
-    }
-  }, [content, color, emoji]);
+
 
 
   const handleColorSelect = (color: PostItColor) => {
@@ -91,57 +73,7 @@ const NewPost = () => {
   };
 
   const handlePostSubmit = async () => {
-    if (expiration) {
-    console.log("expiration post")
-    router.push({
-      pathname: "/root/preview-post",
-      params: {
-        id: postId ?? "",
-        content: postContent, 
-        color: selectedColor.name, 
-        emoji: selectedEmoji,
-        expiration: selectExpirationDate
-      }
-    });
-  } else if (promptId) {
-    router.push({
-      pathname: "/root/preview-post",
-      params: {
-        id: postId ?? "",
-        content: postContent, 
-        color: selectedColor.name, 
-        emoji: selectedEmoji,
-        prompt: prompt,
-        promptId: promptId
-      }
-    });
-  }  else if (recipientId) {
-    router.push({
-      pathname: "/root/preview-post",
-      params: {
-        id: "", 
-        content: postContent, 
-        color: selectedColor.name, 
-        emoji: selectedEmoji, 
-        personal: "true", 
-        recipientId: recipientId,
-        username: userUsername,
-        boardId: boardId
-      }
-    })
-  }
-  else {
-    console.log("normal post")
-       router.push({
-                   pathname: "/root/preview-post",
-                   params: {
-                     id: postId ?? "", 
-                     content: postContent, 
-                     color: selectedColor.name, 
-                     emoji: selectedEmoji,
-                   }
-                 })
-  }
+    router.push("/root/preview-post")
   };
 
   const handleChangeText = (text: string) => {
@@ -177,6 +109,54 @@ const NewPost = () => {
      }
    }, [selectedEmoji]);
    
+   useEffect(() => {
+    setDraftPost({
+      id: Number(postId ?? 0),
+      clerk_id: user?.id ?? "",
+      firstname: user?.firstName ?? "",
+      username: user?.username ?? "",
+      content: postContent,
+      created_at: new Date().toISOString(),
+      expires_at: "", // Let the backend calculate it or parse from selectExpirationDate if needed
+      city: "",
+      state: "",
+      country: "",
+      like_count: 0,
+      report_count: 0,
+      unread_comments: 0,
+      recipient_user_id: recipientId ?? "",
+      pinned: false,
+      color: selectedColor.name,
+      emoji: selectedEmoji ?? "",
+      notified: false,
+      prompt_id: promptId ? Number(promptId) : 0,
+      prompt: prompt ?? "",
+      board_id: boardId ? Number(boardId) : 0,
+      reply_to: 0,
+      unread: false,
+    });
+  }, [
+    postId,
+    user,
+    postContent,
+    selectedColor,
+    selectedEmoji,
+    recipientId,
+    promptId,
+    prompt,
+    boardId,
+  ]);
+
+  useEffect(() => {
+    if (draftPost) {
+      setPostContent(draftPost.content);
+      const savedColor = temporaryColors.find(c => c.name === draftPost.color);
+      if (savedColor) setSelectedColor(savedColor);
+      if (draftPost.emoji) setSelectedEmoji(draftPost.emoji);
+      if (draftPost.recipient_user_id) setRecipientId(draftPost.recipient_user_id);
+      if (draftPost.username) setUserUsername(draftPost.username);
+    }
+  }, []);
 
   return (
     <SafeAreaView className="flex-1" >
@@ -189,7 +169,9 @@ const NewPost = () => {
           <View className="flex-1" >
             <View className="flex flex-row justify-between items-center my-6 mx-8">
             <View className="flex flex-row w-full justify-between items-center ">
-                <TouchableOpacity onPress={() => router.back()} className="mr-2">
+                <TouchableOpacity onPress={() => {
+                  setDraftPost(null);
+                  router.back()}} className="mr-2">
                   <AntDesign name="caretleft" size={18} color="black" />
                 </TouchableOpacity>
                 <View className="">
@@ -345,7 +327,7 @@ const NewPost = () => {
               title={prompt ? "submit" : "continue"}
               padding="0"
               onPress={handlePostSubmit}
-              disabled={!postContent || isPosting}
+              disabled={!postContent}
             />
             </View>
 
@@ -432,17 +414,16 @@ const fetchUsers = async () => {
     }: {
       item: UserNicknamePair;
     }): React.ReactElement => (
-      <TouchableOpacity
-        onPress={() => {
-          selectedUserInfo(item)
-        }}
-        //disabled={creatingChat}
-        className="p-4"
-      >
-        <View className="flex flex-row justify-between items-center">
-          <Text className="text-[14px] font-JakartaBold text-black left-2">{item[1]}</Text>
-        </View>
-      </TouchableOpacity>
+            <ItemContainer 
+            label={item[1]}
+            colors={["#fbb1d6", "#CFB1FB"]}
+            icon={icons.addUser}
+            actionIcon={icons.chevron}
+            iconColor="#000"
+            onPress={() => {
+              selectedUserInfo(item)
+            }}
+            />
     );
 
     const filteredUsers =

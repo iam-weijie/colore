@@ -300,9 +300,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           created_at: Date.now(),
           color: "#93c5fd"
         }
+
+        const checkForPrivacy = response.data.filter((b) => b.restrictions.includes("Everyone"))
   
-          if (response.data) {
+          if (isEditable && response.data) {
             const boardsWithColor = response.data.map((board: any, index: number) => ({
+              ...board,
+              color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            }));
+          
+            setMyBoards([...boardsWithColor, personalBoard]);
+          } else if (!isEditable && response.data) {
+            const boardsWithColor = checkForPrivacy.map((board: any, index: number) => ({
               ...board,
               color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
             }));
@@ -635,7 +644,7 @@ const Menu = ({status}: {status: FriendStatusType}) => {
                   justifyContent:
                     user!.id === userId ? "space-between" : "center",
                   padding: user!.id === userId ? 20 : 5,
-                  height: (isIpad ? 60 : 40),
+                  height: 40,
                   borderRadius: user!.id === userId
                       ? 24
                       : 16,
@@ -777,9 +786,9 @@ const Menu = ({status}: {status: FriendStatusType}) => {
             </View>}
 
             {selectedTab === "Posts" && <View className="flex-1 bg-[#FAFAFA] pb-24">
-              <View className="items-center  w-full">
+              <View className="items-center mx-6">
               <TextInput
-                className="w-4/5  h-12 px-5 rounded-[16px] bg-[#F1F1F1] mt-6"
+                className=" w-full h-12 px-5 rounded-[16px] bg-[#F1F1F1] mt-6"
                 placeholder="Search"
                 onChangeText={setQuery}
                 value={query}

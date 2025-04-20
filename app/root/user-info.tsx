@@ -29,6 +29,7 @@ import BoardGallery from "@/components/BoardGallery";
 import ItemContainer from "@/components/ItemContainer";
 import { icons } from "@/constants";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+import React from "react";
 
 const UserInfo = () => {
   const { user } = useUser();

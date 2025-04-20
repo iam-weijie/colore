@@ -261,192 +261,184 @@ const Settings = () => {
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
   };
   return (
-      <KeyboardAvoidingView behavior="padding" className="flex-1">
-        <ScrollView className="flex-1">
-          <View className=" mx-6">
-          <View className=" my-4 bg-[#fff] text-[#000] rounded-[24px] p-5">
-             <Text 
-             className="text-lg font-JakartaBold">
-               Account
-             </Text>
-             </View>
-            <View className="bg-white rounded-[32px] p-5">
-              <View className="flex flex-row items-center justify-between -mb-14 p-2">
-                <Text className="text-[16px] font-JakartaSemiBold my-2">
-                  Username
-                </Text>
-              </View>
-              <InputField
-                label=""
-                value={newUsername}
-                onChangeText={setNewUsername}
-                placeholder={username || "Enter username"}
-                onSubmitEditing={() => {
-                  if (!newUsername || loading) {
-                    return;
-                  }
-                  handleUsernameUpdate();
-                  setUsername(newUsername);
-                  setNewUsername("");
-                }}
-              />
-              <View className="flex flex-row items-center justify-between -mb-14 p-2">
-                <Text className="text-[16px]  font-JakartaSemiBold mb-2">
-                  Email Address
-                </Text>
-              </View>
-              <InputField
-                label=""
-                value={newEmail}
-                onChangeText={setNewEmail}
-                placeholder={profileUser?.email || "Enter email address"}
-                onSubmitEditing={() => {
-                  if (!newEmail || loading) {
-                    return;
-                  }
-                  handleEmailUpdate();
-                  setEmail(newEmail);
-                  setNewEmail("");
-                }}
-                containerStyle="mb-4"
-              />
-              <View className="mb-4 mx-2 pr-[20px]">
-                <View className="flex flex-row items-center justify-between mb-4">
-                  <Text className="text-[16px]   font-JakartaSemiBold ">
-                    Location
-                  </Text>
-                  <TouchableOpacity
-                    activeOpacity={0.5}
-                    onPress={handleLocationUpdate}
-                  >
-                    <Text className="text-md text-[#93c5fd] font-JakartaSemiBold">
-                      Update
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                <Text className="text-gray-500 mb-2">{currentLocation}</Text>
-              </View>
-            </View>
+    <KeyboardAvoidingView behavior="padding" className="flex-1 bg-gray-50">
+    <ScrollView className="flex-1 pt-6" showsVerticalScrollIndicator={false}>
+  
+      {/* Account Section */}
+      <View className="mx-6 mb-6">
+        <View className="bg-white rounded-[32px] shadow-sm overflow-hidden p-4">
+          <View className="px-5 py-3 border-b border-gray-100">
+            <Text className="text-lg font-JakartaBold text-gray-800">Account Information</Text>
           </View>
-          <View className=" mx-6">
-          <View className=" my-4 bg-[#fff] text-[#000] rounded-[24px] p-5">
-             <Text 
-             className="text-lg font-JakartaBold">
-               Activity
-             </Text>
-             </View>
-            <View className="bg-white rounded-[32px] p-5">
+          
+          <View className="px-5 py-3">
+            <Text className="text-sm font-JakartaSemiBold text-gray-500">Username</Text>
+            <InputField
+              label=""
+              value={newUsername}
+              onChangeText={setNewUsername}
+              placeholder={username || "Enter username"}
+              onSubmitEditing={() => {
+                if (!newUsername || loading) return;
+                handleUsernameUpdate();
+                setUsername(newUsername);
+                setNewUsername("");
+              }}
+              containerStyle="-mt-8"
+              inputStyle="bg-gray-50  rounded-3xl px-4 py-3"
+            />
+          </View>
+          
+          <View className="px-5 py-3">
+            <Text className="text-sm font-JakartaSemiBold text-gray-500">Email Address</Text>
+            <InputField
+              label=""
+              value={newEmail}
+              onChangeText={setNewEmail}
+              placeholder={profileUser?.email || "Enter email address"}
+              onSubmitEditing={() => {
+                if (!newEmail || loading) return;
+                handleEmailUpdate();
+                setEmail(newEmail);
+                setNewEmail("");
+              }}
+               containerStyle="-mt-8"
+              inputStyle="bg-gray-50  rounded-3xl px-4 py-3"
+            />
+          </View>
+          
+          <View className="px-5 py-3">
+            <View className="flex flex-row items-center justify-between mb-1">
+              <Text className="text-sm font-JakartaSemiBold text-gray-500">Location</Text>
               <TouchableOpacity
-                activeOpacity={0.6}
-                onPress={() => {
-                  router.push({
-                    pathname: "/root/saved-post-gallery",
-                    params: {
-                      posts: JSON.stringify(savedPosts),
-                      name: "Saved Posts",
-                    },
-                  });
-                }}
+                activeOpacity={0.7}
+                onPress={handleLocationUpdate}
+                className="bg-blue-50 px-3 py-1 rounded-full"
               >
-                <View className="flex flex-row items-center justify-between p-2">
-                  <View>
-                    <Text className="text-[16px] font-JakartaSemiBold my-2">
-                      Saved Posts
-                    </Text>
-                  </View>
-                  <View className="flex flex-row items-center">
-                    <Text className="text-gray-400 text-sm mr-2">
-                      {savedPosts?.length || ""}
-                    </Text>
-                    <Image
-                      source={icons.bookmark}
-                      tintColor="#000000"
-                      resizeMode="contain"
-                      className="w-6 h-6"
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.6}
-                onPress={() => {
-                  router.push({
-                    pathname: "/root/saved-post-gallery",
-                    params: {
-                      posts: JSON.stringify(likedPosts),
-                      name: "Liked Posts",
-                    },
-                  });
-                }}
-              >
-                <View className="flex flex-row items-center justify-between p-2">
-                  <View>
-                    <Text className="text-[16px] font-JakartaSemiBold my-2">
-                      Liked Posts
-                    </Text>
-                  </View>
-                  <View className="flex flex-row items-center">
-                    <Text className="text-gray-400 text-sm mr-2">
-                      {likedPosts?.length || ""}
-                    </Text>
-                    <MaterialCommunityIcons
-                      name={"heart-outline"}
-                      size={24}
-                      color={"black"}
-                    />
-                  </View>
-                </View>
+                <Text className="text-blue-500 text-sm font-JakartaSemiBold">Update</Text>
               </TouchableOpacity>
             </View>
+            <Text className="text-gray-800 mt-1">{currentLocation || "Not specified"}</Text>
           </View>
-          {/* End Activity Section View */}
-
-          {/* --- New Audio & Haptics Section --- */}
-          <View className=" mx-6">
-            <View className=" my-4 bg-[#fff] text-[#000] rounded-[24px] p-5">
-             <Text 
-             className="text-lg font-JakartaBold">
-               Audio & Haptics
-             </Text>
-             </View>
-             <View className="bg-white rounded-[32px] p-5">
-               {/* Haptics Toggle */}
-               <View className="flex flex-row items-center justify-between p-2 mb-2">
-                 <Text className="text-[16px] font-JakartaSemiBold">Enable Haptic Feedback</Text>
-                 <Switch
-                   trackColor={{ false: "#767577", true: "#FACC15" }}
-                   thumbColor={hapticsEnabled ? "#ffffff" : "#f4f3f4"}
-                   ios_backgroundColor="#888888"
-                   onValueChange={handleHapticsToggle} // Use wrapped handler
-                   value={hapticsEnabled}
-                 />
-               </View>
-               {/* Sound Effects Toggle */}
-               <View className="flex flex-row items-center justify-between p-2">
-                 <Text className="text-[16px] font-JakartaSemiBold">Enable Sound Effects</Text>
-                 <Switch
-                   trackColor={{ false: "#767577", true: "#FACC15" }}
-                   thumbColor={soundEffectsEnabled ? "#ffffff" : "#f4f3f4"}
-                   ios_backgroundColor="#888888"
-                   onValueChange={handleSoundToggle} // Use wrapped handler
-                   value={soundEffectsEnabled}
-                 />
-               </View>
-             </View>
-           </View>
-           {/* --- End New Section --- */}
-
-
-          <View className=" my-4 p-5 bg-white mx-6 rounded-[24px]">
-            <TouchableOpacity onPress={handleSignOut}>
-              <Text className="font-JakartaBold text-lg text-red-500 text-center">
-                Sign Out
-              </Text>
-            </TouchableOpacity>
+        </View>
+      </View>
+  
+      {/* Activity Section */}
+      <View className="mx-6 mb-6">
+        <View className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden">
+          <View className="px-5 py-4 border-b border-gray-100">
+            <Text className="text-lg font-JakartaBold text-gray-800">Your Activity</Text>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => {
+              router.push({
+                pathname: "/root/saved-post-gallery",
+                params: {
+                  posts: JSON.stringify(savedPosts),
+                  name: "Saved Posts",
+                },
+              });
+            }}
+            className="px-5 py-4 flex flex-row items-center justify-between border-b border-gray-100"
+          >
+            <View className="flex flex-row items-center">
+              <View className="bg-black p-2 rounded-xl mr-3">
+                <Image
+                  source={icons.bookmark}
+                  tintColor="#ffffff"
+                  resizeMode="contain"
+                  className="w-5 h-5"
+                />
+              </View>
+              <Text className="text-base font-JakartaSemiBold text-gray-800">Saved Posts</Text>
+            </View>
+            <View className="flex flex-row items-center">
+              <Text className="text-gray-400 text-sm mr-2">{savedPosts?.length || 0}</Text>
+              {/*<ChevronRightIcon size={18} color="#9CA3AF" />*/}
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => {
+              router.push({
+                pathname: "/root/saved-post-gallery",
+                params: {
+                  posts: JSON.stringify(likedPosts),
+                  name: "Liked Posts",
+                },
+              });
+            }}
+            className="px-5 py-4 flex flex-row items-center justify-between"
+          >
+            <View className="flex flex-row items-center">
+              <View className="bg-red-50 p-2 rounded-xl mr-3">
+                <MaterialCommunityIcons
+                  name={"heart-outline"}
+                  size={20}
+                  color={"#EF4444"}
+                />
+              </View>
+              <Text className="text-base font-JakartaSemiBold text-gray-800">Liked Posts</Text>
+            </View>
+            <View className="flex flex-row items-center">
+              <Text className="text-gray-400 text-sm mr-2">{likedPosts?.length || 0}</Text>
+              {/*<ChevronRightIcon size={18} color="#9CA3AF" />*/}
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+  
+      {/* Preferences Section */}
+      <View className="mx-6 mb-6">
+        <View className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden">
+          <View className="px-5 py-4 border-b border-gray-100">
+            <Text className="text-lg font-JakartaBold text-gray-800">Preferences</Text>
+          </View>
+          
+          <View className="px-5 py-3 flex flex-row items-center justify-between border-b border-gray-100">
+            <View className="flex-1">
+              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">Haptic Feedback</Text>
+              <Text className="text-sm text-gray-500">Get physical feedback for interactions</Text>
+            </View>
+            <Switch
+              trackColor={{ false: "#E5E7EB", true: "#FACC15" }}
+              thumbColor={hapticsEnabled ? "#ffffff" : "#f4f3f4"}
+              ios_backgroundColor="#E5E7EB"
+              onValueChange={handleHapticsToggle}
+              value={hapticsEnabled}
+            />
+          </View>
+          
+          <View className="px-5 py-3 flex flex-row items-center justify-between">
+            <View className="flex-1">
+              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">Sound Effects</Text>
+              <Text className="text-sm text-gray-500">Play sounds for certain actions</Text>
+            </View>
+            <Switch
+              trackColor={{ false: "#E5E7EB", true: "#FACC15" }}
+              thumbColor={soundEffectsEnabled ? "#ffffff" : "#f4f3f4"}
+              ios_backgroundColor="#E5E7EB"
+              onValueChange={handleSoundToggle}
+              value={soundEffectsEnabled}
+            />
+          </View>
+        </View>
+      </View>
+  
+      {/* Sign Out Section */}
+      <View className="mx-6 mb-8">
+        <TouchableOpacity 
+          onPress={handleSignOut}
+          className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center"
+        >
+          <Text className="font-JakartaBold text-lg text-red-500">Sign Out</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  </KeyboardAvoidingView>
   );
 };
 

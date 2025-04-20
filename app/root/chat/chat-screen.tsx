@@ -397,6 +397,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
       iconColor="#000"
       actionIcon={icons.chevron}
       onPress={() => {
+        
         handleUserProfile(item.friend_id)
       }}
       />
@@ -823,6 +824,8 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
             pathname: "/root/user-board/[id]",
             params: { id: `${user!.id}`, username: `Personal board`},
           });
+        } else {
+          router.push(`/root/tabs/profile`)
         }
       }}
       />
@@ -916,7 +919,6 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
               data={postsNotif}
               contentContainerStyle={{ 
                 paddingBottom: 40,
-                justifyContent: 'center',
               minHeight: screenHeight * 0.46 }} 
               renderItem={renderNotif}
               keyExtractor={(item) => item.id.toString()}

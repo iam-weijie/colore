@@ -31,15 +31,6 @@ const UserPersonalBoard = () => {
   const [discoverBoards, setDiscoverBoards] = useState<any>();
   const [communityBoards, setCommunityBoards] = useState<any>();
 
-  const handleNewPost = () => {
-    router.push({
-      pathname: "/root/new-personal-post",
-      params: {
-        recipient_id: user!.id,
-        source: "board"
-      },
-    });
-  };
 
   const fetchPersonalBoards = async () => {
     try {

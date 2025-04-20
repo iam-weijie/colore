@@ -94,6 +94,13 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
 
     if (!visible) return null;
 
+useFocusEffect(
+    useCallback(() => {
+          return () => {
+            handleClose()
+        }}, [])
+      );
+
     return (
         <Modal transparent visible={visible} onRequestClose={handleClose}>
             <GestureHandlerRootView style={{ flex: 1 }}>

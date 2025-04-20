@@ -44,16 +44,14 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     }
   };
 
-  const filteredPosts = posts.filter((post) => post.content.toLowerCase().includes(query.toLowerCase()));
+  const filteredPosts = sortedPosts.filter((post) => post.content.toLowerCase().includes(query.toLowerCase()));
 
  
   useEffect(() => {
-    if (isOwnProfile) {
+  
       const sorted = [...posts].sort(sortByUnread);
       setSortedPosts(sorted);
-    } else {
-      setSortedPosts(posts);
-    }
+
   }, [posts]);
 
   const screenWidth = Dimensions.get("window").width;
@@ -69,42 +67,57 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     return <Text>An error occurred.</Text>;
   }
 
-  const renderItem = ({ item }: { item: Post }) => (
-    <Animated.View 
-    entering={FadeInDown.duration(300)}
-    style={{
-      marginHorizontal: isIpad ? 5 : 0,
-      maxWidth: 350 
-    }}>
-    <TouchableOpacity
-      onPress={() => {
-        setSelectedPost(item);
-      }}
-    >
-      <View
-        className="w-full m-2 p-5 shadow-xs rounded-[24px] mx-auto"
-        style={{ 
-          minHeight: isIpad ? 70 : "auto",
-          marginHorizontal: isIpad ? 20 : 0,
-          backgroundColor: temporaryColors?.find((c) => c.name === item.color)?.hex || item.color}}
+  const renderItem = ({ item }: { item: Post }) => {
+    const backgroundColor = temporaryColors?.find((c) => c.name === item.color)?.hex || item.color;
+    const isOwner = item.clerk_id === user?.id;
+    const hasNewComments = isOwner && item.unread_comments > 0;
+    
+    return (
+      <Animated.View
+        entering={FadeInDown.duration(500)}
+        style={{
+          marginHorizontal: isIpad ? 8 : 0,
+          maxWidth: 360,
+          transform: [{ rotate: `${(Math.random() * 2 - 1).toFixed(2)}deg` }],
+        }}
       >
-        <Text className="font-JakartaSemiBold text-black">
-         {truncateText(item.content, 100)}
-        </Text>
-        <View className="flex-row justify-between">
-          <Text className="font-Jakarta text-gray-500">
-            {item.created_at ? getRelativeTime(new Date(item.created_at)) : ""}
-          </Text>
-        </View>
-        {item.clerk_id == user!.id && item.unread_comments > 0 && (
-          <Text className="text-xs font-Jakarta text-red-500">
-            New comments
-          </Text>
-        )}
-      </View>
-    </TouchableOpacity>
-    </Animated.View>
-  );
+        <TouchableOpacity onPress={() => setSelectedPost(item)}>
+          <View
+            className="w-full mb-4 px-5 py-4 mx-auto shadow-sm border-2"
+            style={{
+              borderRadius: 32,
+              backgroundColor,
+              borderColor: "#ffffff80",
+              minHeight: isIpad ? 80 : "auto",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.1,
+              shadowRadius: 5,
+            }}
+          >
+            <Text className="font-JakartaSemiBold text-black text-base leading-relaxed">
+              {truncateText(item.content, 100)}
+            </Text>
+  
+            <View className="flex-row justify-between items-center mt-3">
+              <Text className="font-Jakarta text-xs text-gray-600">
+                {item.created_at ? getRelativeTime(new Date(item.created_at)) : ""}
+              </Text>
+  
+              {hasNewComments && (
+                <View className="p-2 bg-red-500 rounded-full">
+                  <Text className="text-xs font-JakartaBold text-white">
+                    🔔 {item.unread_comments} new comment{item.unread_comments > 1 ? "s" : ''}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
  const handleUnsave = () => {
   setIsSaved((prevPost) => !isSaved);
   if (handleUpdate) {
@@ -159,7 +172,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       {selectedPost && (
         <PostModal
           isVisible={!!selectedPost}
-          selectedPost={selectedPost}
+          selectedPosts={[selectedPost]}
           handleCloseModal={handleCloseModal}
           handleUpdate={handleUnsave}
           header={<View />}
