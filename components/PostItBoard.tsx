@@ -449,9 +449,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
           ref={scrollViewRef}
           onLayout={handleLayout}
           style={{ flex: 1 }}
+          decelerationRate={0.7}
           maximumZoomScale={3}
           minimumZoomScale={1}
-          bounces={false}
           contentContainerStyle={{
             width: screenWidth * 3,
             height: screenHeight * 3,

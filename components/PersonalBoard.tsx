@@ -306,20 +306,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
         mass: 0.5
       }}
       className="flex-1 mx-4 my-6 rounded-[48px] overflow-hidden"
-      style={{
-        backgroundColor: 'rgba(250, 250, 250, 0.88)',
-        borderWidth: 1,
-        borderColor: 'rgba(140, 140, 140, 0.25)',
-        transform: [
-          { perspective: 1000 },
-          { rotateX: `${boardTilt.y}deg` },
-          { rotateY: `${boardTilt.x}deg` }
-        ],
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 10,
-      }}
     >
       <PostItBoard
         key={shouldRefresh}
