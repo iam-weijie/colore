@@ -290,8 +290,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   }, [mode]);
 
   const handleLayout = () => {
-    scrollViewRef.current?.scrollTo({ x: screenWidth, animated: false });
-    innerScrollViewRef.current?.scrollTo({ y: screenHeight, animated: false });
+    scrollViewRef.current?.scrollTo({ x: postsWithPosition[0].position.left ?? screenWidth / 2, animated: true });
+    innerScrollViewRef.current?.scrollTo({ y: postsWithPosition[0].position.top ?? screenHeight / 2, animated: true });
   };
 
 
@@ -429,7 +429,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   if (postsWithPosition.length == 0) {
     return (
       <View className="flex-1 items-center justify-center">
-          <ColoreActivityIndicator text="Summoning Bob... Maybe he will find posts" />
+          <ColoreActivityIndicator text="Summoning Bob..." />
           </View>
     )
   }

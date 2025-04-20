@@ -1,137 +1,121 @@
 import React, { useEffect } from 'react';
 import { View, Text } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import Animated, {
   useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
   withTiming,
+  withRepeat,
+  useAnimatedStyle,
+  useAnimatedProps,
   interpolateColor,
-  interpolate,
+  Easing,
 } from 'react-native-reanimated';
-import { Easing } from 'react-native-reanimated';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const ColoreActivityIndicator = ({
   text = 'Loading...',
   size = 50,
-  colors = ['#FAE640', '#FBB1D6', '#B79EFF', '#6CD9FF'],
+  strokeWidth = 6,
+  colors = ['#FAE640', '#FBB1D6', '#B79EFF', '#6CD9FF', '#FFFFFF'],
 }: {
   text?: string;
   size?: number;
+  strokeWidth?: number;
   colors?: string[];
 }) => {
   const rotation = useSharedValue(0);
-  const pulse = useSharedValue(0);
   const colorCycle = useSharedValue(0);
 
-  // Continuous animations
   useEffect(() => {
     rotation.value = withRepeat(
-      withTiming(360, { duration: 1800, easing: Easing.linear }),
+      withTiming(360, { duration: 2000, easing: Easing.linear }),
       -1
     );
-  
-    pulse.value = withRepeat(
-      withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-  
     colorCycle.value = withRepeat(
       withTiming(colors.length, { duration: 4000, easing: Easing.linear }),
       -1
     );
   }, []);
-  const ringStyle = useAnimatedStyle(() => {
-    const colorTop = interpolateColor(
-      colorCycle.value % colors.length,
-      colors.map((_, i) => i),
-      colors
-    );
-    const colorRight = interpolateColor(
-      (colorCycle.value + 1) % colors.length,
-      colors.map((_, i) => i),
-      colors
-    );
-    const colorBottom = interpolateColor(
-      (colorCycle.value + 2) % colors.length,
-      colors.map((_, i) => i),
-      colors
-    );
 
-    const scale = interpolate(pulse.value, [0, 1], [1, 1.08]);
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
 
-    return {
-      transform: [{ rotate: `${rotation.value}deg` }, { scale }],
-      borderTopColor: colorTop,
-      borderRightColor: colorRight,
-      borderBottomColor: colorBottom,
-    };
-  });
+  const arcAngles = [0, 120, 240]; // rotation offsets
+  const arcLengthRatio = 0.25; // 25% of the circle
 
-  const textStyle = useAnimatedStyle(() => {
-    const scale = interpolate(pulse.value, [0, 1], [1, 1.03]);
-    const color = interpolateColor(
-      colorCycle.value % colors.length,
-      colors.map((_, i) => i),
-      colors
-    );
+  const getArcProps = (index: number) =>
+    useAnimatedProps(() => {
+      const stroke = interpolateColor(
+        (colorCycle.value + index) % colors.length,
+        colors.map((_, i) => i),
+        colors
+      );
 
-    return {
-      transform: [{ scale }],
-      color,
-    };
-  });
+      return {
+        stroke,
+      };
+    });
+
+  const containerSpin = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  // Bouncing dots
+  const getDotStyle = (index: number) =>
+    useAnimatedStyle(() => {
+      const phase = (rotation.value + index * 120) * (Math.PI / 180);
+      return {
+        transform: [{ translateY: Math.sin(phase) * 4 }],
+        opacity: 0.6 + 0.3 * Math.sin(phase),
+        backgroundColor: interpolateColor(
+          (colorCycle.value + index) % colors.length,
+          colors.map((_, i) => i),
+          colors
+        ),
+      };
+    });
 
   return (
-    <View className="flex items-center justify-center space-y-3">
-      <Animated.View
-        style={[
-          {
-            width: size,
-            height: size,
-            borderWidth: size / 10,
-            borderRadius: size / 2,
-            borderLeftColor: 'transparent',
-            backgroundColor: 'rgba(255,255,255,0.08)',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-          },
-          ringStyle,
-        ]}
-      />
-
-      <Animated.Text
-        style={textStyle}
-        className="text-sm text-center font-JakartaMedium"
-      >
-        {text}
-      </Animated.Text>
-
-      <View className="flex-row space-x-1">
-        {[0, 1, 2].map((i) => {
-          return (
-            <Animated.View
+    <View className="items-center justify-center space-y-3">
+      <Animated.View style={[{ width: size, height: size }, containerSpin]}>
+        <Svg width={size} height={size}>
+          {arcAngles.map((angle, i) => (
+            <AnimatedCircle
               key={i}
-              style={useAnimatedStyle(() => {
-                const phase = (rotation.value + i * 120) * (Math.PI / 180);
-                return {
-                  width: 6,
-                  height: 6,
-                  borderRadius: 3,
-                  backgroundColor: interpolateColor(
-                    (colorCycle.value + i) % colors.length,
-                    colors.map((_, i) => i),
-                    colors
-                  ),
-                  opacity: 0.6 + 0.3 * Math.sin(phase),
-                  transform: [{ translateY: Math.sin(phase) * 3 }],
-                };
-              })}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              strokeWidth={strokeWidth}
+              strokeDasharray={`${circumference * arcLengthRatio} ${circumference}`}
+              strokeLinecap="round"
+              fill="none"
+              animatedProps={getArcProps(i)}
+              rotation={angle}
+              originX={size / 2}
+              originY={size / 2}
             />
-          );
-        })}
+          ))}
+        </Svg>
+      </Animated.View>
+
+      <Text className="text-sm text-gray-700 font-JakartaMedium">{text}</Text>
+
+      {/* Bouncing dots */}
+      <View className="flex-row space-x-2 mt-1">
+        {[0, 1, 2].map((i) => (
+          <Animated.View
+            key={i}
+            style={[
+              {
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+              },
+              getDotStyle(i),
+            ]}
+          />
+        ))}
       </View>
     </View>
   );
