@@ -289,9 +289,12 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     console.log("mode", mode)
   }, [mode]);
 
-  const handleLayout = () => {
-    scrollViewRef.current?.scrollTo({ x: postsWithPosition[0].position.left ?? screenWidth / 2, animated: true });
-    innerScrollViewRef.current?.scrollTo({ y: postsWithPosition[0].position.top ?? screenHeight / 2, animated: true });
+  const handleOuterLayout = () => {
+    scrollViewRef.current?.scrollTo({ x: postsWithPosition[0].position.left ?? screenWidth / 2, animated: true })
+  };
+
+  const handleInnerLayout = () => {
+    innerScrollViewRef.current?.scrollTo({ y: postsWithPosition[0].position.top ?? screenHeight / 2, animated: true })
   };
 
 
@@ -462,11 +465,11 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       ) : (
         <ScrollView
           ref={scrollViewRef}
-          onLayout={handleLayout}
+          onLayout={handleOuterLayout}
           style={{ flex: 1 }}
           decelerationRate={0.9}
-          maximumZoomScale={3}
-          minimumZoomScale={1}
+          maximumZoomScale={1.25}
+          minimumZoomScale={0.75}
           contentContainerStyle={{
             width: screenWidth * 3,
             height: screenHeight * 3,
@@ -485,7 +488,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         >
           <ScrollView
             ref={innerScrollViewRef}
-            onLayout={handleLayout}
+            onLayout={handleInnerLayout}
             nestedScrollEnabled
             scrollEnabled={isPanningMode}
             contentContainerStyle={{

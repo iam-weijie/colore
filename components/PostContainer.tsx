@@ -561,7 +561,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
 
         <AnimatedView
           ref={viewRef}
-          className="flex-1 absolute w-screen h-screen justify-center z-[10]"
+          className="flex-1 absolute w-screen h-screen justify-center"
           style={[
             animatedBackgroundStyle,
             {
@@ -569,7 +569,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
             }
           ]}
         >
-          <TouchableWithoutFeedback onPress={!isPreview ? handleCloseModal : undefined} >
+          <TouchableWithoutFeedback >
             {<EmojiBackground emoji="" color="" />}
           </TouchableWithoutFeedback>
 
