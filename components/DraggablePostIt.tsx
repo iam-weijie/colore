@@ -90,7 +90,7 @@ type DraggablePostItProps = {
           useNativeDriver: false, // Changed to false
         }),
         Animated.timing(shadowOpacity, {
-          toValue: 0.5,
+          toValue: 0.3,
           duration: 200,
           useNativeDriver: false, // Changed to false
         }),
