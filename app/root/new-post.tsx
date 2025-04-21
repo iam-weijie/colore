@@ -110,14 +110,17 @@ const NewPost = () => {
      }
    }, [selectedEmoji]);
    
-   useEffect(() => {
+   useEffect(()=> {
     setPostContent(content)
+   }, [])
+   useEffect(() => {
+   
     setDraftPost({
       id: Number(postId ?? 0),
       clerk_id: user?.id ?? "",
       firstname: "",
       username: userUsername ?? "",
-      content: postContent ?? "",
+      content: postContent,
       created_at: new Date().toISOString(),
       expires_at: "", // Let the backend calculate it or parse from selectExpirationDate if needed
       city: "",
