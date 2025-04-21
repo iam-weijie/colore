@@ -43,7 +43,7 @@ const NewPost = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [userUsername, setUserUsername] = useState<string>(username);
   const [recipientId, setRecipientId] = useState<string>(recipient_id);
-  const [postContent, setPostContent] = useState(content ?? "");
+  const [postContent, setPostContent] = useState<string>(content);
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
@@ -72,7 +72,7 @@ const NewPost = () => {
     setInputHeight(event.nativeEvent.contentSize.height);
   };
 
-  const handlePostSubmit = async () => {
+  const handlePostSubmit = () => {
     router.push("/root/preview-post")
   };
 
@@ -113,9 +113,9 @@ const NewPost = () => {
     setDraftPost({
       id: Number(postId ?? 0),
       clerk_id: user?.id ?? "",
-      firstname: user?.firstName ?? "",
-      username: user?.username ?? "",
-      content: postContent,
+      firstname: "",
+      username: userUsername ?? "",
+      content: postContent ?? "",
       created_at: new Date().toISOString(),
       expires_at: "", // Let the backend calculate it or parse from selectExpirationDate if needed
       city: "",

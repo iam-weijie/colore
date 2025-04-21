@@ -310,7 +310,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       className="flex-1 mx-4 my-6 rounded-[48px] overflow-hidden"
     >
       <PostItBoard
-        key={shouldRefresh}
         userId={userId}
         handlePostsRefresh={fetchPersonalPosts}
         handleNewPostFetch={fetchNewPersonalPost}

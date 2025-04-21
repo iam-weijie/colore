@@ -56,6 +56,7 @@ const PreviewPost = () => {
           }),
         });
 
+
         showAlert({
           title: "Success",
           message: "Post updated successfully.",
@@ -120,7 +121,7 @@ const PreviewPost = () => {
           isPreview={true}
           header={
           
-              <View className="flex-1 absolute flex items-center w-full bottom-[15%]">
+              <View className="flex-1 absolute flex items-center w-full bottom-[10%]">
             <CustomButton
               className="w-[50%] h-16 rounded-full shadow-none bg-black"
               fontSize="lg"
