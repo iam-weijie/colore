@@ -6,7 +6,7 @@ import { Post, PostWithPosition, Position } from "@/types/type";
 import { SignedIn } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
   Animated,
   Dimensions,
@@ -24,6 +24,7 @@ import { GeographicalMode, MappingPostitProps } from "@/types/type";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import React from "react";
 import { distanceBetweenPosts } from "@/lib/post";
+import { useFocusEffect } from "expo-router";
 
 
 
@@ -428,6 +429,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       //console.log("new posts", newPostsPostions)
     }
   };
+
+
 
   if (postsWithPosition.length == 0) {
     return (

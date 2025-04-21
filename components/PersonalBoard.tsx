@@ -116,7 +116,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       let filteredPosts;
       let posts;
       
-      console.log("board", board, boardId)
+      console.log("board", board, boardId, userId)
      
       if (board) {
         posts = await fetchAPI(
@@ -145,7 +145,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
           `/api/posts/getPersonalPosts?number=${maxPostOnScreen}&recipient_id=${userId}&user_id=${viewerId}`
         );
 
-        if (posts.length === 1) {
+        if (posts.data.length === 0) {
           return
         }
         filteredPosts = posts.data.filter((post: Post) => (
@@ -153,10 +153,12 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
         ));
       }
       
+      
      
   
-      const boardOnlyPosts = boardId === 0 ? filteredPosts : filteredPosts.filter((p: Post) => p.board_id == boardId);
+      const boardOnlyPosts = boardId == 0 ? filteredPosts : filteredPosts.filter((p: Post) => p.board_id == boardId);
 
+      console.log("filtered Post", filteredPosts.length, boardOnlyPosts.length)
     
       // Validate and format each post
       const formattedPosts = boardOnlyPosts.map((post: Post) => ({
