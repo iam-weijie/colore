@@ -58,6 +58,7 @@ const NewPost = () => {
   const expirationDate = ['1 day', '3 days', '7 days', '14 days']
 
 
+  console.log("arguments passed: ",postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId  )
 
 
   const handleColorSelect = (color: PostItColor) => {
@@ -110,6 +111,7 @@ const NewPost = () => {
    }, [selectedEmoji]);
    
    useEffect(() => {
+    setPostContent(content)
     setDraftPost({
       id: Number(postId ?? 0),
       clerk_id: user?.id ?? "",
