@@ -466,7 +466,7 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
                     label={item.label}
                     caption={item.caption}
                     icon={item.icon}
-                    colors={['#fbb1d6', selectedColor.hex] as [string, string]}
+                    colors={['#FBB1F5', selectedColor.hex] as [string, string]}
                     actionIcon={boardRestriction.some((r) => item.restriction.includes(r)) && icons.check}
                     iconColor={"#22c722"}
                     onPress={item.onPress}

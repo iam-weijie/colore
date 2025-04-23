@@ -64,7 +64,7 @@ const Create = () => {
             label="Answer a prompt"
             caption="You and a random thought"
             icon={icons.fire}
-            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
+            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={async () => {
@@ -109,7 +109,7 @@ const Create = () => {
             label="Send temporary note"
             caption="Quick or it will disappear!"
             icon={icons.timer}
-            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
+            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
@@ -126,7 +126,7 @@ const Create = () => {
             label="Send global note"
             caption="A thought for the world to see"
             icon={icons.globe}
-            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
+            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
@@ -140,7 +140,7 @@ const Create = () => {
             label="Write a personal note"
             caption="A thought for your friends board"
             icon={icons.pencil}
-            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
+            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
@@ -160,7 +160,7 @@ const Create = () => {
           <ItemContainer
             label="Create a board"
             icon={icons.bookmark}
-            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
+            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {

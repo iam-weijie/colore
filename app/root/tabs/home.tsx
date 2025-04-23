@@ -235,7 +235,7 @@ const fetchUserData = async () => {
                     label={"World"}
                     caption={"See notes from around the world!"}
                     icon={icons.globe}
-                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    colors={['#FBB1F5', '#ffe640'] as [string, string]}
                     actionIcon={geographicalMode == "world" && icons.check}
                     iconColor={"#22c722"}
                     onPress={() => {
@@ -248,7 +248,7 @@ const fetchUserData = async () => {
                     label={`${userInfo?.country}`}
                     caption={`So... what is going on in ${userInfo?.country}?`}
                     icon={icons.globe}
-                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    colors={['#FBB1F5', '#ffe640'] as [string, string]}
                     actionIcon={geographicalMode == "country" && icons.check}
                     iconColor={"#22c722"}
                     onPress={() => {
@@ -261,7 +261,7 @@ const fetchUserData = async () => {
                     label={`${userInfo?.state}`}
                     caption={`Living in ${userInfo?.state}!`}
                     icon={icons.globe}
-                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    colors={['#FBB1F5', '#ffe640'] as [string, string]}
                     actionIcon={geographicalMode == "state" && icons.check}
                     iconColor={"#22c722"}
                     onPress={() => {
@@ -274,7 +274,7 @@ const fetchUserData = async () => {
                     label={`${userInfo?.city}`}
                     caption={`Everything that happens in ${userInfo?.city} stays there.`}
                     icon={icons.globe}
-                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    colors={['#FBB1F5', '#ffe640'] as [string, string]}
                     actionIcon={geographicalMode == "city" && icons.check}
                     iconColor={"#22c722"}
                     onPress={() => {

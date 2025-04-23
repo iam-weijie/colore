@@ -17,7 +17,7 @@ const ColoreActivityIndicator = ({
   text = 'Loading...',
   size = 50,
   strokeWidth = 6,
-  colors = ['#ffe640', '#fbb1d6', '#93c5fd', '#CFB1FB'],
+  colors = ['#ffe640', '#FBB1F5', '#93c5fd', '#CFB1FB'],
 }: {
   text?: string;
   size?: number;

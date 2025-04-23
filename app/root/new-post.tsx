@@ -421,7 +421,7 @@ const fetchUsers = async () => {
     }): React.ReactElement => (
             <ItemContainer 
             label={item[1]}
-            colors={["#fbb1d6", "#CFB1FB"]}
+            colors={["#FBB1F5", "#CFB1FB"]}
             icon={icons.addUser}
             actionIcon={icons.chevron}
             iconColor="#000"

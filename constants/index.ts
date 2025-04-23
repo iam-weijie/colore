@@ -135,9 +135,9 @@ export const temporaryColors: PostItColor[] = [
   {
     name: "pink",
     id: 1,
-    hex: "#fbb1d6",
+    hex: "#FBB1F5",
     rarity: "default",
-    foldcolorhex: "#ffc7e2",
+    foldcolorhex: "#FFC8FB",
     fontColor: "#D82C82",
   },
   {

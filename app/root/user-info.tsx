@@ -466,7 +466,7 @@ const UserInfo = () => {
     {
       label: "About you",
       caption: "Share something cool about yourself!",
-      color: "#fbb1d6",
+      color: "#FBB1F5",
       disabled: postContent.length == 0,
       children: (
       <View className="flex-1">

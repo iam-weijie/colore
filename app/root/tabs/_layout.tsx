@@ -205,7 +205,7 @@ const Layout: React.FC = () => {
               source={icons.plus}
               focused={focused}
               unread={0}
-              color="#fbb1d6"
+              color="#FBB1F5"
               label="Create"
             />
           ),
