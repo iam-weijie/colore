@@ -582,6 +582,20 @@ const PostContainer: React.FC<PostContainerProps> = ({
     backgroundColor: backgroundColor.value,
   }));
 
+  useFocusEffect(
+    useCallback(() => {
+      // Screen is focused
+  
+      return () => {
+        setTimeout(() => {
+          handleCloseModal();
+          setSelectedBoard(null)
+        }, 250);
+      };
+    }, [])
+  );
+
+
   return (
 
         <AnimatedView
