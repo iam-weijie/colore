@@ -14,6 +14,7 @@ import React from "react";
 import ReactNativeModal from "react-native-modal";
 
 import PostContainer from "./PostContainer";
+import { Pressable } from "react-native-gesture-handler";
 
 const PostModal: React.FC<PostModalProps> = ({
   isVisible,
@@ -35,7 +36,7 @@ const PostModal: React.FC<PostModalProps> = ({
     backdropOpacity={0}
     onBackdropPress={() => console.log("touched the background")}
   >
-    
+   
     <PostContainer 
     selectedPosts={selectedPosts} 
     handleCloseModal={handleCloseModal} 
@@ -45,7 +46,9 @@ const PostModal: React.FC<PostModalProps> = ({
     header={header}
     infiniteScroll={infiniteScroll}
     scrollToLoad={scrollToLoad} />
+
     </ReactNativeModal>
+    
 
   )
 }

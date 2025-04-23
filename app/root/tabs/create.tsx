@@ -54,7 +54,7 @@ const Create = () => {
         color="#93c5fd"
         />
         <ScrollView 
-        className="flex-1 mt-4 mx-6"
+        className="flex-1 pt-2 mx-6"
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}>
           <View className="my-3 ml-2">

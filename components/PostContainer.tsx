@@ -356,8 +356,46 @@ const PostContainer: React.FC<PostContainerProps> = ({
 
 
 
-  const handleInteractionPress = (emoji: string) => {
-    setSelectedEmoji(emoji)
+  const handleInteractionPress = async (emoji: string) => {
+
+    try {
+      console.log("Patching prompts")
+      
+      await fetchAPI(`/api/prompts/updateEngagement`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user?.id,
+          promptId: currentPost?.prompt_id
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to update unread comments:", error);
+    } finally {
+      setSelectedEmoji(emoji)
+      const timeoutId = setTimeout(() => {
+      setCurrentPostIndex((prevIndex) => {
+        const newIndex = prevIndex + 1;
+        if (newIndex < 0) {
+          return posts.length - 1; // Loop back to the last post
+        } else if (newIndex >= posts.length) {
+          return 0; // Loop back to the first post
+        }
+        return newIndex;
+      }
+      );
+      translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+      opacity.value = withTiming(0, {}, () => {
+        runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+        opacity.value = withTiming(1);
+      }
+      );
+      if (soundEffectsEnabled) {
+        //playSoundEffect(SoundType.Dislike);
+      }
+    }, 2000)
+    return () => clearTimeout(timeoutId);
+    }
+   
   }
 
   // Capture the content as soon as the component mounts (first render)
@@ -556,8 +594,11 @@ const PostContainer: React.FC<PostContainerProps> = ({
             }
           ]}
         >
-          <TouchableWithoutFeedback >
+          <TouchableWithoutFeedback onPress={handleCloseModal}>
+            <View className="absolute flex-1 ">
             {<EmojiBackground emoji="" color="" />}
+            </View>
+          
           </TouchableWithoutFeedback>
 
           {header}
@@ -655,47 +696,8 @@ const PostContainer: React.FC<PostContainerProps> = ({
               label="Nay"
               icon={icons.close}
               color={"#FF0000"}
-              onPress={async () => {
-               
-                try {
-                  console.log("Patching prompts")
-                  
-                  await fetchAPI(`/api/prompts/updateEngagement`, {
-                    method: "PATCH",
-                    body: JSON.stringify({
-                      clerkId: user?.id,
-                      promptId: currentPost?.prompt_id
-                    }),
-                  });
-                } catch (error) {
-                  console.error("Failed to update unread comments:", error);
-                } finally {
-                  handleInteractionPress("😤")
-                  const timeoutId = setTimeout(() => {
-                  setCurrentPostIndex((prevIndex) => {
-                    const newIndex = prevIndex + 1;
-                    if (newIndex < 0) {
-                      return posts.length - 1; // Loop back to the last post
-                    } else if (newIndex >= posts.length) {
-                      return 0; // Loop back to the first post
-                    }
-                    return newIndex;
-                  }
-                  );
-                  translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-                  opacity.value = withTiming(0, {}, () => {
-                    runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-                    opacity.value = withTiming(1);
-                  }
-                  );
-                  if (soundEffectsEnabled) {
-                    //playSoundEffect(SoundType.Dislike);
-                  }
-                }, 2000)
-                return () => clearTimeout(timeoutId);
-                }
-             
-              }}
+              onPress={() => 
+                handleInteractionPress("😤")}
               />}
               <InteractionButton 
               label="Reply"
@@ -734,47 +736,8 @@ const PostContainer: React.FC<PostContainerProps> = ({
               label="Hard agree"
               icon={icons.check}
               color={"#000000"}
-              onPress={async () => {
-                
-               try {
-                  await fetchAPI(`/api/prompts/updateEngagement`, {
-                    method: "PATCH",
-                    body: JSON.stringify({
-                      clerkId: user?.id,
-                      promptId: currentPost?.prompt_id
-                    }),
-                  });
-                } catch (error) {
-                  console.error("Failed to update:", error);
-                } finally {
-                  handleInteractionPress("🤩")
-                  const timeoutId = setTimeout(() => {
-                  setCurrentPostIndex((prevIndex) => {
-                    const newIndex = prevIndex + 1;
-                    if (newIndex < 0) {
-                      return posts.length - 1; // Loop back to the last post
-                    } else if (newIndex >= posts.length) {
-                      return 0; // Loop back to the first post
-                    }
-                    return newIndex;
-                  }
-                  );
-                  translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-                  opacity.value = withTiming(0, {}, () => {
-                    runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-                    opacity.value = withTiming(1);
-                  }
-                  );
-                  if (soundEffectsEnabled) {
-                    //playSoundEffect(SoundType.Dislike);
-                  }
-                }, 2000)
-
-                return () => clearTimeout(timeoutId);
-
-                }
-              
-              }}
+              onPress={() =>
+                handleInteractionPress("🤩")}
               />}
 
             </View>

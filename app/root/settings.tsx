@@ -285,7 +285,6 @@ const Settings = () => {
                 setNewUsername("");
               }}
               containerStyle="-mt-8"
-              inputStyle="bg-gray-50  rounded-3xl px-4 py-3"
             />
           </View>
           
@@ -303,7 +302,6 @@ const Settings = () => {
                 setNewEmail("");
               }}
                containerStyle="-mt-8"
-              inputStyle="bg-gray-50  rounded-3xl px-4 py-3"
             />
           </View>
           

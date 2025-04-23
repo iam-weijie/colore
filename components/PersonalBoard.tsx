@@ -43,9 +43,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<any>(null);
-  const [username, setUsername] = useState<string>("");
   const [shouldRefresh, setShouldRefresh] = useState(0); // Add a refresh counter
-  const isOwnBoard = !userId || userId === user?.id;
+  const isOwnBoard = !userId || userId == user?.id;
   const [maxPosts, setMaxPosts] = useState(0);
   const [postRefIDs, setPostRefIDS] = useState<number[]>([]);
   const [updatePinnedPosts, setUpdatePinnedPosts] = useState<boolean>(false);
@@ -112,11 +111,12 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
        board = await fetchAPI(
         `/api/boards/getBoardById?id=${boardId}`
       );
+      setBoardRestrictions(board.data.restrictions)
+
     }
       let filteredPosts;
       let posts;
       
-      console.log("board", board, boardId, userId)
      
       if (board) {
         posts = await fetchAPI(
@@ -316,7 +316,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
         handleUpdatePin={(ids) => updatePinPosts(ids)}
         allowStacking={true}
         showPostItText={true}
-        invertColors={false}
+        invertColors={true}
       />
     </MotiView>
 
@@ -343,7 +343,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
         className="mb-6"
       >
       
-          <InteractionButton 
+          {isOwnBoard && <InteractionButton 
           label={"Reply"}
           showLabel={false}
           icon={icons.pencil}
@@ -354,7 +354,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
               params: { recipient_id: userId, username: profileUser?.username, boardId }
             })
           }}
-          />
+          />}
        
       </View>
     </MotiView>

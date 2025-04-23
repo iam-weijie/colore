@@ -60,6 +60,7 @@ import TabNavigation from "@/components/TabNavigation";
 import { useGlobalContext } from "@/app/globalcontext";
 import ItemContainer from "@/components/ItemContainer";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+import TabsContainer from "@/components/TabsContainer";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -598,6 +599,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 
           
             <View className="w-full flex-row items-start justify-between ">
+              
 
             <TabNavigation
                 name="Find"
@@ -789,6 +791,19 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   const [selectedTab, setSelectedTab] = useState<string>(
     tab ? tab : "Posts"
   );
+
+
+  const tabs = [
+    { name: "Posts", key: "Posts", color: "#CFB1FB", notifications: 0 },
+    { name: "Likes", key: "Likes", color: "#CFB1FB" },
+    { name: "Comments", key: "Comments", color: "#93c5fd", notifications: 0 }
+  ];
+
+  const handleTabChange = (tabKey: string) => {
+    console.log("Tab changed to:", tabKey);
+    setSelectedTab(tabKey);
+    // You can add additional logic here when tabs change
+  };
 
 //console.log("stored notification", storedNotifications.length)
   const removeNotification = (id: string) => {}

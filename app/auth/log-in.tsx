@@ -9,6 +9,7 @@ import { Link, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
+import React from "react";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();

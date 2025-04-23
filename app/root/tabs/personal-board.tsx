@@ -1,18 +1,23 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import {
-
+  Dimensions,
   View,
   Image,
   Text,
 } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring,
+  withTiming
+} from "react-native-reanimated";
 import { useRouter, useFocusEffect } from "expo-router";
 import { fetchAPI } from "@/lib/fetch";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import PersonalBoard from "@/components/PersonalBoard";
 import { icons, temporaryColors } from "@/constants";
-import TabNavigation from "@/components/TabNavigation";
+import TabsContainer from "@/components/TabsContainer";
 import { Board } from "@/types/type";
 import EmojiBackground from "@/components/EmojiBackground";
 import InteractionButton from "@/components/InteractionButton";
@@ -31,6 +36,17 @@ const UserPersonalBoard = () => {
   const [discoverBoards, setDiscoverBoards] = useState<any>();
   const [communityBoards, setCommunityBoards] = useState<any>();
 
+  const tabs = [
+    { name: "Mine", key: "MyBoards", color: "#CFB1FB", notifications: 0 },
+    { name: "Community", key: "Community", color: "#CFB1FB" },
+    { name: "Discover", key: "Discover", color: "#93c5fd", notifications: 0 }
+  ];
+
+  const handleTabChange = (tabKey: string) => {
+    console.log("Tab changed to:", tabKey);
+    setSelectedTab(tabKey);
+    // You can add additional logic here when tabs change
+  };
 
   const fetchPersonalBoards = async () => {
     try {
@@ -150,7 +166,7 @@ const UserPersonalBoard = () => {
 
 
   return (
-<View className="flex-1">
+<View className="flex-1 bg-[#FAFAFA]">
       <View className="flex-1 flex-row max-h-[16%] justify-between items-end pl-11  pr-6  bg-white z-10">
 
         <Text className={`text-2xl font-JakartaBold`}>
@@ -160,32 +176,14 @@ const UserPersonalBoard = () => {
       </View>
       <SignedIn>
         <View className="flex-1">
-        <View className="flex flex-row items-center justify-start bg-white">
-              <TabNavigation
-                name={"Mine"}
-                focused={selectedTab === "MyBoards"}
-                onPress={() => {
-                  setSelectedTab("MyBoards")
-                }}
-                notifications={0}
-                color={"#CFB1FB"}/>
-                 <TabNavigation
-                name={"Community"}
-                focused={selectedTab === "Community"}
-                onPress={() => {
-                  setSelectedTab("Community")
-                }}
-                notifications={0}
-                color={"#CFB1FB"}/>
-                <TabNavigation
-                name={"Discover"}
-                focused={selectedTab === "Discover"}
-                onPress={() => {
-                  setSelectedTab("Discover")
-                }}
-                notifications={0}
-                color={"#93c5fd"}/>
-            </View>
+        <TabsContainer
+            tabs={tabs}
+            selectedTab={selectedTab}
+            onTabChange={handleTabChange} 
+            tabCount={0}        
+      />
+
+      
             {!loading ? (<View className="flex-1 overflow-hidden my-4">
         {selectedTab === "MyBoards" ? (
         <View className="flex-1">

@@ -16,6 +16,7 @@ const UserPersonalBoard = () => {
   const { user } = useUser();
   const { id, username, boardId } = useLocalSearchParams();
   const [boardInfo, setBoardInfo] = useState<any>();
+  const isOwnBoard = !id || id == user?.id;
   const [postCount, setPostCount] = useState<number>(0);
   const [joinedCommunity, setJoinedCommunity] = useState<boolean>(false);
   const { showAlert } = useAlert();
@@ -142,7 +143,7 @@ console.log("info pass to user profile", id, username, boardId)
       <TouchableOpacity onPress={() => router.back()} className="p-4 rounded-full bg-white shadow-md ">
           <AntDesign name="caretleft" size={18} />
         </TouchableOpacity>
-        { boardInfo && <TouchableOpacity onPress={() =>
+        { (boardInfo && !isOwnBoard) && <TouchableOpacity onPress={() =>
           joinCommunity()
         } className="p-4 rounded-full bg-white shadow-md ">
           <Image

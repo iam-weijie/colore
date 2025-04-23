@@ -121,7 +121,7 @@ useFocusEffect(
                     <GestureDetector gesture={panGesture}>
                         <Animated.View
                             style={animatedStyle}
-                            className="absolute w-[92%] max-h-[80%] left-[50%] -ml-[46%] p-6 bg-[#FAFAFA] rounded-[48px] shadow-xs bottom-5 overflow-hidden"
+                            className="absolute w-[92%] max-h-[75%] left-[50%] -ml-[46%] p-6 bg-[#FAFAFA] rounded-[48px] shadow-xs bottom-5 overflow-hidden"
                         >
                             {/* Drag indicator */}
                             <View className="w-full items-center pb-2">
