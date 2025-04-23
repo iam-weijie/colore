@@ -45,6 +45,7 @@ import BoardGallery from "./BoardGallery";
 import PersonalBoard from "./PersonalBoard";
 import PostContainer from "./PostContainer";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
+import TabsContainer from "./TabsContainer";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View 
@@ -518,6 +519,25 @@ const Menu = ({status}: {status: FriendStatusType}) => {
 
 }
 
+
+const myTabs = [
+  { name: "Profile", key: "Profile", color: "#CFB1FB", notifications: 0 },
+  { name: "Posts", key: "Posts", color: "#CFB1FB", notifications: unreadComments },
+  { name: "Settings", key: "Settings", color: "#93c5fd", notifications: 0 }
+];
+
+const userTabs = [
+  { name: "Profile", key: "Profile", color: "#CFB1FB", notifications: 0 },
+  { name: "Boards", key: "Boards", color: "#CFB1FB" },
+  { name: "Communities", key: "Communities", color: "#93c5fd", notifications: 0 }
+];
+
+const handleTabChange = (tabKey: string) => {
+  console.log("Tab changed to:", tabKey);
+  setSelectedTab(tabKey);
+  // You can add additional logic here when tabs change
+};
+
   return (
     <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
 
@@ -526,7 +546,7 @@ const Menu = ({status}: {status: FriendStatusType}) => {
            {/* HEADER */}
             <View className="h-[18%] flex-row justify-start items-end bg-white z-[100]">
            
-              <View className="flex-row w-full  justify-between items-center pl-11 pr-6">
+              <View className="flex-row w-full  justify-between items-center pl-10 pr-6">
                 <Animated.View entering={FadeIn.duration(800)}>
                 { (nickname || profileUser?.username) ? (
                 
@@ -723,55 +743,14 @@ const Menu = ({status}: {status: FriendStatusType}) => {
             </View>
 
             {/* TAB SELECTION */}
-            <View className="flex flex-row items-center justify-start bg-white pl-2 pr-6 z-[100]">
-              <TabNavigation
-                name={"Profile"}
-                focused={selectedTab === "Profile"}
-                onPress={() => {
-                  setSelectedTab("Profile")
-                }}
-                notifications={0}
-                color={"#CFB1FB"}/>
-              
-              {isEditable && 
-                <TabNavigation
-                name={"Posts"}
-                focused={selectedTab === "Posts"}
-                onPress={() => {
-                 setSelectedTab("Posts")
-                }}
-                notifications={unreadComments}
-                color={"#93c5fd"}/>}
-                {isEditable &&
-                <TabNavigation
-                name={"Settings"}
-                focused={selectedTab === "Settings"}
-                onPress={() => {
-                 setSelectedTab("Settings")
-                }}
-                notifications={0}
-                color={"#93c5fd"}/>}
-                
-                 {!isEditable && 
-                  <TabNavigation
-                  name={"Boards"}
-                  focused={selectedTab === "Boards"}
-                  onPress={() => {
-                    setSelectedTab("Boards")
-                  }}
-                  notifications={0}
-                  color={"#CFB1FB"}/>
-                }
-                {!isEditable &&
-                  <TabNavigation
-                  name={"Communities"}
-                  focused={selectedTab === "Communities"}
-                  onPress={() => {
-                    setSelectedTab("Communities")
-                  }}
-                  notifications={0}
-                  color={"#CFB1FB"}/>
-                }
+            <View className="flex flex-row items-center justify-start bg-white z-[100]">
+            <TabsContainer
+            tabs={isEditable ? myTabs : userTabs}
+            selectedTab={selectedTab}
+            onTabChange={handleTabChange} 
+            tabCount={0}        
+      />
+
             </View>
 
             {/* TABS */}
