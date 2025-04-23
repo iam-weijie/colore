@@ -133,7 +133,10 @@ useFocusEffect(
                                     {title}
                                 </Text>
                             </View>
+                            <View className="flex-1">
                             {children}
+                            </View>
+                           
                         </Animated.View>
                     </GestureDetector>
                 </KeyboardAvoidingView>

@@ -23,7 +23,11 @@ import {
     PanGestureHandlerGestureEvent,
   } from "react-native-gesture-handler";
   import Animated, {
+    BounceIn,
+    FadeIn,
     runOnJS,
+    SlideInLeft,
+    SlideInRight,
     useAnimatedGestureHandler,
     useAnimatedStyle,
     useSharedValue,
@@ -243,6 +247,7 @@ export const CommentItem: React.FC<PostComment> = ({
       >
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
+          entering={user_id === user?.id ? SlideInRight.stiffness(50) : SlideInLeft.stiffness(50)}
             className="flex flex-col justify-center"
             style={[
               animatedStyle, {

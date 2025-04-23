@@ -544,19 +544,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
     backgroundColor: backgroundColor.value,
   }));
 
-  useFocusEffect(
-    useCallback(() => {
-      // Screen is focused
-  
-      return () => {
-        setTimeout(() => {
-          handleCloseModal();
-          setSelectedBoard(null)
-        }, 250);
-      };
-    }, [])
-  );
-
   return (
 
         <AnimatedView
@@ -810,7 +797,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
             <EmojiExplosionModal
               isVisible={!!selectedEmoji}
               verticalForce={50}
-              radius={800}
+              radius={isIpad ? 1200 : 800}
               emojiSize="text-[150px]"
               duration={8000}
               emoji={selectedEmoji}
@@ -831,7 +818,10 @@ const PostContainer: React.FC<PostContainerProps> = ({
               setSelectedBoard(null)
             }}
             >
+              <View className="flex-1 h-full">
               {selectedBoard}
+              </View>
+              
               </ModalSheet>
 }
         </AnimatedView>

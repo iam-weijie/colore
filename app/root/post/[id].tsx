@@ -60,17 +60,9 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const { showAlert } = useAlert();
   const {
     clerk_id = "",
-    content = "",
-    nickname,
-    firstname,
-    username = "",
     like_count,
-    report_count,
-    created_at,
-    unread_comments = 0,
     anonymous = "",
     color,
-    saved,
   } = useLocalSearchParams();
 
   const [loading, setLoading] = useState(true);
@@ -629,9 +621,9 @@ console.log("happend", "id", id)
   };
 
   return (
-    <SafeAreaView className="flex-1 min-h-[350px]">
-    <SignedIn>
-         <Pressable className="flex-1 " onPress={() => 
+    <View className="flex-1 h-[450px]">
+
+         <Pressable onPress={() => 
                   {
                     Keyboard.dismiss()
                   }
@@ -671,14 +663,14 @@ console.log("happend", "id", id)
 
 <View className="flex flex-col">
 {replyView && (
-  <View className="mt-2 mb-1 ml-2 pl-3 flex-row items-center border-l-2 border-gray-200">
+  <View className="mt-2 mb-1 ml-2 pl-3 flex-row items-center border-l-2 border-gray-200 bg-red-500 max-w-[85%]">
     <Image
     source={icons.chevron}
     className="mr-4 h-4 w-4"
     tintColor={"#9e9e9e"}
     />
     <Text 
-      className="text-sm text-gray-500 max-w-[85%]"
+      className="text-sm text-gray-500"
       numberOfLines={2}
     >
       {replyView.content}
@@ -721,8 +713,7 @@ console.log("happend", "id", id)
           </View>
           </View>
         </View>
-    </SignedIn>
-  </SafeAreaView>
+  </View>
   );
 };
 
