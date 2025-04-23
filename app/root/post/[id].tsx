@@ -663,7 +663,7 @@ console.log("happend", "id", id)
 
 <View className="flex flex-col">
 {replyView && (
-  <View className="mt-2 mb-1 ml-2 pl-3 flex-row items-center border-l-2 border-gray-200 bg-red-500 max-w-[85%]">
+  <View className="mt-2 mb-1 ml-2 pl-3 flex-row items-center border-l-2 border-gray-200 max-w-[85%]">
     <Image
     source={icons.chevron}
     className="mr-4 h-4 w-4"
