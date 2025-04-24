@@ -21,8 +21,6 @@ import {
   UserProfileType,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState, useCallback } from "react";
@@ -46,6 +44,7 @@ import PersonalBoard from "./PersonalBoard";
 import PostContainer from "./PostContainer";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import TabsContainer from "./TabsContainer";
+import { fetchCountryEmoji } from "@/lib/post";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View 
@@ -72,17 +71,7 @@ const PostGallerySkeleton = () => (
   </Animated.View>
 );
 
-// Skeleton UI for color gallery
-const ColorGallerySkeleton = () => (
-  <Animated.View 
-    entering={FadeIn.duration(400)}
-    className="w-[85%] self-center flex-row flex-wrap justify-start "
-  >
-    {[...Array(9)].map((_, i) => (
-       <Circle key={i} color={"#E5E7EB"} size={50} />
-    ))}
-  </Animated.View>
-);
+
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -157,27 +146,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
-  const fetchCountryEmoji = async (countryName: string) => {
-  
-    try {
-      const response = await fetch(`https://restcountries.com/v3.1/name/${countryName}`);
-      const data = await response.json();
 
-      if (!response.ok || !data || data.length === 0) {
-        //setError("Country not found.");
-        return;
-      }
-
-      const countryCode = data[0]?.cca2 || ""; // ISO 3166-1 alpha-2 country code
-      const flagEmoji = countryCode?.toUpperCase().split("").map((char: string) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
-
-      setCountryEmoji(flagEmoji);
-      setEmojiLoading(false)
-    } catch (err) {
-      setError("Error fetching country data.");
-    }
-
-  };
 
   // Add useFocusEffect to reload data when screen comes into focus
   useFocusEffect(
@@ -209,17 +178,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   }, [stateVars]);
 
   useEffect(() => {
-    const getFriendStatus = async () => {
-      let status;
-      if (user!.id !== userId) {
-        status = await fetchFriendStatus(userId, user!);
-        //console.log("Friend status:", status.name);
-        setFriendStatus(status);
-      }
-    };
-    getFriendStatus();
-    fetchFriendCount();
-  }, []);
+      const getFriendStatus = async () => {
+        let status;
+        if (user!.id !== userId) {
+          status = await fetchFriendStatus(userId, user!);
+          //console.log("Friend status:", status.name);
+          setFriendStatus(status);
+        }
+      };
+      getFriendStatus();
+      fetchFriendCount();
+    }, []);
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -242,7 +211,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
 
       // Fetch country emoji
-      await fetchCountryEmoji(userInfo.country);
+      setEmojiLoading(true)
+      const flagEmoji = await fetchCountryEmoji(userInfo.country);
+      console.log("country emoji", flagEmoji)
+      setCountryEmoji(() => flagEmoji)
+      setEmojiLoading(false)
     } catch (error) {
       setError("Failed to fetch user data.");
       console.error("Failed to fetch user data:", error);
@@ -427,98 +400,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
-  const handleReportPress = () => {
-    Linking.openURL("mailto:support@colore.ca");
-  };
-
-
-  // to prevent database errors,
-  // don't load the "send friend request"
-  // option if the friend status can't be determined
-  const menuItems_unloaded = [
-    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
-    { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress },
-  ];
-
-  const menuItems_default = [
-    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
-    { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
-  ];
-
-  const menuItems_friend = [
-    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
-    { label: "Unfriend",  source: icons.close, color: "#6408DA", onPress: async () => {
-      setIsHandlingFriendRequest(true);
-      const response: FriendStatusType = await unfriend(
-        user!.id,
-        userId
-      );
-      if (response === FriendStatus.NONE) {
-        showAlert({
-          title: 'Unfriended',
-          message: "You have unfriended this user.",
-          type: 'FRIEND_REQUEST',
-          status: 'success',
-        });
-      } else {
-        showAlert({
-          title: 'Error',
-          message: `Error unfriending this user.`,
-          type: 'ERROR',
-          status: 'error',
-        });
-      }
-      setFriendStatus(response);
-      setIsHandlingFriendRequest(false);
-    }},
-    { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
-  ];
-
-  const menuItems_sent = [
-    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
-    {
-      label: "Report",
-      source: icons.email,
-      color: "#DA0808",
-      onPress: handleReportPress,
-    },
-  ];
-
-  const menuItems_received = [
-    { label: "Nickname", color: "#000000", source: icons.person, onPress: handleAddNickname },
-    {
-      label: "Report",
-      color: "#DA0808",
-      source: icons.email,
-      onPress: () => handleReportPress,
-    },
-  ];
-
-const Menu = ({status}: {status: FriendStatusType}) => {
-  let menu;
-  switch (status) {
-    case FriendStatus.FRIENDS:
-      return menu = menuItems_friend
-    case FriendStatus.SENT:
-      return menu = menuItems_sent
-    case FriendStatus.RECEIVED:
-      return menu = menuItems_received
-    case FriendStatus.NONE:
-      return menu = menuItems_default
-    case FriendStatus.UNKNOWN:
-      return menu = menuItems_unloaded
-  }
-
-  return (
-    <DropdownMenu
-                        menuItems={menu}
-                        customMenuWidth={150}
-                      />
-  )
-
-
-}
-
 
 const myTabs = [
   { name: "Profile", key: "Profile", color: "#CFB1FB", notifications: 0 },
@@ -544,7 +425,7 @@ const handleTabChange = (tabKey: string) => {
             
 
            {/* HEADER */}
-            <View className="h-[18%] flex-row justify-start items-end bg-white z-[100]">
+            <View className="h-[16%] flex-row justify-start items-end bg-white z-[100]">
            
               <View className="flex-row w-full  justify-between items-center pl-10 pr-6">
                 <Animated.View entering={FadeIn.duration(800)}>
@@ -726,22 +607,6 @@ const handleTabChange = (tabKey: string) => {
             
          
 
-            {/* NAVIGATE AWAY */}
-            <View className="absolute top-14 z-[101]"
-            style={{
-              [!isEditable ? 'left' : 'right'] :  16,
-            }}>
-      {!isEditable && 
-                <View className="absolute">
-                  <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="mr-4"
-                  >
-                    <AntDesign name="caretleft" size={18} />
-                  </TouchableOpacity>
-                </View>}
-            </View>
-
             {/* TAB SELECTION */}
             <View className="flex flex-row items-center justify-start bg-white z-[100]">
             <TabsContainer
@@ -756,10 +621,10 @@ const handleTabChange = (tabKey: string) => {
             {/* TABS */}
             {selectedTab === "Profile" && <View className="flex-1 items-center justify-center">
               {!profileLoading ? (
-                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
+                <View className={`absolute -top-[20%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
                   <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>)
               : (
-                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
+                <View className={`absolute -top-[20%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
                   <PostContainer selectedPosts={[post]} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>
               )}
             </View>}

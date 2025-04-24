@@ -132,3 +132,24 @@ export   const distanceBetweenPosts = (
         const distance = Math.sqrt(x_diff ** 2 + y_diff ** 2);
         return distance;
       };
+
+export const fetchCountryEmoji = async (countryName: string) => {
+  
+  try {
+    const response = await fetch(`https://restcountries.com/v3.1/name/${countryName}`);
+    const data = await response.json();
+
+    if (!response.ok || !data || data.length === 0) {
+      //setError("Country not found.");
+      return;
+    }
+
+    const countryCode = data[0]?.cca2 || ""; // ISO 3166-1 alpha-2 country code
+    const flagEmoji = countryCode?.toUpperCase().split("").map((char: string) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
+
+    return flagEmoji
+  } catch (err) {
+   console.log("Failed fetching country emoji", err)
+  }
+
+};

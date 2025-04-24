@@ -139,7 +139,7 @@ console.log("info pass to user profile", id, username, boardId)
                         
       </View>
       <PersonalBoard userId={id as string} boardId={boardId} />
-      <View className="absolute w-full flex-row items-center justify-between bottom-12  px-6 ">
+      <View className="absolute w-full flex-row items-center justify-between bottom-12  px-8 ">
       <TouchableOpacity onPress={() => router.back()} className="p-4 rounded-full bg-white shadow-md ">
           <AntDesign name="caretleft" size={18} />
         </TouchableOpacity>
