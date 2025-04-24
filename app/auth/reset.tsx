@@ -6,6 +6,7 @@ import { Image, ScrollView, Text, View } from "react-native";
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { icons } from "@/constants";
+import React from "react";
 
 const PwReset = () => {
   const { signIn } = useSignIn();

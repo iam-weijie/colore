@@ -320,7 +320,7 @@ const Settings = () => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={handleLocationUpdate}
-                className="bg-blue-50 px-3 py-1 rounded-full"
+                className="bg-black px-3 py-2 rounded-full"
               >
                 <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
               </TouchableOpacity>
@@ -390,7 +390,7 @@ const Settings = () => {
             className="px-5 py-4 flex flex-row items-center justify-between"
           >
             <View className="flex flex-row items-center">
-              <View className="bg-red-50 p-2 rounded-xl mr-3">
+              <View className="bg-black p-2 rounded-xl mr-3">
                 <MaterialCommunityIcons
                   name="heart-outline"
                   size={20}

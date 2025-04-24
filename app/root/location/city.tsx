@@ -4,11 +4,13 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { useUser } from "@clerk/clerk-expo";
 import { Href, router, useLocalSearchParams } from "expo-router";
-import { FlatList, Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { FlatList, Image, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScrollingText from "./ScrollingText";
 import { generateAcronym, isNameTooLong } from "./cacheStore";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+import React from "react";
+import { icons } from "@/constants";
 
 // Interface for City and State
 interface City {
@@ -86,26 +88,24 @@ const CityItem = memo(({
   const requiresScrolling = isNameTooLong(cityName, 15);
   
   return (
-    <TouchableOpacity 
-      onPress={() => onPress(cityName)} 
-      style={styles.itemContainer}
-    >
-      {requiresScrolling ? (
-        <ScrollingText
-          text={cityName}
-          style={styles.cityName}
-          maxLength={15}
-        />
-      ) : (
-        <Text style={styles.cityNameText}>
-          {cityName}
-        </Text>
-      )}
-
-      {isSelected && (
-        <Text style={styles.checkmark}>✓</Text>
-      )}
-    </TouchableOpacity>
+    <TouchableOpacity
+              className="flex-row items-center justify-between  mx-6 py-6 px-6 bg-white my-1 rounded-[32px]"
+              onPress={() => onPress(cityName)} 
+              activeOpacity={0.7}
+            >
+              <View  className="flex-1 flex-row items-center">
+               
+                  <Text className="text-base font-JakartaSemiBold max-w-[85%]">
+                    {cityName}
+                  </Text>
+              
+              </View>
+             {isSelected && <Image
+              source={icons.check}
+              tintColor={"#22c722"}
+              className="w-6 h-6"
+              />}
+            </TouchableOpacity>
   );
 });
 
@@ -205,21 +205,12 @@ const City = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          Select a City in {formattedStateName()}
-        </Text>
-
-        <CustomButton
-          className="w-16 rounded-[24px] bg-[#b8e1ff] p-2 shadow-none"
-          fontSize="sm"
-          title="Done"
-          padding="0"
-          onPress={handleConfirmPress}
-          disabled={!selectedCity}
-        />
-      </View>
+       <View className="flex-1 bg-[#FAFAFA]">
+            <View className="flex-row justify-between items-end pl-11 pt-16 bg-white">
+                                <Text className="text-2xl font-JakartaBold my-4">Select a State in {formattedStateName()}</Text>
+                  </View>
+    
+      
 
       <FlatList
         data={sortedCities}
@@ -229,11 +220,23 @@ const City = () => {
         maxToRenderPerBatch={10}
         windowSize={5}
         removeClippedSubviews={true}
+        contentContainerStyle={{ paddingTop: 16 }}
         getItemLayout={(data, index) => (
           {length: 50, offset: 50 * index, index}
         )}
       />
-    </SafeAreaView>
+
+<View className="flex-1 absolute flex items-center w-full bottom-[10%]">
+            <CustomButton
+              className="w-[50%] h-16 rounded-full shadow-none bg-black"
+              fontSize="lg"
+              title={"Done"}
+              padding="0"
+              onPress={handleConfirmPress}
+              disabled={!selectedCity}
+            />
+            </View>
+    </View>
   );
 };
 
