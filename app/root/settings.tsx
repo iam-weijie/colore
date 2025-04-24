@@ -263,16 +263,25 @@ const Settings = () => {
   return (
     <KeyboardAvoidingView behavior="padding" className="flex-1 bg-gray-50">
     <ScrollView className="flex-1 pt-6" showsVerticalScrollIndicator={false}>
-  
       {/* Account Section */}
       <View className="mx-6 mb-6">
-        <View className="bg-white rounded-[32px] shadow-sm overflow-hidden p-4">
-          <View className="px-5 py-3 border-b border-gray-100">
+        <View 
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4" 
+          style={{
+            backgroundColor: "#93c5fd",
+            borderColor: "#ffffff80",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 5,
+          }}
+        >
+          <View className="px-5 py-3">
             <Text className="text-lg font-JakartaBold text-gray-800">Account Information</Text>
           </View>
           
           <View className="px-5 py-3">
-            <Text className="text-sm font-JakartaSemiBold text-gray-500">Username</Text>
+            <Text className="text-sm font-JakartaSemiBold text-[#000]">Username</Text>
             <InputField
               label=""
               value={newUsername}
@@ -289,7 +298,7 @@ const Settings = () => {
           </View>
           
           <View className="px-5 py-3">
-            <Text className="text-sm font-JakartaSemiBold text-gray-500">Email Address</Text>
+            <Text className="text-sm font-JakartaSemiBold text-[#000]">Email Address</Text>
             <InputField
               label=""
               value={newEmail}
@@ -301,19 +310,19 @@ const Settings = () => {
                 setEmail(newEmail);
                 setNewEmail("");
               }}
-               containerStyle="-mt-8"
+              containerStyle="-mt-8"
             />
           </View>
           
           <View className="px-5 py-3">
             <View className="flex flex-row items-center justify-between mb-1">
-              <Text className="text-sm font-JakartaSemiBold text-gray-500">Location</Text>
+              <Text className="text-sm font-JakartaSemiBold text-[#000]">Location</Text>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={handleLocationUpdate}
                 className="bg-blue-50 px-3 py-1 rounded-full"
               >
-                <Text className="text-blue-500 text-sm font-JakartaSemiBold">Update</Text>
+                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
               </TouchableOpacity>
             </View>
             <Text className="text-gray-800 mt-1">{currentLocation || "Not specified"}</Text>
@@ -323,8 +332,18 @@ const Settings = () => {
   
       {/* Activity Section */}
       <View className="mx-6 mb-6">
-        <View className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden">
-          <View className="px-5 py-4 border-b border-gray-100">
+        <View 
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4" 
+          style={{
+            backgroundColor: "#CFB1FB",
+            borderColor: "#ffffff80",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 5,
+          }}
+        >
+          <View className="px-5 py-4">
             <Text className="text-lg font-JakartaBold text-gray-800">Your Activity</Text>
           </View>
           
@@ -339,7 +358,7 @@ const Settings = () => {
                 },
               });
             }}
-            className="px-5 py-4 flex flex-row items-center justify-between border-b border-gray-100"
+            className="px-5 py-4 flex flex-row items-center justify-between"
           >
             <View className="flex flex-row items-center">
               <View className="bg-black p-2 rounded-xl mr-3">
@@ -353,8 +372,7 @@ const Settings = () => {
               <Text className="text-base font-JakartaSemiBold text-gray-800">Saved Posts</Text>
             </View>
             <View className="flex flex-row items-center">
-              <Text className="text-gray-400 text-sm mr-2">{savedPosts?.length || 0}</Text>
-              {/*<ChevronRightIcon size={18} color="#9CA3AF" />*/}
+              <Text className="text-[#000] text-sm mr-2">{savedPosts?.length || 0}</Text>
             </View>
           </TouchableOpacity>
           
@@ -374,16 +392,15 @@ const Settings = () => {
             <View className="flex flex-row items-center">
               <View className="bg-red-50 p-2 rounded-xl mr-3">
                 <MaterialCommunityIcons
-                  name={"heart-outline"}
+                  name="heart-outline"
                   size={20}
-                  color={"#EF4444"}
+                  color="#EF4444"
                 />
               </View>
               <Text className="text-base font-JakartaSemiBold text-gray-800">Liked Posts</Text>
             </View>
             <View className="flex flex-row items-center">
-              <Text className="text-gray-400 text-sm mr-2">{likedPosts?.length || 0}</Text>
-              {/*<ChevronRightIcon size={18} color="#9CA3AF" />*/}
+              <Text className="text-[#000] text-sm mr-2">{likedPosts?.length || 0}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -391,18 +408,28 @@ const Settings = () => {
   
       {/* Preferences Section */}
       <View className="mx-6 mb-6">
-        <View className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden">
-          <View className="px-5 py-4 border-b border-gray-100">
+        <View 
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4" 
+          style={{
+            backgroundColor: "#ffe640",
+            borderColor: "#ffffff80",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 5,
+          }}
+        >
+          <View className="px-5 py-4">
             <Text className="text-lg font-JakartaBold text-gray-800">Preferences</Text>
           </View>
           
-          <View className="px-5 py-3 flex flex-row items-center justify-between border-b border-gray-100">
+          <View className="px-5 py-3 flex flex-row items-center justify-between">
             <View className="flex-1">
               <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">Haptic Feedback</Text>
-              <Text className="text-sm text-gray-500">Get physical feedback for interactions</Text>
+              <Text className="text-sm text-gray-800">Get physical feedback for interactions</Text>
             </View>
             <Switch
-              trackColor={{ false: "#E5E7EB", true: "#FACC15" }}
+              trackColor={{ false: "#888", true: "#000" }}
               thumbColor={hapticsEnabled ? "#ffffff" : "#f4f3f4"}
               ios_backgroundColor="#E5E7EB"
               onValueChange={handleHapticsToggle}
@@ -413,10 +440,10 @@ const Settings = () => {
           <View className="px-5 py-3 flex flex-row items-center justify-between">
             <View className="flex-1">
               <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">Sound Effects</Text>
-              <Text className="text-sm text-gray-500">Play sounds for certain actions</Text>
+              <Text className="text-sm text-gray-800">Play sounds for certain actions</Text>
             </View>
             <Switch
-              trackColor={{ false: "#E5E7EB", true: "#FACC15" }}
+              trackColor={{ false: "#888", true: "#000" }}
               thumbColor={soundEffectsEnabled ? "#ffffff" : "#f4f3f4"}
               ios_backgroundColor="#E5E7EB"
               onValueChange={handleSoundToggle}
@@ -431,6 +458,12 @@ const Settings = () => {
         <TouchableOpacity 
           onPress={handleSignOut}
           className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+          }}
         >
           <Text className="font-JakartaBold text-lg text-red-500">Sign Out</Text>
         </TouchableOpacity>

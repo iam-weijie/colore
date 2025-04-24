@@ -79,6 +79,7 @@ declare interface PostComment {
   post_id: number;
   user_id: string;
   sender_id: string;
+  index: number;
   content: string;
   username: string;
   created_at: string;

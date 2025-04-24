@@ -470,9 +470,15 @@ const UserInfo = () => {
       disabled: postContent.length == 0,
       children: (
       <View className="flex-1">
- <View className="flex-1 -mb-6 rounded-[48px]" style={{
-            backgroundColor: selectedColor.hex
-            }}>
+    <View className="flex-1 mx-6 mt-0 rounded-[48px] overflow-hidden shadow-sm border-4" 
+                       style={{
+                         backgroundColor: selectedColor.hex,
+                         borderColor: "#ffffff80",
+                         shadowColor: "#000",
+                         shadowOffset: { width: 0, height: 3 },
+                         shadowOpacity: 0.1,
+                         shadowRadius: 5,
+                       }}>
           <View className="flex-1 flex-column justify-center items-center ">
             <View className="flex w-full ">
                 <View>

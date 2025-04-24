@@ -411,7 +411,15 @@ setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)])
                 color={selectedColor.hex}/>
             </View>
 
-           <View className="flex-1 m-6 rounded-[48px]" style={{backgroundColor: selectedColor.hex}}>
+           <View className="flex-1 mx-6 mt-0 rounded-[48px] overflow-hidden shadow-sm border-4" 
+                       style={{
+                         backgroundColor: selectedColor.hex,
+                         borderColor: "#ffffff80",
+                         shadowColor: "#000",
+                         shadowOffset: { width: 0, height: 3 },
+                         shadowOpacity: 0.1,
+                         shadowRadius: 5,
+                       }}>
             {navigationIndex < 2 ? (<View className="flex-1"><KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
           <View className="flex-1 flex-column justify-center items-center ">
             <View className="flex w-full mx-3">

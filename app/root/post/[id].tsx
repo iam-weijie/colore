@@ -601,6 +601,7 @@ console.log("happend", "id", id)
           user_id={comment.user_id}
           sender_id={comment.sender_id}
           post_id={comment.post_id}
+          index={index}
           username={
             anonymousComments ? "" :
             index > 0 ? (item.comments[index - 1].username == comment.username ? "" : comment.username) : comment.username

@@ -436,6 +436,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     return (
       <View className="flex-1 items-center justify-center">
           <ColoreActivityIndicator text="Summoning Bob..." />
+            {/* Closing tag for the parent View */}
           </View>
     )
   }
@@ -480,12 +481,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
           scrollEnabled={isPanningMode}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={loading}
-              onRefresh={handleReloadPosts}
-            />
-          }
+          //refreshControl={}
           horizontal={true}
           nestedScrollEnabled
         >

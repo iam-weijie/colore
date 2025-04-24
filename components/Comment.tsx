@@ -34,12 +34,14 @@ import {
     withSpring,
     withTiming,
   } from "react-native-reanimated";
+import React from "react";
 
 export const CommentItem: React.FC<PostComment> = ({
     id,
     post_id,
     user_id,
     sender_id,
+    index,
     content,
     username,
     created_at,
