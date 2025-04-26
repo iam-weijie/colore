@@ -18,7 +18,7 @@ interface StackCircleProps {
   scrollOffset?: { x: number; y: number };
   onViewPress?: () => void;
   onEditPress?: () => void;
-  onDeletePress?: () => void;
+  onSendPress?: () => void;
 }
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -29,7 +29,7 @@ const StackCircle: React.FC<StackCircleProps> = ({
   scrollOffset = { x: 0, y: 0 },
   onViewPress,
   onEditPress,
-  onDeletePress
+  onSendPress
 }) => {
   const SHOW_BUTTONS_THRESHOLD = 200;
   const buttonsVisibility = useSharedValue(0);
@@ -149,7 +149,7 @@ const StackCircle: React.FC<StackCircleProps> = ({
 
             <AnimatedTouchable
               activeOpacity={0.7}
-              onPress={onDeletePress}
+              onPress={onSendPress}
               className="rounded-full bg-white justify-center items-center mx-1"
               style={{
                 width: 50,
@@ -161,7 +161,7 @@ const StackCircle: React.FC<StackCircleProps> = ({
               }}
             >
               <Image
-                source={icons.close}
+                source={icons.send}
                 tintColor="black"
                 resizeMode="contain"
                 className="w-5 h-5"

@@ -127,8 +127,8 @@ export const AlgorithmRandomPosition = (
   _: any,
   postItCount: number
 ) => {
-  const screenWidth = Dimensions.get("window").width * (Math.floor(postItCount / 20) + 1);
-  const screenHeight = Dimensions.get("window").height * (Math.floor(postItCount / 20) + 1);
+  const screenWidth = Dimensions.get("window").width * 2;
+  const screenHeight = Dimensions.get("window").height;
   const screenArea = screenWidth * screenHeight;
 
   const minTargetArea = Math.min(postItCount * 0.03 * screenArea, screenArea); // can't exceed 100%

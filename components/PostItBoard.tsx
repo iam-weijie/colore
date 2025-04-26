@@ -28,7 +28,7 @@ import { distanceBetweenPosts } from "@/lib/post";
 import { useFocusEffect } from "expo-router";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { GlitterEmitter } from "./GlitterStars";
-import StackCircle from "./StarckCircle";
+import StackCircle from "./StackCircle";
 import ModalSheet from "./Modal";
 import RenameContainer from "./RenameContainer";
 
@@ -91,9 +91,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [selectedModal, setSelectedModal] = useState<any>(null);
   const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
 
-  const [removedFromStack, setRemovedFromStack] = useState<PostWithPosition | null>(
-    null
-  );
+  const [enableStacking, setEnableStacking] = useState<boolean>(false);
+ 
   const [isPinned, setIsPinned] = useState<boolean>(false);
   const [maps, setMap] = useState<MappingPostitProps[]>([]);
   const [isPanningMode, setIsPanningMode] = useState(true);
@@ -130,6 +129,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   const fetchRandomPosts = async () => {
     setLoading(true);
+    setEnableStacking(false);
     try {
       const posts: Post[] = await handlePostsRefresh();
       // set positions of posts
@@ -167,6 +167,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       );
       // console.log(initialMap);
       setMap(initialMap);
+      setEnableStacking(true);
 
     } catch (error) {
       setError("Failed to fetch new posts.");
@@ -336,7 +337,7 @@ const reorderPost = (topPost: PostWithPosition) => {
 
   // USE EFFECTS
   useEffect(() => {
-    if (maps.length > 1 && !loading) {
+    if (maps.length > 1 && enableStacking) {
       console.log("Position", postsWithPosition[postsWithPosition.length - 1].id, postsWithPosition[postsWithPosition.length - 1].position, maps[maps.length - 1].coordinates )
       const newPostID = maps[maps.length - 1].id;
       const newPostScreenCoordinates = maps[maps.length - 1].coordinates;
@@ -355,10 +356,6 @@ const reorderPost = (topPost: PostWithPosition) => {
     console.log("mode", mode)
   }, [mode]);
 
-  useEffect(() => {
-    console.log("removed", removedFromStack)
-    }, [removedFromStack])
-    
 
   const handleOuterLayout = () => {
     scrollViewRef.current?.scrollTo({ x: postsWithPosition[0].position.left ?? screenWidth / 2, animated: true })
@@ -558,8 +555,8 @@ const reorderPost = (topPost: PostWithPosition) => {
           maximumZoomScale={1.25}
           minimumZoomScale={0.75}
           contentContainerStyle={{
-            width: screenWidth * 3,
-            height: screenHeight * 3,
+            width: screenWidth * 4,
+            height: screenHeight * 2,
           }}
           scrollEnabled={isPanningMode}
           showsHorizontalScrollIndicator={false}
@@ -583,8 +580,8 @@ const reorderPost = (topPost: PostWithPosition) => {
             nestedScrollEnabled
             scrollEnabled={isPanningMode}
             contentContainerStyle={{
-              width: screenWidth * 3,
-              height: screenHeight * 3,
+              width: screenWidth * 4,
+              height: screenHeight * 2,
             }}
             
           >
@@ -616,6 +613,7 @@ if (!hasPostsOnCurrentBoard) {
     
 
     }}
+    onSendPress={() => {}}
     />
   )})}
 
