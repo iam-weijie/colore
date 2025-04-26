@@ -120,10 +120,10 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
  
     return (
       <FlatList
-  className="flex-1"
+  className="flex-1 pt-4"
   data={boards}
   keyExtractor={(item) => item.id.toString()}
-  numColumns={isIpad ? 8 : 2}
+  numColumns={isIpad ? 6 : 2}
   renderItem={({ item }) => <BoardContainer item={item} />}
   contentContainerStyle={{
     paddingHorizontal: isIpad ? 16 : 8, // More padding on iPad

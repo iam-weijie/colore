@@ -127,8 +127,8 @@ export const AlgorithmRandomPosition = (
   _: any,
   postItCount: number
 ) => {
-  const screenWidth = Dimensions.get("window").width * 3;
-  const screenHeight = Dimensions.get("window").height * 3;
+  const screenWidth = Dimensions.get("window").width * (Math.floor(postItCount / 20) + 1);
+  const screenHeight = Dimensions.get("window").height * (Math.floor(postItCount / 20) + 1);
   const screenArea = screenWidth * screenHeight;
 
   const minTargetArea = Math.min(postItCount * 0.03 * screenArea, screenArea); // can't exceed 100%
@@ -231,3 +231,4 @@ export function getRelativeTime(date: Date | string): string {
   const years = Math.floor(days / 365);
   return `${years} years ago`;
 }
+

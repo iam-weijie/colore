@@ -23,6 +23,7 @@ import EmojiBackground from "@/components/EmojiBackground";
 import InteractionButton from "@/components/InteractionButton";
 import BoardGallery from "@/components/BoardGallery"
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+import Header from "@/components/Header";
 
 const UserPersonalBoard = () => {
   const router = useRouter();
@@ -167,24 +168,19 @@ const UserPersonalBoard = () => {
 
   return (
 <View className="flex-1 bg-[#FAFAFA]">
-      <View className="flex-1 flex-row max-h-[16%] justify-between items-end pl-11  pr-6  bg-white z-10">
-
-        <Text className={`text-2xl font-JakartaBold`}>
-          Boards
-          </Text>
-        
-      </View>
-      <SignedIn>
+      
+    
         <View className="flex-1">
-        <TabsContainer
-            tabs={tabs}
-            selectedTab={selectedTab}
-            onTabChange={handleTabChange} 
-            tabCount={0}        
-      />
+        <Header 
+        title="Boards"
+        tabs={tabs}
+        selectedTab={selectedTab}
+        onTabChange={handleTabChange} 
+        tabCount={0}    />
+
 
       
-            {!loading ? (<View className="flex-1 overflow-hidden my-4">
+            {!loading ? (<View className="flex-1 overflow-hidden ">
         {selectedTab === "MyBoards" ? (
         <View className="flex-1">
           <BoardGallery
@@ -211,7 +207,7 @@ const UserPersonalBoard = () => {
        
         </View>
        
-      </SignedIn>
+ 
 </View>
   );
 };

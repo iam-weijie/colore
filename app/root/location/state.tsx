@@ -10,6 +10,7 @@ import ScrollingText from "./ScrollingText";
 import { useAlert } from '@/notifications/AlertContext';
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
+import Header from "@/components/Header";
 
 // Define the State interface
 interface State {
@@ -178,14 +179,15 @@ const State = () => {
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
-      <View className="flex-row justify-between items-end pl-11 pt-16 bg-white">
-                          <Text className="text-2xl font-JakartaBold my-4">Select a State in {formattedCountryName()}</Text>
-            </View>
+
+      <Header
+        title={`Select a State in ${formattedCountryName()}`}
+        />
 
       {statesList.length === 0 ? (
-        <View className="flex-1">
-          <Text className="text-[#9ca3af] text-12">No states found for this country.</Text>
-        </View>
+        <Header
+        title={`No states found for this country.`}
+        />
       ) : (
         <FlatList
           data={statesList}

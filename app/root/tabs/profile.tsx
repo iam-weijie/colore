@@ -1,6 +1,7 @@
 import UserProfile from "@/components/UserProfile";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
+import React from "react";
 import { SafeAreaView, View } from "react-native";
 
 const Profile = () => {

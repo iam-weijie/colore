@@ -16,8 +16,7 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import EmojiSelector from "react-native-emoji-selector";
-import { SafeAreaView } from "react-native-safe-area-context";
+import Header from "@/components/Header";
 
 import ColorSelector from "@/components/ColorSelector";
 import CustomButton from "@/components/CustomButton";
@@ -44,10 +43,9 @@ const Create = () => {
        
           
                     
-            <View className="flex-1 flex-row max-h-[18%] justify-between items-end pl-11  bg-[#FAFAFA] z-10">
-                 <Text className="text-2xl font-JakartaBold my-4">Create</Text>
-              
-               </View>
+            <Header 
+            title="Create" 
+            />
         </TouchableWithoutFeedback>
         <EmojiBackground 
         emoji=""

@@ -28,6 +28,23 @@ declare interface Post {
   unread: boolean;
   
 }
+
+declare interface StylingType {
+  id: number, 
+  bold?: boolean,
+  italic?: boolean,
+  underlinde?: boolean,
+  orderedList?: boolean,
+  underedList?: boolean, 
+  quote?: boolean
+}
+declare interface TextStylingType {
+  id: number;
+  value: string; 
+  style: StylingType[];
+
+}
+
 declare interface InfoScreenProps {
   title: string;
   subtitle?: string;
@@ -286,8 +303,10 @@ declare interface Friendship {
 }
 
 type Stacks = {
+  name: string;
   ids: [];
   elements: [];
+  center: {x: number, y: number};
 };
 
 type Prompt = {
@@ -299,6 +318,7 @@ type Prompt = {
   created_at: string,
   color?: string;
 };
+
 
 
 type GeographicalMode = 'city' | 'state' | 'country' | 'world'
@@ -324,3 +344,17 @@ type RadioButtonProps = {
   onSelect: () => void;
 };
 
+
+type TabItem = {
+  name: string;
+  key: string;
+  color: string;
+  notifications?: number;
+};
+
+type TabsContainerProps = {
+  tabs?: TabItem[];
+  selectedTab?: string;
+  onTabChange?: (tabKey: string) => void;
+  tabCount?: number;
+};

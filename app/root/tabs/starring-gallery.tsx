@@ -28,6 +28,7 @@ import { useAlert } from '@/notifications/AlertContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import RenderPromptCard from "@/components/RenderPromptCard";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+import Header from "@/components/Header";
 
 
 const screenWidth = Dimensions.get('window').width;
@@ -363,9 +364,9 @@ export default function Page() {
         emoji="😳"
         color="#ffe640"
         />
-          <View className="flex-1 flex-row max-h-[18%] justify-between items-end pl-11  bg-[#FAFAFA]">
-              <Text className="text-2xl font-JakartaBold my-4">Starring</Text>
-            </View>
+         <Header 
+            title="Starring" 
+            />
         {hasSubmittedPrompt ? (<PostModal
           isVisible={isModalVisible}
           selectedPosts={posts}

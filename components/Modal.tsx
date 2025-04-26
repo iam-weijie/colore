@@ -124,7 +124,7 @@ useFocusEffect(
                             className="absolute w-[92%] max-h-[75%] left-[50%] -ml-[46%] p-6 bg-[#FAFAFA] rounded-[48px] shadow-xs bottom-5 overflow-hidden"
                         >
                             {/* Drag indicator */}
-                            <View className="w-full items-center pb-2">
+                            <View className="w-full items-center pb-4">
                                 <View className="w-12 h-1 bg-gray-300 rounded-full" />
                             </View>
                             

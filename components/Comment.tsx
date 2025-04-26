@@ -35,6 +35,7 @@ import {
     withTiming,
   } from "react-native-reanimated";
 import React from "react";
+import { isOnlyEmoji } from "@/lib/post";
 
 export const CommentItem: React.FC<PostComment> = ({
     id,
@@ -202,12 +203,7 @@ export const CommentItem: React.FC<PostComment> = ({
       },
     });
   
-    const isOnlyEmoji = (text: string): boolean => {
-      // Unicode regex pattern to match emoji characters
-      const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Modifier}|\p{Emoji_Component}|\p{Emoji})+$/u;
-    
-      return emojiRegex.test(text);
-    };
+   
 
     const doubleTapHandler = () => {
       setTapCount((prevCount) => prevCount + 1);

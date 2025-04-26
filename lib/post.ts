@@ -153,3 +153,10 @@ export const fetchCountryEmoji = async (countryName: string) => {
   }
 
 };
+
+export const isOnlyEmoji = (text: string): boolean => {
+  // Unicode regex pattern to match emoji characters
+  const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Modifier}|\p{Emoji_Component}|\p{Emoji})+$/u;
+
+  return emojiRegex.test(text);
+};

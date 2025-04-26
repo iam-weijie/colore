@@ -19,26 +19,38 @@
   import { MappingPostitProps } from "@/types/type";
   import React from "react";
 
-type DraggablePostItProps = {
+interface DraggablePostItProps {
     post: PostWithPosition;
     updateIndex: () => void;
+    position: {top: number, left: number},
     updatePosition: (x: number, y: number, post: PostWithPosition) => void;
     onPress: () => void;
-    forceStack: (id: number) => MappingPostitProps;
+    forceStack?: (id: number) => MappingPostitProps;
     showText?: boolean;
     enabledPan: () => void;
+    scrollOffset: { x: number; y: number }; 
+    zoomScale: number; 
   };
   
   const DraggablePostIt: React.FC<DraggablePostItProps> = ({
     post,
+    position,
     updateIndex,
     updatePosition,
     onPress,
     forceStack,
     showText = false,
-    enabledPan
+    enabledPan,
+    scrollOffset,
+    zoomScale,
   }) => {
-    const position = useRef(new Animated.ValueXY()).current;
+    const animatedPosition = useRef(
+      new Animated.ValueXY({
+        x: position?.left || 0,
+        y: position?.top || 0,
+      })
+    ).current;
+
     const scale = useRef(new Animated.Value(1)).current;
     const rotation = useRef(new Animated.Value(0)).current;
     const shadowOpacity = useRef(new Animated.Value(0.2)).current;
@@ -48,6 +60,10 @@ type DraggablePostItProps = {
     const { stacks, setStacks } = useGlobalContext();
     const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(null);
     const [isPinned, setIsPinned] = useState<boolean>(post.pinned);
+
+    const accumulatedPosition = useRef({ x: position.left, y: position.top });
+
+
   
     const hasUpdatedPosition = useRef(false);
 
@@ -56,16 +72,6 @@ type DraggablePostItProps = {
     setFontColor(foundColor?.fontColor || "#ff0000");
   };
 
-  useEffect(() => {
-    if (isPinned) return;
-    const listenerId = position.addListener(({ x, y }) => {
-      updatePosition(x, y, post);
-    });
-
-    return () => {
-      position.removeListener(listenerId);
-    };
-  }, [position, updatePosition, post]);
 
   useEffect(() => {
     setIsPinned(post.pinned)
@@ -76,6 +82,7 @@ type DraggablePostItProps = {
     getFontColorHex(post.color);
   }, [post.color]);
   
+
 
   
     // Start drag animation - ALL animations will use JS driver
@@ -124,41 +131,68 @@ type DraggablePostItProps = {
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: () => true,
+    
         onPanResponderGrant: () => {
           updateIndex();
           if (isPinned) {
-            onPress()
-            return
-          };
+            onPress();
+            return;
+          }
           setIsDragging(true);
-          enabledPan()
-          position.extractOffset();
+          enabledPan();
+          animatedPosition.extractOffset();
           startDragAnimation();
         },
+    
         onPanResponderMove: (event, gestureState) => {
           if (!isPinned) {
-            position.setValue({ x: gestureState.dx, y: gestureState.dy });
-            
-            // Update rotation directly
+            animatedPosition.setValue({
+              x: gestureState.dx,
+              y: gestureState.dy,
+            });
+    
             const rotate = gestureState.vx * 0.02;
             rotation.setValue(rotate);
           }
         },
+    
         onPanResponderRelease: (event, gestureState) => {
           if (isPinned) return;
-          const dx = gestureState.dx;
-          const dy = gestureState.dy;
-          position.extractOffset();
-  
-          if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
+        
+          animatedPosition.extractOffset();
+        
+          // Compute displacement corrected for zoom
+          const correctedDx = (gestureState.dx) / zoomScale;
+          const correctedDy = (gestureState.dy) / zoomScale;
+        
+          // Compute final new absolute position
+          const dx = accumulatedPosition.current.x + correctedDx - scrollOffset.x;
+          const dy = accumulatedPosition.current.y + correctedDy - scrollOffset.y;
+          const finalX = dx + position.left;
+          const finalY = dy + position.top;
+          
+        
+          // Save new accumulated position locally
+          accumulatedPosition.current = {
+            x: dx,
+            y: dy,
+          };
+
+          //console.log("Final position:", finalX, finalY, "Displacement:", dx, dy);
+        
+          updatePosition(finalX, finalY, post); // (optional) update parent live if you want
+        
+          if (Math.abs(gestureState.dx) < clickThreshold && Math.abs(gestureState.dy) < clickThreshold) {
             onPress();
           }
+        
           setIsDragging(false);
-          enabledPan()
+          enabledPan();
           endDragAnimation();
-        },
+        },  
       })
     ).current;
+    
   
   
     return (
@@ -166,13 +200,14 @@ type DraggablePostItProps = {
         {...panResponder.panHandlers}
         style={{
           transform: [
-            ...position.getTranslateTransform(),
-            { scale },
-            { 
+            { translateX: animatedPosition.x },
+            { translateY: animatedPosition.y },
+            { scale: scale },
+            {
               rotate: rotation.interpolate({
-                inputRange: [-0.2, 0, 0.2],
-                outputRange: ['-5deg', '0deg', '5deg']
-              }) 
+                inputRange: [-1, 1],
+                outputRange: ['-5deg', '5deg'],
+              }),
             },
           ],
           opacity: 1,
@@ -187,7 +222,7 @@ type DraggablePostItProps = {
           shadowOpacity,
           shadowRadius: isDragging ? 12 : 4,
           elevation: isDragging ? 12 : 4,
-          zIndex: isDragging ? 999 : 1,
+          zIndex: 999,
         }}
       >
         {/* Rest of your component remains exactly the same */}
@@ -218,13 +253,13 @@ type DraggablePostItProps = {
         {showText && (
           <View className="absolute text-black w-full h-full items-center justify-center">
             <Text
-              className="text-[14px] font-[500] text-black"
+              className="text-base font-[500] text-black"
               style={{
                 color: fontColor,
                 padding: 18,
                 fontStyle: "italic",
               }}
-              numberOfLines={5}
+              numberOfLines={3}
               ellipsizeMode="tail"
             >
               {post.content}

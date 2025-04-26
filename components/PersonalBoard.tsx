@@ -111,7 +111,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
        board = await fetchAPI(
         `/api/boards/getBoardById?id=${boardId}`
       );
-      setBoardRestrictions(board.data.restrictions)
 
     }
       let filteredPosts;
@@ -307,7 +306,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
         damping: 10,
         mass: 0.5
       }}
-      className="flex-1 mx-4 my-6 rounded-[48px] overflow-hidden"
+      className="flex-1 "
     >
       <PostItBoard
         userId={userId}
@@ -343,18 +342,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
         className="mb-6"
       >
       
-          {isOwnBoard && <InteractionButton 
-          label={"Reply"}
-          showLabel={false}
-          icon={icons.pencil}
-          color="#000"
-          onPress={() => {
-            router.push({
-              pathname: "root/new-post",
-              params: { recipient_id: userId, username: profileUser?.username, boardId }
-            })
-          }}
-          />}
        
       </View>
     </MotiView>

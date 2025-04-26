@@ -11,6 +11,7 @@ import { generateAcronym, isNameTooLong } from "./cacheStore";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
 import { icons } from "@/constants";
+import Header from "@/components/Header";
 
 // Interface for City and State
 interface City {
@@ -206,9 +207,9 @@ const City = () => {
 
   return (
        <View className="flex-1 bg-[#FAFAFA]">
-            <View className="flex-row justify-between items-end pl-11 pt-16 bg-white">
-                                <Text className="text-2xl font-JakartaBold my-4">Select a State in {formattedStateName()}</Text>
-                  </View>
+                  <Header
+        title={`Select a State in ${formattedStateName()}`}
+        />
     
       
 

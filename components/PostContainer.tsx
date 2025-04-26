@@ -15,6 +15,7 @@ import {
   PostItColor,
   PostContainerProps,
   UserNicknamePair,
+  PostWithPosition,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from '@react-navigation/native';
@@ -109,11 +110,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   // Memoize the posts array to prevent unnecessary re-renders
-  const post = useMemo(() => {
-    
-    const stack = stacks.find((stack) => stack.ids.includes(selectedPosts[0].id));
-    return stack ? stack.elements : selectedPosts;
-  }, [stacks, selectedPosts]);
+  const post = selectedPosts
 
 
   useEffect(() => {
@@ -662,7 +659,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
                 <TouchableOpacity onPress={handleCloseModal}>
                   <Image
                     source={icons.close}
-                    style={{ width: 24, height: 24, alignSelf: "flex-end" }}
+                    style={{ width: 18, height: 18, top: 4, alignSelf: "flex-end", opacity: 0.5 }}
                   />
                 </TouchableOpacity>
 
@@ -695,7 +692,8 @@ const PostContainer: React.FC<PostContainerProps> = ({
                         menuItems={getMenuItems(
                           currentPost?.clerk_id === user!.id ||
                             currentPost?.recipient_user_id === user!.id,
-                          invertedColors
+                          invertedColors,
+                          isPreview
                         )}
                       />
                     }
@@ -709,6 +707,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
               {currentPost?.prompt_id && <InteractionButton 
               label="Nay"
               icon={icons.close}
+              showLabel={true}
               color={"#FF0000"}
               onPress={() => 
                 handleInteractionPress("😤")}
@@ -716,6 +715,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
               <InteractionButton 
               label="Reply"
               icon={icons.pencil}
+              showLabel={true}
               color={postColor?.fontColor || "rgba(0, 0, 0, 0.5)"}
               onPress={() => {
                 handleCloseModal();
@@ -749,13 +749,14 @@ const PostContainer: React.FC<PostContainerProps> = ({
                 <InteractionButton 
               label="Hard agree"
               icon={icons.check}
+              showLabel={true}
               color={"#000000"}
               onPress={() =>
                 handleInteractionPress("🤩")}
               />}
 
             </View>
-           ) : (<View className="absolute top-[80%] self-center flex flex-row">
+           ) : (<View className="absolute top-[10%] left-[10%]  flex flex-row">
             {posts.length > 1 &&
               posts.map((post, index) => {
                 return (
@@ -790,7 +791,9 @@ const PostContainer: React.FC<PostContainerProps> = ({
             isVisible={!!selectedBoard}
             title={"Comments"}
             onClose={() => {
-              handleReadComments(currentPost, user!.id)
+              if (currentPost) {
+                handleReadComments(currentPost, user!.id);
+              }
               console.log("has closed.")
               setSelectedBoard(null)
             }}

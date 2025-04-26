@@ -19,6 +19,7 @@ import {
   fetchFriendStatus,
   unfriend,
 } from "@/lib/friend";
+import { CustomButtonBar } from "@/components/CustomTabBar";
 
 
 const Profile = () => {
@@ -171,11 +172,30 @@ const Profile = () => {
       getFriendStatus();
     }, []);
 
+     const navigationControls = id !== user?.id ? [
+        {
+          icon: icons.back,
+          label: "Back",
+          onPress: () => router.back(),
+        },
+        {
+          icon: icons.pencil,
+          label: "New Post",
+          onPress: () => {},
+          isCenter: true,
+        },
+        {
+          icon: icons.settings,
+          label: "More",
+          onPress: () => {},
+          isCenter: true,
+        },
+      ] : []
   return (
     <View className="flex-1 bg-[#FAFAFA]">
       {id && <UserProfile userId={id as string} friendStatus={FriendStatus.UNKNOWN}/>}
 
-      <View className="absolute w-full flex-row items-center justify-between bottom-12  px-8 ">
+      {/*<View className="absolute w-full flex-row items-center justify-between bottom-12  px-8 ">
       <TouchableOpacity onPress={() => router.back()} className="p-4 rounded-full bg-white shadow-md ">
           <AntDesign name="caretleft" size={18} />
         </TouchableOpacity>
@@ -185,7 +205,11 @@ const Profile = () => {
           <DropdownMenu
             menuItems={getMenu(friendStatus) ?? menuItems_unloaded} />
         </TouchableOpacity>
-      </View>
+      </View>*/}
+
+        <CustomButtonBar
+              buttons={navigationControls}
+              />
     </View>
   );
 };

@@ -14,6 +14,7 @@ import { addStatesToCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import ScrollingText from "./ScrollingText";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
+import Header from "@/components/Header";
 
 // Define simpler interfaces for better performance
 interface State {
@@ -162,9 +163,9 @@ const Country = () => {
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
-      <View className="flex-row justify-between items-end pl-11 pt-16 bg-white">
-                    <Text className="text-2xl font-JakartaBold my-4">Select a country</Text>
-                  </View>
+      <Header
+        title="Select a Country"
+        />
       <FlatList
         data={countries}
         keyExtractor={keyExtractor}

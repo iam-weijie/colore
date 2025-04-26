@@ -41,6 +41,7 @@ import timer from "@/assets/icons/timer.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import placeholder from "@/assets/icons/placeholder.png";
+import back from "@/assets/icons/back.png";
 
 
 import login from "@/assets/images/login_squares.png";
@@ -65,6 +66,7 @@ export const icons = {
   lock,
   globe,
   google,
+  back,
   check,
   home,
   home1,

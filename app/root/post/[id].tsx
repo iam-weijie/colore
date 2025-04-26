@@ -157,134 +157,6 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
     }, [])
   );
 
-  // Updated like handler
-  const handleLikePress = async () => {
-    if (!id || !user?.id || isLoadingLike) return;
-
-    // Play like sound if enabled
-    if (soundEffectsEnabled) {
-      playSoundEffect(SoundType.Like);
-    }
-
-    try {
-      setIsLoadingLike(true);
-      const increment = !isLiked;
-
-      // Optimistically update UI
-      setIsLiked(!isLiked);
-      setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
-
-      const response = await fetchAPI(`/api/posts/updateLikeCount`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          postId: id,
-          userId: user.id,
-          increment,
-        }),
-      });
-
-      if (response.error) {
-        // Revert optimistic update if failed
-        setIsLiked(isLiked);
-        setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
-        showAlert({
-          title: 'Error',
-          message: `Unable to update like status`,
-          type: 'ERROR',
-          status: 'error',
-        });
-        return;
-      }
-
-      // Update with actual server values
-      setLikeCount(response.data.likeCount);
-      setIsLiked(response.data.liked);
-    } catch (error) {
-      console.error("Failed to update like status:", error);
-      // Revert optimistic update
-      setIsLiked(isLiked);
-      setLikeCount((prev) => (!isLiked ? prev - 1 : prev + 1));
-      showAlert({
-        title: 'Error',
-        message: `Unable to update like status. Please check your connection.`,
-        type: 'ERROR',
-        status: 'error',
-      });
-    } finally {
-      setIsLoadingLike(false);
-    }
-  };
-
-  const handleCommentLike = async (commentId: number) => {
-    if (!user || isLoadingCommentLike) return;
-
-    try {
-      setIsLoadingCommentLike(true);
-      const isCurrentlyLiked = commentLikes[commentId];
-
-      // Optimistic update
-      setCommentLikes((prev) => ({ ...prev, [commentId]: !isCurrentlyLiked }));
-      setCommentLikeCounts((prev) => ({
-        ...prev,
-        [commentId]: prev[commentId] + (isCurrentlyLiked ? -1 : 1),
-      }));
-
-      const response = await fetchAPI("/api/comments/updateCommentLike", {
-        method: "PATCH",
-        body: JSON.stringify({
-          commentId,
-          userId: user.id,
-          increment: !isCurrentlyLiked,
-        }),
-      });
-
-      if (response.error) {
-        // Revert optimistic update
-        setCommentLikes((prev) => ({ ...prev, [commentId]: isCurrentlyLiked }));
-        setCommentLikeCounts((prev) => ({
-          ...prev,
-          [commentId]: prev[commentId] + (isCurrentlyLiked ? 1 : -1),
-        }));
-        showAlert({
-          title: 'Error',
-          message: `Unable to update like status. Please check your connection.`,
-          type: 'ERROR',
-          status: 'error',
-        });
-        return;
-      }
-
-      // Update with server values
-      setCommentLikes((prev) => ({
-        ...prev,
-        [commentId]: response.data.liked,
-      }));
-      setCommentLikeCounts((prev) => ({
-        ...prev,
-        [commentId]: response.data.likeCount,
-      }));
-    } catch (error) {
-      console.error("Failed to update comment like:", error);
-      // Revert optimistic update on error
-      const isCurrentlyLiked = commentLikes[commentId];
-      setCommentLikes((prev) => ({ ...prev, [commentId]: isCurrentlyLiked }));
-      setCommentLikeCounts((prev) => ({
-        ...prev,
-        [commentId]: prev[commentId] + (isCurrentlyLiked ? 1 : -1),
-      }));
-    } finally {
-      setIsLoadingCommentLike(false);
-    }
-  };
-
-  function findUserNickname(
-    userArray: UserNicknamePair[],
-    userId: string
-  ): number {
-    const index = userArray.findIndex((pair) => pair[0] === userId);
-    return index;
-  }
-
   const fetchNicknames = async () => {
     try {
       // //console.log("user: ", user!.id);
@@ -465,47 +337,6 @@ console.log("happend", "id", id)
     }
   };
 
-  const handleDeletePostPress = async () => {
-    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
-      { text: "Cancel" },
-      { text: "Delete", onPress: handleDeletePost },
-    ]);
-  };
-
-  const handleDeletePost = async () => {
-    try {
-      setIsPostDeleted(true);
-
-      await fetchAPI(`/api/posts/deletePost?id=${id}`, {
-        method: "DELETE",
-      });
-      router.back();
-      showAlert({
-        title: 'Post deleted.',
-        message: `This post has been deleted.`,
-        type: 'DELETE',
-        status: 'success',
-      });
-    } catch (error) {
-      setIsPostDeleted(false);
-      showAlert({
-        title: 'Error',
-        message: `An error occured. This post has not been deleted.`,
-        type: 'ERROR',
-        status: 'error',
-      });
-    }
-  };
-  const handleDeleteCommentPress = async (id: number) => {
-    Alert.alert(
-      "Delete Comment",
-      "Are you sure you want to delete this comment?",
-      [
-        { text: "Cancel" },
-        { text: "Delete", onPress: () => handleDeleteComment(id) },
-      ]
-    );
-  };
 
   const handleDeleteComment = async (id: number) => {
     try {
@@ -531,15 +362,6 @@ console.log("happend", "id", id)
     }
   };
 
-  const handleUserProfile = async (id: string) => {
-    if (anonymous === "true") {
-      return;
-    }
-    router.push({
-      pathname: "/root/profile/[id]",
-      params: { id },
-    });
-  };
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {

@@ -261,8 +261,8 @@ const Settings = () => {
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
   };
   return (
-    <KeyboardAvoidingView behavior="padding" className="flex-1 bg-gray-50">
-    <ScrollView className="flex-1 pt-6" showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView behavior="padding" className="flex-1 bg-[#FAFAFA]">
+    <ScrollView className="flex-1 pt-6 pb-20" showsVerticalScrollIndicator={false}>
       {/* Account Section */}
       <View className="mx-6 mb-6">
         <View 
