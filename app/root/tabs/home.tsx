@@ -61,12 +61,6 @@ export default function Page() {
     fetchUserData()
   }, []);
 
-  useFocusEffect(
-      useCallback(() => {
-        // Fetch all user data including location when screen is focused
-        fetchUserData();
-      }, [])
-    );
 
   const screenHeight = Dimensions.get("screen").height;
   const screenWidth = Dimensions.get("screen").width;
@@ -94,8 +88,9 @@ export default function Page() {
 const fetchUserData = async () => {
     try {
       const userPosts = await fetchAPI(`/api/users/getUserInfoPosts?id=${user!.id}`);
-      const userInfo = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
-      setUserInfo(userInfo.data[0]);
+      console.log("user posts: ", userPosts.posts.length)
+      const userInfo = userPosts.userInfo;
+      setUserInfo(userInfo);
       if (userPosts.posts.length > 0) {
       getAction(userPosts.posts[0]);
       }

@@ -81,6 +81,7 @@ const UserInfo = () => {
             body: JSON.stringify({
               email: user!.emailAddresses[0]?.emailAddress || "",
               clerkId: user!.id,
+              appleId: user!.externalAccounts.find(account => account.provider === "apple")?.id || "",
             }),
           });
         } else {

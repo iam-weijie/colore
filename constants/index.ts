@@ -24,6 +24,8 @@ import palette from "@/assets/icons/palette.png";
 import pencil from "@/assets/icons/pencil.png";
 import person from "@/assets/icons/person.png";
 import plus from "@/assets/icons/plus.png";
+import info from "@/assets/icons/info.png";
+import shuffle from "@/assets/icons/shuffle.png";
 import plusBase from "@/assets/icons/plus-base.png";
 import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
@@ -79,6 +81,8 @@ export const icons = {
   planet,
   close,
   fire,
+  info, 
+  shuffle,
   hide,
   timer,
   profile,

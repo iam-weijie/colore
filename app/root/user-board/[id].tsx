@@ -143,7 +143,13 @@ const UserPersonalBoard = () => {
       },
       {
         icon: icons.send,
-        label: "Respond",
+        label: "Share",
+        onPress: () => {},
+        
+      },
+      {
+        icon: icons.shuffle,
+        label: "Shuffle",
         onPress: () => {},
         isCenter: true,
       },
@@ -151,6 +157,11 @@ const UserPersonalBoard = () => {
         icon: joinedCommunity ? icons.close : icons.check,
         label: joinedCommunity ? "Leave" : "Join",
         onPress: joinCommunity,
+      },
+      {
+        icon: icons.info,
+        label: "Info",
+        onPress: () => {},
       },
     ]
     
