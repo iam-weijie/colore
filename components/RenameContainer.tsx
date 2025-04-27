@@ -8,9 +8,10 @@ const RenameContainer = ({
   onSave,
   onCancel,
   placeholder = 'Enter new name',
+  maxCharacters = 20,
 }) => {
   const [text, setText] = useState(initialValue);
-  const maxCharacters = 20; // Maximum number of characters allowed
+   // Maximum number of characters allowed
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {

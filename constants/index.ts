@@ -60,6 +60,10 @@ import italy from "@/assets/countries/italy.png";
 import china from "@/assets/countries/china.png";
 import argentina from "@/assets/countries/argentina.png";
 
+/* CHARACTER IMAGES */
+import steveAmazed from "@/assets/characters/steve-amazed-1.png";
+import steveAnnoyed from "@/assets/characters/steve-annoyed-1.png";
+
 export const icons = {
   person,
   email,
@@ -124,6 +128,10 @@ export const images = {
   highlightLg1
 };
 
+export const characters = {
+  steveAmazed,
+  steveAnnoyed
+}
 
 export const temporaryColors: PostItColor[] = [
   {

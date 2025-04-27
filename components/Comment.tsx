@@ -266,7 +266,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 onPress={() => {
                   router.push({
                     pathname: "/root/profile/[id]",
-                    params: { id: user_id },
+                    params: { userId: user_id, username: username },
                   });
                 }}
               >

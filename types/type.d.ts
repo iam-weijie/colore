@@ -50,6 +50,7 @@ declare interface InfoScreenProps {
   subtitle?: string;
   image: ImageSourcePropType;
   content: string;
+  hasAction?: boolean;
   onAgree: () => void;
 }
 
@@ -158,6 +159,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
     | "outline"
     | "success"
     | "gradient"
+    | "gradient2"
     | "oauth";
   textVariant?:
     | "primary"
@@ -302,11 +304,16 @@ declare interface Friendship {
   friend_username: string;
 }
 
-type Stacks = {
+declare interface Stacks {
+  id: number;
   name: string;
   ids: [];
   elements: [];
   center: {x: number, y: number};
+  boardId: number;
+  userId: string;
+  createdAt: string;
+  isSharing: string[];
 };
 
 type Prompt = {

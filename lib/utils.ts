@@ -127,7 +127,7 @@ export const AlgorithmRandomPosition = (
   _: any,
   postItCount: number
 ) => {
-  const screenWidth = Dimensions.get("window").width * 2;
+  const screenWidth = Dimensions.get("window").width * 2.25;
   const screenHeight = Dimensions.get("window").height;
   const screenArea = screenWidth * screenHeight;
 

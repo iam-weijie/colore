@@ -47,21 +47,23 @@ export async function GET(request: Request) {
           const board = raw_boards.find((i) => i.id === b.board_id )
     
       
-          const daysDifference = (Date.now() - new Date(board.created_at).getTime()) / (1000 * 60 * 60 * 24)
+          const daysDifference = board 
+            ? (Date.now() - new Date(board.created_at).getTime()) / (1000 * 60 * 60 * 24)
+            : 0;
     
           return {
-            id: board.id,
-            title: board.title,
-            user_id: board.user_id,
-            description: board.description,
-            members_id: board.members_id,
-            board_type: board.board_type,
-            restrictions: board.restrictions,
-            created_at: board.created_at,
+            id: board?.id ?? "",
+            title: board?.title ?? "",
+            user_id: board?.user_id ?? "",
+            description: board?.description ?? "",
+            members_id: board?.members_id ?? [],
+            board_type: board?.board_type ?? "personal",
+            restrictions: board?.restrictions ?? [],
+            created_at: board?.created_at ?? Date.now,
             count: b.post_count,
             isNew: daysDifference < 3,
-            isPrivate: board.restrictions.includes("Private"),
-            commentAllowed: board.restrictions.includes("commentsAllowed"),
+            isPrivate: board?.restrictions?.includes("Private") ?? false,
+            commentAllowed: board?.restrictions.includes("commentsAllowed") ?? false,
             imageUrl: "",
           }
     

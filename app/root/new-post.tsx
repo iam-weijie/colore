@@ -33,6 +33,9 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import ItemContainer from "@/components/ItemContainer";
 import { useGlobalContext } from "../globalcontext";
 
+import { CustomButtonBar } from "@/components/CustomTabBar";
+import Header from "@/components/Header";
+
 const NewPost = () => {
   const { user } = useUser();
   const { postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
@@ -163,120 +166,65 @@ const NewPost = () => {
     }
   }, []);
 
+  const navigationControls =  [
+          {
+            icon: icons.back,
+            label: "Back",
+            onPress: () => router.back(),
+          },
+          {
+            icon: icons.send,
+            label: "New Post",
+            onPress: () => {
+              handlePostSubmit();
+            },
+            isCenter: true,
+          },
+          {
+            icon: icons.settings,
+            label: "More",
+            onPress: () => {},
+            isCenter: true,
+          },
+        ]
+
   return (
-    <SafeAreaView className="flex-1" >
-      <SignedIn>
+    <View className="flex-1" 
+    style={{
+      backgroundColor: selectedColor.hex,
+    }}>
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
          
         >
+          
           <View className="flex-1" >
-            <View className="flex flex-row justify-between items-center my-6 mx-8">
-            <View className="flex flex-row w-full justify-between items-center ">
-                <TouchableOpacity onPress={() => {
-                  setDraftPost(null);
-                  router.back()}} className="mr-2">
-                  <AntDesign name="caretleft" size={18} color="black" />
-                </TouchableOpacity>
-                <View className="">
-              <Text className="  text-center text-[18px] font-JakartaBold text-black">
-                {postId ? 'Edit Post' : 'New Post'}
-              </Text>
-              </View>
-              
-               
-              
-
-              
-              {!!username ? (
-                  <TouchableOpacity
-                  onPress={() => {
-                    Keyboard.dismiss();
-                    setTimeout(() => setIsModalVisible(true), 100);
-                  }
-                    }>
-                  <Image
-                  source={icons.addUser}
-                  className="w-5 h-5"
-                  tintColor={"#000"} />
-                  </TouchableOpacity>
-                )  : prompt ? (
-                  <TouchableOpacity
-                  activeOpacity={0.9} 
-                  onPress={() => {
-                    // handle other condition
-                  }}>
-                    <Image
-                      source={icons.fire}
-                      className="w-6 h-6"
-                      tintColor="#000"
-                    />
-                  </TouchableOpacity>
-                )   : (
-                  <TouchableOpacity
-                  activeOpacity={expiration ? 0.6 : 1}
-                  style={{
-                    opacity: expiration ? 1 : 0
-                  }}
-                  onPress={() => {
-                    if (expiration) {
-                    const currentIndex = expirationDate.indexOf(selectExpirationDate);
-                    if (currentIndex < expirationDate.length - 1) {
-                      setSelectExpirationDate(expirationDate[currentIndex + 1])
-                    } else {
-                      setSelectExpirationDate(expirationDate[0])
-                    }
-                  }
-                  }}>
-                                      <Image
-                                      source={icons.timer}
-                                      className="w-6 h-6"
-                                      tintColor={"#000"} />
-                                      {!postId && <Text className="absolute top-1 right-4 flex-1 w-full min-w-[75px]  text-center text-[12px] font-JakartaSemiBold text-gray-400" >
-                  {selectExpirationDate}
-                 </Text>}
-                 </TouchableOpacity>
-                 
-                )
-                }
-              
-              {/*<CustomButton
-                className="w-14 h-10 rounded-full shadow-none"
-                fontSize="sm"
-                title="Next"
-                style={{backgroundColor: selectedColor.hex}}
-                padding="0"
-                onPress={handlePostSubmit}
-                disabled={!postContent || isPosting}
-              />*/}
-            </View>
-         
-            </View>
-
-            {prompt && <View className="my-6 mx-10">
-              <Text className="text-[24px] text-center font-JakartaBold text-black">
+          <Header
+          title={postId ? 'Edit Post' : 'New Post'}
+          item={
+            prompt && <View className="mb-4 -mt-4 mx-12">
+              <Text className="text-sm text-left font-JakartaSemiBold text-black">
                 {prompt}
                 </Text>
-            </View>}
+            </View>
+          }
+           />
+            
 
-           <View className="flex-1 mx-6 mt-0 rounded-[48px] overflow-hidden shadow-sm border-4" 
+           <View className="flex-1  mt-0 overflow-hidden " 
             style={{
-              backgroundColor: selectedColor.hex,
-              borderColor: "#ffffff80",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 3 },
-              shadowOpacity: 0.1,
-              shadowRadius: 5,
+              backgroundColor: selectedColor.hex
             }}>
-            <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
-          <View className="flex-1 flex-column justify-center items-center ">
-            <View className="flex w-full mx-3">
-              {!isEmojiSelectorVisible && (
-                <View>
-                <TextInput
+              <View className="flex-1 "><KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
+                        <View className="flex-1 flex-column justify-center items-center  ">
+              
+                            
+              <View className="w-full h-[50%] -mt-16">
+                        <TextInput
                   className="text-[20px] text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
                   placeholder="Type something..."
+                  placeholderTextColor={"#F1F1F1"}
                   value={postContent}
                   onChangeText={handleChangeText}
                   onContentSizeChange={handleContentSizeChange}
@@ -292,14 +240,15 @@ const NewPost = () => {
                   }}
                 />
                 </View>
-              )}
-            </View>
-    
-           
-             
-              </View>
               
-              </KeyboardAvoidingView>
+                  
+                         
+                           
+                            </View>
+                            
+                            </KeyboardAvoidingView>
+                            </View>
+
               <View className="flex-1 absolute m-4 left-4 top-2" >
                 <Text className="text-[16px] font-JakartaBold text-white">{userUsername ? `To: ${userUsername}` : ''}</Text>
               </View>
@@ -331,16 +280,9 @@ const NewPost = () => {
               </View>
               </View>
               </View>
-              <View className="flex-1 absolute flex items-center w-full bottom-[10%]">
-            <CustomButton
-              className="w-[50%] h-16 rounded-full shadow-none bg-black"
-              fontSize="lg"
-              title={prompt ? "submit" : "continue"}
-              padding="0"
-              onPress={handlePostSubmit}
-              disabled={!postContent}
-            />
-            </View>
+               <CustomButtonBar
+                            buttons={navigationControls}
+                            />
 
             {isEmojiSelectorVisible && (
               <View className="w-full h-screen bg-white">
@@ -364,8 +306,7 @@ const NewPost = () => {
          onClose={() => {setIsModalVisible(false)}}>
            <FindUser selectedUserInfo={selectedUserInfo} />
           </ModalSheet>}
-      </SignedIn>
-      </SafeAreaView>
+      </View>
   );
 };
 

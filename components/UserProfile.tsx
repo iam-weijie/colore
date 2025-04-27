@@ -615,6 +615,7 @@ const handleTabChange = (tabKey: string) => {
             
 
             {/* TABS */}
+            
             {selectedTab === "Profile" && <View className="flex-1 items-center justify-center">
               {!profileLoading ? (
                 <View className={`absolute -top-[20%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
@@ -654,9 +655,9 @@ const handleTabChange = (tabKey: string) => {
             <BoardGallery boards={communityBoards} />
             </View>}
 
-            {selectedTab === "Settings" && <View className="flex-1 bg-[#FAFAFA]">
+            {selectedTab === "Settings" && 
             <Settings />
-            </View>}
+            }
         
        
 

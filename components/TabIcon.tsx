@@ -20,7 +20,7 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
         } rounded-full`}
         style={{
           backgroundColor: isCenter ? "#ffffff" : "transparent",
-          marginTop: isCenter ? -25 : 0,
+          marginTop: isCenter ? -20 : 0,
           shadowColor: isCenter && focused ? "#505050" : undefined,
           shadowOpacity: isCenter && focused ? 0.15 : undefined,
           shadowRadius: isCenter && focused ? 6 : undefined,

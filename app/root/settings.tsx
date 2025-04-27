@@ -24,16 +24,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useAlert } from '@/notifications/AlertContext';
+import ModalSheet from "@/components/Modal";
+import RenameContainer from "@/components/RenameContainer";
 
 const Settings = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
   const [username, setUsername] = useState("");
-  const [newUsername, setNewUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [newEmail, setNewEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
+  const [selectedModal, setSelectedModal] = useState<any>(null);
+  const [selectedTitle, setSelectedTitle] = useState<string>("");
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
@@ -93,8 +95,9 @@ const Settings = () => {
     return usernameRegex.test(username);
   };
 
-  const handleUsernameUpdate = async () => {
-    if (!verifyValidUsername(newUsername)) {
+  const handleUsernameUpdate = async (newName: string) => {
+    console.log("New Username: ", newName);
+    if (!verifyValidUsername(newName)) {
       showAlert({
         title: 'Invalid Username',
         message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
@@ -110,7 +113,7 @@ const Settings = () => {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
-          username: newUsername,
+          username: newName,
         }),
       });
 
@@ -120,7 +123,7 @@ const Settings = () => {
 
       showAlert({
         title: 'Username taken',
-        message: `Username ${username} already exists. Please try another one.`,
+        message: `Username ${newName} already exists. Please try another one.`,
         type: 'ERROR',
         status: 'error',
       });
@@ -130,7 +133,7 @@ const Settings = () => {
       } else {
         showAlert({
           title: 'New Username',
-          message: `Username updated successfully to ${newUsername}.`,
+          message: `Username updated successfully to ${newName}.`,
           type: 'UPDATE',
           status: 'success',
         });
@@ -153,7 +156,7 @@ const Settings = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
-  const handleEmailUpdate = async () => {
+  const handleEmailUpdate = async (newEmail: string) => {
     if (!newEmail || newEmail === email) {
       return;
     }
@@ -225,7 +228,7 @@ const Settings = () => {
     try {
       await signOut();
       setLoading(true);
-      router.replace("/auth/log-in");
+      router.replace("/auth/onboarding");
     } catch (error) {
       console.error("Error signing out:", error);
       showAlert({
@@ -236,6 +239,35 @@ const Settings = () => {
       });
     }
   };
+
+    const handleUpdateValue = (type: string) => {
+      setSelectedTitle(`${type == "username" ? 'New username' : 'New Email'}`)
+      setSelectedModal(
+        <RenameContainer
+        initialValue={""}
+        onSave={(newName: string) => {
+        
+          if (type === "username") {
+
+            handleUsernameUpdate(newName);
+          } else {
+
+            handleEmailUpdate(newName);
+            
+          }
+        
+          setSelectedModal(null);
+          setSelectedTitle("");
+        }}
+        onCancel={() => {
+          setSelectedModal(null);
+          setSelectedTitle("");
+        }}
+        placeholder={type === "username" ? username : email}
+        maxCharacters={type === "username" ? 20 : 50}
+      />)
+    }
+    
 
   const currentLocation = profileUser
     ? `${profileUser.city}, ${profileUser.state}, ${profileUser.country}`
@@ -261,8 +293,8 @@ const Settings = () => {
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
   };
   return (
-    <KeyboardAvoidingView behavior="padding" className="flex-1 bg-[#FAFAFA]">
-    <ScrollView className="flex-1 pt-6 pb-20" showsVerticalScrollIndicator={false}>
+
+    <ScrollView className="flex-1 pt-6" showsVerticalScrollIndicator={false}>
       {/* Account Section */}
       <View className="mx-6 mb-6">
         <View 
@@ -279,6 +311,7 @@ const Settings = () => {
           <View className="px-5 py-3">
             <Text className="text-lg font-JakartaBold text-gray-800">Account Information</Text>
           </View>
+          {/*
           
           <View className="px-5 py-3">
             <Text className="text-sm font-JakartaSemiBold text-[#000]">Username</Text>
@@ -295,10 +328,11 @@ const Settings = () => {
               }}
               containerStyle="-mt-8"
             />
-          </View>
+          </View>*/}
           
-          <View className="px-5 py-3">
+          {/*<View className="px-5 py-3">
             <Text className="text-sm font-JakartaSemiBold text-[#000]">Email Address</Text>
+            
             <InputField
               label=""
               value={newEmail}
@@ -312,11 +346,37 @@ const Settings = () => {
               }}
               containerStyle="-mt-8"
             />
-          </View>
-          
+          </View>*/}
           <View className="px-5 py-3">
             <View className="flex flex-row items-center justify-between mb-1">
-              <Text className="text-sm font-JakartaSemiBold text-[#000]">Location</Text>
+              <Text className="text-lg font-JakartaSemiBold text-[#000]">Username</Text>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => handleUpdateValue("username")}
+                className="bg-black px-3 py-2 rounded-full"
+              >
+                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
+              </TouchableOpacity>
+            </View>
+            <Text className="text-gray-800 text-base font-JakartaMedium mt-1">{username || "Not specified"}</Text>
+          </View>
+          <View className="px-5 py-3">
+            <View className="flex flex-row items-center justify-between mb-1">
+              <Text className="text-lg font-JakartaSemiBold text-[#000]">Email</Text>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => handleUpdateValue("email")}
+                className="bg-black px-3 py-2 rounded-full"
+              >
+                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
+              </TouchableOpacity>
+            </View>
+            <Text className="text-gray-800 text-base font-JakartaMedium mt-1">{email || "Not specified"}</Text>
+          </View>
+      
+          <View className="px-5 py-3">
+            <View className="flex flex-row items-center justify-between mb-1">
+              <Text className="text-lg font-JakartaSemiBold text-[#000]">Location</Text>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={handleLocationUpdate}
@@ -325,7 +385,7 @@ const Settings = () => {
                 <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
               </TouchableOpacity>
             </View>
-            <Text className="text-gray-800 mt-1">{currentLocation || "Not specified"}</Text>
+            <Text className="text-gray-800 text-base font-JakartaMedium  mt-1">{currentLocation || "Not specified"}</Text>
           </View>
         </View>
       </View>
@@ -454,7 +514,7 @@ const Settings = () => {
       </View>
   
       {/* Sign Out Section */}
-      <View className="mx-6 mb-8">
+      <View className="mx-6 mb-6">
         <TouchableOpacity 
           onPress={handleSignOut}
           className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center"
@@ -468,12 +528,25 @@ const Settings = () => {
           <Text className="font-JakartaBold text-lg text-red-500">Sign Out</Text>
         </TouchableOpacity>
       </View>
+
+       {/* Margin Bottom */}
+       <View className="h-[120px] w-full" />
+       {!!selectedModal && 
+         <ModalSheet 
+         children={selectedModal} 
+         title={selectedTitle} 
+         isVisible={!!selectedModal} 
+         onClose={() => {
+          setSelectedModal(null)
+          setSelectedTitle("")}
+         
+          } />}
     </ScrollView>
-  </KeyboardAvoidingView>
   );
 };
 
 export default Settings;
+
 
 /*
 

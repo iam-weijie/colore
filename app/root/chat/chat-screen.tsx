@@ -557,10 +557,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     );
   };
 
-  const handleUserProfile = async (id: string) => {
+  const handleUserProfile = async (userId: string) => {
     router.push({
       pathname: "/root/profile/[id]",
-      params: { id },
+      params: { userId },
     });
   };
 

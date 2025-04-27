@@ -1,15 +1,19 @@
 import { useSignIn } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Image, ScrollView, Text, View } from "react-native";
+import { Image, KeyboardAvoidingView, ScrollView, Text, View } from "react-native";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { icons } from "@/constants";
 import React from "react";
+import Animated, { FadeIn, FadeInDown, FadeInUp, SlideInUp } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
+import { useGlobalContext } from "@/app/globalcontext";
 
 const PwReset = () => {
   const { signIn } = useSignIn();
+  const { isIpad } = useGlobalContext()
   const [showVerification, setShowVerification] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -149,15 +153,39 @@ const PwReset = () => {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="flex-1 bg-white">
-        <View className="relative w-full h-[250px]">
-          <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5">
-            Reset Your Password
-          </Text>
-        </View>
 
-        <View className="p-5">
+      <Animated.View 
+      entering={FadeIn.duration(400)}
+      className="flex-1 bg-white"
+      style={{
+        paddingHorizontal: isIpad ? "15%" : 0
+      }}
+    >
+      <Animated.View entering={SlideInUp.duration(800)}>
+        <LinearGradient
+          colors={["#ffd12b", "#ff9f45"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          className="w-full items-start justify-center rounded-b-[36px] pt-16 pl-11 min-h-[22%] mb-6"
+        >   
+          <Animated.Text 
+            entering={FadeInDown.delay(200).duration(600)}
+            className="text-white text-3xl font-JakartaBold"
+          >
+            Reset
+          </Animated.Text>
+          <Animated.Text 
+            entering={FadeInDown.delay(300).duration(600)}
+            className="text-white text-xl font-JakartaSemiBold"
+          >
+            Your Password
+          </Animated.Text>
+        </LinearGradient>
+      </Animated.View>
+<KeyboardAvoidingView behavior="padding" className="flex-1">
+      <View className="flex-1 justify-between mb-12">
+        <View className="flex-1 mx-6 justify-start p-5">
+          <Animated.View entering={FadeInDown.duration(600).delay(400)}>
           <InputField
             label="Email"
             placeholder="Enter your email"
@@ -167,17 +195,28 @@ const PwReset = () => {
             onChangeText={(value) => setForm({ ...form, email: value })}
             style={{ height: 60 }}
           />
+          </Animated.View>
 
-          <CustomButton
-            title="Continue"
-            onPress={onRequestReset}
-            className="mt-10"
-            style={{ height: 60 }}
-            padding="3"
-          />
         </View>
-      </View>
-    </ScrollView>
+
+        <Animated.View entering={FadeInUp.duration(600).delay(700)}>
+          <View className="flex items-center w-full">
+            <CustomButton
+              className="w-[50%] h-16 mt-8 rounded-full shadow-none"
+              fontSize="lg"
+              title="Continue"
+              padding="0"
+              onPress={onRequestReset}
+              bgVariant='gradient'
+            />
+          </View>
+        </Animated.View>
+        </View>
+        </KeyboardAvoidingView>
+
+
+     
+    </Animated.View>
   );
 };
 

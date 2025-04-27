@@ -266,7 +266,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   
       updatedStacks.push(newStack);
       setStacks(updatedStacks);
-      handleRenameStack(newStack);
+      //handleRenameStack(newStack);
 
       
   };
@@ -552,8 +552,8 @@ const reorderPost = (topPost: PostWithPosition) => {
           onLayout={handleOuterLayout}
           style={{ flex: 1 }}
           decelerationRate={0.9}
-          maximumZoomScale={1.25}
-          minimumZoomScale={0.75}
+          maximumZoomScale={1.2}
+          minimumZoomScale={0.6}
           contentContainerStyle={{
             width: screenWidth * 4,
             height: screenHeight * 2,

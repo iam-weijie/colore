@@ -76,7 +76,7 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
               style={{
                 alignItems: 'center',
                 justifyContent: 'center',
-                top: isCenter ? -30 : 0,
+                top: isCenter ? -35 : 0,
               }}
             >
               {isCenter ? (

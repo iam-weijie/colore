@@ -428,6 +428,7 @@ export default function Page() {
 
     return (
       <Animated.View
+      className=" h-[85%]"
         style={{
           transform: [{ scale }],
           shadowColor: "#000",

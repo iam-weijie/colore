@@ -2,6 +2,16 @@ import { useSignUp } from "@clerk/clerk-expo";
 import { Link, router } from "expo-router";
 import { useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+  SlideInUp,
+  SlideInRight,
+  BounceIn,
+  ZoomIn,
+  Easing
+} from 'react-native-reanimated';
 
 import Circle from "@/components/Circle";
 import CustomButton from "@/components/CustomButton";
@@ -12,6 +22,8 @@ import { Platform } from "react-native";
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { useGlobalContext } from "@/app/globalcontext";
+import React from "react";
+import { LinearGradient } from 'expo-linear-gradient';
 
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -93,179 +105,211 @@ const SignUp = () => {
 
   if (showSuccess) {
     return (
-      <View 
-      className="flex-1 bg-white justify-center items-center px-7"
-      style={{
-        paddingHorizontal: isIpad ? "15%" : 0
-      }}>
-        <Image source={icons.check} className="w-[110px] h-[110px] mb-5" />
-
-        <Text className="text-3xl font-JakartaBold text-center">Verified</Text>
-
-        <Text className="text-base text-gray-400 font-Jakarta text-center mt-2 mb-5">
-          You have been successfully verified.
-        </Text>
-
-        <CustomButton
-          title="Continue"
-          onPress={() => router.push("/root/user-info")}
-          className="w-full bg-indigo-500"
-          padding="4"
+      <Animated.View 
+        entering={ZoomIn.duration(600).springify()}
+        className="flex-1 bg-white justify-center items-center px-7"
+        style={{
+          paddingHorizontal: isIpad ? "15%" : 0
+        }}
+      >
+        <Animated.Image 
+          entering={BounceIn.duration(800)}
+          source={icons.check} 
+          className="w-[110px] h-[110px] mb-5" 
         />
-      </View>
+
+        <Animated.Text 
+          entering={FadeInDown.duration(600).delay(200)}
+          className="text-3xl font-JakartaBold text-center"
+        >
+          Verified
+        </Animated.Text>
+
+        <Animated.Text 
+          entering={FadeInDown.duration(600).delay(300)}
+          className="text-base text-gray-400 font-Jakarta text-center mt-2 mb-5"
+        >
+          You have been successfully verified.
+        </Animated.Text>
+
+        <Animated.View entering={FadeInUp.delay(400).duration(600)}>
+          <CustomButton
+            title="Continue"
+            onPress={() => router.push("/root/user-info")}
+            className="w-full bg-indigo-500"
+            padding="4"
+          />
+        </Animated.View>
+      </Animated.View>
     );
   }
 
   if (showVerification) {
     return (
-      <View 
-      className="flex-1 bg-white px-7 justify-center"
-      style={{
-        paddingHorizontal: isIpad ? "15%" : 0
-      }}>
-        <Text className="text-2xl font-JakartaExtraBold mb-2">
+      <Animated.View 
+        entering={SlideInRight.duration(600)}
+        className="flex-1 bg-white px-7 justify-center"
+        style={{
+          paddingHorizontal: isIpad ? "15%" : 0
+        }}
+      >
+        <Animated.Text 
+          entering={FadeInDown.duration(600)}
+          className="text-2xl font-JakartaExtraBold mb-2"
+        >
           Verification
-        </Text>
+        </Animated.Text>
 
-        <Text className="font-Jakarta mb-5">
+        <Animated.Text 
+          entering={FadeInDown.duration(600).delay(100)}
+          className="font-Jakarta mb-5"
+        >
           We've sent a verification code to {form.email}
-        </Text>
+        </Animated.Text>
 
-        <InputField
-          label="Code"
-          icon={icons.lock}
-          placeholder="12345"
-          value={verification.code}
-          keyboardType="numeric"
-          onChangeText={(code) => setVerification({ ...verification, code })}
-        />
+        <Animated.View entering={FadeInDown.duration(600).delay(200)}>
+          <InputField
+            label="Code"
+            icon={icons.lock}
+            placeholder="12345"
+            value={verification.code}
+            keyboardType="numeric"
+            onChangeText={(code) => setVerification({ ...verification, code })}
+          />
+        </Animated.View>
 
         {verification.error && (
-          <Text className="text-red-500 text-sm mt-1">
+          <Animated.Text 
+            entering={FadeIn.duration(300)}
+            className="text-red-500 text-sm mt-1"
+          >
             {verification.error}
-          </Text>
+          </Animated.Text>
         )}
 
-        <CustomButton
-          title="Verify Email"
-          onPress={onPressVerify}
-          className="mt-5 bg-success-500 bg-indigo-500"
-          padding="3"
-        />
+        <Animated.View entering={FadeInUp.duration(600).delay(300)}>
+          <CustomButton
+            title="Verify Email"
+            onPress={onPressVerify}
+            className="mt-5 bg-success-500 bg-indigo-500"
+            padding="3"
+          />
+        </Animated.View>
 
-        <CustomButton
-          title="Back"
-          onPress={() => setShowVerification(false)}
-          className="mt-5"
-          padding="3"
-        />
-      </View>
+        <Animated.View entering={FadeInUp.duration(600).delay(400)}>
+          <CustomButton
+            title="Back"
+            onPress={() => setShowVerification(false)}
+            className="mt-5"
+            padding="3"
+          />
+        </Animated.View>
+      </Animated.View>
     );
   }
 
   return (
-    <ScrollView 
-    className="bg-white"
-    style={{
-      paddingHorizontal: isIpad ? "15%" : 0
-    }}>
-      <View className="relative">
-        <Circle
-          color="#ffd640"
-          size={500}
-          style={{
-            position: "absolute",
-            top: -350,
-            right: -40,
-            opacity: 0.7,
-          }}
-        />
-        <Circle
-          color="#ffa647"
-          size={350}
-          style={{
-            position: "absolute",
-            top: -220,
-            right: -140,
-            opacity: 0.5,
-          }}
-        />
-      </View>
+    <Animated.View 
+      entering={FadeIn.duration(400)}
+      className="flex-1 bg-white"
+      style={{
+        paddingHorizontal: isIpad ? "15%" : 0
+      }}
+    >
+      <Animated.View entering={SlideInUp.duration(800)}>
+        <LinearGradient
+          colors={["#ffd12b", "#ff9f45"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          className="w-full items-start justify-center rounded-b-[36px] pt-16 pl-11 min-h-[22%] mb-6"
+        >   
+          <Animated.Text 
+            entering={FadeInDown.delay(200).duration(600)}
+            className="text-white text-3xl font-JakartaBold"
+          >
+            Create
+          </Animated.Text>
+          <Animated.Text 
+            entering={FadeInDown.delay(300).duration(600)}
+            className="text-white text-xl font-JakartaSemiBold"
+          >
+            Your Account
+          </Animated.Text>
+        </LinearGradient>
+      </Animated.View>
 
-      <View className="relative w-full">
-        <Text 
-        className="font-JakartaBold relative ml-5 mt-[180]"
-        style={{
-          fontSize: isIpad ? 32 : 24
-         }}>
-          Create Your Account
-        </Text>
-      </View>
+      <View className="flex-1 justify-between mb-12">
+        <View className="flex-1 mx-6 justify-start p-5">
+          <Animated.View entering={FadeInDown.duration(600).delay(400)}>
+            <InputField
+              label="Email"
+              placeholder="Enter your email"
+              icon={icons.email}
+              textContentType="emailAddress"
+              value={form.email}
+              onChangeText={(value) => setForm({ ...form, email: value })}
+            />
+          </Animated.View>
 
-      <View className="p-5">
-        <InputField
-          label="Email"
-          placeholder="Enter your email"
-          icon={icons.email}
-          textContentType="emailAddress"
-          value={form.email}
-          onChangeText={(value) => setForm({ ...form, email: value })}
-        />
+          <Animated.View entering={FadeInDown.duration(600).delay(500)}>
+            <InputField
+              label="Password"
+              placeholder="Enter your password"
+              icon={icons.lock}
+              value={form.password}
+              secureTextEntry={true}
+              textContentType="password"
+              onChangeText={(value) => setForm({ ...form, password: value })}
+            />
+          </Animated.View>
 
-        <InputField
-          label="Password"
-          placeholder="Enter your password"
-          icon={icons.lock}
-          value={form.password}
-          secureTextEntry={true}
-          textContentType="password"
-          onChangeText={(value) => setForm({ ...form, password: value })}
-        />
+          <Animated.View entering={FadeInDown.duration(600).delay(600)}>
+            <InputField
+              label=""
+              placeholder="Confirm your password"
+              icon={icons.lock}
+              secureTextEntry={true}
+              textContentType="password"
+              onChangeText={handleConfirmPassword}
+              containerStyle="mt-[-30px]"
+            />
+          </Animated.View>
 
-        <InputField
-          label=""
-          placeholder="Confirm your password"
-          icon={icons.lock}
-          secureTextEntry={true}
-          textContentType="password"
-          onChangeText={handleConfirmPassword}
-          containerStyle="mt-[-30px]"
-        />
-        {error ? (
-          <Text className="text-red-500 text-sm mt-1">{error}</Text>
-        ) : null}
+          {error && (
+            <Animated.Text 
+              entering={FadeIn.duration(300)}
+              className="text-red-500 text-sm mt-1"
+            >
+              {error}
+            </Animated.Text>
+          )}
+        </View>
 
-        <CustomButton
-          title="Sign Up"
-          onPress={onSignUpPress}
-          padding="3"
-          bgVariant="gradient"
-          className="mt-8 bg-gradient-to-r from-yellow-400 to-orange-400"
-        />
+        <Animated.View entering={FadeInUp.duration(600).delay(700)}>
+          <View className="flex items-center w-full">
+            <CustomButton
+              className="w-[50%] h-16 mt-8 rounded-full shadow-none"
+              fontSize="lg"
+              title="Sign Up"
+              padding="0"
+              onPress={onSignUpPress}
+              bgVariant='gradient'
+            />
+            {Platform.OS === "ios" && <AppleSignIn />}
+          </View>
+        </Animated.View>
 
-        {/*Platform.OS === "android" && <OAuth />*/}
-        {/*Platform.OS === "ios" && <AppleSignIn />*/}
-
-        <Text className="text-base text-center text-general-200 mt-5">
+        <Animated.Text 
+          entering={FadeIn.duration(600).delay(800)}
+          className="text-base text-center text-general-200 "
+        >
           Already have an account?{" "}
           <Link href="/auth/log-in">
             <Text className="text-primary-500">Log In</Text>
           </Link>
-        </Text>
-
-        <Text className="text-base text-center text-general-200 mt-3">
-          By continuing, you agree to our{" "}
-          <Link href="https://www.termsfeed.com/live/6e904e78-161a-46ce-b707-7dc6462d1422">
-            <Text className="text-primary-500">Terms of Service</Text>
-          </Link>{" "}
-          and{" "}
-          <Link href="https://www.termsfeed.com/live/83f5c527-834f-4373-88d0-4428498b6537">
-            <Text className="text-primary-500">Privacy Policy</Text>
-          </Link>
-          .
-        </Text>
+        </Animated.Text>
       </View>
-    </ScrollView>
+    </Animated.View>
   );
 };
 

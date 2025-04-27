@@ -24,7 +24,7 @@ import { CustomButtonBar } from "@/components/CustomTabBar";
 
 const Profile = () => {
   const { user } = useUser();
-  const { id } = useLocalSearchParams();
+  const { userId, username } = useLocalSearchParams();
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
       FriendStatus.UNKNOWN
     );
@@ -163,8 +163,8 @@ const Profile = () => {
   useEffect(() => {
       const getFriendStatus = async () => {
         let status;
-        if (user!.id !== id) {
-          status = await fetchFriendStatus(id as string, user!);
+        if (user!.id !== userId) {
+          status = await fetchFriendStatus(userId as string, user!);
           //console.log("Friend status:", status.name);
           setFriendStatus(status);
         }
@@ -172,7 +172,7 @@ const Profile = () => {
       getFriendStatus();
     }, []);
 
-     const navigationControls = id !== user?.id ? [
+     const navigationControls = userId !== user?.id ? [
         {
           icon: icons.back,
           label: "Back",
@@ -181,7 +181,15 @@ const Profile = () => {
         {
           icon: icons.pencil,
           label: "New Post",
-          onPress: () => {},
+          onPress: () => {
+              router.push({
+                            pathname: "root/new-post",
+                            params: {
+                              recipientId: userId,
+                              username: username
+                            }
+                          });
+          },
           isCenter: true,
         },
         {
@@ -193,7 +201,7 @@ const Profile = () => {
       ] : []
   return (
     <View className="flex-1 bg-[#FAFAFA]">
-      {id && <UserProfile userId={id as string} friendStatus={FriendStatus.UNKNOWN}/>}
+      {userId && <UserProfile userId={userId as string} friendStatus={FriendStatus.UNKNOWN}/>}
 
       {/*<View className="absolute w-full flex-row items-center justify-between bottom-12  px-8 ">
       <TouchableOpacity onPress={() => router.back()} className="p-4 rounded-full bg-white shadow-md ">
