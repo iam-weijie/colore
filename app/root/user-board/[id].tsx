@@ -34,7 +34,7 @@ const UserPersonalBoard = () => {
   };
 
   const fetchBoard = async () => {
-    if (boardId == "0" || username == "Personal Board") return;
+    if (boardId == "-1" || username == "Personal Board") return;
     try {
       const response = await fetchAPI(`/api/boards/getBoardById?id=${boardId}`)
 
@@ -116,7 +116,7 @@ const UserPersonalBoard = () => {
     },
   ]
 
-  const navigationControls = (isOwnBoard || boardId == "0") ? [
+  const navigationControls = (isOwnBoard || boardId == "-1") ? [
     {
       icon: icons.back,
       label: "Back",

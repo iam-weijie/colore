@@ -1,176 +1,183 @@
-import React, { useEffect, useState } from "react";
-import { View, Image, Text, TouchableOpacity } from "react-native";
-import { Stacks } from "@/types/type";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  interpolate
-} from "react-native-reanimated";
 import { icons } from "@/constants";
-import PinIcon from "./PinComponent";
 import { isOnlyEmoji } from "@/lib/post";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  PanResponder,
+  Image,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import PinIcon from "./PinComponent";
 
-interface StackCircleProps {
-  stack: Stacks;
-  isActive?: boolean;
-  isEditable?: boolean;
-  scrollOffset?: { x: number; y: number };
-  onViewPress?: () => void;
-  onEditPress?: () => void;
-  onSendPress?: () => void;
-}
-
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
-const StackCircle: React.FC<StackCircleProps> = ({ 
-  stack, 
+const StackCircle = ({
+  stack,
   isEditable = false,
   scrollOffset = { x: 0, y: 0 },
   onViewPress,
   onEditPress,
-  onSendPress
+  onSendPress,
+  enabledPan,
+  stackMoving,
+  updateStackPosition,
 }) => {
   const SHOW_BUTTONS_THRESHOLD = 200;
-  const buttonsVisibility = useSharedValue(0);
-  const [isFocused, setIsFocused] = useState(false);
 
-  // Calculate if buttons should be visible
+  const [isFocused, setIsFocused] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const basePosition = useRef({
+    x: stack.center.x,
+    y: stack.center.y,
+  }).current;
+
+  const dragOffset = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const scale = useRef(new Animated.Value(1)).current;
+  const shadowRadius = useRef(new Animated.Value(8)).current;
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const isReadyToDrag = useRef(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        dragOffset.setValue({ x: 0, y: 0 });
+
+        if (isEditable) {
+          enabledPan();
+          stackMoving();
+          longPressTimeout.current = setTimeout(() => {
+            setIsDragging(true);
+            isReadyToDrag.current = true;
+            Animated.parallel([
+              Animated.spring(scale, { toValue: 1.05, useNativeDriver: false }),
+              Animated.spring(shadowRadius, { toValue: 16, useNativeDriver: false }),
+            ]).start();
+          }, 300);
+        }
+      },
+      onPanResponderMove: (e, gestureState) => {
+        if (isReadyToDrag.current) {
+          dragOffset.setValue({ x: gestureState.dx, y: gestureState.dy });
+        }
+      },
+      onPanResponderRelease: (e, gestureState) => {
+        if (longPressTimeout.current) {
+          clearTimeout(longPressTimeout.current);
+        }
+
+        if (isReadyToDrag.current) {
+          const offset = dragOffset.__getValue();
+
+          const newX = basePosition.x + offset.x;
+          const newY = basePosition.y + offset.y;
+
+          basePosition.x = newX;
+          basePosition.y = newY;
+
+          updateStackPosition(newX, newY, stack);
+
+          Animated.parallel([
+            Animated.spring(scale, { toValue: 1, useNativeDriver: false }),
+            Animated.spring(shadowRadius, { toValue: 8, useNativeDriver: false }),
+          ]).start();
+        }
+
+        setIsDragging(false);
+        stackMoving()
+        isReadyToDrag.current = false;
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    if (!isDragging) {
+      basePosition.x = stack.center.x;
+      basePosition.y = stack.center.y;
+      dragOffset.setValue({ x: 0, y: 0 });
+    }
+  }, [stack.center.x, stack.center.y]);
+
   const shouldShowButtons = () => {
     const dx = Math.abs((scrollOffset.x + 120) - stack.center.x);
     const dy = Math.abs((scrollOffset.y + 160) - stack.center.y);
     const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance <= SHOW_BUTTONS_THRESHOLD) {
-      setIsFocused(true);
-    } else {
-      setIsFocused(false);
-    }
-
-    return (isEditable && distance <= SHOW_BUTTONS_THRESHOLD);
+    setIsFocused(distance <= SHOW_BUTTONS_THRESHOLD && isEditable);
   };
 
-  // Animate buttons visibility
   useEffect(() => {
-    buttonsVisibility.value = withTiming(shouldShowButtons() ? 1 : 0, {
-      duration: 300
-    });
-  }, [scrollOffset.x, scrollOffset.y, isEditable]);
-
-  // Button container animation
-  const buttonsStyle = useAnimatedStyle(() => ({
-    opacity: buttonsVisibility.value,
-    transform: [{ translateY: interpolate(buttonsVisibility.value, [0, 1], [20, 0]) }]
-  }));
+    shouldShowButtons();
+  }, [scrollOffset.x, scrollOffset.y, isEditable, stack.center]);
 
   return (
-    <View
+    <Animated.View
+      {...panResponder.panHandlers}
       pointerEvents={isFocused ? "auto" : "none"}
       className="absolute items-center justify-center rounded-[48px] border-6 bg-white/90 border-white/80"
-      style={{
-        left: stack.center.x - 40,
-        top: stack.center.y - 110,
-        width: 240,
-        height: 320,
-        shadowColor: "#9CA3AF",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        elevation: 5,
-        zIndex: isFocused ? 999 : 1,
-      }}
+      style={[
+        {
+          top: basePosition.y - 110,
+          left: basePosition.x - 40,
+          width: 240,
+          height: 320,
+          shadowColor: "#9CA3AF",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: shadowRadius,
+          elevation: 5,
+          zIndex: isFocused ? 999 : 1,
+          transform: [
+            { translateX: dragOffset.x },
+            { translateY: dragOffset.y },
+            { scale: scale },
+          ],
+        },
+      ]}
     >
       {/* Pin Component */}
       <View className="absolute top-0 w-full mx-auto items-center">
-      <PinIcon
-       size={40}
-        />
+        <PinIcon size={40} />
       </View>
+
       {/* Stack Name */}
       <Text 
         className="absolute top-12 w-full px-6 text-center text-black font-JakartaBold"
         numberOfLines={2}
         ellipsizeMode="tail"
-        style={{
-          fontSize: isOnlyEmoji(stack.name) ? 40 : 20
-        }}
+        style={{ fontSize: isOnlyEmoji(stack.name) ? 40 : 20 }}
       >
         {stack.name}
       </Text>
-      
 
       {/* Action Buttons */}
-      <Animated.View
-        className="absolute -bottom-[25px] flex-row justify-end items-center"
-        style={buttonsStyle}
-      >
+      <View className="absolute -bottom-[25px] flex-row justify-end items-center">
         {/* View Button */}
-        <AnimatedTouchable
-          activeOpacity={0.7}
-          onPress={onViewPress}
-          className="rounded-full bg-black justify-center items-center mx-1"
-          style={{
-            width: 100,
-            height: 50,
-            shadowColor: "#505050",
-            shadowOpacity: 0.15,
-            shadowRadius: 6,
-            shadowOffset: { width: 0, height: 3 }
-          }}
-        >
-          <Text className="text-white font-JakartaBold" style={{ fontSize: 16 }}>
-            View
-          </Text>
-        </AnimatedTouchable>
+        <TouchableWithoutFeedback onPress={onViewPress}>
+          <View className="rounded-full bg-black justify-center items-center mx-1" style={{ width: 100, height: 50 }}>
+            <Text className="text-white font-JakartaBold" style={{ fontSize: 16 }}>View</Text>
+          </View>
+        </TouchableWithoutFeedback>
 
-        {/* Edit/Delete Buttons - Only show when editable */}
         {isEditable && (
           <>
-            <AnimatedTouchable
-              activeOpacity={0.7}
-              onPress={onEditPress}
-              className="rounded-full bg-white justify-center items-center mx-1"
-              style={{
-                width: 50,
-                height: 50,
-                shadowColor: "#505050",
-                shadowOpacity: 0.15,
-                shadowRadius: 6,
-                shadowOffset: { width: 0, height: 3 }
-              }}
-            >
-              <Image
-                source={icons.pencil}
-                tintColor="black"
-                resizeMode="contain"
-                className="w-5 h-5"
-              />
-            </AnimatedTouchable>
+            <TouchableWithoutFeedback onPress={onEditPress}>
+              <View className="rounded-full bg-white justify-center items-center mx-1" style={{ width: 50, height: 50 }}>
+                <Image source={icons.pencil} tintColor="black" resizeMode="contain" className="w-5 h-5" />
+              </View>
+            </TouchableWithoutFeedback>
 
-            <AnimatedTouchable
-              activeOpacity={0.7}
-              onPress={onSendPress}
-              className="rounded-full bg-white justify-center items-center mx-1"
-              style={{
-                width: 50,
-                height: 50,
-                shadowColor: "#505050",
-                shadowOpacity: 0.15,
-                shadowRadius: 6,
-                shadowOffset: { width: 0, height: 3 }
-              }}
-            >
-              <Image
-                source={icons.send}
-                tintColor="black"
-                resizeMode="contain"
-                className="w-5 h-5"
-              />
-            </AnimatedTouchable>
+            <TouchableWithoutFeedback onPress={onSendPress}>
+              <View className="rounded-full bg-white justify-center items-center mx-1" style={{ width: 50, height: 50 }}>
+                <Image source={icons.send} tintColor="black" resizeMode="contain" className="w-5 h-5" />
+              </View>
+            </TouchableWithoutFeedback>
           </>
         )}
-      </Animated.View>
-    </View>
+      </View>
+    </Animated.View>
   );
 };
 

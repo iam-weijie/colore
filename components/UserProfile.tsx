@@ -265,7 +265,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         }
   
         const personalBoard =  {
-          id: 0,
+          id: -1,
           title: "Personal Board",
           user_id: userId,
           description: "Your window to the world!",

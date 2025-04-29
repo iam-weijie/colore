@@ -15,7 +15,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@clerk/clerk-expo": "^2.8.4",
+    "@clerk/clerk-expo": "^2.10.1",
     "@clerk/clerk-sdk-node": "^5.1.6",
     "@expo/metro-runtime": "~4.0.1",
     "@expo/vector-icons": "^14.0.0",
@@ -39,6 +39,7 @@
     "expo-background-fetch": "~13.0.5",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.4",
+    "expo-dev-client": "~5.0.20",
     "expo-device": "^7.0.2",
     "expo-font": "~13.0.1",
     "expo-haptics": "~14.0.1",
@@ -75,8 +76,7 @@
     "react-native-svg": "15.8.0",
     "react-native-tracking-transparency": "^0.1.2",
     "react-native-view-shot": "~4.0.3",
-    "react-native-web": "~0.19.13",
-    "expo-dev-client": "~5.0.20"
+    "react-native-web": "~0.19.13"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

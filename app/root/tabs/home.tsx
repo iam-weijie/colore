@@ -105,7 +105,7 @@ const fetchUserData = async () => {
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 48 : 32}&id=${user!.id}&mode=${geographicalMode}`
+      `/api/posts/getRandomPosts?number=${isIpad ? 48 : 4}&id=${user!.id}&mode=${geographicalMode}`
     );
     return response.data;
   };
@@ -304,6 +304,7 @@ const fetchUserData = async () => {
           handleNewPostFetch={fetchNewPost}
           allowStacking={true}
           mode={geographicalMode}
+          randomPostion={true}
         />
         {/* <Action 
         friendName={""}

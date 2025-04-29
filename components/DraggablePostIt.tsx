@@ -1,7 +1,7 @@
 
   import { useGlobalContext } from "@/app/globalcontext";
   import { icons, temporaryColors } from "@/constants";
-  import { Post, PostWithPosition, Position } from "@/types/type";
+  import { Post, PostWithPosition, Position, Stacks } from "@/types/type";
   import { useEffect, useRef, useState, useMemo } from "react";
   import PostIt from "@/components/PostIt";
   import {
@@ -25,11 +25,12 @@ interface DraggablePostItProps {
     position: {top: number, left: number},
     updatePosition: (x: number, y: number, post: PostWithPosition) => void;
     onPress: () => void;
-    forceStack?: (id: number) => MappingPostitProps;
     showText?: boolean;
     enabledPan: () => void;
     scrollOffset: { x: number; y: number }; 
-    zoomScale: number; 
+    zoomScale: number;
+    disabled: boolean;
+    visibility: number; 
   };
   
   const DraggablePostIt: React.FC<DraggablePostItProps> = ({
@@ -38,16 +39,18 @@ interface DraggablePostItProps {
     updateIndex,
     updatePosition,
     onPress,
-    forceStack,
     showText = false,
     enabledPan,
     scrollOffset,
     zoomScale,
+    disabled = false,
+    visibility = 1,
   }) => {
+    
     const animatedPosition = useRef(
       new Animated.ValueXY({
-        x: position?.left || 0,
-        y: position?.top || 0,
+        x: position.left,
+        y: position.top,
       })
     ).current;
 
@@ -63,7 +66,10 @@ interface DraggablePostItProps {
 
     const accumulatedPosition = useRef({ x: position.left, y: position.top });
 
-
+    const stackRef = useMemo<Stacks | undefined>(
+      () => stacks.find((p) => p.ids.includes(post.id)),
+      [stacks, post.id]
+    );
   
     const hasUpdatedPosition = useRef(false);
 
@@ -81,8 +87,47 @@ interface DraggablePostItProps {
   useEffect(() => {
     getFontColorHex(post.color);
   }, [post.color]);
+  useEffect(() => {
+    if (stackRef) {
+      const stackCenterX = stackRef.center.x;
+      const stackCenterY = stackRef.center.y;
   
-
+      const currentPostX = accumulatedPosition.current.x + post.position.left;
+      const currentPostY = accumulatedPosition.current.y + post.position.top;
+  
+      const dx = stackCenterX - currentPostX;
+      const dy = stackCenterY - currentPostY;
+  
+      const distance = Math.sqrt(dx * dx + dy * dy);
+  
+      if (distance > 20) {
+        console.log(">>> Forced move for post:", post.id);
+        console.log("Before accumulated:", accumulatedPosition.current);
+        console.log("Static post.position:", post.position);
+        console.log("Stack center:", stackRef.center);
+  
+        // 🔄 Animate by relative delta
+        animatedPosition.setValue({ x: dx, y: dy });
+  
+        // ✅ Update accumulated position RELATIVELY
+        accumulatedPosition.current.x += dx;
+        accumulatedPosition.current.y += dy;
+  
+        const finalX = post.position.left + accumulatedPosition.current.x;
+        const finalY = post.position.top + accumulatedPosition.current.y;
+  
+        updatePosition(finalX, finalY, post);
+  
+        console.log(">>> Drag End:", post.id, finalX, finalY);
+        console.log("After accumulated:", {
+          x: accumulatedPosition.current.x + post.position.left,
+          y: accumulatedPosition.current.y + post.position.top,
+        });
+      }
+    }
+  }, [stackRef?.center.x, stackRef?.center.y]);
+  
+  
 
   
     // Start drag animation - ALL animations will use JS driver
@@ -129,8 +174,8 @@ interface DraggablePostItProps {
  
     const panResponder = useRef(
       PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponder: () => !disabled,
+        onMoveShouldSetPanResponder: () => !disabled,
     
         onPanResponderGrant: () => {
           updateIndex();
@@ -181,6 +226,7 @@ interface DraggablePostItProps {
           //console.log("Final position:", finalX, finalY, "Displacement:", dx, dy);
         
           updatePosition(finalX, finalY, post); // (optional) update parent live if you want
+
         
           if (Math.abs(gestureState.dx) < clickThreshold && Math.abs(gestureState.dy) < clickThreshold) {
             onPress();
@@ -210,7 +256,7 @@ interface DraggablePostItProps {
               }),
             },
           ],
-          opacity: 1,
+          opacity: visibility,
           position: "absolute",
           top: post.position.top,
           left: post.position.left,
@@ -222,7 +268,7 @@ interface DraggablePostItProps {
           shadowOpacity,
           shadowRadius: isDragging ? 12 : 4,
           elevation: isDragging ? 12 : 4,
-          zIndex: 999,
+          zIndex: disabled ? -1 : 999,
         }}
       >
         {/* Rest of your component remains exactly the same */}

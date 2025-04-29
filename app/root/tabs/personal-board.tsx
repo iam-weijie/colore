@@ -62,7 +62,7 @@ const UserPersonalBoard = () => {
       }
 
       const personalBoard =  {
-        id: 0,
+        id: -1,
         title: "Personal Board",
         user_id: user!.id,
         description: "Your window to the world!",
@@ -73,13 +73,25 @@ const UserPersonalBoard = () => {
         color: "#93c5fd"
       }
 
+      const shareWithMeBoard =  {
+        id: -2,
+        title: "Shared with Me",
+        user_id: user!.id,
+        description: "Everything that was share with you!",
+        members_id: [user!.id],
+        board_type: 'personal',
+        restrictions: ['personal', 'commentsAllowed', '5'],
+        created_at: Date.now(),
+        color: "#CFB1FB"
+      }
+
         if (response.data) {
           const boardsWithColor = response.data.map((board: any, index: number) => ({
             ...board,
             color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           }));
         
-          setMyBoards([personalBoard, ...boardsWithColor]);
+          setMyBoards([personalBoard, shareWithMeBoard, ...boardsWithColor]);
         } else {
          
           setMyBoards(personalBoard)

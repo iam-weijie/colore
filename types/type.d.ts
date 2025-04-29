@@ -26,6 +26,10 @@ declare interface Post {
   board_id: number;
   reply_to: number;
   unread: boolean;
+  position?: {
+    top: number;
+    left: number;
+  };
   
 }
 

@@ -26,7 +26,7 @@ const AppleSignIn = () => {
       });
 
       const { identityToken, email } = credential;
-      console.log("🍏 Apple Credential received:", email);
+      console.log("🍏 Apple Credential received:", identityToken, email);
 
       if (!identityToken) {
         throw new Error("No identity token from Apple.");

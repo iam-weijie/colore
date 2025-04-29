@@ -129,52 +129,58 @@ export const AlgorithmRandomPosition = (
 ) => {
   const screenWidth = Dimensions.get("window").width * 2.25;
   const screenHeight = Dimensions.get("window").height;
-  const screenArea = screenWidth * screenHeight;
-
-  const minTargetArea = Math.min(postItCount * 0.03 * screenArea, screenArea); // can't exceed 100%
 
 
   if (isPinned) {
     return {
       top: 60 + Math.random() * 10,
       left: 40 + Math.random() * 10,
-      rotate: `${Math.random() * 4 - 2}deg`,
+      rotate: `${Math.abs(Math.random() * 4)}deg`, // Only positive rotation for pinned
     };
   }
 
-  const MAX_RETRIES = 20;
-  let attempts = 0;
+  const MAX_RETRIES = 50; // Increased retries
+  let bestPosition = {
+    top: Math.random() * (screenHeight - POSTIT_HEIGHT),
+    left: Math.random() * (screenWidth - POSTIT_WIDTH),
+    rotate: `${Math.abs(Math.random() * 8)}deg`, // Only positive rotation
+  };
+  let bestDistance = 0;
 
-  while (attempts < MAX_RETRIES) {
+  for (let attempts = 0; attempts < MAX_RETRIES; attempts++) {
     const top = Math.random() * (screenHeight - POSTIT_HEIGHT);
     const left = Math.random() * (screenWidth - POSTIT_WIDTH);
-
+    
+    // Find minimum distance to existing post-its
     let minDistance = Infinity;
-
     for (const pos of storedPosition) {
       const dx = pos.left - left;
       const dy = pos.top - top;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      if (distance < minDistance) minDistance = distance;
+      minDistance = Math.min(minDistance, distance);
     }
 
-    // Calculate how much area this placement adds based on overlap
-    const overlapFactor = Math.max(0.2, Math.min(1, minDistance / POSTIT_WIDTH)); // scaled 0.2 to 1
-    const effectiveArea = POSTIT_AREA * overlapFactor;
+    // If no stored positions yet, or this position is better
+    if (storedPosition.length === 0 || minDistance > bestDistance) {
+      bestDistance = minDistance;
+      bestPosition = {
+        top,
+        left,
+        rotate: `${Math.abs(Math.random() * 8)}deg`,
+      };
+    }
 
-    const rotate = `${Math.floor(Math.random() * 16 - 8)}deg`;
-    const newPosition = { top, left, rotate };
-
-    storedPosition.push({ top, left });
-    accumulatedArea += effectiveArea;
-
-    return newPosition;
+    // If we found a good position, use it immediately
+    if (minDistance > MIN_DISTANCE) {
+      storedPosition.push({ top, left });
+      return bestPosition;
+    }
   }
 
-  console.warn("Could not place post-it after retries");
-  return null;
+  // After all retries, use the best position we found
+  storedPosition.push({ top: bestPosition.top, left: bestPosition.left });
+  return bestPosition;
 };
-
 
 
 /**

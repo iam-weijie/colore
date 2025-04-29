@@ -78,7 +78,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       try {
         const posts = await fetchAPI(`/api/posts/getPostsById?ids=${existingPostIds}`);
 
-        const updatedPosts: Post[] = boardId == 0 ? posts.data : posts.data.filter((p: Post) => p.board_id == boardId);
+        const updatedPosts: Post[] = boardId == -1 ? posts.data : posts.data.filter((p: Post) => p.board_id == boardId);
     
        
         const formattedPosts = updatedPosts.map((post: Post) => ({
@@ -155,7 +155,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       
      
   
-      const boardOnlyPosts = boardId == 0 ? filteredPosts : filteredPosts.filter((p: Post) => p.board_id == boardId);
+      const boardOnlyPosts = boardId == -1 ? filteredPosts : filteredPosts.filter((p: Post) => p.board_id == boardId);
 
       console.log("filtered Post", filteredPosts.length, boardOnlyPosts.length)
     
@@ -180,27 +180,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
   };
 
 
-  const AlgorithmNewPosition = (isPinned: boolean) => {
 
-    if (isPinned) {
-      return {top: 60 + Math.random() * 10, left: 40 + Math.random() * 10 }
-    } else if (isIpad) {
-      const top = ((Math.random() - 0.5) * 2) * screenHeight / 3 + screenHeight / 4;
-      const left = ((Math.random() - 0.5) * 2) * screenWidth / 3 + screenWidth - screenWidth / 1.75
-      return {
-        top:  top,
-        left: left
-      }
-    }
-     else {
-      const top = ((Math.random() - 0.5) * 2) * screenHeight / 4 + screenHeight / 4;
-      const left = ((Math.random() - 0.5) * 2) * screenWidth / 4 + screenWidth / 4
-      return {
-        top:  top,
-        left: left
-      }
-    }
-}
 
   const fetchNewPersonalPost = async (excludeIds: number[]) => {
     try {
@@ -211,14 +191,8 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       if (!response.ok) throw new Error("Network response was not ok 1");
       const result = await response.json();
       if (result.length == 0) {return}
-      const filteredForBoard = result.data.filter((p) => p.board_id == boardId)
-      const newPostWithPosition = filteredForBoard.map((post: Post) => ({
-        ...post,
-        position: {
-          top:  AlgorithmNewPosition(post.pinned).top,
-          left: AlgorithmNewPosition(post.pinned).left,
-        },
-      }));
+      const filteredForBoard = result.data.filter((p) => p.board_id == boardId);
+      const newPostWithPosition = filteredForBoard;
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];
     } catch (error) {
       setError("Failed to fetch new post.");
@@ -316,6 +290,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
         allowStacking={true}
         showPostItText={true}
         invertColors={true}
+        randomPostion={false}
       />
     </MotiView>
 
