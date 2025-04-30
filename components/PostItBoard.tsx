@@ -466,6 +466,7 @@ const reorderPost = (topPost: Post) => {
     });
 
     stackUpdating.current = false
+    setIsPanningMode(true)
 
    // console.log("Set to false",  stackUpdating.current)
   };

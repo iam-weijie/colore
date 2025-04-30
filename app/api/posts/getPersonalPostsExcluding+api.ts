@@ -81,7 +81,7 @@ export async function GET(request: Request) {
         notified: false, // Default value
         prompt_id: post.prompt_id,
         prompt: post.prompt,
-        board_id: -1, // Since we filtered these out
+        board_id: post.board_id || -1,
         reply_to: -1, // Default value
         unread: post.unread,
         position: post.top !== null && post.left !== null 

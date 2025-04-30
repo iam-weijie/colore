@@ -38,14 +38,13 @@ import Header from "@/components/Header";
 
 const NewPost = () => {
   const { user } = useUser();
-  const { postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
+  const { postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
   const { setDraftPost, draftPost } = useGlobalContext();
   const { showAlert } = useAlert();
   
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [userUsername, setUserUsername] = useState<string>(username);
-  const [recipientId, setRecipientId] = useState<string>(recipient_id);
   const [postContent, setPostContent] = useState<string>(content);
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
@@ -61,7 +60,7 @@ const NewPost = () => {
   const expirationDate = ['1 day', '3 days', '7 days', '14 days']
 
 
-  console.log("arguments passed: ",postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId  )
+  console.log("arguments passed: ",postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId  )
 
 
   const handleColorSelect = (color: PostItColor) => {
@@ -139,7 +138,7 @@ const NewPost = () => {
       notified: false,
       prompt_id: promptId ? Number(promptId) : 0,
       prompt: prompt ?? "",
-      board_id: boardId ? Number(boardId) : 0,
+      board_id: boardId ? Number(boardId) : -1,
       reply_to: 0,
       unread: false,
     });

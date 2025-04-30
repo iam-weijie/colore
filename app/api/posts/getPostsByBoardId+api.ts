@@ -21,7 +21,10 @@ export async function GET(request: Request) {
         p.top,
         p.left,
         p.prompt_id,
+        p.reply_to,
         p.board_id,
+        p.notified,
+        p.unread,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -58,12 +61,12 @@ export async function GET(request: Request) {
       pinned: post.pinned,
       color: post.color,
       emoji: post.emoji,
-      notified: false, // Not available in query - set default
+      notified: post.notified,
       prompt_id: post.prompt_id,
       prompt: post.prompt,
       board_id: post.board_id,
-      reply_to: -1, // Not available in query - set default
-      unread: false, // Not available in query - set default
+      reply_to: post.reply_to, 
+      unread: post.unread,
       position: post.top !== null && post.left !== null 
         ? { top: Number(post.top), left: Number(post.left) } 
         : undefined
