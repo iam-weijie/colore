@@ -1,5 +1,6 @@
 import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
+import { useSoundGesture } from "@/hooks/useSoundGesture"; // Import swipe sound hook
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
@@ -76,6 +77,7 @@ const PostModal: React.FC<PostModalProps> = ({
 }) => {
   const { stacks, isIpad, soundEffectsEnabled } = useGlobalContext(); // Add soundEffectsEnabled
   const { playSoundEffect } = useSoundEffects(); // Get sound function
+  const { panGestureHandlers, handlePanGestureStateChange } = useSoundGesture(SoundType.Swipe);
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
   const [currentPost, setCurrentPost] = useState<Post>(selectedPost);
@@ -160,6 +162,13 @@ const PostModal: React.FC<PostModalProps> = ({
   const swipeGesture = Gesture.Pan()
     .onStart((event) => {
       console.log("Swipe started");
+      if (soundEffectsEnabled) {
+        try {
+          panGestureHandlers.onStart();
+        } catch (error) {
+          console.log("Error playing swipe start sound:", error);
+        }
+      }
     })
     .onUpdate((event) => {
       translateX.value = event.translationX;
@@ -167,8 +176,14 @@ const PostModal: React.FC<PostModalProps> = ({
     .onEnd(() => {
       const threshold = 15;
       const isLastPost = currentPostIndex === posts.length - 1;
-
-
+      
+      if (soundEffectsEnabled) {
+        try {
+          panGestureHandlers.onEnd();
+        } catch (error) {
+          console.log("Error playing swipe end sound:", error);
+        }
+      }
       
       if (translateX.value > threshold && currentPostIndex > 0) {
         translateX.value = withTiming(0);
@@ -212,7 +227,9 @@ const PostModal: React.FC<PostModalProps> = ({
     try {
       // Play like sound if liking (not unliking) and enabled
       if (!isLiked && soundEffectsEnabled) {
-        playSoundEffect(SoundType.Like);
+        playSoundEffect(SoundType.Like).catch(error => {
+          console.log("Error playing like sound:", error);
+        });
       }
       const increment = !isLiked;
       setIsLiked(increment);
@@ -265,11 +282,13 @@ const PostModal: React.FC<PostModalProps> = ({
         throw new Error(response.error);
       }
       const nicknames = response.data[0].nicknames || [];
-      return findUserNickname(nicknames, post!.clerk_id) === -1
+      
+      return findUserNickname(nicknames, currentPost?.clerk_id || "") === -1
         ? ""
-        : nicknames[findUserNickname(nicknames, post!.user_id)][1];
+        : nicknames[findUserNickname(nicknames, currentPost?.user_id || "")][1];
     } catch (error) {
       console.error("Failed to fetch user data:", error);
+      return "";
     }
   };
   useEffect(() => {
@@ -552,7 +571,7 @@ const PostModal: React.FC<PostModalProps> = ({
     }
     
     if (invertedColors) {
-      return currentPost?.recipient_user_id == user!.id ? [
+      return currentPost?.recipient_user_id === user!.id ? [
         {
           label: isPinned ? "Unpin" : "Pin",
           source: icons.pin,
@@ -752,7 +771,7 @@ console.log(selectedEmoji, "emojic")
                         />
                       </TouchableOpacity>
                       {/* Show like count only to post creator */}
-                    {post && post.clerk_id === user?.id && (
+                    {currentPost && currentPost.clerk_id === user?.id && (
                         <Text className="ml-1 text-gray-600">{likeCount}</Text>
                       )}
                     </View>
@@ -823,6 +842,7 @@ console.log(selectedEmoji, "emojic")
               label="Reply"
               icon={icons.plus}
               color={postColor?.fontColor || "rgba(0, 0, 0, 0.5)"}
+              soundType={SoundType.Reply}
               onPress={() => {
                 handleCloseModal();
                 if (currentPost?.prompt_id) {
@@ -844,12 +864,7 @@ console.log(selectedEmoji, "emojic")
                     },
                 })
                 }
-              
-             
-              if (soundEffectsEnabled) {  
-                //playSoundEffect(SoundType.Reply);
-              }
-            }}
+              }}
               />
               {currentPost?.prompt_id && 
                 <InteractionButton 

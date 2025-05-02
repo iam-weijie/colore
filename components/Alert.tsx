@@ -5,10 +5,11 @@ import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeI
 import { AlertProps } from "@/types/type";
 import * as Haptics from 'expo-haptics';
 import { icons } from "@/constants";
+import { useHaptics } from "@/hooks/useHaptics";
 
 
 const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status, duration, onClose, action, actionText, color }) => {
-
+  const { triggerHaptic } = useHaptics();
   const [visible, setVisible] = useState<boolean>(true)
   const [onAnimationFinish, setOnAnimationFinish] = useState(false)
 
@@ -40,9 +41,9 @@ if (onAnimationFinish) {
       setTimeout(() => {
         console.log("Animation completed");
         if (status == 'success') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          triggerHaptic(Haptics.NotificationFeedbackType.Success);
         } else if (status == 'error') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          triggerHaptic(Haptics.NotificationFeedbackType.Error);
         }
         else {}
         setVisible(false);

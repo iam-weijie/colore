@@ -11,12 +11,14 @@ import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAlert } from '@/notifications/AlertContext';
 import * as Haptics from 'expo-haptics';
+import { useHaptics } from "@/hooks/useHaptics";
  
 
 const PreviewPost = () => {
   const { user } = useUser();
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const { showAlert } = useAlert();
+  const { triggerHaptic } = useHaptics();
   const { id, content, color, emoji, personal, recipientId, username, expiration, prompt, promptId, boardId } =
     useLocalSearchParams();
   const [isPosting, setIsPosting] = useState(false);
@@ -134,7 +136,7 @@ const PreviewPost = () => {
         });
       } finally {
         setIsPosting(false);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy);
       }
     } else if (personal === "true") {
       const cleanedContent = content;
@@ -182,7 +184,7 @@ const PreviewPost = () => {
         });
       } finally {
         setIsPosting(false);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy);
       }
     }
     else {
@@ -230,7 +232,7 @@ const PreviewPost = () => {
         });
       } finally {
         setIsPosting(false);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy);
       }
     }
   };

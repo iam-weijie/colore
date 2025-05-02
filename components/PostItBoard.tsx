@@ -21,6 +21,7 @@ import {
   View,
 } from "react-native";
 import { GeographicalMode } from "@/types/type";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 
 type MappingPostitProps = {
   id: number;
@@ -37,6 +38,7 @@ type DraggablePostItProps = {
   onPress: () => void;
   forceStack: (id: number) => MappingPostitProps;
   showText?: boolean;
+  onDragEnd?: () => void;
 };
 
 const screenHeight = Dimensions.get("screen").height;
@@ -59,14 +61,17 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   onPress,
   forceStack,
   showText = false,
+  onDragEnd,
 }) => {
   const position = useRef(new Animated.ValueXY()).current;
   const clickThreshold = 2;
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [fontColor, setFontColor] = useState<string>("#0000ff");
-  const { stacks, setStacks } = useGlobalContext();
+  const { stacks, setStacks, soundEffectsEnabled } = useGlobalContext();
+  const { playSoundEffect } = useSoundEffects(); // Get sound function
   const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(null);
   const [isPinned, setIsPinned] = useState<boolean>(post.pinned);
+  const [wasStacked, setWasStacked] = useState<boolean>(false); // Track if stacking occurred during dragging
 
   const hasUpdatedPosition = useRef(false);
 
@@ -96,7 +101,6 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       }
       return newStackedPosition; // Update with new position
     });
-    //console.log("newStackedPosition", newStackedPosition);
   }, [newStackedPosition]); // This runs only when newStackedPosition changes
 
   // Original `useEffect` for handling position updates
@@ -111,7 +115,6 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
     };
   }, [position, updatePosition, post]);
   useEffect(() => {
-   // console.log("id", post.id, "is pinned?", post.pinned)
     setIsPinned(post.pinned)
   }, [post])
 
@@ -176,6 +179,12 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
 
         if (Math.abs(dx) < clickThreshold && Math.abs(dy) < clickThreshold) {
           onPress();
+        } else {
+          // Call the onDragEnd callback immediately to play the stacking sound
+          if (onDragEnd) {
+            // No delay - call immediately
+            onDragEnd();
+          }
         }
         setIsDragging(false);
       },
@@ -258,10 +267,13 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   invertColors = false,
   mode = "world",
 }) => {
+  const [mapType, setMapType] = useState<string>("satellite");
+  const [isUserInfoModalVisible, setIsUserInfoModalVisible] = useState(false);
   const [postsWithPosition, setPostsWithPosition] = useState<
     PostWithPosition[]
   >([]);
-  const { isIpad, stacks, setStacks } = useGlobalContext(); // Add more global constants here
+  const { isIpad, stacks, setStacks, soundEffectsEnabled } = useGlobalContext();
+  const { playSoundEffect } = useSoundEffects(); // Get sound function
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<PostWithPosition | null>(
@@ -269,6 +281,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   );
   const [isPinned, setIsPinned] = useState<boolean>(false);
   const [maps, setMap] = useState<MappingPostitProps[]>([]);
+  const lastStackedPostIdRef = useRef<number | null>(null);
+  const isUserDragging = useRef(false);
+  const pendingStackSound = useRef(false);
 
   if (!userId) {
     return null;
@@ -306,14 +321,14 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       // set positions of posts
 
       const postsWithPositions: Array<Post & { position: Position }> = [];
-      // pick some “seed” position for the very first post
+      // pick some "seed" position for the very first post
       let prevPosition: Position = { top: 0, left: 0 };
 
       for (const post of posts) {
         // compute new position based on the last one
         const position = AlgorithmRandomPosition(post.pinned, prevPosition);
         postsWithPositions.push({ ...post, position });
-        // “remember” it for the next iteration
+        // "remember" it for the next iteration
         prevPosition = position;
       }
 
@@ -342,7 +357,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       })
     } catch (error) {
       setError("Failed to fetch new posts.");
-      console.error(error);
     } finally {
       setLoading(false);
 
@@ -356,6 +370,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   ) => {
     let updatedStacks = [...stacks];
     let postsToCombine = [postId]; // Set of post IDs to combine into a single stack
+    let newlyStackedCount = 0; // Count of newly stacked posts
+    let wasNewlyStacked = false; // Flag to track if new stacking occurred
   
     // Check proximity to all posts
     maps.forEach((mappedPost) => {
@@ -375,6 +391,12 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   
     // Remove empty stacks
     updatedStacks = updatedStacks.filter((stack) => stack.ids.length > 0);
+    
+    // Check if the moving post was already in a stack with any of these posts
+    const wasAlreadyStacked = updatedStacks.some(stack => 
+      stack.ids.includes(postId) && 
+      stack.ids.some(id => postsToCombine.includes(id) && id !== postId)
+    );
   
     // Update stacks by removing the moving post from any stack it belongs to
     updatedStacks = updatedStacks.map((stack) => ({
@@ -399,15 +421,44 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         ids: validPosts.map((post) => post.id),
         elements: validPosts,
       });
+      
+      // This is a newly formed stack, track it
+      if (!wasAlreadyStacked) {
+        newlyStackedCount = 1;
+        wasNewlyStacked = true;
+      }
     } else if (affectedStacks.length > 0) {
       // Merge all affected stacks and postsToCombine into one stack
       const mergedStackIds = new Set();
-  
+      
+      // Track existing stacked IDs before adding the new one
+      const existingStackedIds = new Set();
       affectedStacks.forEach((stack) => {
-        stack.ids.forEach((id: number) => mergedStackIds.add(id));
+        stack.ids.forEach((id: number) => {
+          existingStackedIds.add(id);
+          mergedStackIds.add(id);
+        });
       });
   
-      validPosts.forEach((post) => mergedStackIds.add(post.id));
+      // Add the moving post ID
+      mergedStackIds.add(postId);
+      
+      // Add any other valid posts that weren't already in stacks
+      validPosts.forEach((post) => {
+        if (post.id !== postId) {
+          mergedStackIds.add(post.id);
+          // If this post wasn't already in one of the affected stacks, count it as newly stacked
+          if (!existingStackedIds.has(post.id)) {
+            newlyStackedCount++;
+          }
+        }
+      });
+      
+      // If the postId wasn't already stacked with these posts, count it as newly stacked
+      if (!wasAlreadyStacked && existingStackedIds.size > 0) {
+        newlyStackedCount++;
+        wasNewlyStacked = true;
+      }
   
       // Remove old affected stacks and add the new merged stack
       updatedStacks = updatedStacks.filter(
@@ -451,6 +502,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     );
   
     setStacks(updatedStacks);
+    
+    // Return whether new stacking occurred (instead of playing sound here)
+    return wasNewlyStacked;
   };
 
   const distanceBetweenPosts = (
@@ -477,18 +531,109 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       id: id,
       coordinates: { x_coordinate: x, y_coordinate: y },
     });
+    
+    // Check if this post will likely stack with others
+    // This is to help detect stacking early, before React state updates
+    let willLikelyStack = false;
+    maps.forEach((mappedPost) => {
+      if (mappedPost.id !== id) {
+        const dist = distanceBetweenPosts(
+          x,
+          y,
+          mappedPost.coordinates.x_coordinate,
+          mappedPost.coordinates.y_coordinate
+        );
+        
+        if (dist <= 15) {
+          // Posts are close enough that they'll likely stack
+          willLikelyStack = true;
+        }
+      }
+    });
+    
+    // If we detect likely stacking, prepare for sound
+    if (willLikelyStack) {
+      pendingStackSound.current = true;
+      lastStackedPostIdRef.current = id;
+    }
+    
+    // Update map immediately
     setMap((prevMap) => [
       ...prevMap.filter((p) => p.id !== id),
       postItCoordinates,
     ]);
+    
+    // Update stacks immediately instead of with a delay
+    const newPostScreenCoordinates = { x_coordinate: x, y_coordinate: y };
+    const wasNewlyStacked = updateStacks(id, newPostScreenCoordinates);
+    
+    // If a note was newly stacked, set the pending stack sound flag
+    if (wasNewlyStacked) {
+      pendingStackSound.current = true;
+      lastStackedPostIdRef.current = id;
+    }
   };
 
-
   const reorderPost = (topPost: PostWithPosition) => {
+    // Flag to track when a user starts dragging
+    isUserDragging.current = true;
+    
     setPostsWithPosition((prevPosts: PostWithPosition[]) => [
       ...prevPosts.filter((post) => post.id !== topPost.id), // Remove the moved post
       topPost, // Add the moved post to the end
     ]);
+  };
+
+  // Add a direct test function for sounds
+  const testPlaySound = (soundType: SoundType) => {
+    try {
+      // Try to play the sound directly - bypass the soundEffectsEnabled check for testing
+      playSoundEffect(soundType);
+    } catch (error) {
+      // Error silently handled
+    }
+  };
+  
+  // Update manual stacking function to use the direct test
+  const handleGatherPosts = () => {
+    if (maps.length > 0 && postsWithPosition.length > 1) {
+      // Get reference coordinates (where to gather all posts)
+      const ref = maps[maps.length - 1].coordinates;
+      
+      // Create new positions for all posts at the same location
+      const newPostsPositions = postsWithPosition.map((post) => ({
+        id: post.id,
+        coordinates: {
+          x_coordinate: ref.x_coordinate,
+          y_coordinate: ref.y_coordinate,
+        },
+      }));
+      
+      // Update the map with the new positions
+      setMap(newPostsPositions);
+      
+      // Immediately play a sound for manual gathering - no delay
+      testPlaySound(SoundType.Stack);
+      
+      // Still delay the success sound a bit
+      setTimeout(() => {
+        testPlaySound(SoundType.Success);
+      }, 300);
+    }
+  };
+
+  // Update drag end handler to use direct sound testing
+  const handleDragEnd = (postId: number) => {
+    isUserDragging.current = false;
+    
+    // If there's a pending stack sound and the post that was stacked is being released
+    // Or if it's the same post ID that was stacked
+    if (pendingStackSound.current && (lastStackedPostIdRef.current === postId || lastStackedPostIdRef.current === null)) {
+      pendingStackSound.current = false;
+      
+      // Play sound directly
+      testPlaySound(SoundType.Stack);
+    }
   };
 
   // USE EFFECTS
@@ -497,24 +642,47 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       const newPostID = maps[maps.length - 1].id;
       const newPostScreenCoordinates = maps[maps.length - 1].coordinates;
       updateStacks(newPostID, newPostScreenCoordinates);
-      //console.log(stacks)
     }
-    //console.log("maps", maps, maps.length)
-    //console.log("stacks", stacks)
   }, [maps]);
-  useEffect(() => {
-    fetchRandomPosts();
-    console.log("mode", mode)
-  }, [mode]);
-
-
   useEffect(() => {
     fetchRandomPosts();
   }, []);
 
   const forceStack = (id: number) => {
-    return maps.find((p) => p.id == id);
+    // Find the post in the maps array
+    const post = maps.find((p) => p.id == id);
+    
+    // If not found, return a default position to avoid undefined
+    if (!post) {
+      // Return a default position if the post isn't found
+      return {
+        id: id,
+        coordinates: {
+          x_coordinate: 0,
+          y_coordinate: 0,
+        }
+      };
+    }
+    
+    return post;
   };
+
+  // Add a test function to check if sound effects work
+  useEffect(() => {
+    // Test sound effect on component mount
+    if (soundEffectsEnabled) {
+      setTimeout(() => {
+        try {
+          console.log("Testing sound effects system...");
+          playSoundEffect(SoundType.Stack);
+          console.log("Sound effect test successful");
+        } catch (error) {
+          console.error("Sound effect test failed:", error);
+        }
+      }, 1000);
+    }
+  }, []);
+
   const handlePostPress = (post: PostWithPosition) => {
     // Ensure all required properties are present
     const formattedPost: PostWithPosition = {
@@ -555,7 +723,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       setSelectedPost(null);
 
       
-      //("Post to remove", selectedPost.id)
       setPostsWithPosition((prevPosts) => {
         const updatePosts = prevPosts.filter((post) => post.id !== postId);
 
@@ -575,8 +742,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
         return updateMap;
       });
-
-      //("remainging right after", stacks)
 
       const existingPostIds = postsWithPosition.map((post) => post.id);
 
@@ -611,23 +776,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     fetchRandomPosts();
   };
 
-  const handleGatherPosts = () => {
-    //console.log("handleGatherPosts");
-    if (maps.length > 0) {
-      const ref = maps[maps.length - 1].coordinates;
-      const newPostsPostions = postsWithPosition.map((post) => ({
-        id: post.id,
-        coordinates: {
-          x_coordinate: ref.x_coordinate,
-          y_coordinate: ref.y_coordinate,
-        },
-      }));
-      setMap(newPostsPostions);
-      //console.log("new posts", newPostsPostions)
-    }
-  };
-
-  //console.log("remaingring loaded", stacks)
   return (
     <View className="flex-1 mb-[80px]">
       <SignedIn>
@@ -669,6 +817,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                       forceStack={forceStack}
                       onPress={() => handlePostPress(post)}
                       showText={showPostItText}
+                      onDragEnd={() => handleDragEnd(post.id)}
                     />
                   );
                 })}

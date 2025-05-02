@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import MaskedView from '@react-native-masked-view/masked-view';
 import * as Haptics from 'expo-haptics';
+import { useHaptics } from "@/hooks/useHaptics";
 //import { ScrollView } from "react-native-gesture-handler";
 
 type TabNavigationProps = {
@@ -26,13 +27,16 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
   notifications,
   color
 }) => {
+  const { triggerHaptic } = useHaptics();
+  
   return (
     <TouchableOpacity
     className={`flex-1 py-3 w-full `}
   activeOpacity={0.6}
   onPress={() => {
     onPress()
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);}}
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
+  }}
 >
   {focused && <View className='absolute flex-1 w-full -mt-2 '>
         <MaskedView
