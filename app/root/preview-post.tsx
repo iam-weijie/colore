@@ -13,12 +13,14 @@ import { useAlert } from '@/notifications/AlertContext';
 import * as Haptics from 'expo-haptics';
 import { useGlobalContext } from "../globalcontext";
 import { handleSubmitPost } from "@/lib/post";
+import { useHaptics } from "@/hooks/useHaptics";
  
 
 const PreviewPost = () => {
   const { user } = useUser();
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const { showAlert } = useAlert();
+  const { triggerHaptic } = useHaptics();
   const { setDraftPost, draftPost } = useGlobalContext();
   const [isPosting, setIsPosting] = useState(false);
 

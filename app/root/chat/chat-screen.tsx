@@ -61,6 +61,8 @@ import { useGlobalContext } from "@/app/globalcontext";
 import ItemContainer from "@/components/ItemContainer";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import TabsContainer from "@/components/TabsContainer";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
+import { useSoundGesture } from "@/hooks/useSoundGesture";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -77,6 +79,10 @@ declare interface FriendRequestList {
 export const ChatScreen: React.FC<ChatScreenProps> = () => {
   const { user } = useUser();
   const { showAlert } = useAlert();
+  const { stateVars, setStateVars } = useNavigationContext();
+  const { soundEffectsEnabled } = useGlobalContext();
+  const { playSoundEffect } = useSoundEffects();
+  const { handlePanGestureStateChange } = useSoundGesture(SoundType.Swipe);
 
   // User experience
   const [loading, setLoading] = useState<boolean>(false);
@@ -84,7 +90,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [users, setUsers] = useState<UserNicknamePair[]>([]);
   const [showDeleteIcon, setShowDeleteIcon] = useState<boolean>(false);
-  const { stateVars, setStateVars } = useNavigationContext();
 
   // Messages constants
   const [conversations, setConversations] = useState<ConversationItem[]>([]);

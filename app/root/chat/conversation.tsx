@@ -29,6 +29,10 @@ import {
 } from "react-native";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
+import { useGlobalContext } from "@/app/globalcontext";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
+import { useSoundGesture } from "@/hooks/useSoundGesture";
+
 interface GestureContext {
   startX: number;
   startY: number;
@@ -46,27 +50,35 @@ const MessageItem: React.FC<Message> = ({
   const [showTime, setShowTime] = useState(false);
 
   const translateX = useSharedValue(0);
+  const timeOpacity = useSharedValue(0);
 
   // Maximum swipe distance
   const maxSwipe = 55; // Adjust as needed
   const minSwipe = -55; // Adjust as needed
 
+  const { soundEffectsEnabled } = useGlobalContext();
+  const { playSoundEffect } = useSoundEffects();
+  const { handlePanGestureStateChange } = useSoundGesture(SoundType.Swipe);
+
   const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent, GestureContext>({
     onStart: (_, context) => {
       context.startX = translateX.value;
-     
+      // Add sound effect on gesture start
+      runOnJS(handlePanGestureStateChange)({ nativeEvent: { state: 1 } } as any);
     },
     onActive: (event, context) => {
+      const translationX = event.translationX;
       // Calculate the translation, limit swipe range
-      const translationX = context.startX + event.translationX;
-      translateX.value = Math.max(Math.min(translationX, maxSwipe), minSwipe);
+      translateX.value = Math.max(Math.min(translationX + context.startX, maxSwipe), minSwipe);
       // Show time while active swipe
       runOnJS(setShowTime)(true);
     },
     onEnd: () => {
-    // Hide time after swipe ends
+      // Hide time after swipe ends
       runOnJS(setShowTime)(false);
-      translateX.value = withTiming(0, { damping: 20, stiffness: 300 }); // Use `withTiming` to reset smoothly
+      translateX.value = withTiming(0, { duration: 300 }); // Use `withTiming` to reset smoothly
+      // Add sound effect on gesture end
+      runOnJS(handlePanGestureStateChange)({ nativeEvent: { state: 5 } } as any);
     },
   });
 

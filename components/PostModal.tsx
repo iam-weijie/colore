@@ -1,5 +1,6 @@
 import { useGlobalContext } from "@/app/globalcontext";
-import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
+import { useSoundGesture } from "@/hooks/useSoundGesture"; // Import swipe sound hook
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";

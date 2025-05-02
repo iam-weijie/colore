@@ -15,18 +15,11 @@ import {
 } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect } from '@react-navigation/native';
+import { useHaptics } from "@/hooks/useHaptics";
 
-const AlertNotification: React.FC<AlertProps> = ({
-  title,
-  message,
-  type,
-  status,
-  duration,
-  onClose,
-  action,
-  actionText,
-  color,
-}) => {
+
+const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status, duration, onClose, action, actionText, color }) => {
+  const { triggerHaptic } = useHaptics();
   const [visible, setVisible] = useState<boolean>(true);
   const [onAnimationFinish, setOnAnimationFinish] = useState(false);
   const SWIPE_THRESHOLD = -15; // How far user needs to swipe up to dismiss
@@ -59,9 +52,9 @@ const AlertNotification: React.FC<AlertProps> = ({
     if (onAnimationFinish) {
       setTimeout(() => {
         if (status == 'success') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          triggerHaptic(Haptics.NotificationFeedbackType.Success);
         } else if (status == 'error') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          triggerHaptic(Haptics.NotificationFeedbackType.Error);
         }
         setVisible(false);
         if (onClose) onClose();

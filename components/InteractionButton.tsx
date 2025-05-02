@@ -12,6 +12,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { useGlobalContext } from "@/app/globalcontext";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -20,14 +22,20 @@ const InteractionButton = ({
   onPress, 
   showLabel,
   icon, 
-  color 
+  color,
+  soundType
 }: { 
   label: string, 
   onPress: () => void, 
   showLabel: boolean,
   icon?: ImageSourcePropType, 
-  color?: string 
+  color: string,
+  soundType?: SoundType
 }) => {
+  // Get sound effects
+  const { soundEffectsEnabled } = useGlobalContext();
+  const { playSoundEffect } = useSoundEffects();
+  
   // Animation values
   const scale = useSharedValue(0.8);
   const opacity = useSharedValue(0);
@@ -55,6 +63,21 @@ const InteractionButton = ({
         stiffness: 300
       })
     );
+    
+    // Play sound effect if enabled and sound type is provided
+    if (soundEffectsEnabled && soundType) {
+      playSoundEffect(soundType);
+    } else if (soundEffectsEnabled) {
+      // Default sound based on label if no specific soundType provided
+      if (label === 'Reply') {
+        playSoundEffect(SoundType.Reply);
+      } else if (label === 'Hard agree') {
+        playSoundEffect(SoundType.Like);
+      } else {
+        playSoundEffect(SoundType.Button);
+      }
+    }
+    
     onPress();
   };
 

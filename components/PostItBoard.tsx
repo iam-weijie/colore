@@ -31,7 +31,7 @@ import { GlitterEmitter } from "./GlitterStars";
 import StackCircle from "./StackCircle";
 import ModalSheet from "./Modal";
 import RenameContainer from "./RenameContainer";
-
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 
 
 
@@ -76,6 +76,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   isEditable = true,
   randomPostion = true,
 }) => {
+  const [mapType, setMapType] = useState<string>("satellite");
+  const [isUserInfoModalVisible, setIsUserInfoModalVisible] = useState(false);
   const [postsWithPosition, setPostsWithPosition] = useState<
     Post[]
   >([]);
@@ -83,7 +85,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   Post[]
 >([]);
 
-  const { isIpad, stacks, setStacks } = useGlobalContext(); // Add more global constants here
+  const { isIpad, stacks, setStacks, soundEffectsEnabled } = useGlobalContext();
+  const { playSoundEffect } = useSoundEffects(); // Get sound function
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPosts, setSelectedPosts] = useState<Post[] | null>(
@@ -208,7 +211,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
     } catch (error) {
       setError("Failed to fetch new posts.");
-      console.error(error);
     } finally {
       setLoading(false);
 
@@ -345,6 +347,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       id: id,
       coordinates: { x_coordinate: dx, y_coordinate: dy },
     });
+    
+    
+    // Update map immediately
     setMap((prevMap) => [
       ...prevMap.filter((p) => p.id !== id),
       postItCoordinates,
@@ -377,7 +382,6 @@ const reorderPost = (topPost: Post) => {
       ...prevPosts.filter((post) => post.id !== topPost.id), // Remove the moved post
       topPost, // Add the moved post to the end
     ]);
-
   };
 
   // USE EFFECTS
@@ -724,8 +728,6 @@ export default PostItBoard;
 
         return updateMap;
       });
-
-      //("remainging right after", stacks)
 
       const existingPostIds = postsWithPosition.map((post) => post.id);
 
