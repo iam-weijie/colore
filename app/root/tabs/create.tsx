@@ -16,8 +16,7 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import EmojiSelector from "react-native-emoji-selector";
-import { SafeAreaView } from "react-native-safe-area-context";
+import Header from "@/components/Header";
 
 import ColorSelector from "@/components/ColorSelector";
 import CustomButton from "@/components/CustomButton";
@@ -28,6 +27,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAlert } from '@/notifications/AlertContext';
 import ItemContainer from "@/components/ItemContainer";
+import EmojiBackground from "@/components/EmojiBackground";
 
 const Create = () => {
   const { user } = useUser();
@@ -35,30 +35,34 @@ const Create = () => {
   const { showAlert } = useAlert();
   
   return (
-    <SafeAreaView className="flex-1">
-      <SignedIn>
+    <View className="flex-1">
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
         >
+       
           
-          <View className="flex-row justify-between items-center mx-7 mt-3">
-                 <Text className="text-2xl font-JakartaBold mt-4">Create</Text>
-              
-               </View>
+                    
+            <Header 
+            title="Create" 
+            />
         </TouchableWithoutFeedback>
+        <EmojiBackground 
+        emoji=""
+        color="#93c5fd"
+        />
         <ScrollView 
-        className="flex-1 mt-4 mx-6"
+        className="flex-1 pt-2 mx-6"
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}>
           <View className="my-3 ml-2">
-            <Text className="text-[16px] font-JakartaBold text-gray-400"> Prompts</Text>
+            <Text className="text-[16px] font-JakartaBold text-gray-100"> Prompts</Text>
           </View>
           <ItemContainer
             label="Answer a prompt"
             caption="You and a random thought"
             icon={icons.fire}
-            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
+            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={async () => {
@@ -96,14 +100,14 @@ const Create = () => {
             }
           />
           <View className="my-2 ml-2">
-            <Text className="text-[16px] font-JakartaBold  text-gray-400"> Notes</Text>
+            <Text className="text-[16px] font-JakartaBold  text-gray-100"> Notes</Text>
           </View>
        
           <ItemContainer
             label="Send temporary note"
             caption="Quick or it will disappear!"
             icon={icons.timer}
-            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
+            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
@@ -119,8 +123,8 @@ const Create = () => {
           <ItemContainer
             label="Send global note"
             caption="A thought for the world to see"
-            icon={icons.plus}
-            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
+            icon={icons.globe}
+            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
@@ -134,7 +138,7 @@ const Create = () => {
             label="Write a personal note"
             caption="A thought for your friends board"
             icon={icons.pencil}
-            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
+            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
@@ -149,12 +153,12 @@ const Create = () => {
             }
           />
           <View className="my-2 ml-2">
-            <Text className="text-[16px] font-JakartaBold  text-gray-400"> Boards </Text>
+            <Text className="text-[16px] font-JakartaBold  text-gray-100"> Boards </Text>
           </View>
           <ItemContainer
             label="Create a board"
-            icon={icons.menu}
-            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
+            icon={icons.bookmark}
+            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
@@ -169,8 +173,7 @@ const Create = () => {
           />
       
         </ScrollView>
-      </SignedIn>
-    </SafeAreaView>
+    </View>
   );
 };
 

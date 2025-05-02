@@ -1,7 +1,8 @@
 import { fetchAPI } from "@/lib/fetch";
+
 import { ImageSourcePropType } from "react-native";
 import bob from "@/assets/characters/bob-1.png";
-import steve from "@/assets/characters/steve-1.png";
+import steve from "@/assets/characters/steve-annoyed-1.png";
 import rosie from "@/assets/characters/rosie-1.png";
 
 

@@ -9,6 +9,7 @@ import { Link, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
+import React from "react";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -76,7 +77,7 @@ const LogIn = () => {
   }, [isLoaded, form, signIn, setActive, router, signOut]);
 
   return (
-    <ScrollView 
+    <View 
     className="flex-1 bg-white">
       <View className="relative w-full">
           <Image
@@ -115,6 +116,7 @@ const LogIn = () => {
             Welcome 👋
           </Text>
           </View>
+          <View className="w-full p-5">
           <InputField
             label="Email"
             placeholder="Enter your email"
@@ -132,19 +134,21 @@ const LogIn = () => {
             textContentType="password"
             onChangeText={(value) => setForm({ ...form, password: value })}
           />
-          <CustomButton
-            title="Log In"
-            onPress={onLogInPress}
-            padding="3"
-            bgVariant="gradient"
-            className="mt-8"
-          />
-          <Text className="text-base text-center text-general-200 mt-6">
-            <Link href="/auth/reset">Forgot your password?</Link>
-          </Text>
+          </View>
+          <View className="flex items-center w-full">
+                      <CustomButton
+                        className="w-[50%] h-16 mt-8 rounded-full shadow-none"
+                        fontSize="lg"
+                        title="Log In"
+                        padding="0"
+                        onPress={onLogInPress}
+                        bgVariant='gradient'
+                      />
+                    </View>
+       
 
           {/*Platform.OS === "android" && <OAuth />*/}
-          {/*Platform.OS === "ios" && <AppleSignIn />*/}
+          {Platform.OS === "ios" && <AppleSignIn />}
 
           <Text className="text-base text-center text-general-200 mt-5">
             Don't have an account?{" "}
@@ -153,20 +157,12 @@ const LogIn = () => {
             </Link>
           </Text>
 
-          <Text className="text-base text-center text-general-200 mt-3">
-            By continuing, you agree to our{" "}
-            <Link href="https://www.termsfeed.com/live/6e904e78-161a-46ce-b707-7dc6462d1422">
-              <Text className="text-primary-500">Terms of Service</Text>
-            </Link>{" "}
-            and{" "}
-            <Link href="https://www.termsfeed.com/live/83f5c527-834f-4373-88d0-4428498b6537">
-              <Text className="text-primary-500">Privacy Policy</Text>
-            </Link>
-            .
+          <Text className="text-base text-center text-general-200 mt-6">
+            <Link href="/auth/reset">Forgot your password?</Link>
           </Text>
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 

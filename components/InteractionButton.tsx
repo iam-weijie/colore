@@ -18,13 +18,15 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const InteractionButton = ({ 
   label, 
   onPress, 
+  showLabel,
   icon, 
   color 
 }: { 
   label: string, 
   onPress: () => void, 
+  showLabel: boolean,
   icon?: ImageSourcePropType, 
-  color: string 
+  color?: string 
 }) => {
   // Animation values
   const scale = useSharedValue(0.8);
@@ -81,7 +83,7 @@ const InteractionButton = ({
             <Image
               source={icon}
               className={
-                label === 'Reply' ? 'w-5 h-5' :
+                label === 'Reply' ? 'w-6 h-6' :
                 label === 'Hard agree' ? 'w-7 h-7' :
                 'w-8 h-8'
               }
@@ -103,12 +105,12 @@ const InteractionButton = ({
         </AnimatedTouchable>
       </Animated.View>
       
-      <Animated.Text 
+      {showLabel && <Animated.Text 
         className="text-[12px] font-JakartaSemiBold shadow-md text-white mt-2"
         style={{ opacity: opacity.value }}
       >
         {label}
-      </Animated.Text>
+      </Animated.Text>}
     </View>
   );
 };

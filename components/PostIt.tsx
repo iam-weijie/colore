@@ -1,5 +1,3 @@
-import { temporaryColors } from "@/constants";
-import { View } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,10 +9,16 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
+import { icons, temporaryColors } from "@/constants";
+import {
+  View,
+} from "react-native";
+import React from "react";
 
 interface PostItProps {
   color?: string;
 }
+
 
 const PostIt: React.FC<PostItProps> = ({ color }) => {
   // Used instead of color.hex incase colour is undefined or NULL in database and Post object
@@ -35,7 +39,7 @@ const PostIt: React.FC<PostItProps> = ({ color }) => {
   return (
     <Animated.View 
     entering={FadeInDown.duration(100)}
-    className="w-40 h-40 shadow">
+    className="w-40 h-40 ">
       {/* Post-it Shape */}
       <Svg height="160" width="160">
         <Path

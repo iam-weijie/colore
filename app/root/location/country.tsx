@@ -5,14 +5,16 @@ import {
   FlatList, 
   Text, 
   TouchableOpacity, 
-  View, 
-  ActivityIndicator, 
+  View,
   StyleSheet,
   Dimensions
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { addStatesToCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import ScrollingText from "./ScrollingText";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+import React from "react";
+import Header from "@/components/Header";
 
 // Define simpler interfaces for better performance
 interface State {
@@ -27,61 +29,6 @@ interface Country {
   hasStates: boolean;
 }
 
-// Static styles
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    color: 'black',
-    fontFamily: 'JakartaRegular',
-    fontSize: 16,
-  },
-  itemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 60,
-  },
-  countryNameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginVertical: 8,
-  },
-  emoji: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  countryName: {
-    fontFamily: 'JakartaSemiBold',
-    fontSize: 16,
-  },
-  countryNameText: {
-    fontFamily: 'JakartaSemiBold',
-    fontSize: 16,
-  },
-  countryCode: {
-    fontFamily: 'JakartaSemiBold',
-    fontSize: 15,
-    color: '#9ca3af',
-    marginLeft: 12,
-    marginVertical: 8,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    margin: 12,
-    fontFamily: 'JakartaBold',
-  },
-  safeArea: {
-    flex: 1,
-  }
-});
 
 // Simple non-animated country item component
 const CountryItem = memo(({ 
@@ -96,29 +43,23 @@ const CountryItem = memo(({
     onPress(item.cca2, item.name);
   }, [onPress, item.cca2, item.name]);
   
-  const requiresScrolling = isNameTooLong(item.name, 15);
+
 
   return (
     <TouchableOpacity
-      style={styles.itemContainer}
+      className="flex-row items-center justify-between  mx-6 py-4 px-6 bg-white my-1 rounded-[32px]"
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <View style={styles.countryNameContainer}>
-        <Text style={styles.emoji}>{item.emoji}</Text>
-        {requiresScrolling ? (
-          <ScrollingText
-            text={item.name}
-            style={styles.countryName}
-            maxLength={15}
-          />
-        ) : (
-          <Text style={styles.countryNameText}>
+      <View  className="flex-1 flex-row items-center">
+        <Text className="mr-2" style={{ fontSize: 35 }}>{item.emoji}</Text>
+       
+          <Text className="text-base font-JakartaSemiBold max-w-[85%]">
             {item.name}
           </Text>
-        )}
+      
       </View>
-      <Text style={styles.countryCode}>
+      <Text className="font-JakartaSemiBold text-12 text-[#9ca3af]">
         {item.cca2}
       </Text>
     </TouchableOpacity>
@@ -128,10 +69,9 @@ const CountryItem = memo(({
 // Simple loading component with no animations
 const LoadingComponent = () => {
   return (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator size="small" color="#888888" />
-      <Text style={styles.loadingText}>Loading countries...</Text>
-    </View>
+    <View className="flex-1 items-center justify-center">
+            <ColoreActivityIndicator text="Loading Countries..." />
+      </View>
   );
 };
 
@@ -215,15 +155,17 @@ const Country = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView className="flex-1">
         <LoadingComponent />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Text style={styles.title}>Select a Country</Text>
+    <View className="flex-1 bg-[#FAFAFA]">
+      <Header
+        title="Select a Country"
+        />
       <FlatList
         data={countries}
         keyExtractor={keyExtractor}
@@ -231,13 +173,14 @@ const Country = () => {
         initialNumToRender={15}
         maxToRenderPerBatch={10}
         updateCellsBatchingPeriod={50}
+        contentContainerStyle={{ paddingTop: 16 }}
         windowSize={5}
         removeClippedSubviews={true}
         getItemLayout={(data, index) => (
           {length: itemHeight, offset: itemHeight * index, index}
         )}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, memo } from "react";
 import { router, useLocalSearchParams, Href } from "expo-router";
-import { FlatList, Text, TouchableOpacity, ActivityIndicator, View, Alert, StyleSheet } from "react-native";
+import { FlatList, Text, TouchableOpacity, View, Alert, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getStatesFromCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import { useUser } from "@clerk/clerk-expo";
@@ -8,6 +8,9 @@ import { fetchAPI } from "@/lib/fetch";
 import { useNavigationContext } from "@/components/NavigationContext";
 import ScrollingText from "./ScrollingText";
 import { useAlert } from '@/notifications/AlertContext';
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+import React from "react";
+import Header from "@/components/Header";
 
 // Define the State interface
 interface State {
@@ -16,59 +19,7 @@ interface State {
 }
 
 // Static styles to replace className
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    margin: 12,
-    fontFamily: 'JakartaBold',
-  },
-  itemContainer: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    paddingHorizontal: 16, 
-    height: 50,
-  },
-  stateName: {
-    fontFamily: 'JakartaSemiBold', 
-    fontSize: 16, 
-    marginLeft: 12,
-  },
-  stateNameText: {
-    fontFamily: 'JakartaSemiBold', 
-    fontSize: 16, 
-    marginLeft: 12,
-  },
-  stateInfo: {
-    fontFamily: 'JakartaRegular', 
-    fontSize: 14, 
-    color: '#6B7280', 
-    marginRight: 12,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontFamily: 'JakartaRegular',
-    color: 'black',
-  },
-  noStatesContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  noStatesText: {
-    fontFamily: 'JakartaRegular',
-    fontSize: 16,
-  }
-});
+
 
 // Memoized state item component for better performance
 const StateItem = memo(({ item, onPress }: { 
@@ -78,27 +29,19 @@ const StateItem = memo(({ item, onPress }: {
   const requiresScrolling = isNameTooLong(item.name, 15);
   
   return (
-    <TouchableOpacity
-      style={styles.itemContainer}
-      onPress={() => onPress(item)}
-    >
-      {requiresScrolling ? (
-        <ScrollingText
-          text={item.name}
-          style={styles.stateName}
-          maxLength={15}
-        />
-      ) : (
-        <Text style={styles.stateNameText}>
-          {item.name}
-        </Text>
-      )}
-      {item.cities.length === 0 && (
-        <Text style={styles.stateInfo}>
-          State used as city
-        </Text>
-      )}
-    </TouchableOpacity>
+       <TouchableOpacity
+          className="flex-row items-center justify-between  mx-6 py-6 px-6 bg-white my-1 rounded-[32px]"
+          onPress={() => onPress(item)}
+          activeOpacity={0.7}
+        >
+          <View  className="flex-1 flex-row items-center">
+           
+              <Text className="text-base font-JakartaSemiBold max-w-[85%]">
+                {item.name}
+              </Text>
+          
+          </View>
+        </TouchableOpacity>
   );
 });
 
@@ -226,25 +169,25 @@ const State = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#888888" />
-          <Text style={styles.loadingText}>Loading states...</Text>
+      <SafeAreaView className="flex-1">
+        <View className="flex-1 items-center justify-center">
+            <ColoreActivityIndicator text="Summoning Bob..." />
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>
-        Select a State in {formattedCountryName()}
-      </Text>
+    <View className="flex-1 bg-[#FAFAFA]">
+
+      <Header
+        title={`Select a State in ${formattedCountryName()}`}
+        />
 
       {statesList.length === 0 ? (
-        <View style={styles.noStatesContainer}>
-          <Text style={styles.noStatesText}>No states found for this country.</Text>
-        </View>
+        <Header
+        title={`No states found for this country.`}
+        />
       ) : (
         <FlatList
           data={statesList}
@@ -253,13 +196,14 @@ const State = () => {
           initialNumToRender={15}
           maxToRenderPerBatch={10}
           windowSize={5}
+          contentContainerStyle={{ paddingTop: 16 }}
           removeClippedSubviews={true}
           getItemLayout={(data, index) => (
             {length: 50, offset: 50 * index, index}
           )}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

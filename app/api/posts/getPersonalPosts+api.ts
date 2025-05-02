@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { AlgorithmRandomPosition } from "@/lib/utils";
 
 export async function GET(request: Request) {
   try {
@@ -29,6 +30,11 @@ export async function GET(request: Request) {
         p.board_id,
         p.prompt_id,
         p.recipient_user_id,
+        p.notified,
+        p.unread,
+        p.top,
+        p.left,
+        p.expires_at,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -42,16 +48,48 @@ export async function GET(request: Request) {
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
       WHERE p.recipient_user_id = '${recipientId}'
         AND p.post_type = 'personal'
+        AND (p.board_id IS NULL OR p.board_id < 0)
       ORDER BY p.created_at DESC
       LIMIT ${number};
     `;
 
-
-   
     const response = await sql(query);
 
-    return new Response(JSON.stringify({ data: response }), {
+    // Transform the response to match the Post interface
+    const mappedPosts = response.map((post: any) => ({
+      id: post.id,
+      clerk_id: post.clerk_id,
+      user_id: post.user_id,
+      firstname: post.firstname,
+      username: post.username,
+      content: post.content,
+      created_at: post.created_at,
+      city: post.city,
+      state: post.state,
+      country: post.country,
+      like_count: post.like_count,
+      report_count: post.report_count,
+      unread_comments: post.unread_comments,
+      recipient_user_id: post.recipient_user_id,
+      pinned: post.pinned,
+      color: post.color,
+      emoji: post.emoji,
+      notified: post.notified,
+      prompt_id: post.prompt_id,
+      prompt: post.prompt,
+      board_id: post.board_id || -1, 
+      unread: post.unread,
+      position: {
+        top: post.top,
+        left: post.left
+      }
+    }));
+
+    return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   
   } catch (error) {

@@ -9,6 +9,7 @@ export async function POST(request: Request) {
       recipientId,
       color = "yellow",
       emoji,
+      pinned = false
     } = await request.json();
 
     // console.log(content, clerkId, recipientId, color, emoji);
@@ -31,7 +32,8 @@ export async function POST(request: Request) {
         like_count,
         report_count,
         pinned,
-        expires_at
+        expires_at,
+        unread
       )
       VALUES (
         ${clerkId},
@@ -42,12 +44,14 @@ export async function POST(request: Request) {
         ${emoji},
         0,
         0,
-        FALSE,
-        NOW() + INTERVAL '14 days'
+        ${pinned},
+        NOW() + INTERVAL '14 days',
+        TRUE
       )
-      RETURNING id, color, recipient_user_id
+      RETURNING id, color, recipient_user_id, unread
     `;
 
+    console.log("res", response)
     // console.log("personal post", response);
     return new Response(JSON.stringify({ data: response }), {
       status: 201,
