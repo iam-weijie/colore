@@ -23,26 +23,19 @@ import {
     PanGestureHandlerGestureEvent,
   } from "react-native-gesture-handler";
   import Animated, {
-    BounceIn,
-    FadeIn,
     runOnJS,
-    SlideInLeft,
-    SlideInRight,
     useAnimatedGestureHandler,
     useAnimatedStyle,
     useSharedValue,
     withSpring,
     withTiming,
   } from "react-native-reanimated";
-import React from "react";
-import { isOnlyEmoji } from "@/lib/post";
 
 export const CommentItem: React.FC<PostComment> = ({
     id,
     post_id,
     user_id,
     sender_id,
-    index,
     content,
     username,
     created_at,
@@ -203,7 +196,12 @@ export const CommentItem: React.FC<PostComment> = ({
       },
     });
   
-   
+    const isOnlyEmoji = (text: string): boolean => {
+      // Unicode regex pattern to match emoji characters
+      const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Modifier}|\p{Emoji_Component}|\p{Emoji})+$/u;
+    
+      return emojiRegex.test(text);
+    };
 
     const doubleTapHandler = () => {
       setTapCount((prevCount) => prevCount + 1);
@@ -245,7 +243,6 @@ export const CommentItem: React.FC<PostComment> = ({
       >
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
-          entering={user_id === user?.id ? SlideInRight.stiffness(50) : SlideInLeft.stiffness(50)}
             className="flex flex-col justify-center"
             style={[
               animatedStyle, {
@@ -266,7 +263,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 onPress={() => {
                   router.push({
                     pathname: "/root/profile/[id]",
-                    params: { userId: user_id, username: username },
+                    params: { id: user_id },
                   });
                 }}
               >

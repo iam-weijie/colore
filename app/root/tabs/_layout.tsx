@@ -6,11 +6,43 @@ import NotificationBubble from '@/components/NotificationBubble';
 import { icons, images } from '@/constants';
 import { useGlobalContext } from '@/app/globalcontext';
 import { useNavigationState } from '@react-navigation/native';
-import { CustomTabBar } from '@/components/CustomTabBar';
-import TabIcon from '@/components/TabIcon';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useNavigationContext } from "@/components/NavigationContext";
 import { transform } from '@babel/core';
+
+interface TabIconProps {
+  source: any;
+  focused: boolean;
+  unread: number;
+  color: string;
+  label?: string;
+  isCenter?: boolean;
+}
+
+const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label}) => {
+
+
+  return (
+    <View className={`flex flex-column  items-center justify-center  `}>
+  
+      <View className={`flex items-center justify-center  w-11 h-11 rounded-full`}>
+      {focused && <View className='absolute'>
+      </View>}
+         <Animated.Image
+          source={source}
+          className={`flex-1 w-10 h-10`}
+          
+          resizeMode="cover"
+        />
+      </View>
+      <View>
+        <Text className={`w-full text-center text-xs font-JakartaBold`} style={[{ color: focused ? "#000"  : "#C8C8C8" }]}>
+          {label}
+        </Text>
+      </View>
+    </View>
+  );
+};
 
 interface HapticTabBarButtonProps {
   children: React.ReactNode;
@@ -57,7 +89,7 @@ const HapticTabBarButton: React.FC<HapticTabBarButtonProps> = ({ children, onPre
       style={style} // Apply only the passed style to Pressable
       {...rest}
     >
-      <Animated.View style={[animatedStyle, {alignItems: 'center'}]}> 
+      <Animated.View style={[animatedStyle, {alignItems: 'center'}]}> {/* Wrap children in Animated.View */}
         {children}
       </Animated.View>
     </Pressable>
@@ -94,12 +126,23 @@ const Layout: React.FC = () => {
         : '-6px -3px 13px 3px rgba(250,230,64,0.25), 5px 4px 13px 3px rgba(147, 197, 253, 0.25)'));
 
   return (
-<Tabs
-  tabBar={(props) => <CustomTabBar {...props} />}
-  screenOptions={{
-    tabBarShowLabel: false,
-  }}
->
+    <Tabs
+      screenOptions={{
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#ffffff',
+          height: 100,
+          paddingRight: 25,
+          paddingLeft: 25,
+          paddingBottom: isIpad ? 0 : 25,
+          boxShadow: "0px 0px 14px 3px rgba(0, 0, 0, 0.05)",
+        },
+      }}
+    >
         <Tabs.Screen
         name="personal-board"
         options={{
@@ -162,7 +205,7 @@ const Layout: React.FC = () => {
               source={icons.plus}
               focused={focused}
               unread={0}
-              color="#FBB1F5"
+              color="#fbb1d6"
               label="Create"
             />
           ),
@@ -190,5 +233,11 @@ const Layout: React.FC = () => {
   );
 };
 
+const styles = StyleSheet.create({
+  centerContainer: {
+    marginTop: -50,
+    zIndex: 10
+  }
+});
 
 export default Layout;

@@ -211,7 +211,7 @@ export const NumberSelection = ({ maxNum, minNum, onSelect }) => {
                  <View className='absolute z-1 w-20 h-20 rounded-full'
                  style={{
                   backgroundColor:  index % 4 === 1 ? "#ffe640"
-                  : ( index % 4 === 2 ? "#FBB1F5"
+                  : ( index % 4 === 2 ? "#fbb1d6"
                    : (index % 4 === 3 ? "#93c5fd"
                        : "#CFB1FB" ))
                  }}>

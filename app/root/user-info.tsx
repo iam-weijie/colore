@@ -29,7 +29,6 @@ import BoardGallery from "@/components/BoardGallery";
 import ItemContainer from "@/components/ItemContainer";
 import { icons } from "@/constants";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
-import React from "react";
 
 const UserInfo = () => {
   const { user } = useUser();
@@ -81,7 +80,6 @@ const UserInfo = () => {
             body: JSON.stringify({
               email: user!.emailAddresses[0]?.emailAddress || "",
               clerkId: user!.id,
-              appleId: user!.externalAccounts.find(account => account.provider === "apple")?.id || "",
             }),
           });
         } else {
@@ -467,19 +465,13 @@ const UserInfo = () => {
     {
       label: "About you",
       caption: "Share something cool about yourself!",
-      color: "#FBB1F5",
+      color: "#fbb1d6",
       disabled: postContent.length == 0,
       children: (
       <View className="flex-1">
-    <View className="flex-1 mx-6 mt-0 rounded-[48px] overflow-hidden shadow-sm border-4" 
-                       style={{
-                         backgroundColor: selectedColor.hex,
-                         borderColor: "#ffffff80",
-                         shadowColor: "#000",
-                         shadowOffset: { width: 0, height: 3 },
-                         shadowOpacity: 0.1,
-                         shadowRadius: 5,
-                       }}>
+ <View className="flex-1 -mb-6 rounded-[48px]" style={{
+            backgroundColor: selectedColor.hex
+            }}>
           <View className="flex-1 flex-column justify-center items-center ">
             <View className="flex w-full ">
                 <View>

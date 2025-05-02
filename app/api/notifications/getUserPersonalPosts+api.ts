@@ -27,7 +27,6 @@ export async function GET(request: Request) {
         p.emoji,
         p.recipient_user_id,
         p.notified,
-        p.unread,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -40,7 +39,6 @@ export async function GET(request: Request) {
       WHERE p.recipient_user_id = ${clerkId}
         AND p.post_type = 'personal'
         AND p.user_id != ${clerkId}
-        AND p.unread
     ORDER BY p.unread_comments DESC, p.created_at DESC;
   `;
 

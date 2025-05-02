@@ -15,7 +15,6 @@ import {
   PostItColor,
   PostContainerProps,
   UserNicknamePair,
-  PostWithPosition,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from '@react-navigation/native';
@@ -110,7 +109,11 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   // Memoize the posts array to prevent unnecessary re-renders
-  const post = selectedPosts
+  const post = useMemo(() => {
+    
+    const stack = stacks.find((stack) => stack.ids.includes(selectedPosts[0].id));
+    return stack ? stack.elements : selectedPosts;
+  }, [stacks, selectedPosts]);
 
 
   useEffect(() => {
@@ -353,46 +356,8 @@ const PostContainer: React.FC<PostContainerProps> = ({
 
 
 
-  const handleInteractionPress = async (emoji: string) => {
-
-    try {
-      console.log("Patching prompts")
-      
-      await fetchAPI(`/api/prompts/updateEngagement`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          clerkId: user?.id,
-          promptId: currentPost?.prompt_id
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to update unread comments:", error);
-    } finally {
-      setSelectedEmoji(emoji)
-      const timeoutId = setTimeout(() => {
-      setCurrentPostIndex((prevIndex) => {
-        const newIndex = prevIndex + 1;
-        if (newIndex < 0) {
-          return posts.length - 1; // Loop back to the last post
-        } else if (newIndex >= posts.length) {
-          return 0; // Loop back to the first post
-        }
-        return newIndex;
-      }
-      );
-      translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-      opacity.value = withTiming(0, {}, () => {
-        runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-        opacity.value = withTiming(1);
-      }
-      );
-      if (soundEffectsEnabled) {
-        //playSoundEffect(SoundType.Dislike);
-      }
-    }, 2000)
-    return () => clearTimeout(timeoutId);
-    }
-   
+  const handleInteractionPress = (emoji: string) => {
+    setSelectedEmoji(emoji)
   }
 
   // Capture the content as soon as the component mounts (first render)
@@ -592,12 +557,11 @@ const PostContainer: React.FC<PostContainerProps> = ({
     }, [])
   );
 
-
   return (
 
         <AnimatedView
           ref={viewRef}
-          className="flex-1 absolute w-screen h-screen justify-center"
+          className="flex-1 absolute w-screen h-screen justify-center z-[10]"
           style={[
             animatedBackgroundStyle,
             {
@@ -605,11 +569,8 @@ const PostContainer: React.FC<PostContainerProps> = ({
             }
           ]}
         >
-          <TouchableWithoutFeedback onPress={handleCloseModal}>
-            <View className="absolute flex-1 ">
+          <TouchableWithoutFeedback onPress={!isPreview ? handleCloseModal : undefined} >
             {<EmojiBackground emoji="" color="" />}
-            </View>
-          
           </TouchableWithoutFeedback>
 
           {header}
@@ -659,7 +620,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
                 <TouchableOpacity onPress={handleCloseModal}>
                   <Image
                     source={icons.close}
-                    style={{ width: 18, height: 18, top: 4, alignSelf: "flex-end", opacity: 0.5 }}
+                    style={{ width: 24, height: 24, alignSelf: "flex-end" }}
                   />
                 </TouchableOpacity>
 
@@ -682,17 +643,17 @@ const PostContainer: React.FC<PostContainerProps> = ({
                         />
                       </TouchableOpacity>
                       {/* Show like count only to post creator */}
-                    {currentPost?.user_id == user?.id && (
+                    {post && post.clerk_id === user?.id && (
                         <Text className="ml-1 text-gray-600">{likeCount}</Text>
                       )}
                     </View>
+                    {/* Delete button for post owner */}
                     {
                       <DropdownMenu
                         menuItems={getMenuItems(
                           currentPost?.clerk_id === user!.id ||
                             currentPost?.recipient_user_id === user!.id,
-                          invertedColors,
-                          isPreview
+                          invertedColors
                         )}
                       />
                     }
@@ -706,15 +667,52 @@ const PostContainer: React.FC<PostContainerProps> = ({
               {currentPost?.prompt_id && <InteractionButton 
               label="Nay"
               icon={icons.close}
-              showLabel={true}
               color={"#FF0000"}
-              onPress={() => 
-                handleInteractionPress("😤")}
+              onPress={async () => {
+               
+                try {
+                  console.log("Patching prompts")
+                  
+                  await fetchAPI(`/api/prompts/updateEngagement`, {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      clerkId: user?.id,
+                      promptId: currentPost?.prompt_id
+                    }),
+                  });
+                } catch (error) {
+                  console.error("Failed to update unread comments:", error);
+                } finally {
+                  handleInteractionPress("😤")
+                  const timeoutId = setTimeout(() => {
+                  setCurrentPostIndex((prevIndex) => {
+                    const newIndex = prevIndex + 1;
+                    if (newIndex < 0) {
+                      return posts.length - 1; // Loop back to the last post
+                    } else if (newIndex >= posts.length) {
+                      return 0; // Loop back to the first post
+                    }
+                    return newIndex;
+                  }
+                  );
+                  translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+                  opacity.value = withTiming(0, {}, () => {
+                    runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+                    opacity.value = withTiming(1);
+                  }
+                  );
+                  if (soundEffectsEnabled) {
+                    //playSoundEffect(SoundType.Dislike);
+                  }
+                }, 2000)
+                return () => clearTimeout(timeoutId);
+                }
+             
+              }}
               />}
               <InteractionButton 
               label="Reply"
               icon={icons.pencil}
-              showLabel={true}
               color={postColor?.fontColor || "rgba(0, 0, 0, 0.5)"}
               onPress={() => {
                 handleCloseModal();
@@ -748,14 +746,52 @@ const PostContainer: React.FC<PostContainerProps> = ({
                 <InteractionButton 
               label="Hard agree"
               icon={icons.check}
-              showLabel={true}
               color={"#000000"}
-              onPress={() =>
-                handleInteractionPress("🤩")}
+              onPress={async () => {
+                
+               try {
+                  await fetchAPI(`/api/prompts/updateEngagement`, {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      clerkId: user?.id,
+                      promptId: currentPost?.prompt_id
+                    }),
+                  });
+                } catch (error) {
+                  console.error("Failed to update:", error);
+                } finally {
+                  handleInteractionPress("🤩")
+                  const timeoutId = setTimeout(() => {
+                  setCurrentPostIndex((prevIndex) => {
+                    const newIndex = prevIndex + 1;
+                    if (newIndex < 0) {
+                      return posts.length - 1; // Loop back to the last post
+                    } else if (newIndex >= posts.length) {
+                      return 0; // Loop back to the first post
+                    }
+                    return newIndex;
+                  }
+                  );
+                  translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+                  opacity.value = withTiming(0, {}, () => {
+                    runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+                    opacity.value = withTiming(1);
+                  }
+                  );
+                  if (soundEffectsEnabled) {
+                    //playSoundEffect(SoundType.Dislike);
+                  }
+                }, 2000)
+
+                return () => clearTimeout(timeoutId);
+
+                }
+              
+              }}
               />}
 
             </View>
-           ) : (<View className="absolute top-[10%] left-[10%]  flex flex-row">
+           ) : (<View className="absolute top-[80%] self-center flex flex-row">
             {posts.length > 1 &&
               posts.map((post, index) => {
                 return (
@@ -774,7 +810,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
             <EmojiExplosionModal
               isVisible={!!selectedEmoji}
               verticalForce={50}
-              radius={isIpad ? 1200 : 800}
+              radius={800}
               emojiSize="text-[150px]"
               duration={8000}
               emoji={selectedEmoji}
@@ -790,17 +826,12 @@ const PostContainer: React.FC<PostContainerProps> = ({
             isVisible={!!selectedBoard}
             title={"Comments"}
             onClose={() => {
-              if (currentPost) {
-                handleReadComments(currentPost, user!.id);
-              }
+              handleReadComments(currentPost, user!.id)
               console.log("has closed.")
               setSelectedBoard(null)
             }}
             >
-              <View className="flex-1 h-full">
               {selectedBoard}
-              </View>
-              
               </ModalSheet>
 }
         </AnimatedView>

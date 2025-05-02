@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-const CarrouselIndicator = ({ id, index, color = "white" }: { id: number; index: number, color: string }) => {
+const CarrouselIndicator = ({ id, index }: { id: number; index: number }) => {
     // Shared values for animation
     const width = useSharedValue(2);
     const opacity = useSharedValue(0.5);
@@ -39,7 +39,7 @@ const CarrouselIndicator = ({ id, index, color = "white" }: { id: number; index:
             padding: 2,
             minWidth: 8,
             height: 8,
-            backgroundColor: color,
+            backgroundColor: "white",
             marginHorizontal: 4,
           },
           animatedStyle, // Apply animated styles

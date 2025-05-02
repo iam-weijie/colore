@@ -22,7 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor, UserNicknamePair, Post } from "@/types/type";
+import { PostItColor, UserNicknamePair, Friendship } from "@/types/type";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from '@/notifications/AlertContext';
 import ModalSheet from "@/components/Modal";
@@ -30,37 +30,52 @@ import {
   fetchFriends
 } from "@/lib/friend";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
-import ItemContainer from "@/components/ItemContainer";
-import { useGlobalContext } from "../globalcontext";
-
-import { CustomButtonBar } from "@/components/CustomTabBar";
-import Header from "@/components/Header";
 
 const NewPost = () => {
   const { user } = useUser();
-  const { postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
-  const { setDraftPost, draftPost } = useGlobalContext();
+  const { postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
   const { showAlert } = useAlert();
   
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [userUsername, setUserUsername] = useState<string>(username);
-  const [postContent, setPostContent] = useState<string>(content);
+  const [recipientId, setRecipientId] = useState<string>(recipient_id);
+  const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors.find((c) => c.name === color ) ?? temporaryColors[Math.floor(Math.random() * 4)]
+    temporaryColors[Math.floor(Math.random() * 4)]
   );
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
+  const [fromPreview, setFromPreview] = useState(false);
 
+  console.log("new post", postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId)
 
   const [selectExpirationDate, setSelectExpirationDate] = useState<string>(expiration)
 
   const expirationDate = ['1 day', '3 days', '7 days', '14 days']
 
-
-  console.log("arguments passed: ",postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId  )
+  // Initialize from route params when component mounts or params change
+  useEffect(() => {
+    if (content) {
+      setPostContent(Array.isArray(content) ? content[0] : content as string);
+      setFromPreview(true);
+    }
+    
+    if (color) {
+      const colorValue = Array.isArray(color) ? color[0] : color as string;
+      const savedColor = temporaryColors.find(c => c.name === colorValue);
+      if (savedColor) {
+        setSelectedColor(savedColor);
+      }
+    }
+    
+    if (emoji) {
+      setSelectedEmoji(Array.isArray(emoji) ? emoji[0] : emoji as string);
+    }
+  }, [content, color, emoji]);
 
 
   const handleColorSelect = (color: PostItColor) => {
@@ -75,8 +90,58 @@ const NewPost = () => {
     setInputHeight(event.nativeEvent.contentSize.height);
   };
 
-  const handlePostSubmit = () => {
-    router.push("/root/preview-post")
+  const handlePostSubmit = async () => {
+    if (expiration) {
+    console.log("expiration post")
+    router.push({
+      pathname: "/root/preview-post",
+      params: {
+        id: postId ?? "",
+        content: postContent, 
+        color: selectedColor.name, 
+        emoji: selectedEmoji,
+        expiration: selectExpirationDate
+      }
+    });
+  } else if (promptId) {
+    router.push({
+      pathname: "/root/preview-post",
+      params: {
+        id: postId ?? "",
+        content: postContent, 
+        color: selectedColor.name, 
+        emoji: selectedEmoji,
+        prompt: prompt,
+        promptId: promptId
+      }
+    });
+  }  else if (recipientId) {
+    router.push({
+      pathname: "/root/preview-post",
+      params: {
+        id: "", 
+        content: postContent, 
+        color: selectedColor.name, 
+        emoji: selectedEmoji, 
+        personal: "true", 
+        recipientId: recipientId,
+        username: userUsername,
+        boardId: boardId
+      }
+    })
+  }
+  else {
+    console.log("normal post")
+       router.push({
+                   pathname: "/root/preview-post",
+                   params: {
+                     id: postId ?? "", 
+                     content: postContent, 
+                     color: selectedColor.name, 
+                     emoji: selectedEmoji,
+                   }
+                 })
+  }
   };
 
   const handleChangeText = (text: string) => {
@@ -112,118 +177,113 @@ const NewPost = () => {
      }
    }, [selectedEmoji]);
    
-   useEffect(()=> {
-    setPostContent(content)
-   }, [])
-   useEffect(() => {
-   
-    setDraftPost({
-      id: Number(postId ?? 0),
-      clerk_id: user?.id ?? "",
-      firstname: "",
-      username: userUsername ?? "",
-      content: postContent,
-      created_at: new Date().toISOString(),
-      expires_at: "", // Let the backend calculate it or parse from selectExpirationDate if needed
-      city: "",
-      state: "",
-      country: "",
-      like_count: 0,
-      report_count: 0,
-      unread_comments: 0,
-      recipient_user_id: recipientId ?? "",
-      pinned: false,
-      color: selectedColor.name,
-      emoji: selectedEmoji ?? "",
-      notified: false,
-      prompt_id: promptId ? Number(promptId) : 0,
-      prompt: prompt ?? "",
-      board_id: boardId ? Number(boardId) : -1,
-      reply_to: 0,
-      unread: false,
-    });
-  }, [
-    postId,
-    user,
-    postContent,
-    selectedColor,
-    selectedEmoji,
-    recipientId,
-    promptId,
-    prompt,
-    boardId,
-  ]);
-
-  useEffect(() => {
-    if (draftPost) {
-      setPostContent(draftPost.content);
-      const savedColor = temporaryColors.find(c => c.name === draftPost.color);
-      if (savedColor) setSelectedColor(savedColor);
-      if (draftPost.emoji) setSelectedEmoji(draftPost.emoji);
-      if (draftPost.recipient_user_id) setRecipientId(draftPost.recipient_user_id);
-      if (draftPost.username) setUserUsername(draftPost.username);
-    }
-  }, []);
-
-  const navigationControls =  [
-          {
-            icon: icons.back,
-            label: "Back",
-            onPress: () => router.back(),
-          },
-          {
-            icon: icons.send,
-            label: "New Post",
-            onPress: () => {
-              handlePostSubmit();
-            },
-            isCenter: true,
-          },
-          {
-            icon: icons.settings,
-            label: "More",
-            onPress: () => {},
-            isCenter: true,
-          },
-        ]
 
   return (
-    <View className="flex-1" 
-    style={{
-      backgroundColor: selectedColor.hex,
-    }}>
+    <SafeAreaView className="flex-1" >
+      <SignedIn>
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
          
         >
-          
           <View className="flex-1" >
-          <Header
-          title={postId ? 'Edit Post' : 'New Post'}
-          item={
-            prompt && <View className="mb-4 -mt-4 mx-12">
-              <Text className="text-sm text-left font-JakartaSemiBold text-black">
+            <View className="flex flex-row justify-between items-center my-6 mx-8">
+            <View className="flex flex-row w-full justify-between items-center ">
+                <TouchableOpacity onPress={() => router.back()} className="mr-2">
+                  <AntDesign name="caretleft" size={18} color="black" />
+                </TouchableOpacity>
+                <View className="">
+              <Text className="  text-center text-[18px] font-JakartaBold text-black">
+                {postId ? 'Edit Post' : 'New Post'}
+              </Text>
+              </View>
+              
+               
+              
+
+              
+              {!!username ? (
+                  <TouchableOpacity
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setTimeout(() => setIsModalVisible(true), 100);
+                  }
+                    }>
+                  <Image
+                  source={icons.addUser}
+                  className="w-5 h-5"
+                  tintColor={"#000"} />
+                  </TouchableOpacity>
+                )  : prompt ? (
+                  <TouchableOpacity
+                  activeOpacity={0.9} 
+                  onPress={() => {
+                    // handle other condition
+                  }}>
+                    <Image
+                      source={icons.fire}
+                      className="w-6 h-6"
+                      tintColor="#000"
+                    />
+                  </TouchableOpacity>
+                )   : (
+                  <TouchableOpacity
+                  activeOpacity={expiration ? 0.6 : 1}
+                  style={{
+                    opacity: expiration ? 1 : 0
+                  }}
+                  onPress={() => {
+                    if (expiration) {
+                    const currentIndex = expirationDate.indexOf(selectExpirationDate);
+                    if (currentIndex < expirationDate.length - 1) {
+                      setSelectExpirationDate(expirationDate[currentIndex + 1])
+                    } else {
+                      setSelectExpirationDate(expirationDate[0])
+                    }
+                  }
+                  }}>
+                                      <Image
+                                      source={icons.timer}
+                                      className="w-6 h-6"
+                                      tintColor={"#000"} />
+                                      {!postId && <Text className="absolute top-1 right-4 flex-1 w-full min-w-[75px]  text-center text-[12px] font-JakartaSemiBold text-gray-400" >
+                  {selectExpirationDate}
+                 </Text>}
+                 </TouchableOpacity>
+                 
+                )
+                }
+              
+              {/*<CustomButton
+                className="w-14 h-10 rounded-full shadow-none"
+                fontSize="sm"
+                title="Next"
+                style={{backgroundColor: selectedColor.hex}}
+                padding="0"
+                onPress={handlePostSubmit}
+                disabled={!postContent || isPosting}
+              />*/}
+            </View>
+         
+            </View>
+
+            {prompt && <View className="my-6 mx-10">
+              <Text className="text-[24px] text-center font-JakartaBold text-black">
                 {prompt}
                 </Text>
-            </View>
-          }
-           />
-            
+            </View>}
 
-           <View className="flex-1  mt-0 overflow-hidden " 
-            style={{
-              backgroundColor: selectedColor.hex
+           <View className="flex-1 mx-6 mt-0 rounded-[48px]" style={{
+            backgroundColor: selectedColor.hex
             }}>
-              <View className="flex-1 "><KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
-                        <View className="flex-1 flex-column justify-center items-center  ">
-              
-                            
-              <View className="w-full h-[50%] -mt-16">
-                        <TextInput
+            <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
+          <View className="flex-1 flex-column justify-center items-center ">
+            <View className="flex w-full mx-3">
+              {!isEmojiSelectorVisible && (
+                <View>
+                <TextInput
                   className="text-[20px] text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
                   placeholder="Type something..."
-                  placeholderTextColor={"#F1F1F1"}
                   value={postContent}
                   onChangeText={handleChangeText}
                   onContentSizeChange={handleContentSizeChange}
@@ -239,15 +299,14 @@ const NewPost = () => {
                   }}
                 />
                 </View>
+              )}
+            </View>
+    
+           
+             
+              </View>
               
-                  
-                         
-                           
-                            </View>
-                            
-                            </KeyboardAvoidingView>
-                            </View>
-
+              </KeyboardAvoidingView>
               <View className="flex-1 absolute m-4 left-4 top-2" >
                 <Text className="text-[16px] font-JakartaBold text-white">{userUsername ? `To: ${userUsername}` : ''}</Text>
               </View>
@@ -279,9 +338,16 @@ const NewPost = () => {
               </View>
               </View>
               </View>
-               <CustomButtonBar
-                            buttons={navigationControls}
-                            />
+              <View className="flex-1 absolute flex items-center w-full bottom-[10%]">
+            <CustomButton
+              className="w-[50%] h-16 rounded-full shadow-none bg-black"
+              fontSize="lg"
+              title={prompt ? "submit" : "continue"}
+              padding="0"
+              onPress={handlePostSubmit}
+              disabled={!postContent || isPosting}
+            />
+            </View>
 
             {isEmojiSelectorVisible && (
               <View className="w-full h-screen bg-white">
@@ -305,7 +371,8 @@ const NewPost = () => {
          onClose={() => {setIsModalVisible(false)}}>
            <FindUser selectedUserInfo={selectedUserInfo} />
           </ModalSheet>}
-      </View>
+      </SignedIn>
+      </SafeAreaView>
   );
 };
 
@@ -365,16 +432,17 @@ const fetchUsers = async () => {
     }: {
       item: UserNicknamePair;
     }): React.ReactElement => (
-            <ItemContainer 
-            label={item[1]}
-            colors={["#FBB1F5", "#CFB1FB"]}
-            icon={icons.addUser}
-            actionIcon={icons.chevron}
-            iconColor="#000"
-            onPress={() => {
-              selectedUserInfo(item)
-            }}
-            />
+      <TouchableOpacity
+        onPress={() => {
+          selectedUserInfo(item)
+        }}
+        //disabled={creatingChat}
+        className="p-4"
+      >
+        <View className="flex flex-row justify-between items-center">
+          <Text className="text-[14px] font-JakartaBold text-black left-2">{item[1]}</Text>
+        </View>
+      </TouchableOpacity>
     );
 
     const filteredUsers =

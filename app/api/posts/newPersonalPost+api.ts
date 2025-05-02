@@ -32,8 +32,7 @@ export async function POST(request: Request) {
         like_count,
         report_count,
         pinned,
-        expires_at,
-        unread
+        expires_at
       )
       VALUES (
         ${clerkId},
@@ -45,13 +44,11 @@ export async function POST(request: Request) {
         0,
         0,
         ${pinned},
-        NOW() + INTERVAL '14 days',
-        TRUE
+        NOW() + INTERVAL '14 days'
       )
-      RETURNING id, color, recipient_user_id, unread
+      RETURNING id, color, recipient_user_id
     `;
 
-    console.log("res", response)
     // console.log("personal post", response);
     return new Response(JSON.stringify({ data: response }), {
       status: 201,

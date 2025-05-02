@@ -22,8 +22,6 @@ const getBgVariantStyle = (
       return "bg-transparent border-neutral-300 border-[0.5px]";
     case "gradient":
       return ["#ffd12b", "#ff9f45"];
-    case "gradient2":
-      return ["#54C1EE", "#91C5FC", "#54C1EE"];
     default:
       return "bg-[#333333]";
   }
@@ -72,10 +70,10 @@ const CustomButton = ({
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      className={`w-full rounded-full ${["gradient", "gradient2"].includes(bgVariant) ? "" : bgStyle} p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}
+      className={`w-full rounded-full ${bgVariant === "gradient" ? "" : bgStyle} p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}
       {...props}
     >
-      {["gradient", "gradient2"].includes(bgVariant) && Array.isArray(bgStyle) ? (
+      {bgVariant === "gradient" && Array.isArray(bgStyle) ? (
         <LinearGradient
           colors={bgStyle}
           start={{ x: 0, y: 0 }}

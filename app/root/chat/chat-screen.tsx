@@ -60,7 +60,6 @@ import TabNavigation from "@/components/TabNavigation";
 import { useGlobalContext } from "@/app/globalcontext";
 import ItemContainer from "@/components/ItemContainer";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
-import TabsContainer from "@/components/TabsContainer";
 //import { ScrollView } from "react-native-gesture-handler";
 
 const screenHeight = Dimensions.get("window").height;
@@ -210,7 +209,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           (user) =>
             user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
         )
-      : users;
+      : [];
 
   const fetchNicknames = async () => {
     try {
@@ -220,11 +219,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 
       // Ensure response data exists and contains nicknames
       const nicknames: UserNicknamePair[] = response.data?.[0]?.nicknames || [];
-      const filteredNicknames = nicknames.filter((n) => n[1])
       const nicknameMap: Record<string, string> =
-        convertNicknameDictionary(filteredNicknames);
+        convertNicknameDictionary(nicknames);
 
-      
       setNicknames(nicknameMap);
     } catch (error) {
       console.error("Failed to fetch nicknames: ", error);
@@ -398,7 +395,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
       iconColor="#000"
       actionIcon={icons.chevron}
       onPress={() => {
-        
         handleUserProfile(item.friend_id)
       }}
       />
@@ -411,23 +407,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   
 
   const renderIncomingRequest = ({ item }: { item: FriendRequest }) => (
-   
+    <View 
+    className="py-2 my-2">
       <View className="flex-row justify-between items-center">
-        <ItemContainer 
-        label= {nicknames && item.senderId in nicknames
-      ? nicknames[item.senderId]
-      : item.senderUsername}
-      caption={
-          getRelativeTime(convertToLocal(new Date(item.createdAt)))
-      }
-      colors={["#CFB1FB", "#CFB1FB"]}
-      icon={icons.send}
-      iconColor="#000"
-      onPress={() => {
-      handleUserProfile(item.senderId)
-    }}
-    />
-    <View className="absolute right-3">
+        <TouchableOpacity onPress={() => handleUserProfile(item.senderId)}>
+          <Text className="font-JakartaBold text-[14px]">
+            {nicknames && item.senderId in nicknames
+              ? nicknames[item.senderId]
+              : item.senderUsername}
+          </Text>
+        </TouchableOpacity>
         <DropdownMenu
           menuItems={[
             {
@@ -473,7 +462,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           ]}
         />
       </View>
-      </View>
+    </View>
   );
 
   const renderOutgoingRequest = ({ item }: { item: FriendRequest }) => (
@@ -501,19 +490,20 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         }: {
           item: UserNicknamePair;
         }): React.ReactElement => (
-          <ItemContainer 
-          label={item[1]}
-          colors={["#FBB1F5", "#CFB1FB"]}
-          icon={icons.addUser}
-          actionIcon={icons.chevron}
-          iconColor="#000"
+          <TouchableOpacity
           onPress={() => {
             router.push({
               pathname: "/root/profile/[id]",
               params: { id: item[0] },
             });
           }}
-          />
+            //disabled={creatingChat}
+            className="p-4"
+          >
+            <View className="flex flex-row justify-between items-center">
+              <Text className="text-[14px] font-JakartaBold text-black left-2">{item[1]}</Text>
+            </View>
+          </TouchableOpacity>
         );
     {
       /* <CustomButton
@@ -557,10 +547,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     );
   };
 
-  const handleUserProfile = async (userId: string) => {
+  const handleUserProfile = async (id: string) => {
     router.push({
       pathname: "/root/profile/[id]",
-      params: { userId },
+      params: { id },
     });
   };
 
@@ -599,7 +589,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 
           
             <View className="w-full flex-row items-start justify-between ">
-              
 
             <TabNavigation
                 name="Find"
@@ -650,11 +639,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                                         <Text>{error}</Text>
                                       ) : (
                                         <FlatList
-                                          className="px-2 rounded-[24px] my-4"
+                                          
                                           data={filteredUsers}
                                           contentContainerStyle={{ 
-                                            paddingBottom: 80,
-
+                                            paddingBottom: 40, 
+                                            minHeight: screenHeight * 0.4,
+                                            maxHeight: screenHeight * 0.6
                                           }} 
                                           renderItem={renderUser}
                                           keyExtractor={(item): string => String(item[0])}
@@ -690,13 +680,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>
           )}
           {selectedTab == "Requests" && (
-            <View className="flex-1 mt-3">
+            <View className="flex-1 mt-3 mx-4">
               {/* Container for both lists, flex-1 to take all available space */}
               <View className="flex-1 flex-col">
                 {/* Top half: Incoming Requests */}
                 <View className="mb-2">
                 <View className="p-2">
-                <View className="flex-row items-center justify-start mx-4">
+                <View className="flex-row items-center justify-start">
                         <Text className="font-JakartaBold text-[16px]">Request </Text>
                         <View className="absolute top-[50%] right-3">
                         <NotificationBubble
@@ -713,11 +703,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   <FlatList
                      className="px-2 rounded-[24px]"
                     data={allFriendRequests?.received}
-                    contentContainerStyle={{ paddingBottom: 80 }} 
+                    contentContainerStyle={{ paddingBottom: 20 }} 
                     renderItem={renderIncomingRequest}
                     keyExtractor={(item) => item.id.toString()}
                     ListEmptyComponent={
-                      <Text className="text-left text-gray-500 py-2 text-[12px] mx-4">
+                      <Text className="text-left text-gray-500 py-2 text-[12px]">
                         No friend requests
                       </Text>
                     }
@@ -731,7 +721,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                 {/* Bottom half: Outgoing Requests */}
                 <View className=" flex-col mt-2">
                 <View className="p-2">
-                  <View className="flex-row items-center justify-start mx-4">
+                  <View className="flex-row items-center justify-start">
                         <Text className="font-JakartaBold text-[16px]">Sent </Text>
                         <View className="absolute top-[50%] right-3">
                         <NotificationBubble
@@ -746,14 +736,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                         </View>
                       </View>
                   <FlatList
-                    className="rounded-[24px]"
+                    className="rounded-[24px] "
                     data={allFriendRequests?.sent}
                     contentContainerStyle={{ 
-                      paddingBottom: 80 }} 
+                      paddingBottom: 20 }} 
                     renderItem={renderOutgoingRequest}
                     keyExtractor={(item) => item.id.toString()}
                     ListEmptyComponent={
-                      <Text className="text-left text-gray-500 py-2 text-[12px] mx-4">
+                      <Text className="text-left text-gray-500 py-2 text-[12px]">
                         No outgoing friend requests
                       </Text>
                     }
@@ -792,19 +782,6 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
     tab ? tab : "Posts"
   );
 
-
-  const tabs = [
-    { name: "Posts", key: "Posts", color: "#CFB1FB", notifications: 0 },
-    { name: "Likes", key: "Likes", color: "#CFB1FB" },
-    { name: "Comments", key: "Comments", color: "#93c5fd", notifications: 0 }
-  ];
-
-  const handleTabChange = (tabKey: string) => {
-    console.log("Tab changed to:", tabKey);
-    setSelectedTab(tabKey);
-    // You can add additional logic here when tabs change
-  };
-
 //console.log("stored notification", storedNotifications.length)
   const removeNotification = (id: string) => {}
 
@@ -839,8 +816,6 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
             pathname: "/root/user-board/[id]",
             params: { id: `${user!.id}`, username: `Personal board`},
           });
-        } else {
-          router.push(`/root/tabs/profile`)
         }
       }}
       />
@@ -934,6 +909,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
               data={postsNotif}
               contentContainerStyle={{ 
                 paddingBottom: 40,
+                justifyContent: 'center',
               minHeight: screenHeight * 0.46 }} 
               renderItem={renderNotif}
               keyExtractor={(item) => item.id.toString()}

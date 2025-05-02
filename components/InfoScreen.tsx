@@ -1,67 +1,37 @@
 import React from 'react';
 import { Text, Image, TouchableOpacity, ScrollView, View } from 'react-native';
-import Animated, { 
-  FadeIn, 
-  FadeInDown, 
-  FadeInUp 
-} from 'react-native-reanimated';
-import LottieView from 'lottie-react-native';
 import { InfoScreenProps } from '@/types/type';
 import CustomButton from './CustomButton';
-import ColoreActivityIndicator from './ColoreActivityIndicator';
 
 const InfoScreen: React.FC<InfoScreenProps> = ({
   title,
   subtitle,
   image,
   content,
-  hasAction = true,
   onAgree,
 }) => {
   return (
-    <View className={`flex-1 ${hasAction ? 'bg-[#FAFAFA]' : 'bg-[#FFFFFF]'} p-6 items-center justify-center`}>
-      {image ? (
-        <Animated.View entering={FadeIn.duration(1000)}>
-          <Image source={image} className="w-52 h-52 mb-6" resizeMode="contain" />
-        </Animated.View>
-      ) : (
-        <ColoreActivityIndicator
-        text='Loading...'
-          size={40}
-          />
-      )}
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="flex-1 w-full h-full bg-[#FAFAFA] p-6">
+      <View className="items-center justify-center">
+        {image && <Image source={image} className="w-44 h-44 mb-6" resizeMode="contain" />}
 
-      <Animated.View entering={FadeInDown.duration(800)}>
         <Text className="text-center text-2xl font-bold mb-2">{title}</Text>
-      </Animated.View>
 
-      {subtitle && (
-        <Animated.View entering={FadeInDown.delay(100).duration(800)}>
-          <Text className="text-center text-lg font-semibold mb-4">{subtitle}</Text>
-        </Animated.View>
-      )}
+        {subtitle && <Text className="text-center text-lg font-semibold mb-4">{subtitle}</Text>}
 
-      <Animated.View entering={FadeInDown.delay(200).duration(800)}>
-        <Text className="text-center text-base text-gray-500 leading-relaxed mb-10 mx-4">
+        <Text className="text-center text-base text-gray-700 leading-relaxed mb-10">
           {content}
         </Text>
-      </Animated.View>
 
-      {hasAction && (
-        <Animated.View entering={FadeInUp.delay(300).duration(800)}>
-          <CustomButton
-            className="w-[50%] h-16 rounded-full shadow-none bg-black mb-6"
-            fontSize="lg"
-            title="Explore"
-            padding="0"
-            onPress={() => {
-              // Optional: Add button press animation
-              onAgree();
-            }}
-          />
-        </Animated.View>
-      )}
-    </View>
+        <CustomButton
+                className="w-[50%] h-16 rounded-full shadow-none bg-black mb-6"
+                fontSize="lg"
+                title="Explore"
+                padding="0"
+                onPress={onAgree}
+              />
+      </View>
+    </ScrollView>
   );
 };
 

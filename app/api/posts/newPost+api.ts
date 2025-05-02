@@ -25,14 +25,12 @@ export async function POST(request: Request) {
     // Fix 1: Use a template literal for the interval
     // Fix 2: Handle null emoji properly
     // Fix 3: Ensure proper parenthesis placement
-
-    const unread = postType === 'personal'
     const [insertedPost] = await sql`
       INSERT INTO posts 
-        (user_id, content, like_count, report_count, post_type, recipient_user_id, color, emoji, expires_at, prompt_id, board_id, unread)
+        (user_id, content, like_count, report_count, post_type, recipient_user_id, color, emoji, expires_at, prompt_id, board_id)
       VALUES 
-        (${clerkId}, ${content}, 0, 0, ${postType}, ${recipientId}, ${color}, ${emoji}, NOW() + ${expiration}::INTERVAL, ${promptId}, ${boardId}, ${unread})
-      RETURNING id, color, expires_at, unread;
+        (${clerkId}, ${content}, 0, 0, ${postType}, ${recipientId}, ${color}, ${emoji}, NOW() + ${expiration}::INTERVAL, ${promptId}, ${boardId})
+      RETURNING id, color, expires_at;
     `;
 
     console.log("inserted Posts", insertedPost)

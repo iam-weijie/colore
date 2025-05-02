@@ -64,14 +64,21 @@ const SavedPostGallery = () => {
     setUpdate(true);
   };
   return (
-    <View className="flex-1 bg-[#FAFAFA]">
-      <View className="flex-row justify-between items-end pl-11 pt-16 bg-white">
-          <Text className="text-2xl font-JakartaBold my-4">{name}</Text>
+    <SafeAreaView className="flex-1">
+      <View className="flex flex-row items-center px-4 pt-2">
+        <View>
+          <TouchableOpacity onPress={() => router.back()} className="mr-2">
+            <AntDesign name="caretleft" size={18} />
+          </TouchableOpacity>
+        </View>
+        <View>
+          <Text className="font-JakartaBold text-2xl">{name}</Text>
+        </View>
       </View>
       {savedPostsList.length > 0 ? (
         <View className="flex-1 flex flex-column items-center px-6 pt-6">
           <TextInput
-            className="w-full  h-12 px-5 rounded-[16px] bg-[#F1F1F1] mb-6"
+            className="w-full  h-12 px-5 rounded-[16px] bg-gray-200 mb-6"
             placeholder="Search"
             onChangeText={setQuery}
             value={query}
@@ -103,12 +110,7 @@ const SavedPostGallery = () => {
           </Text>
         </View>
       )}
-      <View className="absolute w-full flex-row items-center justify-between bottom-12  px-8 ">
-      <TouchableOpacity onPress={() => router.back()} className="p-4 rounded-full bg-white shadow-md ">
-          <AntDesign name="caretleft" size={18} />
-        </TouchableOpacity>
-      </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

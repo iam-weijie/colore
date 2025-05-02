@@ -16,7 +16,8 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import Header from "@/components/Header";
+import EmojiSelector from "react-native-emoji-selector";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import ColorSelector from "@/components/ColorSelector";
 import CustomButton from "@/components/CustomButton";
@@ -43,16 +44,17 @@ const Create = () => {
        
           
                     
-            <Header 
-            title="Create" 
-            />
+            <View className="flex-1 flex-row max-h-[18%] justify-between items-end pl-11  bg-[#FAFAFA] z-10">
+                 <Text className="text-2xl font-JakartaBold my-4">Create</Text>
+              
+               </View>
         </TouchableWithoutFeedback>
         <EmojiBackground 
         emoji=""
         color="#93c5fd"
         />
         <ScrollView 
-        className="flex-1 pt-2 mx-6"
+        className="flex-1 mt-4 mx-6"
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}>
           <View className="my-3 ml-2">
@@ -62,7 +64,7 @@ const Create = () => {
             label="Answer a prompt"
             caption="You and a random thought"
             icon={icons.fire}
-            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
+            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={async () => {
@@ -107,7 +109,7 @@ const Create = () => {
             label="Send temporary note"
             caption="Quick or it will disappear!"
             icon={icons.timer}
-            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
+            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
@@ -124,7 +126,7 @@ const Create = () => {
             label="Send global note"
             caption="A thought for the world to see"
             icon={icons.globe}
-            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
+            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
@@ -138,7 +140,7 @@ const Create = () => {
             label="Write a personal note"
             caption="A thought for your friends board"
             icon={icons.pencil}
-            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
+            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {
@@ -158,7 +160,7 @@ const Create = () => {
           <ItemContainer
             label="Create a board"
             icon={icons.bookmark}
-            colors={['#FBB1F5', '#93c5fd'] as [string, string]}
+            colors={['#fbb1d6', '#93c5fd'] as [string, string]}
             iconColor="#888"
             actionIcon={icons.chevron}
             onPress={() => {

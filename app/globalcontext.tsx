@@ -14,7 +14,7 @@ import { BackgroundFetchResult } from "expo-background-fetch"; // Import the Res
 import * as TaskManager from "expo-task-manager";
 import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
-import { Stacks, Post } from "@/types/type";
+import { Stacks } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from "@/notifications/NotificationContext";
 
@@ -22,8 +22,6 @@ import { useNotification } from "@/notifications/NotificationContext";
 type GlobalContextType = {
   stacks: Stacks[];
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
-  draftPost: Post;
-  setDraftPost:  React.Dispatch<React.SetStateAction<Post | null>>; 
   notifications: any[];
   storedNotifications: any[];
   unreadComments: number;
@@ -269,31 +267,6 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [stacks, setStacks] = useState<Stacks[]>([]);
-  const [draftPost, setDraftPost] = useState<Post | null>({
-    id: 0,
-    clerk_id: "",
-    firstname: "",
-    username: "",
-    content: "",
-    created_at: "",
-    expires_at: "",
-    city: "",
-    state: "",
-    country: "",
-    like_count: 0,
-    report_count: 0,
-    unread_comments: 0,
-    recipient_user_id: "",
-    pinned: false,
-    color: "",
-    emoji: "",
-    notified: false,
-    prompt_id: 0,
-    prompt: "",
-    board_id: 0,
-    reply_to: 0,
-    unread: false
-  });
   const [notifications, setNotifications] = useState<any[]>([]);
   const [storedNotifications, setStoredNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
@@ -462,8 +435,6 @@ const sendTokenDB = async (token) => {
       value={{
         stacks,
         setStacks,
-        draftPost,
-        setDraftPost,
         notifications,
         storedNotifications,
         unreadComments,

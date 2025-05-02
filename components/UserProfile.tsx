@@ -21,6 +21,8 @@ import {
   UserProfileType,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState, useCallback } from "react";
@@ -43,9 +45,6 @@ import BoardGallery from "./BoardGallery";
 import PersonalBoard from "./PersonalBoard";
 import PostContainer from "./PostContainer";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
-import TabsContainer from "./TabsContainer";
-import { fetchCountryEmoji } from "@/lib/post";
-import Header from "./Header";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View 
@@ -72,7 +71,17 @@ const PostGallerySkeleton = () => (
   </Animated.View>
 );
 
-
+// Skeleton UI for color gallery
+const ColorGallerySkeleton = () => (
+  <Animated.View 
+    entering={FadeIn.duration(400)}
+    className="w-[85%] self-center flex-row flex-wrap justify-start "
+  >
+    {[...Array(9)].map((_, i) => (
+       <Circle key={i} color={"#E5E7EB"} size={50} />
+    ))}
+  </Animated.View>
+);
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
@@ -147,7 +156,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
+  const fetchCountryEmoji = async (countryName: string) => {
+  
+    try {
+      const response = await fetch(`https://restcountries.com/v3.1/name/${countryName}`);
+      const data = await response.json();
 
+      if (!response.ok || !data || data.length === 0) {
+        //setError("Country not found.");
+        return;
+      }
+
+      const countryCode = data[0]?.cca2 || ""; // ISO 3166-1 alpha-2 country code
+      const flagEmoji = countryCode?.toUpperCase().split("").map((char: string) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
+
+      setCountryEmoji(flagEmoji);
+      setEmojiLoading(false)
+    } catch (err) {
+      setError("Error fetching country data.");
+    }
+
+  };
 
   // Add useFocusEffect to reload data when screen comes into focus
   useFocusEffect(
@@ -179,17 +208,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   }, [stateVars]);
 
   useEffect(() => {
-      const getFriendStatus = async () => {
-        let status;
-        if (user!.id !== userId) {
-          status = await fetchFriendStatus(userId, user!);
-          //console.log("Friend status:", status.name);
-          setFriendStatus(status);
-        }
-      };
-      getFriendStatus();
-      fetchFriendCount();
-    }, []);
+    const getFriendStatus = async () => {
+      let status;
+      if (user!.id !== userId) {
+        status = await fetchFriendStatus(userId, user!);
+        //console.log("Friend status:", status.name);
+        setFriendStatus(status);
+      }
+    };
+    getFriendStatus();
+    fetchFriendCount();
+  }, []);
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -212,11 +241,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
 
       // Fetch country emoji
-      setEmojiLoading(true)
-      const flagEmoji = await fetchCountryEmoji(userInfo.country);
-      console.log("country emoji", flagEmoji)
-      setCountryEmoji(() => flagEmoji)
-      setEmojiLoading(false)
+      await fetchCountryEmoji(userInfo.country);
     } catch (error) {
       setError("Failed to fetch user data.");
       console.error("Failed to fetch user data:", error);
@@ -265,7 +290,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
         }
   
         const personalBoard =  {
-          id: -1,
+          id: 0,
           title: "Personal Board",
           user_id: userId,
           description: "Your window to the world!",
@@ -275,18 +300,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
           created_at: Date.now(),
           color: "#93c5fd"
         }
-
-        const checkForPrivacy = response.data.filter((b) => b.restrictions.includes("Everyone"))
   
-          if (isEditable && response.data) {
+          if (response.data) {
             const boardsWithColor = response.data.map((board: any, index: number) => ({
-              ...board,
-              color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
-            }));
-          
-            setMyBoards([...boardsWithColor, personalBoard]);
-          } else if (!isEditable && response.data) {
-            const boardsWithColor = checkForPrivacy.map((board: any, index: number) => ({
               ...board,
               color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
             }));
@@ -401,24 +417,97 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
+  const handleReportPress = () => {
+    Linking.openURL("mailto:support@colore.ca");
+  };
 
-const myTabs = [
-  { name: "Profile", key: "Profile", color: "#CFB1FB", notifications: 0 },
-  { name: "Posts", key: "Posts", color: "#CFB1FB", notifications: unreadComments },
-  { name: "Settings", key: "Settings", color: "#93c5fd", notifications: 0 }
-];
 
-const userTabs = [
-  { name: "Profile", key: "Profile", color: "#CFB1FB", notifications: 0 },
-  { name: "Boards", key: "Boards", color: "#CFB1FB" },
-  { name: "Communities", key: "Communities", color: "#93c5fd", notifications: 0 }
-];
+  // to prevent database errors,
+  // don't load the "send friend request"
+  // option if the friend status can't be determined
+  const menuItems_unloaded = [
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
+    { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress },
+  ];
 
-const handleTabChange = (tabKey: string) => {
-  console.log("Tab changed to:", tabKey);
-  setSelectedTab(tabKey);
-  // You can add additional logic here when tabs change
-};
+  const menuItems_default = [
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
+    { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
+  ];
+
+  const menuItems_friend = [
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
+    { label: "Unfriend",  source: icons.close, color: "#6408DA", onPress: async () => {
+      setIsHandlingFriendRequest(true);
+      const response: FriendStatusType = await unfriend(
+        user!.id,
+        userId
+      );
+      if (response === FriendStatus.NONE) {
+        showAlert({
+          title: 'Unfriended',
+          message: "You have unfriended this user.",
+          type: 'FRIEND_REQUEST',
+          status: 'success',
+        });
+      } else {
+        showAlert({
+          title: 'Error',
+          message: `Error unfriending this user.`,
+          type: 'ERROR',
+          status: 'error',
+        });
+      }
+      setFriendStatus(response);
+      setIsHandlingFriendRequest(false);
+    }},
+    { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
+  ];
+
+  const menuItems_sent = [
+    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
+    {
+      label: "Report",
+      source: icons.email,
+      color: "#DA0808",
+      onPress: handleReportPress,
+    },
+  ];
+
+  const menuItems_received = [
+    { label: "Nickname", color: "#000000", source: icons.person, onPress: handleAddNickname },
+    {
+      label: "Report",
+      color: "#DA0808",
+      source: icons.email,
+      onPress: () => handleReportPress,
+    },
+  ];
+
+const Menu = ({status}: {status: FriendStatusType}) => {
+  let menu;
+  switch (status) {
+    case FriendStatus.FRIENDS:
+      return menu = menuItems_friend
+    case FriendStatus.SENT:
+      return menu = menuItems_sent
+    case FriendStatus.RECEIVED:
+      return menu = menuItems_received
+    case FriendStatus.NONE:
+      return menu = menuItems_default
+    case FriendStatus.UNKNOWN:
+      return menu = menuItems_unloaded
+  }
+
+  return (
+    <DropdownMenu
+                        menuItems={menu}
+                        customMenuWidth={150}
+                      />
+  )
+
+
+}
 
   return (
     <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
@@ -426,210 +515,271 @@ const handleTabChange = (tabKey: string) => {
             
 
            {/* HEADER */}
-           <Header 
-        title=""
-        item={
-          <View className="flex-row w-full  justify-between items-center pl-10 pr-6">
-          <Animated.View entering={FadeIn.duration(800)}>
-          { (nickname || profileUser?.username) ? (
-          
-             <Text className={`text-2xl font-JakartaBold`}>
-              {nickname
-                ? nickname
-                : profileUser?.username
-                  ? `${profileUser?.username}`
-                  : `${profileUser?.firstname?.charAt(0)}.`} {emojiLoading ? "" : countryEmoji}
-            </Text> 
-          ) : 
-           <Text className={`text-2xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
-           }
-              { profileUser ?  (<View className="max-w-[200px]">
-          <Text className=" text-xs text-gray-600 text-left font-Jakarta">
-              {profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
-              {profileUser?.country}
-            </Text> 
-          </View>) : (
-            <View>
-            <Text className="text-[14px] text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta"> Location updating... </Text>
-            </View>)}
-          </Animated.View>
-          
-          {isEditable ? (
-            <View className="flex-row gap-6 mr-7">
-              <View>
-              <Text className="text-lg font-JakartaSemiBold">
-                {userPosts.length}
-              </Text>
-              <Text className="text-xs font-JakartaSemiBold">
-                Posts
-              </Text>
-              </View>
-              <View className="flex-column items-start justify-center">
-              <Text className="text-lg font-JakartaSemiBold">
-                {friendCount}
-              </Text>
-              <Text className="text-xs font-JakartaSemiBold">
-                Friends
-              </Text>
-              </View>
-          </View>) :
-          (<TouchableOpacity
-          onPress={async () => {
-            if (user!.id === userId) {
-              //router.push("/root/chat/chat-screen");
-            }
-            if (
-              (user!.id !== userId && friendStatus.name === "unknown") ||
-              friendStatus.name === "none"
-            ) {
-              handleSendFriendRequest();
-            }
-            if (user!.id !== userId && friendStatus.name === "received") {
-              setIsHandlingFriendRequest(true);
-              const response = await acceptFriendRequest(
-                profileUser!.clerk_id,
-                user!.id
-              );
-              if (response === FriendStatus.FRIENDS) {
-                showAlert({
-                  title: 'New friend!',
-                  message: "You have accepted this friend request.",
-                  type: 'FRIEND_REQUEST',
-                  status: 'success',
-                });
-              } else {
-                showAlert({
-                  title: 'Error',
-                  message: `Error accepting this friend request.`,
-                  type: 'ERROR',
-                  status: 'error',
-                });
-              }
-              setFriendStatus(response);
-              setIsHandlingFriendRequest(false);
-            }
-            if (user!.id !== userId && friendStatus.name === "sent") {
-              setIsHandlingFriendRequest(true);
-              const response: FriendStatusType =
-                await cancelFriendRequest(user!.id, userId);
-              if (response === FriendStatus.NONE) {
-                showAlert({
-                  title: 'Cancelled',
-                  message: "Friend request cancelled.",
-                  type: 'UPDATE',
-                  status: 'success',
-                });
-              } else {
-                showAlert({
-                  title: 'Error',
-                  message: `Error cancelling this friend request.`,
-                  type: 'ERROR',
-                  status: 'error',
-                });
-              }
-              setFriendStatus(response);
-              setIsHandlingFriendRequest(false);
-            }
-            if (user!.id !== userId && friendStatus.name === "friends") {
-              router.push({  
-                pathname: "/root/new-post",
-                params: {
-                  recipient_id: userId,
-                  username: profileUser?.username,
-                  source: "board"
-                },
-            })
-            }
-          }}
-          className="items-center justify-between px-4"
-          style={{
-            backgroundColor: user!.id === userId ? "#93c5fd" : "#000000",
-            justifyContent:
-              user!.id === userId ? "space-between" : "center",
-            padding: user!.id === userId ? 20 : 5,
-            height: 40,
-            borderRadius: user!.id === userId
-                ? 24
-                : 16,
-          }}
-        >
-
-         
-          {user!.id === userId && (
-            <View>
-              <Text className="text-white font-JakartaBold text-sm">
-                Friends
-              </Text>
-            </View>
-          )}
-          {user!.id !== userId && friendStatus.name === "unknown" && (
-            <View>
-              <Text className="text-white font-JakartaBold text-sm">
-                Add friend
-              </Text>
-            </View>
-          )}
-          {user!.id !== userId &&
-            friendStatus.name !== "friends" &&
-            friendStatus.name === "none" && (
-              <View>
-                <Text className="text-white font-JakartaBold text-sm">
-                  Add friend
-                </Text>
-              </View>
-            )}
-          {user!.id !== userId &&
-            friendStatus.name !== "friends" &&
-            friendStatus.name === "sent" && (
-              <View>
-                <Text className="text-white font-JakartaBold text-sm">
-                  Cancel request
-                </Text>
-              </View>
-            )}
-          {user!.id !== userId &&
-            friendStatus.name !== "friends" &&
-            friendStatus.name === "received" && (
-              <View>
-                <Text className="text-white font-JakartaBold text-sm">
-                  Accept request
-                </Text>
-              </View>
-            )}
-          {user!.id !== userId && friendStatus.name === "friends" && (
-            <View>
-              <Text className="text-white font-JakartaBold text-sm">
-                Message
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>)}
-        </View>
-        }
-        tabs={isEditable ? myTabs : userTabs}
-        selectedTab={selectedTab}
-        onTabChange={handleTabChange} 
-        tabCount={0}    />
-
+            <View className="h-[18%] flex-row justify-start items-end bg-white z-[100]">
            
+              <View className="flex-row w-full  justify-between items-center pl-11 pr-6">
+                <Animated.View entering={FadeIn.duration(800)}>
+                { (nickname || profileUser?.username) ? (
+                
+                   <Text className={`text-2xl font-JakartaBold`}>
+                    {nickname
+                      ? nickname
+                      : profileUser?.username
+                        ? `${profileUser?.username}`
+                        : `${profileUser?.firstname?.charAt(0)}.`} {emojiLoading ? "" : countryEmoji}
+                  </Text> 
+                ) : 
+                 <Text className={`text-2xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
+                 }
+                    { profileUser ?  (<View className="max-w-[200px]">
+                <Text className=" text-xs text-gray-600 text-left font-Jakarta">
+                    {profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
+                    {profileUser?.country}
+                  </Text> 
+                </View>) : (
+                  <View>
+                  <Text className="text-[14px] text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta"> Location updating... </Text>
+                  </View>)}
+                </Animated.View>
+                
+                {isEditable ? (
+                  <View className="flex-row gap-6 mr-7">
+                    <View>
+                    <Text className="text-lg font-JakartaSemiBold">
+                      {userPosts.length}
+                    </Text>
+                    <Text className="text-xs font-JakartaSemiBold">
+                      Posts
+                    </Text>
+                    </View>
+                    <View className="flex-column items-start justify-center">
+                    <Text className="text-lg font-JakartaSemiBold">
+                      {friendCount}
+                    </Text>
+                    <Text className="text-xs font-JakartaSemiBold">
+                      Friends
+                    </Text>
+                    </View>
+                </View>) :
+                (<TouchableOpacity
+                onPress={async () => {
+                  if (user!.id === userId) {
+                    //router.push("/root/chat/chat-screen");
+                  }
+                  if (
+                    (user!.id !== userId && friendStatus.name === "unknown") ||
+                    friendStatus.name === "none"
+                  ) {
+                    handleSendFriendRequest();
+                  }
+                  if (user!.id !== userId && friendStatus.name === "received") {
+                    setIsHandlingFriendRequest(true);
+                    const response = await acceptFriendRequest(
+                      profileUser!.clerk_id,
+                      user!.id
+                    );
+                    if (response === FriendStatus.FRIENDS) {
+                      showAlert({
+                        title: 'New friend!',
+                        message: "You have accepted this friend request.",
+                        type: 'FRIEND_REQUEST',
+                        status: 'success',
+                      });
+                    } else {
+                      showAlert({
+                        title: 'Error',
+                        message: `Error accepting this friend request.`,
+                        type: 'ERROR',
+                        status: 'error',
+                      });
+                    }
+                    setFriendStatus(response);
+                    setIsHandlingFriendRequest(false);
+                  }
+                  if (user!.id !== userId && friendStatus.name === "sent") {
+                    setIsHandlingFriendRequest(true);
+                    const response: FriendStatusType =
+                      await cancelFriendRequest(user!.id, userId);
+                    if (response === FriendStatus.NONE) {
+                      showAlert({
+                        title: 'Cancelled',
+                        message: "Friend request cancelled.",
+                        type: 'UPDATE',
+                        status: 'success',
+                      });
+                    } else {
+                      showAlert({
+                        title: 'Error',
+                        message: `Error cancelling this friend request.`,
+                        type: 'ERROR',
+                        status: 'error',
+                      });
+                    }
+                    setFriendStatus(response);
+                    setIsHandlingFriendRequest(false);
+                  }
+                  if (user!.id !== userId && friendStatus.name === "friends") {
+                    router.push({  
+                      pathname: "/root/new-post",
+                      params: {
+                        recipient_id: userId,
+                        username: profileUser?.username,
+                        source: "board"
+                      },
+                  })
+                  }
+                }}
+                className="items-center justify-between px-4"
+                style={{
+                  backgroundColor: user!.id === userId ? "#93c5fd" : "#000000",
+                  justifyContent:
+                    user!.id === userId ? "space-between" : "center",
+                  padding: user!.id === userId ? 20 : 5,
+                  height: (isIpad ? 60 : 40),
+                  borderRadius: user!.id === userId
+                      ? 24
+                      : 16,
+                }}
+              >
+
+               
+                {user!.id === userId && (
+                  <View>
+                    <Text className="text-white font-JakartaBold text-sm">
+                      Friends
+                    </Text>
+                  </View>
+                )}
+                {user!.id !== userId && friendStatus.name === "unknown" && (
+                  <View>
+                    <Text className="text-white font-JakartaBold text-sm">
+                      Add friend
+                    </Text>
+                  </View>
+                )}
+                {user!.id !== userId &&
+                  friendStatus.name !== "friends" &&
+                  friendStatus.name === "none" && (
+                    <View>
+                      <Text className="text-white font-JakartaBold text-sm">
+                        Add friend
+                      </Text>
+                    </View>
+                  )}
+                {user!.id !== userId &&
+                  friendStatus.name !== "friends" &&
+                  friendStatus.name === "sent" && (
+                    <View>
+                      <Text className="text-white font-JakartaBold text-sm">
+                        Cancel request
+                      </Text>
+                    </View>
+                  )}
+                {user!.id !== userId &&
+                  friendStatus.name !== "friends" &&
+                  friendStatus.name === "received" && (
+                    <View>
+                      <Text className="text-white font-JakartaBold text-sm">
+                        Accept request
+                      </Text>
+                    </View>
+                  )}
+                {user!.id !== userId && friendStatus.name === "friends" && (
+                  <View>
+                    <Text className="text-white font-JakartaBold text-sm">
+                      Message
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>)}
+              </View>
+            </View>
             
+         
+
+            {/* NAVIGATE AWAY */}
+            <View className="absolute top-14 z-[101]"
+            style={{
+              [!isEditable ? 'left' : 'right'] :  16,
+            }}>
+      {!isEditable && 
+                <View className="absolute">
+                  <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="mr-4"
+                  >
+                    <AntDesign name="caretleft" size={18} />
+                  </TouchableOpacity>
+                </View>}
+            </View>
+
+            {/* TAB SELECTION */}
+            <View className="flex flex-row items-center justify-start bg-white pl-2 pr-6 z-[100]">
+              <TabNavigation
+                name={"Profile"}
+                focused={selectedTab === "Profile"}
+                onPress={() => {
+                  setSelectedTab("Profile")
+                }}
+                notifications={0}
+                color={"#CFB1FB"}/>
+              
+              {isEditable && 
+                <TabNavigation
+                name={"Posts"}
+                focused={selectedTab === "Posts"}
+                onPress={() => {
+                 setSelectedTab("Posts")
+                }}
+                notifications={unreadComments}
+                color={"#93c5fd"}/>}
+                {isEditable &&
+                <TabNavigation
+                name={"Settings"}
+                focused={selectedTab === "Settings"}
+                onPress={() => {
+                 setSelectedTab("Settings")
+                }}
+                notifications={0}
+                color={"#93c5fd"}/>}
+                
+                 {!isEditable && 
+                  <TabNavigation
+                  name={"Boards"}
+                  focused={selectedTab === "Boards"}
+                  onPress={() => {
+                    setSelectedTab("Boards")
+                  }}
+                  notifications={0}
+                  color={"#CFB1FB"}/>
+                }
+                {!isEditable &&
+                  <TabNavigation
+                  name={"Communities"}
+                  focused={selectedTab === "Communities"}
+                  onPress={() => {
+                    setSelectedTab("Communities")
+                  }}
+                  notifications={0}
+                  color={"#CFB1FB"}/>
+                }
+            </View>
 
             {/* TABS */}
-            
             {selectedTab === "Profile" && <View className="flex-1 items-center justify-center">
               {!profileLoading ? (
-                <View className={`absolute -top-[20%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
+                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
                   <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>)
               : (
-                <View className={`absolute -top-[20%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
+                <View className={`absolute -top-[25%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
                   <PostContainer selectedPosts={[post]} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>
               )}
             </View>}
 
             {selectedTab === "Posts" && <View className="flex-1 bg-[#FAFAFA] pb-24">
-              <View className="items-center mx-6">
+              <View className="items-center  w-full">
               <TextInput
-                className=" w-full h-12 px-5 rounded-[16px] bg-[#F1F1F1] mt-6"
+                className="w-4/5  h-12 px-5 rounded-[16px] bg-[#F1F1F1] mt-6"
                 placeholder="Search"
                 onChangeText={setQuery}
                 value={query}
@@ -655,9 +805,9 @@ const handleTabChange = (tabKey: string) => {
             <BoardGallery boards={communityBoards} />
             </View>}
 
-            {selectedTab === "Settings" && 
+            {selectedTab === "Settings" && <View className="flex-1 bg-[#FAFAFA]">
             <Settings />
-            }
+            </View>}
         
        
 

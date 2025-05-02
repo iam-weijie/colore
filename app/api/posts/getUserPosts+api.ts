@@ -78,7 +78,6 @@ export async function GET(request: Request) {
       prompt: post.prompt
     }));
 
-    console.log("User posts fetched successfully:", response.row);
 
     return new Response(JSON.stringify({ userInfo, posts: userPosts }), {
       status: 200,

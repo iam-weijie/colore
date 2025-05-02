@@ -25,7 +25,6 @@ import {ChatScreen, NotificationScreen} from "../chat/chat-screen";
 import NotificationBubble from "@/components/NotificationBubble";
 import ItemContainer from "@/components/ItemContainer";
 import ModalSheet from "@/components/Modal";
-import Header from "@/components/Header";
 
 
 export default function Page() {
@@ -61,6 +60,12 @@ export default function Page() {
     fetchUserData()
   }, []);
 
+  useFocusEffect(
+      useCallback(() => {
+        // Fetch all user data including location when screen is focused
+        fetchUserData();
+      }, [])
+    );
 
   const screenHeight = Dimensions.get("screen").height;
   const screenWidth = Dimensions.get("screen").width;
@@ -88,9 +93,8 @@ export default function Page() {
 const fetchUserData = async () => {
     try {
       const userPosts = await fetchAPI(`/api/users/getUserInfoPosts?id=${user!.id}`);
-      console.log("user posts: ", userPosts.posts.length)
-      const userInfo = userPosts.userInfo;
-      setUserInfo(userInfo);
+      const userInfo = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
+      setUserInfo(userInfo.data[0]);
       if (userPosts.posts.length > 0) {
       getAction(userPosts.posts[0]);
       }
@@ -105,7 +109,7 @@ const fetchUserData = async () => {
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 48 : 32}&id=${user!.id}&mode=${geographicalMode}`
+      `/api/posts/getRandomPosts?number=${isIpad ? 10 : 6}&id=${user!.id}&mode=${geographicalMode}`
     );
     return response.data;
   };
@@ -182,129 +186,122 @@ const fetchUserData = async () => {
 
 
   return (
-    <View className="flex-1 bg-[#FAFAFA]">
+    <SafeAreaView className="flex-1">
       <SignedIn>
-       
-
-        <Header
-          item={
-            <View className="flex-row justify-between items-center px-11 pt-4  w-full mb-4">
-            <Image
-              source={require("@/assets/colore-word-logo.png")}
-              style={{ width: 105, height: 45 }}
-              className="shadow-sm"
-              resizeMode="contain"
-              accessibilityLabel="Colore logo"
-            />
-            <View className="flex flex-row p-1 items-center justify-center gap-4">
-              <TouchableOpacity
-              onPress={() => {
-                //router.push("/root/chat/chat-screen");
-                setSelectedModal(() => <ChatScreen/>)
-                setActiveModalTitle("Socials")
-              }}>
-              <Image
-                source={icons.addUser}
-                className="w-5 h-5"
-                style={{ tintColor: "#000" }}
-              />
-              </TouchableOpacity>
-           <TouchableOpacity
-           onPress={() => {
-            setSelectedModal(() => <NotificationScreen/>)
-            setActiveModalTitle("Notifications")
-           }}>
-              <Image
-                source={icons.notification}
-                className="w-6 h-6 shadow-sm"
-                resizeMode="cover"
-              />
-              <View className="absolute right-2">
-              <NotificationBubble
-              unread={unreadComments + unreadPersonalPosts}
-              color={"#FF0000"}
-              />
-              </View>
-              </TouchableOpacity>
-            
+        <View className="flex-row justify-between items-center mx-7 mt-5">
+          <Image
+            source={require("@/assets/colore-word-logo.png")}
+            style={{ width: 105, height: 45 }}
+            className="shadow-sm"
+            resizeMode="contain"
+            accessibilityLabel="Colore logo"
+          />
+          <View className="flex flex-row p-1 items-center justify-center gap-4">
             <TouchableOpacity
             onPress={() => {
-              setSelectedModal(() => 
-                <View>
-                   <ItemContainer 
-                      label={"World"}
-                      caption={"See notes from around the world!"}
-                      icon={icons.globe}
-                      colors={['#FBB1F5', '#ffe640'] as [string, string]}
-                      actionIcon={geographicalMode == "world" && icons.check}
-                      iconColor={"#22c722"}
-                      onPress={() => {
-                        setGeographicalMode("world")
-                        setSelectedModal(null)
-                        setActiveModalTitle("")
-                      }}
-                      />
-                       <ItemContainer 
-                      label={`${userInfo?.country}`}
-                      caption={`So... what is going on in ${userInfo?.country}?`}
-                      icon={icons.globe}
-                      colors={['#FBB1F5', '#ffe640'] as [string, string]}
-                      actionIcon={geographicalMode == "country" && icons.check}
-                      iconColor={"#22c722"}
-                      onPress={() => {
-                        setGeographicalMode("country")
-                        setSelectedModal(null)
-                        setActiveModalTitle("")
-                      }}
-                      />
-                         <ItemContainer 
-                      label={`${userInfo?.state}`}
-                      caption={`Living in ${userInfo?.state}!`}
-                      icon={icons.globe}
-                      colors={['#FBB1F5', '#ffe640'] as [string, string]}
-                      actionIcon={geographicalMode == "state" && icons.check}
-                      iconColor={"#22c722"}
-                      onPress={() => {
-                        setGeographicalMode("state")
-                        setSelectedModal(null)
-                        setActiveModalTitle("")
-                      }}
-                      />
-                         <ItemContainer 
-                      label={`${userInfo?.city}`}
-                      caption={`Everything that happens in ${userInfo?.city} stays there.`}
-                      icon={icons.globe}
-                      colors={['#FBB1F5', '#ffe640'] as [string, string]}
-                      actionIcon={geographicalMode == "city" && icons.check}
-                      iconColor={"#22c722"}
-                      onPress={() => {
-                        setGeographicalMode("city")
-                        setSelectedModal(null)
-                        setActiveModalTitle("")
-                      }}
-                      />
-                </View>
-  
-              )
-              setActiveModalTitle("Select a region")
-            }}
-            >
+              //router.push("/root/chat/chat-screen");
+              setSelectedModal(() => <ChatScreen/>)
+              setActiveModalTitle("Socials")
+            }}>
             <Image
-                source={icons.planet}
-                className="w-6 h-6"
-              />
+              source={icons.addUser}
+              className="w-5 h-5"
+              style={{ tintColor: "#000" }}
+            />
             </TouchableOpacity>
-          </View>
-          </View>
-          }
-          />
+         <TouchableOpacity
+         onPress={() => {
+          setSelectedModal(() => <NotificationScreen/>)
+          setActiveModalTitle("Notifications")
+         }}>
+            <Image
+              source={icons.notification}
+              className="w-6 h-6 shadow-sm"
+              resizeMode="cover"
+            />
+            <View className="absolute right-2">
+            <NotificationBubble
+            unread={unreadComments + unreadPersonalPosts?? 0}
+            color={"#FF0000"}
+            />
+            </View>
+            </TouchableOpacity>
+          
+          <TouchableOpacity
+          onPress={() => {
+            setSelectedModal(() => 
+              <View>
+                 <ItemContainer 
+                    label={"World"}
+                    caption={"See notes from around the world!"}
+                    icon={icons.globe}
+                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    actionIcon={geographicalMode == "world" && icons.check}
+                    iconColor={"#22c722"}
+                    onPress={() => {
+                      setGeographicalMode("world")
+                      setSelectedModal(null)
+                      setActiveModalTitle("")
+                    }}
+                    />
+                     <ItemContainer 
+                    label={`${userInfo?.country}`}
+                    caption={`So... what is going on in ${userInfo?.country}?`}
+                    icon={icons.globe}
+                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    actionIcon={geographicalMode == "country" && icons.check}
+                    iconColor={"#22c722"}
+                    onPress={() => {
+                      setGeographicalMode("country")
+                      setSelectedModal(null)
+                      setActiveModalTitle("")
+                    }}
+                    />
+                       <ItemContainer 
+                    label={`${userInfo?.state}`}
+                    caption={`Living in ${userInfo?.state}!`}
+                    icon={icons.globe}
+                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    actionIcon={geographicalMode == "state" && icons.check}
+                    iconColor={"#22c722"}
+                    onPress={() => {
+                      setGeographicalMode("state")
+                      setSelectedModal(null)
+                      setActiveModalTitle("")
+                    }}
+                    />
+                       <ItemContainer 
+                    label={`${userInfo?.city}`}
+                    caption={`Everything that happens in ${userInfo?.city} stays there.`}
+                    icon={icons.globe}
+                    colors={['#fbb1d6', '#ffe640'] as [string, string]}
+                    actionIcon={geographicalMode == "city" && icons.check}
+                    iconColor={"#22c722"}
+                    onPress={() => {
+                      setGeographicalMode("city")
+                      setSelectedModal(null)
+                      setActiveModalTitle("")
+                    }}
+                    />
+              </View>
+
+            )
+            setActiveModalTitle("Select a region")
+          }}
+          >
+          <Image
+              source={icons.planet}
+              className="w-6 h-6"
+            />
+          </TouchableOpacity>
+        </View>
+        </View>
         <PostItBoard
           userId={user!.id}
           handlePostsRefresh={fetchPosts}
           handleNewPostFetch={fetchNewPost}
           allowStacking={true}
           mode={geographicalMode}
-          randomPostion={true}
         />
         {/* <Action 
         friendName={""}
@@ -321,7 +318,7 @@ const fetchUserData = async () => {
          
           } />}
       </SignedIn>
-    </View>
+    </SafeAreaView>
   );
 }
 

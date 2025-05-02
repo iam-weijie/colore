@@ -10,7 +10,6 @@ import {
 } from "react-native";
 
 import { InputFieldProps } from "@/types/type";
-import React from "react";
 
 const InputField = ({
   label,
@@ -37,7 +36,7 @@ const InputField = ({
             {label}
           </Text>
           <View
-            className={`flex flex-row justify-start items-center relative bg-neutral-50 rounded-full ${containerStyle}`}
+            className={`flex flex-row justify-start items-center relative bg-neutral-100 rounded-full ${containerStyle}`}
           >
             {icon && (
               <Image source={icon} className={`w-6 h-6 ml-4 ${iconStyle}`} />

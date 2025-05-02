@@ -131,7 +131,7 @@ const AlertNotification: React.FC<AlertProps> = ({
                 : type === 'POST'
                 ? '#93c5fd'
                 : type === 'UPDATE'
-                ? '#FBB1F5'
+                ? '#fbb1d6'
                 : type === 'DELETE'
                 ? '#ffe640'
                 : '#CFB1FB',
