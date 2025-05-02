@@ -529,8 +529,6 @@ const Settings = () => {
         </TouchableOpacity>
       </View>
 
-       {/* Margin Bottom */}
-       <View className="h-[120px] w-full" />
        {!!selectedModal && 
          <ModalSheet 
          children={selectedModal} 

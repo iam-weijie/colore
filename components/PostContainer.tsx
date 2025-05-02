@@ -682,11 +682,10 @@ const PostContainer: React.FC<PostContainerProps> = ({
                         />
                       </TouchableOpacity>
                       {/* Show like count only to post creator */}
-                    {post && post.clerk_id === user?.id && (
+                    {currentPost?.user_id == user?.id && (
                         <Text className="ml-1 text-gray-600">{likeCount}</Text>
                       )}
                     </View>
-                    {/* Delete button for post owner */}
                     {
                       <DropdownMenu
                         menuItems={getMenuItems(
