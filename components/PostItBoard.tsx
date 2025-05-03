@@ -169,7 +169,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
           }
         }
 
-          console.log("New Positon", newX, newY)
+          //console.log("New Positon", newX, newY)
 
           const iniX = !randomPostion ? (newX) : position?.left ?? 0 + scrollOffset.x;
           const iniY = !randomPostion ? (newY) : position?.top ?? 0 + scrollOffset.y;
@@ -385,7 +385,7 @@ const reorderPost = (topPost: Post) => {
     console.log("isStackUpdating", stackUpdating)
 
     if (maps.length > 1 && enableStacking && !stackUpdating.current) {
-      console.log("MAPS UPDATED, ME ANGRYY", maps, stacks)
+    // console.log("MAPS UPDATED, ME ANGRYY", maps, stacks)
     //  console.log("Position", postsWithPosition[postsWithPosition.length - 1].id, postsWithPosition[postsWithPosition.length - 1].position, maps[maps.length - 1].coordinates )
       const newPostID = maps[maps.length - 1].id;
       const newPostScreenCoordinates = maps[maps.length - 1].coordinates;

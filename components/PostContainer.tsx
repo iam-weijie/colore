@@ -598,11 +598,9 @@ const PostContainer: React.FC<PostContainerProps> = ({
         <AnimatedView
           ref={viewRef}
           className="flex-1 absolute w-screen h-screen justify-center"
+          //entering={FadeInUp.duration(300)}
           style={[
-            animatedBackgroundStyle,
-            {
-              marginLeft: isIpad ? -60 : -19,
-            }
+            animatedBackgroundStyle
           ]}
         >
           <TouchableWithoutFeedback onPress={handleCloseModal}>

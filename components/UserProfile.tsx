@@ -616,12 +616,12 @@ const handleTabChange = (tabKey: string) => {
 
             {/* TABS */}
             
-            {selectedTab === "Profile" && <View className="flex-1 items-center justify-center">
+            {selectedTab === "Profile" && <View className="flex-1">
               {!profileLoading ? (
-                <View className={`absolute -top-[20%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
+                <View className={`absolute -top-[20%]`}>
                   <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>)
               : (
-                <View className={`absolute -top-[20%] ${isIpad ? 'left-[60]' : 'left-[19]'} -mt-[15px]`}>
+                <View className={`absolute -top-[25%]`}>
                   <PostContainer selectedPosts={[post]} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>
               )}
             </View>}
