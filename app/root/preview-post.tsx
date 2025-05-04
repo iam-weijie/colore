@@ -8,7 +8,6 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useAlert } from '@/notifications/AlertContext';
 import * as Haptics from 'expo-haptics';
 import { useHaptics } from "@/hooks/useHaptics";
@@ -34,7 +33,6 @@ const PreviewPost = () => {
 
 
   return (
-    <SafeAreaView className="flex-1">
       <View className="flex-1">
         <PostModal
           isVisible={isVisible}
@@ -70,7 +68,6 @@ const PreviewPost = () => {
           }
         />
       </View>
-    </SafeAreaView>
   );
 };
 

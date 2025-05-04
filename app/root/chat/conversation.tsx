@@ -21,7 +21,6 @@ import Animated, {
 import {
   FlatList,
   KeyboardAvoidingView,
-  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -300,7 +299,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
         <View
           className="flex flex-row items-center justify-between px-4 pt-2 pr-9"
@@ -368,7 +367,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 

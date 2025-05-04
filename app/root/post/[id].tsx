@@ -37,6 +37,7 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 import { useNavigationContext } from "@/components/NavigationContext";
 
+import * as Linking from "expo-linking";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 

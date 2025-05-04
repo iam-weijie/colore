@@ -4,8 +4,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { useUser } from "@clerk/clerk-expo";
 import { Href, router, useLocalSearchParams } from "expo-router";
-import { FlatList, Image, Text, TouchableOpacity, View, StyleSheet, TextInput } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { FlatList, Image, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import ScrollingText from "./ScrollingText";
 import { generateAcronym, isNameTooLong } from "./cacheStore";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
@@ -226,11 +225,11 @@ const City = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View className="flex-1 items-center justify-center">
                 <ColoreActivityIndicator text="Loading cities..." />
                 </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
