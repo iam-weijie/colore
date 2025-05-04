@@ -25,6 +25,7 @@ import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useAlert } from '@/notifications/AlertContext';
 
+
 const Settings = () => {
   const { signOut } = useAuth();
   const { user } = useUser();

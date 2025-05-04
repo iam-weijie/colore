@@ -28,6 +28,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as Haptics from "expo-haptics";
+
 
 interface GestureContext {
   startX: number;
@@ -236,7 +238,9 @@ const checkNumberOfParticipants = async (activity: boolean) => {
   };
   const handleSendMessage = (): void => {
     if (newMessage.trim().length === 0) return;
-
+  
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); // 🔔 Add this line
+  
     const newMessageObj: Message = {
       id: messages.length + 1,
       content: newMessage,
@@ -245,6 +249,14 @@ const checkNumberOfParticipants = async (activity: boolean) => {
       unread: false,
       notified: false,
     };
+  
+    setMessages((prevMessages) => [...prevMessages, newMessageObj]);
+    flatListRef.current?.scrollToEnd({ animated: true });
+    updateMessages(newMessage);
+    patchConversation(newMessage);
+    setNewMessage("");
+  };
+  
 
     // Update the state to include the new message
     setMessages((prevMessages) => [...prevMessages, newMessageObj]);

@@ -31,6 +31,9 @@ import {
   fetchFriends
 } from "@/lib/friend";
 
+import * as Haptics from 'expo-haptics';
+
+
 const NewPost = () => {
   const { user } = useUser();
   const { postId, content, color, emoji, recipient_id, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
@@ -339,14 +342,18 @@ const NewPost = () => {
               </View>
               </View>
               <View className="flex-1 absolute flex items-center w-full bottom-[10%]">
-            <CustomButton
-              className="w-[50%] h-16 rounded-full shadow-none bg-black"
-              fontSize="lg"
-              title={prompt ? "submit" : "continue"}
-              padding="0"
-              onPress={handlePostSubmit}
-              disabled={!postContent || isPosting}
-            />
+              <CustomButton
+                className="w-[50%] h-16 rounded-full shadow-none bg-black"
+                fontSize="lg"
+                title={prompt ? "submit" : "continue"}
+                padding="0"
+                onPress={async () => {
+                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  handlePostSubmit();
+                }}
+                disabled={!postContent || isPosting}
+              />
+
             </View>
 
             {isEmojiSelectorVisible && (

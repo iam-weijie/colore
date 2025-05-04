@@ -14,6 +14,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants";
+import * as Haptics from 'expo-haptics';
+
 
 const SavedPostGallery = () => {
   const router = useRouter();
@@ -67,9 +69,16 @@ const SavedPostGallery = () => {
     <SafeAreaView className="flex-1">
       <View className="flex flex-row items-center px-4 pt-2">
         <View>
-          <TouchableOpacity onPress={() => router.back()} className="mr-2">
+          <TouchableOpacity
+            onPress={async () => {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.back();
+            }}
+            className="mr-2"
+          >
             <AntDesign name="caretleft" size={18} />
           </TouchableOpacity>
+
         </View>
         <View>
           <Text className="font-JakartaBold text-2xl">{name}</Text>

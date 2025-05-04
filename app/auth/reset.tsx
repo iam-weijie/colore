@@ -7,6 +7,20 @@ import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { icons } from "@/constants";
 
+import { Audio } from 'expo-av';
+const playClickSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('assets/sounds/click2.mp3') // ✅ Adjust path as needed
+    );
+    await sound.playAsync();
+    sound.unloadAsync();
+  } catch (error) {
+    console.error('Failed to play sound:', error);
+  }
+};
+
+
 const PwReset = () => {
   const { signIn } = useSignIn();
   const [showVerification, setShowVerification] = useState(false);
@@ -72,10 +86,14 @@ const PwReset = () => {
 
         <CustomButton
           title="Start"
-          onPress={() => router.push("/auth/log-in")}
+          onPress={async () => {
+            await playClickSound();
+            router.push("/auth/log-in");
+          }}
           className="w-full"
           padding="3"
         />
+
       </View>
     );
   }
@@ -132,17 +150,25 @@ const PwReset = () => {
 
         <CustomButton
           title="Reset Password"
-          onPress={onReset}
+          onPress={async () => {
+            await playClickSound();
+            onReset();
+          }}
           className="mt-5 bg-success-500"
           padding="3"
         />
 
+
         <CustomButton
           title="Back"
-          onPress={() => setShowVerification(false)}
+          onPress={async () => {
+            await playClickSound();
+            setShowVerification(false);
+          }}
           className="mt-5"
           padding="3"
         />
+
       </View>
     );
   }
@@ -167,13 +193,17 @@ const PwReset = () => {
             style={{ height: 60 }}
           />
 
-          <CustomButton
-            title="Continue"
-            onPress={onRequestReset}
-            className="mt-10"
-            style={{ height: 60 }}
-            padding="3"
-          />
+         <CustomButton
+          title="Continue"
+          onPress={async () => {
+            await playClickSound();
+            onRequestReset();
+          }}
+          className="mt-10"
+          style={{ height: 60 }}
+          padding="3"
+        />
+
         </View>
       </View>
     </ScrollView>

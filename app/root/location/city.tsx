@@ -9,6 +9,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ScrollingText from "./ScrollingText";
 import { generateAcronym, isNameTooLong } from "./cacheStore";
 
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
+const { playSoundEffect } = useSoundEffects();
+
+
 // Interface for City and State
 interface City {
   name: string; // City name
@@ -149,10 +153,14 @@ const City = () => {
 
   // Memoized functions
   const handleCityPress = useCallback((city: string) => {
+    playSoundEffect(SoundType.Click);  // <- Add this
     setSelectedCity(city);
   }, []);
+  
 
   const handleConfirmPress = useCallback(async () => {
+    playSoundEffect(SoundType.Click);  // <- Add this
+  
     setStateVars({
       ...stateVars,
       city: selectedCity,
@@ -160,25 +168,24 @@ const City = () => {
       country: country,
       userLocation: `${selectedCity}, ${state}, ${country}`,
     });
-
-    // Update user info
+  
     if (user!.id) {
-    await fetchAPI("/api/users/patchUserInfo", {
-      method: "PATCH",
-      body: JSON.stringify({
-        clerkId: user!.id,
-        country: country,
-        state: state,
-        city: selectedCity,
-      }),
-    });
-  }
-
+      await fetchAPI("/api/users/patchUserInfo", {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user!.id,
+          country: country,
+          state: state,
+          city: selectedCity,
+        }),
+      });
+    }
+  
     router.back();
     router.back();
     router.back();
-    
   }, [selectedCity, state, country, stateVars, previousScreen, user]);
+  
 
   // Memoized keyExtractor
   const keyExtractor = useCallback((item: string, index: number) => 

@@ -24,6 +24,7 @@ import { Audio } from 'expo-av';
 import {ChatScreen, NotificationScreen} from "../chat/chat-screen";
 import NotificationBubble from "@/components/NotificationBubble";
 import ModalSheet from "@/components/Modal";
+import * as Haptics from "expo-haptics";
 
 
 export default function Page() {
@@ -193,11 +194,12 @@ const fetchUserData = async () => {
           />
           <View className="flex flex-row p-1 items-center justify-center gap-4">
             <TouchableOpacity
-            onPress={() => {
-              //router.push("/root/chat/chat-screen");
-              setSelectedModal(() => <ChatScreen/>)
-              setActiveModalTitle("Socials")
-            }}>
+              onPress={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSelectedModal(() => <ChatScreen />);
+                setActiveModalTitle("Socials");
+              }}>
+
             <Image
               source={icons.addUser}
               className="w-5 h-5"
@@ -205,10 +207,12 @@ const fetchUserData = async () => {
             />
             </TouchableOpacity>
          <TouchableOpacity
-         onPress={() => {
-          setSelectedModal(() => <NotificationScreen/>)
-          setActiveModalTitle("Notifications")
-         }}>
+          onPress={async () => {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setSelectedModal(() => <NotificationScreen />);
+            setActiveModalTitle("Notifications");
+          }}>
+
             <Image
               source={icons.notification}
               className="w-5 h-5"

@@ -9,6 +9,19 @@ import { Link, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
+import { Audio } from 'expo-av';
+const playClickSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('assets/sounds/click1.mp3')
+    );
+    await sound.playAsync();
+    sound.unloadAsync();
+  } catch (error) {
+    console.error("Sound error:", error);
+  }
+};
+
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -134,11 +147,15 @@ const LogIn = () => {
           />
           <CustomButton
             title="Log In"
-            onPress={onLogInPress}
+            onPress={async () => {
+              await playClickSound();     // 🔊 Play click sound
+              onLogInPress();             // 🔐 Proceed with login logic
+            }}
             padding="3"
             bgVariant="gradient"
             className="mt-8"
           />
+
           <Text className="text-base text-center text-general-200 mt-6">
             <Link href="/auth/reset">Forgot your password?</Link>
           </Text>

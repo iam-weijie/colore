@@ -18,6 +18,22 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { useAlert } from '@/notifications/AlertContext';
 
+import { Audio } from 'expo-av';
+import * as Haptics from 'expo-haptics';
+const playClickSoundWithHaptics = async () => {
+  try {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); // 👇 Light tap vibration
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/sounds/click2.mp3') // ✅ Your preferred path
+    );
+    await sound.playAsync();
+    sound.unloadAsync();
+  } catch (error) {
+    console.error("Sound or haptics error:", error);
+  }
+};
+
+
 const UserInfo = () => {
   const { user } = useUser();
   const { showAlert } = useAlert();
@@ -215,13 +231,15 @@ const UserInfo = () => {
               <View className="mt-4 w-full">
                 <CustomButton
                   title="Get Started"
-                  onPress={() => {
+                  onPress={async () => {
+                    await playClickSoundWithHaptics(); // 🔊 + 🤏
                     handleGetStarted();
                   }}
                   className="my-5 bg-indigo-500"
                   disabled={!form.username || !form.userLocation}
                   padding="3"
                 />
+
               </View>
             </View>
           </View>

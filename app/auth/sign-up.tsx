@@ -12,6 +12,19 @@ import { Platform } from "react-native";
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { useGlobalContext } from "@/app/globalcontext";
+import { Audio } from 'expo-av';
+const playClickSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('assets/sounds/click2.mp3') // ✅ Uses your preferred path
+    );
+    await sound.playAsync();
+    sound.unloadAsync();
+  } catch (error) {
+    console.error("Sound error:", error);
+  }
+};
+
 
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -108,10 +121,14 @@ const SignUp = () => {
 
         <CustomButton
           title="Continue"
-          onPress={() => router.push("/root/user-info")}
+          onPress={async () => {
+            await playClickSound();
+            router.push("/root/user-info");
+          }}
           className="w-full bg-indigo-500"
           padding="4"
         />
+
       </View>
     );
   }
@@ -148,17 +165,25 @@ const SignUp = () => {
 
         <CustomButton
           title="Verify Email"
-          onPress={onPressVerify}
+          onPress={async () => {
+            await playClickSound();
+            onPressVerify();
+          }}
           className="mt-5 bg-success-500 bg-indigo-500"
           padding="3"
         />
 
+
         <CustomButton
           title="Back"
-          onPress={() => setShowVerification(false)}
+          onPress={async () => {
+            await playClickSound();
+            setShowVerification(false);
+          }}
           className="mt-5"
           padding="3"
         />
+
       </View>
     );
   }
@@ -237,11 +262,15 @@ const SignUp = () => {
 
         <CustomButton
           title="Sign Up"
-          onPress={onSignUpPress}
+          onPress={async () => {
+            await playClickSound();
+            onSignUpPress();
+          }}
           padding="3"
           bgVariant="gradient"
           className="mt-8 bg-gradient-to-r from-yellow-400 to-orange-400"
         />
+
 
         {/*Platform.OS === "android" && <OAuth />*/}
         {/*Platform.OS === "ios" && <AppleSignIn />*/}

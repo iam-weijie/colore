@@ -14,6 +14,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
+
 
 const NewConversation = (): React.ReactElement => {
   const [searchText, setSearchText] = useState("");
@@ -162,6 +164,7 @@ const NewConversation = (): React.ReactElement => {
   }): React.ReactElement => (
     <TouchableOpacity
       onPress={() => {
+        Haptics.selectionAsync(); // 🔔 Add this line
         router.push({
           pathname: "/root/profile/[id]",
           params: { id: item[0] },
@@ -175,6 +178,7 @@ const NewConversation = (): React.ReactElement => {
       </View>
     </TouchableOpacity>
   );
+  
   {
     /* <CustomButton
         title="Chat"
