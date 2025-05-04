@@ -90,7 +90,9 @@ const RichTextInput = ({
     toggleFormat(style);
   }, [style, refresh]);
 
+
   useEffect(() => {
+
     exportText(value);
     exportStyling(formats);
   }, [value, formats]);
@@ -167,8 +169,8 @@ const RichTextInput = ({
       if (hasOrdered) prefix = `${orderedCount++}. `;
 
       chunks.push(
-        <Text key={`line-${lineIdx}`} className="flex-row flex-wrap text-base text-neutral-800 pl-2">
-          {prefix && <Text className="text-neutral-500 font-semibold">{prefix}</Text>}
+        <Text key={`line-${lineIdx}`} className="flex-row flex-wrap text-[24px] text-[#FAFAFA] font-JakartaSemiBold pl-2">
+          {prefix && <Text className="text-[#FAFAFA] font-JakartaSemiBold">{prefix}</Text>}
           {lineChunks}
           {'\n'}
         </Text>
@@ -215,7 +217,8 @@ const RichTextInput = ({
             }}
             className="absolute top-0 left-0 right-0 p-4"
           >
-            <Text className="font-JakartaSemiBold">
+            <Text className="font-JakartaSemiBold text-[#FAFAFA]">
+              {value.length < 1 && "Click here to start a text..."}
               {renderStyledOverlay()}
             </Text>
           </TouchableOpacity>
