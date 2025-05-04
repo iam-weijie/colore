@@ -86,7 +86,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   Post[]
 >([]);
 
-  const { isIpad, stacks, setStacks } = useGlobalContext(); // Add more global constants here
+  const { isIpad, stacks, setStacks, soundEffectsEnabled } = useGlobalContext(); // Add more global constants here
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPosts, setSelectedPosts] = useState<Post[] | null>(
