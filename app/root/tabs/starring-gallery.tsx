@@ -9,7 +9,6 @@ import {
   Dimensions,
   Keyboard,
   KeyboardAvoidingView,
-  SafeAreaView,
   TouchableOpacity,
   Text,
   TextInput,

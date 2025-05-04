@@ -14,7 +14,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
@@ -596,7 +595,7 @@ const UserInfo = () => {
 
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white">
       { loading ? (
         <View className="flex-1 items-center justify-center">
           <ColoreActivityIndicator text="Summoning Bob..." />
@@ -613,7 +612,7 @@ const UserInfo = () => {
     >
       {pages[step].children}
     </CarouselPage>)}
-  </SafeAreaView>
+  </View>
   );
 };
 

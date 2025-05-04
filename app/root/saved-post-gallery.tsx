@@ -3,7 +3,6 @@ import { Post } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import {
-  SafeAreaView,
   TouchableOpacity,
   View,
   Image,

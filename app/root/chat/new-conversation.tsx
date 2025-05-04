@@ -12,7 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 const NewConversation = (): React.ReactElement => {
@@ -187,7 +186,7 @@ const NewConversation = (): React.ReactElement => {
   }
 
   return (
-    <SafeAreaView className="flex-1">
+    <View className="flex-1">
       <SignedIn>
         <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
           <View className="flex-1 bg-gray-100">
@@ -223,7 +222,7 @@ const NewConversation = (): React.ReactElement => {
           </View>
         </KeyboardAvoidingView>
       </SignedIn>
-    </SafeAreaView>
+    </View>
   );
 };
 

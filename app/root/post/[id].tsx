@@ -38,7 +38,6 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import { useNavigationContext } from "@/components/NavigationContext";
 
 import * as Linking from "expo-linking";
-import { SafeAreaView } from "react-native-safe-area-context";
 import React from "react";
 
 interface GestureContext {

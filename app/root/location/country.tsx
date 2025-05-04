@@ -9,7 +9,6 @@ import {
   StyleSheet,
   Dimensions
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { addStatesToCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import ScrollingText from "./ScrollingText";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
@@ -155,9 +154,9 @@ const Country = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1">
+      <View className="flex-1">
         <LoadingComponent />
-      </SafeAreaView>
+      </View>
     );
   }
 

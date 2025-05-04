@@ -20,7 +20,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useAlert } from '@/notifications/AlertContext';

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {Image, Modal, Pressable, Dimensions, Text, TouchableOpacity, View } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
 import { EmojiBackgroundProps } from "@/types/type";
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 
 const { width, height } = Dimensions.get("window");

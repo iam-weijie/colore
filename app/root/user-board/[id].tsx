@@ -1,4 +1,4 @@
-import { SafeAreaView, View, TouchableOpacity, Text, Image } from "react-native";
+import { View, TouchableOpacity, Text, Image } from "react-native";
 import PersonalBoard from "@/components/PersonalBoard";
 import { AntDesign } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";

@@ -3,7 +3,6 @@ import { useUser } from "@clerk/clerk-expo";
 import { useGlobalContext } from "@/app/globalcontext";
 import {
   FlatList,
-  SafeAreaView,
   TouchableOpacity,
   View,
   Image,

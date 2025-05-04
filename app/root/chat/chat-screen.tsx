@@ -53,7 +53,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from '@/notifications/AlertContext';
 import TabNavigation from "@/components/TabNavigation";
