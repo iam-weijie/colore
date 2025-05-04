@@ -28,8 +28,8 @@ const StackCircle = ({
   const [isDragging, setIsDragging] = useState(false);
 
   const basePosition = useRef({
-    x: stack.center.x,
-    y: stack.center.y,
+    x: stack.center.x ?? 0,
+    y: stack.center.y ?? 0,
   }).current;
 
   const dragOffset = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;

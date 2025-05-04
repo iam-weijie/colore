@@ -43,7 +43,7 @@ const Header = ({
                     <Text 
                     className="text-2xl font-JakartaBold mt-4"
                     style={{
-                        marginBottom: tabs ? 0 : 24
+                        marginBottom: tabs ? 0 : (item ? 8 : 24)
                     }}>{title}</Text>
                     </View>}
         {item && item}            

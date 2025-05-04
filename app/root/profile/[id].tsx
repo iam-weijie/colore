@@ -32,7 +32,7 @@ const Profile = () => {
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
 
-
+console.log("username: ", username)
 
   const handleAddNickname = () => {
         setStateVars({

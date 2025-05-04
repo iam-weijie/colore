@@ -399,7 +399,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
       actionIcon={icons.chevron}
       onPress={() => {
         
-        handleUserProfile(item.friend_id)
+        handleUserProfile(item.friend_id, item.friend_username)
       }}
       />
     );
@@ -424,7 +424,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
       icon={icons.send}
       iconColor="#000"
       onPress={() => {
-      handleUserProfile(item.senderId)
+      handleUserProfile(item.senderId, item.senderUsername)
     }}
     />
     <View className="absolute right-3">
@@ -489,7 +489,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     actionIcon={icons.chevron}
     iconColor="#000"
     onPress={() => {
-      handleUserProfile(item.receiverId)
+      handleUserProfile(item.receiverId, item.receiverUsername)
     }}
     />
 
@@ -557,10 +557,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     );
   };
 
-  const handleUserProfile = async (userId: string) => {
+  const handleUserProfile = async (userId: string, username: string) => {
     router.push({
       pathname: "/root/profile/[id]",
-      params: { userId },
+      params: { userId, username },
     });
   };
 

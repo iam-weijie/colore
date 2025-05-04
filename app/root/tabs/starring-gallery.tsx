@@ -26,65 +26,13 @@ import { icons, temporaryColors } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import RenderPromptCard from "@/components/RenderPromptCard";
+import { RenderPromptCard } from "@/components/RenderCard";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
+import CardCarrousel from "@/components/CardCarroussel";
 
 
 const screenWidth = Dimensions.get('window').width;
-
-/*const RenderPromptCard = ({item, userId, promptContent, updatePromptContent, handlePromptSubmit} : {
-  item: Prompt, userId: string, promptContent: string, updatePromptContent: (text: string) => void, handlePromptSubmit: (item: Prompt) => void }) => { 
-
-    return (
-      <TouchableWithoutFeedback
-      className="flex-1"
-      onPress={() => Keyboard.dismiss()}
-      onPressIn={() => Keyboard.dismiss()}
-    >
-  <View className="flex-1 flex-column items-center justify-center mt-4 mb-8 py-8 rounded-[48px] " 
- style={{
-  backgroundColor:  "white",
-  width: screenWidth * 0.85}}>
-
-  <View className="w-[85%] flex-1 mx-auto flex-col items-center justify-center">
-
-  <Text className="my-1 text-[14px] font-JakartaBold text-[#CCC]">{item.theme}</Text>
-    <Text 
-    
-    className="text-[24px] text-center font-JakartaBold text-[#000]">{item.cue}...</Text>
-  </View>
-  <KeyboardAvoidingView behavior="padding" className="flex-1 my-6 flex w-full">
-     <View className="mt-2">
-                    <TextInput
-                      className="text-[16px] text-[#000] p-5 rounded-[24px] font-JakartaBold mx-10 "
-                      placeholder="Type something..."
-                      value={promptContent}
-                      onChangeText={updatePromptContent}
-                      multiline
-                      scrollEnabled
-                      style={{
-                        paddingTop: 10,
-                        paddingBottom: 0,
-                        minHeight: 200,
-                        maxHeight: 300,
-                        textAlignVertical: "top",
-                      }}
-                    />
-                    </View>
-  </KeyboardAvoidingView>
-   <CustomButton
-    className=" my-4 w-[50%] h-16 rounded-full shadow-none bg-black"
-    fontSize="lg"
-    title="submit"
-    padding="0"
-    disabled={promptContent.length === 0}
-    onPress={() => {handlePromptSubmit(item)}}
-    //disabled={}//navigationIndex < (type === 'community' ? tabs.length - 1 : tabs.length - 2)}
-  />
-</View>
-</TouchableWithoutFeedback>
-);}*/
 
 export default function Page() {
   const { user } = useUser();
@@ -387,68 +335,19 @@ export default function Page() {
                 <ColoreActivityIndicator text="Summoning Bob..." />
                 </View>
             ) 
-            : (<Animated.FlatList
-                className="flex-1"
-                data={prompts}
-                keyExtractor={(item) => item.id.toString()}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: (screenWidth - screenWidth * 0.85) / 2 }}
-                scrollEventThrottle={16}
-                decelerationRate="fast"
-                onScroll={
-                    Animated.event(
-                  [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                  { useNativeDriver: true }
-                )
-        
-              }
-                onScrollBeginDrag={handleScrollBeginDrag} 
-                snapToInterval={screenWidth * 0.85 + 12} // Width + gap
-                ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-                renderItem={({ item, index }) => {
-                  const inputRange = [
-                    (index - 1) * (screenWidth * 0.85 + 12),
-                    index * (screenWidth * 0.85 + 12),
-                    (index + 1) * (screenWidth * 0.85 + 12)
-                  ];
-
-                  const scale = scrollX.interpolate({
-                    inputRange,
-                    outputRange: [0.92, 1, 0.92],
-                    extrapolate: 'clamp',
-                  });
-
-                  const shadowOpacity = scrollX.interpolate({
-                    inputRange,
-                    outputRange: [0.1, 0.3, 0.1],
-                    extrapolate: 'clamp',
-                  });
-
-    return (
-      <Animated.View
-      className=" h-[85%]"
-        style={{
-          transform: [{ scale }],
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.07,
-          shadowRadius: 12,
-          elevation: 6, // Android shadow
-        }}
-      >
-        <RenderPromptCard
-  item={item}
-  userId={user!.id}
-  promptContent={promptContent}
-  updatePromptContent={updatePromptContent}
-  handlePromptSubmit={handlePromptSubmit}
-/>
-      </Animated.View>
-    );
-  }}
-/>)}
+            : (
+            <CardCarrousel
+            items={prompts}
+            renderItem={(item, index) => 
+              <RenderPromptCard
+          item={item}
+          userId={user!.id}
+          promptContent={promptContent}
+          updatePromptContent={updatePromptContent}
+          handlePromptSubmit={handlePromptSubmit}
+          />}
+            handleScrollBeginDrag={handleScrollBeginDrag}
+            inputRef={inputRef} />)}
 
           </View>
           </TouchableWithoutFeedback>

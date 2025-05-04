@@ -44,6 +44,12 @@ import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import placeholder from "@/assets/icons/placeholder.png";
 import back from "@/assets/icons/back.png";
+import bold from "@/assets/icons/bold.png"
+import italics from "@/assets/icons/italics.png"
+import underline from "@/assets/icons/underline.png"
+import H from "@/assets/icons/h.png"
+import oList from "@/assets/icons/ordered-list.png"
+import uList from "@/assets/icons/unordered-list.png"
 
 
 import login from "@/assets/images/login_squares.png";
@@ -75,6 +81,12 @@ export const icons = {
   back,
   check,
   home,
+  bold,
+  italics,
+  underline,
+  H,
+  oList,
+  uList,
   home1,
   pin,
   chat,

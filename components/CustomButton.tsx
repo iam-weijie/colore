@@ -12,6 +12,8 @@ const getBgVariantStyle = (
   }
 
   switch (variant) {
+    case "primary":
+      return "bg-[#FFFFFF]"
     case "secondary":
       return "bg-gray-500";
     case "danger":
