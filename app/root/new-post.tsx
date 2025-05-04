@@ -18,7 +18,7 @@ import EmojiSelector from "react-native-emoji-selector";
 import ColorSelector from "@/components/ColorSelector";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor, UserNicknamePair, TextStyle, Post } from "@/types/type";
+import { PostItColor, UserNicknamePair, TextStyle, Format } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
 import ModalSheet from "@/components/Modal";
 import {
@@ -60,6 +60,7 @@ const NewPost = () => {
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
   const [refreshingKey, setRefreshingKey] = useState<number>(0);
+  const [formats, setFormats] = useState<Format[]>([]);
 
 
 
@@ -81,22 +82,14 @@ const NewPost = () => {
     setIsEmojiSelectorVisible(false);
   };
 
-  // need to get user's screen size to set a min height
-  const screenHeight = Dimensions.get("screen").height;
-
-  const handleContentSizeChange = (event: any) => {
-    setInputHeight(event.nativeEvent.contentSize.height);
-  };
-
-  const handlePostSubmit = () => {
-    router.push("/root/preview-post")
-  };
   
   const applyStyle = (newStyle: TextStyle) => {
     setTextStyling(newStyle)
     setRefreshingKey((prev) => prev + 1)
     Keyboard.dismiss()
   }
+
+
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
       setPostContent(text);
@@ -111,6 +104,10 @@ const NewPost = () => {
 
     }
   };
+
+  const handleChangeFormat = (formats: Format[]) => {
+    setFormats(formats)
+  }
 
   const toggleEmojiSelector = () => {
     setIsEmojiSelectorVisible((prev) => !prev);
@@ -160,6 +157,7 @@ const NewPost = () => {
       board_id: boardId ? Number(boardId) : -1,
       reply_to: 0,
       unread: false,
+      formatting: formats
     });
   }, [
     postId,
@@ -171,6 +169,7 @@ const NewPost = () => {
     promptId,
     prompt,
     boardId,
+    formats
   ]);
 
   useEffect(() => {
@@ -181,6 +180,7 @@ const NewPost = () => {
       if (draftPost.emoji) setSelectedEmoji(draftPost.emoji);
       if (draftPost.recipient_user_id) setSelectedRecipientId(draftPost.recipient_user_id);
       if (draftPost.username) setUserUsername(draftPost.username);
+      if (draftPost.formatting) setFormats(formats);
     }
   }, []);
 
@@ -287,7 +287,7 @@ const NewPost = () => {
                 <RichTextInput
                 style={textStyling}
                 refresh={refreshingKey}
-                exportStyling={() => {}}
+                exportStyling={handleChangeFormat}
                 exportText={handleChangeText} />
                 </View>
               

@@ -30,6 +30,7 @@ declare interface Post {
     top: number;
     left: number;
   };
+  formatting: Format[];
   
 }
 
