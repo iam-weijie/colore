@@ -27,9 +27,12 @@ const StackCircle = ({
   const [isFocused, setIsFocused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
+  const defaultCenter = { x: 500, y: 500 }; // Default position in the middle
+  const safeCenter = stack.center || defaultCenter;
+  
   const basePosition = useRef({
-    x: stack.center.x,
-    y: stack.center.y,
+    x: safeCenter.x,
+    y: safeCenter.y,
   }).current;
 
   const dragOffset = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
@@ -95,13 +98,17 @@ const StackCircle = ({
 
   useEffect(() => {
     if (!isDragging) {
-      basePosition.x = stack.center.x;
-      basePosition.y = stack.center.y;
+      if (stack.center && stack.center.x !== undefined && stack.center.y !== undefined) {
+        basePosition.x = stack.center.x;
+        basePosition.y = stack.center.y;
+      }
       dragOffset.setValue({ x: 0, y: 0 });
     }
-  }, [stack.center.x, stack.center.y]);
+  }, [stack.center?.x, stack.center?.y]);
 
   const shouldShowButtons = () => {
+    if (!stack.center) return false;
+    
     const dx = Math.abs((scrollOffset.x + 120) - stack.center.x);
     const dy = Math.abs((scrollOffset.y + 160) - stack.center.y);
     const distance = Math.sqrt(dx * dx + dy * dy);

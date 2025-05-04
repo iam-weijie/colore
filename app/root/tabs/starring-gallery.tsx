@@ -267,6 +267,12 @@ export default function Page() {
             {
               ids: uniqueIds,
               elements: uniqueElements,
+              center: { x: 500, y: 500 },  // Add a default center position
+              name: "Starred Posts",
+              boardId: 0,
+              userId: user!.id,
+              createdAt: new Date().toISOString(),
+              isSharing: [],
             },
           ];
         }

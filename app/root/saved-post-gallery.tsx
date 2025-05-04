@@ -24,23 +24,38 @@ const SavedPostGallery = () => {
   const [savedPostsID, setSavedPostsID] = useState<string[]>(
     typeof posts === "string" ? JSON.parse(posts) : posts
   );
+  const [page, setPage] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchPosts = async (ids: string[]) => {
+  const fetchPosts = async (ids: string[], currentPage: number = 0) => {
     try {
-      const response = await fetchAPI(`/api/posts/getPostsById?ids=${ids}`);
-      const posts = response.data;
-
-      const sortedPosts = posts.sort((a, b) => a.color.localeCompare(b.color));
+      setIsLoading(true);
+      const response = await fetchAPI(`/api/posts/getPostsById?ids=${ids}&page=${currentPage}&limit=25`);
+      const postsData = response.data;
+      const pagination = response.pagination;
+      
+      setHasMore(pagination.hasMore);
+      
+      const sortedPosts = postsData.sort((a, b) => a.color.localeCompare(b.color));
       return sortedPosts;
     } catch (error) {
-      return null;
+      console.error("Error fetching posts:", error);
+      return [];
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     const fetchSavedPosts = async () => {
-      // Fetch all posts asynchronously
-      const response = await fetchPosts(savedPostsID);
+      // Reset when posts changes
+      setSavedPostsList([]);
+      setPage(0);
+      setHasMore(true);
+      
+      // Fetch first page of posts
+      const response = await fetchPosts(savedPostsID, 0);
 
       // Filter out null values (failed fetches)
       setSavedPostsList(
@@ -54,6 +69,21 @@ const SavedPostGallery = () => {
       fetchSavedPosts();
     }
   }, [posts, update]);
+
+  const handleLoadMore = async () => {
+    if (isLoading || !hasMore) return;
+    
+    const nextPage = page + 1;
+    const morePosts = await fetchPosts(savedPostsID, nextPage);
+    
+    if (morePosts.length > 0) {
+      setSavedPostsList(prevPosts => [
+        ...prevPosts,
+        ...morePosts.filter((post: Post) => post !== undefined)
+      ]);
+      setPage(nextPage);
+    }
+  };
 
   const handleUpdate = (postId: number, isRemoved: boolean) => {
     if (isRemoved) {
@@ -83,6 +113,9 @@ const SavedPostGallery = () => {
                 handleUpdate(id, isRemoved);
               }}
               query={query}
+              onLoadMore={handleLoadMore}
+              isLoading={isLoading}
+              hasMore={hasMore}
               header={
                 <View className="w-screen px-8 flex flex-row items-center justify-between">
                   <View>

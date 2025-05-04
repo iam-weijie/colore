@@ -189,7 +189,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       
 
       // Initialize each post as a stack
-      setStacks((prevStack) => prevStack.filter((stack) => stacks))
+      setStacks((prevStack) => prevStack.filter((stack) => stack !== undefined && stack.center !== undefined));
       setPostsWithPosition(postsWithPositions);
       setStandalonePosts(postsWithPositions);
       // Initialize to add to map
@@ -239,6 +239,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   
     // 2. Check if the post should be added to an existing stack
     const insideStackIndex = updatedStacks.findIndex(stack => {
+      if (!stack.center || stack.center.x === undefined || stack.center.y === undefined) {
+        return false;
+      }
       const dist = distanceBetweenPosts(
         stack.center.x,
         stack.center.y,

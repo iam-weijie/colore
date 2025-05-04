@@ -37,18 +37,35 @@ const UserPersonalBoard = () => {
     if (boardId == "-1" || username == "Personal Board") return;
     try {
       const response = await fetchAPI(`/api/boards/getBoardById?id=${boardId}`)
+      
+      if (!response.data) {
+        console.error("Board data is undefined");
+        showAlert({
+          title: 'Error',
+          message: `Could not load board information`,
+          type: 'ERROR',
+          status: 'error',
+        });
+        return;
+      }
 
       const isPrivate = response.data.board_type == "personal"
       setBoardInfo(response.data)
       setCanParticipate(!isPrivate)
-      setPostCount(response.count)
+      setPostCount(response.count || 0)
 
-      const hasJoined = response.data.members_id.includes(user!.id)
+      const hasJoined = response.data.members_id && response.data.members_id.includes(user!.id)
       setJoinedCommunity(hasJoined)
 
       console.log("this board 3", response)
     } catch (error) {
       console.error("Failed to fetch board", error)
+      showAlert({
+        title: 'Error',
+        message: `Failed to load board`,
+        type: 'ERROR',
+        status: 'error',
+      });
     }
   }
 

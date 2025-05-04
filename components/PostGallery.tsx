@@ -9,6 +9,7 @@ import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-nati
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Text,
@@ -22,7 +23,10 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   profileUserId,
   handleUpdate,
   query = "",
-  header
+  header,
+  onLoadMore,
+  isLoading,
+  hasMore
 }) => {
   const { user } = useUser();
   const { isIpad } = useGlobalContext(); 
@@ -48,10 +52,8 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
  
   useEffect(() => {
-  
       const sorted = [...posts].sort(sortByUnread);
       setSortedPosts(sorted);
-
   }, [posts]);
 
   const screenWidth = Dimensions.get("window").width;
@@ -66,6 +68,21 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   if (!posts) {
     return <Text>An error occurred.</Text>;
   }
+
+  const handleEndReached = () => {
+    if (!isLoading && hasMore && onLoadMore) {
+      onLoadMore();
+    }
+  };
+
+  const renderFooter = () => {
+    if (!isLoading) return null;
+    return (
+      <View className="py-5 flex items-center justify-center">
+        <ActivityIndicator size="small" color="#0000ff" />
+      </View>
+    );
+  };
 
   const renderItem = ({ item }: { item: Post }) => {
     const backgroundColor = temporaryColors?.find((c) => c.name === item.color)?.hex || item.color;
@@ -167,6 +184,9 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
           renderItem={renderItem}
           numColumns={isIpad ? 3 : 1}
           showsVerticalScrollIndicator={false}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
         />
       )}
       {selectedPost && (

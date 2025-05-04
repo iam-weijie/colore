@@ -101,6 +101,10 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const [replyView, setReplyView] = useState<PostComment | null>(null);
   const inputRef = useRef(null);
 
+  // Add pagination states
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const fetchCommentById = async (id: string) => {
     try {
@@ -199,10 +203,15 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   }
   };
 
-  const fetchComments = async () => {
-    //setLoading(true);
+  const fetchComments = async (pageNum = 0, append = false) => {
+    if (pageNum === 0) {
+      setLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
     setError(null);
-console.log("happend", "id", id)
+    console.log("fetching comments for post", id, "page", pageNum);
+
     if (!id || !user?.id) {
       console.error("Missing required parameters:", {
         postId: id,
@@ -210,12 +219,13 @@ console.log("happend", "id", id)
       });
       setError("Missing required parameters");
       setLoading(false);
+      setIsLoadingMore(false);
       return;
     }
 
     try {
       const response = await fetchAPI(
-        `/api/comments/getComments?postId=${id}&userId=${user.id}`,
+        `/api/comments/getComments?postId=${id}&userId=${user.id}&page=${pageNum}&limit=25`,
         { method: "GET" }
       );
   
@@ -229,6 +239,10 @@ console.log("happend", "id", id)
         throw new Error("Invalid response format");
       }
   
+      // Update pagination info
+      setHasMore(response.pagination?.hasMore || false);
+      setPage(pageNum);
+      
       // Initialize like states from the response
       interface CommentResponse {
         id: number;
@@ -248,24 +262,72 @@ console.log("happend", "id", id)
       // Group comments by date
       const groupedComments = response.data.reduce((acc, comment) => {
         const commentDate = new Date(comment.created_at).toDateString(); // Convert to a readable date
+        
+        // Find existing group or create a new one
         const existingGroup = acc.find(group => group.date === commentDate);
-  
+        
         if (existingGroup) {
           existingGroup.comments.push(comment);
         } else {
-          acc.push({ date: commentDate, comments: [comment] });
+          acc.push({
+            date: commentDate,
+            comments: [comment]
+          });
         }
-  
+        
         return acc;
-      }, [] as { date: string; comments: CommentResponse[] }[]);
-  
-      setPostComments(groupedComments);
-      setCommentLikes(likeStatuses);
-      setCommentLikeCounts(likeCounts);} catch (error) {
-      console.error("Failed to fetch comments:", error);
-      setError("Failed to fetch comments.");
+      }, [] as PostCommentGroup[]);
+      
+      // Add fetched comments to state
+      if (append) {
+        // Append new comments to existing ones
+        setPostComments(prev => {
+          const combinedGroups = [...prev];
+          
+          // Merge the new groups with existing ones
+          groupedComments.forEach(newGroup => {
+            const existingGroupIndex = combinedGroups.findIndex(g => g.date === newGroup.date);
+            
+            if (existingGroupIndex >= 0) {
+              // Add new comments to existing date group
+              combinedGroups[existingGroupIndex].comments.push(...newGroup.comments);
+            } else {
+              // Add new date group
+              combinedGroups.push(newGroup);
+            }
+          });
+          
+          return combinedGroups;
+        });
+      } else {
+        // Replace with new comments
+        setPostComments(groupedComments);
+      }
+      
+      // Update like states
+      setCommentLikes(prev => ({ ...prev, ...likeStatuses }));
+      setCommentLikeCounts(prev => ({ ...prev, ...likeCounts }));
+      
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      setError("Failed to load comments. Please try again.");
     } finally {
       setLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+  
+  // Load initial comments
+  useEffect(() => {
+    if (id && user?.id) {
+      fetchComments(0, false);
+    }
+  }, [id, user?.id]);
+  
+  // Function to load more comments when user scrolls
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore) {
+      fetchComments(page + 1, true);
     }
   };
 
@@ -379,10 +441,6 @@ console.log("happend", "id", id)
 
 
   useEffect(() => {
-    fetchComments();
-  }, [id, scrollTo]);
-
-  useEffect(() => {
     if (replyView) {
     setTimeout(() => inputRef.current?.focus(), 100);
     }
@@ -442,6 +500,16 @@ console.log("happend", "id", id)
     );
   };
 
+  // Update the renderFooter to show loading indicator when loading more comments
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    return (
+      <View style={{ paddingVertical: 20 }}>
+        <ColoreActivityIndicator />
+      </View>
+    );
+  };
+
   return (
     <View className="flex-1 h-[450px]">
 
@@ -478,6 +546,9 @@ console.log("happend", "id", id)
                     flatListRef.current?.scrollToEnd({ animated: true });
                   }}
                   showsVerticalScrollIndicator={false}
+                  onEndReached={handleLoadMore}
+                  onEndReachedThreshold={0.5}
+                  ListFooterComponent={renderFooter}
                 />
               )}
             </View>
