@@ -454,6 +454,9 @@ const reorderPost = (topPost: Post) => {
   useEffect(() => {
     fetchRandomPosts();
   }, []);
+  const handleOuterLayout = () => {
+    scrollViewRef.current?.scrollTo({ x: postsWithPosition[0].position.left ?? screenWidth / 2, animated: true })
+  };
 
   const handleInnerLayout = () => {
     innerScrollViewRef.current?.scrollTo({ y: postsWithPosition[0].position.top ?? screenHeight / 2, animated: true })
