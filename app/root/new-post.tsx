@@ -1,7 +1,6 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
   Image,
@@ -15,14 +14,11 @@ import {
   View,
 } from "react-native";
 import EmojiSelector from "react-native-emoji-selector";
-import { SafeAreaView } from "react-native-safe-area-context";
 
-import { LinearGradient } from 'expo-linear-gradient';
-import CustomButton from "@/components/CustomButton";
+import ColorSelector from "@/components/ColorSelector";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor, UserNicknamePair, TextStyle, Post } from "@/types/type";
-import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from '@/notifications/AlertContext';
 import ModalSheet from "@/components/Modal";
 import {
@@ -39,12 +35,16 @@ import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "
 import RichTextEditor from "@/components/RichTextEditor";
 import RichTextInput from "@/components/RichTextInput";
 import KeyboardOverlay from "@/components/KeyboardOverlay";
+import PostContainer from "@/components/PostContainer";
+import { handleSubmitPost } from "@/lib/post";
 
 const NewPost = () => {
   const { user } = useUser();
   const { postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
   const { setDraftPost, draftPost } = useGlobalContext();
   const { showAlert } = useAlert();
+
+  const [selectedTab, setSelectedTab] = useState<string>("create");
   
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
   const [selectedRecipientId, setSelectedRecipientId] = useState<string>(recipientId)
@@ -59,6 +59,7 @@ const NewPost = () => {
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
+  const [refreshingKey, setRefreshingKey] = useState<number>(0);
 
 
 
@@ -67,8 +68,13 @@ const NewPost = () => {
   const expirationDate = ['1 day', '3 days', '7 days', '14 days']
 
 
-  console.log("arguments passed: ", postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId  )
+  //console.log("arguments passed: ", postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId  )
 
+  const tabs = [
+    {name: "Create", key: "create", color: "#000"},
+    {name: "Customize", key: "customize", color: "#000"},
+    {name: "Information", key: "information", color: "#000"}
+]
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -88,6 +94,8 @@ const NewPost = () => {
   
   const applyStyle = (newStyle: TextStyle) => {
     setTextStyling(newStyle)
+    setRefreshingKey((prev) => prev + 1)
+    Keyboard.dismiss()
   }
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -122,11 +130,12 @@ const NewPost = () => {
      }
    }, [selectedEmoji]);
    
-   useEffect(()=> {
-    setPostContent(content)
-   }, [])
+
    useEffect(() => {
    
+    if (postId) {
+      setPostContent(content)
+    }
     setDraftPost({
       id: Number(postId ?? 0),
       clerk_id: user?.id ?? "",
@@ -165,7 +174,7 @@ const NewPost = () => {
   ]);
 
   useEffect(() => {
-    if (draftPost) {
+     if (draftPost && !postId) {
       setPostContent(draftPost.content);
       const savedColor = temporaryColors.find(c => c.name === draftPost.color);
       if (savedColor) setSelectedColor(savedColor);
@@ -175,27 +184,41 @@ const NewPost = () => {
     }
   }, []);
 
-    const backgroundColor = useSharedValue(selectedColor?.hex || "rgba(0, 0, 0, 0.5)");
-    const prevColor = React.useRef(backgroundColor.value);
+  /*useFocusEffect(
+     useCallback(() => {
 
-
-    useEffect(() => {
-      if (prevColor.current !== (selectedColor?.hex || "rgba(0, 0, 0, 0.5)")) {
-        backgroundColor.value = withTiming(
-          selectedColor?.hex || "rgba(0, 0, 0, 0.5)",
-          {
-            duration: 300,
-            easing: Easing.inOut(Easing.quad)
+        return () => {
+          if (postId) {
+            setDraftPost({
+              id: -1,
+              clerk_id:  "",
+              firstname: "",
+              username: "",
+              content: "",
+              created_at: new Date().toISOString(),
+              expires_at: "", // Let the backend calculate it or parse from selectExpirationDate if needed
+              city: "",
+              state: "",
+              country: "",
+              like_count: 0,
+              report_count: 0,
+              unread_comments: 0,
+              recipient_user_id: "",
+              pinned: false,
+              color: "",
+              emoji: "",
+              notified: false,
+              prompt_id: -1,
+              prompt: "",
+              board_id: -1,
+              reply_to: 0,
+              unread: false,
+            });
           }
-        );
-        prevColor.current = selectedColor?.hex || "rgba(0, 0, 0, 0.5)";
-      }
-    }, [selectedColor]);
+    }}, [postId])
+    );*/
+  
 
-      const animatedBackgroundStyle = useAnimatedStyle(() => ({
-        backgroundColor: backgroundColor.value,
-      }));
-      
   const navigationControls =  [
           {
             icon: icons.back,
@@ -205,8 +228,10 @@ const NewPost = () => {
           {
             icon: icons.send,
             label: "New Post",
-            onPress: () => {
-              handlePostSubmit();
+            onPress: async () => {
+              if (selectedTab == "customize") {
+              handleSubmitPost(user!.id, draftPost)
+              } else {setSelectedTab("customize")}
             },
             isCenter: true,
           },
@@ -218,15 +243,17 @@ const NewPost = () => {
           },
         ]
 
-  const handleNewSegment = () => {
 
-  }
+        const handleTabChange = (tabKey: string) => {
+          console.log("Tab changed to:", tabKey);
+          setSelectedTab(tabKey);
+        };
 
   return (
     <Animated.View className="flex-1" 
-    style={[
-      animatedBackgroundStyle
-    ]}>
+    style={{
+      backgroundColor: selectedColor.hex
+    }}>
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
@@ -241,46 +268,27 @@ const NewPost = () => {
             (prompt ? `${prompt}`: 
               (recipientId ? `@${userUsername}` : 'New Post')
             )}
-          item={
-                <RichTextEditor
-                          start={selection.start}
-                          end={selection.end}
-                          handleComplete={() => {}}
-                          />
-          }
            />
             
-
-           <Animated.View className="flex-1  mt-0 overflow-hidden " 
-            style={[
-              animatedBackgroundStyle
-            ]}>
-              <View className="flex-1 "><KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
+            <TouchableWithoutFeedback
+                      onPress={() => Keyboard.dismiss()}
+                      onPressIn={() => Keyboard.dismiss()}
+                    >
+           <View className="flex-1  mt-0 overflow-hidden " 
+            style={{
+              backgroundColor: selectedColor.hex
+            }}>
+              <View className="flex-1 ">
+                <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
                         <View className="flex-1 flex-column justify-center items-center  ">
               
                             
-              <View className="w-full h-[50%] -mt-16">
+              <View className="w-full">
                 <RichTextInput
-                style={textStyling} />
-                        {/*<TextInput
-                  className="text-[20px] text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
-                  placeholder="Type something..."
-                  placeholderTextColor={"#F1F1F1"}
-                  value={postContent}
-                  onChangeText={handleChangeText}
-                  onContentSizeChange={handleContentSizeChange}
-                  onSelectionChange={({ nativeEvent: { selection } }) => setSelection(selection)}
-                  autoFocus
-                  multiline
-                  scrollEnabled
-                  style={{
-                    paddingTop: 10,
-                    paddingBottom: 0,
-                    minHeight: screenHeight * 0.2,
-                    maxHeight: screenHeight * 0.5,
-                    textAlignVertical: "top",
-                  }}
-                />*/}
+                style={textStyling}
+                refresh={refreshingKey}
+                exportStyling={() => {}}
+                exportText={handleChangeText} />
                 </View>
               
                   
@@ -317,7 +325,19 @@ const NewPost = () => {
               </TouchableOpacity>
               </View>
               </View>
-              </Animated.View>
+              </View></TouchableWithoutFeedback>}
+            {selectedTab == "customize" && 
+            <View className="absolute top-8">
+              <PostContainer
+              selectedPosts={[draftPost]}
+              handleCloseModal={() => {}}
+              isPreview={true}
+              />
+            </View>}
+              
+
+
+
                <CustomButtonBar
                             buttons={navigationControls}
                             />
@@ -345,118 +365,117 @@ const NewPost = () => {
           </ModalSheet>}
           <KeyboardOverlay>
           <RichTextEditor
-                          handleApplyStyle={applyStyle}
+                      handleApplyStyle={applyStyle}
                           />
       </KeyboardOverlay>
       </Animated.View>
   );
 };
 
-
 const FindUser = ({ selectedUserInfo }) => {
-const { user } = useUser();
-
-const [users, setUsers] = useState<UserNicknamePair[]>([]);
-  const [friendList, setFriendList] = useState<UserNicknamePair[]>([]);
-const [searchText, setSearchText] = useState<string>("");
-
-const [error, setError] = useState<string | null>(null);
-const [loading, setLoading] = useState<boolean>(false);
-
-console.log("Modal Showed")
-useEffect(() => {
-  fetchUsers(); 
-  fetchFriendList();
-}, [])
-
-  const fetchFriendList = async () => {
-    const data = await fetchFriends(user!.id);
-    console.log("friend", data)
-    const friend = data.map((f) => [f.friend_id, f.friend_username])
-    setFriendList(friend);
-  };
-
-const fetchUsers = async () => {
-        setLoading(true);
-        try {
-          // //console.log("user: ", user!.id);
-          const response = await fetchAPI(`/api/chat/searchUsers?id=${user!.id}`, {
-            method: "GET",
-          });
-          if (response.error) {
-            //console.log("Error fetching user data");
-            //console.log("response data: ", response.data);
-            //console.log("response status: ", response.status);
-            // //console.log("response: ", response);
-            throw new Error(response.error);
+  const { user } = useUser();
+  
+  const [users, setUsers] = useState<UserNicknamePair[]>([]);
+    const [friendList, setFriendList] = useState<UserNicknamePair[]>([]);
+  const [searchText, setSearchText] = useState<string>("");
+  
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  
+  console.log("Modal Showed")
+  useEffect(() => {
+    fetchUsers(); 
+    fetchFriendList();
+  }, [])
+  
+    const fetchFriendList = async () => {
+      const data = await fetchFriends(user!.id);
+      console.log("friend", data)
+      const friend = data.map((f) => [f.friend_id, f.friend_username])
+      setFriendList(friend);
+    };
+  
+  const fetchUsers = async () => {
+          setLoading(true);
+          try {
+            // //console.log("user: ", user!.id);
+            const response = await fetchAPI(`/api/chat/searchUsers?id=${user!.id}`, {
+              method: "GET",
+            });
+            if (response.error) {
+              //console.log("Error fetching user data");
+              //console.log("response data: ", response.data);
+              //console.log("response status: ", response.status);
+              // //console.log("response: ", response);
+              throw new Error(response.error);
+            }
+            //console.log("response: ", response.data);
+            const nicknames = response.data;
+            //console.log("nicknames: ", nicknames);
+            setUsers(nicknames);
+            return;
+          } catch (err) {
+            console.error("Failed to fetch user data:", err);
+            setError("Failed to fetch nicknames.");
+          } finally {
+            setLoading(false);
           }
-          //console.log("response: ", response.data);
-          const nicknames = response.data;
-          //console.log("nicknames: ", nicknames);
-          setUsers(nicknames);
-          return;
-        } catch (err) {
-          console.error("Failed to fetch user data:", err);
-          setError("Failed to fetch nicknames.");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-   const renderUser = ({
-      item,
-    }: {
-      item: UserNicknamePair;
-    }): React.ReactElement => (
-            <ItemContainer 
-            label={item[1]}
-            colors={["#FBB1F5", "#CFB1FB"]}
-            icon={icons.addUser}
-            actionIcon={icons.chevron}
-            iconColor="#000"
-            onPress={() => {
-              selectedUserInfo(item)
-            }}
-            />
-    );
-
-    const filteredUsers =
-    searchText.length > 0
-      ? users.filter(
-          (user) =>
-            user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
-        )
-      : [];
-
-    return (
-       <View>
-                  <View className="flex-grow mt-4 mx-4">
-                                  <TextInput
-                                    className="w-full h-12 px-3 -pt-1 bg-[#F1F1F1] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-                                    placeholder="Search users..."
-                                    placeholderTextColor="#888"
-                                    value={searchText}
-                                    onChangeText={(text): void => setSearchText(text)}
-                                  />
-                                </View>
-                                {loading ? (
-                                               <View className="flex-1 items-center justify-center">
-                                               <ColoreActivityIndicator text="Summoning Bob..." />
-                                               </View>
-                                            ) : error ? (
-                                              <Text>{error}</Text>
-                                            ) : (
-                                              <FlatList
-                                              className={`mt-4 pb-4`}
-                                              contentContainerStyle={{ paddingBottom: 80 }} 
-                                                data={filteredUsers.length > 0 ? filteredUsers : friendList}
-                                                renderItem={renderUser}
-                                                keyExtractor={(item): string => String(item[0])}
-                                                showsVerticalScrollIndicator={false}
-                                              />
-                                            )}
-                  </View>
-    )
-}
+        };
+  
+     const renderUser = ({
+        item,
+      }: {
+        item: UserNicknamePair;
+      }): React.ReactElement => (
+              <ItemContainer 
+              label={item[1]}
+              colors={["#FBB1F5", "#CFB1FB"]}
+              icon={icons.addUser}
+              actionIcon={icons.chevron}
+              iconColor="#000"
+              onPress={() => {
+                selectedUserInfo(item)
+              }}
+              />
+      );
+  
+      const filteredUsers =
+      searchText.length > 0
+        ? users.filter(
+            (user) =>
+              user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
+          )
+        : [];
+  
+      return (
+         <View>
+                    <View className="flex-grow mt-4 mx-4">
+                                    <TextInput
+                                      className="w-full h-12 px-3 -pt-1 bg-[#F1F1F1] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                                      placeholder="Search users..."
+                                      placeholderTextColor="#888"
+                                      value={searchText}
+                                      onChangeText={(text): void => setSearchText(text)}
+                                    />
+                                  </View>
+                                  {loading ? (
+                                                 <View className="flex-1 items-center justify-center">
+                                                 <ColoreActivityIndicator text="Summoning Bob..." />
+                                                 </View>
+                                              ) : error ? (
+                                                <Text>{error}</Text>
+                                              ) : (
+                                                <FlatList
+                                                className={`mt-4 pb-4`}
+                                                contentContainerStyle={{ paddingBottom: 80 }} 
+                                                  data={filteredUsers.length > 0 ? filteredUsers : friendList}
+                                                  renderItem={renderUser}
+                                                  keyExtractor={(item): string => String(item[0])}
+                                                  showsVerticalScrollIndicator={false}
+                                                />
+                                              )}
+                    </View>
+      )
+  }
 
 export default NewPost;

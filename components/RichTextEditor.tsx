@@ -10,7 +10,7 @@ const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextSt
 
   const stylingBar = ['bold', 'italic', 'underline', 'H', 'ordered', 'unordered']
   const [showOptions, setShowOptions] = useState<boolean>(false);
-  const headerStyleOptions = ['h1', 'h2', 'h3', 'h4']
+  const headerStyleOptions = ['h1', 'h2', 'h3']
   const applyStyle = (newStyle: TextStyle) => {
 
     //if (start === end) return; // nothing selected
@@ -41,15 +41,19 @@ const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextSt
     )
   }
 
-  const headerStyleContainer = (focused: boolean, style: TextStyle) => {
+  const headerStyleContainer = (focused: boolean, style: string) => {
     return (
-        <View 
-        className='p-4 rounded-[16px]'
+        <TouchableOpacity 
+        onPress={() => {
+          applyStyle(style as TextStyle)
+          setShowOptions(false)
+        }}
+        className=' mx-2 h-10 w-10 rounded-[12px] flex items-center justify-center'
         style={{
-            backgroundColor: focused ? "#eee" : "#eee"
+            backgroundColor: focused ? "#eee" : "#fafafa"
         }}>
-            <Text>{style}</Text>
-        </View>
+            <Text className="text-lg font-JakartaBold">{style}</Text>
+        </TouchableOpacity>
     )
   }
 
@@ -74,15 +78,12 @@ const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextSt
   }
 
   return (
-    <View className="flex items-center justify-center h-[50px]">
+    <View className="flex items-center justify-center h-[50px] w-full pl-6">
       <ScrollView 
       horizontal 
       keyboardShouldPersistTaps="handled" 
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{
-        paddingLeft: 24
-      }}>
-        {stylingBar.map((style) => (
+      showsHorizontalScrollIndicator={false}>
+        {!showOptions && stylingBar.map((style) => (
             <View>
           <TouchableOpacity
             key={style}
@@ -90,15 +91,16 @@ const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextSt
           >
             {getShortHand(style)}
           </TouchableOpacity>
-         {showOptions && headerStyleOptions.map((style) =>
-         {
-            return headerStyleContainer(false, style)
-
-         }
-        )} 
         
           </View>
         ))}
+        {showOptions && headerStyleOptions.map((style) =>
+         (
+          <View>
+            {headerStyleContainer(false, style)}
+            </View>
+         )
+        )} 
       </ScrollView>
     </View>
   );

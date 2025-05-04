@@ -417,7 +417,6 @@ const userTabs = [
 const handleTabChange = (tabKey: string) => {
   console.log("Tab changed to:", tabKey);
   setSelectedTab(tabKey);
-  // You can add additional logic here when tabs change
 };
 
   return (

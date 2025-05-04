@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAlert } from '@/notifications/AlertContext';
 import * as Haptics from 'expo-haptics';
 import { useGlobalContext } from "../globalcontext";
+import { handleSubmitPost } from "@/lib/post";
  
 
 const PreviewPost = () => {
@@ -27,89 +28,7 @@ const PreviewPost = () => {
     router.back(); // Single back; assumed this goes to NewPost
   };
 
-  const handleSubmitPost = async () => {
-    if (!draftPost || draftPost.content.trim() === "") {
-      showAlert({
-        title: "Error",
-        message: "Post cannot be empty.",
-        type: "ERROR",
-        status: "error",
-      });
-      return;
-    }
 
-    setIsPosting(true);
-
-    const isUpdate = Boolean(draftPost.id);
-    const isPersonal = Boolean(draftPost.recipient_user_id);
-    const isPrompt = Boolean(draftPost.prompt_id);
-
-    try {
-      if (isUpdate) {
-        await fetchAPI("/api/posts/updatePost", {
-          method: "PATCH",
-          body: JSON.stringify({
-            postId: draftPost.id,
-            content: draftPost.content,
-            color: draftPost.color,
-            emoji: draftPost.emoji,
-          }),
-        });
-
-
-        showAlert({
-          title: "Success",
-          message: "Post updated successfully.",
-          type: "UPDATE",
-          status: "success",
-        });
-        router.back();
-      } else {
-        const body = {
-          content: draftPost.content,
-          clerkId: user!.id,
-          color: draftPost.color,
-          emoji: draftPost.emoji,
-          ...(isPersonal && {
-            recipientId: draftPost.recipient_user_id,
-            boardId: draftPost.board_id,
-            postType: "personal",
-          }),
-          ...(isPrompt && {
-            expiration: draftPost.expires_at,
-            promptId: draftPost.prompt_id,
-          }),
-        };
-
-        await fetchAPI("/api/posts/newPost", {
-          method: "POST",
-          body: JSON.stringify(body),
-        });
-
-        showAlert({
-          title: "Success",
-          message: "Post created.",
-          type: "POST",
-          status: "success",
-        });
-
-        // Go back twice: out of preview and then out of new-post
-        router.back(); // slight delay for safe stack unwinding
-      }
-    } catch (error) {
-      console.error("Error submitting post:", error);
-      showAlert({
-        title: "Error",
-        message: "An error occurred. Please try again.",
-        type: "ERROR",
-        status: "error",
-      });
-    } finally {
-      setDraftPost(null);
-      setIsPosting(false);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    }
-  };
 
   return (
     <SafeAreaView className="flex-1">
@@ -127,7 +46,9 @@ const PreviewPost = () => {
               fontSize="lg"
               title="submit"
               padding="0"
-              onPress={handleSubmitPost}
+              onPress={() => {
+                console.log("supposed to submit")
+                handleSubmitPost(user!.id, draftPost)}}
               //disabled={!postContent || isPosting}
             />
                <TouchableOpacity
