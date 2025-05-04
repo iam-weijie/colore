@@ -194,10 +194,10 @@ declare interface UserProfileProps {
   onSignOut?: () => void;
 }
 
-declare interface Segment {
+declare interface Format {
   start: number;
   end: number;
-  style: TextStyle[];
+  type: TextStyle;
 }
 
 declare interface PostModalProps {
@@ -269,6 +269,7 @@ declare interface ConversationItem {
   active_participants: number;
   unread_messages: number;
 }
+
 
 declare interface Message {
   id: number;

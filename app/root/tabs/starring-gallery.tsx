@@ -328,14 +328,14 @@ export default function Page() {
                   >
           <View className="flex-1">
           
-               
-            <Text className="mt-4 mb-2 text-center text-[#FAFAFA] text-[12px] font-JakartaSemiBold"> Create a prompt with the given cues to view other people's responses </Text>
+              
             {loading ? (
               <View className="flex-1 items-center justify-center">
                 <ColoreActivityIndicator text="Summoning Bob..." />
                 </View>
             ) 
             : (
+              <View className="flex-[0.85]">
             <CardCarrousel
             items={prompts}
             renderItem={(item, index) => 
@@ -347,7 +347,8 @@ export default function Page() {
           handlePromptSubmit={handlePromptSubmit}
           />}
             handleScrollBeginDrag={handleScrollBeginDrag}
-            inputRef={inputRef} />)}
+            inputRef={inputRef} />
+            </View>)}
 
           </View>
           </TouchableWithoutFeedback>
