@@ -375,3 +375,5 @@ type TabsContainerProps = {
   onTabChange?: (tabKey: string) => void;
   tabCount?: number;
 };
+
+type TextStyle = 'bold' | 'italic' | 'underline' | 'H' | 'h1' | 'h2' | 'h3' | 'h4' | 'ordered' | 'unordered' | null;

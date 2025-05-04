@@ -16,7 +16,6 @@ import {
   View,
 } from "react-native";
 import EmojiSelector from "react-native-emoji-selector";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from "@/components/CustomButton";
 import { icons, images, temporaryColors } from "@/constants";
