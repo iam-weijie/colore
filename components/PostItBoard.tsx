@@ -149,7 +149,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       
 
       // Initialize each post as a stack
-      setStacks((prevStack) => prevStack.filter((stack) => stacks))
+      setStacks((prevStack) => prevStack.filter((stack) => stack !== undefined && stack.center !== undefined));
       setPostsWithPosition(postsWithPositions);
       setStandalonePosts(postsWithPositions);
       // Initialize to add to map
@@ -175,7 +175,94 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     }
   };
 
-  // --- HANDLER FUNCTIONS ---
+  const updateStacks = (
+    postId: number,
+    newCoordinates: { x_coordinate: number; y_coordinate: number }
+  ) => {
+    let updatedStacks = [...stacks];
+  
+    const post = postsWithPosition.find(p => p.id === postId);
+    if (!post) return;
+  
+    // 1. Remove the post from any stack it was previously in
+    updatedStacks = updatedStacks.map(stack => {
+      if (stack.ids.includes(postId)) {
+        return {
+          ...stack,
+          ids: stack.ids.filter(id => id !== postId),
+          elements: stack.elements.filter(el => el.id !== postId),
+        };
+      }
+      return stack;
+    }).filter(stack => stack.ids.length > 0); // Remove empty stacks
+  
+    // 2. Check if the post should be added to an existing stack
+    const insideStackIndex = updatedStacks.findIndex(stack => {
+      if (!stack.center || stack.center.x === undefined || stack.center.y === undefined) {
+        return false;
+      }
+      const dist = distanceBetweenPosts(
+        stack.center.x,
+        stack.center.y,
+        newCoordinates.x_coordinate,
+        newCoordinates.y_coordinate
+      );
+      return dist <= 40;
+    });
+  
+    if (insideStackIndex !== -1) {
+      const stack = updatedStacks[insideStackIndex];
+  
+      // Only add if not already in
+      if (!stack.ids.includes(postId)) {
+        const updatedStack = {
+          ...stack,
+          ids: [...stack.ids, postId],
+          elements: [...stack.elements, post],
+        };
+        updatedStacks[insideStackIndex] = updatedStack;
+      }
+  
+      setStacks(updatedStacks);
+      return;
+    }
+  
+    // 3. If no existing stack nearby, check if it should form a new stack with nearby posts
+    const nearby = maps.filter(m => {
+      if (m.id === postId) return false;
+      const dist = distanceBetweenPosts(
+        newCoordinates.x_coordinate,
+        newCoordinates.y_coordinate,
+        m.coordinates.x_coordinate,
+        m.coordinates.y_coordinate
+      );
+      return dist <= 40;
+    });
+  
+    if (nearby.length > 0) {
+      const nearbyFullPosts = nearby
+        .map(m => postsWithPosition.find(p => p.id === m.id))
+        .filter((p): p is PostWithPosition => p !== undefined);
+  
+      const newStack = {
+        name: `New Stack ${updatedStacks.length + 1}`,
+        ids: [postId, ...nearby.map(m => m.id)],
+        elements: [post, ...nearbyFullPosts],
+        center: {
+          x: newCoordinates.x_coordinate,
+          y: newCoordinates.y_coordinate,
+        },
+      };
+  
+      updatedStacks.push(newStack);
+      setStacks(updatedStacks);
+      return;
+    }
+  
+    // 4. Otherwise, the post is alone, not stacked. (You may handle solo-post case here if needed.)
+    setStacks(updatedStacks);
+  };
+  
 
   const handleRenameStack = (stack: Stacks) => {
     setCurrentStack(stack)

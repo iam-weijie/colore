@@ -242,6 +242,9 @@ declare interface UserPostsGalleryProps {
   handleUpdate?: (id: number, isRemove?: boolean) => void;
   query?: string;
   header?: React.ReactElement;
+  onLoadMore?: () => void;
+  isLoading?: boolean;
+  hasMore?: boolean;
 }
 
 declare interface UserProfileProps {
@@ -284,10 +287,6 @@ declare interface PostContainerProps {
   scrollToLoad?: () => void;
   staticEmoji?: boolean;
   seeComments?: boolean;
-}
-
-declare interface UserPostsGalleryProps {
-  posts: Post[];
 }
 
 type MappingPostitProps = {

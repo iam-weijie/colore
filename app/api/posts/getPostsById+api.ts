@@ -6,6 +6,9 @@ export async function GET(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const idsParam = url.searchParams.get("ids"); // Retrieve the 'ids' query param
+    const page = parseInt(url.searchParams.get("page") || "0");
+    const limit = parseInt(url.searchParams.get("limit") || "25");
+    const offset = page * limit;
 
     if (!idsParam) {
       return new Response(
@@ -26,15 +29,34 @@ export async function GET(request: Request) {
       });
     }
 
-    // Execute the query using `ANY($1::int[])` for safer parameter handling
+    // Get total count first
+    const countResult = await sql`
+      SELECT COUNT(*) as total
+      FROM posts p
+      WHERE p.id = ANY(${ids}::int[])
+    `;
+    
+    const total = parseInt(countResult[0].total);
+    
+    // Execute the query with pagination
     const response = await sql`
       SELECT *
       FROM posts p
       WHERE p.id = ANY(${ids}::int[])
         AND p.expires_at > NOW() 
         AND p.available_at <= NOW()
+      ORDER BY p.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+
     `;
-    if (response.length === 0) {
+    // console.log(
+    //   "pinned updated",
+    //   response.map((p) => {
+    //     return { id: p.id, pinned: p.pinned };
+    //   })
+    // );
+    // Check if posts were found
+    if (response.length === 0 && page === 0) {
       return new Response(JSON.stringify({ error: "No posts found" }), {
         status: 404,
       });
@@ -74,8 +96,17 @@ export async function GET(request: Request) {
       static_emoji: post.static_emoji,
     }));
 
+     const hasMore = offset + response.length < total;
     // Return the posts data in the response
-    return new Response(JSON.stringify({ data: mappedPosts }), { status: 200 });
+    return new Response(JSON.stringify({ 
+      data: mappedPosts,
+      pagination: {
+        page,
+        limit,
+        total,
+        hasMore
+      }
+    }), { status: 200 });
   } catch (error) {
     console.error("Database error:", error);
     return new Response(JSON.stringify({ error: "Failed to fetch posts" }), {

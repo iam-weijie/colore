@@ -6,6 +6,9 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const postId = url.searchParams.get("postId"); // Changed from "id" to "postId"
     const userId = url.searchParams.get("userId");
+    const page = parseInt(url.searchParams.get("page") || "0");
+    const limit = parseInt(url.searchParams.get("limit") || "25");
+    const offset = page * limit;
 
     if (!postId) {
       console.error("Missing postId parameter");
@@ -51,13 +54,30 @@ export async function GET(request: Request) {
         ) as is_liked
       FROM comments c
       JOIN users u ON c.user_id = u.clerk_id
-      WHERE c.post_id = $2
+      WHERE c.post_id = ${postId}
       ORDER BY c.created_at ASC;
-    `,
-      [userId || "", postId]
-    );
+       LIMIT ${limit} OFFSET ${offset};
+    `;
 
-    return new Response(JSON.stringify({ data: response }), {
+    // Get total count for pagination
+    const countResult = await sql`
+      SELECT COUNT(*) as total 
+      FROM comments 
+      WHERE post_id = ${postId};
+    `;
+    
+    const total = parseInt(countResult[0].total);
+    const hasMore = offset + response.length < total;
+
+    return new Response(JSON.stringify({ 
+      data: response,
+      pagination: {
+        page,
+        limit,
+        total,
+        hasMore
+      }
+    }), {
       status: 200,
     });
   } catch (error) {
