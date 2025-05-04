@@ -194,6 +194,12 @@ declare interface UserProfileProps {
   onSignOut?: () => void;
 }
 
+declare interface Segment {
+  start: number;
+  end: number;
+  style: TextStyle[];
+}
+
 declare interface PostModalProps {
   isVisible: boolean;
   selectedPosts: Post[];

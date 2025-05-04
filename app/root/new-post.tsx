@@ -21,7 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor, UserNicknamePair, Post } from "@/types/type";
+import { PostItColor, UserNicknamePair, Segment, Post } from "@/types/type";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from '@/notifications/AlertContext';
 import ModalSheet from "@/components/Modal";
@@ -36,6 +36,7 @@ import { CustomButtonBar } from "@/components/CustomTabBar";
 import Header from "@/components/Header";
 import ColorPickerSlider from "@/components/ColorPickerSlider";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import RichTextEditor from "@/components/RichTextEditor";
 
 const NewPost = () => {
   const { user } = useUser();
@@ -44,6 +45,7 @@ const NewPost = () => {
   const { showAlert } = useAlert();
   
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string>(recipientId)
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [userUsername, setUserUsername] = useState<string>(username);
   const [postContent, setPostContent] = useState<string>(content);
@@ -54,6 +56,8 @@ const NewPost = () => {
   );
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
+  const [selection, setSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
+  const [segments, setSegments] = useState<Segment[]>([]);
 
 
   const [selectExpirationDate, setSelectExpirationDate] = useState<string>(expiration)
@@ -61,7 +65,7 @@ const NewPost = () => {
   const expirationDate = ['1 day', '3 days', '7 days', '14 days']
 
 
-  console.log("arguments passed: ",postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId  )
+  console.log("arguments passed: ", postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId  )
 
 
   const handleColorSelect = (color: PostItColor) => {
@@ -102,7 +106,7 @@ const NewPost = () => {
 
   const selectedUserInfo = (info: UserNicknamePair) => {
     setSelectedUser(info);
-    setRecipientId(info[0]);
+    setSelectedRecipientId(info[0])
     setUserUsername(info[1]);
     setIsModalVisible(false)
   }
@@ -132,7 +136,7 @@ const NewPost = () => {
       like_count: 0,
       report_count: 0,
       unread_comments: 0,
-      recipient_user_id: recipientId ?? "",
+      recipient_user_id: selectedRecipientId ?? "",
       pinned: false,
       color: selectedColor.name,
       emoji: selectedEmoji ?? "",
@@ -161,7 +165,7 @@ const NewPost = () => {
       const savedColor = temporaryColors.find(c => c.name === draftPost.color);
       if (savedColor) setSelectedColor(savedColor);
       if (draftPost.emoji) setSelectedEmoji(draftPost.emoji);
-      if (draftPost.recipient_user_id) setRecipientId(draftPost.recipient_user_id);
+      if (draftPost.recipient_user_id) setSelectedRecipientId(draftPost.recipient_user_id);
       if (draftPost.username) setUserUsername(draftPost.username);
     }
   }, []);
@@ -209,6 +213,10 @@ const NewPost = () => {
           },
         ]
 
+  const handleNewSegment = () => {
+
+  }
+
   return (
     <Animated.View className="flex-1" 
     style={[
@@ -222,13 +230,17 @@ const NewPost = () => {
           
           <View className="flex-1" >
           <Header
-          title={postId ? 'Edit Post' : 'New Post'}
+          title={
+            postId ? 'Edit Post' : 
+            (prompt ? `${prompt}`: 
+              (recipientId ? `@${userUsername}` : 'New Post')
+            )}
           item={
-            prompt && <View className="mb-4 -mt-4 mx-12">
-              <Text className="text-sm text-left font-JakartaSemiBold text-black">
-                {prompt}
-                </Text>
-            </View>
+                <RichTextEditor
+                          start={selection.start}
+                          end={selection.end}
+                          handleComplete={() => {}}
+                          />
           }
            />
             
@@ -249,6 +261,7 @@ const NewPost = () => {
                   value={postContent}
                   onChangeText={handleChangeText}
                   onContentSizeChange={handleContentSizeChange}
+                  onSelectionChange={({ nativeEvent: { selection } }) => setSelection(selection)}
                   autoFocus
                   multiline
                   scrollEnabled
@@ -270,9 +283,6 @@ const NewPost = () => {
                             </KeyboardAvoidingView>
                             </View>
 
-              <View className="flex-1 absolute m-4 left-4 top-2" >
-                <Text className="text-[16px] font-JakartaBold text-white">{userUsername ? `To: ${userUsername}` : ''}</Text>
-              </View>
               <View  className="flex-1 flex-col items-end absolute p-4 right-0" >
               <ColorPickerSlider
                 colors={temporaryColors}
