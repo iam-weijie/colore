@@ -22,7 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor, UserNicknamePair, Segment, Post } from "@/types/type";
+import { PostItColor, UserNicknamePair, TextStyle, Post } from "@/types/type";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from '@/notifications/AlertContext';
 import ModalSheet from "@/components/Modal";
@@ -36,6 +36,8 @@ import { useGlobalContext } from "../globalcontext";
 import { CustomButtonBar } from "@/components/CustomTabBar";
 import Header from "@/components/Header";
 import RichTextEditor from "@/components/RichTextEditor";
+import RichTextInput from "@/components/RichTextInput";
+import KeyboardOverlay from "@/components/KeyboardOverlay";
 
 const NewPost = () => {
   const { user } = useUser();
@@ -55,8 +57,8 @@ const NewPost = () => {
   );
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
-  const [selection, setSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
-  const [segments, setSegments] = useState<Segment[]>([]);
+  const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
+
 
 
   const [selectExpirationDate, setSelectExpirationDate] = useState<string>(expiration)
@@ -82,7 +84,10 @@ const NewPost = () => {
   const handlePostSubmit = () => {
     router.push("/root/preview-post")
   };
-
+  
+  const applyStyle = (newStyle: TextStyle) => {
+    setTextStyling(newStyle)
+  }
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
       setPostContent(text);
@@ -201,29 +206,21 @@ const NewPost = () => {
     style={{
       backgroundColor: selectedColor.hex,
     }}>
-        <TouchableWithoutFeedback
-          onPress={() => Keyboard.dismiss()}
-          onPressIn={() => Keyboard.dismiss()}
-         
-        >
-          
+   
           <View className="flex-1" >
+             
           <Header
           title={
             postId ? 'Edit Post' : 
             (prompt ? `${prompt}`: 
               (recipientId ? `@${userUsername}` : 'New Post')
             )}
-          item={
-                <RichTextEditor
-                          start={selection.start}
-                          end={selection.end}
-                          handleComplete={() => {}}
-                          />
-          }
            />
             
-
+            <TouchableWithoutFeedback
+                      onPress={() => Keyboard.dismiss()}
+                      onPressIn={() => Keyboard.dismiss()}
+                    >
            <View className="flex-1  mt-0 overflow-hidden " 
             style={{
               backgroundColor: selectedColor.hex
@@ -234,7 +231,9 @@ const NewPost = () => {
               
                             
               <View className="w-full h-[50%] -mt-16">
-                        <TextInput
+                <RichTextInput
+                style={textStyling} />
+                        {/*<TextInput
                   className="text-[20px] text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
                   placeholder="Type something..."
                   placeholderTextColor={"#F1F1F1"}
@@ -252,7 +251,7 @@ const NewPost = () => {
                     maxHeight: screenHeight * 0.5,
                     textAlignVertical: "top",
                   }}
-                />
+                />*/}
                 </View>
               
                   
@@ -291,6 +290,7 @@ const NewPost = () => {
               </View>
               </View>
               </View>
+              </TouchableWithoutFeedback>
                <CustomButtonBar
                             buttons={navigationControls}
                             />
@@ -309,7 +309,6 @@ const NewPost = () => {
             )}
        
           </View>
-        </TouchableWithoutFeedback>
         {isModalVisible &&
         <ModalSheet
         title="Find a user"
@@ -317,6 +316,11 @@ const NewPost = () => {
          onClose={() => {setIsModalVisible(false)}}>
            <FindUser selectedUserInfo={selectedUserInfo} />
           </ModalSheet>}
+          <KeyboardOverlay>
+          <RichTextEditor
+                          handleApplyStyle={applyStyle}
+                          />
+      </KeyboardOverlay>
       </View>
   );
 };
