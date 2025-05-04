@@ -22,6 +22,7 @@ import {
   View,
 } from "react-native";
 import { GeographicalMode, MappingPostitProps } from "@/types/type";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import React from "react";
 import { distanceBetweenPosts } from "@/lib/post";
@@ -76,6 +77,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   isEditable = true,
   randomPostion = true,
 }) => {
+  const [mapType, setMapType] = useState<string>("satellite");
+  const [isUserInfoModalVisible, setIsUserInfoModalVisible] = useState(false);
   const [postsWithPosition, setPostsWithPosition] = useState<
     Post[]
   >([]);
@@ -100,6 +103,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [maps, setMap] = useState<MappingPostitProps[]>([]);
   const [isPanningMode, setIsPanningMode] = useState(true);
   const [isStackMoving, setIsStackMoving] = useState(false);
+  const pendingStackSound = useRef(false);
   const stackUpdating = useRef(false);
 
 
@@ -208,7 +212,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
     } catch (error) {
       setError("Failed to fetch new posts.");
-      console.error(error);
     } finally {
       setLoading(false);
 
@@ -345,6 +348,33 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       id: id,
       coordinates: { x_coordinate: dx, y_coordinate: dy },
     });
+    
+    // Check if this post will likely stack with others
+    // This is to help detect stacking early, before React state updates
+    let willLikelyStack = false;
+    maps.forEach((mappedPost) => {
+      if (mappedPost.id !== id) {
+        const dist = distanceBetweenPosts(
+          x,
+          y,
+          mappedPost.coordinates.x_coordinate,
+          mappedPost.coordinates.y_coordinate
+        );
+        
+        if (dist <= 15) {
+          // Posts are close enough that they'll likely stack
+          willLikelyStack = true;
+        }
+      }
+    });
+    
+    // If we detect likely stacking, prepare for sound
+    if (willLikelyStack) {
+      pendingStackSound.current = true;
+      lastStackedPostIdRef.current = id;
+    }
+    
+    // Update map immediately
     setMap((prevMap) => [
       ...prevMap.filter((p) => p.id !== id),
       postItCoordinates,
@@ -353,6 +383,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
 
     if (!randomPostion) {
+      pendingStackSound.current = true;
     try {
       await fetchAPI(`/api/posts/updatePostPosition`, {
         method: "PATCH",
@@ -377,7 +408,6 @@ const reorderPost = (topPost: Post) => {
       ...prevPosts.filter((post) => post.id !== topPost.id), // Remove the moved post
       topPost, // Add the moved post to the end
     ]);
-
   };
 
   // USE EFFECTS
@@ -399,15 +429,31 @@ const reorderPost = (topPost: Post) => {
     //console.log("stacks", stacks)
   }, [maps]);
 
+  // Add a test function to check if sound effects work
+  useEffect(() => {
+    // Test sound effect on component mount
+    if (soundEffectsEnabled) {
+      setTimeout(() => {
+        try {
+          console.log("Testing sound effects system...");
+          playSoundEffect(SoundType.Stack);
+          console.log("Sound effect test successful");
+        } catch (error) {
+          console.error("Sound effect test failed:", error);
+        }
+      }, 1000);
+    }
+  }, []);
+
   useEffect(() => {
     fetchRandomPosts();
     console.log("mode", mode)
   }, [mode]);
 
 
-  const handleOuterLayout = () => {
-    scrollViewRef.current?.scrollTo({ x: postsWithPosition[0].position.left ?? screenWidth / 2, animated: true })
-  };
+  useEffect(() => {
+    fetchRandomPosts();
+  }, []);
 
   const handleInnerLayout = () => {
     innerScrollViewRef.current?.scrollTo({ y: postsWithPosition[0].position.top ?? screenHeight / 2, animated: true })
@@ -724,8 +770,6 @@ export default PostItBoard;
 
         return updateMap;
       });
-
-      //("remainging right after", stacks)
 
       const existingPostIds = postsWithPosition.map((post) => post.id);
 

@@ -14,6 +14,7 @@ import {
   PanGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
+import { useHaptics } from "@/hooks/useHaptics";
 import { useFocusEffect } from '@react-navigation/native';
 
 const AlertNotification: React.FC<AlertProps> = ({
@@ -30,6 +31,8 @@ const AlertNotification: React.FC<AlertProps> = ({
   const [visible, setVisible] = useState<boolean>(true);
   const [onAnimationFinish, setOnAnimationFinish] = useState(false);
   const SWIPE_THRESHOLD = -15; // How far user needs to swipe up to dismiss
+
+  const { triggerHaptic } = useHaptics();
 
   // Animation values
   const translateY = useSharedValue(-200);
@@ -59,9 +62,9 @@ const AlertNotification: React.FC<AlertProps> = ({
     if (onAnimationFinish) {
       setTimeout(() => {
         if (status == 'success') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          triggerHaptic(Haptics.NotificationFeedbackType.Success);
         } else if (status == 'error') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          triggerHaptic(Haptics.NotificationFeedbackType.Error);
         }
         setVisible(false);
         if (onClose) onClose();

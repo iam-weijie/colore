@@ -11,6 +11,7 @@ import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAlert } from '@/notifications/AlertContext';
 import * as Haptics from 'expo-haptics';
+import { useHaptics } from "@/hooks/useHaptics";
 import { useGlobalContext } from "../globalcontext";
 import { handleSubmitPost } from "@/lib/post";
  
@@ -19,6 +20,7 @@ const PreviewPost = () => {
   const { user } = useUser();
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const { showAlert } = useAlert();
+  const { triggerHaptic } = useHaptics();
   const { setDraftPost, draftPost } = useGlobalContext();
   const [isPosting, setIsPosting] = useState(false);
 
