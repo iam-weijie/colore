@@ -18,7 +18,7 @@ const RichTextInput = ({
   const [value, setValue] = useState('');
   const [formats, setFormats] = useState<Format[]>([]);
   const [selection, setSelection] = useState({ start: 0, end: 0 });
-  const [isFocused, setIsFocused] = useState(true);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const isOverlap = (aStart: number, aEnd: number, bStart: number, bEnd: number) => {
@@ -38,6 +38,11 @@ const RichTextInput = ({
     return lines;
   };
 
+  const loadFormatting = (formatting: Format[]) => {
+    for (const format in formatting) {
+      toggleFormat
+    }
+  }
   const toggleFormat = (type: TextStyle) => {
     if (selection.start === selection.end) return;
 
@@ -74,6 +79,11 @@ const RichTextInput = ({
   useEffect(() => {
     setValue(draftPost.content ?? '');
     setFormats(draftPost.formatting ?? [])
+
+
+
+
+    console.log("formatting: ", draftPost.formatting, formats)
   }, []);
 
   useEffect(() => {
@@ -82,8 +92,8 @@ const RichTextInput = ({
 
   useEffect(() => {
     exportText(value);
-    exportStyling(formats)
-  }, [value]);
+    exportStyling(formats);
+  }, [value, formats]);
 
   const getStyleClass = (types: TextStyle[]) => {
     let classNames = 'text-[#FAFAFA] leading-[32px]';
