@@ -80,35 +80,6 @@ export async function GET(request: Request) {
       });
     }
 
-
-    if (postsWithComments.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
-        status: 200,
-      });
-    }
-
-
-    if (postsWithComments.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
-        status: 200,
-      });
-    }
-
-
-    if (postsWithComments.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
-        status: 200,
-      });
-    }
-
-
-    if (postsWithComments.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
-        status: 200,
-      });
-    }
-
-
     const filteredPosts = postsWithComments
   .filter((post: any) => post.comments) // 
 
