@@ -64,6 +64,9 @@ import TabsContainer from "@/components/TabsContainer";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import { useSoundGesture } from "@/hooks/useSoundGesture";
 //import { ScrollView } from "react-native-gesture-handler";
+import { useHaptics } from "@/hooks/useHaptics";
+
+
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -77,6 +80,8 @@ declare interface FriendRequestList {
 
 
 export const ChatScreen: React.FC<ChatScreenProps> = () => {
+  const { triggerHaptic } = useHaptics();
+
   const { user } = useUser();
   const { showAlert } = useAlert();
   const { stateVars, setStateVars } = useNavigationContext();

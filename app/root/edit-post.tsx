@@ -23,6 +23,9 @@ import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
+import { Audio } from "expo-av";
+
+
 
 
 const EditPost = () => {

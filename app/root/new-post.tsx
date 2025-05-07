@@ -35,8 +35,22 @@ import RichTextInput from "@/components/RichTextInput";
 import KeyboardOverlay from "@/components/KeyboardOverlay";
 import PostContainer from "@/components/PostContainer";
 import { handleSubmitPost } from "@/lib/post";
+import * as Haptics from "expo-haptics";
+import { Audio } from "expo-av";
+
 
 const NewPost = () => {
+  const playClickSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require("assets/sounds/pop.mp3") 
+      );
+      await sound.playAsync();
+    } catch (error) {
+      console.error("Failed to play click sound:", error);
+    }
+  };
+  
   const { user } = useUser();
   const { postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
   const { setDraftPost, draftPost } = useGlobalContext();
@@ -221,22 +235,37 @@ const NewPost = () => {
           {
             icon: icons.back,
             label: "Back",
-            onPress: () => router.back(),
+            onPress: () => {
+              playClickSound();
+              Haptics.selectionAsync();
+              router.back();
+            }
+            
           },
           {
             icon: icons.send,
             label: "New Post",
             onPress: async () => {
+              playClickSound();
+              Haptics.selectionAsync();
               if (selectedTab == "customize") {
-              handleSubmitPost(user!.id, draftPost)
-              } else {setSelectedTab("customize")}
-            },
+                handleSubmitPost(user!.id, draftPost);
+              } else {
+                setSelectedTab("customize");
+              }
+            }
+            
             isCenter: true,
           },
           {
             icon: icons.settings,
             label: "More",
-            onPress: () => {},
+            onPress: () => {
+              playClickSound();
+              Haptics.selectionAsync();
+              // Add additional logic if needed
+            },
+            
             isCenter: true,
           },
         ]

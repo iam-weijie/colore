@@ -25,8 +25,23 @@ import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import 
 import { useAlert } from '@/notifications/AlertContext';
 import ModalSheet from "@/components/Modal";
 import RenameContainer from "@/components/RenameContainer";
+import * as Haptics from "expo-haptics";
+import { Audio } from "expo-av";
+
+
 
 const Settings = () => {
+  const playClickSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require("assets/sounds/clicklow.mp3") 
+      );
+      await sound.playAsync();
+    } catch (error) {
+      console.error("Failed to play click sound:", error);
+    }
+  };
+  
   const { signOut } = useAuth();
   const { user } = useUser();
   const [username, setUsername] = useState("");
@@ -38,6 +53,8 @@ const Settings = () => {
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
+  const { playSoundEffect } = useSoundEffects();
+
 
   // Get settings state and setters from Global Context
   const {
@@ -213,6 +230,9 @@ const Settings = () => {
   };
 
   const handleLocationUpdate = () => {
+    playClickSound();
+    Haptics.selectionAsync();
+
     setStateVars({
       ...stateVars,
       previousScreen: "settings",
@@ -225,6 +245,9 @@ const Settings = () => {
 
   const handleSignOut = async () => {
     try {
+      playClickSound();
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
       await signOut();
       setLoading(true);
       router.replace("/auth/onboarding");
@@ -240,9 +263,13 @@ const Settings = () => {
   };
 
     const handleUpdateValue = (type: string) => {
+      playClickSound();
+      Haptics.selectionAsync();
+
       setSelectedTitle(`${type == "username" ? 'New username' : 'New Email'}`)
       setSelectedModal(
         <RenameContainer
+        
         initialValue={""}
         onSave={(newName: string) => {
         
