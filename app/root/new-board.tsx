@@ -30,8 +30,28 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { UniqueSelection, NumberSelection } from "@/components/Selector";
 import Header from "@/components/Header";
 import { CustomButtonBar } from "@/components/CustomTabBar";
+import * as Haptics from "expo-haptics";
+import { Audio } from "expo-av";
+
+
 
 const NewPost = () => {
+  const handleClickFeedback = async () => {
+    try {
+      await Haptics.selectionAsync();
+      const { sound } = await Audio.Sound.createAsync(require("assets/sounds/clicklow.mp3"));
+      await sound.playAsync();
+      // Unload the sound after it's played
+      sound.setOnPlaybackStatusUpdate(status => {
+        if (status.isLoaded && status.didJustFinish) {
+          sound.unloadAsync();
+        }
+      });
+    } catch (error) {
+      console.error("Error playing sound:", error);
+    }
+  };
+  
   const { user } = useUser();
   const { type } = useLocalSearchParams();
   const { showAlert } = useAlert();
@@ -71,12 +91,17 @@ const NewPost = () => {
           {
             icon: icons.back,
             label: "Back",
-            onPress: () => router.back(),
+            onPress: async () => {
+              await handleClickFeedback(); 
+              router.back(); 
+            }
+            
           },
           {
             icon: icons.send,
             label: "New Post",
             onPress: () => {
+              await handleClickFeedback();
               if(selectedTab !== "Restriction") {
                 if (selectedTab === "Title" && boardTitle.length > 0) {
                   setSelectedTab("Description")
@@ -149,6 +174,7 @@ Perfect for open discussions or quiet sharing.`,
       icon: icons.hide,
       iconColor: "#FAFAFA",
       onPress: () => {
+        await handleClickFeedback(); 
         const restric = allRestricitons.find((r) => r.restriction === "privacy")
         if (!restric) {
           return
@@ -164,6 +190,7 @@ Perfect for open discussions or quiet sharing.`,
       icon: icons.comment,
       iconColor: "#FAFAFA",
       onPress: () => {
+        await handleClickFeedback(); 
         const restric = allRestricitons.find((r) => r.restriction === "comments")
         if (!restric) {
           return
@@ -184,6 +211,7 @@ Perfect for open discussions or quiet sharing.`,
       icon: icons.globe,
       iconColor: "#FAFAFA",
       onPress: () => {
+        await handleClickFeedback(); 
         setSelectedModal(<NumberSelection minNum={4} maxNum={8} onSelect={handleMaxPost} />)
         setSelectedModalTitle("Maximum number of notes")
       }

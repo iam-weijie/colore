@@ -36,19 +36,27 @@ const HapticTabBarButton: React.FC<HapticTabBarButtonProps> = ({ children, onPre
   const { playSoundEffect } = useSoundEffects();
   const scale = useRef(new Animated.Value(1)).current;
 
-  const handlePress = (e: GestureResponderEvent) => {
+  const handlePress = async (e: GestureResponderEvent) => {
     if (hapticsEnabled) {
       triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
     }
-    
+  
     if (soundEffectsEnabled) {
-      playSoundEffect(SoundType.Navigation);
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          require('assets/sounds/click1.mp3')
+        );
+        await sound.playAsync();
+      } catch (err) {
+        console.error("Error playing click.mp3:", err);
+      }
     }
-    
+  
     if (onPress) {
       onPress(e);
     }
   };
+  
 
   const handlePressIn = () => {
     Animated.spring(scale, {

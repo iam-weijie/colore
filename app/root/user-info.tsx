@@ -32,6 +32,19 @@ import React from "react";
 import ColorPickerSlider from "@/components/ColorPickerSlider";
 
 const UserInfo = () => {
+  const playClickSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require("assets/sounds/clicklow.mp3") 
+      );
+      await sound.playAsync();
+    } catch (error) {
+      console.error("Failed to play click sound:", error);
+    }
+  };
+  const { playSoundEffect } = useSoundEffects();
+  const { soundEffectsEnabled } = useGlobalContext();
+
   const { user } = useUser();
   const { showAlert } = useAlert();
   
@@ -268,6 +281,9 @@ const UserInfo = () => {
   };
 
   const handleNavigateToCountry = () => {
+    playClickSound();
+    Haptics.selectionAsync();
+  
     setStateVars({
       ...stateVars,
       previousScreen: currentScreen,
@@ -278,6 +294,7 @@ const UserInfo = () => {
     });
     router.push("/root/location/country");
   };
+  
 
   useEffect(() => {
     console.log("Update location");
@@ -380,12 +397,17 @@ const UserInfo = () => {
         iconColor="#22c722"
         actionIcon={hasJoined && icons.check}
         onPress={async () => {
+          playClickSound();
+          Haptics.selectionAsync();
+        
           if (item.username) {
             router.push({
               pathname: "/root/profile/[id]",
               params: { id: item.clerk_id },
             });
           } else {
+            // continue existing logic...
+        
             const response = await fetchAPI(`/api/boards/handleJoiningCommunityBoard`, {
               method: "PATCH",
               body: JSON.stringify({ 
@@ -583,16 +605,17 @@ const UserInfo = () => {
   ];
 
   const handleNext = () => {
+    playClickSound();
+    Haptics.selectionAsync();
+  
     if (step < totalSteps - 1) setStep((prev) => prev + 1);
     else {
-      
-      submitPost()
-
+      submitPost();
       router.push("/root/tabs/home");
-    
     }
   };
-
+  
+  
 
   return (
     <SafeAreaView className="flex-1 bg-white">

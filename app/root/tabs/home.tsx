@@ -26,9 +26,24 @@ import NotificationBubble from "@/components/NotificationBubble";
 import ItemContainer from "@/components/ItemContainer";
 import ModalSheet from "@/components/Modal";
 import Header from "@/components/Header";
+import * as Haptics from "expo-haptics";
+import { Audio } from "expo-av";
+
 
 
 export default function Page() {
+  const playClickSound = async () => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const { sound } = await Audio.Sound.createAsync(
+        require('assets/sounds/clicklow.mp3')
+      );
+      await sound.playAsync();
+    } catch (e) {
+      console.warn("Failed to play sound:", e);
+    }
+  };
+  
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
   const { isIpad, unreadComments, unreadPersonalPosts } = useGlobalContext();
