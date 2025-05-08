@@ -22,26 +22,24 @@ import {
 } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
-import { useAlert } from '@/notifications/AlertContext';
+import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
 import RenameContainer from "@/components/RenameContainer";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 
-
-
 const Settings = () => {
   const playClickSound = async () => {
     try {
       const { sound } = await Audio.Sound.createAsync(
-        require("assets/sounds/clicklow.mp3") 
+        require("assets/sounds/clicklow.mp3")
       );
       await sound.playAsync();
     } catch (error) {
       console.error("Failed to play click sound:", error);
     }
   };
-  
+
   const { signOut } = useAuth();
   const { user } = useUser();
   const [username, setUsername] = useState("");
@@ -53,8 +51,6 @@ const Settings = () => {
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
-  const { playSoundEffect } = useSoundEffects();
-
 
   // Get settings state and setters from Global Context
   const {
@@ -63,7 +59,7 @@ const Settings = () => {
     soundEffectsEnabled,
     setSoundEffectsEnabled,
   } = useGlobalContext();
-  const { playSoundEffect } = useSoundEffects(); // Use the sound hook
+
   const { showAlert } = useAlert();
 
   const fetchUserData = async () => {
@@ -115,10 +111,10 @@ const Settings = () => {
     console.log("New Username: ", newName);
     if (!verifyValidUsername(newName)) {
       showAlert({
-        title: 'Invalid Username',
+        title: "Invalid Username",
         message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
       return;
     }
@@ -136,32 +132,31 @@ const Settings = () => {
       //console.log("Changed Username", response)
       if (response.error) {
         if (response.error.includes("already taken")) {
-
-      showAlert({
-        title: 'Username taken',
-        message: `Username ${newName} already exists. Please try another one.`,
-        type: 'ERROR',
-        status: 'error',
-      });
+          showAlert({
+            title: "Username taken",
+            message: `Username ${newName} already exists. Please try another one.`,
+            type: "ERROR",
+            status: "error",
+          });
         } else {
           throw new Error(response.error);
         }
       } else {
         showAlert({
-          title: 'New Username',
+          title: "New Username",
           message: `Username updated successfully to ${newName}.`,
-          type: 'UPDATE',
-          status: 'success',
+          type: "UPDATE",
+          status: "success",
         });
         await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to update username:", error);
       showAlert({
-        title: 'Error',
+        title: "Error",
         message: `Failed to update username. Please try again.`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
     } finally {
       setLoading(false);
@@ -179,10 +174,10 @@ const Settings = () => {
 
     if (!verifyValidEmail(newEmail)) {
       showAlert({
-        title: 'Email address is invalid. ',
+        title: "Email address is invalid. ",
         message: `Please enter a valid email address.`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
       return;
     }
@@ -199,30 +194,30 @@ const Settings = () => {
       if (response.error) {
         if (response.error.includes("already taken")) {
           showAlert({
-            title: 'Email taken',
+            title: "Email taken",
             message: `Email ${newEmail} already exists. Please try another one.`,
-            type: 'ERROR',
-            status: 'error',
+            type: "ERROR",
+            status: "error",
           });
         } else {
           throw new Error(response.error);
         }
       } else {
         showAlert({
-          title: 'Success',
+          title: "Success",
           message: `Email updated successfully to ${newEmail}.`,
-          type: 'UPDATE',
-          status: 'success',
+          type: "UPDATE",
+          status: "success",
         });
         await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to update email:", error);
       showAlert({
-        title: 'Error',
+        title: "Error",
         message: `Failed to update email. Please try again.`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
     } finally {
       setLoading(false);
@@ -254,34 +249,29 @@ const Settings = () => {
     } catch (error) {
       console.error("Error signing out:", error);
       showAlert({
-        title: 'Error',
+        title: "Error",
         message: `Failed to sign out.`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
     }
   };
 
-    const handleUpdateValue = (type: string) => {
-      playClickSound();
-      Haptics.selectionAsync();
+  const handleUpdateValue = (type: string) => {
+    playClickSound();
+    Haptics.selectionAsync();
 
-      setSelectedTitle(`${type == "username" ? 'New username' : 'New Email'}`)
-      setSelectedModal(
-        <RenameContainer
-        
+    setSelectedTitle(`${type == "username" ? "New username" : "New Email"}`);
+    setSelectedModal(
+      <RenameContainer
         initialValue={""}
         onSave={(newName: string) => {
-        
           if (type === "username") {
-
             handleUsernameUpdate(newName);
           } else {
-
             handleEmailUpdate(newName);
-            
           }
-        
+
           setSelectedModal(null);
           setSelectedTitle("");
         }}
@@ -291,9 +281,9 @@ const Settings = () => {
         }}
         placeholder={type === "username" ? username : email}
         maxCharacters={type === "username" ? 20 : 50}
-      />)
-    }
-    
+      />
+    );
+  };
 
   const currentLocation = profileUser
     ? `${profileUser.city}, ${profileUser.state}, ${profileUser.country}`
@@ -319,12 +309,11 @@ const Settings = () => {
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
   };
   return (
-
     <ScrollView className="flex-1 pt-6" showsVerticalScrollIndicator={false}>
       {/* Account Section */}
       <View className="mx-6 mb-6">
-        <View 
-          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4" 
+        <View
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4"
           style={{
             backgroundColor: "#93c5fd",
             borderColor: "#ffffff80",
@@ -335,7 +324,9 @@ const Settings = () => {
           }}
         >
           <View className="px-5 py-3">
-            <Text className="text-lg font-JakartaBold text-gray-800">Account Information</Text>
+            <Text className="text-lg font-JakartaBold text-gray-800">
+              Account Information
+            </Text>
           </View>
           {/*
           
@@ -355,7 +346,7 @@ const Settings = () => {
               containerStyle="-mt-8"
             />
           </View>*/}
-          
+
           {/*<View className="px-5 py-3">
             <Text className="text-sm font-JakartaSemiBold text-[#000]">Email Address</Text>
             
@@ -375,51 +366,69 @@ const Settings = () => {
           </View>*/}
           <View className="px-5 py-3">
             <View className="flex flex-row items-center justify-between mb-1">
-              <Text className="text-lg font-JakartaSemiBold text-[#000]">Username</Text>
+              <Text className="text-lg font-JakartaSemiBold text-[#000]">
+                Username
+              </Text>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => handleUpdateValue("username")}
                 className="bg-black px-3 py-2 rounded-full"
               >
-                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
+                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">
+                  Update
+                </Text>
               </TouchableOpacity>
             </View>
-            <Text className="text-gray-800 text-base font-JakartaMedium mt-1">{username || "Not specified"}</Text>
+            <Text className="text-gray-800 text-base font-JakartaMedium mt-1">
+              {username || "Not specified"}
+            </Text>
           </View>
           <View className="px-5 py-3">
             <View className="flex flex-row items-center justify-between mb-1">
-              <Text className="text-lg font-JakartaSemiBold text-[#000]">Email</Text>
+              <Text className="text-lg font-JakartaSemiBold text-[#000]">
+                Email
+              </Text>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => handleUpdateValue("email")}
                 className="bg-black px-3 py-2 rounded-full"
               >
-                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
+                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">
+                  Update
+                </Text>
               </TouchableOpacity>
             </View>
-            <Text className="text-gray-800 text-base font-JakartaMedium mt-1">{email || "Not specified"}</Text>
+            <Text className="text-gray-800 text-base font-JakartaMedium mt-1">
+              {email || "Not specified"}
+            </Text>
           </View>
-      
+
           <View className="px-5 py-3">
             <View className="flex flex-row items-center justify-between mb-1">
-              <Text className="text-lg font-JakartaSemiBold text-[#000]">Location</Text>
+              <Text className="text-lg font-JakartaSemiBold text-[#000]">
+                Location
+              </Text>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={handleLocationUpdate}
                 className="bg-black px-3 py-2 rounded-full"
               >
-                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
+                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">
+                  Update
+                </Text>
               </TouchableOpacity>
             </View>
-            <Text className="text-gray-800 text-base font-JakartaMedium  mt-1">{currentLocation || "Not specified"}</Text>
+            <Text className="text-gray-800 text-base font-JakartaMedium  mt-1">
+              {currentLocation || "Not specified"}
+            </Text>
           </View>
         </View>
       </View>
-  
+
       {/* Activity Section */}
       <View className="mx-6 mb-6">
-        <View 
-          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4" 
+        <View
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4"
           style={{
             backgroundColor: "#CFB1FB",
             borderColor: "#ffffff80",
@@ -430,9 +439,11 @@ const Settings = () => {
           }}
         >
           <View className="px-5 py-4">
-            <Text className="text-lg font-JakartaBold text-gray-800">Your Activity</Text>
+            <Text className="text-lg font-JakartaBold text-gray-800">
+              Your Activity
+            </Text>
           </View>
-          
+
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => {
@@ -455,13 +466,17 @@ const Settings = () => {
                   className="w-5 h-5"
                 />
               </View>
-              <Text className="text-base font-JakartaSemiBold text-gray-800">Saved Posts</Text>
+              <Text className="text-base font-JakartaSemiBold text-gray-800">
+                Saved Posts
+              </Text>
             </View>
             <View className="flex flex-row items-center">
-              <Text className="text-[#000] text-sm mr-2">{savedPosts?.length || 0}</Text>
+              <Text className="text-[#000] text-sm mr-2">
+                {savedPosts?.length || 0}
+              </Text>
             </View>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => {
@@ -483,19 +498,23 @@ const Settings = () => {
                   color="#EF4444"
                 />
               </View>
-              <Text className="text-base font-JakartaSemiBold text-gray-800">Liked Posts</Text>
+              <Text className="text-base font-JakartaSemiBold text-gray-800">
+                Liked Posts
+              </Text>
             </View>
             <View className="flex flex-row items-center">
-              <Text className="text-[#000] text-sm mr-2">{likedPosts?.length || 0}</Text>
+              <Text className="text-[#000] text-sm mr-2">
+                {likedPosts?.length || 0}
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
       </View>
-  
+
       {/* Preferences Section */}
       <View className="mx-6 mb-6">
-        <View 
-          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4" 
+        <View
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4"
           style={{
             backgroundColor: "#ffe640",
             borderColor: "#ffffff80",
@@ -506,13 +525,19 @@ const Settings = () => {
           }}
         >
           <View className="px-5 py-4">
-            <Text className="text-lg font-JakartaBold text-gray-800">Preferences</Text>
+            <Text className="text-lg font-JakartaBold text-gray-800">
+              Preferences
+            </Text>
           </View>
-          
+
           <View className="px-5 py-3 flex flex-row items-center justify-between">
             <View className="flex-1">
-              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">Haptic Feedback</Text>
-              <Text className="text-sm text-gray-800">Get physical feedback for interactions</Text>
+              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">
+                Haptic Feedback
+              </Text>
+              <Text className="text-sm text-gray-800">
+                Get physical feedback for interactions
+              </Text>
             </View>
             <Switch
               trackColor={{ false: "#888", true: "#000" }}
@@ -522,11 +547,15 @@ const Settings = () => {
               value={hapticsEnabled}
             />
           </View>
-          
+
           <View className="px-5 py-3 flex flex-row items-center justify-between">
             <View className="flex-1">
-              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">Sound Effects</Text>
-              <Text className="text-sm text-gray-800">Play sounds for certain actions</Text>
+              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">
+                Sound Effects
+              </Text>
+              <Text className="text-sm text-gray-800">
+                Play sounds for certain actions
+              </Text>
             </View>
             <Switch
               trackColor={{ false: "#888", true: "#000" }}
@@ -538,10 +567,10 @@ const Settings = () => {
           </View>
         </View>
       </View>
-  
+
       {/* Sign Out Section */}
       <View className="mx-6 mb-6">
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={handleSignOut}
           className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center"
           style={{
@@ -551,26 +580,28 @@ const Settings = () => {
             shadowRadius: 4,
           }}
         >
-          <Text className="font-JakartaBold text-lg text-red-500">Sign Out</Text>
+          <Text className="font-JakartaBold text-lg text-red-500">
+            Sign Out
+          </Text>
         </TouchableOpacity>
       </View>
 
-       {!!selectedModal && 
-         <ModalSheet 
-         children={selectedModal} 
-         title={selectedTitle} 
-         isVisible={!!selectedModal} 
-         onClose={() => {
-          setSelectedModal(null)
-          setSelectedTitle("")}
-         
-          } />}
+      {!!selectedModal && (
+        <ModalSheet
+          children={selectedModal}
+          title={selectedTitle}
+          isVisible={!!selectedModal}
+          onClose={() => {
+            setSelectedModal(null);
+            setSelectedTitle("");
+          }}
+        />
+      )}
     </ScrollView>
   );
 };
 
 export default Settings;
-
 
 /*
 
