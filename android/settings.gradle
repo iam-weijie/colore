@@ -4,7 +4,7 @@ pluginManagement {
       workingDir(rootDir)
       commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
     }.standardOutput.asText.get().trim()
-  ).getParentFile().absolutePath
+  ).getParentFile().absolutePath.replace("\\", "/")
   includeBuild(reactNativeGradlePlugin)
   
   def expoPluginsPath = new File(
@@ -13,7 +13,7 @@ pluginManagement {
       commandLine("node", "--print", "require.resolve('expo-modules-autolinking/package.json', { paths: [require.resolve('expo/package.json')] })")
     }.standardOutput.asText.get().trim(),
     "../android/expo-gradle-plugin"
-  ).absolutePath
+  ).absolutePath.replace("\\", "/")
   includeBuild(expoPluginsPath)
 }
 
@@ -31,7 +31,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 expoAutolinking.useExpoModules()
 
-rootProject.name = 'Coloré'
+rootProject.name = 'Colore'
 
 expoAutolinking.useExpoVersionCatalog()
 

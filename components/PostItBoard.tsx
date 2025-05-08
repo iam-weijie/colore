@@ -681,86 +681,62 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                     );
                   })}
 
-                  {/* Render standalone posts */}
-                  {postsWithPosition.map((post) => {
-                    if (allPostsInStack.includes(post)) return null;
-                    return (
-                      <DraggablePostIt
-                        key={post.id}
-                        post={post}
-                        position={{
-                          top: post.position.top,
-                          left: post.position.left,
-                        }}
-                        updateIndex={() => handleReorderPost(post)}
-                        updatePosition={(dx, dy) =>
-                          updatePostPosition(dx, dy, post)
-                        }
-                        onPress={() => handlePostPress(post)}
-                        showText={showPostItText}
-                        isViewed={excludeIds.includes(String(post.id))}
-                        enabledPan={() => setIsPanningMode((prev) => !prev)}
-                        zoomScale={zoomScale}
-                        scrollOffset={scrollOffset}
-                        disabled={isStackMoving}
-                        visibility={isStackMoving ? 0.5 : 1}
-                      />
-                    );
-                  })}
-                </View>
-              </View>
+{/* Render all posts independently */}
+{postsWithPosition.map(post => {
 
-              {/* Modals */}
-              {selectedPosts && (
-                <PostModal
-                  isVisible={!!selectedPosts}
-                  selectedPosts={selectedPosts}
-                  handleCloseModal={handleCloseModal}
-                  handleUpdate={handleIsPinned}
-                  invertedColors={invertColors}
-                />
-              )}
-              {keyboardVisible && currentStack && 
-              <KeyboardOverlay> 
-                      <RenameContainer
-                          initialValue={""}
-                          onSave={(newName: string) => {
-                            setStacks((prevStacks) =>
-                              prevStacks.map((s) =>
-                                s.center.x === currentStack.center.x && s.center.y === currentStack.center.y
-                                  ? { ...s, name: newName }
-                                  : s
-                              )
-                            );
-                            setSelectedModal(null);
-                            setSelectedTitle(null);
-                            setKeyboardVisible(false);
-                          }}
-                          onCancel={() => {
-                            setSelectedModal(null);
-                            setSelectedTitle(null);
-                            setKeyboardVisible(false);
-                          }}
-                          placeholder={currentStack.name}
-                        />
-                </KeyboardOverlay>}
-              
-                <ModalSheet
-                  isVisible={!!selectedModal}
-                  title={selectedTitle}
-                  onClose={() => {
-                    setSelectedModal(null);
-                    setSelectedTitle(null);
-                  }}
-                >
+  return (
+<DraggablePostIt
+  key={post.id}
+  post={post}
+  position={{
+    top: post.position.top,
+    left: post.position.left,
+  }}
+  updateIndex={() => reorderPost(post)}
+  updatePosition={(dx, dy, post) => updatePostPosition(dx, dy, post)}
+  onPress={() => handlePostPress(post)}
+  showText={showPostItText}
+  enabledPan={() => setIsPanningMode(prev => !prev)}
+  zoomScale={zoomScale}
+  scrollOffset={scrollOffset}
+  disabled={isStackMoving}
+  visibility={isStackMoving ? 0.5 : 1}
+/>
+
+)})}
+
+</View>
+
+            </View>
+
+            {selectedPosts && (
+              <PostModal
+                isVisible={!!selectedPosts}
+                selectedPosts={selectedPosts}
+                handleCloseModal={handleCloseModal}
+                handleUpdate={(isPinned: boolean) => handleIsPinned(isPinned)}
+                invertedColors={invertColors}
+              />
+            )}
+            {selectedModal && 
+              <ModalSheet
+                    isVisible={!!selectedModal}
+                    title={selectedTitle}
+                     onClose={() => {
+                      setSelectedModal(null);
+                      setSelectedTitle(null);
+                     }}                
+                     >
                   {selectedModal}
-                </ModalSheet>
-              
-            </ScrollView>
+                  </ModalSheet>
+            }
           </ScrollView>
-        )}
-      </SignedIn>
-    </View>
+        </ScrollView>
+      )}
+      {/*</Pressable>*/}
+  </SignedIn>
+</View>
+
   );
 };
 
@@ -800,8 +776,7 @@ export default PostItBoard;
       const postId = selectedPost.id;
       
      
-      
-    //console.log("Post to remove", selectedPost.id, "tria;l", i)
+      //console.log("Post to remove", selectedPost.id, "tria;l", i)
       setPostsWithPosition((prevPosts) => {
         const updatePosts = prevPosts.filter((post) => post.id !== postId);
        console.log(
