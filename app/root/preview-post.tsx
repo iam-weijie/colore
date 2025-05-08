@@ -7,7 +7,7 @@ import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Platform, Text, TouchableOpacity, View } from "react-native";
 import { useAlert } from '@/notifications/AlertContext';
 import * as Haptics from 'expo-haptics';
 import { useGlobalContext } from "../globalcontext";
@@ -23,7 +23,7 @@ const PreviewPost = () => {
 
   const handleCloseModal = () => {
     setIsVisible(false);
-    router.back(); // Single back; assumed this goes to NewPost
+    router.push("/root/new-post");
   };
 
   const handleSubmitPost = async () => {
@@ -62,7 +62,7 @@ const PreviewPost = () => {
           type: "UPDATE",
           status: "success",
         });
-        router.back();
+        router.push("/root/tabs/home");
       } else {
         const body = {
           content: draftPost.content,
@@ -92,8 +92,7 @@ const PreviewPost = () => {
           status: "success",
         });
 
-        // Go back twice: out of preview and then out of new-post
-        router.back(); // slight delay for safe stack unwinding
+        router.push("/root/tabs/home");
       }
     } catch (error) {
       console.error("Error submitting post:", error);
@@ -118,30 +117,39 @@ const PreviewPost = () => {
           handleCloseModal={handleCloseModal}
           isPreview={true}
           header={
-          
-              <View className="flex-1 absolute flex items-center w-full bottom-[10%]">
-            <CustomButton
-              className="w-[50%] h-16 rounded-full shadow-none bg-black"
-              fontSize="lg"
-              title="submit"
-              padding="0"
-              onPress={handleSubmitPost}
-              //disabled={!postContent || isPosting}
-            />
-               <TouchableOpacity
+              <View 
+                className="flex-1 items-center w-full" 
+                style={{
+                  position: 'absolute',
+                  bottom: Platform.OS === 'android' ? 80 : '10%',
+                  left: 0,
+                  right: 0,
+                  zIndex: 999
+                }}
+              >
+                <CustomButton
+                  className="w-[50%] h-16 rounded-full shadow-none bg-black"
+                  fontSize="lg"
+                  title="submit"
+                  padding="0"
+                  onPress={handleSubmitPost}
+                  activeOpacity={0.7}
+                />
+                <TouchableOpacity
                   onPress={handleCloseModal}
-                  className="mt-4"
+                  className="mt-4 p-3"
+                  activeOpacity={0.7}
                 >
                   <Text 
-                  className="text-white font-JakartaBold text-[16px]"
-                  style={{
-                    borderBottomWidth: 2,
-                    borderBottomColor: "#fff"
-                  }}>
+                    className="text-white font-JakartaBold text-[16px]"
+                    style={{
+                      borderBottomWidth: 2,
+                      borderBottomColor: "#fff"
+                    }}>
                     Go back
                   </Text>
                 </TouchableOpacity>
-            </View>
+              </View>
           }
         />
       </View>
