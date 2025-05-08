@@ -19,11 +19,9 @@ import ColorSelector from "@/components/ColorSelector";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor, UserNicknamePair, TextStyle, Format } from "@/types/type";
-import { useAlert } from '@/notifications/AlertContext';
+import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
-import {
-  fetchFriends
-} from "@/lib/friend";
+import { fetchFriends } from "@/lib/friend";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import ItemContainer from "@/components/ItemContainer";
 import { useGlobalContext } from "../globalcontext";
@@ -38,35 +36,47 @@ import { handleSubmitPost } from "@/lib/post";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 
-
 const NewPost = () => {
   const playClickSound = async () => {
     try {
       const { sound } = await Audio.Sound.createAsync(
-        require("assets/sounds/pop.mp3") 
+        require("assets/sounds/pop.mp3")
       );
       await sound.playAsync();
     } catch (error) {
       console.error("Failed to play click sound:", error);
     }
   };
-  
+
   const { user } = useUser();
-  const { postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
+  const {
+    postId,
+    content,
+    color,
+    emoji,
+    recipientId,
+    username,
+    expiration,
+    prompt,
+    promptId,
+    boardId,
+  } = useLocalSearchParams();
   const { setDraftPost, draftPost } = useGlobalContext();
   const { showAlert } = useAlert();
 
   const [selectedTab, setSelectedTab] = useState<string>("create");
-  
+
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
-  const [selectedRecipientId, setSelectedRecipientId] = useState<string>(recipientId)
+  const [selectedRecipientId, setSelectedRecipientId] =
+    useState<string>(recipientId);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [userUsername, setUserUsername] = useState<string>(username);
   const [postContent, setPostContent] = useState<string>(content);
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors.find((c) => c.name === color ) ?? temporaryColors[Math.floor(Math.random() * 4)]
+    temporaryColors.find((c) => c.name === color) ??
+      temporaryColors[Math.floor(Math.random() * 4)]
   );
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
@@ -74,33 +84,29 @@ const NewPost = () => {
   const [refreshingKey, setRefreshingKey] = useState<number>(0);
   const [formats, setFormats] = useState<Format[]>([]);
 
+  const [selectExpirationDate, setSelectExpirationDate] =
+    useState<string>(expiration);
 
-
-  const [selectExpirationDate, setSelectExpirationDate] = useState<string>(expiration)
-
-  const expirationDate = ['1 day', '3 days', '7 days', '14 days']
-
+  const expirationDate = ["1 day", "3 days", "7 days", "14 days"];
 
   //console.log("arguments passed: ", postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId  )
 
   const tabs = [
-    {name: "Create", key: "create", color: "#000"},
-    {name: "Customize", key: "customize", color: "#000"},
-    {name: "Information", key: "information", color: "#000"}
-]
+    { name: "Create", key: "create", color: "#000" },
+    { name: "Customize", key: "customize", color: "#000" },
+    { name: "Information", key: "information", color: "#000" },
+  ];
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
     setIsEmojiSelectorVisible(false);
   };
 
-  
   const applyStyle = (newStyle: TextStyle) => {
-    setTextStyling(newStyle)
-    setRefreshingKey((prev) => prev + 1)
-    Keyboard.dismiss()
-  }
-
+    setTextStyling(newStyle);
+    setRefreshingKey((prev) => prev + 1);
+    Keyboard.dismiss();
+  };
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -108,18 +114,17 @@ const NewPost = () => {
     } else {
       setPostContent(text.substring(0, maxCharacters));
       showAlert({
-        title: 'Limit Reached',
+        title: "Limit Reached",
         message: `You can only enter up to ${maxCharacters} characters.`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
-
     }
   };
 
   const handleChangeFormat = (formats: Format[]) => {
-    setFormats(formats)
-  }
+    setFormats(formats);
+  };
 
   const toggleEmojiSelector = () => {
     setIsEmojiSelectorVisible((prev) => !prev);
@@ -128,22 +133,20 @@ const NewPost = () => {
 
   const selectedUserInfo = (info: UserNicknamePair) => {
     setSelectedUser(info);
-    setSelectedRecipientId(info[0])
+    setSelectedRecipientId(info[0]);
     setUserUsername(info[1]);
-    setIsModalVisible(false)
-  }
+    setIsModalVisible(false);
+  };
 
-   useEffect(() => {
-     if (selectedEmoji && isEmojiSelectorVisible) {
-       toggleEmojiSelector();
-     }
-   }, [selectedEmoji]);
-   
+  useEffect(() => {
+    if (selectedEmoji && isEmojiSelectorVisible) {
+      toggleEmojiSelector();
+    }
+  }, [selectedEmoji]);
 
-   useEffect(() => {
-   
+  useEffect(() => {
     if (postId) {
-      setPostContent(content)
+      setPostContent(content);
     }
     setDraftPost({
       id: Number(postId ?? 0),
@@ -169,7 +172,7 @@ const NewPost = () => {
       board_id: boardId ? Number(boardId) : -1,
       reply_to: 0,
       unread: false,
-      formatting: formats
+      formatting: formats,
     });
   }, [
     postId,
@@ -181,16 +184,19 @@ const NewPost = () => {
     promptId,
     prompt,
     boardId,
-    formats
+    formats,
   ]);
 
   useEffect(() => {
-     if (draftPost && !postId) {
+    if (draftPost && !postId) {
       setPostContent(draftPost.content);
-      const savedColor = temporaryColors.find(c => c.name === draftPost.color);
+      const savedColor = temporaryColors.find(
+        (c) => c.name === draftPost.color
+      );
       if (savedColor) setSelectedColor(savedColor);
       if (draftPost.emoji) setSelectedEmoji(draftPost.emoji);
-      if (draftPost.recipient_user_id) setSelectedRecipientId(draftPost.recipient_user_id);
+      if (draftPost.recipient_user_id)
+        setSelectedRecipientId(draftPost.recipient_user_id);
       if (draftPost.username) setUserUsername(draftPost.username);
       if (draftPost.formatting) setFormats(formats);
     }
@@ -229,176 +235,183 @@ const NewPost = () => {
           }
     }}, [postId])
     );*/
-  
 
-  const navigationControls =  [
-          {
-            icon: icons.back,
-            label: "Back",
-            onPress: () => {
-              playClickSound();
-              Haptics.selectionAsync();
-              router.back();
-            }
-            
-          },
-          {
-            icon: icons.send,
-            label: "New Post",
-            onPress: async () => {
-              playClickSound();
-              Haptics.selectionAsync();
-              if (selectedTab == "customize") {
-                handleSubmitPost(user!.id, draftPost);
-              } else {
-                setSelectedTab("customize");
-              }
-            }
-            
-            isCenter: true,
-          },
-          {
-            icon: icons.settings,
-            label: "More",
-            onPress: () => {
-              playClickSound();
-              Haptics.selectionAsync();
-              // Add additional logic if needed
-            },
-            
-            isCenter: true,
-          },
-        ]
+  const navigationControls = [
+    {
+      icon: icons.back,
+      label: "Back",
+      onPress: () => {
+        playClickSound();
+        Haptics.selectionAsync();
+        router.back();
+      },
+    },
+    {
+      icon: icons.send,
+      label: "New Post",
+      onPress: async () => {
+        playClickSound();
+        Haptics.selectionAsync();
+        if (selectedTab == "customize") {
+          handleSubmitPost(user!.id, draftPost);
+        } else {
+          setSelectedTab("customize");
+        }
+      },
 
+      isCenter: true,
+    },
+    {
+      icon: icons.settings,
+      label: "More",
+      onPress: () => {
+        playClickSound();
+        Haptics.selectionAsync();
+        // Add additional logic if needed
+      },
 
-        const handleTabChange = (tabKey: string) => {
-          console.log("Tab changed to:", tabKey);
-          setSelectedTab(tabKey);
-        };
+      isCenter: true,
+    },
+  ];
+
+  const handleTabChange = (tabKey: string) => {
+    console.log("Tab changed to:", tabKey);
+    setSelectedTab(tabKey);
+  };
 
   return (
-    <View className="flex-1" 
-    style={{
-      backgroundColor: selectedColor.hex,
-    }}>
-   
-          <View className="flex-1" >
-             
-          <Header
+    <View
+      className="flex-1"
+      style={{
+        backgroundColor: selectedColor.hex,
+      }}
+    >
+      <View className="flex-1">
+        <Header
           title={
-            postId ? 'Edit Post' : 
-            (prompt ? `${prompt}`: 
-              (recipientId ? `@${userUsername}` : 'New Post')
-            )}
-            tabs={tabs}
-            selectedTab={selectedTab}
-            onTabChange={handleTabChange}
-            tabCount={0}
-           />
-            
-            
-           {selectedTab == "create" && <TouchableWithoutFeedback
-                      onPress={() => Keyboard.dismiss()}
-                      onPressIn={() => Keyboard.dismiss()}
-                    ><View className="flex-1  mt-0 overflow-hidden " 
-            style={{
-              backgroundColor: selectedColor.hex
-            }}>
-              <View className="flex-1 ">
-                <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
-                        <View className="flex-1 flex-column justify-start items-center  ">
-              
-                            
-              <View className="w-full">
-                <RichTextInput
-                style={textStyling}
-                refresh={refreshingKey}
-                exportStyling={handleChangeFormat}
-                exportText={handleChangeText} />
-                </View>
-              
-                  
-                         
-                           
-                            </View>
-                            
-                            </KeyboardAvoidingView>
-                            </View>
+            postId
+              ? "Edit Post"
+              : prompt
+                ? `${prompt}`
+                : recipientId
+                  ? `@${userUsername}`
+                  : "New Post"
+          }
+          tabs={tabs}
+          selectedTab={selectedTab}
+          onTabChange={handleTabChange}
+          tabCount={0}
+        />
 
-              <View  className="flex-1 flex-col items-end absolute p-4 right-0" >
-              <ColorSelector
-                colors={temporaryColors}
-                selectedColor={selectedColor}
-                onColorSelect={handleColorSelect}
-                //onColorSelect={setSelectedColor}
-              />
-              <View className="flex flex-row items-center">
-              {selectedEmoji && <TouchableOpacity
-              onPress={() => {setSelectedEmoji(null)}}>
-                <Image
-                  source={icons.close}
-                  className="w-7 h-7"
-                  tintColor={'#fff'}
-                  />
-              </TouchableOpacity>}
-              <TouchableOpacity onPress={toggleEmojiSelector}>
-                {selectedEmoji ? (
-                  <Text style={{ fontSize: 35, margin: 1 }}>
-                    {selectedEmoji}
-                  </Text>
-                ) : (
-                  <Image source={icons.wink} className="w-8 h-9 m-1" tintColor={'#FFFFFF'} />
-                )}
-              </TouchableOpacity>
+        {selectedTab == "create" && (
+          <TouchableWithoutFeedback
+            onPress={() => Keyboard.dismiss()}
+            onPressIn={() => Keyboard.dismiss()}
+          >
+            <View
+              className="flex-1  mt-0 overflow-hidden "
+              style={{
+                backgroundColor: selectedColor.hex,
+              }}
+            >
+              <View className="flex-1 ">
+                <KeyboardAvoidingView
+                  behavior="padding"
+                  className="flex-1 flex w-full"
+                >
+                  <View className="flex-1 flex-column justify-start items-center  ">
+                    <View className="w-full">
+                      <RichTextInput
+                        style={textStyling}
+                        refresh={refreshingKey}
+                        exportStyling={handleChangeFormat}
+                        exportText={handleChangeText}
+                      />
+                    </View>
+                  </View>
+                </KeyboardAvoidingView>
               </View>
+
+              <View className="flex-1 flex-col items-end absolute p-4 right-0">
+                <ColorSelector
+                  colors={temporaryColors}
+                  selectedColor={selectedColor}
+                  onColorSelect={handleColorSelect}
+                  //onColorSelect={setSelectedColor}
+                />
+                <View className="flex flex-row items-center">
+                  {selectedEmoji && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedEmoji(null);
+                      }}
+                    >
+                      <Image
+                        source={icons.close}
+                        className="w-7 h-7"
+                        tintColor={"#fff"}
+                      />
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity onPress={toggleEmojiSelector}>
+                    {selectedEmoji ? (
+                      <Text style={{ fontSize: 35, margin: 1 }}>
+                        {selectedEmoji}
+                      </Text>
+                    ) : (
+                      <Image
+                        source={icons.wink}
+                        className="w-8 h-9 m-1"
+                        tintColor={"#FFFFFF"}
+                      />
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
-              </View></TouchableWithoutFeedback>}
-            {selectedTab == "customize" && 
-            <View className="absolute top-8">
-              <PostContainer
+            </View>
+          </TouchableWithoutFeedback>
+        )}
+        {selectedTab == "customize" && (
+          <View className="absolute top-8">
+            <PostContainer
               selectedPosts={[draftPost]}
               handleCloseModal={() => {}}
               isPreview={true}
-              />
-            </View>}
-              
-
-
-
-               <CustomButtonBar
-                            buttons={navigationControls}
-                            />
-
-            {isEmojiSelectorVisible && (
-              <View className="w-full h-screen bg-white">
-                <EmojiSelector
-                  onEmojiSelected={(emoji) => {
-                    if (emoji === selectedEmoji) {
-                      setSelectedEmoji(null);
-                    }
-                    setSelectedEmoji(emoji);
-                  }}
-                />
-              </View>
-            )}
-       
+            />
           </View>
-        {isModalVisible &&
-        <ModalSheet
-        title="Find a user"
-        isVisible={isModalVisible}
-         onClose={() => {setIsModalVisible(false)}}>
-           <FindUser selectedUserInfo={selectedUserInfo} />
-          </ModalSheet>}
-          <KeyboardOverlay>
-          <RichTextEditor
-                      handleApplyStyle={applyStyle}
-                          />
-      </KeyboardOverlay>
+        )}
+
+        <CustomButtonBar buttons={navigationControls} />
+
+        {isEmojiSelectorVisible && (
+          <View className="w-full h-screen bg-white">
+            <EmojiSelector
+              onEmojiSelected={(emoji) => {
+                if (emoji === selectedEmoji) {
+                  setSelectedEmoji(null);
+                }
+                setSelectedEmoji(emoji);
+              }}
+            />
+          </View>
+        )}
       </View>
+      {isModalVisible && (
+        <ModalSheet
+          title="Find a user"
+          isVisible={isModalVisible}
+          onClose={() => {
+            setIsModalVisible(false);
+          }}
+        >
+          <FindUser selectedUserInfo={selectedUserInfo} />
+        </ModalSheet>
+      )}
+      <KeyboardOverlay>
+        <RichTextEditor handleApplyStyle={applyStyle} />
+      </KeyboardOverlay>
+    </View>
   );
 };
-
-
 
 export default NewPost;
