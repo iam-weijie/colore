@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, View, StyleSheet, PanResponder, Text } from "react-native";
 import Circle from "./Circle";
 import { PostItColor } from "@/types/type";
+import { LinearGradient } from "expo-linear-gradient";
 
 // Constant (I don't know where else to put it)
 const handleMargin = 6;
@@ -48,7 +49,7 @@ const ColorPickerSlider: React.FC<ColorPickerSliderProps> = ({
       ((colors.indexOf(selectedColor) + 0.5) / colors.length) * height;
     Animated.timing(position, {
       toValue: colorPosition - (position as any)._offset,
-      duration: 200,
+      duration: 300,
       useNativeDriver: false,
     }).start();
   }, [selectedColor, isDragging]);
@@ -101,6 +102,7 @@ const ColorPickerSlider: React.FC<ColorPickerSliderProps> = ({
             backgroundColor: color.hex,
             height: `${segmentHeight}%`,
             top: `${index * segmentHeight}%`,
+            opacity: 0
           },
         ]}
       />
@@ -108,9 +110,19 @@ const ColorPickerSlider: React.FC<ColorPickerSliderProps> = ({
   };
   const colorSegments = useMemo(() => renderColorSegments(), [colors]);
 
+  const colorMap = colors.map((c) => c.hex)
+
   return (
     <View style={[styles.container, { height }]}>
+       <LinearGradient
+                colors={colorMap}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={styles.sliderTrack}
+              >  
+              </LinearGradient>
       <View style={styles.sliderTrack}>{colorSegments}</View>
+      
       <Animated.View
         {...panResponder.panHandlers}
         style={{
@@ -133,6 +145,7 @@ const ColorPickerSlider: React.FC<ColorPickerSliderProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    position: "relative",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",

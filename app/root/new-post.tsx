@@ -35,6 +35,7 @@ import { useGlobalContext } from "../globalcontext";
 import { CustomButtonBar } from "@/components/CustomTabBar";
 import Header from "@/components/Header";
 import ColorPickerSlider from "@/components/ColorPickerSlider";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 const NewPost = () => {
   const { user } = useUser();
@@ -165,6 +166,27 @@ const NewPost = () => {
     }
   }, []);
 
+    const backgroundColor = useSharedValue(selectedColor?.hex || "rgba(0, 0, 0, 0.5)");
+    const prevColor = React.useRef(backgroundColor.value);
+
+
+    useEffect(() => {
+      if (prevColor.current !== (selectedColor?.hex || "rgba(0, 0, 0, 0.5)")) {
+        backgroundColor.value = withTiming(
+          selectedColor?.hex || "rgba(0, 0, 0, 0.5)",
+          {
+            duration: 300,
+            easing: Easing.inOut(Easing.quad)
+          }
+        );
+        prevColor.current = selectedColor?.hex || "rgba(0, 0, 0, 0.5)";
+      }
+    }, [selectedColor]);
+
+      const animatedBackgroundStyle = useAnimatedStyle(() => ({
+        backgroundColor: backgroundColor.value,
+      }));
+      
   const navigationControls =  [
           {
             icon: icons.back,
@@ -188,10 +210,10 @@ const NewPost = () => {
         ]
 
   return (
-    <View className="flex-1" 
-    style={{
-      backgroundColor: selectedColor.hex,
-    }}>
+    <Animated.View className="flex-1" 
+    style={[
+      animatedBackgroundStyle
+    ]}>
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
@@ -211,10 +233,10 @@ const NewPost = () => {
            />
             
 
-           <View className="flex-1  mt-0 overflow-hidden " 
-            style={{
-              backgroundColor: selectedColor.hex
-            }}>
+           <Animated.View className="flex-1  mt-0 overflow-hidden " 
+            style={[
+              animatedBackgroundStyle
+            ]}>
               <View className="flex-1 "><KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
                         <View className="flex-1 flex-column justify-center items-center  ">
               
@@ -277,7 +299,7 @@ const NewPost = () => {
               </TouchableOpacity>
               </View>
               </View>
-              </View>
+              </Animated.View>
                <CustomButtonBar
                             buttons={navigationControls}
                             />
@@ -304,7 +326,7 @@ const NewPost = () => {
          onClose={() => {setIsModalVisible(false)}}>
            <FindUser selectedUserInfo={selectedUserInfo} />
           </ModalSheet>}
-      </View>
+      </Animated.View>
   );
 };
 
