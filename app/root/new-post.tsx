@@ -17,7 +17,6 @@ import {
 import EmojiSelector from "react-native-emoji-selector";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import ColorSelector from "@/components/ColorSelector";
 import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
@@ -35,6 +34,7 @@ import { useGlobalContext } from "../globalcontext";
 
 import { CustomButtonBar } from "@/components/CustomTabBar";
 import Header from "@/components/Header";
+import ColorPickerSlider from "@/components/ColorPickerSlider";
 
 const NewPost = () => {
   const { user } = useUser();
@@ -252,11 +252,10 @@ const NewPost = () => {
                 <Text className="text-[16px] font-JakartaBold text-white">{userUsername ? `To: ${userUsername}` : ''}</Text>
               </View>
               <View  className="flex-1 flex-col items-end absolute p-4 right-0" >
-              <ColorSelector
+              <ColorPickerSlider
                 colors={temporaryColors}
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
-                //onColorSelect={setSelectedColor}
               />
               <View className="flex flex-row items-center">
               {selectedEmoji && <TouchableOpacity

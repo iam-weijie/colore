@@ -18,7 +18,6 @@ import {
 } from "react-native";
 import Header from "@/components/Header";
 
-import ColorSelector from "@/components/ColorSelector";
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";

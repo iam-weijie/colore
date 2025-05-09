@@ -17,12 +17,12 @@ import {
 import EmojiSelector from "react-native-emoji-selector";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import ColorSelector from "@/components/ColorSelector";
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
+import ColorPickerSlider from "@/components/ColorPickerSlider";
 
 
 const NewPersonalPost = () => {
@@ -187,11 +187,10 @@ const NewPersonalPost = () => {
             </View>
     
             <View className=" w-full flex flex-row justify-center items-center mb-12">
-              <ColorSelector
+              <ColorPickerSlider
                 colors={temporaryColors}
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
-                //onColorSelect={setSelectedColor}
               />
 
               <TouchableOpacity onPress={toggleEmojiSelector}>

@@ -24,12 +24,12 @@ import { useAlert } from '@/notifications/AlertContext';
 import CarouselPage from "@/components/CarrousselPage";
 import { temporaryColors } from "@/constants";
 import { PostItColor } from "@/types/type";
-import ColorSelector from "@/components/ColorSelector";
 import BoardGallery from "@/components/BoardGallery";
 import ItemContainer from "@/components/ItemContainer";
 import { icons } from "@/constants";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
+import ColorPickerSlider from "@/components/ColorPickerSlider";
 
 const UserInfo = () => {
   const { user } = useUser();
@@ -511,11 +511,10 @@ const UserInfo = () => {
                 <Text className="text-[16px] font-JakartaBold text-white"></Text>
               </View>
               <View  className="flex-1 flex-col items-end absolute p-4 right-0" >
-              <ColorSelector
+              <ColorPickerSlider
                 colors={temporaryColors}
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
-                //onColorSelect={setSelectedColor}
               />
               <View className="flex flex-row items-center">
               </View>
