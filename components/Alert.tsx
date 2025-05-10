@@ -16,7 +16,6 @@ import {
 import * as Haptics from 'expo-haptics';
 import { useHaptics } from "@/hooks/useHaptics";
 import { useFocusEffect } from '@react-navigation/native';
-import { useHaptics } from "@/hooks/useHaptics";
 
 
 const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status, duration, onClose, action, actionText, color }) => {
@@ -24,8 +23,6 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
   const [visible, setVisible] = useState<boolean>(true);
   const [onAnimationFinish, setOnAnimationFinish] = useState(false);
   const SWIPE_THRESHOLD = -15; // How far user needs to swipe up to dismiss
-
-  const { triggerHaptic } = useHaptics();
 
   // Animation values
   const translateY = useSharedValue(-200);

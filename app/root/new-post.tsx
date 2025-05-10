@@ -42,8 +42,6 @@ import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
 
-  const { playSoundEffect } = useSoundEffects();
-
   const { user } = useUser();
   const {
     postId,
@@ -57,18 +55,7 @@ const NewPost = () => {
     promptId,
     boardId,
   } = useLocalSearchParams();
-  const {
-    postId,
-    content,
-    color,
-    emoji,
-    recipientId,
-    username,
-    expiration,
-    prompt,
-    promptId,
-    boardId,
-  } = useLocalSearchParams();
+
   const { setDraftPost, draftPost } = useGlobalContext();
   const { showAlert } = useAlert();
 

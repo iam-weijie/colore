@@ -32,7 +32,6 @@ import { GlitterEmitter } from "./GlitterStars";
 import StackCircle from "./StackCircle";
 import ModalSheet from "./Modal";
 import RenameContainer from "./RenameContainer";
-import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 
 
 
