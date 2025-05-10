@@ -29,16 +29,6 @@ import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 
 const Settings = () => {
-  const playClickSound = async () => {
-    try {
-      const { sound } = await Audio.Sound.createAsync(
-        require("assets/sounds/clicklow.mp3")
-      );
-      await sound.playAsync();
-    } catch (error) {
-      console.error("Failed to play click sound:", error);
-    }
-  };
 
   const { signOut } = useAuth();
   const { user } = useUser();
@@ -227,7 +217,7 @@ const Settings = () => {
   };
 
   const handleLocationUpdate = () => {
-    playClickSound();
+    playSoundEffect(SoundType.Navigation)
     Haptics.selectionAsync();
 
     setStateVars({
@@ -242,7 +232,7 @@ const Settings = () => {
 
   const handleSignOut = async () => {
     try {
-      playClickSound();
+      playSoundEffect(SoundType.Tap)
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
       await signOut();
@@ -260,7 +250,7 @@ const Settings = () => {
   };
 
   const handleUpdateValue = (type: string) => {
-    playClickSound();
+    playSoundEffect(SoundType.Submit)
     Haptics.selectionAsync();
 
     setSelectedTitle(`${type == "username" ? "New username" : "New Email"}`);

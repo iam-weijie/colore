@@ -431,22 +431,6 @@ const reorderPost = (topPost: Post) => {
     //console.log("stacks", stacks)
   }, [maps]);
 
-  // Add a test function to check if sound effects work
-  useEffect(() => {
-    // Test sound effect on component mount
-    if (soundEffectsEnabled) {
-      setTimeout(() => {
-        try {
-          console.log("Testing sound effects system...");
-          playSoundEffect(SoundType.Stack);
-          console.log("Sound effect test successful");
-        } catch (error) {
-          console.error("Sound effect test failed:", error);
-        }
-      }, 1000);
-    }
-  }, []);
-
   useEffect(() => {
     fetchRandomPosts();
     console.log("mode", mode)

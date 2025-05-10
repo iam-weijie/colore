@@ -32,22 +32,13 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useGlobalContext } from "../globalcontext";
 
 
 
 const UserInfo = () => {
-  const playClickSound = async () => {
-    try {
-      const { sound } = await Audio.Sound.createAsync(
-        require("assets/sounds/clicklow.mp3") 
-      );
-      await sound.playAsync();
-    } catch (error) {
-      console.error("Failed to play click sound:", error);
-    }
-  };
+
   const { playSoundEffect } = useSoundEffects();
   const { soundEffectsEnabled } = useGlobalContext();
 
@@ -287,7 +278,7 @@ const UserInfo = () => {
   };
 
   const handleNavigateToCountry = () => {
-    playClickSound();
+    playSoundEffect(SoundType.Navigation)
     Haptics.selectionAsync();
   
     setStateVars({
@@ -403,7 +394,7 @@ const UserInfo = () => {
         iconColor="#22c722"
         actionIcon={hasJoined && icons.check}
         onPress={async () => {
-          playClickSound();
+          playSoundEffect(SoundType.Submit)
           Haptics.selectionAsync();
         
           if (item.username) {
@@ -612,7 +603,7 @@ const UserInfo = () => {
   ];
 
   const handleNext = () => {
-    playClickSound();
+    playSoundEffect(SoundType.Navigation)
     Haptics.selectionAsync();
   
     if (step < totalSteps - 1) setStep((prev) => prev + 1);
