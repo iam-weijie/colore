@@ -349,7 +349,7 @@ const NewPost = () => {
               </View>
             </View>
           </TouchableWithoutFeedback>
-        )}
+        
         {selectedTab == "customize" && (
           <View className="absolute top-8">
             <PostContainer
