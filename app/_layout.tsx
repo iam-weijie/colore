@@ -13,6 +13,7 @@ import { LogBox, View } from "react-native";
 import "react-native-reanimated";
 import Animated, { FadeIn } from "react-native-reanimated";
 import React from "react";
+import { preloadCommonSounds } from '@/hooks/useSoundEffects';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -40,9 +41,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      preloadCommonSounds();
       setAppReady(true);
     }
   }, [loaded]);
+
 
   const showSplashVideo = !appReady || !isSplashVideoComplete;
 

@@ -32,6 +32,8 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { useGlobalContext } from "../globalcontext";
 
 
 

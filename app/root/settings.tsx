@@ -52,6 +52,8 @@ const Settings = () => {
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
 
+  const { playSoundEffect } = useSoundEffects();
+
   // Get settings state and setters from Global Context
   const {
     hapticsEnabled,

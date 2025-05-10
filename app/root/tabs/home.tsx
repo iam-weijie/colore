@@ -37,7 +37,6 @@ import { useAlert } from "@/notifications/AlertContext";
 import { ActionType } from "@/lib/prompts";
 import { GeographicalMode } from "@/types/type";
 import UserInfo from "../user-info";
-import { Audio } from "expo-av";
 
 import { ChatScreen, NotificationScreen } from "../chat/chat-screen";
 import NotificationBubble from "@/components/NotificationBubble";
@@ -79,16 +78,8 @@ export default function Page() {
     }
   };
 
-  const requestAudioPermissions = async () => {
-    const { status } = await Audio.requestPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permission to access audio is required!");
-    }
-  };
-
   useEffect(() => {
     requestPermission();
-    requestAudioPermissions();
     fetchUserData();
   }, []);
 
@@ -217,13 +208,13 @@ export default function Page() {
         <Header
           item={
             <View className="flex-row justify-between items-center px-11 pt-4  w-full mb-4">
-              <Image
-                source={require("@/assets/colore-word-logo.png")}
+             {/* <Image
+                source={require("@/assets/images/colore-word-logo.png")}
                 style={{ width: 105, height: 45 }}
                 className="shadow-sm"
                 resizeMode="contain"
                 accessibilityLabel="Colore logo"
-              />
+              />*/}
               <View className="flex flex-row p-1 items-center justify-center gap-4">
                 <TouchableOpacity
                   onPress={() => {
