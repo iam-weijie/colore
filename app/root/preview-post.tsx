@@ -11,6 +11,7 @@ import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAlert } from '@/notifications/AlertContext';
 import * as Haptics from 'expo-haptics';
+import { useHaptics } from "@/hooks/useHaptics";
 import { useGlobalContext } from "../globalcontext";
 import { handleSubmitPost } from "@/lib/post";
 import { useHaptics } from "@/hooks/useHaptics";
@@ -21,6 +22,7 @@ const PreviewPost = () => {
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const { showAlert } = useAlert();
   const { triggerHaptic } = useHaptics();
+  const { triggerHaptic } = useHaptics();
   const { setDraftPost, draftPost } = useGlobalContext();
   const [isPosting, setIsPosting] = useState(false);
 
@@ -29,6 +31,7 @@ const PreviewPost = () => {
     setIsVisible(false);
     router.back(); // Single back; assumed this goes to NewPost
   };
+
 
 
 
@@ -48,6 +51,9 @@ const PreviewPost = () => {
               fontSize="lg"
               title="submit"
               padding="0"
+              onPress={() => {
+                console.log("supposed to submit")
+                handleSubmitPost(user!.id, draftPost)}}
               onPress={() => {
                 console.log("supposed to submit")
                 handleSubmitPost(user!.id, draftPost)}}

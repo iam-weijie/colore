@@ -4,6 +4,8 @@ import { Text, TouchableOpacity, View } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { useHaptics } from "@/hooks/useHaptics";
 //import { ScrollView } from "react-native-gesture-handler";
+import { useHaptics } from "@/hooks/useHaptics";
+//import { ScrollView } from "react-native-gesture-handler";
 
 type TabNavigationProps = {
   name: string;

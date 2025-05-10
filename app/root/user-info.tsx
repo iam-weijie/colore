@@ -38,6 +38,10 @@ const UserInfo = () => {
   const { playSoundEffect } = useSoundEffects();
   const { soundEffectsEnabled } = useGlobalContext();
 
+
+  const { playSoundEffect } = useSoundEffects();
+  const { soundEffectsEnabled } = useGlobalContext();
+
   const { user } = useUser();
   const { showAlert } = useAlert();
   

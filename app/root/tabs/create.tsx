@@ -8,18 +8,14 @@ import {
   View,
 } from "react-native";
 import Header from "@/components/Header";
-
-import CustomButton from "@/components/CustomButton";
-import { icons, temporaryColors } from "@/constants";
-import { fetchAPI } from "@/lib/fetch";
-import { PostItColor } from "@/types/type";
-import { useNavigationContext } from "@/components/NavigationContext";
+import CardCarrousel from "@/components/CardCarroussel";
+import { RenderCreateCard } from "@/components/RenderCard";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAlert } from '@/notifications/AlertContext';
 import ItemContainer from "@/components/ItemContainer";
 import EmojiBackground from "@/components/EmojiBackground";
-import CardCarrousel from "@/components/CardCarroussel";
-import { RenderCreateCard } from "@/components/RenderCard";
+import { fetchAPI } from "@/lib/fetch";
+import { icons } from "@/constants";
 
 const Create = () => {
   const { user } = useUser();

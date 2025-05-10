@@ -22,6 +22,7 @@ import {
   View,
 } from "react-native";
 import { GeographicalMode, MappingPostitProps } from "@/types/type";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import React from "react";
 import { distanceBetweenPosts } from "@/lib/post";
@@ -104,6 +105,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [maps, setMap] = useState<MappingPostitProps[]>([]);
   const [isPanningMode, setIsPanningMode] = useState(true);
   const [isStackMoving, setIsStackMoving] = useState(false);
+  const pendingStackSound = useRef(false);
   const stackUpdating = useRef(false);
 
 
@@ -359,6 +361,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
 
     if (!randomPostion) {
+      pendingStackSound.current = true;
     try {
       await fetchAPI(`/api/posts/updatePostPosition`, {
         method: "PATCH",
@@ -410,6 +413,9 @@ const reorderPost = (topPost: Post) => {
   }, [mode]);
 
 
+  useEffect(() => {
+    fetchRandomPosts();
+  }, []);
   const handleOuterLayout = () => {
     scrollViewRef.current?.scrollTo({ x: postsWithPosition[0].position.left ?? screenWidth / 2, animated: true })
   };

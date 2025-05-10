@@ -14,16 +14,6 @@ import { transform } from '@babel/core';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useSoundEffects, SoundType } from '@/hooks/useSoundEffects';
 
-interface TabIconProps {
-  source: any;
-  focused: boolean;
-  unread: number;
-  color: string;
-  label?: string;
-  isCenter?: boolean;
-}
-
-
 interface HapticTabBarButtonProps {
   children: React.ReactNode;
   onPress?: (event: GestureResponderEvent) => void;
