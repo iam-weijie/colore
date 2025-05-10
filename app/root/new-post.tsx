@@ -274,11 +274,33 @@ const NewPost = () => {
     setSelectedTab(tabKey);
   };
 
+  const backgroundColor = useSharedValue(selectedColor?.hex || "rgba(0, 0, 0, 0.5)");
+  const prevColor = React.useRef(backgroundColor.value);
+
+
+  useEffect(() => {
+    if (prevColor.current !== (selectedColor?.hex || "rgba(0, 0, 0, 0.5)")) {
+      backgroundColor.value = withTiming(
+        selectedColor?.hex || "rgba(0, 0, 0, 0.5)",
+        {
+          duration: 300,
+          easing: Easing.inOut(Easing.quad)
+        }
+      );
+      prevColor.current = selectedColor?.hex || "rgba(0, 0, 0, 0.5)";
+    }
+  }, [selectedColor]);
+
+    const animatedBackgroundStyle = useAnimatedStyle(() => ({
+      backgroundColor: backgroundColor.value,
+
+    }))
+
   return (
     <Animated.View className="flex-1" 
-    style={{
-      backgroundColor: selectedColor.hex
-    }}>
+    style={[
+      animatedBackgroundStyle
+    ]}>
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
@@ -300,9 +322,9 @@ const NewPost = () => {
                       onPressIn={() => Keyboard.dismiss()}
                     >
            <View className="flex-1  mt-0 overflow-hidden " 
-            style={{
-              backgroundColor: selectedColor.hex
-            }}>
+             style={[
+              animatedBackgroundStyle
+            ]}>
               <View className="flex-1 ">
                 <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
               
