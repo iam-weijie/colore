@@ -35,6 +35,7 @@ import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 
 
 
+
 const screenHeight = Dimensions.get("screen").height;
 const screenWidth = Dimensions.get("screen").width;
 const COLOR_HEIGHT_TRIGGER = 80;
@@ -112,7 +113,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [refreshing, setRefreshing] = useState(false);
   const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 });
   const [zoomScale, setZoomScale] = useState(1); // default no zoom
-  const offsetY = useSharedValue(0);
+  const offsetY = useSharedValue(0)
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const x = event.nativeEvent.contentOffset.x;  
@@ -668,6 +669,7 @@ if (!hasPostsOnCurrentBoard) {
 };
 
 export default PostItBoard;
+
 
 
 

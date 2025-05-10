@@ -37,7 +37,6 @@ import { useAlert } from "@/notifications/AlertContext";
 import { ActionType } from "@/lib/prompts";
 import { GeographicalMode } from "@/types/type";
 import UserInfo from "../user-info";
-import { Audio } from "expo-av";
 
 import { ChatScreen, NotificationScreen } from "../chat/chat-screen";
 import NotificationBubble from "@/components/NotificationBubble";
@@ -45,19 +44,10 @@ import ItemContainer from "@/components/ItemContainer";
 import ModalSheet from "@/components/Modal";
 import Header from "@/components/Header";
 import * as Haptics from "expo-haptics";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 export default function Page() {
-  const playClickSound = async () => {
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      const { sound } = await Audio.Sound.createAsync(
-        require("assets/sounds/clicklow.mp3")
-      );
-      await sound.playAsync();
-    } catch (e) {
-      console.warn("Failed to play sound:", e);
-    }
-  };
+ const { playSoundEffect } = useSoundEffects()
 
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
@@ -79,16 +69,8 @@ export default function Page() {
     }
   };
 
-  const requestAudioPermissions = async () => {
-    const { status } = await Audio.requestPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permission to access audio is required!");
-    }
-  };
-
   useEffect(() => {
     requestPermission();
-    requestAudioPermissions();
     fetchUserData();
   }, []);
 
@@ -218,7 +200,7 @@ export default function Page() {
           item={
             <View className="flex-row justify-between items-center px-11 pt-4  w-full mb-4">
               <Image
-                source={require("@/assets/colore-word-logo.png")}
+                source={require("@/assets/images/colore-word-logo.png")}
                 style={{ width: 105, height: 45 }}
                 className="shadow-sm"
                 resizeMode="contain"

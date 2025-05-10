@@ -24,33 +24,14 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
   
   return (
     <TouchableOpacity
-    className={`flex-1 py-3 w-full `}
+    className={`flex-1 py-4 w-full `}
   activeOpacity={0.6}
   onPress={() => {
     onPress()
     triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
   }}
 >
-  {focused && <View className='absolute flex-1 w-full -mt-2 '>
-        <MaskedView
-        style={{ 
-          width: 110, 
-          height: 60,
-         left: (name == 'Mine' || name == 'Discover') ? 30 : 0}}
-          maskElement={
-      <Image
-        source={ images.highlightLg1 
-        }
-        style={{
-          width: 110,
-          height: 60,
-        }}
-      />
-    }
-  >
-    <View style={{ flex: 1, backgroundColor: color ?? "#ffe640" }} />
-  </MaskedView>
-        </View>}
+
   <View className="flex flex-row items-center justify-center w-full">
     <Text
       className="text-[16px] text-center font-[600]"

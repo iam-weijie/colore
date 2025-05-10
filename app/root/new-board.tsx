@@ -32,25 +32,11 @@ import Header from "@/components/Header";
 import { CustomButtonBar } from "@/components/CustomTabBar";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
+import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 
 const NewPost = () => {
-  const handleClickFeedback = async () => {
-    try {
-      await Haptics.selectionAsync();
-      const { sound } = await Audio.Sound.createAsync(
-        require("assets/sounds/clicklow.mp3")
-      );
-      await sound.playAsync();
-      // Unload the sound after it's played
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          sound.unloadAsync();
-        }
-      });
-    } catch (error) {
-      console.error("Error playing sound:", error);
-    }
-  };
+  const { playSoundEffect } = useSoundEffects();
+
 
   const { user } = useUser();
   const { type } = useLocalSearchParams();
@@ -91,7 +77,7 @@ const NewPost = () => {
       icon: icons.back,
       label: "Back",
       onPress: async () => {
-        await handleClickFeedback();
+        playSoundEffect(SoundType.Navigation)
         router.back();
       },
     },
@@ -99,7 +85,7 @@ const NewPost = () => {
       icon: icons.send,
       label: "New Post",
       onPress: async () => {
-        await handleClickFeedback();
+        playSoundEffect(SoundType.Send)
 
         if (selectedTab !== "Restriction") {
           if (selectedTab === "Title" && boardTitle.length > 0) {
@@ -174,7 +160,7 @@ Perfect for open discussions or quiet sharing.`,
       icon: icons.hide,
       iconColor: "#FAFAFA",
       onPress: async () => {
-        await handleClickFeedback();
+        playSoundEffect(SoundType.Tap)
         const restric = allRestricitons.find(
           (r) => r.restriction === "privacy"
         );
@@ -199,7 +185,7 @@ Perfect for open discussions or quiet sharing.`,
       icon: icons.comment,
       iconColor: "#FAFAFA",
       onPress: async () => {
-        await handleClickFeedback();
+        playSoundEffect(SoundType.Tap)
         const restric = allRestricitons.find(
           (r) => r.restriction === "comments"
         );
@@ -229,7 +215,7 @@ Perfect for open discussions or quiet sharing.`,
       icon: icons.globe,
       iconColor: "#FAFAFA",
       onPress: async () => {
-        await handleClickFeedback();
+        playSoundEffect(SoundType.Tap)
         setSelectedModal(
           <NumberSelection minNum={4} maxNum={8} onSelect={handleMaxPost} />
         );

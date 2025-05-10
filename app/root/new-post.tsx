@@ -37,18 +37,10 @@ import PostContainer from "@/components/PostContainer";
 import { handleSubmitPost } from "@/lib/post";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
+import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 
 const NewPost = () => {
-  const playClickSound = async () => {
-    try {
-      const { sound } = await Audio.Sound.createAsync(
-        require("assets/sounds/pop.mp3")
-      );
-      await sound.playAsync();
-    } catch (error) {
-      console.error("Failed to play click sound:", error);
-    }
-  };
+  const { playSoundEffect } = useSoundEffects();
 
   const { user } = useUser();
   const {
@@ -243,7 +235,7 @@ const NewPost = () => {
       icon: icons.back,
       label: "Back",
       onPress: () => {
-        playClickSound();
+        playSoundEffect(SoundType.Navigation)
         Haptics.selectionAsync();
         router.back();
       },
@@ -252,7 +244,7 @@ const NewPost = () => {
       icon: icons.send,
       label: "New Post",
       onPress: async () => {
-        playClickSound();
+        playSoundEffect(SoundType.Navigation)
         Haptics.selectionAsync();
         if (selectedTab == "customize") {
           handleSubmitPost(user!.id, draftPost);
@@ -267,7 +259,7 @@ const NewPost = () => {
       icon: icons.settings,
       label: "More",
       onPress: () => {
-        playClickSound();
+        playSoundEffect(SoundType.Navigation)
         Haptics.selectionAsync();
         // Add additional logic if needed
       },
@@ -289,9 +281,9 @@ const NewPost = () => {
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
-         
+         className="bg-red-500"
         >
-          </TouchableWithoutFeedback>
+         
           <View className="flex-1" >
              
           <Header
@@ -312,21 +304,18 @@ const NewPost = () => {
             }}>
               <View className="flex-1 ">
                 <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
-                        <View className="flex-1 flex-column justify-center items-center  ">
               
                             
-              <View className="w-full">
                 <RichTextInput
                 style={textStyling}
                 refresh={refreshingKey}
                 exportStyling={handleChangeFormat}
                 exportText={handleChangeText} />
-                </View>
               
                   
                          
                            
-                            </View>
+                          
                             
                             </KeyboardAvoidingView>
                             </View>
@@ -385,6 +374,7 @@ const NewPost = () => {
           </View>
         )}
       </View>
+      </TouchableWithoutFeedback>
       {isModalVisible && (
         <ModalSheet
           title="Find a user"
