@@ -71,6 +71,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
   const handleEndReached = () => {
     if (!isLoading && hasMore && onLoadMore) {
+      console.log("Reached end, loading more posts");
       onLoadMore();
     }
   };
@@ -79,7 +80,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     if (!isLoading) return null;
     return (
       <View className="py-5 flex items-center justify-center">
-        <ActivityIndicator size="small" color="#0000ff" />
+        <ActivityIndicator size="large" color="#93c5fd" />
       </View>
     );
   };
@@ -185,8 +186,11 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
           numColumns={isIpad ? 3 : 1}
           showsVerticalScrollIndicator={false}
           onEndReached={handleEndReached}
-          onEndReachedThreshold={0.5}
+          onEndReachedThreshold={0.3}
           ListFooterComponent={renderFooter}
+          initialNumToRender={6}
+          maxToRenderPerBatch={10}
+          windowSize={10}
         />
       )}
       {selectedPost && (
