@@ -22,6 +22,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-na
 import StackCircle from "./StackCircle";
 import ModalSheet from "./Modal";
 import RenameContainer from "./RenameContainer";
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { updateStacks } from "@/lib/stack";
 import KeyboardOverlay from "./KeyboardOverlay";
 import { FindUser } from "./FindUsers";
@@ -72,10 +73,104 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 });
   const [zoomScale, setZoomScale] = useState(1);
   const offsetY = useSharedValue(0);
-  const pendingStackSound = useRef(false);
-  const stackUpdating = useRef(false);
 
-  const { showAlert } = useAlert()
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const lastScale = useSharedValue(1); // Track last scale value
+
+  // First, declare a shared value for initial position
+  const initialPositionX = useSharedValue(screenWidth);
+  const initialPositionY = useSharedValue(screenHeight/2);
+
+  // Update the pan gesture
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .onBegin(() => {
+      // Ensure we start from current position
+      translateX.value = 0;
+      translateY.value = 0;
+    })
+    .onUpdate((event) => {
+      if (!isPanningMode) return;
+      translateX.value = event.translationX;
+      translateY.value = event.translationY;
+    })
+    .onEnd((event) => {
+      if (!isPanningMode) return;
+      
+      // Update final position immediately to avoid rubber band
+      initialPositionX.value += event.translationX / scale.value;
+      initialPositionY.value += event.translationY / scale.value;
+      
+      // Update scroll offset for other components to use
+      setScrollOffset({
+        x: initialPositionX.value,
+        y: initialPositionY.value
+      });
+      
+      // Reset translation immediately without animation to prevent rubber band
+      translateX.value = 0;
+      translateY.value = 0;
+    });
+
+  const pinchGesture = Gesture.Pinch()
+    .runOnJS(true)
+    .onBegin(() => {
+      if (!isPanningMode) return;
+      // Save the current scale as our reference
+      lastScale.value = scale.value;
+    })
+    .onUpdate((event) => {
+      if (!isPanningMode) return;
+      // Calculate new scale based on lastScale and current gesture
+      const newScale = Math.max(0.6, Math.min(lastScale.value * event.scale, 1.2));
+      scale.value = newScale;
+      setZoomScale(newScale);
+    })
+    .onEnd(() => {
+      if (!isPanningMode) return;
+      // Store the final scale for the next gesture
+      lastScale.value = scale.value;
+    });
+
+  // Add double tap to reset zoom
+  const doubleTapGesture = Gesture.Tap()
+    .numberOfTaps(2)
+    .runOnJS(true)
+    .onEnd(() => {
+      if (!isPanningMode) return;
+      // Reset zoom to 1 with smooth animation
+      scale.value = withTiming(1, { duration: 250, easing: Easing.ease });
+      lastScale.value = 1;
+      setZoomScale(1);
+    });
+
+  const combinedGestures = Gesture.Simultaneous(
+    Gesture.Exclusive(doubleTapGesture, panGesture),
+    pinchGesture
+  );
+
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const x = event.nativeEvent.contentOffset.x;  
+    const y = event.nativeEvent.contentOffset.y;
+    setScrollOffset({
+      x:  x,
+      y: y,
+    });
+    offsetY.value = Math.min(y, 0); // Only track pull-down
+  };
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        // Apply transforms in correct order for better performance
+        { scale: scale.value },
+        { translateX: initialPositionX.value + translateX.value },
+        { translateY: initialPositionY.value + translateY.value },
+      ],
+    };
+  });
 
   if (!userId) {
     return null;
@@ -671,3 +766,192 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
 export default PostItBoard;
 
+
+
+/*
+
+  const handleReloadPosts = () => {
+    setLoading(true);
+    fetchRandomPosts();
+  };
+
+  const handleGatherPosts = () => {
+    //console.log("handleGatherPosts");
+    if (maps.length > 0) {
+      const ref = maps[maps.length - 1].coordinates;
+      const newPostsPostions = postsWithPosition.map((post) => ({
+        id: post.id,
+        coordinates: {
+          x_coordinate: ref.x_coordinate,
+          y_coordinate: ref.y_coordinate,
+        },
+      }));
+      setMap(newPostsPostions);
+      //console.log("new posts", newPostsPostions)
+    }
+  };
+
+  */
+
+
+  // CLOSING MODAL
+
+     /* if (selectedPost && !isPinned) {
+      const postId = selectedPost.id;
+      
+     
+      
+    //console.log("Post to remove", selectedPost.id, "tria;l", i)
+      setPostsWithPosition((prevPosts) => {
+        const updatePosts = prevPosts.filter((post) => post.id !== postId);
+       console.log(
+          "post id list", "\n\n", 
+          "Prev", prevPosts.map((p) => p.id), "\n\n",
+          "Post",  postsWithPosition.map((p) => p.id), "\n\n", 
+           "update", updatePosts.map((p) => p.id), "\n\n") 
+        return updatePosts;
+      });
+
+      setStacks((prevStacks) => {
+        const updatedStacks = prevStacks.map((stack) => ({
+          ...stack,
+          ids: stack.ids.filter((id: number) => id !== postId),
+        }));
+        return updatedStacks.filter((stack) => stack.ids.length > 1);
+      });
+
+      setMap((prevMap) => {
+        const updateMap = prevMap.filter((c) => c.id != postId);
+
+        return updateMap;
+      });
+
+      //("remainging right after", stacks)
+
+      const existingPostIds = postsWithPosition.map((post) => post.id);
+
+      const newPost = await handleNewPostFetch(existingPostIds);
+
+      console.log("new post id", newPost.id)
+
+  
+        const newPostWithPosition: PostWithPosition = newPost;
+        setPostsWithPosition((prevPosts) => [
+          ...prevPosts,
+          newPostWithPosition,
+        ]);
+        updatePostPosition(0, 0, newPostWithPosition);
+      
+       
+      
+    }*/
+
+        /* ALTERNATIVE VERSION FOR SCROLLING
+        
+        <SignedIn>
+
+      {error ? (
+        <View className="flex-1 items-center justify-center">
+        <ColoreActivityIndicator text="There seems to be an error..." />
+        </View>
+      ) : (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <GestureDetector gesture={combinedGestures}>
+            <Animated.View 
+              style={[
+                { 
+                  flex: 1,
+                  width: '100%',
+                  height: '100%'
+                },
+                animatedStyle
+              ]}
+            >
+              <View style={{ 
+                width: screenWidth * 3, 
+                height: screenHeight * 3,
+                position: 'absolute',
+                left: -screenWidth, 
+                top: -screenHeight,
+                overflow: 'hidden'
+              }}>
+                {stacks.map(stack => {
+                  const hasPostsOnCurrentBoard = postsWithPosition.some((p) => 
+                    stack.ids.includes(p.id)
+                  );
+
+                  if (!hasPostsOnCurrentBoard) {
+                    return null;
+                  }
+                  
+                  return (
+                    <StackCircle
+                      key={stack.name}
+                      stack={stack}
+                      scrollOffset={scrollOffset}
+                      isEditable={isEditable}
+                      onViewPress={() => {
+                        setSelectedPosts(stack.elements);
+                      }}
+                      onEditPress={() => {
+                        if (isEditable) {handleRenameStack(stack)}
+                      }}
+                      onSendPress={() => {}}
+                      enabledPan={() => setIsPanningMode(prev => !prev)}
+                      stackMoving={() => setIsStackMoving(prev => !prev)}
+                      updateStackPosition={(newX, newY, stack) => handleStackPosition(newX, newY, stack)}
+                    />
+                  );
+                })}
+
+                {postsWithPosition.map(post => (
+                  <DraggablePostIt
+                    key={post.id}
+                    post={post}
+                    position={{
+                      top: post.position?.top ?? 0,
+                      left: post.position?.left ?? 0,
+                    }}
+                    updateIndex={() => reorderPost(post)}
+                    updatePosition={(dx, dy, post) => updatePostPosition(dx, dy, post)}
+                    onPress={() => handlePostPress(post)}
+                    showText={showPostItText}
+                    enabledPan={() => setIsPanningMode(prev => !prev)}
+                    zoomScale={zoomScale}
+                    scrollOffset={scrollOffset}
+                    disabled={isStackMoving}
+                    visibility={isStackMoving ? 0.5 : 1}
+                  />
+                ))}
+              </View>
+            </Animated.View>
+          </GestureDetector>
+          
+          {selectedPosts && (
+            <PostModal
+              isVisible={!!selectedPosts}
+              selectedPosts={selectedPosts}
+              handleCloseModal={handleCloseModal}
+              handleUpdate={(isPinned: boolean) => handleIsPinned(isPinned)}
+              invertedColors={invertColors}
+            />
+          )}
+          
+          {selectedModal && (
+            <ModalSheet
+              isVisible={!!selectedModal}
+              title={selectedTitle}
+              onClose={() => {
+                setSelectedModal(null);
+                setSelectedTitle(null);
+              }}                
+            >
+              {selectedModal}
+            </ModalSheet>
+          )}
+        </GestureHandlerRootView>
+      )}
+    </SignedIn>
+        
+        
+        */

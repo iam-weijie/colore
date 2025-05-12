@@ -132,7 +132,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
   );
   const [countryEmoji, setCountryEmoji] = useState<string>("");
   const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [totalPosts, setTotalPosts] = useState<number>(0);
   const { stateVars, setStateVars } = useNavigationContext();
+  
+  // Pagination state
+  const [page, setPage] = useState<number>(0);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
 
   const Flag = countries[profileUser?.country || "Canada"];
 
@@ -218,25 +224,91 @@ const UserProfile: React.FC<UserProfileProps> = ({
     fetchFriendCount();
   }, []);
 
-  const fetchUserData = async () => {
-    setLoading(true);
+  const fetchUserData = async (resetPagination = true) => {
+    // Don't fetch if we already have all posts
+    if (!resetPagination && userPosts.length >= totalPosts) {
+      setHasMore(false);
+      return;
+    }
+    
+    if (resetPagination) {
+      setPage(0);
+      setLoading(true);
+    } else {
+      // Prevent multiple simultaneous loading calls
+      if (isLoadingMore) return;
+      setIsLoadingMore(true);
+    }
+    
     setError(null);
     try {
-      const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
-        method: "GET",
-      });
-
-      const userInfo = response.data[0] as UserProfileType;
-      setProfileUser(userInfo);
-      const countryCode = await fetchCountryByName(profileUser?.country ?? "")
-
+      const currentPage = resetPagination ? 0 : page;
       
-      setLoading(false);
+      console.log(`Fetching posts for page ${currentPage}`);
+      const response = await fetchAPI(
+        `/api/posts/getUserPosts?id=${userId}&page=${currentPage}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      const { userInfo, posts, pagination } = response as UserData;
+      
+      // Stop if we received no posts
+      if (posts.length === 0) {
+        setHasMore(false);
+        return;
+      }
+      
+      console.log(`Received ${posts.length} posts for page ${currentPage}`);
+      
+      const unread_comments = posts.reduce((acc, post) => acc + (post.unread_comments ?? 0), 0);
+      setUnreadComments(unread_comments);
+      setProfileUser(userInfo);
+      
+      if (resetPagination) {
+        setUserPosts(posts);
+      } else {
+        // Avoid duplicates
+        const newPostIds = new Set(posts.map(post => post.id));
+        const filteredCurrentPosts = userPosts.filter(post => !newPostIds.has(post.id));
+        setUserPosts([...filteredCurrentPosts, ...posts]);
+      }
+      
+      // Update pagination state
+      setHasMore(pagination?.hasMore || false);
+      setPage(currentPage + 1);
+      
+      // Use total_posts from userInfo if pagination is not available
+      const totalPostCount = pagination?.total || userInfo.total_posts || posts.length;
+      setTotalPosts(totalPostCount);
+      
+      // Fetch country emoji only on initial load
+      if (resetPagination) {
+        setEmojiLoading(true)
+        const flagEmoji = await fetchCountryEmoji(userInfo.country);
+        setCountryEmoji(() => flagEmoji)
+        setEmojiLoading(false)
+      }
     } catch (error) {
       setError("Failed to fetch user data.");
       console.error("Failed to fetch user data:", error);
     } finally {
-      setLoading(false);
+      if (resetPagination) {
+        setLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
+    }
+  };
+
+  const loadMorePosts = () => {
+    if (!isLoadingMore && hasMore && userPosts.length < totalPosts) {
+      console.log(`Loading more posts: page ${page}, current posts: ${userPosts.length}, total: ${totalPosts}`);
+      fetchUserData(false);
     }
   };
 
@@ -454,6 +526,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
     setQuery("");
   };
 
+// Create a new function that matches the expected type for handleUpdate
+const handlePostUpdate = (id: number, isRemove: boolean) => {
+  // Refresh user data after a post update
+  fetchUserData(true);
+};
+
   return (
     <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
       {/* HEADER */}
@@ -509,7 +587,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
               <View className="flex-row gap-6 mr-7">
                 <View>
                   <Text className="text-lg font-JakartaSemiBold">
-                    {userPosts.length}
+                    {totalPosts}
                   </Text>
                   <Text className="text-[14px] font-JakartaSemiBold">
                     Posts
@@ -595,6 +673,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 handleUpdate={fetchUserData}
                 query={query}
                 offsetY={120}
+                onLoadMore={loadMorePosts}
+                isLoading={isLoadingMore}
+                hasMore={hasMore}
               />
             </View>
           )}

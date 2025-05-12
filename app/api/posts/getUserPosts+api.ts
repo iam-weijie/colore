@@ -72,11 +72,12 @@ export async function GET(request: Request) {
     }
 
     const userInfo = {
-      clerk_id: response[0].clerk_id,
-      username: response[0].username,
-      country: response[0].country,
-      state: response[0].state,
-      city: response[0].city,
+      clerk_id: userInfoQuery[0].clerk_id,
+      username: userInfoQuery[0].username,
+      country: userInfoQuery[0].country,
+      state: userInfoQuery[0].state,
+      city: userInfoQuery[0].city,
+      total_posts: parseInt(userInfoQuery[0].total_posts)
     };
 
     const totalPosts = parseInt(userInfoQuery[0].total_posts);

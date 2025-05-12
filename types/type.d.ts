@@ -168,6 +168,11 @@ declare interface UserProfileType {
   report_count: number;
   push_token: string;
   saved_posts: string[];
+  theme: string;
+  engagement: number;
+  created_at: string,
+  color?: string;
+  total_posts?: number;
   shorthand_emojis?: string[];
   colors: PostItColor[];
 }
@@ -175,6 +180,12 @@ declare interface UserProfileType {
 declare interface UserData {
   userInfo: UserProfileType;
   posts: Post[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    hasMore: boolean;
+  };
 }
 
 declare interface PostWithPosition extends Post {

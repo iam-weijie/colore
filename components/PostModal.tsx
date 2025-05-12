@@ -1,5 +1,5 @@
 import { PostModalProps } from "@/types/type";
-import { View, Modal, Animated, Easing, Dimensions, Pressable, Text } from "react-native";
+import { View, Modal, Animated, Easing, Dimensions, Pressable, Text, Platform } from "react-native";
 import React, { useEffect, useRef } from "react";
 import PostContainer from "./PostContainer";
 
@@ -63,12 +63,19 @@ const PostModal: React.FC<PostModalProps> = ({
     transform: [{ translateY: slideAnim }],
   };
 
+  // Android needs different handling for modal touch events
+  const platformProps = Platform.OS === 'android' ? {
+    hardwareAccelerated: true,
+    statusBarTranslucent: true,
+  } : {};
+
   return (
     <Modal
       visible={isVisible}
       transparent={true}
       animationType="none" // We're handling animation manually
       onRequestClose={handleCloseModal}
+      {...platformProps}
     >
       {/* Animated Background */}
       <Animated.View 
@@ -78,6 +85,8 @@ const PostModal: React.FC<PostModalProps> = ({
             flex: 1,
             position: "absolute",
             backgroundColor: "rgba(250,250,250,1)",
+            width: '100%',
+            height: '100%'
           },
           backgroundStyle,
           modalStyle
@@ -85,8 +94,13 @@ const PostModal: React.FC<PostModalProps> = ({
       >
         {/* Pressable area to close modal when background is tapped */}
         <Pressable 
-          style={{ flex: 1 }} 
+          style={{ 
+            flex: 1,
+            width: '100%',
+            height: '100%' 
+          }} 
           onPress={handleCloseModal}
+          android_ripple={Platform.OS === 'android' ? { color: 'rgba(0,0,0,0.1)' } : undefined}
         />
 
         {/* Animated Content */}
