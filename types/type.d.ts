@@ -126,11 +126,22 @@ declare interface UserProfileType {
   is_paid_user: boolean;
   report_count: number;
   saved_posts: string[];
+  theme: string;
+  engagement: number;
+  created_at: string,
+  color?: string;
+  total_posts?: number;
 }
 
 declare interface UserData {
   userInfo: UserProfileType;
   posts: Post[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    hasMore: boolean;
+  };
 }
 
 declare interface PostWithPosition extends Post {

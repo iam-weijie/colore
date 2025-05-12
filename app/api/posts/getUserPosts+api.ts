@@ -75,6 +75,7 @@ export async function GET(request: Request) {
       country: userInfoQuery[0].country,
       state: userInfoQuery[0].state,
       city: userInfoQuery[0].city,
+      total_posts: parseInt(userInfoQuery[0].total_posts)
     };
 
     const totalPosts = parseInt(userInfoQuery[0].total_posts);
