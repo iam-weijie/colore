@@ -140,8 +140,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
 
-  const Flag = countries[profileUser?.country || "Canada"];
-
   const [myBoards, setMyBoards] = useState<any>();
   const [communityBoards, setCommunityBoards] = useState<any>();
 
@@ -525,6 +523,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const handleClearSearch = () => {
     setQuery("");
   };
+
 
 // Create a new function that matches the expected type for handleUpdate
 const handlePostUpdate = (id: number, isRemove: boolean) => {
