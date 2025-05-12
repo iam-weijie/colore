@@ -153,6 +153,7 @@ const PostCommentsModal = () => {
   // Load more comments when user scrolls
   const handleLoadMore = () => {
     if (!isLoadingMore && hasMore) {
+      console.log("Loading more comments: page", page + 1);
       fetchComments(page + 1, true);
     }
   };
@@ -311,13 +312,17 @@ const PostCommentsModal = () => {
                   ref={flatListRef}
                   data={postComments}
                   renderItem={renderCommentItem}
-                  keyExtractor={(item) => item.date}
+                  keyExtractor={(item) => item.date || Date.now().toString()}
                   contentContainerStyle={styles.commentsList}
                   style={styles.commentsListView}
                   showsVerticalScrollIndicator={false}
                   onEndReached={handleLoadMore}
-                  onEndReachedThreshold={0.5}
+                  onEndReachedThreshold={0.2}
                   ListFooterComponent={renderFooter}
+                  initialNumToRender={10}
+                  maxToRenderPerBatch={10}
+                  windowSize={10}
+                  removeClippedSubviews={Platform.OS === 'android'}
                 />
               )}
               
