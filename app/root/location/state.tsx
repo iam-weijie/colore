@@ -182,12 +182,13 @@ const State = () => {
 
       <Header
         title={`Select a State in ${formattedCountryName()}`}
-        />
+        showBackButton={true}
+      />
 
       {statesList.length === 0 ? (
-        <Header
-        title={`No states found for this country.`}
-        />
+        <View className="items-center justify-center mt-8">
+          <Text className="text-base font-JakartaMedium text-gray-500">No states found for this country.</Text>
+        </View>
       ) : (
         <FlatList
           data={statesList}

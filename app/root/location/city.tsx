@@ -207,9 +207,10 @@ const City = () => {
 
   return (
        <View className="flex-1 bg-[#FAFAFA]">
-                  <Header
-        title={`Select a State in ${formattedStateName()}`}
-        />
+          <Header
+            title={`Select a City in ${formattedStateName()}`}
+            showBackButton={true}
+          />
     
       
 
