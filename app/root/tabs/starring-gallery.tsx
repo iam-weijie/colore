@@ -51,12 +51,24 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [hasSubmittedPrompt, setHasSubmittedPrompt] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+    const [selectedTab, setSelectedTab] = useState<string>("Starring");
+  
 
   const selectedPostRef = useRef<Post | null>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const inputRef = useRef<TextInput>(null);
 
   const [selectedModal, setSelectedModal] = useState<any>();
+
+  const starringTabs = [
+    { name: "Create", key: "Create", color: "#CFB1FB", notifications: 0 },
+    {
+      name: "Answer",
+      key: "Answer",
+      color: "#CFB1FB",
+    },
+    { name: "Peek", key: "Peek", color: "#93c5fd", notifications: 0 },
+  ];
 
   // 1) request ATT permission
   const requestPermission = async () => {
@@ -281,11 +293,17 @@ export default function Page() {
     }
   };
 
+  const handleTabChange = (tabKey: string) => {
+  console.log("Tab changed to:", tabKey);
+  setSelectedTab(tabKey);
+};
+
   return (
     <View className="flex-1">
       <EmojiBackground emoji="😳" color="#ffe640" />
-      <Header title="Starring" />
-      {hasSubmittedPrompt ? (
+      <Header title="Starring" tabs={starringTabs} onTabChange={handleTabChange} 
+ />
+      {/* {hasSubmittedPrompt ? (
         <PostModal
           isVisible={isModalVisible}
           selectedPosts={posts}
@@ -323,7 +341,7 @@ export default function Page() {
             )}
           </View>
         </TouchableWithoutFeedback>
-      )}
+      )} */}
       {/* !!selectedModal && 
   <ModalSheet
   title=""
