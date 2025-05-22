@@ -11,6 +11,16 @@ import {
 } from "react-native";
 import PinIcon from "./PinComponent";
 
+type Stacks = {
+  name: string;
+  ids: number[]; // IDs of the posts in the stack
+  elements: any[]; //! Elements of any type in the stack (Change to a specific type later)
+  center: {
+    x: number;
+    y: number;
+  }; // Center coords
+};
+
 const StackCircle = ({
   stack,
   isEditable = false,
@@ -21,6 +31,16 @@ const StackCircle = ({
   enabledPan,
   stackMoving,
   updateStackPosition,
+}: {
+  stack: Stacks;
+  isEditable?: boolean;
+  scrollOffset?: { x: number; y: number };
+  onViewPress: () => void;
+  onEditPress: () => void;
+  onSendPress: () => void;
+  enabledPan: () => void;
+  stackMoving: () => void;
+  updateStackPosition: (x: number, y: number, stack: Stacks) => void;
 }) => {
   const SHOW_BUTTONS_THRESHOLD = 200;
 
@@ -28,14 +48,14 @@ const StackCircle = ({
   const [isDragging, setIsDragging] = useState(false);
 
   const basePosition = useRef({
-    x: stack.center.x ?? 0,
-    y: stack.center.y ?? 0,
+    x: stack?.center?.x ?? 0, // added null safety check
+    y: stack?.center?.y ?? 0,
   }).current;
 
   const dragOffset = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const scale = useRef(new Animated.Value(1)).current;
   const shadowRadius = useRef(new Animated.Value(8)).current;
-  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isReadyToDrag = useRef(false);
 
@@ -87,7 +107,7 @@ const StackCircle = ({
         }
 
         setIsDragging(false);
-        stackMoving()
+        stackMoving();
         isReadyToDrag.current = false;
       },
     })
@@ -95,15 +115,15 @@ const StackCircle = ({
 
   useEffect(() => {
     if (!isDragging) {
-      basePosition.x = stack.center.x;
-      basePosition.y = stack.center.y;
+      basePosition.x = stack?.center?.x;
+      basePosition.y = stack?.center?.y;
       dragOffset.setValue({ x: 0, y: 0 });
     }
-  }, [stack.center.x, stack.center.y]);
+  }, [stack?.center?.x, stack?.center?.y]); //TODO: Perform better nullity checks
 
   const shouldShowButtons = () => {
-    const dx = Math.abs((scrollOffset.x + 120) - stack.center.x);
-    const dy = Math.abs((scrollOffset.y + 160) - stack.center.y);
+    const dx = Math.abs(scrollOffset.x + 120 - stack?.center?.x);
+    const dy = Math.abs((scrollOffset.y + 160) - stack?.center?.y);
     const distance = Math.sqrt(dx * dx + dy * dy);
     setIsFocused(distance <= SHOW_BUTTONS_THRESHOLD && isEditable);
   };
@@ -143,7 +163,7 @@ const StackCircle = ({
       </View>
 
       {/* Stack Name */}
-      <Text 
+      <Text
         className="absolute top-12 w-full px-6 text-center text-black font-JakartaBold"
         numberOfLines={2}
         ellipsizeMode="tail"

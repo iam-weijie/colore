@@ -275,7 +275,7 @@ const UserInfo = () => {
 
   const handleNavigateToCountry = () => {
     playSoundEffect(SoundType.Navigation)
-    Haptics.selectionAsync();
+    // Haptics.selectionAsync();
   
     setStateVars({
       ...stateVars,
@@ -391,7 +391,7 @@ const UserInfo = () => {
         actionIcon={hasJoined && icons.check}
         onPress={async () => {
           playSoundEffect(SoundType.Submit)
-          Haptics.selectionAsync();
+          // Haptics.selectionAsync();
         
           if (item.username) {
             router.push({
@@ -599,7 +599,7 @@ const UserInfo = () => {
 
   const handleNext = () => {
     playSoundEffect(SoundType.Navigation)
-    Haptics.selectionAsync();
+    // Haptics.selectionAsync();
   
     if (step < totalSteps - 1) setStep((prev) => prev + 1);
     else {
