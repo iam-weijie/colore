@@ -16,7 +16,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const query = `
+    const response = await sql`
       SELECT 
         p.id, 
         p.content, 
@@ -46,14 +46,12 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.recipient_user_id = '${recipientId}'
+      WHERE p.recipient_user_id = ${recipientId}
         AND p.post_type = 'personal'
         AND (p.board_id IS NULL OR p.board_id < 0)
       ORDER BY p.created_at DESC
       LIMIT ${number};
     `;
-
-    const response = await sql(query);
 
     // Transform the response to match the Post interface
     const mappedPosts = response.map((post: any) => ({
@@ -77,21 +75,20 @@ export async function GET(request: Request) {
       notified: post.notified,
       prompt_id: post.prompt_id,
       prompt: post.prompt,
-      board_id: post.board_id || -1, 
+      board_id: post.board_id || -1,
       unread: post.unread,
       position: {
         top: post.top,
-        left: post.left
-      }
+        left: post.left,
+      },
     }));
 
     return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
-  
   } catch (error) {
     console.error("Error fetching personal posts:", error);
     return new Response(

@@ -93,7 +93,8 @@ export default function Page() {
     setLoading(true);
     try {
       const res = await fetchAPI(
-        `/api/posts/getRandomPosts?number=${isIpad ? 10 : 6}&id=${user?.id}`
+        //TODO Adjust this to get trending posts
+        `/api/posts/getTrendingPosts?number=${isIpad ? 24 : 18}&id=${user?.id}`
       );
 
       setPosts(res.data);

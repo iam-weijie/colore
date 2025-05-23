@@ -10,7 +10,6 @@ export async function GET(request: Request) {
       | keyof typeof locationFilter
       | null;
 
-    // Define the base select fields that are common to all queries
     const baseSelectFields = `
       p.id, 
       p.content, 
@@ -46,19 +45,45 @@ export async function GET(request: Request) {
         ? locationFilter[mode as keyof typeof locationFilter]
         : "1=1"; // Default to no filter for global mode
 
+    const SCORE_WEIGHTS = {
+      likes: 0.7,
+      replies: 0.3,
+      reports: -0.4,
+      timeDecay: 1.2, // Higher values make newer posts more important
+      minimumLikes: 0, // Minimum likes to be considered trending
+      maximumReports: 5, // Maximum reports before exclusion
+      timeWindowDays: 364, // Only take posts from last X days
+    };
+
+    /**
+     *TODO Add reply count when the field is added to the database
+     * (p.reply_count * ${SCORE_WEIGHTS.replies}) +
+     */
+    const trendingScoreFormula = `
+      (
+        (p.like_count * ${SCORE_WEIGHTS.likes}) +
+        (p.report_count * ${SCORE_WEIGHTS.reports})
+      ) /
+      (
+        EXTRACT(EPOCH FROM (NOW() - p.created_at))/3600 +
+        ${SCORE_WEIGHTS.timeDecay}
+      )
+    `;
+
     /*lolol this is safe as 100% hardcoded -- no sql injection */
     const response = await sql`
-        SELECT
-        ${sql.unsafe(baseSelectFields)}
-        FROM posts p
-        JOIN users u ON p.user_id = u.clerk_id
-        LEFT JOIN prompts pr ON p.prompt_id = pr.id
-        WHERE p.user_id != ${id}
+      SELECT
+        ${sql.unsafe(baseSelectFields)},
+        ${sql.unsafe(trendingScoreFormula)} AS trending_score
+      FROM posts p
+      JOIN users u ON p.user_id = u.clerk_id
+      LEFT JOIN prompts pr ON p.prompt_id = pr.id
+      WHERE p.user_id != ${id}
         AND p.post_type = 'public'
         AND ${sql.unsafe(locationCondition)}
-        ORDER BY RANDOM()
-        LIMIT ${number};
-      `;
+      ORDER BY trending_score DESC
+      LIMIT ${number};
+    `;
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
