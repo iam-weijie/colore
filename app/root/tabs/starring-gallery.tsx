@@ -30,6 +30,8 @@ import { RenderPromptCard } from "@/components/RenderCard";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import CardCarrousel from "@/components/CardCarroussel";
+import StarringPeekTab from "@/components/StarringModal";
+import StarringModal from "@/components/StarringModal";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -51,8 +53,7 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [hasSubmittedPrompt, setHasSubmittedPrompt] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-    const [selectedTab, setSelectedTab] = useState<string>("Starring");
-  
+  const [selectedTab, setSelectedTab] = useState<string>("Starring");
 
   const selectedPostRef = useRef<Post | null>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -294,61 +295,94 @@ export default function Page() {
   };
 
   const handleTabChange = (tabKey: string) => {
-  console.log("Tab changed to:", tabKey);
-  setSelectedTab(tabKey);
-};
+    console.log("Tab changed to:", tabKey);
+    setSelectedTab(tabKey);
+  };
 
   return (
     <View className="flex-1">
-      <EmojiBackground emoji="😳" color="#ffe640" />
-      <Header title="Starring" tabs={starringTabs} onTabChange={handleTabChange} 
- />
-      {/* {hasSubmittedPrompt ? (
-        <PostModal
-          isVisible={isModalVisible}
-          selectedPosts={posts}
-          handleCloseModal={handleCloseModalPress}
-          infiniteScroll={true}
-          scrollToLoad={handleScrollToLoad}
-        />
-      ) : (
-        <TouchableWithoutFeedback
-          onPress={() => Keyboard.dismiss()}
-          onPressIn={() => Keyboard.dismiss()}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <KeyboardAvoidingView
+          className="flex-1"
+          keyboardVerticalOffset={32} // adjust if your header height is different
         >
           <View className="flex-1">
-            {loading ? (
-              <View className="flex-1 items-center justify-center">
-                <ColoreActivityIndicator text="Summoning Bob..." />
-              </View>
-            ) : (
-              <View className="flex-[0.85]">
-                <CardCarrousel
-                  items={prompts}
-                  renderItem={(item, index) => (
-                    <RenderPromptCard
-                      item={item}
-                      userId={user!.id}
-                      promptContent={promptContent}
-                      updatePromptContent={updatePromptContent}
-                      handlePromptSubmit={handlePromptSubmit}
+            <Header
+              // title="Starring"
+              tabs={starringTabs}
+              selectedTab={selectedTab}
+              onTabChange={handleTabChange}
+              tabCount={starringTabs.length}
+              className="z-10"
+            />
+            <EmojiBackground emoji="😳" color="#ffe640" />
+            <StarringModal
+              isVisible={isModalVisible}
+              selectedPosts={posts}
+              handleCloseModal={handleCloseModalPress}
+              infiniteScroll={true}
+              scrollToLoad={handleScrollToLoad}
+            />
+            {hasSubmittedPrompt ? (
+              <>
+                {/*
+              //TODO Remake answer tab from scratch
+              */}
+                {/* <PostModal
+                  isVisible={isModalVisible}
+                  selectedPosts={posts}
+                  header={
+                    <Header
+                      title="Starring"
+                      tabs={starringTabs}
+                      selectedTab={selectedTab}
+                      onTabChange={handleTabChange}
+                      className="z-10"
                     />
-                  )}
-                  handleScrollBeginDrag={handleScrollBeginDrag}
-                  inputRef={inputRef}
-                />
-              </View>
+                  }
+                  handleCloseModal={handleCloseModalPress}
+                  infiniteScroll={true}
+                  scrollToLoad={handleScrollToLoad}
+                /> */}
+              </>
+            ) : (
+              <>
+                {/* <View className="flex-1">
+              {loading ? (
+                <View className="flex-1 items-center justify-center">
+                  <ColoreActivityIndicator text="Summoning Bob..." />
+                </View>
+              ) : (
+                <View className="flex-[0.85]">
+                  <CardCarrousel
+                    items={prompts}
+                    renderItem={(item, index) => (
+                      <RenderPromptCard
+                        item={item}
+                        userId={user!.id}
+                        promptContent={promptContent}
+                        updatePromptContent={updatePromptContent}
+                        handlePromptSubmit={handlePromptSubmit}
+                      />
+                    )}
+                    handleScrollBeginDrag={handleScrollBeginDrag}
+                    inputRef={inputRef}
+                  />
+                </View>
+              )}
+            </View> */}
+              </>
             )}
-          </View>
-        </TouchableWithoutFeedback>
-      )} */}
-      {/* !!selectedModal && 
+            {/* !!selectedModal && 
   <ModalSheet
   title=""
   isVisible={!!selectedModal}
   onClose={() => {setSelectedModal(null)}}>
    {selectedModal}
   </ModalSheet>*/}
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </View>
   );
 }
