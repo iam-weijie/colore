@@ -4,7 +4,8 @@ export async function POST(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
 
-    const { clerkId, postId, postClerkId, content, replyId } = await request.json();
+    const { clerkId, postId, postClerkId, content, replyId } =
+      await request.json();
 
     if (!clerkId || !postId || !postClerkId || !content) {
       return Response.json(
@@ -29,10 +30,71 @@ export async function POST(request: Request) {
         WHERE id = ${postId};
       `;
 
+      // Dispatching notification to user
+      const [post, comment, commenter, postOwner] = await Promise.all([
+        sql`
+          SELECT id, content, created_at, user_id, like_count, report_count, unread_comments, color
+          FROM posts
+          WHERE id = ${postId};
+        `,
+        sql`
+          SELECT id, content AS comment_content, created_at AS comment_created_at, like_count AS comment_like_count, report_count AS comment_report_count, notified
+          FROM comments
+          WHERE id = ${insertedComment[0].id};
+        `,
+        sql`
+          SELECT firstname, username
+          FROM users
+          WHERE clerk_id = ${clerkId};
+        `,
+        sql`
+          SELECT firstname, username
+          FROM users
+          WHERE clerk_id = ${postClerkId};
+        `,
+      ]);
+
+      const new_comment = {
+        id: comment[0].id,
+        comment_content: comment[0].comment_content,
+        comment_created_at: comment[0].comment_created_at,
+        comment_like_count: comment[0].comment_like_count,
+        comment_report_count: comment[0].comment_report_count,
+        notified: comment[0].notified,
+        commenter_firstname: commenter[0].firstname,
+        commenter_username: commenter[0].username,
+        is_liked: false, // fix: query this
+      };
+
+      const notification = {
+        id: post[0].id,
+        content: post[0].content,
+        firstname: postOwner[0].firstname,
+        username: postOwner[0].username,
+        created_at: post[0].created_at,
+        user_id: post[0].user_id,
+        like_count: post[0].like_count,
+        report_count: post[0].report_count,
+        unread_comments: post[0].unread_comments,
+        color: post[0].color,
+        new_comment,
+      };
+
+      await fetch("http://YOUR_SOCKET_SERVER/dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: clerkId,
+          type: "Comments",
+          notification,
+          content: new_comment,
+        }),
+      });
+
       return new Response(JSON.stringify({ data: insertedComment[0] }), {
         status: 201,
       });
-    } 
+    }
     // When the post owner comments on their own post
     else {
       const response = await sql`

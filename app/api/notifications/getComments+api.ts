@@ -18,7 +18,7 @@ export async function GET(request: Request) {
         p.id,
         p.content,
         u.firstname,
-         u.username, 
+        u.username, 
         p.created_at,
         p.user_id,
         p.like_count,
@@ -83,7 +83,7 @@ export async function GET(request: Request) {
     const filteredPosts = postsWithComments
   .filter((post: any) => post.comments) // 
 
-    const postWithUnreadComments = filteredPosts
+    const postsWithUnreadComments = filteredPosts
     .filter((post: any) => post.comments.some((c: any) => !c.notified))
     .map((post: any) => ({
     ...post,
@@ -105,7 +105,7 @@ export async function GET(request: Request) {
 
   //console.log("stored", storedPosts.length)
     return new Response(
-      JSON.stringify({ toNotify: postWithUnreadComments, toStore: storedPosts, unread_count: unread_comments }),
+      JSON.stringify({ toNotify: postsWithUnreadComments, toStore: storedPosts, unread_count: unread_comments }),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
