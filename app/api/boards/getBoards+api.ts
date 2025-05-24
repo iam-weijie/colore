@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const fetch_boards = `
+    const fetch_boards = sql`
       SELECT 
       b.id,
       b.title,
@@ -26,22 +26,21 @@ export async function GET(request: Request) {
       b.restrictions
       FROM boards b
       JOIN users u ON b.user_id = u.clerk_id
-      WHERE b.user_id = '${user_id}'
+      WHERE b.user_id = ${user_id}
       ORDER BY b.created_at ASC;
     `;
    
-    const fetch_count = 
-    `
+    const fetch_count = sql`
     SELECT p.board_id, COUNT(*) AS post_count
     FROM posts p
     JOIN boards b ON p.board_id = b.id
-    WHERE b.user_id = '${user_id}'
+    WHERE b.user_id = ${user_id}
     GROUP BY p.board_id;
     `;
 
   
-    const raw_boards = await sql(fetch_boards);
-    const board_count = await sql(fetch_count);
+    const raw_boards = await fetch_boards;
+    const board_count = await fetch_count;
 
     console.log("raw my boards", raw_boards.map((b) => b.id), board_count)
 

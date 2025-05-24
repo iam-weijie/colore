@@ -41,13 +41,13 @@ import {
   Image,
   ImageSourcePropType,
   Platform,
-  ScrollView,
   Share,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import {
   Gesture,
   GestureDetector,
@@ -176,8 +176,15 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     (color) => color.name === currentPost?.color
   ) as PostItColor;
 
+  const SPRING_CONFIG = {
+    stiffness: 150,
+    damping: 20,
+    mass: 0.5,
+  };
+
   const swipeGesture = Gesture.Pan()
-    .activeOffsetX([-5, 5]) // Lowered activation threshold
+    .minDistance(20)
+    .activeOffsetX([-20, 20])
     .onStart(() => {
       starScale.value = withSequence(
         withTiming(1.2, { duration: 100 }),
@@ -235,10 +242,11 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
-      { scale: 1 - Math.abs(translateX.value) / 1000 }, // Subtle scale effect
+      {
+        scale: interpolate(Math.abs(translateX.value), [0, width], [1, 0.8]),
+      },
     ],
-    opacity: 1 - Math.abs(translateX.value) / 500, // More subtle opacity change
-    shadowOpacity: Math.abs(translateX.value) / 100, // Add shadow feedback
+    opacity: interpolate(Math.abs(translateX.value), [0, width], [1, 0.5]),
   }));
 
   const starAnimatedStyle = useAnimatedStyle(() => ({
@@ -647,87 +655,58 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       </TouchableWithoutFeedback>
 
       {header}
-      {/* {currentPost?.prompt && (
-        <Animated.View
-          className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center"
-          entering={FadeInUp.duration(200)}
-          exiting={FadeOutDown.duration(200)}
-        >
-          <View
-            className="w-[75%] max-w-[300px]"
-            style={{
-              transform: [{ rotate: `${(Math.random() - 0.5) * 10}deg` }],
-            }}
-          >
-            <ItemContainer
-              label={currentPost?.prompt}
-              icon={icons.fire}
-              colors={[currentPost?.color, "#FFB512"]}
-              iconColor="#000"
-              onPress={() => {
-                router.push({
-                  pathname: "/root/new-post",
-                  params: {
-                    prompt: currentPost?.prompt,
-                    promptId: currentPost?.prompt_id,
-                  },
-                });
-              }}
-            />
-          </View>
-        </Animated.View>
-      )} */}
-      {/* <CardCarrousel
-        items={posts}
-        renderItem={(item: Post, index: number) => (
-          <RenderCreateCard
-            item={item}
-            handleOptionSubmit={() => {
-              // Jump to the tapped post in the modal
-              setCurrentPostIndex(index);
-              // Reset swipe position & opacity so the animation looks smooth
-              translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-              opacity.value = withTiming(1);
-            }}
-          />
-        )}
-      /> */}
       <GestureHandlerRootView
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
         <GestureDetector gesture={swipeGesture}>
           <Animated.View
-            entering={FadeInUp.duration(400)}
-            exiting={FadeOutDown.duration(250)}
-            style={[
-              animatedStyle,
-              {
-                width: "80%",
-                maxWidth: 500,
-                padding: 24,
-                borderRadius: 24,
-                backgroundColor: "white",
-              },
-            ]}
+            style={[animatedStyle]}
+            className="w-4/5 max-w-[500px] min-h-[300px] max-h-80 overflow-hidden p-6 rounded-3xl bg-white"
           >
-            <TouchableOpacity onPress={handleCloseModal}>
+            <TouchableOpacity
+              onPress={handleCloseModal}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              style={{ zIndex: 10 }}
+            >
               <Image
                 source={icons.close}
                 style={{
                   width: 18,
                   height: 18,
-                  top: 4,
                   alignSelf: "flex-end",
                   opacity: 0.5,
                 }}
               />
             </TouchableOpacity>
 
-            <ScrollView>
-              <Text className="text-[16px] p-1 my-4 font-Jakarta">
-                {currentPost?.content}
-              </Text>
-            </ScrollView>
+            <View style={{ flex: 1, marginTop: 10 }}>
+              <TouchableWithoutFeedback>
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 1,
+                  }}
+                />
+              </TouchableWithoutFeedback>
+
+              {/* Scrollable content */}
+              <ScrollView
+                style={{ zIndex: 0 }}
+                showsVerticalScrollIndicator={true}
+                persistentScrollbar={true}
+                scrollEventThrottle={16}
+                directionalLockEnabled={true}
+                alwaysBounceVertical={true} // Better iOS scrolling
+              >
+                <Text className="text-base p-1 my-4 font-Jakarta leading-6">
+                  {currentPost?.content}
+                </Text>
+              </ScrollView>
+            </View>
             {!isPreview && (
               <View className="my-2 flex-row justify-between items-center">
                 <View className="flex flex-row items-center">
@@ -742,7 +721,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
                     />
                   </TouchableOpacity>
                   {/* Show like count only to post creator */}
-                  {currentPost?.user_id == user?.id && (
+                  {currentPost?.user_id === user?.id && (
                     <Text className="ml-1 text-gray-600">{likeCount}</Text>
                   )}
                 </View>

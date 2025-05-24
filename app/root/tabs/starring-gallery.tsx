@@ -309,7 +309,7 @@ export default function Page() {
         >
           <View className="flex-1">
             <Header
-              // title="Starring"
+              title="Starring"
               tabs={starringTabs}
               selectedTab={selectedTab}
               onTabChange={handleTabChange}
