@@ -30,21 +30,21 @@ declare interface Post {
     top: number;
     left: number;
   };
-  
+
 }
 
 declare interface StylingType {
-  id: number, 
+  id: number,
   bold?: boolean,
   italic?: boolean,
   underlinde?: boolean,
   orderedList?: boolean,
-  underedList?: boolean, 
+  underedList?: boolean,
   quote?: boolean
 }
 declare interface TextStylingType {
   id: number;
-  value: string; 
+  value: string;
   style: StylingType[];
 
 }
@@ -109,6 +109,7 @@ declare interface PostComment {
   report_count: number;
   is_liked: boolean;
   postColor: string;
+  reply_comment_id?: number | null;
 }
 
 declare interface UserProfileType {

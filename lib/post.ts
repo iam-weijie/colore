@@ -21,13 +21,13 @@ import {
 
 
 
-  
+
 export const handleReportPress = () => {
     Linking.openURL("mailto:support@colore.ca");
   };
 
 export const handleEditing = (post: Post) => {
-  
+
       setTimeout(() => {
         router.push({
           pathname: "/root/new-post",
@@ -40,13 +40,13 @@ export const handleEditing = (post: Post) => {
         });
       }, 750);
     };
-  
+
 export const handleReadComments = async (post: Post, userId: string) => {
-    
+
     if (post.clerk_id === userId) {
       try {
         console.log("Patching comments")
-        
+
         await fetchAPI(`/api/posts/updateUnreadComments`, {
           method: "PATCH",
           body: JSON.stringify({
@@ -75,7 +75,7 @@ export const handlePin = async (post: Post, isPinned: boolean, userId: string) =
         console.error("Failed to update handlepin message:", error);
       }
     };
-  
+
  export const handleShare = async (imageUri: string | null, post: Post) => {
     if (!imageUri) {
       console.warn("No image to share. Please capture first.");
@@ -118,7 +118,7 @@ export const handleSavePost = async (postId: number, isSaved: boolean, userId: s
         });
       } catch (error) {
         console.error("Failed to update unread message:", error);
-      } 
+      }
     };
 
 export   const distanceBetweenPosts = (
@@ -134,7 +134,7 @@ export   const distanceBetweenPosts = (
       };
 
 export const fetchCountryEmoji = async (countryName: string) => {
-  
+
   try {
     const response = await fetch(`https://restcountries.com/v3.1/name/${countryName}`);
     const data = await response.json();
@@ -157,6 +157,12 @@ export const fetchCountryEmoji = async (countryName: string) => {
 export const isOnlyEmoji = (text: string): boolean => {
   // Unicode regex pattern to match emoji characters
   const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Modifier}|\p{Emoji_Component}|\p{Emoji})+$/u;
+
+  // Check if text contains only digits
+  const containsOnlyDigits = /^\d+$/.test(text);
+
+  // Return false if text contains only digits
+  if (containsOnlyDigits) return false;
 
   return emojiRegex.test(text);
 };
