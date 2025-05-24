@@ -1,0 +1,30 @@
+#
+# Basic Crowdin CLI configuration
+# See https://crowdin.github.io/crowdin-cli/configuration for more information
+# See https://support.crowdin.com/developer/configuration-file/ for all available options
+#
+
+#
+# Your Crowdin credentials
+#
+"project_id": "785028"
+"api_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJ3UUVxdmhVM3ZMT2EyWGljbVV5VCIsImp0aSI6IjRkNzBiY2QxNjUwMTkzNTJlZjc3NTQyMDY2NGNkNmY5OTNmYTA4NzBmN2MzODNlMWY1NDU0Y2U4YzIzNDliOTQzMjFlNGMwMjY5ZDljYmY0IiwiaWF0IjoxNzQ4MDk0NTI2LjgxODE2NSwibmJmIjoxNzQ4MDk0NTI2LjgxODE2NywiZXhwIjoxNzc5NjMwNTI2Ljc1MjI2OSwic3ViIjoiMTcwNjg1NTYiLCJzY29wZXMiOlsicHJvamVjdCJdLCJkb21haW4iOm51bGwsImFzc29jaWF0aW9ucyI6WyIqIl0sImxvZ2luX21ldGhvZCI6bnVsbCwic2Vzc2lvbiI6MH0.F2AQ9jIMMRjDbXIGWiisZgY6VcBOW0x41rkC3t3cMeGJEKc1s22a_gS8g5MQc5RvHPYYiTSqPf_8w5Mc-X4Cjc_DtBP1c1EGbJL3l-Y27Cw7HXW25dZ6nGN4AKmNJ5JVIzNpVWb91-R5WrxOxi_iDsg6yd0DJv5qMU8-ubP_XpCB33r0kslekKbbiVcYUPrkhHkkEM8Q2kTRZMvl6ocWALcXLnTvo9yNYnqmbjKVAkVmQiN6wtQv2N6c3vW6vojPpoNtTZVcNcf1-3qFucO2Kjns5R1m5aWFNFBZuvNDtgks1a7NSBBGDmbpVkNTcS73q5rXKiHOTn0SG54TDk5qKN05QU6Cuv--AuevBFNkb3qcEx5nOr7NGRNkTETZF2ZX7w5DSKvZkK8ksWW0Sqz76pjK1Qk89GnASS4xDxIukGpMcIAPIVvKFb6aEPTyGXJ2UlrGx6mYJsammT5Z-N0oVtAZJl1cXtYxsp_6YTzP-0H2gbqa-WrIQ449tMm74AFiU43J6kFBai_ErVQt53_LF_mKpoat5tMptjn8NstkvXYlItjMFI9MPzll8XUQx2cn348z1JTAUR1pAZ3JiXFk_uO0FLqsAIeu8v4l5ex2w-LvT7MneXXMefduA0YSa3Ft7oPV8OQNZ4Zc4V7ISEsXf7f5DH-LgldZgqvWdIFtrfA"
+"base_path": "."
+"base_url": "https://api.crowdin.com"
+
+#
+# Defines whether to preserve the original directory structure in the Crowdin project
+# Recommended to set to true
+#
+"preserve_hierarchy": true
+
+#
+# Files configuration.
+# See https://support.crowdin.com/developer/configuration-file/ for all available options
+#
+"files": [
+  {
+    "source": "/locales/en/*.json",
+    "translation": "/locales/%two_letters_code%/%original_file_name%"
+  }
+]

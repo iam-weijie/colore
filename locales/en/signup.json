@@ -1,0 +1,21 @@
+{
+    "error": "Error",
+    "welcome": "Welcome 👋",
+    "enter": {
+        "email": "Enter your email",
+        "password": "Enter your password"
+    },
+    "noaccount": "Does have an account?",
+    "forgotpassword": "Forgot your password?",
+    "signup": "Sign Up",
+    "login": "Log In",
+    "create": "Create",
+    "account": "Your Account",
+    "alreadyaccount": "Already have an account?",
+    "verification": {
+        "init": "Verification",
+        "sent": "We've sent a verification code to {{email}}",
+        "verified": "verified",
+        "success": "You have been successfully verified."
+    }
+}

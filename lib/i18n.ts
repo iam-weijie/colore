@@ -3,8 +3,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import * as Localization from 'expo-localization';
 
-import en from '../locales/en/translation.json';
-import fr from '../locales/fr/translation.json';
+import { translations } from '../locales';
 
 // Define your fallback language
 const fallbackLng = 'en';
@@ -18,8 +17,7 @@ i18n
     lng: deviceLanguage,
     fallbackLng,
     resources: {
-      en: { translation: en },
-      fr: { translation: fr },
+      en: { translation: translations.en },
     },
     interpolation: {
       escapeValue: false, // React already escapes by default

@@ -1,0 +1,13 @@
+{
+    "error": "Error",
+    "welcome": "Welcome ✨",
+    "colore": "To Colore",
+    "agreement": {
+        "init": "By continuing, you agree to our ",
+        "terms": "Terms of Service",
+        "and": "and",
+        "privacy": "Privacy Policy"
+    },
+    "signup": "Sign Up",
+    "login": "Log In"
+}

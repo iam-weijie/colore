@@ -1,0 +1,12 @@
+{
+    "error": "Error",
+    "welcome": "Welcome 👋",
+    "enter": {
+        "email": "Enter your email",
+        "password": "Enter your password"
+    },
+    "noaccount": "Does have an account?",
+    "forgotpassword": "Forgot your password?",
+    "signup": "Sign Up",
+    "login": "Log In"
+}
