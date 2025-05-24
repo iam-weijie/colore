@@ -849,29 +849,30 @@ export default PostItBoard;
                     stack.ids.includes(p.id)
                   );
 
-                  if (!hasPostsOnCurrentBoard) {
-                    return null;
-                  }
-                  
-                  return (
-                    <StackCircle
-                      key={stack.name}
-                      stack={stack}
-                      scrollOffset={scrollOffset}
-                      isEditable={isEditable}
-                      onViewPress={() => {
-                        setSelectedPosts(stack.elements);
-                      }}
-                      onEditPress={() => {
-                        if (isEditable) {handleRenameStack(stack)}
-                      }}
-                      onSendPress={() => {}}
-                      enabledPan={() => setIsPanningMode(prev => !prev)}
-                      stackMoving={() => setIsStackMoving(prev => !prev)}
-                      updateStackPosition={(newX, newY, stack) => handleStackPosition(newX, newY, stack)}
-                    />
-                  );
-                })}
+if (!hasPostsOnCurrentBoard) {
+  return null;
+}
+  return (
+  <StackCircle
+    key={stack.name}
+    stack={stack}
+    scrollOffset={scrollOffset}
+    isEditable={isEditable}
+    onViewPress={() => {
+       setSelectedPosts(stack.elements);
+    }
+    }
+    onEditPress={() => {
+      if (isEditable) {handleRenameStack(stack)}
+    
+
+    }}
+    onSendPress={() => {}}
+    enabledPan={() => setIsPanningMode(prev => !prev)}
+    stackMoving={() => setIsStackMoving(prev => !prev)}
+    updateStackPosition={(newX, newY, stack) => handleStackPosition(newX, newY, stack)}
+    />
+  )})}
 
                 {postsWithPosition.map(post => (
                   <DraggablePostIt
