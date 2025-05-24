@@ -18,6 +18,7 @@ i18n
     fallbackLng,
     resources: {
       en: { translation: translations.en },
+      fr: { translation: translations.fr },
     },
     interpolation: {
       escapeValue: false, // React already escapes by default

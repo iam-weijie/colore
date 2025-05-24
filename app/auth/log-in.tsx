@@ -10,11 +10,14 @@ import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
 import React from "react";
+import { TextLocalized } from "@/components/TextLocalized";
+import { useTranslation } from 'react-i18next';
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { signOut } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
    const { isIpad } = useGlobalContext()
 
   const [form, setForm] = useState({
@@ -107,27 +110,27 @@ const LogIn = () => {
         }}
         >
         <View>
-           <Text 
+           <TextLocalized 
            className="font-JakartaBold relative ml-5"
            style={{
             fontSize: isIpad ? 32 : 24
            }}
            >
-            Welcome 👋
-          </Text>
+            welcome
+          </TextLocalized >
           </View>
           <View className="w-full p-5">
           <InputField
-            label="Email"
-            placeholder="Enter your email"
+            label={`${t("email")}`}
+            placeholder={t("enter.email")}
             icon={icons.email}
             textContentType="emailAddress"
             value={form.email}
             onChangeText={(value) => setForm({ ...form, email: value })}
           />
           <InputField
-            label="Password"
-            placeholder="Enter your password"
+            label={`${t("password")}`}
+            placeholder={t("enter.password")}
             icon={icons.lock}
             value={form.password}
             secureTextEntry={true}
@@ -139,7 +142,7 @@ const LogIn = () => {
                       <CustomButton
                         className="w-[50%] h-16 mt-8 rounded-full shadow-none"
                         fontSize="lg"
-                        title="Log In"
+                        title={`${t("login")}`}
                         padding="0"
                         onPress={onLogInPress}
                         bgVariant='gradient'
@@ -149,17 +152,18 @@ const LogIn = () => {
 
           {/*Platform.OS === "android" && <OAuth />*/}
           {Platform.OS === "ios" && <AppleSignIn />}
-
-          <Text className="text-base text-center text-general-200 mt-5">
-            Don't have an account?{" "}
-            <Link href="/auth/sign-up">
-              <Text className="text-primary-500">Sign Up</Text>
+ <View className="flex flex-row items-end gap-2 justify-center mt-5">
+          <TextLocalized className="text-base text-center text-general-200">
+            noaccount
+          </TextLocalized>
+              <Link href="/auth/sign-up">
+              <TextLocalized className="text-base text-center text-primary-500">signup</TextLocalized>
             </Link>
-          </Text>
-
-          <Text className="text-base text-center text-general-200 mt-6">
-            <Link href="/auth/reset">Forgot your password?</Link>
-          </Text>
+            </View>
+            
+        <Link href="/auth/reset" className="mt-4">
+          <TextLocalized className="text-base text-center text-general-200">forgotpassword</TextLocalized>
+          </Link>
         </View>
       </View>
     </View>

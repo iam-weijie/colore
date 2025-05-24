@@ -1,0 +1,13 @@
+{
+    "error": "Erreur",
+    "welcome": "Bienvenue 👋",
+    "enter": {
+        "email": "Tapez votre e-mail",
+        "password": "Entrez votre mot de passe",
+        "confirm": "Confirmer le mot de passe"
+    },
+    "noaccount": "Vous n'avez pas de compte ?",
+    "forgotpassword": "Mot de passe oublié?",
+    "signup": "S'inscrire",
+    "login": "Se connecter"
+}

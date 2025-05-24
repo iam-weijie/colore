@@ -25,12 +25,16 @@ import { useGlobalContext } from "@/app/globalcontext";
 import React from "react";
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { useTranslation } from 'react-i18next';
+import { TextLocalized } from "@/components/TextLocalized";
+
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState("");
-  const { isIpad } = useGlobalContext()
+  const { isIpad } = useGlobalContext();
+   const { t } = useTranslation();
 
   const [form, setForm] = useState({
     email: "",
@@ -242,8 +246,8 @@ const SignUp = () => {
         <View className="flex-1 mx-6 justify-start p-5">
           <Animated.View entering={FadeInDown.duration(600).delay(400)}>
             <InputField
-              label="Email"
-              placeholder="Enter your email"
+              label={`${t("email")}`}
+              placeholder={t("enter.email")}
               icon={icons.email}
               textContentType="emailAddress"
               value={form.email}
@@ -253,8 +257,8 @@ const SignUp = () => {
 
           <Animated.View entering={FadeInDown.duration(600).delay(500)}>
             <InputField
-              label="Password"
-              placeholder="Enter your password"
+              label={`${t("password")}`}
+              placeholder={t("enter.password")}
               icon={icons.lock}
               value={form.password}
               secureTextEntry={true}
@@ -290,7 +294,7 @@ const SignUp = () => {
             <CustomButton
               className="w-[50%] h-16 mt-8 rounded-full shadow-none"
               fontSize="lg"
-              title="Sign Up"
+              title={t("signup")}
               padding="0"
               onPress={onSignUpPress}
               bgVariant='gradient'
@@ -299,15 +303,14 @@ const SignUp = () => {
           </View>
         </Animated.View>
 
-        <Animated.Text 
-          entering={FadeIn.duration(600).delay(800)}
+           <View className="flex flex-row items-end gap-2 justify-center mt-5">
+        <TextLocalized 
           className="text-base text-center text-general-200 "
-        >
-          Already have an account?{" "}
-          <Link href="/auth/log-in">
-            <Text className="text-primary-500">Log In</Text>
+        >alreadyaccount</TextLocalized>
+        <Link href="/auth/log-in">
+            <TextLocalized className="text-primary-500 text-base ">login</TextLocalized>
           </Link>
-        </Animated.Text>
+          </View>
       </View>
     </Animated.View>
   );
