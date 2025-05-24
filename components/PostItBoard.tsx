@@ -13,8 +13,8 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import { MappingPostitProps } from "@/types/type";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { GeographicalMode, MappingPostitProps } from "@/types/type";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import React, { useEffect, useRef, useState } from "react";
 import { mappingPostIt, reorderPost } from '@/lib/postItBoard';
@@ -62,6 +62,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [maps, setMap] = useState<MappingPostitProps[]>([]);
   const [isPanningMode, setIsPanningMode] = useState(true);
   const [isStackMoving, setIsStackMoving] = useState(false);
+  const pendingStackSound = useRef(false);
   const [allPostsInStack, setAllPostsInStack] = useState<Post[]>([]);
 
   const { stacks, setStacks } = useGlobalContext();
@@ -163,12 +164,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [
-        // Apply transforms in correct order for better performance
-        { scale: scale.value },
-        { translateX: initialPositionX.value + translateX.value },
-        { translateY: initialPositionY.value + translateY.value },
-      ],
+      height: withTiming(Math.abs(offsetY.value), { duration: 100 }),
+      opacity: withTiming(Math.min(Math.abs(offsetY.value) / COLOR_HEIGHT_TRIGGER, 1)),
     };
   });
 
@@ -244,7 +241,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       
 
       // Initialize each post as a stack
-      setStacks((prevStack) => prevStack.filter((stack) => stack !== undefined && stack.center !== undefined));
+      setStacks((prevStack) => prevStack.filter((stack) => stacks))
       setPostsWithPosition(postsWithPositions);
       setStandalonePosts(postsWithPositions);
       // Initialize to add to map
@@ -293,9 +290,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   
     // 2. Check if the post should be added to an existing stack
     const insideStackIndex = updatedStacks.findIndex(stack => {
-      if (!stack.center || stack.center.x === undefined || stack.center.y === undefined) {
-        return false;
-      }
       const dist = distanceBetweenPosts(
         stack.center.x,
         stack.center.y,
@@ -744,6 +738,7 @@ export default PostItBoard;
 
 
 
+
 /*
 
   const handleReloadPosts = () => {
@@ -776,7 +771,8 @@ export default PostItBoard;
       const postId = selectedPost.id;
       
      
-      //console.log("Post to remove", selectedPost.id, "tria;l", i)
+      
+    //console.log("Post to remove", selectedPost.id, "tria;l", i)
       setPostsWithPosition((prevPosts) => {
         const updatePosts = prevPosts.filter((post) => post.id !== postId);
        console.log(
@@ -800,8 +796,6 @@ export default PostItBoard;
 
         return updateMap;
       });
-
-      //("remainging right after", stacks)
 
       const existingPostIds = postsWithPosition.map((post) => post.id);
 
