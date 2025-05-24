@@ -14,6 +14,9 @@ import "react-native-reanimated";
 import Animated, { FadeIn } from "react-native-reanimated";
 import React from "react";
 import { preloadCommonSounds } from '@/hooks/useSoundEffects';
+import '../lib/i18n';
+import { I18nextProvider } from 'react-i18next';
+import i18n from '../lib/i18n';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -76,6 +79,7 @@ export default function RootLayout() {
         <NotificationProvider>
           <GlobalProvider>
             <AlertProvider>
+              <I18nextProvider i18n={i18n}>
             <NavigationProvider>
               <Animated.View style={{ flex: 1 }} entering={FadeIn}>
                 <Stack>
@@ -86,6 +90,7 @@ export default function RootLayout() {
                 </Stack>
               </Animated.View>
             </NavigationProvider>
+            </I18nextProvider>
             </AlertProvider>
           </GlobalProvider>
           </NotificationProvider>
