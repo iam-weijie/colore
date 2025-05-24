@@ -3,17 +3,17 @@ import * as React from "react";
 import { useEffect, useState, useCallback } from "react";
 
 import { router, useFocusEffect } from "expo-router";
-import { Dimensions, 
-  Image, 
-  Modal, 
+import { Dimensions,
+  Image,
+  Modal,
   ImageSourcePropType,
   Keyboard,
-  KeyboardAvoidingView, 
-  Pressable,  
-  SafeAreaView, 
-  TouchableOpacity, 
-  View, 
-  Text, 
+  KeyboardAvoidingView,
+  Pressable,
+  SafeAreaView,
+  TouchableOpacity,
+  View,
+  Text,
   } from "react-native";
 import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming, runOnJS } from "react-native-reanimated";
 import { GestureDetector, GestureHandlerRootView, Gesture } from 'react-native-gesture-handler';
@@ -21,7 +21,7 @@ import { GestureDetector, GestureHandlerRootView, Gesture } from 'react-native-g
 const ModalSheet = ({ children, title, isVisible, onClose }) => {
     const [visible, setVisible] = useState(isVisible);
     const screenHeight = Dimensions.get('window').height;
-  
+
     // Animation values
     const translateY = useSharedValue(screenHeight);
     const modalOpacity = useSharedValue(0);
@@ -70,7 +70,7 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
     useEffect(() => {
         if (isVisible) {
             setVisible(true);
-            translateY.value = withSpring(0, {  
+            translateY.value = withSpring(0, {
                 damping: 25,
                 stiffness: 90,
                 mass: 1,
@@ -80,7 +80,7 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
     }, [isVisible]);
 
     const handleClose = () => {
-        translateY.value = withSpring(screenHeight, { 
+        translateY.value = withSpring(screenHeight, {
             damping: 25,
             stiffness: 90,
             mass: 1,
@@ -92,21 +92,23 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
         }, 200);
     };
 
-    if (!visible) return null;
+    useFocusEffect(
+        useCallback(() => {
+              return () => {
+                if (visible) {
+                    handleClose()
+                }
+            }}, [visible])
+          );
 
-useFocusEffect(
-    useCallback(() => {
-          return () => {
-            handleClose()
-        }}, [])
-      );
+    if (!visible) return null;
 
     return (
         <Modal transparent visible={visible} onRequestClose={handleClose}>
             <GestureHandlerRootView style={{ flex: 1 }}>
                 <KeyboardAvoidingView behavior={'height'} style={{ flex: 1 }}>
-                    <Pressable 
-                        className="flex-1" 
+                    <Pressable
+                        className="flex-1"
                         onPress={() => {
                             handleClose();
                             Keyboard.dismiss();
@@ -117,28 +119,57 @@ useFocusEffect(
                             className="flex-1 absolute top-0 left-0 right-0 bottom-0"
                         />
                     </Pressable>
-                    
-                    <GestureDetector gesture={panGesture}>
-                        <Animated.View
-                            style={animatedStyle}
-                            className="absolute w-[92%] max-h-[75%] left-[50%] -ml-[46%] p-6 bg-[#FAFAFA] rounded-[48px] shadow-xs bottom-5 overflow-hidden"
-                        >
-                            {/* Drag indicator */}
-                            <View className="w-full items-center pb-4">
+
+                    <Animated.View
+                        style={[animatedStyle, {
+                            position: 'absolute',
+                            width: '92%',
+                            maxHeight: '75%',
+                            left: '50%',
+                            marginLeft: '-46%',
+                            backgroundColor: '#FAFAFA',
+                            borderRadius: 48,
+                            bottom: 20,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.1,
+                            shadowRadius: 4,
+                            elevation: 5,
+                            overflow: 'hidden'
+                        }]}
+                    >
+                        {/* Drag indicator - only this area responds to pan gestures */}
+                        <GestureDetector gesture={panGesture}>
+                            <View style={{
+                                width: '100%',
+                                alignItems: 'center',
+                                paddingVertical: 16,
+                                paddingHorizontal: 24
+                            }}>
                                 <View className="w-12 h-1 bg-gray-300 rounded-full" />
                             </View>
-                            
-                            <View className="w-full flex items-center justify-center mb-2">
-                                <Text className="text-[16px] font-JakartaBold">
-                                    {title}
-                                </Text>
-                            </View>
-                            <View className="flex-1">
+                        </GestureDetector>
+
+                        <View style={{
+                            width: '100%',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: 8,
+                            paddingHorizontal: 24
+                        }}>
+                            <Text className="text-[16px] font-JakartaBold">
+                                {title}
+                            </Text>
+                        </View>
+
+                        <View style={{
+                            flex: 1,
+                            overflow: 'hidden'
+                        }}>
                             {children}
-                            </View>
-                           
-                        </Animated.View>
-                    </GestureDetector>
+                        </View>
+
+                    </Animated.View>
                 </KeyboardAvoidingView>
             </GestureHandlerRootView>
         </Modal>

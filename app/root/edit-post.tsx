@@ -1,7 +1,7 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Alert,
   Dimensions,
@@ -14,7 +14,9 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import EmojiSelector from "react-native-emoji-selector";
+import EmojiSelector from "@/components/EmojiSelector";
+import RecentEmojiPopup from "@/components/RecentEmojiPopup";
+import { useRecentEmojis } from "@/hooks/useRecentEmojis";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
@@ -23,6 +25,8 @@ import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
 import ColorPickerSlider from "@/components/ColorPickerSlider";
+import * as Haptics from "expo-haptics";
+import { useHaptics } from "@/hooks/useHaptics";
 
 
 const EditPost = () => {
@@ -39,7 +43,12 @@ const EditPost = () => {
   );
   const [selectedEmoji, setSelectedEmoji] = useState<string>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
+  const [showRecentPopup, setShowRecentPopup] = useState(false);
+  const [triggerPosition, setTriggerPosition] = useState({ x: 0, y: 0 });
   const [isPosting, setIsPosting] = useState(false);
+
+  const emojiButtonRef = useRef<any>(null);
+  const { recentEmojis, addRecentEmoji } = useRecentEmojis();
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -57,16 +66,16 @@ const EditPost = () => {
     router.push({
       pathname: "/root/preview-post",
       params: {
-        id: postId, 
-        content: postContent, 
-        color: selectedColor.name, 
+        id: postId,
+        content: postContent,
+        color: selectedColor.name,
         emoji: selectedEmoji,
         username: ""
       }
     })
-    
+
   };
-  
+
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -87,12 +96,56 @@ const EditPost = () => {
     // console.log(selectedEmoji);
   };
 
+  const handleEmojiLongPress = () => {
+    // Don't require recent emojis for testing - comment this line when testing is complete
+    // if (recentEmojis.length === 0) return; // Don't show if no recent emojis
+
+    // Don't show emoji selector when long pressing
+    if (isEmojiSelectorVisible) {
+      setIsEmojiSelectorVisible(false);
+    }
+
+    if (emojiButtonRef.current) {
+      emojiButtonRef.current.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
+        setTriggerPosition({
+          x: pageX + width / 2,  // Center horizontally
+          y: pageY + height + 5  // Bottom of button with small offset
+        });
+        
+        // Show popup - haptic feedback is now handled in the popup component
+        setShowRecentPopup(true);
+      });
+    }
+  };
+
+  const handleRecentEmojiSelect = async (emoji: string) => {
+    // Add to recent emojis (moves to front)
+    await addRecentEmoji(emoji);
+
+    // Set as selected emoji
+    setSelectedEmoji(emoji);
+    
+    // The popup handles its own animation now, 
+    // but we still need to update the state after animation completes
+    setTimeout(() => {
+      setShowRecentPopup(false);
+    }, 350); // Wait for animation to complete
+  };
+
+  const handleEmojiSelect = async (emoji: string) => {
+    // Add to recent emojis
+    await addRecentEmoji(emoji);
+
+    // Set as selected emoji
+    setSelectedEmoji(emoji);
+  };
+
   useEffect(() => {
     if (selectedEmoji && isEmojiSelectorVisible) {
       toggleEmojiSelector();
     }
   }, [selectedEmoji]);
-  
+
   return (
     <SafeAreaView className="flex-1">
       <SignedIn>
@@ -143,7 +196,7 @@ const EditPost = () => {
                 />
               )}
             </View>
-    
+
             <View className=" w-full flex flex-row justify-center items-center mb-12">
               <ColorPickerSlider
                 colors={temporaryColors}
@@ -151,7 +204,12 @@ const EditPost = () => {
                 onColorSelect={handleColorSelect}
               />
 
-              <TouchableOpacity onPress={toggleEmojiSelector}>
+              <TouchableOpacity
+                ref={emojiButtonRef}
+                onPress={toggleEmojiSelector}
+                onLongPress={handleEmojiLongPress}
+                delayLongPress={300}
+              >
                 {selectedEmoji ? (
                   <Text style={{ fontSize: 35, margin: 1 }}>
                     {selectedEmoji}
@@ -161,19 +219,29 @@ const EditPost = () => {
                 )}
               </TouchableOpacity>
               </View>
-             
+
               </View>
               </KeyboardAvoidingView>
 
             {isEmojiSelectorVisible && (
-              <View className="w-full h-screen bg-white">
-                <EmojiSelector
-                  onEmojiSelected={(emoji) => {
-                    setSelectedEmoji(emoji);
-                  }}
-                />
-              </View>
+              <EmojiSelector
+                showInModal={true}
+                isVisible={true}
+                onClose={() => setIsEmojiSelectorVisible(false)}
+                onEmojiSelected={handleEmojiSelect}
+                selectedEmoji={selectedEmoji}
+                mode="both"
+              />
             )}
+
+            {/* Recent Emoji Popup */}
+            <RecentEmojiPopup
+              visible={showRecentPopup}
+              recentEmojis={recentEmojis}
+              onEmojiSelect={handleRecentEmojiSelect}
+              onClose={() => setShowRecentPopup(false)}
+              triggerPosition={triggerPosition}
+            />
           </View>
         </TouchableWithoutFeedback>
       </SignedIn>

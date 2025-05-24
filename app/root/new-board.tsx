@@ -15,7 +15,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import EmojiSelector from "react-native-emoji-selector";
+import EmojiSelector from "@/components/EmojiSelector";
 import { LinearGradient } from "expo-linear-gradient";
 import CustomButton from "@/components/CustomButton";
 import { icons, images, temporaryColors } from "@/constants";

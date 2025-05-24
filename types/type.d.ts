@@ -31,21 +31,21 @@ declare interface Post {
     left: number;
   };
   formatting: Format[];
-  
+
 }
 
 declare interface StylingType {
-  id: number, 
+  id: number,
   bold?: boolean,
   italic?: boolean,
   underlinde?: boolean,
   orderedList?: boolean,
-  underedList?: boolean, 
+  underedList?: boolean,
   quote?: boolean
 }
 declare interface TextStylingType {
   id: number;
-  value: string; 
+  value: string;
   style: StylingType[];
 
 }
@@ -127,6 +127,7 @@ declare interface UserProfileType {
   is_paid_user: boolean;
   report_count: number;
   saved_posts: string[];
+  shorthand_emojis?: string[];
 }
 
 declare interface UserData {
@@ -379,3 +380,29 @@ type TabsContainerProps = {
 };
 
 type TextStyle = 'bold' | 'italic' | 'underline' | 'H' | 'h1' | 'h2' | 'h3' | 'h4' | 'ordered' | 'unordered' | null;
+
+declare interface EmojiData {
+  id: string;
+  emoji: string;
+  categories: string[];
+}
+
+declare interface EmojiSelectorProps {
+  onEmojiSelected: (emoji: string) => void;
+  selectedEmoji?: string | null;
+  mode?: 'shorthand' | 'library' | 'both';
+  showInModal?: boolean;
+  isVisible?: boolean;
+  onClose?: () => void;
+}
+
+declare interface EmojiShorthandProps {
+  onEmojiSelected: (emoji: string) => void;
+  selectedEmoji?: string | null;
+  customShorthandEmojis?: string[];
+}
+
+declare interface EmojiLibraryProps {
+  onEmojiSelected: (emoji: string) => void;
+  selectedEmoji?: string | null;
+}

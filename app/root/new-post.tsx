@@ -1,6 +1,6 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import {
   Dimensions,
   Image,
@@ -12,8 +12,11 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  PanResponder,
 } from "react-native";
-import EmojiSelector from "react-native-emoji-selector";
+import EmojiSelector from "@/components/EmojiSelector";
+import RecentEmojiPopup from "@/components/RecentEmojiPopup";
+import { useRecentEmojis } from "@/hooks/useRecentEmojis";
 
 import ColorSelector from "@/components/ColorSelector";
 import { icons, temporaryColors } from "@/constants";
@@ -38,6 +41,7 @@ import { handleSubmitPost } from "@/lib/post";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
+import { useHaptics } from "@/hooks/useHaptics";
 
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
@@ -63,24 +67,73 @@ const NewPost = () => {
 
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
   const [selectedRecipientId, setSelectedRecipientId] =
-    useState<string>(recipientId);
+    useState<string>(recipientId as string);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [userUsername, setUserUsername] = useState<string>(username);
-  const [postContent, setPostContent] = useState<string>(content);
+  const [userUsername, setUserUsername] = useState<string>(username as string);
+  const [postContent, setPostContent] = useState<string>(content as string);
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
     temporaryColors.find((c) => c.name === color) ??
       temporaryColors[Math.floor(Math.random() * 4)]
   );
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji as string);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
+  const [showRecentPopup, setShowRecentPopup] = useState(false);
+  const [triggerPosition, setTriggerPosition] = useState({ x: 200, y: 400 }); // Default position
+  const [activeEmojiIndex, setActiveEmojiIndex] = useState(-1);
   const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
   const [refreshingKey, setRefreshingKey] = useState<number>(0);
   const [formats, setFormats] = useState<Format[]>([]);
 
+  const emojiButtonRef = useRef<any>(null);
+  const { recentEmojis, addRecentEmoji } = useRecentEmojis();
+
+  const toggleEmojiSelector = () => {
+    setIsEmojiSelectorVisible((prev) => !prev);
+  };
+
+  const handleEmojiLongPress = () => {
+    // Don't open popup if there are no recent emojis
+    if (recentEmojis.length === 0) {
+      return;
+    }
+    
+    // Close emoji selector if it's open
+    if (isEmojiSelectorVisible) {
+      setIsEmojiSelectorVisible(false);
+    }
+    
+    // Measure button position for popup placement
+    if (emojiButtonRef.current) {
+      emojiButtonRef.current.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
+        setTriggerPosition({
+          x: pageX + width / 2,
+          y: pageY + height + 5 // Add a small offset for better appearance
+        });
+        
+        // Show popup - haptic feedback is now handled in the popup component
+        setShowRecentPopup(true);
+      });
+    }
+  };
+
+  const handleRecentEmojiSelect = async (emoji: string) => {
+    // Add to recent emojis (moves to front)
+    await addRecentEmoji(emoji);
+
+    // Set as selected emoji
+    setSelectedEmoji(emoji);
+    
+    // The popup handles its own animation now, 
+    // but we still need to update the state after animation completes
+    setTimeout(() => {
+      setShowRecentPopup(false);
+    }, 350); // Wait for animation to complete
+  };
+
   const [selectExpirationDate, setSelectExpirationDate] =
-    useState<string>(expiration);
+    useState<string>(expiration as string);
 
   const expirationDate = ["1 day", "3 days", "7 days", "14 days"];
 
@@ -121,9 +174,16 @@ const NewPost = () => {
     setFormats(formats);
   };
 
-  const toggleEmojiSelector = () => {
-    setIsEmojiSelectorVisible((prev) => !prev);
-    // console.log(selectedEmoji);
+  const handleEmojiSelect = async (emoji: string) => {
+    // Add to recent emojis
+    await addRecentEmoji(emoji);
+
+    // Handle selection logic
+    if (emoji === selectedEmoji) {
+      setSelectedEmoji(null);
+    } else {
+      setSelectedEmoji(emoji);
+    }
   };
 
   const selectedUserInfo = (info: UserNicknamePair) => {
@@ -141,7 +201,7 @@ const NewPost = () => {
 
   useEffect(() => {
     if (postId) {
-      setPostContent(content);
+      setPostContent(content as string);
     }
     setDraftPost({
       id: Number(postId ?? 0),
@@ -163,7 +223,7 @@ const NewPost = () => {
       emoji: selectedEmoji ?? "",
       notified: false,
       prompt_id: promptId ? Number(promptId) : 0,
-      prompt: prompt ?? "",
+      prompt: typeof prompt === 'string' ? prompt : "",
       board_id: boardId ? Number(boardId) : -1,
       reply_to: 0,
       unread: false,
@@ -192,7 +252,8 @@ const NewPost = () => {
       if (draftPost.emoji) setSelectedEmoji(draftPost.emoji);
       if (draftPost.recipient_user_id)
         setSelectedRecipientId(draftPost.recipient_user_id);
-      if (draftPost.username) setUserUsername(draftPost.username);
+      if (draftPost.username && typeof draftPost.username === 'string') 
+        setUserUsername(draftPost.username);
       if (draftPost.formatting) setFormats(formats);
     }
   }, []);
@@ -270,7 +331,6 @@ const NewPost = () => {
   ];
 
   const handleTabChange = (tabKey: string) => {
-    console.log("Tab changed to:", tabKey);
     setSelectedTab(tabKey);
   };
 
@@ -297,7 +357,7 @@ const NewPost = () => {
     }))
 
   return (
-    <Animated.View className="flex-1" 
+    <Animated.View className="flex-1"
     style={[
       animatedBackgroundStyle
     ]}>
@@ -306,40 +366,40 @@ const NewPost = () => {
           onPressIn={() => Keyboard.dismiss()}
          className="bg-red-500"
         >
-         
+
           <View className="flex-1" >
-             
+
           <Header
           title={
-            postId ? 'Edit Post' : 
-            (prompt ? `${prompt}`: 
+            postId ? 'Edit Post' :
+            (prompt ? `${prompt}`:
               (recipientId ? `@${userUsername}` : 'New Post')
             )}
            />
-            
+
             <TouchableWithoutFeedback
                       onPress={() => Keyboard.dismiss()}
                       onPressIn={() => Keyboard.dismiss()}
                     >
-           <View className="flex-1  mt-0 overflow-hidden " 
+           <View className="flex-1  mt-0 overflow-hidden "
              style={[
               animatedBackgroundStyle
             ]}>
               <View className="flex-1 ">
                 <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
-              
-                            
+
+
                 <RichTextInput
                 style={textStyling}
                 refresh={refreshingKey}
                 exportStyling={handleChangeFormat}
                 exportText={handleChangeText} />
-              
-                  
-                         
-                           
-                          
-                            
+
+
+
+
+
+
                             </KeyboardAvoidingView>
                             </View>
 
@@ -350,28 +410,34 @@ const NewPost = () => {
                 onColorSelect={handleColorSelect}
               />
               <View className="flex flex-row items-center">
-              {selectedEmoji && <TouchableOpacity
-              onPress={() => {setSelectedEmoji(null)}}>
-                <Image
-                  source={icons.close}
-                  className="w-7 h-7"
-                  tintColor={'#fff'}
+                {selectedEmoji && <TouchableOpacity
+                  onPress={() => {setSelectedEmoji(null)}}>
+                  <Image
+                    source={icons.close}
+                    className="w-7 h-7"
+                    tintColor={'#fff'}
                   />
-              </TouchableOpacity>}
-              <TouchableOpacity onPress={toggleEmojiSelector}>
-                {selectedEmoji ? (
-                  <Text style={{ fontSize: 35, margin: 1 }}>
-                    {selectedEmoji}
-                  </Text>
-                ) : (
-                  <Image source={icons.wink} className="w-8 h-9 m-1" tintColor={'#FFFFFF'} />
-                )}
-              </TouchableOpacity>
+                </TouchableOpacity>}
+                <TouchableOpacity
+                  ref={emojiButtonRef}
+                  onPress={toggleEmojiSelector}
+                  onLongPress={handleEmojiLongPress}
+                  delayLongPress={300}
+                  style={{ alignItems: 'center', justifyContent: 'center', padding: 5 }}
+                >
+                  {selectedEmoji ? (
+                    <Text style={{ fontSize: 35, margin: 1 }}>
+                      {selectedEmoji}
+                    </Text>
+                  ) : (
+                    <Image source={icons.wink} className="w-8 h-9 m-1" tintColor={'#FFFFFF'} />
+                  )}
+                </TouchableOpacity>
               </View>
               </View>
             </View>
           </TouchableWithoutFeedback>
-        
+
         {selectedTab == "customize" && (
           <View className="absolute top-8">
             <PostContainer
@@ -385,17 +451,25 @@ const NewPost = () => {
         <CustomButtonBar buttons={navigationControls} />
 
         {isEmojiSelectorVisible && (
-          <View className="w-full h-screen bg-white">
-            <EmojiSelector
-              onEmojiSelected={(emoji) => {
-                if (emoji === selectedEmoji) {
-                  setSelectedEmoji(null);
-                }
-                setSelectedEmoji(emoji);
-              }}
-            />
-          </View>
+          <EmojiSelector
+            showInModal={true}
+            isVisible={true}
+            onClose={() => setIsEmojiSelectorVisible(false)}
+            onEmojiSelected={handleEmojiSelect}
+            selectedEmoji={selectedEmoji}
+            mode="both"
+          />
         )}
+
+        {/* Recent Emoji Popup */}
+        <RecentEmojiPopup
+          visible={showRecentPopup}
+          recentEmojis={recentEmojis}
+          onEmojiSelect={handleRecentEmojiSelect}
+          onClose={() => setShowRecentPopup(false)}
+          triggerPosition={triggerPosition}
+          activeIndex={activeEmojiIndex}
+        />
       </View>
       </TouchableWithoutFeedback>
       {isModalVisible && (
@@ -416,46 +490,39 @@ const NewPost = () => {
   );
 };
 
-const FindUser = ({ selectedUserInfo }) => {
+const FindUser = ({ selectedUserInfo }: { selectedUserInfo: (info: UserNicknamePair) => void }) => {
   const { user } = useUser();
-  
+
   const [users, setUsers] = useState<UserNicknamePair[]>([]);
-    const [friendList, setFriendList] = useState<UserNicknamePair[]>([]);
+  const [friendList, setFriendList] = useState<UserNicknamePair[]>([]);
   const [searchText, setSearchText] = useState<string>("");
-  
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  
+
   console.log("Modal Showed")
   useEffect(() => {
-    fetchUsers(); 
+    fetchUsers();
     fetchFriendList();
   }, [])
-  
-    const fetchFriendList = async () => {
-      const data = await fetchFriends(user!.id);
-      console.log("friend", data)
-      const friend = data.map((f) => [f.friend_id, f.friend_username])
-      setFriendList(friend);
-    };
-  
+
+  const fetchFriendList = async () => {
+    const data = await fetchFriends(user!.id);
+    console.log("friend", data)
+    const friend = data.map((f: any) => [f.friend_id, f.friend_username])
+    setFriendList(friend);
+  };
+
   const fetchUsers = async () => {
           setLoading(true);
           try {
-            // //console.log("user: ", user!.id);
             const response = await fetchAPI(`/api/chat/searchUsers?id=${user!.id}`, {
               method: "GET",
             });
             if (response.error) {
-              //console.log("Error fetching user data");
-              //console.log("response data: ", response.data);
-              //console.log("response status: ", response.status);
-              // //console.log("response: ", response);
               throw new Error(response.error);
             }
-            //console.log("response: ", response.data);
             const nicknames = response.data;
-            //console.log("nicknames: ", nicknames);
             setUsers(nicknames);
             return;
           } catch (err) {
@@ -465,13 +532,13 @@ const FindUser = ({ selectedUserInfo }) => {
             setLoading(false);
           }
         };
-  
+
      const renderUser = ({
         item,
       }: {
         item: UserNicknamePair;
       }): React.ReactElement => (
-              <ItemContainer 
+              <ItemContainer
               label={item[1]}
               colors={["#FBB1F5", "#CFB1FB"]}
               icon={icons.addUser}
@@ -482,7 +549,7 @@ const FindUser = ({ selectedUserInfo }) => {
               }}
               />
       );
-  
+
       const filteredUsers =
       searchText.length > 0
         ? users.filter(
@@ -490,7 +557,7 @@ const FindUser = ({ selectedUserInfo }) => {
               user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
           )
         : [];
-  
+
       return (
          <View>
                     <View className="flex-grow mt-4 mx-4">
@@ -511,7 +578,7 @@ const FindUser = ({ selectedUserInfo }) => {
                                               ) : (
                                                 <FlatList
                                                 className={`mt-4 pb-4`}
-                                                contentContainerStyle={{ paddingBottom: 80 }} 
+                                                contentContainerStyle={{ paddingBottom: 80 }}
                                                   data={filteredUsers.length > 0 ? filteredUsers : friendList}
                                                   renderItem={renderUser}
                                                   keyExtractor={(item): string => String(item[0])}

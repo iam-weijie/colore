@@ -25,6 +25,7 @@ import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import 
 import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
 import RenameContainer from "@/components/RenameContainer";
+import EmojiSettings from "@/components/EmojiSettings";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 
@@ -321,7 +322,7 @@ const Settings = () => {
             </Text>
           </View>
           {/*
-          
+
           <View className="px-5 py-3">
             <Text className="text-sm font-JakartaSemiBold text-[#000]">Username</Text>
             <InputField
@@ -341,7 +342,7 @@ const Settings = () => {
 
           {/*<View className="px-5 py-3">
             <Text className="text-sm font-JakartaSemiBold text-[#000]">Email Address</Text>
-            
+
             <InputField
               label=""
               value={newEmail}
@@ -557,6 +558,36 @@ const Settings = () => {
               value={soundEffectsEnabled}
             />
           </View>
+
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => {
+              playSoundEffect(SoundType.Navigation);
+              Haptics.selectionAsync();
+              setSelectedTitle("Customize Emojis");
+              setSelectedModal(
+                <EmojiSettings
+                  onClose={() => {
+                    setSelectedModal(null);
+                    setSelectedTitle("");
+                  }}
+                />
+              );
+            }}
+            className="px-5 py-3 flex flex-row items-center justify-between"
+          >
+            <View className="flex-1">
+              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">
+                Quick Reaction Emojis
+              </Text>
+              <Text className="text-sm text-gray-800">
+                Customize your 6 favorite emojis for quick reactions
+              </Text>
+            </View>
+            <View className="bg-black p-2 rounded-xl">
+              <Text style={{ fontSize: 16 }}>😊</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
 
