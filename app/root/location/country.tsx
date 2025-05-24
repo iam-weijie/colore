@@ -335,19 +335,10 @@ const Country = () => {
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
-      <Header title="Select a Country" />
-      
-      {loading && placeholderCount > 0 && (
-        <View className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center bg-black/5 z-20">
-          <View className="bg-white p-6 rounded-3xl shadow-lg">
-            <ColoreActivityIndicator text="Loading Countries..." />
-          </View>
-        </View>
-      )}
-      
-      {/* Search bar */}
-      <View className="px-6 pt-4 pb-2">
-        <View className="flex-row items-center bg-white rounded-[24px] px-4 h-12">
+      <Header title="Select a Country" 
+      item={
+      <View className=" w-full px-6 -pt-2 pb-2">
+        <View className="flex-row items-center bg-white rounded-[24px] px-4 h-14">
           <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
             className="flex-1 ml-2 h-full text-base"
@@ -367,6 +358,14 @@ const Country = () => {
           )}
         </View>
       </View>
+      }/>
+      
+      {loading && placeholderCount > 0 && (
+        <View className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center bg-white/5 z-20">
+            <ColoreActivityIndicator text="Loading Countries..." />
+        </View>
+      )}
+      
 
       {/* Country list */}
       <View className="flex-1 mt-2">

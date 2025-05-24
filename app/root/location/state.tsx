@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, memo } from "react";
 import { router, useLocalSearchParams, Href } from "expo-router";
-import { FlatList, Text, TouchableOpacity, View, Alert, StyleSheet } from "react-native";
+import { FlatList, Text, TouchableOpacity, View, Alert, StyleSheet, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getStatesFromCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import { useUser } from "@clerk/clerk-expo";
@@ -11,6 +11,7 @@ import { useAlert } from '@/notifications/AlertContext';
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
 import Header from "@/components/Header";
+import { Ionicons } from "@expo/vector-icons";
 
 // Define the State interface
 interface State {
@@ -18,12 +19,17 @@ interface State {
   cities: string[];  // List of cities in the state
 }
 
+// Filter by first letter
+interface StateWithLetter extends State {
+  firstLetter: string;
+}
+
 // Static styles to replace className
 
 
 // Memoized state item component for better performance
 const StateItem = memo(({ item, onPress }: { 
-  item: State, 
+  item: StateWithLetter, 
   onPress: (item: State) => void 
 }) => {
   const requiresScrolling = isNameTooLong(item.name, 15);
@@ -49,7 +55,10 @@ const State = () => {
   const { user } = useUser();
   const { stateVars, setStateVars } = useNavigationContext();
   const { country, countryId, previousScreen } = useLocalSearchParams();
-  const [statesList, setStatesList] = useState<State[]>([]);
+  const [states, setStates] = useState<StateWithLetter[]>([]);
+  const [filteredStates, setFilteredStates] = useState<StateWithLetter[]>([]);
+   const [placeholderCount, setPlaceholderCount] = useState<number>(50);
+  const [searchText, setSearchText] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const { showAlert } = useAlert();
 
@@ -62,7 +71,7 @@ const State = () => {
   // Get states from the shared cache
   useEffect(() => {
     // Short timeout to let UI render first
-    setTimeout(() => {
+    
       try {
         // Get states for this country from the shared cache
         const countryStates = getStatesFromCache(countryId as string);
@@ -76,15 +85,26 @@ const State = () => {
           a.name.localeCompare(b.name)
         );
         
-        setStatesList(sortedStates);
+        const processedStates = sortedStates.map((s) => {
+          return {
+          ...s,
+          firstLetter: s.name.charAt(0).toUpperCase() 
+        }})
+        setStates(processedStates);
+        setFilteredStates(processedStates)
       } catch (error) {
         console.error("Error loading states:", error);
       } finally {
         setLoading(false);
       }
-    }, 50);
+   
   }, [countryId]);
 
+
+    // Clear search
+    const handleClearSearch = useCallback(() => {
+      setSearchText("");
+    }, []);
   // Direct submission handler for states with no cities
   const handleDirectSubmission = useCallback(async (stateName: string) => {
     try {
@@ -122,6 +142,30 @@ const State = () => {
       });
     }
   }, [country, stateVars, user, setStateVars]);
+
+    // Filter states based on search text
+    useEffect(() => {
+      if (states.length > 0) {
+        if (searchText) {
+          const filtered = states.filter(state => 
+            state.name.toLowerCase().includes(searchText.toLowerCase())
+          );
+          setFilteredStates(filtered);
+          
+          // Update available letters for the filtered list
+          const letters: string[] = [];
+          const indices: {[key: string]: number} = {};
+          
+          filtered.forEach((country, index) => {
+            const letter = country.firstLetter;
+            if (!letters.includes(letter)) {
+              letters.push(letter);
+              indices[letter] = index;
+            }
+          });
+        }
+      }
+    }, [states, searchText]);
 
   // Memoized press handler
   const handleStatePress = useCallback((item: State) => {
@@ -163,10 +207,20 @@ const State = () => {
   );
 
   // Memoized renderItem
-  const renderItem = useCallback(({ item }: { item: State }) => (
+  const renderItem = useCallback(({ item }: { item: StateWithLetter }) => (
     <StateItem item={item} onPress={handleStatePress} />
   ), [handleStatePress]);
 
+       const getPlaceholderData = useCallback(() => {
+      if (states.length > 0 || placeholderCount === 0) {
+        return filteredStates;
+      }
+      
+      // Return an array of nulls with the size of placeholderCount
+      return Array(placeholderCount).fill(null);
+    }, [states.length, filteredStates, placeholderCount]);
+
+  const displayData = getPlaceholderData();
   if (loading) {
     return (
       <SafeAreaView className="flex-1">
@@ -177,21 +231,46 @@ const State = () => {
     );
   }
 
+
+    
   return (
     <View className="flex-1 bg-[#FAFAFA]">
 
       <Header
         title={`Select a State in ${formattedCountryName()}`}
-        showBackButton={true}
+        item={
+      <View className=" w-full px-6 -pt-2 pb-2">
+        <View className="flex-row items-center bg-white rounded-[24px] px-4 h-14 ">
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 ml-2 h-full text-base "
+            placeholder="Search countries..."
+            placeholderTextColor="#D1D1D1"
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+      }
       />
 
-      {statesList.length === 0 ? (
+      {states.length === 0 && placeholderCount > 0 ? (
         <View className="items-center justify-center mt-8">
           <Text className="text-base font-JakartaMedium text-gray-500">No states found for this country.</Text>
         </View>
       ) : (
         <FlatList
-          data={statesList}
+          data={displayData}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           initialNumToRender={15}
