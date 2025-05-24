@@ -157,12 +157,18 @@ export const fetchCountryEmoji = async (countryName: string) => {
 
 };
 
-export const isOnlyEmoji = (text: string): boolean => {
-  // Unicode regex pattern to match emoji characters
-  const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Modifier}|\p{Emoji_Component}|\p{Emoji})+$/u;
+export const isOnlyEmoji = (message: string) => {
+  // Remove any whitespace
+  const trimmed = message.trim();
 
-  return emojiRegex.test(text);
-};
+  // Regex to match emojis (including compound ones like flags and skin tones)
+  const emojiRegex = /^(?:\p{Extended_Pictographic}|\p{Emoji_Component}|\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Modifier})+$/u;
+
+  // Check that the string is not only digits
+  const numberOnlyRegex = /^\d+$/;
+
+  return emojiRegex.test(trimmed) && !numberOnlyRegex.test(trimmed);
+}
 
 
 export const handleSubmitPost = async (userId: string, draftPost: Post) => {
