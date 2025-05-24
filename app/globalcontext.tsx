@@ -292,7 +292,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     prompt: "",
     board_id: 0,
     reply_to: 0,
-    unread: false
+    unread: false,
+    formatting: [], // Add a default value for formatting
   });
   const [notifications, setNotifications] = useState<any[]>([]);
   const [storedNotifications, setStoredNotifications] = useState<any[]>([]);

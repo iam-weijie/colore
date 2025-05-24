@@ -3,6 +3,70 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { TextStyle, Format } from '@/types/type';
 import { useGlobalContext } from '@/app/globalcontext';
 
+const applyMarkdown = (text: string, formats: Format[]) => {
+  let offset = 0;
+  const sortedFormats = [...formats].sort((a, b) => a.start - b.start);
+
+  for (const format of sortedFormats) {
+    let prefix = '';
+    let suffix = '';
+    let adjustedStart = format.start + offset;
+    let adjustedEnd = format.end + offset;
+
+    switch (format.type) {
+      case 'bold':
+        prefix = '**';
+        suffix = '**';
+        break;
+      case 'italic':
+        prefix = '*';
+        suffix = '*';
+        break;
+      case 'h1':
+        prefix = '# ';
+        break;
+      case 'h2':
+        prefix = '## ';
+        break;
+      case 'h3':
+        prefix = '### ';
+        break;
+      case 'underline':
+        prefix = '<u>';
+        suffix = '</u>';
+        break;
+      case 'ordered':
+        prefix = '1. ';
+        break;
+      case 'unordered':
+        prefix = '- ';
+        break;
+      default:
+        break;
+    }
+
+    // Insert prefix and suffix (if applicable)
+    text = text.slice(0, adjustedStart) + prefix + text.slice(adjustedStart, adjustedEnd) + suffix + text.slice(adjustedEnd);
+    offset += prefix.length + suffix.length;
+  }
+
+  return text;
+};
+
+
+const stripMarkdown = (text: string) => {
+  return text
+    .replace(/### /g, '')
+    .replace(/## /g, '')
+    .replace(/# /g, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/<u>(.*?)<\/u>/g, '$1')
+    .replace(/^1\. /gm, '')
+    .replace(/^- /gm, '');
+};
+
+
 const RichTextInput = ({
   refresh,
   style,
@@ -18,7 +82,7 @@ const RichTextInput = ({
   const [value, setValue] = useState('');
   const [formats, setFormats] = useState<Format[]>([]);
   const [selection, setSelection] = useState({ start: 0, end: 0 });
-  const [isFocused, setIsFocused] = useState(false);
+  const [isFocused, setIsFocused] = useState(true);
   const inputRef = useRef<TextInput>(null);
 
   const isOverlap = (aStart: number, aEnd: number, bStart: number, bEnd: number) => {
@@ -181,7 +245,7 @@ const RichTextInput = ({
   };
 
   return (
-    <View className="flex-1 mx-4 pr-12 py-6">
+    <View className="flex-1 mx-4 pr-12 py-8">
       <View className="relative min-h-[250px] mb-4">
         {isFocused ? (
           <TextInput
@@ -192,8 +256,17 @@ const RichTextInput = ({
             placeholder="Type here..."
             placeholderTextColor="#E1E1E1"
             onSelectionChange={({ nativeEvent }) => setSelection(nativeEvent.selection)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            onFocus={() => {
+              const textWithMarkdown = applyMarkdown(value, formats);
+              setValue(textWithMarkdown);
+              setIsFocused(true);
+            }}
+
+            onBlur={() => {
+              const plainText = stripMarkdown(value);
+              setValue(plainText);
+              setIsFocused(false);
+            }}
             className="font-JakartaSemiBold"
             style={{
               position: 'absolute',
@@ -218,7 +291,6 @@ const RichTextInput = ({
             className="absolute top-0 left-0 right-0 p-4"
           >
             <Text className="font-JakartaSemiBold text-[#FAFAFA]">
-              {value.length < 1 && "Click here to start a text..."}
               {renderStyledOverlay()}
             </Text>
           </TouchableOpacity>
