@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, FlatList, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Image, SafeAreaView } from 'react-native';
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { fetchAPI } from '@/lib/fetch';
 import { useUser } from '@clerk/clerk-expo';
@@ -27,11 +27,11 @@ const PostCommentsModal = () => {
   const { showAlert } = useAlert();
   const { replyTo, setReplyTo, soundEffectsEnabled } = useGlobalContext();
   const { playSoundEffect } = useSoundEffects();
-  
+
   // States
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [postComments, setPostComments] = useState<PostCommentGroup[]>([]);
+  const [allComments, setAllComments] = useState<PostComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [anonymousComments, setAnonymousComments] = useState<boolean>(
@@ -42,20 +42,37 @@ const PostCommentsModal = () => {
     [key: string]: number;
   }>({});
   const [replyView, setReplyView] = useState<PostComment | null>(null);
-  
+
   // Pagination
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  
+
   // Refs
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
-  
+
   // Constants
   const maxCharacters = 6000;
   const postColor = temporaryColors.find(c => c.name === colorName);
-  
+
+  // Use useMemo to group comments by date
+  const groupedComments = useMemo(() => {
+    return allComments.reduce((groups: PostCommentGroup[], comment: PostComment) => {
+      // Use toDateString() for consistent date grouping (same as main post component)
+      const date = new Date(comment.created_at).toDateString();
+
+      const existingGroup = groups.find(group => group.date === date);
+      if (existingGroup) {
+        existingGroup.comments.push(comment);
+      } else {
+        groups.push({ date, comments: [comment] });
+      }
+
+      return groups;
+    }, []);
+  }, [allComments]);
+
   // Fetch comment by ID for reply functionality
   const fetchCommentById = async (commentId: string) => {
     try {
@@ -66,7 +83,7 @@ const PostCommentsModal = () => {
       return null;
     }
   };
-  
+
   // Update reply view when replyTo changes
   useEffect(() => {
     if (replyTo) {
@@ -75,59 +92,46 @@ const PostCommentsModal = () => {
       setReplyView(null);
     }
   }, [replyTo]);
-  
+
   // Focus on input when replying
   useEffect(() => {
     if (replyView) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [replyView]);
-  
+
   // Fetch comments
   const fetchComments = async (pageNum = 0, isLoadMore = false) => {
     if (isLoadingMore || !id || !user?.id) return;
-    
+
     if (isLoadMore) {
       setIsLoadingMore(true);
     } else {
       setLoading(true);
     }
-    
+
     try {
       const response = await fetchAPI(
         `/api/comments/getCommentsByPostId?postId=${id}&userId=${user.id}&page=${pageNum}`
       );
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       // Process comments data
       const { comments, hasMore: moreAvailable, likeStatuses, likeCounts } = response.data;
-      
+
       setHasMore(moreAvailable);
       setPage(pageNum);
-      
-      // Group comments by date
-      const groupedComments = comments.reduce((groups: PostCommentGroup[], comment: PostComment) => {
-        const date = new Date(comment.created_at).toLocaleDateString();
-        
-        const existingGroup = groups.find(group => group.date === date);
-        if (existingGroup) {
-          existingGroup.comments.push(comment);
-        } else {
-          groups.push({ date, comments: [comment] });
-        }
-        
-        return groups;
-      }, []);
-      
+
+      // Update allComments
       if (isLoadMore) {
-        setPostComments(prev => [...prev, ...groupedComments]);
+        setAllComments(prev => [...prev, ...comments]);
       } else {
-        setPostComments(groupedComments);
+        setAllComments(comments);
       }
-      
+
       // Update like states
       setCommentLikes(prev => ({ ...prev, ...likeStatuses }));
       setCommentLikeCounts(prev => ({ ...prev, ...likeCounts }));
@@ -142,14 +146,14 @@ const PostCommentsModal = () => {
       }
     }
   };
-  
+
   // Load initial comments
   useEffect(() => {
     if (id && user?.id) {
       fetchComments(0, false);
     }
   }, [id, user?.id]);
-  
+
   // Load more comments when user scrolls
   const handleLoadMore = () => {
     if (!isLoadingMore && hasMore) {
@@ -157,7 +161,7 @@ const PostCommentsModal = () => {
       fetchComments(page + 1, true);
     }
   };
-  
+
   // Handle comment submission
   const handleCommentSubmit = async () => {
     if (isSubmitting) return;
@@ -179,33 +183,108 @@ const PostCommentsModal = () => {
       playSoundEffect(SoundType.Comment);
     }
 
+    // Immediately clear the input and prevent further submissions
+    setNewComment('');
+    setIsSubmitting(true);
+
+    // Create temporary comment for optimistic update
+    const tempId = Date.now();
+
+    // Use the same date as the most recent comment to ensure proper grouping
+    let optimisticTimestamp = new Date().toISOString();
+    if (allComments.length > 0) {
+      // Get the most recent comment
+      const lastComment = allComments[allComments.length - 1];
+      // Use a timestamp that's just slightly after the last comment but same day
+      const lastCommentDate = new Date(lastComment.created_at);
+      const newTimestamp = new Date(lastCommentDate.getTime() + 1000); // Add 1 second
+      optimisticTimestamp = newTimestamp.toISOString();
+    }
+
+    // Find the username from existing comments by the same user to ensure consistency
+    let optimisticUsername = 'Anonymous';
+
+    // First try to find username from existing comments by the same user
+    const userComment = allComments.find(comment => comment.user_id === user.id);
+    if (userComment && userComment.username && userComment.username !== 'Anonymous') {
+      optimisticUsername = userComment.username;
+    }
+
+    // If no existing comment found, try to get username from database
+    if (optimisticUsername === 'Anonymous') {
+      try {
+        const userResponse = await fetchAPI(`/api/users/getUsername?clerkId=${user.id}`, {
+          method: "GET",
+        });
+        if (userResponse.data && userResponse.data.username) {
+          optimisticUsername = userResponse.data.username;
+        }
+      } catch (error) {
+        console.log("Could not fetch username from database, using Anonymous");
+      }
+    }
+
+    const tempComment: PostComment = {
+      id: tempId, // Temporary ID that we'll keep stable
+      post_id: parseInt(id as string),
+      user_id: user.id,
+      sender_id: user.id,
+      content: trimmedComment,
+      username: optimisticUsername,
+      created_at: optimisticTimestamp,
+      like_count: 0,
+      report_count: 0,
+      is_liked: false,
+      index: allComments.length,
+      postColor: postColor?.hex || '#000000',
+      reply_comment_id: replyView?.id || null
+    };
+
     try {
-      setIsSubmitting(true);
-      setNewComment(''); 
+      // Optimistically add the comment to UI immediately
+      // Always add to the end since comments are ordered by created_at ASC
+      setAllComments(prev => [...prev, tempComment]);
 
-      const postData = {
-        content: trimmedComment,
-        postId: id,
-        clerkId: user.id,
-        postClerkId: clerkId,
-        replyCommentId: replyView?.id || null,
-        isAnonymous: anonymousComments,
-      };
+      // Reset reply view
+      setReplyView(null);
+      setReplyTo(null);
 
-      const response = await fetchAPI("/api/comments/createComment", {
+      // Scroll to bottom to show the new comment
+      setTimeout(() => {
+        if (flatListRef.current) {
+          flatListRef.current.scrollToEnd({ animated: true });
+        }
+      }, 100);
+
+      // Make the actual API call
+      const response = await fetchAPI("/api/comments/newComment", {
         method: "POST",
-        body: JSON.stringify(postData),
+        body: JSON.stringify({
+          clerkId: user.id,
+          postId: id,
+          postClerkId: clerkId,
+          content: trimmedComment,
+          replyId: replyView?.id || null
+        }),
       });
 
       if (response.error) {
         throw new Error(response.error);
       }
 
-      setReplyView(null);
-      setReplyTo(null);
-      fetchComments(0, false);
+      // Don't update the ID to keep the key stable and prevent double animation
+      // The temporary ID will work fine for the UI, and the real ID isn't needed for display
+      console.log("✅ Comment successfully saved to server with ID:", response.data.id);
+
     } catch (error) {
       console.error("Failed to submit comment:", error);
+
+      // Remove the optimistic comment on error
+      setAllComments(prev => prev.filter(comment => comment.id !== tempComment.id));
+
+      // Restore the comment text
+      setNewComment(trimmedComment);
+
       showAlert({
         title: 'Error',
         message: `An error occurred. Your comment was not sent.`,
@@ -216,7 +295,7 @@ const PostCommentsModal = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   // Handle text input
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -231,7 +310,7 @@ const PostCommentsModal = () => {
       });
     }
   };
-  
+
   // Render comment item for FlatList
   const renderCommentItem = ({
     item,
@@ -261,13 +340,14 @@ const PostCommentsModal = () => {
             created_at={comment.created_at}
             report_count={comment.report_count}
             is_liked={commentLikes[comment.id]}
-            postColor={postColor?.hex}
+            postColor={postColor?.hex || '#000000'}
+            reply_comment_id={comment.reply_comment_id || null}
           />
         ))}
       </View>
     );
   };
-  
+
   // Loading indicator for pagination
   const renderFooter = () => {
     if (!isLoadingMore) return null;
@@ -277,18 +357,18 @@ const PostCommentsModal = () => {
       </View>
     );
   };
-  
+
   return (
     <>
-      <Stack.Screen 
+      <Stack.Screen
         options={{
           headerTitle: 'Comments',
           headerTintColor: postColor?.fontColor || '#000',
           presentation: 'modal',
           headerShadowVisible: false,
-        }} 
+        }}
       />
-      
+
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -303,14 +383,14 @@ const PostCommentsModal = () => {
                 </View>
               ) : error ? (
                 <Text style={styles.errorText}>{error}</Text>
-              ) : postComments.length === 0 ? (
+              ) : groupedComments.length === 0 ? (
                 <Text style={styles.emptyText}>
                   No comments yet. Be the first to comment!
                 </Text>
               ) : (
                 <FlatList
                   ref={flatListRef}
-                  data={postComments}
+                  data={groupedComments}
                   renderItem={renderCommentItem}
                   keyExtractor={(item) => item.date || Date.now().toString()}
                   contentContainerStyle={styles.commentsList}
@@ -325,7 +405,7 @@ const PostCommentsModal = () => {
                   removeClippedSubviews={Platform.OS === 'android'}
                 />
               )}
-              
+
               <View style={styles.inputContainer}>
                 {replyView && (
                   <View style={styles.replyContainer}>
@@ -334,13 +414,13 @@ const PostCommentsModal = () => {
                       style={styles.replyIcon}
                       tintColor={"#9e9e9e"}
                     />
-                    <Text 
+                    <Text
                       style={styles.replyText}
                       numberOfLines={2}
                     >
                       {replyView.content}
                     </Text>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       onPress={() => {
                         setReplyView(null);
                         setReplyTo(null);
@@ -355,7 +435,7 @@ const PostCommentsModal = () => {
                     </TouchableOpacity>
                   </View>
                 )}
-                
+
                 <View style={styles.textInputRow}>
                   <TextInput
                     ref={inputRef}
@@ -480,4 +560,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PostCommentsModal; 
+export default PostCommentsModal;

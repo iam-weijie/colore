@@ -44,7 +44,7 @@ export const handleReadComments = async (post: Post, userId: string) => {
     if (post.user_id === userId) {
       try {
         console.log("Patching comments")
-        
+
         await fetchAPI(`/api/posts/updateUnreadComments`, {
           method: "PATCH",
           body: JSON.stringify({

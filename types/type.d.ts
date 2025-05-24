@@ -140,6 +140,15 @@ declare interface PostComment {
   report_count: number;
   is_liked: boolean;
   postColor: string;
+  reply_comment_id?: number | null;
+}
+
+declare interface PostLike {
+  id: number;
+  post_id: number;
+  post_content: string;
+  post_color: string;
+  liker_username: string;
 }
 
 declare interface PostLike {
