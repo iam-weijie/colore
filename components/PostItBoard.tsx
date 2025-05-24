@@ -94,6 +94,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     null
   );
 
+  const [excludeIds, setExcludeIds] = useState<string[]>([]);
+
   const [selectedModal, setSelectedModal] = useState<any>(null);
   const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
 
@@ -429,9 +431,11 @@ const reorderPost = (topPost: Post) => {
     const stack = stacks.find((stack) => stack.ids.includes(post.id));
     if (stack) {
       setSelectedPosts(stack.elements);
+      setExcludeIds((prev) => [...prev, ...stack.ids]);
       console.log("this is a stack")
     } else {
       setSelectedPosts([post]);
+      setExcludeIds((prev) => [...prev, String(post.id)])
       console.log("this is a post", stack)
     }
 
@@ -489,7 +493,6 @@ const reorderPost = (topPost: Post) => {
  
 
   const handleCloseModal = async () => {
-
 
     setSelectedPosts(null);
     setIsPanningMode(true);
@@ -630,6 +633,7 @@ if (!hasPostsOnCurrentBoard) {
   updatePosition={(dx, dy, post) => updatePostPosition(dx, dy, post)}
   onPress={() => handlePostPress(post)}
   showText={showPostItText}
+  isViewed={excludeIds.includes(String(post.id))}
   enabledPan={() => setIsPanningMode(prev => !prev)}
   zoomScale={zoomScale}
   scrollOffset={scrollOffset}

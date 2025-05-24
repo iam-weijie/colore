@@ -26,6 +26,7 @@ interface DraggablePostItProps {
     updatePosition: (x: number, y: number, post: PostWithPosition) => void;
     onPress: () => void;
     showText?: boolean;
+    isViewed?: boolean;
     enabledPan: () => void;
     scrollOffset: { x: number; y: number }; 
     zoomScale: number;
@@ -40,6 +41,7 @@ interface DraggablePostItProps {
     updatePosition,
     onPress,
     showText = false,
+    isViewed = false,
     enabledPan,
     scrollOffset,
     zoomScale,
@@ -273,7 +275,9 @@ interface DraggablePostItProps {
       >
         {/* Rest of your component remains exactly the same */}
         <TouchableWithoutFeedback onPress={onPress}>
-          <PostIt color={post.color || "yellow"} />
+          <PostIt 
+          viewed={isViewed}
+          color={post.color || "yellow"} />
         </TouchableWithoutFeedback>
         {isPinned && (
           <View className="absolute text-black h-full -top-2 -left-2">
