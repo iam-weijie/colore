@@ -24,6 +24,7 @@ app.post("/dispatch", (req, res) => {
 });
 
 io.on("connection", (socket) => {
+  console.log("a connection was made");
   const userId = socket.handshake.query.id;
 
   if (userId) {

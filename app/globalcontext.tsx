@@ -349,12 +349,18 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [user, pushToken]);
 
   useEffect(() => {
-    const socket = io(`ws://${process.env.DEVICE_IP}:${process.env.PORT}`);
+    if (user && pushToken) {
+      const socket = io(`ws://${process.env.DEVICE_IP}:3000`, {
+        query: {
+          id: user.id,
+        },
+      });
 
-    socket.on("notification", ({ type, notification, content }) => {
-      handleSendNotificationExternal(notification, content, type, pushToken);
-      // update notification state here...
-    });
+      socket.on("notification", ({ type, notification, content }) => {
+        handleSendNotificationExternal(notification, content, type, pushToken);
+        // update notification state here...
+      });
+    }
   }, [user, pushToken]);
 
   // In-app fetchNotifications function that uses the external function

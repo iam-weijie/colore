@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         SET unread_comments = unread_comments + 1
         WHERE id = ${postId};
       `;
-
+      console.log("made it here");
       // Dispatching notification to user
       const [post, comment, commenter, postOwner] = await Promise.all([
         sql`
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
           WHERE clerk_id = ${postClerkId};
         `,
       ]);
-
+      console.log("made it further");
       const new_comment = {
         id: comment[0].id,
         comment_content: comment[0].comment_content,
@@ -80,17 +80,17 @@ export async function POST(request: Request) {
         new_comment,
       };
 
-      await fetch("http://YOUR_SOCKET_SERVER/dispatch", {
+      await fetch(`http://${process.env.DEVICE_IP}:3000/dispatch`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: clerkId,
+          userId: postClerkId,
           type: "Comments",
           notification,
           content: new_comment,
         }),
       });
-
+      console.log("made it to the end");
       return new Response(JSON.stringify({ data: insertedComment[0] }), {
         status: 201,
       });
