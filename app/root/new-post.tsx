@@ -412,13 +412,13 @@ const NewPost = () => {
                             </View>
 
               <View  className="flex-1 flex-col items-center justify-center gap-2 absolute p-4 mt-4 right-0" >
-               
+               <View>
               <ColorPickerSlider
                 colors={temporaryColors}
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
               />
-      
+           </View>
               <View>
               <View className="flex flex-col items-center justify-center gap-2 py-2 rounded-[32px]">
                 <View>

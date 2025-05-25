@@ -37,7 +37,7 @@ const EmojiShorthand: React.FC<EmojiShorthandProps> = ({
     <View>
 
 
-      <View style={{ height: 120 }} className='w-12 rounded-[32px] bg-white py-2' >
+      <View style={{ height: 150 }} className='w-12 rounded-[32px] bg-white py-2' >
         <FlatList
           data={shorthandEmojis}
           className='rounded-[32px] '

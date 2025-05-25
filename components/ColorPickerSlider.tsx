@@ -136,12 +136,19 @@ const ColorPickerSlider: React.FC<ColorPickerSliderProps> = ({
           left: 0,
         }}
       >
+       {isDragging ? (
         <Circle
+          color="white"
+          size={24}
+          selected={isDragging}
+          style={styles.handle}
+        />
+       ) : (<Circle
           color={selectedColor.hex}
           size={handleSize}
           selected={isDragging}
           style={styles.handle}
-        />
+        />)}
       </Animated.View>
     </View>
   );
@@ -160,7 +167,7 @@ const styles = StyleSheet.create({
   sliderTrack: {
     width: "100%",
     height: "100%",
-    borderRadius: 16,
+    borderRadius: 32,
     overflow: "hidden",
     position: "absolute",
     top: 0,
