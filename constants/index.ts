@@ -49,6 +49,7 @@ import italics from "@/assets/icons/italics.png"
 import underline from "@/assets/icons/underline.png"
 import H from "@/assets/icons/h.png"
 import oList from "@/assets/icons/ordered-list.png"
+import add from "@/assets/icons/add.png"
 import uList from "@/assets/icons/unordered-list.png"
 
 
@@ -124,7 +125,8 @@ export const icons = {
   chevron,
   notification,
   hamburgerMenu,
-  addUser
+  addUser,
+  add
 };
 
 export const countries = {

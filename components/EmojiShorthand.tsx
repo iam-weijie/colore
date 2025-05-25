@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, FlatList, Platform } from 'react-native';
 import { DEFAULT_SHORTHAND_EMOJIS } from '@/constants/emojiLibrary';
+import InteractionButton from './InteractionButton';
+import { icons } from '@/constants';
 
 interface EmojiShorthandProps {
   onEmojiSelected: (emoji: string) => void;
@@ -15,55 +17,41 @@ const EmojiShorthand: React.FC<EmojiShorthandProps> = ({
 }) => {
   const shorthandEmojis = customShorthandEmojis || DEFAULT_SHORTHAND_EMOJIS;
 
-  const renderEmojiItem = ({ item: emoji, index }: { item: string; index: number }) => (
-    <TouchableOpacity
-      key={`shorthand-${index}`}
-      onPress={() => onEmojiSelected(emoji)}
-      className={`w-14 h-14 rounded-full items-center justify-center mx-1.5 ${
-        selectedEmoji === emoji
-          ? 'bg-blue-100 border-2 border-blue-500'
-          : 'bg-gray-50 border border-gray-200'
-      }`}
-      activeOpacity={0.7}
-    >
-      <Text style={{ fontSize: 24 }}>
-        {emoji}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderEmojiItem = ({ item: emoji, index }: { item: string; index: number }) => {
+
+    return (
+      <View key={`shorthand-${index} `}>
+         <InteractionButton 
+                    label=""
+                    icon={icons.wink}
+                    emoji={emoji}
+                    showLabel={false}
+                    color={"#000000"}
+                    onPress={() => onEmojiSelected(emoji)} 
+                    size={"sm"}
+                    styling=""              />
+                    </View>
+  )}
 
   return (
-    <View style={{
-      backgroundColor: 'white',
-      borderRadius: 16,
-      padding: 16,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
-      elevation: 2
-    }}>
-      <Text className="text-lg font-JakartaBold text-center mb-4 text-gray-800">
-        Quick Reactions
-      </Text>
+    <View>
 
-      <View style={{ height: 70 }}>
+
+      <View style={{ height: 120 }} className='w-12 rounded-[32px] bg-white py-2' >
         <FlatList
           data={shorthandEmojis}
+          className='rounded-[32px] '
           renderItem={renderEmojiItem}
           keyExtractor={(item, index) => `shorthand-${index}`}
-          horizontal
-          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            paddingHorizontal: 8,
-            alignItems: 'center'
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
-          ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
           scrollEnabled={true}
           bounces={Platform.OS === 'ios'}
           overScrollMode={Platform.OS === 'android' ? 'never' : 'auto'}
           removeClippedSubviews={false}
-          style={{ flexGrow: 0 }}
         />
       </View>
     </View>

@@ -42,6 +42,8 @@ import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useHaptics } from "@/hooks/useHaptics";
+import InteractionButton from "@/components/InteractionButton";
+import EmojiShorthand from "@/components/EmojiShorthand";
 
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
@@ -79,6 +81,7 @@ const NewPost = () => {
   );
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji as string);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
+  const [isQuickEmojiSelectorVisible, setQuickEmojiSelectorVisible] = useState(false)
   const [showRecentPopup, setShowRecentPopup] = useState(false);
   const [triggerPosition, setTriggerPosition] = useState({ x: 200, y: 400 }); // Default position
   const [activeEmojiIndex, setActiveEmojiIndex] = useState(-1);
@@ -356,6 +359,11 @@ const NewPost = () => {
 
     }))
 
+    useEffect(() => {
+      setIsEmojiSelectorVisible(false)
+      setQuickEmojiSelectorVisible(false)
+    }, [selectedEmoji])
+
   return (
     <Animated.View className="flex-1"
     style={[
@@ -403,36 +411,46 @@ const NewPost = () => {
                             </KeyboardAvoidingView>
                             </View>
 
-              <View  className="flex-1 flex-col items-end absolute p-4 right-0" >
+              <View  className="flex-1 flex-col items-center justify-center gap-2 absolute p-4 mt-4 right-0" >
+               
               <ColorPickerSlider
                 colors={temporaryColors}
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
               />
-              <View className="flex flex-row items-center">
-                {selectedEmoji && <TouchableOpacity
-                  onPress={() => {setSelectedEmoji(null)}}>
-                  <Image
-                    source={icons.close}
-                    className="w-7 h-7"
-                    tintColor={'#fff'}
-                  />
-                </TouchableOpacity>}
-                <TouchableOpacity
-                  ref={emojiButtonRef}
-                  onPress={toggleEmojiSelector}
-                  onLongPress={handleEmojiLongPress}
-                  delayLongPress={300}
-                  style={{ alignItems: 'center', justifyContent: 'center', padding: 5 }}
-                >
-                  {selectedEmoji ? (
-                    <Text style={{ fontSize: 35, margin: 1 }}>
-                      {selectedEmoji}
-                    </Text>
-                  ) : (
-                    <Image source={icons.wink} className="w-8 h-9 m-1" tintColor={'#FFFFFF'} />
-                  )}
-                </TouchableOpacity>
+      
+              <View>
+              <View className="flex flex-col items-center justify-center gap-2 py-2 rounded-[32px]">
+                <View>
+                   <InteractionButton 
+                    label=""
+                    icon={icons.wink}
+                    emoji={selectedEmoji ? selectedEmoji : ""}
+                    showLabel={false}
+                    color={"#000000"}
+                    onPress={() => setQuickEmojiSelectorVisible((prev) => !prev)}
+                    //onPress={toggleEmojiSelector} 
+                    size={"sm"}
+                    styling="shadow-md"              />
+                    </View>
+                    {isQuickEmojiSelectorVisible && 
+                    <View>
+                      <EmojiShorthand 
+                      onEmojiSelected={(emoji: string) => handleEmojiSelect(emoji)} />
+                      </View>
+                      }
+                       {isQuickEmojiSelectorVisible && <View>
+                       <InteractionButton 
+                    label=""
+                    icon={icons.add}
+                    emoji={""}
+                    showLabel={false}
+                    color={"#C1C1C1"}
+                    onPress={toggleEmojiSelector} 
+                    size={"sm"}
+                    styling="shadow-md"              />
+                    </View>}
+                    </View>
               </View>
               </View>
             </View>

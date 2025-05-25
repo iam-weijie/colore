@@ -21,16 +21,22 @@ const InteractionButton = ({
   label, 
   onPress, 
   showLabel,
-  icon, 
+  icon,
+  emoji, 
+  size = "sm",
   color,
-  soundType
+  soundType,
+  styling
 }: { 
   label: string, 
   onPress: () => void, 
   showLabel: boolean,
   icon?: ImageSourcePropType, 
+  emoji?: string,
   color: string,
-  soundType?: SoundType
+  size: string,
+  soundType?: SoundType,
+  styling: string
 }) => {
   // Get sound effects
   const { soundEffectsEnabled } = useGlobalContext();
@@ -42,7 +48,7 @@ const InteractionButton = ({
   const yOffset = useSharedValue(100);
 
   // Enter animation
-  React.useEffect(() => {
+useEffect(() => {
     scale.value = withSpring(1, {
       damping: 10,
       stiffness: 100
@@ -95,36 +101,30 @@ const InteractionButton = ({
   }));
 
   return (
-    <View className="flex-column items-center justify-center mx-4">
+    <View >
       <Animated.View style={containerStyle}>
         <AnimatedTouchable
           onPress={handlePress}
           activeOpacity={0.9}
-          className="flex-row items-center justify-center w-14 h-14 rounded-full bg-white shadow-md"
+          className={`flex-row items-center justify-center ${size === "sm" ? "w-10 h-10" : (size === "md" ? "w-12 h-12" : "w-14 h-14")} rounded-full bg-white ${styling}`}
         >
-          {label === 'Reply' ? (
-            <Image
-              source={icon}
-              className={
-                label === 'Reply' ? 'w-6 h-6' :
-                label === 'Hard agree' ? 'w-7 h-7' :
-                'w-8 h-8'
-              }
-              tintColor={color}
-            />
-          ) : label === 'Hard agree' ? (
-            <Animated.Text 
-              style={[emojiStyle, { fontSize: 40 }]}
+        {emoji ? (
+            <Animated.Text
+              style={[emojiStyle, {
+                fontSize: size === "sm" ? 24 : (size == "md" ? 32 : 36),
+                includeFontPadding: false,  // Add this to prevent extra padding
+                textAlignVertical: 'center' // Ensure proper vertical alignment
+              }]}
             >
-              🤩
+             {emoji}
             </Animated.Text>
           ) : (
-            <Animated.Text 
-              style={[emojiStyle, { fontSize: 40 }]}
-            >
-              😤
-            </Animated.Text>
-          )}
+            <Image  
+              source={icon}
+              className="w-6 h-6"
+              tintColor={color}
+            />
+        )}
         </AnimatedTouchable>
       </Animated.View>
       

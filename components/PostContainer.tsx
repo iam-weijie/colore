@@ -704,6 +704,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
               {currentPost?.prompt_id && <InteractionButton 
               label="Nay"
               icon={icons.close}
+              emoji="😤"
               showLabel={true}
               color={"#FF0000"}
               onPress={() => 
@@ -746,6 +747,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
                 <InteractionButton 
               label="Hard agree"
               icon={icons.check}
+              emoji="🤩"
               showLabel={true}
               color={"#000000"}
               onPress={() =>
@@ -760,8 +762,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
                   <CarrouselIndicator
                     key={post.id}
                     id={index}
-                    index={currentPostIndex}
-                  />
+                    index={currentPostIndex} color={""}                  />
                 );
               })}
           </View>)}

@@ -11,6 +11,8 @@ import {
 import { EMOJI_LIBRARY, EMOJI_CATEGORIES, EmojiData } from '@/constants/emojiLibrary';
 import { icons } from '@/constants';
 import { Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import InteractionButton from './InteractionButton';
 
 interface EmojiLibraryProps {
   onEmojiSelected: (emoji: string) => void;
@@ -54,30 +56,31 @@ const EmojiLibrary: React.FC<EmojiLibraryProps> = ({
     const isSelected = selectedEmoji === item.emoji;
 
     return (
-      <TouchableOpacity
-        onPress={() => onEmojiSelected(item.emoji)}
-        className={`w-[48px] h-[48px] m-[6px] items-center justify-center rounded-xl border-2 ${
-          isSelected ? 'bg-blue-100 border-blue-500' : 'bg-white border-gray-200'
-        }`}
-        activeOpacity={0.7}
-      >
-        <Text className="text-[28px]">{item.emoji}</Text>
-      </TouchableOpacity>
+
+      <View className='relative'>
+      <InteractionButton 
+                    label=""
+                    icon={icons.wink}
+                    emoji={item.emoji}
+                    showLabel={true}
+                    color={"#000000"}
+                    onPress={() => onEmojiSelected(item.emoji)} 
+                    size={selectedEmoji == item.emoji ? "lg" : "md"} 
+                    styling="shadow-md"             />
+                  {selectedEmoji == item.emoji  && <View className="absolute w-1 h-1 rounded-full bg-gray-400 self-center bottom-2"></View>}
+                    </View>
+
     );
   };
 
   const renderCategoryItem = ({ item: category }: { item: string }) => (
     <TouchableOpacity
       onPress={() => setSelectedCategory(category)}
-      className={`px-4 py-2 rounded-full mx-1 ${
-        selectedCategory === category
-          ? 'bg-blue-500'
-          : 'bg-white shadow shadow-black/5'
-      }`}
+      className={`px-4 py-2 rounded-full mx-1`}
     >
       <Text
-        className={`text-xs font-[Jakarta-Medium] capitalize ${
-          selectedCategory === category ? 'text-white' : 'text-gray-700'
+        className={`text-md font-[Jakarta-Medium] capitalize ${
+          selectedCategory === category ? 'text-black' : 'text-gray-500'
         }`}
       >
         {category}
@@ -85,19 +88,40 @@ const EmojiLibrary: React.FC<EmojiLibraryProps> = ({
     </TouchableOpacity>
   );
 
+  const handleClearSearch = () => {
+    setSearchQuery("")
+  }
+
   return (
     <View className="bg-gray-50" style={{ height: MODAL_HEIGHT }}>
       <View className="flex-1 px-6 pt-4">
-        <View className="bg-white rounded-xl flex-row items-center px-4 py-3 mb-3 shadow shadow-black/5">
-          <Image source={icons.search} style={{ width: 16, height: 16, marginRight: 12 }} tintColor="#6B7280" />
+      <View className=" w-full -pt-2 pb-2">
+        <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
+            className="flex-1 pl-2 text-md "
             placeholder="Search emojis..."
+             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            className="flex-1 text-sm font-[Jakarta-Medium] text-gray-700"
-            placeholderTextColor="#9CA3AF"
+            returnKeyType="search"
+            clearButtonMode="while-editing"
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
         </View>
+      </View>
+
 
         <View className="h-10 mb-4">
           <FlatList
@@ -116,9 +140,9 @@ const EmojiLibrary: React.FC<EmojiLibraryProps> = ({
           numColumns={EMOJIS_PER_ROW}
           keyExtractor={(item) => item.id}
           className="flex-1"
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingBottom: 90 }}
           showsVerticalScrollIndicator={true}
-          columnWrapperStyle={{ justifyContent: 'space-around', marginBottom: 8 }}
+          columnWrapperStyle={{ justifyContent: 'space-around', marginBottom: 3 }}
           scrollEnabled={true}
           bounces={Platform.OS === 'ios'}
           overScrollMode={Platform.OS === 'android' ? 'never' : 'auto'}
@@ -139,6 +163,16 @@ const EmojiLibrary: React.FC<EmojiLibraryProps> = ({
             </View>
           )}
         />
+        <View className='absolute self-center bottom-[72px]'>
+              <InteractionButton 
+                    label=""
+                    icon={icons.close}
+                    emoji={""}
+                    showLabel={true}
+                    color={"#000000"}
+                    onPress={() => onEmojiSelected("")} 
+                    size={"lg"}              />
+        </View>
       </View>
     </View>
   );
