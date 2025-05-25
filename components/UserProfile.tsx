@@ -307,7 +307,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const fetchCommunityBoards = async () => {
       try {
         setLoading(true)
-        const response = await fetchAPI(`/api/boards/getCommunityBoards?user_id=${userId}`,
+        const response = await fetchAPI(`/api/boards/getCommunityBoards?userId=${userId}`,
             {
               method: "GET",
             }
@@ -637,12 +637,14 @@ const handleTabChange = (tabKey: string) => {
               {loading ? (
                   <PostGallerySkeleton />
                 ) : (
+                  <View className="flex-1 px-7">
                   <PostGallery
                     posts={userPosts}
                     profileUserId={user!.id}
                     handleUpdate={fetchUserData}
                     query={query}
                   />
+                  </View>
                 )}
             </View>}
 

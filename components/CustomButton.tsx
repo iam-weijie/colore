@@ -23,7 +23,7 @@ const getBgVariantStyle = (
     case "primary":
       return "bg-[#FFFFFF]";
     case "secondary":
-      return "bg-gray-500";
+      return "bg-black";
     case "danger":
       return "bg-red-500";
     case "success":
@@ -51,7 +51,7 @@ const getTextVariantStyle = (
     case "primary":
       return "text-black";
     case "secondary":
-      return "text-gray-100";
+      return "text-white";
     case "danger":
       return "text-red-100";
     case "success":

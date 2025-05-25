@@ -4,14 +4,13 @@ import { TextStyle, Format } from '@/types/type';
 import { useGlobalContext } from '@/app/globalcontext';
 
 const applyMarkdown = (text: string, formats: Format[]) => {
-  let offset = 0;
-  const sortedFormats = [...formats].sort((a, b) => a.start - b.start);
+  // Sort formats in reverse so that editing text from the end avoids offsetting earlier positions
+  const sortedFormats = [...formats].sort((a, b) => b.start - a.start);
 
   for (const format of sortedFormats) {
     let prefix = '';
     let suffix = '';
-    let adjustedStart = format.start + offset;
-    let adjustedEnd = format.end + offset;
+    const { start, end } = format;
 
     switch (format.type) {
       case 'bold':
@@ -45,26 +44,31 @@ const applyMarkdown = (text: string, formats: Format[]) => {
         break;
     }
 
-    // Insert prefix and suffix (if applicable)
-    text = text.slice(0, adjustedStart) + prefix + text.slice(adjustedStart, adjustedEnd) + suffix + text.slice(adjustedEnd);
-    offset += prefix.length + suffix.length;
+    // Apply prefix and suffix
+    const before = text.slice(0, start);
+    const inside = text.slice(start, end);
+    const after = text.slice(end);
+
+    text = before + prefix + inside + suffix + after;
   }
 
   return text;
 };
 
 
+
 const stripMarkdown = (text: string) => {
   return text
-    .replace(/### /g, '')
-    .replace(/## /g, '')
-    .replace(/# /g, '')
+    .replace(/^###\s/gm, '')
+    .replace(/^##\s/gm, '')
+    .replace(/^#\s/gm, '')
     .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/\*(.*?)\*/g, '$1')
     .replace(/<u>(.*?)<\/u>/g, '$1')
-    .replace(/^1\. /gm, '')
-    .replace(/^- /gm, '');
+    .replace(/^1\.\s/gm, '')
+    .replace(/^- \s?/gm, '');
 };
+
 
 
 const RichTextInput = ({
@@ -254,7 +258,7 @@ const RichTextInput = ({
             onChangeText={setValue}
             multiline
             placeholder="Type here..."
-            placeholderTextColor="#E1E1E1"
+            placeholderTextColor="#F1F1F1"
             onSelectionChange={({ nativeEvent }) => setSelection(nativeEvent.selection)}
             onFocus={() => {
               const textWithMarkdown = applyMarkdown(value, formats);

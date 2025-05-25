@@ -15,7 +15,7 @@ import {
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import ItemContainer from "@/components/ItemContainer";
 
-const FindUser = ({ selectedUserInfo }) => {
+export const FindUser = ({ selectedUserInfo }) => {
 const { user } = useUser();
 
 const [users, setUsers] = useState<UserNicknamePair[]>([]);

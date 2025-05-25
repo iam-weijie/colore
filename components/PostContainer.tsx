@@ -611,7 +611,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
           </TouchableWithoutFeedback>
 
           {header}
-          {currentPost?.prompt &&  <Animated.View 
+          {currentPost?.prompt && !isPreview &&  <Animated.View 
           className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center"
           entering={FadeInUp.duration(200)}
           exiting={FadeOutDown.duration(200)}>

@@ -6,6 +6,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
 
+    console.log("clerkId", clerkId);
     if (!clerkId) {
       return new Response(
         JSON.stringify({ error: "User ID parameter is required" }),
@@ -77,8 +78,6 @@ export async function GET(request: Request) {
       prompt_id: post.prompt_id,
       prompt: post.prompt
     }));
-
-    console.log("User posts fetched successfully:", response.row);
 
     return new Response(JSON.stringify({ userInfo, posts: userPosts }), {
       status: 200,
