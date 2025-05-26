@@ -27,36 +27,39 @@ import ModalSheet from "@/components/Modal";
 import RenameContainer from "@/components/RenameContainer";
 
 const Settings = () => {
-  const { signOut } = useAuth();
-  const { user } = useUser();
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { stateVars, setStateVars } = useNavigationContext();
-  const [selectedModal, setSelectedModal] = useState<any>(null);
-  const [selectedTitle, setSelectedTitle] = useState<string>("");
-  const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
-  const [savedPosts, setSavedPosts] = useState<string[]>();
-  const [likedPosts, setLikedPosts] = useState<string[]>();
 
-  // Get settings state and setters from Global Context
-  const {
+    const {
     hapticsEnabled,
     setHapticsEnabled,
     soundEffectsEnabled,
     setSoundEffectsEnabled,
+    profile,
+    setProfile
   } = useGlobalContext();
   const { playSoundEffect } = useSoundEffects(); // Use the sound hook
   const { showAlert } = useAlert();
+
+
+  const { signOut } = useAuth();
+  const { user } = useUser();
+  const [username, setUsername] = useState(profile?.username || "");
+  const [email, setEmail] = useState(profile?.email || "");
+  const [loading, setLoading] = useState(false);
+  const { stateVars, setStateVars } = useNavigationContext();
+  const [selectedModal, setSelectedModal] = useState<any>(null);
+  const [selectedTitle, setSelectedTitle] = useState<string>("");
+  const [profileUser, setProfileUser] = useState<UserProfileType | null>(profile);
+  const [savedPosts, setSavedPosts] = useState<string[]>();
+  const [likedPosts, setLikedPosts] = useState<string[]>();
+
+  // Get settings state and setters from Global Context
+
 
   const fetchUserData = async () => {
     try {
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
       const data = response.data[0];
-      setProfileUser(data);
-      setUsername(data.username || "");
-      setEmail(data.email || "");
-      setSavedPosts(data.saved_posts);
+      setProfile(data);
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     }
@@ -85,7 +88,6 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    fetchUserData();
     fetchLikedPosts();
   }, []);
 
@@ -275,7 +277,7 @@ const Settings = () => {
   useFocusEffect(
     useCallback(() => {
       // Fetch all user data including location when screen is focused
-      fetchUserData();
+
       fetchSavedPosts();
       fetchLikedPosts();
     }, [stateVars]) // Add back the dependency array for useCallback
@@ -291,256 +293,221 @@ const Settings = () => {
     setSoundEffectsEnabled(value);
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
   };
+
+  
   return (
 
-    <ScrollView className="flex-1 pt-6" showsVerticalScrollIndicator={false}>
-      {/* Account Section */}
-      <View className="mx-6 mb-6">
-        <View 
-          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4" 
-          style={{
-            backgroundColor: "#93c5fd",
-            borderColor: "#ffffff80",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.1,
-            shadowRadius: 5,
-          }}
-        >
-          <View className="px-5 py-3">
-            <Text className="text-lg font-JakartaBold text-gray-800">Account Information</Text>
-          </View>
-          {/*
-          
-          <View className="px-5 py-3">
-            <Text className="text-sm font-JakartaSemiBold text-[#000]">Username</Text>
-            <InputField
-              label=""
-              value={newUsername}
-              onChangeText={setNewUsername}
-              placeholder={username || "Enter username"}
-              onSubmitEditing={() => {
-                if (!newUsername || loading) return;
-                handleUsernameUpdate();
-                setUsername(newUsername);
-                setNewUsername("");
-              }}
-              containerStyle="-mt-8"
-            />
-          </View>*/}
-          
-          {/*<View className="px-5 py-3">
-            <Text className="text-sm font-JakartaSemiBold text-[#000]">Email Address</Text>
-            
-            <InputField
-              label=""
-              value={newEmail}
-              onChangeText={setNewEmail}
-              placeholder={profileUser?.email || "Enter email address"}
-              onSubmitEditing={() => {
-                if (!newEmail || loading) return;
-                handleEmailUpdate();
-                setEmail(newEmail);
-                setNewEmail("");
-              }}
-              containerStyle="-mt-8"
-            />
-          </View>*/}
-          <View className="px-5 py-3">
-            <View className="flex flex-row items-center justify-between mb-1">
-              <Text className="text-lg font-JakartaSemiBold text-[#000]">Username</Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => handleUpdateValue("username")}
-                className="bg-black px-3 py-2 rounded-full"
-              >
-                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
-              </TouchableOpacity>
-            </View>
-            <Text className="text-gray-800 text-base font-JakartaMedium mt-1">{username || "Not specified"}</Text>
-          </View>
-          <View className="px-5 py-3">
-            <View className="flex flex-row items-center justify-between mb-1">
-              <Text className="text-lg font-JakartaSemiBold text-[#000]">Email</Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => handleUpdateValue("email")}
-                className="bg-black px-3 py-2 rounded-full"
-              >
-                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
-              </TouchableOpacity>
-            </View>
-            <Text className="text-gray-800 text-base font-JakartaMedium mt-1">{email || "Not specified"}</Text>
-          </View>
-      
-          <View className="px-5 py-3">
-            <View className="flex flex-row items-center justify-between mb-1">
-              <Text className="text-lg font-JakartaSemiBold text-[#000]">Location</Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={handleLocationUpdate}
-                className="bg-black px-3 py-2 rounded-full"
-              >
-                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">Update</Text>
-              </TouchableOpacity>
-            </View>
-            <Text className="text-gray-800 text-base font-JakartaMedium  mt-1">{currentLocation || "Not specified"}</Text>
-          </View>
-        </View>
-      </View>
-  
-      {/* Activity Section */}
-      <View className="mx-6 mb-6">
-        <View 
-          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4" 
-          style={{
-            backgroundColor: "#CFB1FB",
-            borderColor: "#ffffff80",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.1,
-            shadowRadius: 5,
-          }}
-        >
-          <View className="px-5 py-4">
-            <Text className="text-lg font-JakartaBold text-gray-800">Your Activity</Text>
-          </View>
-          
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {
-              router.push({
-                pathname: "/root/saved-post-gallery",
-                params: {
-                  posts: JSON.stringify(savedPosts),
-                  name: "Saved Posts",
-                },
-              });
-            }}
-            className="px-5 py-4 flex flex-row items-center justify-between"
-          >
-            <View className="flex flex-row items-center">
-              <View className="bg-black p-2 rounded-xl mr-3">
-                <Image
-                  source={icons.bookmark}
-                  tintColor="#ffffff"
-                  resizeMode="contain"
-                  className="w-5 h-5"
-                />
-              </View>
-              <Text className="text-base font-JakartaSemiBold text-gray-800">Saved Posts</Text>
-            </View>
-            <View className="flex flex-row items-center">
-              <Text className="text-[#000] text-sm mr-2">{savedPosts?.length || 0}</Text>
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {
-              router.push({
-                pathname: "/root/saved-post-gallery",
-                params: {
-                  posts: JSON.stringify(likedPosts),
-                  name: "Liked Posts",
-                },
-              });
-            }}
-            className="px-5 py-4 flex flex-row items-center justify-between"
-          >
-            <View className="flex flex-row items-center">
-              <View className="bg-black p-2 rounded-xl mr-3">
-                <MaterialCommunityIcons
-                  name="heart-outline"
-                  size={20}
-                  color="#EF4444"
-                />
-              </View>
-              <Text className="text-base font-JakartaSemiBold text-gray-800">Liked Posts</Text>
-            </View>
-            <View className="flex flex-row items-center">
-              <Text className="text-[#000] text-sm mr-2">{likedPosts?.length || 0}</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
-  
-      {/* Preferences Section */}
-      <View className="mx-6 mb-6">
-        <View 
-          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4" 
-          style={{
-            backgroundColor: "#ffe640",
-            borderColor: "#ffffff80",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.1,
-            shadowRadius: 5,
-          }}
-        >
-          <View className="px-5 py-4">
-            <Text className="text-lg font-JakartaBold text-gray-800">Preferences</Text>
-          </View>
-          
-          <View className="px-5 py-3 flex flex-row items-center justify-between">
-            <View className="flex-1">
-              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">Haptic Feedback</Text>
-              <Text className="text-sm text-gray-800">Get physical feedback for interactions</Text>
-            </View>
-            <Switch
-              trackColor={{ false: "#888", true: "#000" }}
-              thumbColor={hapticsEnabled ? "#ffffff" : "#f4f3f4"}
-              ios_backgroundColor="#E5E7EB"
-              onValueChange={handleHapticsToggle}
-              value={hapticsEnabled}
-            />
-          </View>
-          
-          <View className="px-5 py-3 flex flex-row items-center justify-between">
-            <View className="flex-1">
-              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">Sound Effects</Text>
-              <Text className="text-sm text-gray-800">Play sounds for certain actions</Text>
-            </View>
-            <Switch
-              trackColor={{ false: "#888", true: "#000" }}
-              thumbColor={soundEffectsEnabled ? "#ffffff" : "#f4f3f4"}
-              ios_backgroundColor="#E5E7EB"
-              onValueChange={handleSoundToggle}
-              value={soundEffectsEnabled}
-            />
-          </View>
-        </View>
-      </View>
-  
-      {/* Sign Out Section */}
-      <View className="mx-6 mb-6">
-        <TouchableOpacity 
-          onPress={handleSignOut}
-          className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-          }}
-        >
-          <Text className="font-JakartaBold text-lg text-red-500">Sign Out</Text>
-        </TouchableOpacity>
-      </View>
+   <ScrollView 
+   className="flex-1 pt-6 bg-gray-50" 
+   showsVerticalScrollIndicator={false}
+   contentContainerStyle={{ paddingBottom: 90 }}>
+  {/* Header Card Component */}
+  <View className="mx-6 mb-6">
+    <HeaderCard 
+      title="Account" 
+      color="#93c5fd"
+      content={
+        <>
+          <DetailRow 
+            label="Username" 
+            value={username} 
+            onPress={() => handleUpdateValue("username")}
+            accentColor="#93c5fd"
+          />
+          <DetailRow 
+            label="Email" 
+            value={email} 
+            onPress={() => handleUpdateValue("email")}
+            accentColor="#93c5fd"
+          />
+          <DetailRow 
+            label="Location" 
+            value={currentLocation} 
+            onPress={handleLocationUpdate}
+            accentColor="#93c5fd"
+          />
+        </>
+      }
+    />
+  </View>
 
-       {!!selectedModal && 
-         <ModalSheet 
-         children={selectedModal} 
-         title={selectedTitle} 
-         isVisible={!!selectedModal} 
-         onClose={() => {
-          setSelectedModal(null)
-          setSelectedTitle("")}
-         
-          } />}
-    </ScrollView>
-  );
+  {/* Activity Section */}
+  <View className="mx-6 mb-6">
+    <HeaderCard 
+      title="Your Activity" 
+      color="#CFB1FB"
+      content={
+        <>
+          <ActionRow 
+            icon={<Image source={icons.bookmark} tintColor="#000" resizeMode="contain" className="w-5 h-5" />}
+            label="Saved Posts"
+            count={savedPosts?.length || 0}
+            onPress={() => router.push({
+              pathname: "/root/saved-post-gallery",
+              params: { posts: JSON.stringify(savedPosts), name: "Saved Posts" }
+            })}
+            accentColor="#CFB1FB"
+          />
+          <ActionRow 
+            icon={<MaterialCommunityIcons name="heart-outline" size={20} color="#000" />}
+            label="Liked Posts"
+            count={likedPosts?.length || 0}
+            onPress={() => router.push({
+              pathname: "/root/saved-post-gallery",
+              params: { posts: JSON.stringify(likedPosts), name: "Liked Posts" }
+            })}
+            accentColor="#CFB1FB"
+          />
+        </>
+      }
+    />
+  </View>
+
+  {/* Preferences Section */}
+  <View className="mx-6 mb-6">
+    <HeaderCard 
+      title="Preferences" 
+      color="#ffe640"
+      content={
+        <>
+          <ToggleRow 
+            label="Haptic Feedback"
+            description="Get physical feedback for interactions"
+            value={hapticsEnabled}
+            onValueChange={handleHapticsToggle}
+            accentColor="#ffe640" // Dark gray from your shadows
+          />
+          <ToggleRow 
+            label="Sound Effects"
+            description="Play sounds for certain actions"
+            value={soundEffectsEnabled}
+            onValueChange={handleSoundToggle}
+            accentColor="#ffe640"
+          />
+        </>
+      }
+    />
+  </View>
+
+  {/* Sign Out Button */}
+  <View className="mx-6 mb-10">
+    <TouchableOpacity 
+      onPress={handleSignOut}
+      activeOpacity={0.7}
+      className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center border-2 border-gray-100"
+      style={{
+        shadowColor: "#636363",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      }}
+    >
+      <Text className="font-JakartaBold text-lg text-red-500">Sign Out</Text>
+    </TouchableOpacity>
+  </View>
+
+  {!!selectedModal && 
+    <ModalSheet 
+      children={selectedModal} 
+      title={selectedTitle} 
+      isVisible={!!selectedModal} 
+      onClose={() => {
+        setSelectedModal(null)
+        setSelectedTitle("")
+      }} 
+    />
+  }
+</ScrollView>)
 };
+
+
+// Reusable Components
+const HeaderCard = ({ title, color, content }) => (
+  <View className="rounded-[48px] py-3"
+    style={{
+      backgroundColor: "#ffffff",
+      borderColor: "#fafafa80",
+      shadowColor: "#63636388",
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.1,
+      shadowRadius: 5,
+    }}>
+    <View 
+      className="px-4 py-2 rounded-[48px] w-[70%] ml-5 overflow-hidden shadow-sm border-2" 
+      style={{
+        backgroundColor: color,
+        borderColor: "#ffffff80",
+        shadowColor: "#636363",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+      }}
+    >
+      <View className="px-5 py-2">
+        <Text className="text-[18px] font-JakartaSemiBold text-white">{title}</Text>
+      </View>
+    </View>
+    
+    <View className="px-4 pb-4 rounded-[48px] overflow-hidden shadow-sm">
+      {content}
+    </View>
+  </View>
+);
+
+const DetailRow = ({ label, value, onPress, accentColor }) => (
+  <View className="px-5 py-3  last:border-b-0">
+    <View className="flex flex-row items-center justify-between mb-1">
+      <Text className="text-[16px] font-JakartaSemiBold text-gray-800">{label}</Text>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={onPress}
+        className="px-3 py-2 rounded-full shadow-xs"
+        style={{ backgroundColor: "#fff" }}
+      >
+        <Text className="text-sm font-JakartaSemiBold" style={{ color: accentColor }}>Update</Text>
+      </TouchableOpacity>
+    </View>
+    <Text className="text-gray-800 text-[14px] font-JakartaMedium">
+      {value || "Not specified"}
+    </Text>
+  </View>
+);
+
+const ActionRow = ({ icon, label, count, onPress, accentColor }) => (
+  <TouchableOpacity
+    activeOpacity={0.7}
+    onPress={onPress}
+    className="px-5 py-4 flex flex-row items-center justify-between "
+  >
+    <View className="flex flex-row items-center">
+      <View className="p-2 rounded-xl mr-3" style={{ backgroundColor: "#fafafa" }}>
+        {icon}
+      </View>
+      <Text className="text-[14px] font-JakartaSemiBold text-gray-800">{label}</Text>
+    </View>
+    <View className="flex flex-row items-center">
+      <Text className="text-gray-600 text-sm mr-2">{count}</Text>
+      <MaterialCommunityIcons name="chevron-right" size={20} color="#9ca3af" />
+    </View>
+  </TouchableOpacity>
+);
+
+const ToggleRow = ({ label, description, value, onValueChange, accentColor }) => (
+  <View className="px-5 py-3 flex flex-row items-center justify-between last:border-b-0">
+    <View className="flex-1">
+      <Text className="text-[16px] font-JakartaSemiBold text-gray-800 mb-1">{label}</Text>
+      <Text className="text-[14px] text-gray-800">{description}</Text>
+    </View>
+    <Switch
+      trackColor={{ false: "#fafafa", true: accentColor }}
+      thumbColor={value ? "#ffffff" : "#f4f3f4"}
+      ios_backgroundColor="#E5E7EB"
+      onValueChange={onValueChange}
+      value={value}
+    />
+  </View>
+);
+
 
 export default Settings;
 

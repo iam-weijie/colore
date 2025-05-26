@@ -24,6 +24,7 @@ const ItemContainer = ({
   iconColor,
   actionIcon,
   onPress,
+  isPrompt = false,
 }: {
   label: string;
   caption?: string;
@@ -32,6 +33,7 @@ const ItemContainer = ({
   iconColor: string;
   actionIcon?: ImageSourcePropType;
   onPress: () => void;
+  isPrompt?: boolean;
 }) => {
   const scale = useSharedValue(1);
   const opacity = useSharedValue(0);
@@ -98,9 +100,9 @@ const ItemContainer = ({
         {/* Text content */}
         <View className="flex-1 mr-2">
           <Text
-            className="text-[15px] font-JakartaSemiBold text-gray-900"
+            className={`text-[15px] font-JakartaSemiBold ${isPrompt ? "text-white" : "text-black"}`}
             ellipsizeMode="tail"
-            numberOfLines={1}
+            numberOfLines={isPrompt ? 3 : 1}
           >
             {label}
           </Text>

@@ -8,7 +8,6 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
 
-   // console.log("Extracted Clerk ID:", clerkId);
 
     if (!clerkId) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {

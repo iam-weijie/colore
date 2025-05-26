@@ -196,6 +196,7 @@ declare interface UserPostsGalleryProps {
 declare interface UserProfileProps {
   userId: string;
   friendStatus: FriendStatusType;
+  nickname?: string;
   onSignOut?: () => void;
 }
 

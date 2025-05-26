@@ -1,3 +1,4 @@
+import { Format } from "@/types/type";
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
@@ -51,6 +52,8 @@ export async function GET(request: Request) {
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
       WHERE p.recipient_user_id = '${recipientId}'
         AND p.post_type = 'personal'
+        AND p.expires_at > NOW()
+        AND p.available_at <= NOW()
         ${excludeClause}
       ORDER BY p.created_at DESC
       LIMIT ${number};
@@ -88,7 +91,7 @@ export async function GET(request: Request) {
         position: post.top !== null && post.left !== null 
           ? { top:  Number(post.top), left:  Number(post.left) } 
           : undefined,
-      formatting: JSON.parse(post.formatting) || [],
+      formatting: post.formatting as Format || [],
       }));
 
     return new Response(JSON.stringify({ data: personalPosts }), {

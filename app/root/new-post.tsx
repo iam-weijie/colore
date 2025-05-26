@@ -603,7 +603,7 @@ const LinkPlaceholder = () => {
           <Header
           title={
             postId ? 'Edit Post' : 
-            (prompt ? `${prompt}`: 
+            (prompt ? `${Array.isArray(prompt) ? prompt[0] : prompt}`.trim() : 
               (recipientId ? `@${userUsername}` : 'New Post')
             )}
             tabs={tabs}

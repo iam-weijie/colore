@@ -1,3 +1,4 @@
+import { Format } from "@/types/type";
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
@@ -128,6 +129,9 @@ export async function GET(request: Request) {
           p.prompt_id,
           p.board_id,
           p.formatting,
+          p.reply_to,
+          p.expires_at,
+          p.available_at,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -139,7 +143,10 @@ export async function GET(request: Request) {
         FROM posts p
         JOIN users u ON p.user_id = u.clerk_id
         LEFT JOIN prompts pr ON p.prompt_id = pr.id
-        WHERE p.user_id != ${id} AND p.post_type = 'public'
+        WHERE p.user_id != ${id} 
+          AND p.post_type = 'public'
+          AND p.expires_at > NOW() 
+          AND p.available_at <= NOW()
         ORDER BY RANDOM()
         LIMIT ${number};
       `;
@@ -172,7 +179,7 @@ export async function GET(request: Request) {
       position: post.top !== null && post.left !== null 
         ? { top: Number(post.top), left: Number(post.left) } 
         : undefined,
-      formatting: JSON.parse(post.formatting) || [],
+      formatting: post.formatting as Format || [],
     }));
 
       return new Response(JSON.stringify({ data: mappedPosts }), {

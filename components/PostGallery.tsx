@@ -78,7 +78,6 @@ const renderItem = ({ item }: { item: Post }) => {
       entering={FadeInDown.duration(400)}
       style={{
         marginHorizontal: isIpad ? 6 : 0,
-        maxWidth: 350,
         transform: [{ rotate: `${(Math.random() * 1.5 - 0.75).toFixed(2)}deg` }], // Reduced rotation range
       }}
     >
@@ -151,7 +150,7 @@ const renderItem = ({ item }: { item: Post }) => {
 
 
   return (
-    <View className="rounded-[24px] max-h-[100%]">
+    <View className="flex-1  w-full rounded-[24px] max-h-[100%]">
       {filteredPosts.length > 0 ? 
       (
         header
@@ -171,7 +170,7 @@ const renderItem = ({ item }: { item: Post }) => {
        
       {posts.length > 0 && (
         <FlatList
-          className="flex-1 flew-row w-full mt-4 rounded-[24px]"
+          className="flex-1 mt-4 h-full rounded-[24px]"
           data={filteredPosts}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}

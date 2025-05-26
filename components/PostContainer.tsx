@@ -551,20 +551,19 @@ const PostContainer: React.FC<PostContainerProps> = ({
   };
 
   const backgroundColor = useSharedValue(postColor?.hex || "rgba(0, 0, 0, 0.5)");
-  const prevColor = React.useRef(backgroundColor.value);
+  const prevColor = useRef<string>(postColor?.hex || "rgba(0, 0, 0, 0.5)");
+
 
   // Animate color change
   useEffect(() => {
-    if (prevColor.current !== (postColor?.hex || "rgba(0, 0, 0, 0.5)")) {
-      backgroundColor.value = withTiming(
-        postColor?.hex || "rgba(0, 0, 0, 0.5)",
-        {
-          duration: 300,
-          easing: Easing.inOut(Easing.quad)
-        }
-      );
-      prevColor.current = postColor?.hex || "rgba(0, 0, 0, 0.5)";
-    }
+   const newColor = postColor?.hex || "rgba(0, 0, 0, 0.5)";
+  if (prevColor.current !== newColor) {
+    backgroundColor.value = withTiming(newColor, {
+      duration: 300,
+      easing: Easing.inOut(Easing.quad),
+    });
+    prevColor.current = newColor;
+  }
   }, [postColor]);
 
 
@@ -614,7 +613,7 @@ const cleanFormatting: Format[] = isPreview
           ]}
         >
           <TouchableWithoutFeedback onPress={() => handleCloseModal()}>
-            <View className="absolute flex-1 top-0">
+            <View className="absolute flex-1 top-0 -ml-3">
             {<EmojiBackground emoji={staticEmoji ? selectedEmoji : ""} color="" />}
             </View>
           
@@ -627,15 +626,13 @@ const cleanFormatting: Format[] = isPreview
           exiting={FadeOutDown.duration(200)}>
             <View 
             className="w-[75%] max-w-[300px]"
-            style={{
-              transform: [{rotate: `${(Math.random() - 0.5)*10}deg` }]
-            }}
             >
              <ItemContainer 
              label={currentPost?.prompt}
              icon={icons.fire}
              colors={[currentPost?.color, "#FFB512"]}
              iconColor="#000"
+             isPrompt
              onPress={() => {
               router.push({
                 pathname: "/root/new-post",

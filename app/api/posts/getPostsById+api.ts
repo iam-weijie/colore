@@ -1,3 +1,4 @@
+import { Format } from "@/types/type";
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
@@ -29,6 +30,8 @@ export async function GET(request: Request) {
       SELECT *
       FROM posts p
       WHERE p.id = ANY(${ids}::int[])
+        AND p.expires_at > NOW() 
+        AND p.available_at <= NOW()
     `;
     if (response.length === 0) {
       return new Response(JSON.stringify({ error: "No posts found" }), {
@@ -65,7 +68,7 @@ export async function GET(request: Request) {
       position: post.top !== null && post.left !== null 
         ? { top: Number(post.top), left: Number(post.left) } 
         : undefined,
-      formatting: JSON.parse(post.formatting) || [],
+      formatting: post.formatting as Format || [],
     }));
 
     // Return the posts data in the response

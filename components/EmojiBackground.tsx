@@ -135,7 +135,7 @@ const EmojiBackground: React.FC<EmojiBackgroundProps> = ({ emoji, color }) => {
 
   return (
     <View 
-      className="absolute w-full h-full right-2"
+      className="absolute w-full h-full"
       style={{ backgroundColor: color }}
     >
       {gridItems.map((item, index) => {
