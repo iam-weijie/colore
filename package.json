@@ -35,7 +35,7 @@
     "axios": "^1.7.9",
     "buffer": "^6.0.3",
     "colore": "file:",
-    "expo": "^53.0.8",
+    "expo": "^53.0.9",
     "expo-apple-authentication": "~7.2.4",
     "expo-auth-session": "~6.1.5",
     "expo-av": "~15.1.4",

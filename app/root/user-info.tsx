@@ -32,6 +32,7 @@ import React from "react";
 import ColorPickerSlider from "@/components/ColorPickerSlider";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useGlobalContext } from "../globalcontext";
+import * as Haptics from "expo-haptics";
 
 const UserInfo = () => {
 
@@ -598,7 +599,7 @@ const UserInfo = () => {
   ];
 
   const handleNext = () => {
-    playSoundEffect(SoundType.Navigation)
+    playSoundEffect(SoundType.Navigation);
     Haptics.selectionAsync();
   
     if (step < totalSteps - 1) setStep((prev) => prev + 1);

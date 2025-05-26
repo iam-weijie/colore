@@ -20,16 +20,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
 import RenameContainer from "@/components/RenameContainer";
-import EmojiSettings from "@/components/EmojiSettings";
-import * as Haptics from "expo-haptics";
-import { Audio } from "expo-av";
+import { Modal as RNModal } from "react-native";
+
 
 const Settings = () => {
+
 
   const { signOut } = useAuth();
   const { user } = useUser();
@@ -42,8 +43,59 @@ const Settings = () => {
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
+  const [libraryVisible, setLibraryVisible] = useState(false);
+  const [colorLibrary, setColorLibrary] = useState<{ name: string; meaning: string; SRB: number[] }[]>([]);
+  const blueProgress = Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20);
+  const yellowProgress = Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20);
+  const pinkProgress = Math.min(
+    100,
+    Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
+  );
+  const [unlockedColors, setUnlockedColors] = useState<{ name: string; meaning: string; SRB: number[] }[]>([]);
+  const handleAttemptColorCreation = () => {
+    const S = Math.floor((savedPosts?.length || 0) / 3);
+    const R = Math.floor((likedPosts?.length || 0) / 10);
+    const B = Math.floor((profileUser?.customizations?.length || 0) / 5);
+    const userSRB = [S, R, B];
+  
+    const matchedColor = colorLibrary.find(
+      (c) =>
+        c.SRB[0] === userSRB[0] &&
+        c.SRB[1] === userSRB[1] &&
+        c.SRB[2] === userSRB[2]
+    );
 
-  const { playSoundEffect } = useSoundEffects();
+    if (matchedColor) {
+      const alreadyUnlocked = unlockedColors.some(
+        (uc) => uc.name === matchedColor.name
+      );
+  
+      if (!alreadyUnlocked) {
+        setUnlockedColors((prev) => [...prev, matchedColor]);
+  
+        showAlert({
+          title: "🎉 Color Unlocked!",
+          message: `${matchedColor.name} has been added to your collection.`,
+          type: "UPDATE",
+          status: "success",
+        });
+      } else {
+        showAlert({
+          title: "Already Unlocked",
+          message: `You already have ${matchedColor.name}.`,
+          type: "INFO",
+          status: "info",
+        });
+      }
+    } else {
+      showAlert({
+        title: "No Match",
+        message: "Your current SRB doesn't match any color. Try again later!",
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  };
 
   // Get settings state and setters from Global Context
   const {
@@ -52,7 +104,7 @@ const Settings = () => {
     soundEffectsEnabled,
     setSoundEffectsEnabled,
   } = useGlobalContext();
-
+  const { playSoundEffect } = useSoundEffects(); // Use the sound hook
   const { showAlert } = useAlert();
 
   const fetchUserData = async () => {
@@ -93,6 +145,11 @@ const Settings = () => {
   useEffect(() => {
     fetchUserData();
     fetchLikedPosts();
+    setColorLibrary([
+      { name: "Blue", meaning: "Peace and Calm | Saved posts", SRB: [3, 2, 1] },
+      { name: "Yellow", meaning: "Energy and Joy | Liked posts", SRB: [1, 3, 2] },
+      { name: "Pink", meaning: "Love and Creativity | Customizations", SRB: [2, 1, 3] },
+    ]);
   }, []);
 
   const verifyValidUsername = (username: string): boolean => {
@@ -218,9 +275,6 @@ const Settings = () => {
   };
 
   const handleLocationUpdate = () => {
-    playSoundEffect(SoundType.Navigation)
-    Haptics.selectionAsync();
-
     setStateVars({
       ...stateVars,
       previousScreen: "settings",
@@ -233,9 +287,6 @@ const Settings = () => {
 
   const handleSignOut = async () => {
     try {
-      playSoundEffect(SoundType.Tap)
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
       await signOut();
       setLoading(true);
       router.replace("/auth/onboarding");
@@ -251,9 +302,6 @@ const Settings = () => {
   };
 
   const handleUpdateValue = (type: string) => {
-    playSoundEffect(SoundType.Submit)
-    Haptics.selectionAsync();
-
     setSelectedTitle(`${type == "username" ? "New username" : "New Email"}`);
     setSelectedModal(
       <RenameContainer
@@ -322,7 +370,7 @@ const Settings = () => {
             </Text>
           </View>
           {/*
-
+          
           <View className="px-5 py-3">
             <Text className="text-sm font-JakartaSemiBold text-[#000]">Username</Text>
             <InputField
@@ -342,7 +390,7 @@ const Settings = () => {
 
           {/*<View className="px-5 py-3">
             <Text className="text-sm font-JakartaSemiBold text-[#000]">Email Address</Text>
-
+            
             <InputField
               label=""
               value={newEmail}
@@ -558,36 +606,124 @@ const Settings = () => {
               value={soundEffectsEnabled}
             />
           </View>
+        </View>
+      </View>
 
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {
-              playSoundEffect(SoundType.Navigation);
-              Haptics.selectionAsync();
-              setSelectedTitle("Customize Emojis");
-              setSelectedModal(
-                <EmojiSettings
-                  onClose={() => {
-                    setSelectedModal(null);
-                    setSelectedTitle("");
+      {/* Colors Section */}
+      <View className="mx-6 mb-6">
+        <View
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4"
+          style={{
+            backgroundColor: "#fdf6e3",
+            borderColor: "#ffffff80",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 5,
+          }}
+        >
+          <View className="px-5 py-3">
+            <Text className="text-lg font-JakartaBold text-gray-800">
+              Colors
+            </Text>
+          </View>
+
+          <View className="px-5 py-4">
+            <TouchableOpacity
+              onPress={() => setLibraryVisible(true)}
+              className="bg-black px-4 py-3 rounded-full items-center"
+              activeOpacity={0.8}
+            >
+              <Text className="text-white text-sm font-JakartaSemiBold">
+                🎨 View Color Library
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View className="px-5 py-2">
+            <TouchableOpacity
+              onPress={handleAttemptColorCreation}
+              className="bg-yellow-500 px-4 py-3 rounded-full items-center"
+              activeOpacity={0.8}
+            >
+              <Text className="text-black text-sm font-JakartaSemiBold">✨ Attempt Create Color</Text>
+            </TouchableOpacity>
+          </View>
+
+
+          {/* Blue Progress */}
+          <View className="px-5 py-2">
+            <Text className="text-sm font-JakartaSemiBold text-gray-800 mb-1">
+              🔵 Blue Level
+            </Text>
+            <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
+              <View
+                style={{
+                  width: `${Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20)}%`,
+                  backgroundColor: "#60a5fa", // Blue
+                }}
+                className="h-full rounded-full"
+              />
+            </View>
+          </View>
+
+          {/* Yellow Progress */}
+          <View className="px-5 py-2">
+            <Text className="text-sm font-JakartaSemiBold text-gray-800 mb-1">
+              🟡 Yellow Level
+            </Text>
+            <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
+              <View
+                style={{
+                  width: `${Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20)}%`,
+                  backgroundColor: "#facc15", // Yellow
+                }}
+                className="h-full rounded-full"
+              />
+            </View>
+          </View>
+
+          {/* Pink Progress */}
+          <View className="px-5 py-2">
+            <Text className="text-sm font-JakartaSemiBold text-gray-800 mb-1">
+              🩷 Pink Level
+            </Text>
+            <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
+              {/* Blue Progress */}
+              <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
+                <View
+                  style={{
+                    width: `${blueProgress}%`,
+                    backgroundColor: "#60a5fa",
                   }}
+                  className="h-full rounded-full"
                 />
-              );
-            }}
-            className="px-5 py-3 flex flex-row items-center justify-between"
-          >
-            <View className="flex-1">
-              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">
-                Quick Reaction Emojis
-              </Text>
-              <Text className="text-sm text-gray-800">
-                Customize your 6 favorite emojis for quick reactions
-              </Text>
+              </View>
+
+              {/* Yellow Progress */}
+              <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
+                <View
+                  style={{
+                    width: `${yellowProgress}%`,
+                    backgroundColor: "#facc15",
+                  }}
+                  className="h-full rounded-full"
+                />
+              </View>
+
+              {/* Pink Progress */}
+              <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
+                <View
+                  style={{
+                    width: `${pinkProgress}%`,
+                    backgroundColor: "#f9a8d4",
+                  }}
+                  className="h-full rounded-full"
+                />
+              </View>
+
             </View>
-            <View className="bg-black p-2 rounded-xl">
-              <Text style={{ fontSize: 16 }}>😊</Text>
-            </View>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -620,6 +756,48 @@ const Settings = () => {
           }}
         />
       )}
+
+  <RNModal visible={libraryVisible} animationType="slide">
+
+        <SafeAreaView
+          style={{ flex: 1, backgroundColor: "white", padding: 24 }}
+        >
+          <Text style={{ fontSize: 24, fontWeight: "700", marginBottom: 16 }}>
+            Your Color Library
+          </Text>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {colorLibrary.length === 0 ? (
+              <Text style={{ fontSize: 16, color: "gray" }}>
+                You haven’t collected any colors yet.
+              </Text>
+            ) : (
+              colorLibrary.map((c, i) => (
+                <View key={i} style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 18, fontWeight: "600" }}>
+                    🎨 {c.name}
+                  </Text>
+                  <Text style={{ fontSize: 14, color: "gray" }}>
+                    {c.meaning}
+                  </Text>
+                  <Text style={{ fontSize: 12 }}>SRB: {c.SRB.join(" - ")}</Text>
+                </View>
+              ))
+            )}
+          </ScrollView>
+          <TouchableOpacity
+            onPress={() => setLibraryVisible(false)}
+            style={{
+              marginTop: 24,
+              backgroundColor: "#000",
+              padding: 12,
+              borderRadius: 999,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: "white", fontWeight: "600" }}>Close</Text>
+          </TouchableOpacity>
+        </SafeAreaView>
+      </RNModal>
     </ScrollView>
   );
 };
