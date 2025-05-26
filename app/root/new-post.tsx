@@ -546,7 +546,7 @@ return (
         setIsSettingVisible(false)
         setSelectedSetting("")}}
     >
-      <View className="flex-1 h-full">
+      <View className="flex-1 h-full px-6">
            
         {!selectedSetting ? (
           <FlatList
@@ -714,7 +714,6 @@ const LinkPlaceholder = () => {
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}
-         className="bg-red-500"
         >
 
           <View className="flex-1" >
@@ -841,7 +840,7 @@ const LinkPlaceholder = () => {
              staticEmoji={selectedStaticEmoji} />
             </View>}
               
-      {isSettingVisible && <PostSettings />}
+      {isSettingVisible && PostSettings()}
 
         {isEmojiSelectorVisible && (
           <EmojiSelector

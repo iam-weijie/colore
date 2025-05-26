@@ -47,6 +47,7 @@ import TabsContainer from "./TabsContainer";
 import { fetchCountryEmoji } from "@/lib/post";
 import Header from "./Header";
 import { set } from "date-fns";
+import { Ionicons } from "@expo/vector-icons";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View 
@@ -397,6 +398,9 @@ const handleTabChange = (tabKey: string) => {
   setSelectedTab(tabKey);
 };
 
+const handleClearSearch = () => {
+  setQuery("");
+};
   return (
     <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
 
@@ -475,14 +479,30 @@ const handleTabChange = (tabKey: string) => {
             </View>}
 
             {selectedTab === "Posts" && <View className="flex-1 w-full bg-[#FAFAFA] pb-24">
-              <View className=" mx-6">
-              <TextInput
-                className=" w-full h-12 px-5 rounded-[16px] bg-[#F1F1F1] mt-6"
-                placeholder="Search"
-                onChangeText={setQuery}
-                value={query}
-              />
-              </View>
+                   
+            <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 mx-6 mt-4 "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 pl-2 text-md "
+            placeholder="Search emojis..."
+             placeholderTextColor="#9CA3AF"
+            value={query}
+            onChangeText={setQuery}
+            returnKeyType="search"
+          />
+          {query.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
               {loading ? (
                   <PostGallerySkeleton />
                 ) : (
