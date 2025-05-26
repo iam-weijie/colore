@@ -45,10 +45,10 @@ import { useHaptics } from "@/hooks/useHaptics";
 import InteractionButton from "@/components/InteractionButton";
 import EmojiShorthand from "@/components/EmojiShorthand";
 import PostGallery from "@/components/PostGallery";
-import { FindUser } from "@/components/FindUsers";
 import CalendarView from "@/components/CalendarView";
 import { format, isAfter } from "date-fns";
 import { stripMarkdown } from "@/components/RichTextInput";
+import { FindUser } from "@/components/FindUsers";
 
 
 
@@ -387,9 +387,14 @@ const resetDraftPost = () => {
             icon: icons.back,
             label: "Back",
             onPress: () => {
-        playSoundEffect(SoundType.Navigation)
+               playSoundEffect(SoundType.Navigation)
         Haptics.selectionAsync();
+              if (selectedTab == "customize") {
+                setSelectedTab("create");
+                } else {
+       
         router.back();
+                }
       },
           },
           {
@@ -427,13 +432,13 @@ const resetDraftPost = () => {
           },
           {
             icon: selectedTab == "customize" ? icons.settings : icons.pencil,
-            label: selectedTab == "customize" ? "More" : "Customize",
+            label: selectedTab == "customize" ? "More" : "Finalize",
             onPress:() => {
                playSoundEffect(SoundType.Navigation)
         Haptics.selectionAsync();
               if (selectedTab == "customize") {
                 
-                setIsSettingVisible(prev => !prev);
+                setIsSettingVisible(true);
               } else {
                 setSelectedTab("customize");
                 setRefreshingKey(prev => prev + 1);
@@ -466,7 +471,6 @@ const fetchUserPosts = async (userId: string) => {
     return [];
   }
 };
-
 
 const PostSettings = () => {
 
@@ -544,10 +548,11 @@ return (
     >
       <View className="flex-1 h-full">
            
-        {!selectedSetting ? (<FlatList
+        {!selectedSetting ? (
+          <FlatList
           data={menuOptions}
-          keyExtractor={(item) => item.label}
-          renderItem={({ item }) => item.component}
+          keyExtractor={(item, index) => item.label ?? `option-${index}`}
+          renderItem={({ item }) => item.component ?? null}
           contentContainerStyle={{ padding: 16 }}
           showsVerticalScrollIndicator={false}
         />) : selectedSetting == "Reply" ? (
@@ -804,7 +809,7 @@ const LinkPlaceholder = () => {
               handleCloseModal={() => {}}
               isPreview={true}
               header={
-                <View className="absolute z-[10] top-[19%] right-5 flex flex-row items-center justify-end gap-2">
+                <View className="absolute z-[10] top-[15%] right-5 flex flex-row items-center justify-end gap-2">
                      {/* <TouchableOpacity
                     onPress={() => {setIsLinkHolderVisible(true)}}
                     className="w-8 h-8 rounded-full flex items-center justify-center"
@@ -836,10 +841,7 @@ const LinkPlaceholder = () => {
              staticEmoji={selectedStaticEmoji} />
             </View>}
               
-
-
-
-              
+      {isSettingVisible && <PostSettings />}
 
         {isEmojiSelectorVisible && (
           <EmojiSelector
@@ -851,6 +853,11 @@ const LinkPlaceholder = () => {
             mode="both"
           />
         )}
+        
+      <CustomButtonBar buttons={navigationControls} />
+
+              
+
 
         {/* Recent Emoji Popup */}
         <RecentEmojiPopup
@@ -870,103 +877,5 @@ const LinkPlaceholder = () => {
   );
 };
 
-const FindUser = ({ selectedUserInfo }: { selectedUserInfo: (info: UserNicknamePair) => void }) => {
-  const { user } = useUser();
-
-  const [users, setUsers] = useState<UserNicknamePair[]>([]);
-  const [friendList, setFriendList] = useState<UserNicknamePair[]>([]);
-  const [searchText, setSearchText] = useState<string>("");
-
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  console.log("Modal Showed")
-  useEffect(() => {
-    fetchUsers();
-    fetchFriendList();
-  }, [])
-
-  const fetchFriendList = async () => {
-    const data = await fetchFriends(user!.id);
-    console.log("friend", data)
-    const friend = data.map((f: any) => [f.friend_id, f.friend_username])
-    setFriendList(friend);
-  };
-
-  const fetchUsers = async () => {
-          setLoading(true);
-          try {
-            const response = await fetchAPI(`/api/chat/searchUsers?id=${user!.id}`, {
-              method: "GET",
-            });
-            if (response.error) {
-              throw new Error(response.error);
-            }
-            const nicknames = response.data;
-            setUsers(nicknames);
-            return;
-          } catch (err) {
-            console.error("Failed to fetch user data:", err);
-            setError("Failed to fetch nicknames.");
-          } finally {
-            setLoading(false);
-          }
-        };
-
-     const renderUser = ({
-        item,
-      }: {
-        item: UserNicknamePair;
-      }): React.ReactElement => (
-              <ItemContainer
-              label={item[1]}
-              colors={["#FBB1F5", "#CFB1FB"]}
-              icon={icons.addUser}
-              actionIcon={icons.chevron}
-              iconColor="#000"
-              onPress={() => {
-                selectedUserInfo(item)
-              }}
-              />
-      );
-
-      const filteredUsers =
-      searchText.length > 0
-        ? users.filter(
-            (user) =>
-              user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
-          )
-        : [];
-
-      return (
-         <View>
-                    <View className="flex-grow mt-4 mx-4">
-                                    <TextInput
-                                      className="w-full h-12 px-3 -pt-1 bg-[#F1F1F1] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-                                      placeholder="Search users..."
-                                      placeholderTextColor="#888"
-                                      value={searchText}
-                                      onChangeText={(text): void => setSearchText(text)}
-                                    />
-                                  </View>
-                                  {loading ? (
-                                                 <View className="flex-1 items-center justify-center">
-                                                 <ColoreActivityIndicator text="Summoning Bob..." />
-                                                 </View>
-                                              ) : error ? (
-                                                <Text>{error}</Text>
-                                              ) : (
-                                                <FlatList
-                                                className={`mt-4 pb-4`}
-                                                contentContainerStyle={{ paddingBottom: 80 }}
-                                                  data={filteredUsers.length > 0 ? filteredUsers : friendList}
-                                                  renderItem={renderUser}
-                                                  keyExtractor={(item): string => String(item[0])}
-                                                  showsVerticalScrollIndicator={false}
-                                                />
-                                              )}
-                    </View>
-      )
-  }
 
 export default NewPost;
