@@ -14,7 +14,7 @@ import { BackgroundFetchResult } from "expo-background-fetch"; // Import the Res
 import * as TaskManager from "expo-task-manager";
 import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
-import { Stacks, Post } from "@/types/type";
+import { Stacks, Post, UserProfileType } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from "@/notifications/NotificationContext";
 
@@ -22,6 +22,8 @@ import { useNotification } from "@/notifications/NotificationContext";
 type GlobalContextType = {
   stacks: Stacks[];
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
+  profile: UserProfileType;
+  setProfile: React.Dispatch<React.SetStateAction<UserProfileType>>;
   draftPost: Post;
   setDraftPost:  React.Dispatch<React.SetStateAction<Post | null>>; 
   notifications: any[];
@@ -277,6 +279,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     content: "",
     created_at: "",
     expires_at: "",
+    available_at: "",
+    static_emoji: false,
     city: "",
     state: "",
     country: "",
@@ -292,8 +296,10 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     prompt: "",
     board_id: 0,
     reply_to: 0,
-    unread: false
+    unread: false,
+    formatting: [], // Add a default value for formatting
   });
+  const [profile, setProfile] = useState<UserProfileType>();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [storedNotifications, setStoredNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
@@ -330,6 +336,26 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     } 
   }, [user, pushToken]);
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        try {
+          const response = await fetchAPI(`/api/users/getUserInfo?id=${user.id}`, {
+            method: "GET",
+          });
+          if (response.error) {
+            throw new Error(response.error);
+          }
+          const userData = response.data[0];
+          setProfile(userData);
+          setLastConnection(new Date(userData.last_connection));
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error);
+        }
+      }
+    }
+    fetchUserProfile();
+  }, [user]);
 
 
   // In-app fetchNotifications function that uses the external function
@@ -463,6 +489,8 @@ const sendTokenDB = async (token) => {
         stacks,
         setStacks,
         draftPost,
+        profile,
+        setProfile,
         setDraftPost,
         notifications,
         storedNotifications,

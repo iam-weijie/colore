@@ -1,6 +1,6 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   Image,
@@ -21,8 +21,8 @@ import { useRecentEmojis } from "@/hooks/useRecentEmojis";
 import ColorSelector from "@/components/ColorSelector";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor, UserNicknamePair, TextStyle, Format } from "@/types/type";
-import { useAlert } from "@/notifications/AlertContext";
+import { PostItColor, UserNicknamePair, TextStyle, Format, Post, Board } from "@/types/type";
+import { useAlert } from '@/notifications/AlertContext';
 import ModalSheet from "@/components/Modal";
 import { fetchFriends } from "@/lib/friend";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
@@ -44,50 +44,74 @@ import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useHaptics } from "@/hooks/useHaptics";
 import InteractionButton from "@/components/InteractionButton";
 import EmojiShorthand from "@/components/EmojiShorthand";
+import PostGallery from "@/components/PostGallery";
+import { FindUser } from "@/components/FindUsers";
+import CalendarView from "@/components/CalendarView";
+import { format, isAfter } from "date-fns";
+import { stripMarkdown } from "@/components/RichTextInput";
+
+
+
+
+
 
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
 
-  const { user } = useUser();
-  const {
-    postId,
-    content,
-    color,
-    emoji,
-    recipientId,
-    username,
-    expiration,
-    prompt,
-    promptId,
-    boardId,
-  } = useLocalSearchParams();
 
-  const { setDraftPost, draftPost } = useGlobalContext();
+  // ✅ Imports & Hooks
+  const { user } = useUser();
+  const { postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
+  const { profile, setDraftPost, draftPost } = useGlobalContext();
   const { showAlert } = useAlert();
 
-  const [selectedTab, setSelectedTab] = useState<string>("create");
 
+  // 🔒 USER & GLOBAL STATE
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
-  const [selectedRecipientId, setSelectedRecipientId] =
-    useState<string>(recipientId as string);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [userUsername, setUserUsername] = useState<string>(username as string);
-  const [postContent, setPostContent] = useState<string>(content as string);
-  const [inputHeight, setInputHeight] = useState(40);
+  const [userUsername, setUserUsername] = useState<string>(username);
+
+
+  // 📥 POST CONTENT & METADATA
+  const [postContent, setPostContent] = useState<string>(content);
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string>(recipientId);
+  const [replyToPostId, setReplyToPostId] = useState<number | null>(null);
   const maxCharacters = 3000;
+
+
+  // 🎨 STYLING & FORMATTING
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors.find((c) => c.name === color) ??
-      temporaryColors[Math.floor(Math.random() * 4)]
+    temporaryColors.find((c) => c.name === color) ?? temporaryColors[Math.floor(Math.random() * 4)]
   );
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji as string);
+  const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
+  const [formats, setFormats] = useState<Format[]>([]);
+  const [inputHeight, setInputHeight] = useState(40);
+
+
+  // 😊 EMOJI HANDLING
+  const [selectedStaticEmoji, setSelectedStaticEmoji] = useState<boolean>(false);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isQuickEmojiSelectorVisible, setQuickEmojiSelectorVisible] = useState(false)
   const [showRecentPopup, setShowRecentPopup] = useState(false);
   const [triggerPosition, setTriggerPosition] = useState({ x: 200, y: 400 }); // Default position
   const [activeEmojiIndex, setActiveEmojiIndex] = useState(-1);
-  const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
+
+
+  // ⚙️ UI STATE & INTERACTIONS
+  const [selectedTab, setSelectedTab] = useState<string>("create");
+  const [isLinkHolderVisible, setIsLinkHolderVisible] = useState(false);
+  const [link, setLink] = useState<string>("");
+  const [isSettingVisible, setIsSettingVisible] = useState(false);
+
+
+  // 📆 SCHEDULING & EXPIRATION
+  const [selectedExpirationDate, setSelectedExpirationDate] = useState<string>(expiration);
+  const [selectedScheduleDate, setSelectedScheduleDate] = useState<string>("");
+
+
+  // 🔁 REFRESH & DATA FETCHING
   const [refreshingKey, setRefreshingKey] = useState<number>(0);
-  const [formats, setFormats] = useState<Format[]>([]);
+
 
   const emojiButtonRef = useRef<any>(null);
   const { recentEmojis, addRecentEmoji } = useRecentEmojis();
@@ -143,10 +167,9 @@ const NewPost = () => {
   //console.log("arguments passed: ", postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId  )
 
   const tabs = [
-    { name: "Create", key: "create", color: "#000" },
-    { name: "Customize", key: "customize", color: "#000" },
-    { name: "Information", key: "information", color: "#000" },
-  ];
+    {name: "Create", key: "create", color: "#000"},
+    {name: "Customize", key: "customize", color: "#000"}
+]
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -174,8 +197,18 @@ const NewPost = () => {
   };
 
   const handleChangeFormat = (formats: Format[]) => {
-    setFormats(formats);
-  };
+    setFormats(formats)
+  }
+
+const isLink = (text: string) => {
+  try {
+    // Attempt to create a URL object (browser & Node.js compatible)
+    new URL(text.trim());
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
   const handleEmojiSelect = async (emoji: string) => {
     // Add to recent emojis
@@ -189,11 +222,53 @@ const NewPost = () => {
     }
   };
 
+const resetDraftPost = () => {
+    setPostContent("");
+                setFormats([]);
+                setTextStyling(null)
+                setSelectedRecipientId("");
+                setSelectedUser(undefined);
+                setSelectedEmoji("");
+                setSelectedScheduleDate("");
+                setSelectedExpirationDate("");
+                setReplyToPostId(null);
+                setSelectedStaticEmoji(false);
+
+                 setDraftPost({
+                    id: 0,
+                    clerk_id: user?.id,
+                    firstname: "",
+                    username: userUsername ?? "",
+                    content: "",
+                    created_at: new Date().toISOString(),
+                    expires_at:  "",
+                    available_at: "",
+                    static_emoji: false,
+                    city: "",
+                    state: "",
+                    country: "",
+                    like_count: 0,
+                    report_count: 0,
+                    unread_comments: 0,
+                    recipient_user_id:  "",
+                    pinned: false,
+                    color: "",
+                    emoji:  "",
+                    notified: false,
+                    prompt_id:  0,
+                    prompt:  "",
+                    board_id: -1,
+                    reply_to: replyToPostId ?? 0,
+                    unread: false,
+                    formatting: []
+          });
+}
+
   const selectedUserInfo = (info: UserNicknamePair) => {
     setSelectedUser(info);
     setSelectedRecipientId(info[0]);
+    setSelectedRecipientId(info[0]);
     setUserUsername(info[1]);
-    setIsModalVisible(false);
   };
 
   useEffect(() => {
@@ -202,7 +277,8 @@ const NewPost = () => {
     }
   }, [selectedEmoji]);
 
-  useEffect(() => {
+   useEffect(() => {
+   //console.log("Post content updated:", postContent);
     if (postId) {
       setPostContent(content as string);
     }
@@ -211,9 +287,11 @@ const NewPost = () => {
       clerk_id: user?.id ?? "",
       firstname: "",
       username: userUsername ?? "",
-      content: postContent,
+      content: postContent ? stripMarkdown(postContent) : "",
       created_at: new Date().toISOString(),
-      expires_at: "", // Let the backend calculate it or parse from selectExpirationDate if needed
+      expires_at: selectedExpirationDate || "",
+      available_at: selectedScheduleDate || "",
+      static_emoji: selectedStaticEmoji,
       city: "",
       state: "",
       country: "",
@@ -228,13 +306,17 @@ const NewPost = () => {
       prompt_id: promptId ? Number(promptId) : 0,
       prompt: typeof prompt === 'string' ? prompt : "",
       board_id: boardId ? Number(boardId) : -1,
-      reply_to: 0,
+      reply_to: replyToPostId ?? 0,
       unread: false,
       formatting: formats,
     });
   }, [
     postId,
     user,
+    selectedExpirationDate,
+    selectedScheduleDate,
+    selectedRecipientId,
+    selectedStaticEmoji,
     postContent,
     selectedColor,
     selectedEmoji,
@@ -243,6 +325,7 @@ const NewPost = () => {
     prompt,
     boardId,
     formats,
+    replyToPostId,
   ]);
 
   useEffect(() => {
@@ -258,84 +341,338 @@ const NewPost = () => {
       if (draftPost.username && typeof draftPost.username === 'string') 
         setUserUsername(draftPost.username);
       if (draftPost.formatting) setFormats(formats);
+      if (draftPost.available_at) setSelectedScheduleDate(draftPost.available_at);
+      if (draftPost.expires_at) setSelectedExpirationDate(draftPost.expires_at);
+      if (draftPost.reply_to) setReplyToPostId(draftPost.reply_to);
+      if (draftPost.static_emoji) setSelectedStaticEmoji(draftPost.static_emoji);
+      if (draftPost.reply_to > 0) setReplyToPostId(draftPost.reply_to);
     }
   }, []);
 
-  /*useFocusEffect(
-     useCallback(() => {
+  
+  useEffect(() => {
+    if (recipientId && username) {
+      const id = Array.isArray(recipientId) ? recipientId[0] : recipientId;
+      const uname = Array.isArray(username) ? username[0] : username;
+      setSelectedUser([id, uname]);
+    }
+  }, [recipientId, username]);
+      
 
-        return () => {
-          if (postId) {
-            setDraftPost({
-              id: -1,
-              clerk_id:  "",
-              firstname: "",
-              username: "",
-              content: "",
-              created_at: new Date().toISOString(),
-              expires_at: "", // Let the backend calculate it or parse from selectExpirationDate if needed
-              city: "",
-              state: "",
-              country: "",
-              like_count: 0,
-              report_count: 0,
-              unread_comments: 0,
-              recipient_user_id: "",
-              pinned: false,
-              color: "",
-              emoji: "",
-              notified: false,
-              prompt_id: -1,
-              prompt: "",
-              board_id: -1,
-              reply_to: 0,
-              unread: false,
-            });
-          }
-    }}, [postId])
-    );*/
+  useEffect(() => {
+  if (!selectedScheduleDate || !selectedExpirationDate) {
+    return;
+  }
 
-  const navigationControls = [
-    {
-      icon: icons.back,
-      label: "Back",
-      onPress: () => {
+  if (isAfter(new Date(selectedScheduleDate), new Date(selectedExpirationDate))) {
+      showAlert({
+      title: 'Error',
+      message: `Schedule date must be before expiration date`,
+      type: 'ERROR',
+      status: 'error'
+    });
+    setSelectedExpirationDate("")
+  }  else {
+    showAlert({
+      title: 'Success',
+      message: `Scheduled for ${format(new Date(selectedScheduleDate), 'MMMM do')} and expires on ${format(new Date(selectedExpirationDate), 'MMMM do')}`,
+      type: 'SUCCESS',
+      status: 'success',
+    });
+  }
+}, [selectedScheduleDate, selectedExpirationDate]);
+
+  const navigationControls =  [
+          {
+            icon: icons.back,
+            label: "Back",
+            onPress: () => {
         playSoundEffect(SoundType.Navigation)
         Haptics.selectionAsync();
         router.back();
       },
-    },
-    {
-      icon: icons.send,
-      label: "New Post",
-      onPress: async () => {
-        playSoundEffect(SoundType.Navigation)
+          },
+          {
+            icon: selectedTab == "customize" ? icons.send : icons.close,
+            label: "New Post",
+            onPress: async () => {
+              playSoundEffect(SoundType.Navigation)
         Haptics.selectionAsync();
-        if (selectedTab == "customize") {
-          handleSubmitPost(user!.id, draftPost);
-        } else {
-          setSelectedTab("customize");
-        }
-      },
+              if (selectedTab == "customize") {
+              const status = await handleSubmitPost(user!.id, draftPost)
+              console.log("status: ", status)
+              if (status == 'success') {
+                showAlert({
+                  title: "Success",
+                  message: "Post created successfully.",
+                  type: "SUCCESS",
+                  status: "success",
+                });
+                resetDraftPost()
+                router.back();
+              } else {
+                showAlert({
+                  title: "Error",
+                  message: "Failed to create post.",
+                  type: "ERROR",
+                  status: "error",
+                });
+              }} else {
+                
+               resetDraftPost()
+                setRefreshingKey(prev => prev + 1);
 
-      isCenter: true,
-    },
-    {
-      icon: icons.settings,
-      label: "More",
-      onPress: () => {
-        playSoundEffect(SoundType.Navigation)
+            }},
+            isCenter: true,
+          },
+          {
+            icon: selectedTab == "customize" ? icons.settings : icons.pencil,
+            label: selectedTab == "customize" ? "More" : "Customize",
+            onPress:() => {
+               playSoundEffect(SoundType.Navigation)
         Haptics.selectionAsync();
-        // Add additional logic if needed
-      },
+              if (selectedTab == "customize") {
+                
+                setIsSettingVisible(prev => !prev);
+              } else {
+                setSelectedTab("customize");
+                setRefreshingKey(prev => prev + 1);
+              }},
+            isCenter: true,
+          },
+        ]
 
-      isCenter: true,
-    },
-  ];
 
-  const handleTabChange = (tabKey: string) => {
-    setSelectedTab(tabKey);
-  };
+const handleTabChange = (tabKey: string) => {
+          console.log("Tab changed to:", tabKey);
+          setSelectedTab(tabKey);
+        };
+
+const [selectedSetting, setSelectedSetting] = useState<string>("");
+const [userPosts, setUserPosts] = useState<Post[]>([]);
+
+const fetchUserPosts = async (userId: string) => {
+  
+  try {
+    const response = await fetchAPI(`/api/posts/getUserPosts?id=${userId}`);
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    const { userInfo, posts } = response
+    console.log("response: ", response);
+    return posts;
+  } catch (err) {
+    console.error("Failed to fetch user posts:", err);
+    return [];
+  }
+};
+
+
+const PostSettings = () => {
+
+const allOptions = [
+      {
+        label: "Recipient",
+        component: <ItemContainer
+        label={selectedUser ? (selectedUser[1] === profile.username ? "Youself" : selectedUser[1] ) : "Select recipient"}
+        caption={selectedUser ? `Sending this to ${selectedUser[1]}` : "Add recipient to this post"}
+        icon={icons.addUser}
+        colors={[selectedColor.foldcolorhex, selectedColor.hex]}
+        iconColor="#000"
+        onPress={() => setSelectedSetting("Recipient")}
+        actionIcon={selectedRecipientId && icons.check}
+      />},
+      {/*
+        label: "Board",
+        component: <ItemContainer
+        label="Select a board"
+        caption="Add this post to a board"
+        icon={icons.addUser}
+        colors={[selectedColor.foldcolorhex, selectedColor.hex]}
+        iconColor="#000"
+        onPress={() => setSelectedSetting}
+      />*/},
+      { label: "Schedule",
+        component: <ItemContainer
+        label={selectedScheduleDate ? `Set for ${format(new Date(selectedScheduleDate), 'MMMM do')}` : "Schedule"}
+        caption={selectedScheduleDate ? "Modify scheduled date" : "Schedule this post for later."}
+        icon={icons.chevron}
+        colors={[selectedColor.foldcolorhex, selectedColor.hex]}
+        iconColor="#000"
+        actionIcon={selectedScheduleDate && icons.check}
+        onPress={() => setSelectedSetting("Schedule")}
+      />},
+      {label: "Expiration",
+        component: <ItemContainer
+        label={selectedExpirationDate ? `Expires on ${format(new Date(selectedExpirationDate), 'MMMM do')}` : "Expiration"}
+        caption={selectedExpirationDate ? "Modify the expiration date" : "Set an expiration date for this post"}
+        icon={icons.timer}
+        colors={[selectedColor.foldcolorhex, selectedColor.hex]}
+        iconColor="#000"
+        actionIcon={selectedExpirationDate && icons.check}
+        onPress={() => setSelectedSetting("Expiration")}
+      />},
+      {label: "Reply",
+        component: <ItemContainer
+        label={replyToPostId ? "Reply selected!" : "Reply to another post"}
+        caption="Send this as a reply to another post"
+        icon={icons.link}
+        colors={[selectedColor.foldcolorhex, selectedColor.hex]}
+        iconColor="#000"
+        onPress={() => {
+          fetchUserPosts(user!.id).then((posts) => {
+            setUserPosts(posts);
+            setSelectedSetting("Reply");
+          });
+        }}
+        actionIcon={replyToPostId && icons.check}
+        />}
+
+]
+
+const menuOptions = promptId ? allOptions.filter(option => option.label !== "Recipient") : ((!recipientId && !boardId && !expiration) ? allOptions.filter(option => option.label !== "Recipient" && option.label !== "Mentions" && option.label !== "Board") : (recipientId ? allOptions.filter(option => option.label !== "Board") : allOptions.filter(option => option.label !== "Recipient")));
+  
+
+
+return (
+    <ModalSheet
+      title="Settings"
+      isVisible={true}
+      onClose={() => {
+        setIsSettingVisible(false)
+        setSelectedSetting("")}}
+    >
+      <View className="flex-1 h-full">
+           
+        {!selectedSetting ? (<FlatList
+          data={menuOptions}
+          keyExtractor={(item) => item.label}
+          renderItem={({ item }) => item.component}
+          contentContainerStyle={{ padding: 16 }}
+          showsVerticalScrollIndicator={false}
+        />) : selectedSetting == "Reply" ? (
+          <View className="flex-1">
+            <View className="flex-1">
+            <PostGallery 
+            posts={userPosts} 
+            profileUserId={""}
+            disableModal
+            handleUpdate={(id: number) => {
+              setReplyToPostId(id)
+              setSelectedSetting("")
+              }} />
+              </View>
+                {replyToPostId && <TouchableOpacity
+                      onPress={() => {
+                        setReplyToPostId(null)
+                        setSelectedSetting("");
+                      }}
+                      className="w-full mt-4 flex-row items-center justify-center"  
+                    > 
+                      <Text className="text-[14px] font-Jakarta font-regular text-gray-400">
+                        Remove reply
+                      </Text>
+                    </TouchableOpacity>}
+          </View>
+        ) : selectedSetting == "Recipient" ? (
+          <View className="flex-1">
+            <FindUser selectedUserInfo={(item: UserNicknamePair) => {
+              selectedUserInfo(item)
+              setSelectedRecipientId(item[0])
+              setSelectedSetting("")}} />
+              <TouchableOpacity
+                      onPress={() => {
+                        setSelectedRecipientId(user!.id)
+
+                    
+                        setUserUsername("Yourself");
+                        setSelectedUser([user!.id, profile.username]);
+                        setSelectedSetting("");
+                      }}
+                      className="w-full h-6 flex-row items-center justify-center"  
+                    > 
+                      <Text className="text-[14px] font-Jakarta font-regular text-gray-400">
+                        Keep it private
+                      </Text>
+                    </TouchableOpacity>
+          </View>
+        ) : ["Schedule", "Expiration"].includes(selectedSetting) ? (
+          <View className="flex-1">
+            <CalendarView onDateSelect={selectedSetting === "Schedule" ? (selected: Date) => {
+              setSelectedScheduleDate(selected.toISOString())
+              setSelectedSetting("")
+            } : (selected: Date) => {
+              setSelectedExpirationDate(selected.toISOString())
+              setSelectedSetting("")
+            }}
+            selectedDate={
+              selectedSetting === "Schedule"
+                ? (selectedScheduleDate ? new Date(selectedScheduleDate) : null)
+                : (selectedExpirationDate ? new Date(selectedExpirationDate) : null)
+            } 
+            startDate={selectedSetting === "Expiration" && selectedScheduleDate ? new Date(selectedScheduleDate) : new Date()}/>
+            </View>
+        ) : (
+          <View>
+            </View>
+        )}
+        </View>
+      {selectedSetting && <View className="flex items-center w-full">
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedSetting("");
+                      }}
+                      className="w-full h-12  rounded-[16px] flex-row items-center justify-center"  
+                    > 
+                      <Text className="text-[16px] font-JakartaSemiBold font-medium text-black">
+                        Back
+                      </Text>
+                    </TouchableOpacity>
+                    </View>}
+      </ModalSheet>
+  )
+}
+
+const LinkPlaceholder = () => {
+  const inputRef = useRef<TextInput>(null);
+
+  // Trigger keyboard immediately when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 150); // Small delay ensures proper mounting
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+
+      <TextInput 
+        ref={inputRef}
+        className="w-[90%] h-12 rounded-[16px] bg-gray-100 p-4 text-[16px] font-Jakarta"
+        placeholder="Paste your link here"
+        value={link}
+        onChangeText={setLink}
+        onSubmitEditing={() => {
+          if (isLink(link)) {
+            setIsLinkHolderVisible(false);
+            //(prev => `${prev}\n${link}`);
+            setLink("");
+          } else {
+            showAlert({
+              title: 'Invalid Link',
+              message: 'Please enter a valid URL.',
+              type: 'ERROR',
+              status: 'error',
+            });
+          }
+        }}
+        autoFocus={false}
+        keyboardType="url"
+        returnKeyType="done"
+      />
+  );
+};
 
   const backgroundColor = useSharedValue(selectedColor?.hex || "rgba(0, 0, 0, 0.5)");
   const prevColor = React.useRef(backgroundColor.value);
@@ -379,8 +716,8 @@ const NewPost = () => {
 
           <Header
           title={
-            postId ? 'Edit Post' :
-            (prompt ? `${prompt}`:
+            postId ? 'Edit Post' : 
+            (prompt ? `${Array.isArray(prompt) ? prompt[0] : prompt}`.trim() : 
               (recipientId ? `@${userUsername}` : 'New Post')
             )}
            />
@@ -395,15 +732,19 @@ const NewPost = () => {
             ]}>
               <View className="flex-1 ">
                 <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
-
-
+                        <View className="flex-1 flex-column justify-start items-center  ">
+              
+                            
+              <View 
+              className="w-full">
                 <RichTextInput
                 style={textStyling}
                 refresh={refreshingKey}
                 exportStyling={handleChangeFormat}
                 exportText={handleChangeText} />
 
-
+            </View>
+            </View>
 
 
 
@@ -453,20 +794,52 @@ const NewPost = () => {
                     </View>
               </View>
               </View>
-            </View>
-          </TouchableWithoutFeedback>
-
-        {selectedTab == "customize" && (
-          <View className="absolute top-8">
-            <PostContainer
+              </View></TouchableWithoutFeedback>
+            {selectedTab == "customize" && 
+            <View 
+            key={refreshingKey}
+            className="absolute top-8">
+              <PostContainer
               selectedPosts={[draftPost]}
               handleCloseModal={() => {}}
               isPreview={true}
-            />
-          </View>
-        )}
+              header={
+                <View className="absolute z-[10] top-[19%] right-5 flex flex-row items-center justify-end gap-2">
+                     {/* <TouchableOpacity
+                    onPress={() => {setIsLinkHolderVisible(true)}}
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                  >
+                    <Image
+                      source={icons.link}
+                      className="w-6 h-6"
+                      tintColor={'#fff'}
+                    />
+                  </TouchableOpacity>*/}
+                  <TouchableOpacity
+                  activeOpacity={0.8}
+                    onPress={() => {
+                      if (selectedEmoji) {
+                      setSelectedStaticEmoji((prev) => !prev);
+                      setRefreshingKey((prev) => prev + 1);
+                      }
+                    }}
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                  >
+                    <Image
+                      source={!selectedStaticEmoji ? icons.sparklesFill : icons.sparkles}
+                      className="w-7 h-7"
+                      tintColor={'#fff'}
+                    />
+                  </TouchableOpacity>
+                </View>
+              }
+             staticEmoji={selectedStaticEmoji} />
+            </View>}
+              
 
-        <CustomButtonBar buttons={navigationControls} />
+
+
+              
 
         {isEmojiSelectorVisible && (
           <EmojiSelector
@@ -490,17 +863,6 @@ const NewPost = () => {
         />
       </View>
       </TouchableWithoutFeedback>
-      {isModalVisible && (
-        <ModalSheet
-          title="Find a user"
-          isVisible={isModalVisible}
-          onClose={() => {
-            setIsModalVisible(false);
-          }}
-        >
-          <FindUser selectedUserInfo={selectedUserInfo} />
-        </ModalSheet>
-      )}
       <KeyboardOverlay>
         <RichTextEditor handleApplyStyle={applyStyle} />
       </KeyboardOverlay>

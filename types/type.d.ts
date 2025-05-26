@@ -10,6 +10,8 @@ declare interface Post {
   content: string;
   created_at: string;
   expires_at: string;
+  available_at: string;
+  static_emoji: boolean;
   city: string;
   state: string;
   country: string;
@@ -185,7 +187,8 @@ declare interface ButtonProps extends TouchableOpacityProps {
 declare interface UserPostsGalleryProps {
   posts: Post[];
   profileUserId: string;
-  handleUpdate?: (id: number, isRemove: boolean) => void;
+  disableModal?: boolean;
+  handleUpdate?: (id: number, isRemove?: boolean) => void;
   query?: string;
   header?: React.ReactElement;
 }
@@ -193,6 +196,7 @@ declare interface UserPostsGalleryProps {
 declare interface UserProfileProps {
   userId: string;
   friendStatus: FriendStatusType;
+  nickname?: string;
   onSignOut?: () => void;
 }
 
@@ -224,6 +228,7 @@ declare interface PostContainerProps {
   isPreview?: boolean;
   infiniteScroll?: boolean;
   scrollToLoad?: () => void;
+  staticEmoji?: boolean;
 }
 
 declare interface UserPostsGalleryProps {

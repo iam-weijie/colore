@@ -1,3 +1,4 @@
+import { Format } from "@/types/type";
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
           p.color,
           p.emoji,
           p.prompt_id,
+          p.formatting,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -57,6 +59,7 @@ export async function GET(request: Request) {
           p.color,
           p.emoji,
           p.prompt_id,
+          p.formatting,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -90,6 +93,7 @@ export async function GET(request: Request) {
           p.color,
           p.emoji,
           p.prompt_id,
+          p.formatting,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -124,6 +128,10 @@ export async function GET(request: Request) {
           p.emoji,
           p.prompt_id,
           p.board_id,
+          p.formatting,
+          p.reply_to,
+          p.expires_at,
+          p.available_at,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -135,12 +143,46 @@ export async function GET(request: Request) {
         FROM posts p
         JOIN users u ON p.user_id = u.clerk_id
         LEFT JOIN prompts pr ON p.prompt_id = pr.id
-        WHERE p.user_id != ${id} AND p.post_type = 'public'
+        WHERE p.user_id != ${id} 
+          AND p.post_type = 'public'
+          AND p.expires_at > NOW() 
+          AND p.available_at <= NOW()
         ORDER BY RANDOM()
         LIMIT ${number};
       `;
 
-      return new Response(JSON.stringify({ data: response }), {
+       const mappedPosts = response.map((post) => ({
+      id: post.id,
+      clerk_id: post.clerk_id,
+      user_id: post.clerk_id, // Using clerk_id as user_id for temporary fix
+      firstname: post.firstname,
+      username: post.username,
+      content: post.content,
+      created_at: post.created_at,
+      expires_at: post.expires_at, // Not available in query - set default
+      city: post.city,
+      state: post.state,
+      country: post.country,
+      like_count: post.like_count,
+      report_count: post.report_count,
+      unread_comments: post.unread_comments,
+      recipient_user_id: post.recipient_user_id,
+      pinned: post.pinned,
+      color: post.color,
+      emoji: post.emoji,
+      notified: post.notified,
+      prompt_id: post.prompt_id,
+      prompt: post.prompt,
+      board_id: post.board_id,
+      reply_to: post.reply_to, 
+      unread: post.unread,
+      position: post.top !== null && post.left !== null 
+        ? { top: Number(post.top), left: Number(post.left) } 
+        : undefined,
+      formatting: post.formatting as Format || [],
+    }));
+
+      return new Response(JSON.stringify({ data: mappedPosts }), {
         status: 200,
       });
     }

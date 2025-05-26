@@ -46,6 +46,10 @@ import placeholder from "@/assets/icons/placeholder.png";
 import back from "@/assets/icons/back.png";
 import bold from "@/assets/icons/bold.png"
 import italics from "@/assets/icons/italics.png"
+import at from "@/assets/icons/at.png"
+import link from "@/assets/icons/link.png"
+import sparkles from "@/assets/icons/sparkles.png"
+import sparklesFill from "@/assets/icons/sparkles-fill.png"
 import underline from "@/assets/icons/underline.png"
 import H from "@/assets/icons/h.png"
 import oList from "@/assets/icons/ordered-list.png"
@@ -126,6 +130,10 @@ export const icons = {
   notification,
   hamburgerMenu,
   addUser,
+  at,
+  link,
+  sparklesFill,
+  sparkles,
   add
 };
 

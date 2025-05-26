@@ -19,7 +19,7 @@ import {
   } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
 import * as Haptics from 'expo-haptics';
-import { useAlert } from "@/notifications/AlertContext";
+import { addDays } from "date-fns";
 
 
 
@@ -173,16 +173,33 @@ export const isOnlyEmoji = (message: string) => {
 
 export const handleSubmitPost = async (userId: string, draftPost: Post) => {
 
-   console.log("came here.", draftPost)
-  if (!draftPost || draftPost.content.trim() === "") {
+    if (!draftPost || draftPost.content.trim() === "") {
     console.log("ended up in an error")
-    return;
+    const status = "error";
+    return status;
   }
+
+  const stripMarkdown = (text: string) => {
+  return text
+    .replace(/^###\s/gm, '')
+    .replace(/^##\s/gm, '')
+    .replace(/^#\s/gm, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/<u>(.*?)<\/u>/g, '$1')
+    .replace(/^1\.\s/gm, '')
+    .replace(/^-\s?/gm, '');
+};
+
+const cleanContent = stripMarkdown(draftPost.content);
+
+
 
 
   const isUpdate = Boolean(draftPost.id);
   const isPersonal = Boolean(draftPost.recipient_user_id);
   const isPrompt = Boolean(draftPost.prompt_id);
+
 
   try {
     if (isUpdate) {
@@ -198,7 +215,7 @@ export const handleSubmitPost = async (userId: string, draftPost: Post) => {
       router.back();
     } else {
       const body = {
-        content: draftPost.content,
+        content:cleanContent,
         clerkId: userId,
         color: draftPost.color,
         emoji: draftPost.emoji,
@@ -208,17 +225,22 @@ export const handleSubmitPost = async (userId: string, draftPost: Post) => {
           postType: "personal",
         }),
         ...(isPrompt && {
-          expiration: draftPost.expires_at,
           promptId: draftPost.prompt_id,
         }),
+        expires_at: draftPost.expires_at ? draftPost.expires_at  : (addDays(new Date(), 365)).toISOString(),
+        available_at: draftPost.available_at ? draftPost.available_at  : (new Date()).toISOString(),
+        static_emoji: draftPost.static_emoji,
+        reply_to: draftPost.reply_to,
+        formatting: draftPost.formatting,
       };
 
-      await fetchAPI("/api/posts/newPost", {
+      const response = await fetchAPI("/api/posts/newPost", {
         method: "POST",
         body: JSON.stringify(body),
       });
-      // Go back twice: out of preview and then out of new-post
+      
       router.back(); // slight delay for safe stack unwinding
+      return response.status === 201 ? "success" : "error";
     }
   } catch (error) {
     console.error("Error submitting post:", error);
@@ -226,91 +248,3 @@ export const handleSubmitPost = async (userId: string, draftPost: Post) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
   }
 };
-
-/*
-export const handleSubmitPost = async (userId: string, draftPost: Post) => {
-  const { showAlert } = useAlert();
-
-  console.log("came here.", draftPost)
- if (!draftPost || draftPost.content.trim() === "") {
-   console.log("ended up in an error")
-   showAlert({
-     title: "Error",
-     message: "Post cannot be empty.",
-     type: "ERROR",
-     status: "error",
-   });
-   return;
- }
-
-
- const isUpdate = Boolean(draftPost.id);
- const isPersonal = Boolean(draftPost.recipient_user_id);
- const isPrompt = Boolean(draftPost.prompt_id);
-
- try {
-   if (isUpdate) {
-     await fetchAPI("/api/posts/updatePost", {
-       method: "PATCH",
-       body: JSON.stringify({
-         postId: draftPost.id,
-         content: draftPost.content,
-         color: draftPost.color,
-         emoji: draftPost.emoji,
-       }),
-     });
-
-
-     showAlert({
-       title: "Success",
-       message: "Post updated successfully.",
-       type: "UPDATE",
-       status: "success",
-     });
-     router.back();
-   } else {
-     const body = {
-       content: draftPost.content,
-       clerkId: userId,
-       color: draftPost.color,
-       emoji: draftPost.emoji,
-       ...(isPersonal && {
-         recipientId: draftPost.recipient_user_id,
-         boardId: draftPost.board_id,
-         postType: "personal",
-       }),
-       ...(isPrompt && {
-         expiration: draftPost.expires_at,
-         promptId: draftPost.prompt_id,
-       }),
-     };
-
-     await fetchAPI("/api/posts/newPost", {
-       method: "POST",
-       body: JSON.stringify(body),
-     });
-
-     showAlert({
-       title: "Success",
-       message: "Post created.",
-       type: "POST",
-       status: "success",
-     });
-
-     // Go back twice: out of preview and then out of new-post
-     router.back(); // slight delay for safe stack unwinding
-   }
- } catch (error) {
-   console.error("Error submitting post:", error);
-   showAlert({
-     title: "Error",
-     message: "An error occurred. Please try again.",
-     type: "ERROR",
-     status: "error",
-   });
- } finally {
-   setDraftPost(null);
-   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
- }
-};
-*/

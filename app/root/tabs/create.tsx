@@ -16,6 +16,9 @@ import ItemContainer from "@/components/ItemContainer";
 import EmojiBackground from "@/components/EmojiBackground";
 import { fetchAPI } from "@/lib/fetch";
 import { icons } from "@/constants";
+import { 
+  addDays
+} from 'date-fns';
 
 const Create = () => {
   const { user } = useUser();
@@ -45,7 +48,7 @@ const Create = () => {
       router.push({
         pathname: "root/new-post",
         params: {
-          expiration: '3 days' 
+          expiration: new Date(addDays(new Date(), 3)).toISOString(), 
         }
       });
     }
