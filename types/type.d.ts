@@ -227,6 +227,7 @@ declare interface PostContainerProps {
   isPreview?: boolean;
   infiniteScroll?: boolean;
   scrollToLoad?: () => void;
+  staticEmoji?: boolean;
 }
 
 declare interface UserPostsGalleryProps {

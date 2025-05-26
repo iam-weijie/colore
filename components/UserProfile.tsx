@@ -637,7 +637,7 @@ const handleTabChange = (tabKey: string) => {
               {loading ? (
                   <PostGallerySkeleton />
                 ) : (
-                  <View className="flex-1 px-7">
+                  <View className="flex-1 flex-row justify-center">
                   <PostGallery
                     posts={userPosts}
                     profileUserId={user!.id}

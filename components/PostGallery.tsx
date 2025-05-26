@@ -78,7 +78,7 @@ const renderItem = ({ item }: { item: Post }) => {
       entering={FadeInDown.duration(400)}
       style={{
         marginHorizontal: isIpad ? 6 : 0,
-        maxWidth: 320,
+        maxWidth: 350,
         transform: [{ rotate: `${(Math.random() * 1.5 - 0.75).toFixed(2)}deg` }], // Reduced rotation range
       }}
     >
@@ -90,7 +90,7 @@ const renderItem = ({ item }: { item: Post }) => {
         activeOpacity={0.9}
       >
         <View
-          className="w-full mb-3 p-4 mx-auto"
+          className="w-full mb-3 py-4 px-6 mx-auto"
           style={{
             borderRadius: 32,
             backgroundColor,
@@ -103,19 +103,19 @@ const renderItem = ({ item }: { item: Post }) => {
           }}
         >
           <Text 
-            className="font-JakartaSemiBold text-black/90 text-[15px] leading-snug" 
+            className="font-JakartaSemiBold text-white/90 text-[15px] shadow leading-snug" 
             numberOfLines={3}
           >
             {truncateText(item.content, 120)} 
           </Text>
 
           <View className="flex-row justify-between items-center mt-2.5">
-            <Text className="font-Jakarta text-xs text-gray-600/90">
+            <Text className="font-Jakarta text-xs text-white/80">
               {item.created_at ? getRelativeTime(new Date(item.created_at)) : ""}
             </Text>
 
             {hasNewComments && (
-              <View className="px-2 py-1 bg-red-500/95 rounded-full">
+              <View className="px-3 py-2 bg-red-500/95 rounded-full">
                 <Text className="text-xs font-JakartaSemiBold text-white">
                   {item.unread_comments} comment{item.unread_comments > 1 ? 's' : ''}
                 </Text>
@@ -151,7 +151,7 @@ const renderItem = ({ item }: { item: Post }) => {
 
 
   return (
-    <View className=" rounded-[24px] max-h-[100%]">
+    <View className="rounded-[24px] max-h-[100%]">
       {filteredPosts.length > 0 ? 
       (
         header
@@ -171,7 +171,7 @@ const renderItem = ({ item }: { item: Post }) => {
        
       {posts.length > 0 && (
         <FlatList
-          className="mt-4 rounded-[24px]"
+          className="flex-1 flew-row w-full mt-4 rounded-[24px]"
           data={filteredPosts}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}

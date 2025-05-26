@@ -49,7 +49,7 @@ import italics from "@/assets/icons/italics.png"
 import at from "@/assets/icons/at.png"
 import link from "@/assets/icons/link.png"
 import sparkles from "@/assets/icons/sparkles.png"
-import spaklesFill from "@/assets/icons/sparkles-fill.png"
+import sparklesFill from "@/assets/icons/sparkles-fill.png"
 import underline from "@/assets/icons/underline.png"
 import H from "@/assets/icons/h.png"
 import oList from "@/assets/icons/ordered-list.png"
@@ -131,7 +131,7 @@ export const icons = {
   addUser,
   at,
   link,
-  spaklesFill,
+  sparklesFill,
   sparkles,
 };
 

@@ -69,6 +69,7 @@ const NewPost = () => {
     temporaryColors.find((c) => c.name === color ) ?? temporaryColors[Math.floor(Math.random() * 4)]
   );
 
+  const [selectedStaticEmoji, setSelectedStaticEmoji] = useState<boolean>(false);
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
@@ -76,6 +77,7 @@ const NewPost = () => {
   const [formats, setFormats] = useState<Format[]>([]);
 
   const [isSettingVisible, setIsSettingVisible] = useState(false);
+
 
 
 
@@ -164,7 +166,9 @@ const isLink = (text: string) => {
       username: userUsername ?? "",
       content: postContent,
       created_at: new Date().toISOString(),
-      expires_at: "", // Let the backend calculate it or parse from selectExpirationDate if needed
+      expires_at: selectedExpirationDate || "",
+      available_at: selectedScheduleDate || "",
+      static_emoji: selectedStaticEmoji,
       city: "",
       state: "",
       country: "",
@@ -179,13 +183,17 @@ const isLink = (text: string) => {
       prompt_id: promptId ? Number(promptId) : 0,
       prompt: prompt ?? "",
       board_id: boardId ? Number(boardId) : -1,
-      reply_to: 0,
+      reply_to: replyToPostId ?? 0,
       unread: false,
       formatting: formats
     });
   }, [
     postId,
     user,
+    selectedExpirationDate,
+    selectedScheduleDate,
+    selectedRecipientId,
+    selectedStaticEmoji,
     postContent,
     selectedColor,
     selectedEmoji,
@@ -193,7 +201,8 @@ const isLink = (text: string) => {
     promptId,
     prompt,
     boardId,
-    formats
+    formats,
+    replyToPostId,
   ]);
 
   useEffect(() => {
@@ -205,6 +214,11 @@ const isLink = (text: string) => {
       if (draftPost.recipient_user_id) setSelectedRecipientId(draftPost.recipient_user_id);
       if (draftPost.username) setUserUsername(draftPost.username);
       if (draftPost.formatting) setFormats(formats);
+      if (draftPost.available_at) setSelectedScheduleDate(draftPost.available_at);
+      if (draftPost.expires_at) setSelectedExpirationDate(draftPost.expires_at);
+      if (draftPost.reply_to) setReplyToPostId(draftPost.reply_to);
+      if (draftPost.static_emoji) setSelectedStaticEmoji(draftPost.static_emoji);
+      if (draftPost.reply_to > 0) setReplyToPostId(draftPost.reply_to);
     }
   }, []);
   
@@ -304,7 +318,7 @@ const allOptions = [
         onPress={() => setSelectedSetting("Recipient")}
         actionIcon={selectedRecipientId && icons.check}
       />},
-      {
+      {/*
         label: "Board",
         component: <ItemContainer
         label="Select a board"
@@ -313,7 +327,7 @@ const allOptions = [
         colors={[selectedColor.foldcolorhex, selectedColor.hex]}
         iconColor="#000"
         onPress={() => setSelectedSetting}
-      />},
+      />*/},
       { label: "Schedule",
         component: <ItemContainer
         label={selectedScheduleDate ? `Set for ${format(new Date(selectedScheduleDate), 'MMMM do')}` : "Schedule"}
@@ -468,7 +482,7 @@ const LinkPlaceholder = () => {
   }, []);
 
   return (
-    <KeyboardOverlay>
+
       <TextInput 
         ref={inputRef}
         className="w-[90%] h-12 rounded-[16px] bg-gray-100 p-4 text-[16px] font-Jakarta"
@@ -493,7 +507,6 @@ const LinkPlaceholder = () => {
         keyboardType="url"
         returnKeyType="done"
       />
-    </KeyboardOverlay>
   );
 };
 
@@ -575,14 +588,16 @@ const LinkPlaceholder = () => {
               </View>
               </View></TouchableWithoutFeedback>}
             {selectedTab == "customize" && 
-            <View className="absolute top-8">
+            <View 
+            key={refreshingKey}
+            className="absolute top-8">
               <PostContainer
               selectedPosts={[draftPost]}
               handleCloseModal={() => {}}
               isPreview={true}
               header={
                 <View className="absolute z-[10] top-[19%] right-5 flex flex-row items-center justify-end gap-2">
-                      <TouchableOpacity
+                     {/* <TouchableOpacity
                     onPress={() => {setIsLinkHolderVisible(true)}}
                     className="w-8 h-8 rounded-full flex items-center justify-center"
                   >
@@ -591,20 +606,26 @@ const LinkPlaceholder = () => {
                       className="w-6 h-6"
                       tintColor={'#fff'}
                     />
-                  </TouchableOpacity>
+                  </TouchableOpacity>*/}
                   <TouchableOpacity
-                    onPress={() => setSelectedTab("create")}
+                  activeOpacity={0.8}
+                    onPress={() => {
+                      if (selectedEmoji) {
+                      setSelectedStaticEmoji((prev) => !prev);
+                      setRefreshingKey((prev) => prev + 1);
+                      }
+                    }}
                     className="w-8 h-8 rounded-full flex items-center justify-center"
                   >
                     <Image
-                      source={icons.sparkles}
+                      source={!selectedStaticEmoji ? icons.sparklesFill : icons.sparkles}
                       className="w-7 h-7"
                       tintColor={'#fff'}
                     />
                   </TouchableOpacity>
                 </View>
               }
-              />
+             staticEmoji={selectedStaticEmoji} />
             </View>}
               
 
@@ -627,7 +648,6 @@ const LinkPlaceholder = () => {
        
           </View>
           {isSettingVisible && PostSettings()}
-         {isLinkHolderVisible && <LinkPlaceholder />}
           {!isLinkHolderVisible && <KeyboardOverlay>
           <RichTextEditor
                       handleApplyStyle={applyStyle}

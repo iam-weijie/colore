@@ -82,6 +82,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
   handleUpdate,
   invertedColors = false,
   infiniteScroll = false,
+  staticEmoji = false,
   isPreview = false,
   header,
   scrollToLoad,
@@ -604,8 +605,8 @@ const PostContainer: React.FC<PostContainerProps> = ({
           ]}
         >
           <TouchableWithoutFeedback onPress={handleCloseModal}>
-            <View className="absolute flex-1 ">
-            {<EmojiBackground emoji="" color="" />}
+            <View className="absolute flex-1 top-0 left-2 ">
+            {<EmojiBackground emoji={staticEmoji ? selectedEmoji : ""} color="" />}
             </View>
           
           </TouchableWithoutFeedback>
@@ -765,7 +766,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
                 );
               })}
           </View>)}
-          {!!selectedEmoji && 
+          {!!selectedEmoji && !staticEmoji && 
           
           
           <View className="absolute -top-[150px] self-center inset-0">

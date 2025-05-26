@@ -279,6 +279,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     content: "",
     created_at: "",
     expires_at: "",
+    available_at: "",
+    static_emoji: false,
     city: "",
     state: "",
     country: "",
