@@ -613,7 +613,7 @@ const cleanFormatting: Format[] = isPreview
             animatedBackgroundStyle
           ]}
         >
-          <TouchableWithoutFeedback onPress={() => handleCloseModal()}>
+          <TouchableWithoutFeedback onPress={handleCloseModal}>
             <View className="absolute flex-1 top-0">
             {<EmojiBackground emoji={staticEmoji ? selectedEmoji : ""} color="" />}
             </View>
@@ -673,6 +673,12 @@ const cleanFormatting: Format[] = isPreview
 
                 <ScrollView>
                   <RichText formatStyling={cleanFormatting} content={currentPost?.content ?? ""} />
+                  <Text
+                    className="text-gray-500 text-xs mt-2"
+                    style={{ fontFamily: "Inter_400Regular" }}
+                  > 
+                  
+                  </Text>
                 </ScrollView>
                 {!isPreview && (
                   <View className="my-2 flex-row justify-between items-center">

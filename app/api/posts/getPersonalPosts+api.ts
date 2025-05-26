@@ -35,6 +35,7 @@ export async function GET(request: Request) {
         p.top,
         p.left,
         p.expires_at,
+        p.formatting,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -82,7 +83,9 @@ export async function GET(request: Request) {
       position: {
         top: post.top,
         left: post.left
-      }
+      },
+      expires_at: post.expires_at || "",
+      formatting: JSON.parse(post.formatting) || [],
     }));
 
     return new Response(JSON.stringify({ data: mappedPosts }), {

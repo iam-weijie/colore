@@ -35,13 +35,11 @@ import RichTextInput from "@/components/RichTextInput";
 import KeyboardOverlay from "@/components/KeyboardOverlay";
 import PostContainer from "@/components/PostContainer";
 import { handleSubmitPost } from "@/lib/post";
-import TabNavigation from "@/components/TabNavigation";
 import PostGallery from "@/components/PostGallery";
 import { FindUser } from "@/components/FindUsers";
-import CustomButton from "@/components/CustomButton";
 import CalendarView from "@/components/CalendarView";
 import { format, isAfter } from "date-fns";
-import RenameContainer from "@/components/RenameContainer";
+import { stripMarkdown } from "@/components/RichTextInput";
 
 
 
@@ -49,42 +47,56 @@ import RenameContainer from "@/components/RenameContainer";
 
 
 const NewPost = () => {
+
+  // ✅ Imports & Hooks
   const { user } = useUser();
   const { postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
   const { profile, setDraftPost, draftPost } = useGlobalContext();
   const { showAlert } = useAlert();
 
-  const [selectedTab, setSelectedTab] = useState<string>("create");
-  
+
+  // 🔒 USER & GLOBAL STATE
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
+  const [userUsername, setUserUsername] = useState<string>(username);
+
+
+  // 📥 POST CONTENT & METADATA
+  const [postContent, setPostContent] = useState<string>(content);
   const [selectedRecipientId, setSelectedRecipientId] = useState<string>(recipientId);
   const [replyToPostId, setReplyToPostId] = useState<number | null>(null);
-  const [isLinkHolderVisible, setIsLinkHolderVisible] = useState(false);
-  const [link, setLink] = useState<string>("");
-  const [userUsername, setUserUsername] = useState<string>(username);
-  const [postContent, setPostContent] = useState<string>(content);
-  const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
-  const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors.find((c) => c.name === color ) ?? temporaryColors[Math.floor(Math.random() * 4)]
-  );
 
+
+  // 🎨 STYLING & FORMATTING
+  const [selectedColor, setSelectedColor] = useState<PostItColor>(
+    temporaryColors.find((c) => c.name === color) ?? temporaryColors[Math.floor(Math.random() * 4)]
+  );
+  const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
+  const [formats, setFormats] = useState<Format[]>([]);
+  const [inputHeight, setInputHeight] = useState(40);
+
+
+  // 😊 EMOJI HANDLING
   const [selectedStaticEmoji, setSelectedStaticEmoji] = useState<boolean>(false);
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
-  const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
-  const [refreshingKey, setRefreshingKey] = useState<number>(0);
-  const [formats, setFormats] = useState<Format[]>([]);
 
+
+  // ⚙️ UI STATE & INTERACTIONS
+  const [selectedTab, setSelectedTab] = useState<string>("create");
+  const [isLinkHolderVisible, setIsLinkHolderVisible] = useState(false);
+  const [link, setLink] = useState<string>("");
   const [isSettingVisible, setIsSettingVisible] = useState(false);
 
 
+  // 📆 SCHEDULING & EXPIRATION
+  const [selectedExpirationDate, setSelectedExpirationDate] = useState<string>(expiration);
+  const [selectedScheduleDate, setSelectedScheduleDate] = useState<string>("");
 
 
-  const [communityBoards, setCommunityBoards] = useState<Board[]>([])
-  const [selectedExpirationDate, setSelectedExpirationDate] = useState<string>(expiration)
-  const [selectedScheduleDate, setSelectedScheduleDate] = useState<string>("")
-
+  // 🔁 REFRESH & DATA FETCHING
+  const [refreshingKey, setRefreshingKey] = useState<number>(0);
+  const [communityBoards, setCommunityBoards] = useState<Board[]>([]);
 
 
   //console.log("arguments passed: ", postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId  )
@@ -141,6 +153,48 @@ const isLink = (text: string) => {
   }
 }
 
+const resetDraftPost = () => {
+    setPostContent("");
+                setFormats([]);
+                setTextStyling(null)
+                setSelectedRecipientId("");
+                setSelectedUser(undefined);
+                setSelectedEmoji("");
+                setSelectedScheduleDate("");
+                setSelectedExpirationDate("");
+                setReplyToPostId(null);
+                setSelectedStaticEmoji(false);
+
+                 setDraftPost({
+                    id: 0,
+                    clerk_id: user?.id,
+                    firstname: "",
+                    username: userUsername ?? "",
+                    content: "",
+                    created_at: new Date().toISOString(),
+                    expires_at:  "",
+                    available_at: "",
+                    static_emoji: false,
+                    city: "",
+                    state: "",
+                    country: "",
+                    like_count: 0,
+                    report_count: 0,
+                    unread_comments: 0,
+                    recipient_user_id:  "",
+                    pinned: false,
+                    color: "",
+                    emoji:  "",
+                    notified: false,
+                    prompt_id:  0,
+                    prompt:  "",
+                    board_id: -1,
+                    reply_to: replyToPostId ?? 0,
+                    unread: false,
+                    formatting: []
+          });
+}
+
   const selectedUserInfo = (info: UserNicknamePair) => {
     setSelectedUser(info);
     setSelectedRecipientId(info[0]);
@@ -155,7 +209,7 @@ const isLink = (text: string) => {
    
 
    useEffect(() => {
-   
+   //console.log("Post content updated:", postContent);
     if (postId) {
       setPostContent(content)
     }
@@ -164,7 +218,7 @@ const isLink = (text: string) => {
       clerk_id: user?.id ?? "",
       firstname: "",
       username: userUsername ?? "",
-      content: postContent,
+      content: postContent ? stripMarkdown(postContent) : "",
       created_at: new Date().toISOString(),
       expires_at: selectedExpirationDate || "",
       available_at: selectedScheduleDate || "",
@@ -221,6 +275,7 @@ const isLink = (text: string) => {
       if (draftPost.reply_to > 0) setReplyToPostId(draftPost.reply_to);
     }
   }, []);
+
   
   useEffect(() => {
     if (recipientId && username) {
@@ -261,19 +316,46 @@ const isLink = (text: string) => {
             onPress: () => router.back(),
           },
           {
-            icon: icons.send,
+            icon: selectedTab == "customize" ? icons.send : icons.close,
             label: "New Post",
             onPress: async () => {
               if (selectedTab == "customize") {
-              handleSubmitPost(user!.id, draftPost)
-              } else {setSelectedTab("customize")}
-            },
+              const status = await handleSubmitPost(user!.id, draftPost)
+              console.log("status: ", status)
+              if (status == 'success') {
+                showAlert({
+                  title: "Success",
+                  message: "Post created successfully.",
+                  type: "SUCCESS",
+                  status: "success",
+                });
+                resetDraftPost()
+                router.back();
+              } else {
+                showAlert({
+                  title: "Error",
+                  message: "Failed to create post.",
+                  type: "ERROR",
+                  status: "error",
+                });
+              }} else {
+                
+               resetDraftPost()
+                setRefreshingKey(prev => prev + 1);
+
+            }},
             isCenter: true,
           },
           {
-            icon: icons.settings,
-            label: "More",
-            onPress:() => setIsSettingVisible(prev => !prev),
+            icon: selectedTab == "customize" ? icons.settings : icons.pencil,
+            label: selectedTab == "customize" ? "More" : "Customize",
+            onPress:() => {
+              if (selectedTab == "customize") {
+                setIsSettingVisible(prev => !prev);
+              } else {
+                setSelectedTab("customize");
+                setRefreshingKey(prev => prev + 1);
+              }},
             isCenter: true,
           },
         ]
@@ -492,7 +574,7 @@ const LinkPlaceholder = () => {
         onSubmitEditing={() => {
           if (isLink(link)) {
             setIsLinkHolderVisible(false);
-            setPostContent(prev => `${prev}\n${link}`);
+            //(prev => `${prev}\n${link}`);
             setLink("");
           } else {
             showAlert({
@@ -543,7 +625,8 @@ const LinkPlaceholder = () => {
                         <View className="flex-1 flex-column justify-start items-center  ">
               
                             
-              <View className="w-full">
+              <View 
+              className="w-full">
                 <RichTextInput
                 style={textStyling}
                 refresh={refreshingKey}

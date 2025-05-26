@@ -42,6 +42,7 @@ export async function GET(request: Request) {
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
       LEFT JOIN boards b ON p.board_id = b.id
       WHERE u.clerk_id = ${clerkId}
+      AND p.expirates_at > NOW();
       ORDER BY p.created_at DESC;
     `;
 

@@ -37,6 +37,7 @@ export async function GET(request: Request) {
         p.unread,
         p.top,
         p.left,
+        p.formatting,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -86,7 +87,8 @@ export async function GET(request: Request) {
         unread: post.unread,
         position: post.top !== null && post.left !== null 
           ? { top:  Number(post.top), left:  Number(post.left) } 
-          : undefined
+          : undefined,
+      formatting: JSON.parse(post.formatting) || [],
       }));
 
     return new Response(JSON.stringify({ data: personalPosts }), {

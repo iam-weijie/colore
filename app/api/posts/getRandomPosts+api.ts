@@ -24,6 +24,7 @@ export async function GET(request: Request) {
           p.color,
           p.emoji,
           p.prompt_id,
+          p.formatting,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -57,6 +58,7 @@ export async function GET(request: Request) {
           p.color,
           p.emoji,
           p.prompt_id,
+          p.formatting,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -90,6 +92,7 @@ export async function GET(request: Request) {
           p.color,
           p.emoji,
           p.prompt_id,
+          p.formatting,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -124,6 +127,7 @@ export async function GET(request: Request) {
           p.emoji,
           p.prompt_id,
           p.board_id,
+          p.formatting,
           u.clerk_id,
           u.firstname, 
           u.lastname, 
@@ -140,7 +144,38 @@ export async function GET(request: Request) {
         LIMIT ${number};
       `;
 
-      return new Response(JSON.stringify({ data: response }), {
+       const mappedPosts = response.map((post) => ({
+      id: post.id,
+      clerk_id: post.clerk_id,
+      user_id: post.clerk_id, // Using clerk_id as user_id for temporary fix
+      firstname: post.firstname,
+      username: post.username,
+      content: post.content,
+      created_at: post.created_at,
+      expires_at: post.expires_at, // Not available in query - set default
+      city: post.city,
+      state: post.state,
+      country: post.country,
+      like_count: post.like_count,
+      report_count: post.report_count,
+      unread_comments: post.unread_comments,
+      recipient_user_id: post.recipient_user_id,
+      pinned: post.pinned,
+      color: post.color,
+      emoji: post.emoji,
+      notified: post.notified,
+      prompt_id: post.prompt_id,
+      prompt: post.prompt,
+      board_id: post.board_id,
+      reply_to: post.reply_to, 
+      unread: post.unread,
+      position: post.top !== null && post.left !== null 
+        ? { top: Number(post.top), left: Number(post.left) } 
+        : undefined,
+      formatting: JSON.parse(post.formatting) || [],
+    }));
+
+      return new Response(JSON.stringify({ data: mappedPosts }), {
         status: 200,
       });
     }
