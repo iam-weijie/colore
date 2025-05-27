@@ -4,8 +4,6 @@ import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import AntDesign from "@expo/vector-icons/AntDesign";
 import { useAlert } from '@/notifications/AlertContext';
 import { CommentItem } from "@/components/Comment";
 import { useGlobalContext } from "@/app/globalcontext";
@@ -17,19 +15,20 @@ import {
   useRouter,
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 import {
-  Alert,
   Dimensions,
   Image,
   FlatList,
   Keyboard,
-  KeyboardAvoidingView,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -37,8 +36,6 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 import { useNavigationContext } from "@/components/NavigationContext";
 
-import * as Linking from "expo-linking";
-import { SafeAreaView } from "react-native-safe-area-context";
 import React from "react";
 
 interface GestureContext {
@@ -65,6 +62,7 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
     color,
   } = useLocalSearchParams();
 
+  const height = useSharedValue(450);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const flatListRef = useRef(null);
@@ -101,6 +99,9 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const [replyView, setReplyView] = useState<PostComment | null>(null);
   const inputRef = useRef(null);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+
 
 
   const fetchCommentById = async (id: string) => {
@@ -389,15 +390,6 @@ console.log("happend", "id", id)
     }
   }, [replyView])
 
-  /*
-  useEffect(() => {
-    navigation.addListener("beforeRemove", (e) => {
-      handleReadComments()
-      setStateVars({ ...stateVars, queueRefresh: true });
-      console.log("User goes back from post screen");
-    });
-  }, []);
-  */
 
   const renderCommentItem = ({
     item,
@@ -443,8 +435,24 @@ console.log("happend", "id", id)
     );
   };
 
+    useEffect(() => {
+    if (keyboardVisible) {
+      height.value = withTiming(300, { duration: 500 });
+    } else {
+      height.value = withTiming(450, { duration: 500 });
+    }
+    
+
+    
+  }, [keyboardVisible]);
+
+ 
+    const animatedHeightStyle = useAnimatedStyle(() => ({
+    height: height.value,
+  }));
+
   return (
-    <View className="flex-1 h-[450px]">
+    <Animated.View style={[{ flex: 1, paddingHorizontal: 24, paddingVertical: 8 }, animatedHeightStyle]}>
 
          <Pressable onPress={() => 
                   {
@@ -518,6 +526,8 @@ console.log("happend", "id", id)
               value={newComment}
               multiline
               scrollEnabled
+              onFocus={() => setKeyboardVisible(true)}
+              onBlur={() => setKeyboardVisible(false)}
               onChangeText={handleChangeText}
               onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
               editable={!isSubmitting && !isSubmitting}
@@ -536,7 +546,7 @@ console.log("happend", "id", id)
           </View>
           </View>
         </View>
-  </View>
+  </Animated.View>
   );
 };
 
