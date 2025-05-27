@@ -201,7 +201,7 @@ async function handleSendNotificationExternal(
         notificationContent,
         "comment",
         {
-          route: `/root/post/${n.id}`,
+          route: `/root/post/${n.post_id}`,
           params: {
             id: n.post_id,
             clerk_id: n.user_id,

@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       };
 
       const notification = {
-        id: post[0].id,
+        post_id: post[0].id,
         content: post[0].content,
         firstname: postOwner[0].firstname,
         username: postOwner[0].username,
