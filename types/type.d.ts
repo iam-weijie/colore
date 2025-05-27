@@ -144,11 +144,19 @@ declare interface PostWithPosition extends Post {
   };
 }
 
+type Attribute={
+  class: string;
+  level: number;
+  description: string;
+}
 declare interface PostItColor {
   name: string;
   id: number;
   hex: string;
   rarity: string;
+  SRB: number[];
+  attributes?: Attribute;
+  meaning: string;
   foldcolorhex: string;
   fontColor: string;
 }

@@ -2,9 +2,9 @@
 
 import InputField from "@/components/InputField";
 import { useNavigationContext } from "@/components/NavigationContext";
-import { icons } from "@/constants";
+import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { UserProfileType } from "@/types/type";
+import { PostItColor, UserProfileType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -12,6 +12,7 @@ import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
+  FlatList,
   Image,
   KeyboardAvoidingView,
   ScrollView,
@@ -20,14 +21,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
 import RenameContainer from "@/components/RenameContainer";
-import EmojiSettings from "@/components/EmojiSettings";
-import * as Haptics from "expo-haptics";
-import { Audio } from "expo-av";
+import { Modal as RNModal } from "react-native";
+import CustomButton from "@/components/CustomButton";
+import Circle from "@/components/Circle";
+import ItemContainer from "@/components/ItemContainer";
+import ProgressBar from "@/components/ProgressBar";
+
 
 const Settings = () => {
 
@@ -54,7 +59,59 @@ const Settings = () => {
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(profile);
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
+  const [libraryVisible, setLibraryVisible] = useState(false);
+  const [colorLibrary, setColorLibrary] = useState<PostItColor[]>([]);
+  const blueProgress = Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20);
+  const yellowProgress = Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20);
+  const pinkProgress = Math.min(
+    100,
+    Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
+  );
+  const [unlockedColors, setUnlockedColors] = useState<PostItColor[]>([]);
+  const handleAttemptColorCreation = () => {
+    const S = Math.floor((savedPosts?.length || 0) / 3);
+    const R = Math.floor((likedPosts?.length || 0) / 10);
+    const B = Math.floor((profileUser?.customizations?.length || 0) / 5);
+    const userSRB = [S, R, B];
+  
+    const matchedColor = colorLibrary.find(
+      (c) =>
+        c.SRB[0] === userSRB[0] &&
+        c.SRB[1] === userSRB[1] &&
+        c.SRB[2] === userSRB[2]
+    );
 
+    if (matchedColor) {
+      const alreadyUnlocked = unlockedColors.some(
+        (uc) => uc.name === matchedColor.name
+      );
+  
+      if (!alreadyUnlocked) {
+        setUnlockedColors((prev) => [...prev, matchedColor]);
+  
+        showAlert({
+          title: "🎉 Color Unlocked!",
+          message: `${matchedColor.name} has been added to your collection.`,
+          type: "UPDATE",
+          status: "success",
+        });
+      } else {
+        showAlert({
+          title: "Already Unlocked",
+          message: `You already have ${matchedColor.name}.`,
+          type: "UPDATE",
+          status: "info",
+        });
+      }
+    } else {
+      showAlert({
+        title: "No Match",
+        message: "Your current SRB doesn't match any color. Try again later!",
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  };
 
   // Get settings state and setters from Global Context
 
@@ -93,6 +150,7 @@ const Settings = () => {
 
   useEffect(() => {
     fetchLikedPosts();
+    setColorLibrary(temporaryColors);
   }, []);
 
   const verifyValidUsername = (username: string): boolean => {
@@ -218,9 +276,6 @@ const Settings = () => {
   };
 
   const handleLocationUpdate = () => {
-    playSoundEffect(SoundType.Navigation)
-    Haptics.selectionAsync();
-
     setStateVars({
       ...stateVars,
       previousScreen: "settings",
@@ -233,9 +288,6 @@ const Settings = () => {
 
   const handleSignOut = async () => {
     try {
-      playSoundEffect(SoundType.Tap)
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
       await signOut();
       setLoading(true);
       router.replace("/auth/onboarding");
@@ -251,9 +303,6 @@ const Settings = () => {
   };
 
   const handleUpdateValue = (type: string) => {
-    playSoundEffect(SoundType.Submit)
-    Haptics.selectionAsync();
-
     setSelectedTitle(`${type == "username" ? "New username" : "New Email"}`);
     setSelectedModal(
       <RenameContainer
@@ -333,6 +382,76 @@ const Settings = () => {
             value={currentLocation} 
             onPress={handleLocationUpdate}
             accentColor="#93c5fd"
+          />
+        </>
+      }
+    />
+  </View>
+
+  {/* Color Section */}
+  <View className="mx-6 mb-6">
+    <HeaderCard 
+      title="Colors" 
+      color="#FAFAFA"
+      content={
+        <>
+      
+            {/* Blue Progress */}
+          <View className="px-5 py-2">
+            <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
+              🔵 Blue Level
+            </Text>
+
+             <ProgressBar 
+                  progress={Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20)} 
+                  height={12}
+                  progressColor="#60a5fa"
+                  backgroundColor="#fafafa"
+                />
+
+          </View>
+
+          {/* Yellow Progress */}
+          <View className="px-5 py-2">
+            <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
+              🟡 Yellow Level
+            </Text>
+
+             <ProgressBar 
+                  progress={Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20)} 
+                  height={12}
+                  progressColor="#facc15"
+                  backgroundColor="#fafafa"
+                />
+          </View>
+
+           {/* Pink Progress */}
+          <View className="px-5 py-2">
+            <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
+              🩷 Pink Level
+            </Text>
+
+                <ProgressBar 
+                  progress={pinkProgress} 
+                  height={12}
+                  progressColor="#FBB1F5"
+                  backgroundColor="#fafafa"
+                />
+
+          </View>
+           <ActionRow 
+            icon={<Image source={icons.palette} tintColor="#000" resizeMode="contain" className="w-5 h-5" />}
+            label="View Color Library"
+            count={colorLibrary.length || 0}
+            onPress={() => setLibraryVisible(true)}
+            accentColor="#CFB1FB"
+          />
+          <ActionRow 
+            icon={<Image source={icons.sparkles} tintColor="#000" resizeMode="contain" className="w-5 h-5" />}
+            label="Attempt Create Color"
+            count={3}
+            onPress={handleAttemptColorCreation}
+            accentColor="#CFB1FB"
           />
         </>
       }
@@ -443,6 +562,47 @@ const Settings = () => {
       }} 
     />
   }
+  {libraryVisible && 
+<ModalSheet
+          title={"Your Color Library"} 
+          isVisible={libraryVisible}
+           onClose={() => {}} > 
+   <View 
+   className="flex-1 p-6"
+        >
+          <FlatList
+            className="flex-1"
+            data={colorLibrary}
+            keyExtractor={(item, index) => index.toString()}
+            ListEmptyComponent={
+              <Text style={{ fontSize: 16, color: "gray" }}>
+                You haven't collected any colors yet.
+              </Text>
+            }
+            renderItem={({ item }) => (
+              <ItemContainer
+                label={item.name}
+                caption={item.meaning || "No description available."}
+                icon={0}
+                colors={[item.hex, item.foldcolorhex]}
+                iconColor={""}
+                onPress={() => {}}
+              />
+            )}
+            contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+          />
+           <CustomButton
+          className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+          fontSize="lg"
+          title="Close"
+          padding="0"
+          onPress={() => {
+            setLibraryVisible(false);
+          }}
+        />
+        </View>
+  </ModalSheet>}
 </ScrollView>)
 };
 
@@ -470,7 +630,7 @@ const HeaderCard = ({ title, color, content }) => (
       }}
     >
       <View className="px-5 py-2">
-        <Text className="text-[18px] font-JakartaSemiBold text-white">{title}</Text>
+        <Text className={`text-[18px] font-JakartaSemiBold ${color === "#FAFAFA" ? "text-black" : "text-white"}`}>{title}</Text>
       </View>
     </View>
     
