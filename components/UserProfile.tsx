@@ -74,7 +74,7 @@ const PostGallerySkeleton = () => (
 
 
 
-const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ userId, tab, onSignOut }) => {
   const { user } = useUser();
   const router = useRouter();
   const { isIpad } = useGlobalContext(); 
@@ -97,7 +97,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [communityBoards, setCommunityBoards] = useState<any>();
 
 
-  const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
 
 
@@ -107,7 +106,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [friendCount, setFriendCount] = useState<number>(0);
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
   const [isFocusedOnProfile, setIsFocusedOnProfile] = useState<boolean>(true);
-  const [selectedTab, setSelectedTab] = useState<string>("Profile");
+  const [selectedTab, setSelectedTab] = useState<string>(tab || "Profile");
 
   const [personalPosts, setPersonalPosts] = useState<Post[]>([]);
   const [disableInteractions, setDisableInteractions] = useState<boolean>(false);
@@ -666,109 +665,3 @@ const handleTabChange = (tabKey: string) => {
 };
 
 export default UserProfile;
-
-/*
-  const checkIfChatExists = async (user2: UserNicknamePair) => {
-    try {
-      // //console.log("user: ", user!.id);
-      const response = await fetchAPI(
-        `/api/chat/checkIfConversationExists?id1=${user!.id}&id2=${user2[0]}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.error) {
-        //console.log("Error fetching user data");
-        //console.log("response data: ", response.data);
-        //console.log("response status: ", response.status);
-        // //console.log("response: ", response);
-        throw new Error(response.error);
-      }
-      //console.log("response: ", response.data.length);
-      if (response.data.length > 0) {
-        setConvId(response.data[0].id);
-        /*router.push(
-         `/root/chat/conversation?conversationId=${response.data[0].id}&otherClerkId=${user2[0]}&otherName=${user2[1]}`
-         
-        );
-        router.push({
-          pathname: "/root/new-personal-post",
-          params: {
-            recipient_id: user!.id,
-            source: "board"
-          },
-        });
-      }
-      return response.data.length > 0;
-    } catch (err) {
-      console.error("Failed to fetch user data:", err);
-      setError("Failed to fetch nicknames.");
-      return false;
-    }
-  };
-  const startChat = async (otherUser: UserNicknamePair) => {
-    //console.log(`Starting chat with ${otherUser[1]}`);
-    const exists = await checkIfChatExists(otherUser);
-    //console.log("conversationExists: ", exists);
-    if (exists) {
-      //console.log("Chat already exists, sending user to conversation with Id: ", convId);
-    } else {
-      setLoading(true);
-      try {
-        const response = await fetchAPI(`/api/chat/newConversation`, {
-          method: "POST",
-          body: JSON.stringify({
-            clerkId_1: user!.id,
-            clerkId_2: otherUser[0],
-          }),
-        });
-        if (response.error) {
-          //console.log("Error creating conversation");
-          //console.log("response data: ", response.data);
-          //console.log("response status: ", response.status);
-          // //console.log("response: ", response);
-          throw new Error(response.error);
-        }
-        //console.log("Chat was successfully created, attempting to get conversation information to push user there");
-        try {
-          const result = await fetchAPI(
-            `/api/chat/getConversationThatWasJustCreated?id1=${user!.id}&id2=${otherUser[0]}`,
-            {
-              method: "GET",
-            }
-          );
-          if (result.error) {
-            //console.log("Error fetching conversation data");
-            //console.log("response data: ", result.data);
-            //console.log("response status: ", result.status);
-            // //console.log("response: ", response);
-            throw new Error(result.error);
-          } else {
-            const conversation = result.data[0];
-            //console.log(`Pushing user to conversation that was just created with conversation ID: ${conversation.id}`);
-           router.push(
-              `/root/chat/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`
-            );
-            router.push({
-              pathname: "/root/new-personal-post",
-              params: {
-                recipient_id: user!.id,
-                source: "board"
-              },
-            });
-          }
-        } catch (err) {
-          console.error("Failed to fetch conversation data:", err);
-          setError(
-            "Chat was successfully created, but failed to send user to conversation."
-          );
-        }
-      } catch (err) {
-        console.error("Failed to create new conversation:", err);
-        setError("Failed to create new conversation");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-  */
