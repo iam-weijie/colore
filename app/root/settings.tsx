@@ -2,9 +2,9 @@
 
 import InputField from "@/components/InputField";
 import { useNavigationContext } from "@/components/NavigationContext";
-import { icons } from "@/constants";
+import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { UserProfileType } from "@/types/type";
+import { PostItColor, UserProfileType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -12,6 +12,7 @@ import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
+  FlatList,
   Image,
   KeyboardAvoidingView,
   ScrollView,
@@ -27,6 +28,10 @@ import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
 import RenameContainer from "@/components/RenameContainer";
 import { Modal as RNModal } from "react-native";
+import CustomButton from "@/components/CustomButton";
+import Circle from "@/components/Circle";
+import ItemContainer from "@/components/ItemContainer";
+import ProgressBar from "@/components/ProgressBar";
 
 
 const Settings = () => {
@@ -44,14 +49,14 @@ const Settings = () => {
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
   const [libraryVisible, setLibraryVisible] = useState(false);
-  const [colorLibrary, setColorLibrary] = useState<{ name: string; meaning: string; SRB: number[] }[]>([]);
+  const [colorLibrary, setColorLibrary] = useState<PostItColor[]>([]);
   const blueProgress = Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20);
   const yellowProgress = Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20);
   const pinkProgress = Math.min(
     100,
     Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
   );
-  const [unlockedColors, setUnlockedColors] = useState<{ name: string; meaning: string; SRB: number[] }[]>([]);
+  const [unlockedColors, setUnlockedColors] = useState<PostItColor[]>([]);
   const handleAttemptColorCreation = () => {
     const S = Math.floor((savedPosts?.length || 0) / 3);
     const R = Math.floor((likedPosts?.length || 0) / 10);
@@ -83,7 +88,7 @@ const Settings = () => {
         showAlert({
           title: "Already Unlocked",
           message: `You already have ${matchedColor.name}.`,
-          type: "INFO",
+          type: "UPDATE",
           status: "info",
         });
       }
@@ -145,11 +150,7 @@ const Settings = () => {
   useEffect(() => {
     fetchUserData();
     fetchLikedPosts();
-    setColorLibrary([
-      { name: "Blue", meaning: "Peace and Calm | Saved posts", SRB: [3, 2, 1] },
-      { name: "Yellow", meaning: "Energy and Joy | Liked posts", SRB: [1, 3, 2] },
-      { name: "Pink", meaning: "Love and Creativity | Customizations", SRB: [2, 1, 3] },
-    ]);
+    setColorLibrary(temporaryColors);
   }, []);
 
   const verifyValidUsername = (username: string): boolean => {
@@ -369,42 +370,6 @@ const Settings = () => {
               Account Information
             </Text>
           </View>
-          {/*
-          
-          <View className="px-5 py-3">
-            <Text className="text-sm font-JakartaSemiBold text-[#000]">Username</Text>
-            <InputField
-              label=""
-              value={newUsername}
-              onChangeText={setNewUsername}
-              placeholder={username || "Enter username"}
-              onSubmitEditing={() => {
-                if (!newUsername || loading) return;
-                handleUsernameUpdate();
-                setUsername(newUsername);
-                setNewUsername("");
-              }}
-              containerStyle="-mt-8"
-            />
-          </View>*/}
-
-          {/*<View className="px-5 py-3">
-            <Text className="text-sm font-JakartaSemiBold text-[#000]">Email Address</Text>
-            
-            <InputField
-              label=""
-              value={newEmail}
-              onChangeText={setNewEmail}
-              placeholder={profileUser?.email || "Enter email address"}
-              onSubmitEditing={() => {
-                if (!newEmail || loading) return;
-                handleEmailUpdate();
-                setEmail(newEmail);
-                setNewEmail("");
-              }}
-              containerStyle="-mt-8"
-            />
-          </View>*/}
           <View className="px-5 py-3">
             <View className="flex flex-row items-center justify-between mb-1">
               <Text className="text-lg font-JakartaSemiBold text-[#000]">
@@ -656,15 +621,14 @@ const Settings = () => {
             <Text className="text-sm font-JakartaSemiBold text-gray-800 mb-1">
               🔵 Blue Level
             </Text>
-            <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
-              <View
-                style={{
-                  width: `${Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20)}%`,
-                  backgroundColor: "#60a5fa", // Blue
-                }}
-                className="h-full rounded-full"
-              />
-            </View>
+
+             <ProgressBar 
+                  progress={Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20)} 
+                  height={8}
+                  progressColor="#60a5fa"
+                  backgroundColor="#E5E7EB"
+                />
+
           </View>
 
           {/* Yellow Progress */}
@@ -672,15 +636,13 @@ const Settings = () => {
             <Text className="text-sm font-JakartaSemiBold text-gray-800 mb-1">
               🟡 Yellow Level
             </Text>
-            <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
-              <View
-                style={{
-                  width: `${Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20)}%`,
-                  backgroundColor: "#facc15", // Yellow
-                }}
-                className="h-full rounded-full"
-              />
-            </View>
+
+             <ProgressBar 
+                  progress={Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20)} 
+                  height={8}
+                  progressColor="#facc15"
+                  backgroundColor="#E5E7EB"
+                />
           </View>
 
           {/* Pink Progress */}
@@ -688,41 +650,14 @@ const Settings = () => {
             <Text className="text-sm font-JakartaSemiBold text-gray-800 mb-1">
               🩷 Pink Level
             </Text>
-            <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
-              {/* Blue Progress */}
-              <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
-                <View
-                  style={{
-                    width: `${blueProgress}%`,
-                    backgroundColor: "#60a5fa",
-                  }}
-                  className="h-full rounded-full"
-                />
-              </View>
 
-              {/* Yellow Progress */}
-              <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
-                <View
-                  style={{
-                    width: `${yellowProgress}%`,
-                    backgroundColor: "#facc15",
-                  }}
-                  className="h-full rounded-full"
+                <ProgressBar 
+                  progress={pinkProgress} 
+                  height={8}
+                  progressColor="#FBB1F5"
+                  backgroundColor="#E5E7EB"
                 />
-              </View>
 
-              {/* Pink Progress */}
-              <View className="h-3 rounded-full bg-gray-300 overflow-hidden">
-                <View
-                  style={{
-                    width: `${pinkProgress}%`,
-                    backgroundColor: "#f9a8d4",
-                  }}
-                  className="h-full rounded-full"
-                />
-              </View>
-
-            </View>
           </View>
         </View>
       </View>
@@ -756,48 +691,48 @@ const Settings = () => {
           }}
         />
       )}
-
-  <RNModal visible={libraryVisible} animationType="slide">
-
-        <SafeAreaView
-          style={{ flex: 1, backgroundColor: "white", padding: 24 }}
+{libraryVisible && 
+<ModalSheet
+          title={"Your Color Library"} 
+          isVisible={libraryVisible}
+           onClose={() => {}} > 
+   <View 
+   className="flex-1 p-6"
         >
-          <Text style={{ fontSize: 24, fontWeight: "700", marginBottom: 16 }}>
-            Your Color Library
-          </Text>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {colorLibrary.length === 0 ? (
+          <FlatList
+            className="flex-1"
+            data={colorLibrary}
+            keyExtractor={(item, index) => index.toString()}
+            ListEmptyComponent={
               <Text style={{ fontSize: 16, color: "gray" }}>
-                You haven’t collected any colors yet.
+                You haven't collected any colors yet.
               </Text>
-            ) : (
-              colorLibrary.map((c, i) => (
-                <View key={i} style={{ marginBottom: 16 }}>
-                  <Text style={{ fontSize: 18, fontWeight: "600" }}>
-                    🎨 {c.name}
-                  </Text>
-                  <Text style={{ fontSize: 14, color: "gray" }}>
-                    {c.meaning}
-                  </Text>
-                  <Text style={{ fontSize: 12 }}>SRB: {c.SRB.join(" - ")}</Text>
-                </View>
-              ))
+            }
+            renderItem={({ item }) => (
+              <ItemContainer
+                label={item.name}
+                caption={item.meaning || "No description available."}
+                icon={0}
+                colors={[item.hex, item.foldcolorhex]}
+                iconColor={""}
+                onPress={() => {}}
+              />
             )}
-          </ScrollView>
-          <TouchableOpacity
-            onPress={() => setLibraryVisible(false)}
-            style={{
-              marginTop: 24,
-              backgroundColor: "#000",
-              padding: 12,
-              borderRadius: 999,
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: "white", fontWeight: "600" }}>Close</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
-      </RNModal>
+            contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+          />
+           <CustomButton
+          className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+          fontSize="lg"
+          title="Close"
+          padding="0"
+          onPress={() => {
+            setLibraryVisible(false);
+          }}
+        />
+        </View>
+  </ModalSheet>}
+ 
     </ScrollView>
   );
 };
