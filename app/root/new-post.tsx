@@ -441,6 +441,15 @@ const resetDraftPost = () => {
                 
                 setIsSettingVisible(true);
               } else {
+                if (postContent.trim() === "") {
+                  showAlert({
+                    title: "Warning",
+                    message: "Post content cannot be empty.",
+                    type: "WARNING",
+                    status: "error",
+                  });
+                  return;
+                }
                 setSelectedTab("customize");
                 setRefreshingKey(prev => prev + 1);
               }},
