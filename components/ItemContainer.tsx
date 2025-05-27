@@ -13,6 +13,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -39,6 +40,7 @@ const ItemContainer = ({
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(20);
 
+  const { playSoundEffect } = useSoundEffects();
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }, { translateY: translateY.value }],
     opacity: opacity.value,
@@ -50,6 +52,7 @@ const ItemContainer = ({
   }, []);
 
   const handlePressIn = () => {
+    playSoundEffect(SoundType.Button)
     scale.value = withSpring(0.96, {
       damping: 10,
       stiffness: 200,

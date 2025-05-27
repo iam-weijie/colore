@@ -17,6 +17,7 @@
     View,
   } from "react-native";
   import { MappingPostitProps } from "@/types/type";
+  import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
   import React from "react";
 
 interface DraggablePostItProps {
@@ -48,6 +49,8 @@ interface DraggablePostItProps {
     disabled = false,
     visibility = 1,
   }) => {
+
+    const { playSoundEffect } = useSoundEffects();
     
     const animatedPosition = useRef(
       new Animated.ValueXY({
@@ -134,6 +137,7 @@ interface DraggablePostItProps {
   
     // Start drag animation - ALL animations will use JS driver
     const startDragAnimation = () => {
+      playSoundEffect(SoundType.Button);
       Animated.parallel([
         Animated.spring(scale, {
           toValue: 1.1,
@@ -153,6 +157,7 @@ interface DraggablePostItProps {
   
     // End drag animation - ALL animations will use JS driver
     const endDragAnimation = () => {
+      playSoundEffect(SoundType.Button);
       Animated.parallel([
         Animated.spring(scale, {
           toValue: 1,

@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import PinIcon from "./PinComponent";
+import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 
 const StackCircle = ({
   stack,
@@ -22,6 +23,7 @@ const StackCircle = ({
   stackMoving,
   updateStackPosition,
 }) => {
+  const { playSoundEffect } = useSoundEffects();
   const SHOW_BUTTONS_THRESHOLD = 200;
 
   const [isFocused, setIsFocused] = useState(false);
