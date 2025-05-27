@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         SET unread_comments = unread_comments + 1
         WHERE id = ${postId};
       `;
-      console.log("made it here");
+
       // Dispatching notification to user
       const [post, comment, commenter, postOwner] = await Promise.all([
         sql`
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
           WHERE clerk_id = ${postClerkId};
         `,
       ]);
-      console.log("made it further");
+
       const new_comment = {
         id: comment[0].id,
         comment_content: comment[0].comment_content,
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
         notified: comment[0].notified,
         commenter_firstname: commenter[0].firstname,
         commenter_username: commenter[0].username,
-        is_liked: false, // fix: query this
+        is_liked: false,
       };
 
       const notification = {
@@ -77,20 +77,28 @@ export async function POST(request: Request) {
         report_count: post[0].report_count,
         unread_comments: post[0].unread_comments,
         color: post[0].color,
-        new_comment,
+        comments: [new_comment],
       };
 
-      await fetch(`http://${process.env.DEVICE_IP}:3000/dispatch`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: postClerkId,
-          type: "Comments",
-          notification,
-          content: new_comment,
-        }),
-      });
-      console.log("made it to the end");
+      const res = await fetch(
+        `http://${process.env.EXPO_PUBLIC_DEVICE_IP}:${process.env.EXPO_PUBLIC_SERVER_PORT}/dispatch`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: postClerkId,
+            type: "Comments",
+            notification,
+            content: new_comment,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (!data.success) {
+        console.log(data.message!);
+      }
+
       return new Response(JSON.stringify({ data: insertedComment[0] }), {
         status: 201,
       });

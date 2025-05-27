@@ -120,6 +120,7 @@ export async function fetchNotificationsExternal(
     ];
 
     const allStoredNotifications = [...storedComments, ...storedPosts];
+
     // Process each notification and send push if needed.
     const processFetchedNotifications = async (notifications: any[]) => {
       //console.log("notifications", notifications);
@@ -141,7 +142,7 @@ export async function fetchNotificationsExternal(
             );
           }
         }
-        /*if (n.comments) {
+        if (n.comments) {
           for (const comment of n.comments) {
             await handleSendNotificationExternal(
               n,
@@ -150,7 +151,7 @@ export async function fetchNotificationsExternal(
               pushToken
             );
           }
-        }*/
+        }
         if (n.requests) {
           for (const request of n.requests) {
             await handleSendNotificationExternal(
@@ -333,7 +334,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const { pushToken } = useNotification();
 
   // In-app polling every 5 seconds
-  useEffect(() => {
+  /*useEffect(() => {
     if (user && pushToken) {
       // When user signs in, persist the necessary info for background tasks.
       AsyncStorage.setItem("userId", user.id);
@@ -346,22 +347,78 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       const interval = setInterval(fetchNotifications, 5000);
       return () => clearInterval(interval);
     }
-  }, [user, pushToken]);
+  }, [user, pushToken]);*/
 
   useEffect(() => {
     if (user && pushToken) {
-      const socket = io(`ws://${process.env.DEVICE_IP}:3000`, {
-        query: {
-          id: user.id,
-        },
+      AsyncStorage.setItem("userId", user.id);
+      AsyncStorage.setItem("pushToken", pushToken);
+
+      // initial fetching of all notifications while socket was off
+      fetchNotifications();
+      updateLastConnection();
+
+      const socket = io(
+        `ws://${process.env.EXPO_PUBLIC_DEVICE_IP}:${process.env.EXPO_PUBLIC_SERVER_PORT}`,
+        {
+          query: {
+            id: user.id,
+          },
+        }
+      );
+
+      socket.on("connect", () => {
+        console.log("✅ Socket connected!");
+      });
+
+      socket.on("connect_error", (err) => {
+        console.error("❌ Socket connection error:", err.message);
       });
 
       socket.on("notification", ({ type, notification, content }) => {
-        handleSendNotificationExternal(notification, content, type, pushToken);
-        // update notification state here...
+        if (notification && type && content) {
+          handleSendNotificationExternal(
+            notification,
+            content,
+            type,
+            pushToken
+          );
+
+          // updating notif state
+          setNotifications((prevNotfis) => [notification, ...prevNotfis]);
+          setStoredNotifications((prevStoredNotifs) => [
+            notification,
+            ...prevStoredNotifs,
+          ]);
+          incrementUnreadAmount(type);
+        } else {
+          throw new Error("Missing information to send info");
+        }
       });
+
+      return () => {
+        console.log("Disconnecting socket");
+        socket.disconnect();
+      };
     }
   }, [user, pushToken]);
+
+  const incrementUnreadAmount = (notificationType: string) => {
+    switch (notificationType) {
+      case "Comments":
+        setUnreadComments((prevCount) => prevCount + 1);
+        break;
+      case "Messages":
+        setUnreadMessages((prevCount) => prevCount + 1);
+        break;
+      case "Requests":
+        setUnreadRequests((prevCount) => prevCount + 1);
+        break;
+      case "Posts":
+        setUnreadPersonalPosts((prevCount) => prevCount + 1);
+        break;
+    }
+  };
 
   // In-app fetchNotifications function that uses the external function
   const fetchNotifications = async () => {

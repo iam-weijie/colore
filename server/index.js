@@ -1,10 +1,12 @@
+const dotenv = require("dotenv");
 const express = require("express");
 const { createServer } = require("node:http");
 const { Server } = require("socket.io");
 
+dotenv.config();
 const app = express();
 const server = createServer(app);
-const port = process.env.PORT || 3000;
+const port = process.env.EXPO_PUBLIC_SERVER_PORT || 3000;
 const io = new Server(server);
 app.use(express.json());
 
@@ -24,13 +26,14 @@ app.post("/dispatch", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("a connection was made");
   const userId = socket.handshake.query.id;
+  console.log(`${userId} made a connection`);
 
   if (userId) {
     connectedUsers.set(userId, socket);
 
     socket.on("disconnect", () => {
+      console.log(`${userId} connection being terminated`);
       connectedUsers.delete(userId);
     });
   }
