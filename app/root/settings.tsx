@@ -647,10 +647,10 @@ const DetailRow = ({ label, value, onPress, accentColor }) => (
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onPress}
-        className="px-3 py-2 rounded-full shadow-xs"
-        style={{ backgroundColor: "#fff" }}
+        className="px-3 py-2 rounded-full"
+        style={{ backgroundColor: accentColor }}
       >
-        <Text className="text-sm font-JakartaSemiBold" style={{ color: accentColor }}>Update</Text>
+        <Text className="text-sm font-JakartaSemiBold text-white">Update</Text>
       </TouchableOpacity>
     </View>
     <Text className="text-gray-800 text-[14px] font-JakartaMedium">
