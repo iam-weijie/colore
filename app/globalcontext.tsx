@@ -359,7 +359,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       updateLastConnection();
 
       const socket = io(
-        `ws://${process.env.EXPO_PUBLIC_DEVICE_IP}:${process.env.EXPO_PUBLIC_SERVER_PORT}`,
+        `wss://${process.env.EXPO_PUBLIC_SERVER_URL?.substring(8)}`,
         {
           query: {
             id: user.id,

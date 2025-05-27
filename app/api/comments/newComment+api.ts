@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       };
 
       const res = await fetch(
-        `http://${process.env.EXPO_PUBLIC_DEVICE_IP}:${process.env.EXPO_PUBLIC_SERVER_PORT}/dispatch`,
+        `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
