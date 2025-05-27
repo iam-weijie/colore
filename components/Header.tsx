@@ -52,7 +52,7 @@ const Header = ({
 
   return (
      <View 
-     className="flex-column justify-end items-start pt-16  bg-white z-10 rounded-b-[44px] overflow-hidden "
+     className="flex-column justify-end items-start pt-12  bg-white z-10 rounded-b-[44px] overflow-hidden "
      style={{
         boxShadow: '0 8px 24px rgba(180, 180, 180, 0.1)', // Custom shadow
       }}

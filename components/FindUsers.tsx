@@ -17,7 +17,12 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import ItemContainer from "@/components/ItemContainer";
 import { Ionicons } from "@expo/vector-icons";
 
-export const FindUser = ({ selectedUserInfo }) => {
+interface FindUserProps {
+  selectedUserInfo: (user: UserNicknamePair) => void;
+  inGivenList?: string[];
+}
+
+export const FindUser: React.FC<FindUserProps> = ({ selectedUserInfo, inGivenList }) => {
 const { user } = useUser();
 
 const [users, setUsers] = useState<UserNicknamePair[]>([]);
@@ -27,7 +32,6 @@ const [searchText, setSearchText] = useState<string>("");
 const [error, setError] = useState<string | null>(null);
 const [loading, setLoading] = useState<boolean>(false);
 
-console.log("Modal Showed")
 useEffect(() => {
   fetchUsers(); 
   fetchFriendList();
@@ -35,7 +39,7 @@ useEffect(() => {
 
   const fetchFriendList = async () => {
     const data = await fetchFriends(user!.id);
-    console.log("friend", data)
+   
     const friend = data.map((f) => [f.friend_id, f.friend_username])
     setFriendList(friend);
   };
@@ -44,15 +48,21 @@ const fetchUsers = async () => {
         setLoading(true);
         try {
           // //console.log("user: ", user!.id);
-          const response = await fetchAPI(`/api/chat/searchUsers?id=${user!.id}`, {
+          let response;
+          if (inGivenList) {
+            console.log("Searching withing given list")
+            response = await fetchAPI(`/api/chat/searchUsersInList?userId=${user!.id}&ids=${inGivenList}`, {
             method: "GET",
           });
+          } else {
+           response = await fetchAPI(`/api/chat/searchUsers?id=${user!.id}`, {
+            method: "GET",
+          });
+        }
           if (response.error) {
             throw new Error(response.error);
           }
-          //console.log("response: ", response.data);
           const nicknames = response.data;
-          //console.log("nicknames: ", nicknames);
           setUsers(nicknames);
           return;
         } catch (err) {
@@ -107,7 +117,6 @@ const fetchUsers = async () => {
             value={searchText}
             onChangeText={setSearchText}
             returnKeyType="search"
-            clearButtonMode="while-editing"
           />
           {searchText.length > 0 && (
             <TouchableOpacity 
@@ -127,9 +136,15 @@ const fetchUsers = async () => {
                                               <Text>{error}</Text>
                                             ) : (
                                               <FlatList
-                                              className={`mt-4 pb-4`}
+                                              className={`mt-4 pb-4 flex-1`}
                                               contentContainerStyle={{ paddingBottom: 80 }} 
-                                                data={filteredUsers.length > 0 ? filteredUsers : friendList}
+                                                data={
+                                                  filteredUsers.length > 0
+                                                    ? filteredUsers
+                                                    : inGivenList
+                                                      ? users
+                                                      : friendList
+                                                }
                                                 renderItem={renderUser}
                                                 keyExtractor={(item): string => String(item[0])}
                                                 showsVerticalScrollIndicator={false}

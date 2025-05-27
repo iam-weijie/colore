@@ -217,7 +217,7 @@ const Profile = () => {
        title={"Settings"} isVisible={isUserSettingsVisible} onClose={() => {
         setIsUserSettingsVisible(false);
        }} >
-        <View className="flex-1 items-center justify-center">
+        <View className="flex-1 items-center justify-center px-6">
           <ItemContainer
         label={nickname ? nickname : "Set a nickname"}
         caption={nickname ? `Change ${nickname}'s nickname`: "Nickname me!"}

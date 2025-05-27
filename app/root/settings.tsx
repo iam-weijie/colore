@@ -33,6 +33,7 @@ import Circle from "@/components/Circle";
 import ItemContainer from "@/components/ItemContainer";
 import ProgressBar from "@/components/ProgressBar";
 import EmojiSettings from "@/components/EmojiSettings";
+import { HeaderCard, DetailRow, ActionRow, ToggleRow } from "@/components/CardInfo";
 
 
 const Settings = () => {
@@ -359,37 +360,8 @@ const Settings = () => {
    className="flex-1 pt-6 bg-gray-50" 
    showsVerticalScrollIndicator={false}
    contentContainerStyle={{ paddingBottom: 90 }}>
-  {/* Header Card Component */}
-  <View className="mx-6 mb-6">
-    <HeaderCard 
-      title="Account" 
-      color="#93c5fd"
-      content={
-        <>
-          <DetailRow 
-            label="Username" 
-            value={username} 
-            onPress={() => handleUpdateValue("username")}
-            accentColor="#93c5fd"
-          />
-          <DetailRow 
-            label="Email" 
-            value={email} 
-            onPress={() => handleUpdateValue("email")}
-            accentColor="#93c5fd"
-          />
-          <DetailRow 
-            label="Location" 
-            value={currentLocation} 
-            onPress={handleLocationUpdate}
-            accentColor="#93c5fd"
-          />
-        </>
-      }
-    />
-  </View>
 
-  {/* Color Section */}
+     {/* Color Section */}
   <View className="mx-6 mb-6">
     <HeaderCard 
       title="Colors" 
@@ -458,6 +430,37 @@ const Settings = () => {
       }
     />
   </View>
+
+  {/* Header Card Component */}
+  <View className="mx-6 mb-6">
+    <HeaderCard 
+      title="Information" 
+      color="#93c5fd"
+      content={
+        <>
+          <DetailRow 
+            label="Username" 
+            value={username} 
+            onPress={() => handleUpdateValue("username")}
+            accentColor="#93c5fd"
+          />
+          <DetailRow 
+            label="Email" 
+            value={email} 
+            onPress={() => handleUpdateValue("email")}
+            accentColor="#93c5fd"
+          />
+          <DetailRow 
+            label="Location" 
+            value={currentLocation} 
+            onPress={handleLocationUpdate}
+            accentColor="#93c5fd"
+          />
+        </>
+      }
+    />
+  </View>
+
 
   {/* Activity Section */}
   <View className="mx-6 mb-6">
@@ -605,94 +608,6 @@ const Settings = () => {
   </ModalSheet>}
 </ScrollView>)
 };
-
-
-// Reusable Components
-const HeaderCard = ({ title, color, content }) => (
-  <View className="rounded-[48px] py-3"
-    style={{
-      backgroundColor: "#ffffff",
-      borderColor: "#fafafa80",
-      shadowColor: "#63636388",
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.1,
-      shadowRadius: 5,
-    }}>
-    <View 
-      className="px-4 py-2 rounded-[48px] w-[70%] ml-5 overflow-hidden shadow-sm border-2" 
-      style={{
-        backgroundColor: color,
-        borderColor: "#ffffff80",
-        shadowColor: "#636363",
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-      }}
-    >
-      <View className="px-5 py-2">
-        <Text className={`text-[18px] font-JakartaSemiBold ${color === "#FAFAFA" ? "text-black" : "text-white"}`}>{title}</Text>
-      </View>
-    </View>
-    
-    <View className="px-4 pb-4 rounded-[48px] overflow-hidden shadow-sm">
-      {content}
-    </View>
-  </View>
-);
-
-const DetailRow = ({ label, value, onPress, accentColor }) => (
-  <View className="px-5 py-3  last:border-b-0">
-    <View className="flex flex-row items-center justify-between mb-1">
-      <Text className="text-[16px] font-JakartaSemiBold text-gray-800">{label}</Text>
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={onPress}
-        className="px-3 py-2 rounded-full"
-        style={{ backgroundColor: accentColor }}
-      >
-        <Text className="text-sm font-JakartaSemiBold text-white">Update</Text>
-      </TouchableOpacity>
-    </View>
-    <Text className="text-gray-800 text-[14px] font-JakartaMedium">
-      {value || "Not specified"}
-    </Text>
-  </View>
-);
-
-const ActionRow = ({ icon, label, count, onPress, accentColor }) => (
-  <TouchableOpacity
-    activeOpacity={0.7}
-    onPress={onPress}
-    className="px-5 py-4 flex flex-row items-center justify-between "
-  >
-    <View className="flex flex-row items-center">
-      <View className="p-2 rounded-xl mr-3" style={{ backgroundColor: "#fafafa" }}>
-        {icon}
-      </View>
-      <Text className="text-[14px] font-JakartaSemiBold text-gray-800">{label}</Text>
-    </View>
-    <View className="flex flex-row items-center">
-      <Text className="text-gray-600 text-sm mr-2">{count}</Text>
-      <MaterialCommunityIcons name="chevron-right" size={20} color="#9ca3af" />
-    </View>
-  </TouchableOpacity>
-);
-
-const ToggleRow = ({ label, description, value, onValueChange, accentColor }) => (
-  <View className="px-5 py-3 flex flex-row items-center justify-between last:border-b-0">
-    <View className="flex-1">
-      <Text className="text-[16px] font-JakartaSemiBold text-gray-800 mb-1">{label}</Text>
-      <Text className="text-[14px] text-gray-800">{description}</Text>
-    </View>
-    <Switch
-      trackColor={{ false: "#fafafa", true: accentColor }}
-      thumbColor={value ? "#ffffff" : "#f4f3f4"}
-      ios_backgroundColor="#E5E7EB"
-      onValueChange={onValueChange}
-      value={value}
-    />
-  </View>
-);
 
 
 export default Settings;
