@@ -130,6 +130,7 @@ declare interface UserProfileType {
   report_count: number;
   saved_posts: string[];
   shorthand_emojis?: string[];
+  colors: PostItColor[];
 }
 
 declare interface UserData {

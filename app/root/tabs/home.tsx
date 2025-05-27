@@ -49,14 +49,15 @@ import { useSoundEffects } from "@/hooks/useSoundEffects";
 export default function Page() {
  const { playSoundEffect } = useSoundEffects()
 
+
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
-  const { isIpad, unreadComments, unreadPersonalPosts } = useGlobalContext();
+  const { isIpad, unreadComments, unreadPersonalPosts, profile } = useGlobalContext();
   const [action, setAction] = useState(ActionType.NONE);
   const { showAlert } = useAlert();
   const [geographicalMode, setGeographicalMode] =
     useState<GeographicalMode>("world");
-  const [userInfo, setUserInfo] = useState(null);
+  const userInfo = profile;
   const [selectedModal, setSelectedModal] = useState<Function | null>(null);
   const [activeModalTitle, setActiveModalTitle] = useState<string>("");
 
@@ -71,7 +72,6 @@ export default function Page() {
 
   useEffect(() => {
     requestPermission();
-    fetchUserData();
   }, []);
 
   const screenHeight = Dimensions.get("screen").height;
@@ -99,22 +99,6 @@ export default function Page() {
         top: top,
         left: left,
       };
-    }
-  };
-  const fetchUserData = async () => {
-    try {
-      const userPosts = await fetchAPI(
-        `/api/users/getUserInfoPosts?id=${user!.id}`
-      );
-      console.log("user posts: ", userPosts.posts.length);
-      const userInfo = userPosts.userInfo;
-      setUserInfo(userInfo);
-      if (userPosts.posts.length > 0) {
-        getAction(userPosts.posts[0]);
-      }
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-      setError("Failed to load profile");
     }
   };
 
@@ -153,20 +137,6 @@ export default function Page() {
     }
   };
 
-  const getAction = (lastPost: Post) => {
-    if (lastPost) {
-      const lastConnection = lastPost.created_at;
-      const daysDifference =
-        (Date.now() - new Date(lastConnection).getTime()) /
-        (1000 * 60 * 60 * 24);
-
-      if (daysDifference > 1.5) {
-        setAction(ActionType.TIPS);
-      }
-    } else {
-      setAction(ActionType.TIPS);
-    }
-  };
 
   const getCountryFlag = (country: string) => {
     if (country) {
@@ -318,8 +288,8 @@ export default function Page() {
           handleNewPostFetch={fetchNewPost}
           allowStacking={true}
           mode={geographicalMode}
-          randomPostion={true}
-        />
+          randomPostion={true} 
+          handleUpdatePin={() => {}}        />
         {/* <Action 
         friendName={""}
          action={action} 

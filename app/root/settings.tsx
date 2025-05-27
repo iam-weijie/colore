@@ -32,6 +32,7 @@ import CustomButton from "@/components/CustomButton";
 import Circle from "@/components/Circle";
 import ItemContainer from "@/components/ItemContainer";
 import ProgressBar from "@/components/ProgressBar";
+import EmojiSettings from "@/components/EmojiSettings";
 
 
 const Settings = () => {
@@ -42,7 +43,8 @@ const Settings = () => {
     soundEffectsEnabled,
     setSoundEffectsEnabled,
     profile,
-    setProfile
+    setProfile,
+    userColors
   } = useGlobalContext();
   const { playSoundEffect } = useSoundEffects(); // Use the sound hook
   const { showAlert } = useAlert();
@@ -60,7 +62,7 @@ const Settings = () => {
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
   const [libraryVisible, setLibraryVisible] = useState(false);
-  const [colorLibrary, setColorLibrary] = useState<PostItColor[]>([]);
+  const [colorLibrary, setColorLibrary] = useState<PostItColor[]>(userColors || temporaryColors);
   const blueProgress = Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20);
   const yellowProgress = Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20);
   const pinkProgress = Math.min(
@@ -150,7 +152,6 @@ const Settings = () => {
 
   useEffect(() => {
     fetchLikedPosts();
-    setColorLibrary(temporaryColors);
   }, []);
 
   const verifyValidUsername = (username: string): boolean => {
@@ -491,7 +492,6 @@ const Settings = () => {
             count={0} // Placeholder for future implementation
             onPress={() => {
               playSoundEffect(SoundType.Navigation);
-              Haptics.selectionAsync();
               setSelectedTitle("Customize Emojis");
               setSelectedModal(
                 <EmojiSettings

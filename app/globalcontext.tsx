@@ -14,9 +14,11 @@ import { BackgroundFetchResult } from "expo-background-fetch"; // Import the Res
 import * as TaskManager from "expo-task-manager";
 import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
-import { Stacks, Post, UserProfileType } from "@/types/type";
+import { Stacks, Post, UserProfileType, PostItColor } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from "@/notifications/NotificationContext";
+import { set } from "date-fns";
+import { temporaryColors } from "@/constants";
 
 // ===== Types & Constants =====
 type GlobalContextType = {
@@ -24,6 +26,8 @@ type GlobalContextType = {
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
   profile: UserProfileType;
   setProfile: React.Dispatch<React.SetStateAction<UserProfileType>>;
+  userColors: PostItColor[];
+  setUserColors: React.Dispatch<React.SetStateAction<PostItColor[]>>;
   draftPost: Post;
   setDraftPost:  React.Dispatch<React.SetStateAction<Post | null>>; 
   notifications: any[];
@@ -300,6 +304,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     formatting: [], // Add a default value for formatting
   });
   const [profile, setProfile] = useState<UserProfileType>();
+  const [userColors, setUserColors] = useState<PostItColor[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [storedNotifications, setStoredNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
@@ -348,6 +353,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           }
           const userData = response.data[0];
           setProfile(userData);
+          setUserColors(userData.colors || temporaryColors);
+          console.log("userData", userData)
           setLastConnection(new Date(userData.last_connection));
         } catch (error) {
           console.error("Failed to fetch user profile:", error);
@@ -491,6 +498,8 @@ const sendTokenDB = async (token) => {
         draftPost,
         profile,
         setProfile,
+        userColors,
+        setUserColors,
         setDraftPost,
         notifications,
         storedNotifications,

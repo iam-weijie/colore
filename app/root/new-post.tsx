@@ -49,6 +49,7 @@ import CalendarView from "@/components/CalendarView";
 import { format, isAfter } from "date-fns";
 import { stripMarkdown } from "@/components/RichTextInput";
 import { FindUser } from "@/components/FindUsers";
+import CustomButton from "@/components/CustomButton";
 
 
 
@@ -398,7 +399,7 @@ const resetDraftPost = () => {
       },
           },
           {
-            icon: selectedTab == "customize" ? icons.send : icons.close,
+            icon: selectedTab == "customize" ? icons.send : icons.eraser,
             label: "New Post",
             onPress: async () => {
               playSoundEffect(SoundType.Navigation)
@@ -622,17 +623,16 @@ return (
             </View>
         )}
         </View>
-      {selectedSetting && <View className="flex items-center w-full">
-                    <TouchableOpacity
-                      onPress={() => {
-                        setSelectedSetting("");
-                      }}
-                      className="w-full h-12  rounded-[16px] flex-row items-center justify-center"  
-                    > 
-                      <Text className="text-[16px] font-JakartaSemiBold font-medium text-black">
-                        Back
-                      </Text>
-                    </TouchableOpacity>
+      {selectedSetting && <View className="flex items-center w-full mb-4">
+                     <CustomButton
+          className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+          fontSize="lg"
+          title="Close"
+          padding="0"
+          onPress={() => {
+            setSelectedSetting("");
+          }}
+        />
                     </View>}
       </ModalSheet>
   )
