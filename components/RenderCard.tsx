@@ -199,6 +199,7 @@ export const RenderCreateCard = ({
           onPress={() => {
             handleOptionSubmit();
           }}
+          disabled={false}
         />
       </View>
 

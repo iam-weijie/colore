@@ -242,7 +242,7 @@ export default function Page() {
                 <TouchableOpacity
                   onPress={() => {
                     setSelectedModal(() => (
-                      <View>
+                      <View className="flex-1 px-6"> 
                         <ItemContainer
                           label={"World"}
                           caption={"See notes from around the world!"}

@@ -26,7 +26,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState, useRef } from "react";
 
 import { icons } from "@/constants/index";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import {
   Alert,
   Dimensions,
@@ -600,12 +600,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   // console.log(conversations);
   // console.log("firends", friendList, "\n\nSent", allFriendRequests?.sent, "\n\nReceived", allFriendRequests?.received);
 
+  const handleClearSearch = () => {
+    setSearchText("");
+    Keyboard.dismiss();
+  };
   return (
     <TouchableWithoutFeedback
     className="flex-1"
     onPress={() => Keyboard.dismiss()}
     onPressIn={() => Keyboard.dismiss()}>
-      <View className="flex-1">
+      <View className="flex-1 px-6">
 
           
             <View className="w-full flex-row items-start justify-between ">
@@ -643,15 +647,29 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 
           {selectedTab == "Find" && 
           <View>
-            <View className="flex-grow mt-4 mx-4">
-                            <TextInput
-                              className="w-full h-12 px-3 -pt-1 bg-[#F1F1F1] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-                              placeholder="Search users..."
-                              placeholderTextColor="#888"
-                              value={searchText}
-                              onChangeText={(text): void => setSearchText(text)}
-                            />
-                          </View>
+           <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 mx-6 mt-4 "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 pl-2 text-md "
+            placeholder="Search emojis..."
+             placeholderTextColor="#9CA3AF"
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
                           {loading ? (
                                         <View className="flex-1 items-center justify-center">
                                         <ColoreActivityIndicator text="Summoning Bob..." />
@@ -674,14 +692,29 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>}
           {selectedTab == "Friends" && (
             <View className="flex-1">
-              <View className="flex flex-row items-center w-[90%] mx-auto ">
-              <TextInput
-                className="w-full h-12 px-3 -pt-1 rounded-[16px] bg-[#F1F1F1] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Search friend..."
-                value={searchText}
-                onChangeText={(text): void => setSearchText(text)}
-              />
-            </View>
+           <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 mx-6 mt-4 "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 pl-2 text-md "
+            placeholder="Search emojis..."
+             placeholderTextColor="#9CA3AF"
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
             <FlatList
               className="rounded-[16px] mt-3"
               
@@ -893,7 +926,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
 
 
   return (
-      <View className="flex-1 max-h-[450px]">
+      <View className="flex-1 max-h-[450px] px-6">
 
           
             <View className="flex-row items-start justify-between mx-2">

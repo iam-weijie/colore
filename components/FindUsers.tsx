@@ -92,7 +92,7 @@ const fetchUsers = async () => {
         setSearchText("");
       };
     return (
-       <View className="flex-1 bg-white">
+       <View className="flex-1 ">
                   <View className="flex-1 mt-4 mx-4">
                                 <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 "
         style={{
