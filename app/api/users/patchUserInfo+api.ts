@@ -8,8 +8,16 @@ import { neon } from "@neondatabase/serverless";
 export async function PATCH(request: Request) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const { clerkId, country, state, city, username, nickname, email } =
-      await request.json();
+    const {
+      clerkId,
+      country,
+      state,
+      city,
+      username,
+      nickname,
+      incognito_name,
+      email,
+    } = await request.json();
 
     if (!clerkId) {
       return Response.json(
@@ -35,7 +43,31 @@ export async function PATCH(request: Request) {
             instructions:
               "Run this SQL in your database: ALTER TABLE users ADD COLUMN nickname VARCHAR(255) DEFAULT NULL;",
             sqlFile:
-              "See scripts/add-nickname-column.sql for the complete migration script",
+              "See scripts/add-friend-system-columns.sql for the complete migration script",
+          },
+          { status: 503 }
+        );
+      }
+    }
+
+    // If the user wants to update their incognito name first check if nickname column exists
+    if (incognito_name !== undefined) {
+      const columnExists = await sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'users'
+      AND column_name = 'incognito_name'
+      `;
+
+      if (columnExists.length === 0) {
+        return Response.json(
+          {
+            error:
+              "Database column missing. Please add the incognito_name column to your users table.",
+            instructions:
+              "Run this SQL in your database: ALTER TABLE users ADD COLUMN incognito_name VARCHAR(255) DEFAULT NULL;",
+            sqlFile:
+              "See scripts/add-friend-system-columns.sql for the complete migration script",
           },
           { status: 503 }
         );
@@ -56,6 +88,13 @@ export async function PATCH(request: Request) {
       response = await sql`
         UPDATE users
         SET nickname = ${nickname}
+        WHERE clerk_id = ${clerkId}
+        RETURNING *
+      `;
+    } else if (incognito_name !== undefined) {
+      response = await sql`
+        UPDATE users
+        SET incognito_name = ${incognito_name}
         WHERE clerk_id = ${clerkId}
         RETURNING *
       `;

@@ -51,6 +51,9 @@ const Settings = () => {
   const { user } = useUser();
   const [username, setUsername] = useState(profile?.username || "");
   const [nickname, setNickname] = useState(profile?.nickname || "");
+  const [incognitoName, setIncognitoName] = useState(
+    profile?.incognito_name || ""
+  );
   const [email, setEmail] = useState(profile?.email || "");
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
@@ -269,6 +272,53 @@ const Settings = () => {
     }
   };
 
+  const handleIncognitoNameUpdate = async (newName: string) => {
+    console.log("New Incognito Name: ", newName);
+    if (!verifyValidName(newName)) {
+      showAlert({
+        title: "Invalid Incognito Name",
+        message: `Incognito Name can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetchAPI("/api/users/patchUserInfo", {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user!.id,
+          incognito_name: newName,
+        }),
+      });
+
+      //console.log("Changed Incognito Name", response)
+      if (response.error) {
+        throw new Error(response.error);
+      } else {
+        showAlert({
+          title: "New Incognito Name",
+          message: `Incognito Name updated successfully to ${newName}.`,
+          type: "UPDATE",
+          status: "success",
+        });
+        await fetchUserData();
+      }
+    } catch (error) {
+      console.error("Failed to update incognito name:", error);
+      showAlert({
+        title: "Error",
+        message: `Failed to update incognito name. Please try again.`,
+        type: "ERROR",
+        status: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const verifyValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -359,7 +409,7 @@ const Settings = () => {
 
   const handleUpdateValue = (type: string) => {
     setSelectedTitle(
-      `${type == "username" ? "New username" : type == "nickname" ? "New nickname" : "New Email"}`
+      `${type === "username" ? "New username" : type === "nickname" ? "New nickname" : type === "incognito_name" ? "New incognito name" : "New Email"}`
     );
     setSelectedModal(
       <RenameContainer
@@ -369,6 +419,8 @@ const Settings = () => {
             handleUsernameUpdate(newName);
           } else if (type === "nickname") {
             handleNicknameUpdate(newName);
+          } else if (type === "incognito_name") {
+            handleIncognitoNameUpdate(newName);
           } else {
             handleEmailUpdate(newName);
           }
@@ -385,9 +437,17 @@ const Settings = () => {
             ? username
             : type === "nickname"
               ? nickname
-              : email
+              : type === "incognito_name"
+                ? incognitoName
+                : email
         }
-        maxCharacters={type === "username" || type === "nickname" ? 20 : 50}
+        maxCharacters={
+          type === "username" ||
+          type === "nickname" ||
+          type === "incognito_name"
+            ? 20
+            : 50
+        }
       />
     );
   };
@@ -439,6 +499,12 @@ const Settings = () => {
                 label="Nickname"
                 value={nickname}
                 onPress={() => handleUpdateValue("nickname")}
+                accentColor="#93c5fd"
+              />
+              <DetailRow
+                label="Incognito Name"
+                value={incognitoName}
+                onPress={() => handleUpdateValue("incognito_name")}
                 accentColor="#93c5fd"
               />
               <DetailRow

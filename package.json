@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
-    "migrate:emoji": "node scripts/add-emoji-column.js"
+    "migrate:emoji": "node scripts/add-emoji-column.js",
+    "migrate:friend-system": "node scripts/add-friend-system-columns.js"
   },
   "jest": {
     "preset": "jest-expo"

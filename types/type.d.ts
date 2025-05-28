@@ -122,6 +122,7 @@ declare interface UserProfileType {
   lastname: string;
   username: string;
   nickname: string;
+  incognito_name: string;
   email: string;
   date_of_birth: string;
   city: string;
