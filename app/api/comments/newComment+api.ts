@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       // Dispatching notification to user
       const [post, comment, commenter, postOwner] = await Promise.all([
         sql`
-          SELECT id, content, created_at, user_id, like_count, report_count, unread_comments, color
+          SELECT id, content, created_at, user_id, like_count, report_count, unread_comments, color, post_type, board_id
           FROM posts
           WHERE id = ${postId};
         `,
