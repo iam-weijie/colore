@@ -1,5 +1,4 @@
-import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
-import React, { useEffect } from "react";
+import React from "react";
 import { Animated, View, Text } from "react-native";
 
 interface TabIconProps {
@@ -13,8 +12,6 @@ interface TabIconProps {
 }
 
 const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label, isCenter = false, nativeIcon = true }) => {
-  
-
   return (
     <View className="flex-1 flex flex-col items-center justify-center">
       <View

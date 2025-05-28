@@ -46,8 +46,6 @@ import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import TabsContainer from "./TabsContainer";
 import { fetchCountryEmoji } from "@/lib/post";
 import Header from "./Header";
-import { set } from "date-fns";
-import { Ionicons } from "@expo/vector-icons";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View 
@@ -76,22 +74,23 @@ const PostGallerySkeleton = () => (
 
 
 
-const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
   const router = useRouter();
-  const { isIpad, profile, unreadComments } = useGlobalContext(); 
+  const { isIpad } = useGlobalContext(); 
   const { showAlert } = useAlert();
 
-   const isEditable = user!.id === userId;
 
+  const [nickname, setNickname] = useState<string>("");
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
   const [emojiLoading, setEmojiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [profileUser, setProfileUser] = useState<UserProfileType | null>(isEditable ? profile : null);
+  const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [countryEmoji, setCountryEmoji] = useState<string>("");
   const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [unreadComments, setUnreadComments] = useState<number>(0);
   const { stateVars, setStateVars } = useNavigationContext();
 
   const [myBoards, setMyBoards] = useState<any>();
@@ -113,8 +112,34 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
   const [personalPosts, setPersonalPosts] = useState<Post[]>([]);
   const [disableInteractions, setDisableInteractions] = useState<boolean>(false);
 
- 
+  const isEditable = user!.id === userId;
 
+
+  function findUserNickname(
+    userArray: UserNicknamePair[],
+    userId: string
+  ): number {
+    const index = userArray.findIndex((pair) => pair[0] === userId);
+    return index;
+  }
+
+  const fetchCurrentNickname = async () => {
+    try {
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
+        //Fetch User Color Collected
+        method: "GET",
+      });
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      const nicknames = response.data[0].nicknames || [];
+      return findUserNickname(nicknames, userId) === -1
+        ? ""
+        : nicknames[findUserNickname(nicknames, userId)][1];
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    }
+  };
   const fetchFriendCount = async () => {
     if (user!.id === userId) {
       const data = await fetchFriends(user!.id);
@@ -122,34 +147,36 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
     }
   };
 
-      const getEmoji = async () => { 
-            // Fetch country emoji
-      if (!profile || !profile.country || !profileUser) return;
-      setEmojiLoading(true)
-      const flagEmoji = await fetchCountryEmoji(profileUser.country);
-      console.log("country emoji", flagEmoji)
-      setCountryEmoji(() => flagEmoji)
-      setEmojiLoading(false)
-      }
+
 
   // Add useFocusEffect to reload data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       // Reload user data when screen is focused (e.g., after location change)
-      if (!profile) {
-        fetchUserData();
-      }
-      
-      fetchUserPosts();
+      fetchUserData();
       fetchPersonalBoards();
       fetchCommunityBoards();
       fetchPersonalPosts();
-
+      // Reload nickname data
+      const getData = async () => {
+        const data = await fetchCurrentNickname();
+        setNickname(data);
+      };
+      getData();
+      
       return () => {
         // Cleanup if needed
       };
     }, [userId, stateVars])
   );
+
+  useEffect(() => {
+    const getData = async () => {
+      const data = await fetchCurrentNickname();
+      setNickname(data);
+    };
+    getData();
+  }, [stateVars]);
 
   useEffect(() => {
       const getFriendStatus = async () => {
@@ -160,7 +187,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
           setFriendStatus(status);
         }
       };
-
       getFriendStatus();
       fetchFriendCount();
     }, []);
@@ -168,25 +194,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
   const fetchUserData = async () => {
     setLoading(true);
     setError(null);
-    try {
-
-      const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
-        method: "GET",
-      });
-
-      const userInfo = response.data[0] as UserProfileType;
-      setProfileUser(userInfo);
-      
-      setLoading(false);
-    } catch (error) {
-      setError("Failed to fetch user data.");
-      console.error("Failed to fetch user data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUserPosts = async () => {
     try {
       const response = await fetchAPI(
         `/api/posts/getUserPosts?id=${userId}`,
@@ -197,12 +204,26 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
       if (response.error) {
         throw new Error(response.error);
       }
-      const { posts } = response;
+      const { userInfo, posts } = response as UserData;
+      const unread_comments = posts.reduce((acc, post) => acc + (post.unread_comments ?? 0), 0);
+      setUnreadComments(unread_comments);
+      setProfileUser(userInfo);
       setUserPosts(posts);
+
+
+      // Fetch country emoji
+      setEmojiLoading(true)
+      const flagEmoji = await fetchCountryEmoji(userInfo.country);
+      console.log("country emoji", flagEmoji)
+      setCountryEmoji(() => flagEmoji)
+      setEmojiLoading(false)
+    } catch (error) {
+      setError("Failed to fetch user data.");
+      console.error("Failed to fetch user data:", error);
+    } finally {
+      setLoading(false);
     }
-    catch (error) {
-      console.error("Failed to fetch user posts:", error);}
-  }
+  };
 
   const post = {
     id: -1,
@@ -286,7 +307,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
   const fetchCommunityBoards = async () => {
       try {
         setLoading(true)
-        const response = await fetchAPI(`/api/boards/getCommunityBoards?userId=${userId}`,
+        const response = await fetchAPI(`/api/boards/getCommunityBoards?user_id=${userId}`,
             {
               method: "GET",
             }
@@ -398,9 +419,6 @@ const handleTabChange = (tabKey: string) => {
   setSelectedTab(tabKey);
 };
 
-const handleClearSearch = () => {
-  setQuery("");
-};
   return (
     <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
 
@@ -454,8 +472,137 @@ const handleClearSearch = () => {
               </Text>
               </View>
           </View>) :
-          (<>
-          {/* PLACEHOLDER FOR COLOR COUNT */}</>)}
+          (<TouchableOpacity
+          onPress={async () => {
+            if (user!.id === userId) {
+              //router.push("/root/chat/chat-screen");
+            }
+            if (
+              (user!.id !== userId && friendStatus.name === "unknown") ||
+              friendStatus.name === "none"
+            ) {
+              handleSendFriendRequest();
+            }
+            if (user!.id !== userId && friendStatus.name === "received") {
+              setIsHandlingFriendRequest(true);
+              const response = await acceptFriendRequest(
+                profileUser!.clerk_id,
+                user!.id
+              );
+              if (response === FriendStatus.FRIENDS) {
+                showAlert({
+                  title: 'New friend!',
+                  message: "You have accepted this friend request.",
+                  type: 'FRIEND_REQUEST',
+                  status: 'success',
+                });
+              } else {
+                showAlert({
+                  title: 'Error',
+                  message: `Error accepting this friend request.`,
+                  type: 'ERROR',
+                  status: 'error',
+                });
+              }
+              setFriendStatus(response);
+              setIsHandlingFriendRequest(false);
+            }
+            if (user!.id !== userId && friendStatus.name === "sent") {
+              setIsHandlingFriendRequest(true);
+              const response: FriendStatusType =
+                await cancelFriendRequest(user!.id, userId);
+              if (response === FriendStatus.NONE) {
+                showAlert({
+                  title: 'Cancelled',
+                  message: "Friend request cancelled.",
+                  type: 'UPDATE',
+                  status: 'success',
+                });
+              } else {
+                showAlert({
+                  title: 'Error',
+                  message: `Error cancelling this friend request.`,
+                  type: 'ERROR',
+                  status: 'error',
+                });
+              }
+              setFriendStatus(response);
+              setIsHandlingFriendRequest(false);
+            }
+            if (user!.id !== userId && friendStatus.name === "friends") {
+              router.push({  
+                pathname: "/root/new-post",
+                params: {
+                  recipient_id: userId,
+                  username: profileUser?.username,
+                  source: "board"
+                },
+            })
+            }
+          }}
+          className="items-center justify-between px-4"
+          style={{
+            backgroundColor: user!.id === userId ? "#93c5fd" : "#000000",
+            justifyContent:
+              user!.id === userId ? "space-between" : "center",
+            padding: user!.id === userId ? 20 : 5,
+            height: 40,
+            borderRadius: user!.id === userId
+                ? 24
+                : 16,
+          }}
+        >
+
+         
+          {user!.id === userId && (
+            <View>
+              <Text className="text-white font-JakartaBold text-sm">
+                Friends
+              </Text>
+            </View>
+          )}
+          {user!.id !== userId && friendStatus.name === "unknown" && (
+            <View>
+              <Text className="text-white font-JakartaBold text-sm">
+                Add friend
+              </Text>
+            </View>
+          )}
+          {user!.id !== userId &&
+            friendStatus.name !== "friends" &&
+            friendStatus.name === "none" && (
+              <View>
+                <Text className="text-white font-JakartaBold text-sm">
+                  Add friend
+                </Text>
+              </View>
+            )}
+          {user!.id !== userId &&
+            friendStatus.name !== "friends" &&
+            friendStatus.name === "sent" && (
+              <View>
+                <Text className="text-white font-JakartaBold text-sm">
+                  Cancel request
+                </Text>
+              </View>
+            )}
+          {user!.id !== userId &&
+            friendStatus.name !== "friends" &&
+            friendStatus.name === "received" && (
+              <View>
+                <Text className="text-white font-JakartaBold text-sm">
+                  Accept request
+                </Text>
+              </View>
+            )}
+          {user!.id !== userId && friendStatus.name === "friends" && (
+            <View>
+              <Text className="text-white font-JakartaBold text-sm">
+                Message
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>)}
         </View>
         }
         tabs={isEditable ? myTabs : userTabs}
@@ -478,42 +625,24 @@ const handleClearSearch = () => {
               )}
             </View>}
 
-            {selectedTab === "Posts" && <View className="flex-1 w-full bg-[#FAFAFA] pb-24">
-                   
-            <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 mx-6 mt-4 "
-        style={{
-          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
-        }}
-        >
-          <Ionicons name="search" size={20} color="#9ca3af" />
-          <TextInput
-            className="flex-1 pl-2 text-md "
-            placeholder="Search emojis..."
-             placeholderTextColor="#9CA3AF"
-            value={query}
-            onChangeText={setQuery}
-            returnKeyType="search"
-          />
-          {query.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearSearch}
-              className="w-6 h-6 items-center justify-center"
-            >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
-        </View>
+            {selectedTab === "Posts" && <View className="flex-1 bg-[#FAFAFA] pb-24">
+              <View className="items-center mx-6">
+              <TextInput
+                className=" w-full h-12 px-5 rounded-[16px] bg-[#F1F1F1] mt-6"
+                placeholder="Search"
+                onChangeText={setQuery}
+                value={query}
+              />
+              </View>
               {loading ? (
                   <PostGallerySkeleton />
                 ) : (
-                  <View className="flex-1 w-full px-6">
                   <PostGallery
                     posts={userPosts}
                     profileUserId={user!.id}
                     handleUpdate={fetchUserData}
                     query={query}
                   />
-                  </View>
                 )}
             </View>}
 

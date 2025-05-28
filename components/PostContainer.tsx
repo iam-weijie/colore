@@ -16,7 +16,6 @@ import {
   PostContainerProps,
   UserNicknamePair,
   PostWithPosition,
-  Format
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from '@react-navigation/native';
@@ -69,7 +68,6 @@ import EmojiExplosionModal from "./EmojiExplosiveModal";
 import PostScreen from "@/app/root/post/[id]";
 import ItemContainer from "./ItemContainer";
 import EmojiBackground from "./EmojiBackground";
-import { RichText } from "./RichTextInput";
 
 
 const { width, height } = Dimensions.get("window");
@@ -84,12 +82,11 @@ const PostContainer: React.FC<PostContainerProps> = ({
   handleUpdate,
   invertedColors = false,
   infiniteScroll = false,
-  staticEmoji = false,
   isPreview = false,
   header,
   scrollToLoad,
 }) => {
-  const { stacks, isIpad, soundEffectsEnabled, draftPost } = useGlobalContext(); // Add soundEffectsEnabled
+  const { stacks, isIpad, soundEffectsEnabled } = useGlobalContext(); // Add soundEffectsEnabled
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
@@ -551,19 +548,20 @@ const PostContainer: React.FC<PostContainerProps> = ({
   };
 
   const backgroundColor = useSharedValue(postColor?.hex || "rgba(0, 0, 0, 0.5)");
-  const prevColor = useRef<string>(postColor?.hex || "rgba(0, 0, 0, 0.5)");
-
+  const prevColor = React.useRef(backgroundColor.value);
 
   // Animate color change
   useEffect(() => {
-   const newColor = postColor?.hex || "rgba(0, 0, 0, 0.5)";
-  if (prevColor.current !== newColor) {
-    backgroundColor.value = withTiming(newColor, {
-      duration: 300,
-      easing: Easing.inOut(Easing.quad),
-    });
-    prevColor.current = newColor;
-  }
+    if (prevColor.current !== (postColor?.hex || "rgba(0, 0, 0, 0.5)")) {
+      backgroundColor.value = withTiming(
+        postColor?.hex || "rgba(0, 0, 0, 0.5)",
+        {
+          duration: 300,
+          easing: Easing.inOut(Easing.quad)
+        }
+      );
+      prevColor.current = postColor?.hex || "rgba(0, 0, 0, 0.5)";
+    }
   }, [postColor]);
 
 
@@ -595,13 +593,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
   );
 
 
-const cleanFormatting: Format[] = isPreview
-                    ? draftPost?.formatting ?? []
-                    : typeof currentPost?.formatting === "string"
-                        ? JSON.parse(currentPost.formatting)
-                        : (currentPost?.formatting ?? []);
-
-                    console.log("cleanFormatting", cleanFormatting)
   return (
 
         <AnimatedView
@@ -612,27 +603,29 @@ const cleanFormatting: Format[] = isPreview
             animatedBackgroundStyle
           ]}
         >
-          <TouchableWithoutFeedback onPress={() => handleCloseModal()}>
-            <View className="absolute flex-1 top-0 -ml-3">
-            {<EmojiBackground emoji={staticEmoji ? selectedEmoji : ""} color="" />}
+          <TouchableWithoutFeedback onPress={handleCloseModal}>
+            <View className="absolute flex-1 ">
+            {<EmojiBackground emoji="" color="" />}
             </View>
           
           </TouchableWithoutFeedback>
 
           {header}
-          {currentPost?.prompt && !isPreview &&  <Animated.View 
+          {currentPost?.prompt &&  <Animated.View 
           className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center"
           entering={FadeInUp.duration(200)}
           exiting={FadeOutDown.duration(200)}>
             <View 
             className="w-[75%] max-w-[300px]"
+            style={{
+              transform: [{rotate: `${(Math.random() - 0.5)*10}deg` }]
+            }}
             >
              <ItemContainer 
              label={currentPost?.prompt}
              icon={icons.fire}
              colors={[currentPost?.color, "#FFB512"]}
              iconColor="#000"
-             isPrompt
              onPress={() => {
               router.push({
                 pathname: "/root/new-post",
@@ -669,7 +662,9 @@ const cleanFormatting: Format[] = isPreview
                 </TouchableOpacity>
 
                 <ScrollView>
-                  <RichText formatStyling={cleanFormatting} content={currentPost?.content ?? ""} />
+                  <Text className="text-[16px] p-1 my-4 font-Jakarta">
+                  {currentPost?.content}
+                  </Text>
                 </ScrollView>
                 {!isPreview && (
                   <View className="my-2 flex-row justify-between items-center">
@@ -709,7 +704,6 @@ const cleanFormatting: Format[] = isPreview
               {currentPost?.prompt_id && <InteractionButton 
               label="Nay"
               icon={icons.close}
-              emoji="😤"
               showLabel={true}
               color={"#FF0000"}
               onPress={() => 
@@ -752,7 +746,6 @@ const cleanFormatting: Format[] = isPreview
                 <InteractionButton 
               label="Hard agree"
               icon={icons.check}
-              emoji="🤩"
               showLabel={true}
               color={"#000000"}
               onPress={() =>
@@ -767,11 +760,12 @@ const cleanFormatting: Format[] = isPreview
                   <CarrouselIndicator
                     key={post.id}
                     id={index}
-                    index={currentPostIndex} color={""}                  />
+                    index={currentPostIndex}
+                  />
                 );
               })}
           </View>)}
-          {!!selectedEmoji && !staticEmoji && 
+          {!!selectedEmoji && 
           
           
           <View className="absolute -top-[150px] self-center inset-0">

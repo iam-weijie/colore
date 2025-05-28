@@ -17,11 +17,10 @@ import React from "react";
 
 interface PostItProps {
   color?: string;
-  viewed?: boolean;
 }
 
 
-const PostIt: React.FC<PostItProps> = ({ color, viewed=false }) => {
+const PostIt: React.FC<PostItProps> = ({ color }) => {
   // Used instead of color.hex incase colour is undefined or NULL in database and Post object
   // Should be changed later to color.hex when color is changed from a string to a PostItColor
   const getColorHex = (colorName: string | undefined) => {
@@ -38,7 +37,6 @@ const PostIt: React.FC<PostItProps> = ({ color, viewed=false }) => {
   const foldColor = getFoldColorHex(color);
 
   return (
-    viewed ? (
     <Animated.View 
     entering={FadeInDown.duration(100)}
     className="w-40 h-40 ">
@@ -59,7 +57,7 @@ const PostIt: React.FC<PostItProps> = ({ color, viewed=false }) => {
       </Svg>
 
       {/* Folded Corner */}
-      <Animated.View
+      <View
         className="absolute right-0 top-0"
         style={{
           width: 0,
@@ -74,16 +72,7 @@ const PostIt: React.FC<PostItProps> = ({ color, viewed=false }) => {
           borderBottomLeftRadius: 8
         }}
       />
-    </Animated.View>) : (
-      <Animated.View
-       entering={FadeInDown.duration(100)}
-        className="w-40 h-40 rounded-[16px]"
-        style={{
-        backgroundColor: baseColor
-        }}
-      >
-      </Animated.View>
-    )
+    </Animated.View>
   );
 };
 

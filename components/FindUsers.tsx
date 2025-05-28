@@ -4,7 +4,6 @@ import {
   FlatList,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { icons, temporaryColors } from "@/constants";
@@ -15,9 +14,8 @@ import {
 } from "@/lib/friend";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import ItemContainer from "@/components/ItemContainer";
-import { Ionicons } from "@expo/vector-icons";
 
-export const FindUser = ({ selectedUserInfo }) => {
+const FindUser = ({ selectedUserInfo }) => {
 const { user } = useUser();
 
 const [users, setUsers] = useState<UserNicknamePair[]>([]);
@@ -88,36 +86,16 @@ const fetchUsers = async () => {
         )
       : [];
 
-      const handleClearSearch = () => {
-        setSearchText("");
-      };
     return (
-       <View className="flex-1 ">
-                  <View className="flex-1 mt-4 mx-4">
-                                <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 "
-        style={{
-          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
-        }}
-        >
-          <Ionicons name="search" size={20} color="#9ca3af" />
-          <TextInput
-            className="flex-1 pl-2 text-md "
-            placeholder="Search emojis..."
-             placeholderTextColor="#9CA3AF"
-            value={searchText}
-            onChangeText={setSearchText}
-            returnKeyType="search"
-            clearButtonMode="while-editing"
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearSearch}
-              className="w-6 h-6 items-center justify-center"
-            >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
-        </View>
+       <View>
+                  <View className="flex-grow mt-4 mx-4">
+                                  <TextInput
+                                    className="w-full h-12 px-3 -pt-1 bg-[#F1F1F1] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                                    placeholder="Search users..."
+                                    placeholderTextColor="#888"
+                                    value={searchText}
+                                    onChangeText={(text): void => setSearchText(text)}
+                                  />
                                 </View>
                                 {loading ? (
                                                <View className="flex-1 items-center justify-center">

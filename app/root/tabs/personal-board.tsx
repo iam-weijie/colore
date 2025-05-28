@@ -107,7 +107,7 @@ const UserPersonalBoard = () => {
   const fetchCommunityBoards = async () => {
     try {
       setLoading(true)
-      const response = await fetchAPI(`/api/boards/getCommunityBoards?userId=${user!.id}`,
+      const response = await fetchAPI(`/api/boards/getCommunityBoards?user_id=${user!.id}`,
           {
             method: "GET",
           }

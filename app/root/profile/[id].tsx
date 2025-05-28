@@ -4,34 +4,27 @@ import UserProfile from "@/components/UserProfile";
 import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { View, TouchableOpacity, Image, Text } from "react-native";
+import { View, TouchableOpacity, Image } from "react-native";
 import DropdownMenu from "@/components/DropdownMenu";
 import { icons } from "@/constants";
 import { FriendStatus } from "@/lib/enum";
 import {
   FriendStatusType,
-  UserNicknamePair,
 } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
 import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import * as Linking from "expo-linking";
 import {
-  cancelFriendRequest,
   fetchFriendStatus,
   unfriend,
 } from "@/lib/friend";
 import { CustomButtonBar } from "@/components/CustomTabBar";
-import ModalSheet from "@/components/Modal";
-import { set } from "date-fns";
-import ItemContainer from "@/components/ItemContainer";
 
 
 const Profile = () => {
   const { user } = useUser();
   const { userId, username } = useLocalSearchParams();
-  const [isUserSettingsVisible, setIsUserSettingsVisible] = useState(false);
-  const [nickname, setNickname] = useState("");
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
       FriendStatus.UNKNOWN
     );
@@ -39,75 +32,17 @@ const Profile = () => {
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
 
-   const getFriendStatus = async () => {
-        let status;
-        if (user!.id !== userId) {
-          status = await fetchFriendStatus(userId as string, user!);
-          //console.log("Friend status:", status.name);
-          setFriendStatus(status);
-        }
-      };
-
+console.log("username: ", username)
 
   const handleAddNickname = () => {
         setStateVars({
           ...stateVars,
           previousScreen: "profile",
-          userId: userId as string,
+          id,
         });
         router.push("/root/profile/nickname");
       };
-
-    const findUserNickname = (
-          userArray: UserNicknamePair[],
-          userId: string
-        ) => {
-          const index = userArray.findIndex((pair) => pair[0] === userId);
-          return index;
-        }
-    const fetchCurrentNickname = async () => {
-      try {
-        const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
-          //Fetch User Color Collected
-          method: "GET",
-        });
-        if (response.error) {
-          throw new Error(response.error);
-        }
-        const nicknames = response.data[0].nicknames || [];
-        return findUserNickname(nicknames, userId) === -1
-          ? ""
-          : nicknames[findUserNickname(nicknames, userId)][1];
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-      }
-    };
     
-
-    const handleUnfriend =  async () => {
-          setIsHandlingFriendRequest(true);
-          const response: FriendStatusType = await unfriend(
-            user!.id,
-            userId as string
-          );
-          if (response === FriendStatus.NONE) {
-            showAlert({
-              title: 'Unfriended',
-              message: "You have unfriended this user.",
-              type: 'FRIEND_REQUEST',
-              status: 'success',
-            });
-          } else {
-            showAlert({
-              title: 'Error',
-              message: `Error unfriending this user.`,
-              type: 'ERROR',
-              status: 'error',
-            });
-          }
-          setFriendStatus(response);
-          setIsHandlingFriendRequest(false);
-        }
     
     
     
@@ -118,7 +53,7 @@ const Profile = () => {
             method: "POST",
             body: JSON.stringify({
               clerkId: user!.id,
-              friendId: userId,
+              friendId: id,
             }),
           });
           showAlert({
@@ -139,46 +74,101 @@ const Profile = () => {
           });
         }
       };
-
-      const handleCancelFriendRequest = async () => {
-                    setIsHandlingFriendRequest(true);
-                    const response: FriendStatusType =
-                      await cancelFriendRequest(user!.id, userId);
-                    if (response === FriendStatus.NONE) {
-                      showAlert({
-                        title: 'Cancelled',
-                        message: "Friend request cancelled.",
-                        type: 'UPDATE',
-                        status: 'success',
-                      });
-                    } else {
-                      showAlert({
-                        title: 'Error',
-                        message: `Error cancelling this friend request.`,
-                        type: 'ERROR',
-                        status: 'error',
-                      });
-                    }
-                    console.log("Friend status after cancel:", response);
-                    const status = response.name == "none" ? FriendStatus.NONE : response;
-                    setFriendStatus(status);
-                    setIsHandlingFriendRequest(false);
-                  }
     
       const handleReportPress = () => {
         Linking.openURL("mailto:support@colore.ca");
       };
     
+    
+      // to prevent database errors,
+      // don't load the "send friend request"
+      // option if the friend status can't be determined
+      const menuItems_unloaded = [
+        { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
+        { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress },
+      ];
+    
+      const menuItems_default = [
+        { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
+        { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
+      ];
+    
+      const menuItems_friend = [
+        { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
+        { label: "Unfriend",  source: icons.close, color: "#6408DA", onPress: async () => {
+          setIsHandlingFriendRequest(true);
+          const response: FriendStatusType = await unfriend(
+            user!.id,
+            id as string
+          );
+          if (response === FriendStatus.NONE) {
+            showAlert({
+              title: 'Unfriended',
+              message: "You have unfriended this user.",
+              type: 'FRIEND_REQUEST',
+              status: 'success',
+            });
+          } else {
+            showAlert({
+              title: 'Error',
+              message: `Error unfriending this user.`,
+              type: 'ERROR',
+              status: 'error',
+            });
+          }
+          setFriendStatus(response);
+          setIsHandlingFriendRequest(false);
+        }},
+        { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
+      ];
+    
+      const menuItems_sent = [
+        { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
+        {
+          label: "Report",
+          source: icons.email,
+          color: "#DA0808",
+          onPress: handleReportPress,
+        },
+      ];
+    
+      const menuItems_received = [
+        { label: "Nickname", color: "#000000", source: icons.person, onPress: handleAddNickname },
+        {
+          label: "Report",
+          color: "#DA0808",
+          source: icons.email,
+          onPress: () => handleReportPress,
+        },
+      ];
+
+  const getMenu = (status: FriendStatusType) => {
+    let menu;
+    switch (status) {
+      case FriendStatus.FRIENDS:
+        return menu = menuItems_friend
+      case FriendStatus.SENT:
+        return menu = menuItems_sent
+      case FriendStatus.RECEIVED:
+        return menu = menuItems_received
+      case FriendStatus.NONE:
+        return menu = menuItems_default
+      case FriendStatus.UNKNOWN:
+        return menu = menuItems_unloaded
+    }
+  
+    return menu
+  }
 
   useEffect(() => {
-     
-      const getNickname = async () => {
-        const nickname = await fetchCurrentNickname();
-        if (nickname) {
-          setNickname(nickname);
+      const getFriendStatus = async () => {
+        let status;
+        if (user!.id !== userId) {
+          status = await fetchFriendStatus(userId as string, user!);
+          //console.log("Friend status:", status.name);
+          setFriendStatus(status);
         }
       };
-      getNickname();
       getFriendStatus();
     }, []);
 
@@ -205,75 +195,26 @@ const Profile = () => {
         {
           icon: icons.settings,
           label: "More",
-          onPress: () => setIsUserSettingsVisible(true),
+          onPress: () => {},
           isCenter: true,
         },
       ] : []
-
-  const UserSettings = () => {
-
-    return (
-      <ModalSheet 
-       title={"Settings"} isVisible={isUserSettingsVisible} onClose={() => {
-        setIsUserSettingsVisible(false);
-       }} >
-        <View className="flex-1 items-center justify-center">
-          <ItemContainer
-        label={nickname ? nickname : "Set a nickname"}
-        caption={nickname ? `Change ${nickname}'s nickname`: "Nickname me!"}
-        icon={icons.addUser}
-        colors={["#ffe640", "#b8e1ff"]}
-        iconColor="#000"
-        onPress={() => {
-          handleAddNickname()
-        }}
-        actionIcon={nickname && icons.check}
-      />
-        {friendStatus == FriendStatus.FRIENDS && 
-        <ItemContainer
-        label={"Unfriend"}
-        caption={ "Add recipient to this post"}
-        icon={icons.trash}
-        colors={["#ffe640", "#b8e1ff"]}
-        iconColor="#000"
-        onPress={() => handleUnfriend()}
-      />}
-      {friendStatus == FriendStatus.SENT && 
-      <ItemContainer
-        label={"Cancel friend request"}
-        caption={ "Cancel the friend request you sent to this user"}
-        icon={icons.trash}
-        colors={["#ffe640", "#b8e1ff"]}
-        iconColor="#000"
-        onPress={() => handleCancelFriendRequest()}
-      />}
-       {friendStatus == FriendStatus.NONE && 
-      <ItemContainer
-        label={"Send a friend request"}
-        caption={ "Begin a legendary friendship with this user"}
-        icon={icons.addUser}
-        colors={["#ffe640", "#b8e1ff"]}
-        iconColor="#000"
-        onPress={() => handleSendFriendRequest()}
-      />}
-       <ItemContainer
-        label={"Report user"}
-        caption={ "Report this user to the support team"}
-        icon={icons.email}
-        colors={["#ffe640", "#b8e1ff"]}
-        iconColor="#000"
-        onPress={() => handleReportPress()}
-      />
-      
-        </View>
-       </ModalSheet>
-    )
-  }
-
   return (
     <View className="flex-1 bg-[#FAFAFA]">
-      {userId && <UserProfile userId={userId as string} friendStatus={FriendStatus.UNKNOWN} nickname={nickname}/>}
-      {isUserSettingsVisible && <UserSettings />}
+      {userId && <UserProfile userId={userId as string} friendStatus={FriendStatus.UNKNOWN}/>}
+
+      {/*<View className="absolute w-full flex-row items-center justify-between bottom-12  px-8 ">
+      <TouchableOpacity onPress={() => router.back()} className="p-4 rounded-full bg-white shadow-md ">
+          <AntDesign name="caretleft" size={18} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => {}
+          
+        } className="p-4 rounded-full bg-white shadow-md ">
+          <DropdownMenu
+            menuItems={getMenu(friendStatus) ?? menuItems_unloaded} />
+        </TouchableOpacity>
+      </View>*/}
+
         <CustomButtonBar
               buttons={navigationControls}
               />

@@ -1,4 +1,3 @@
-import { Format } from "@/types/type";
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
@@ -26,7 +25,6 @@ export async function GET(request: Request) {
         p.board_id,
         p.notified,
         p.unread,
-        p.formatting,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -40,8 +38,6 @@ export async function GET(request: Request) {
       JOIN boards b ON p.board_id = b.id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
       WHERE p.board_id = ${boardId}
-        AND p.expires_at > NOW() 
-        AND p.available_at <= NOW()
       ORDER BY p.created_at ASC;
     `;
 
@@ -73,8 +69,7 @@ export async function GET(request: Request) {
       unread: post.unread,
       position: post.top !== null && post.left !== null 
         ? { top: Number(post.top), left: Number(post.left) } 
-        : undefined,
-      formatting: post.formatting as Format || [],
+        : undefined
     }));
 
     console.log("Mapped Post", mappedPosts)

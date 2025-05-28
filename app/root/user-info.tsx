@@ -32,7 +32,6 @@ import React from "react";
 import ColorPickerSlider from "@/components/ColorPickerSlider";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useGlobalContext } from "../globalcontext";
-import * as Haptics from "expo-haptics";
 
 const UserInfo = () => {
 
@@ -276,7 +275,7 @@ const UserInfo = () => {
 
   const handleNavigateToCountry = () => {
     playSoundEffect(SoundType.Navigation)
-    Haptics.selectionAsync();
+    // Haptics.selectionAsync();
   
     setStateVars({
       ...stateVars,
@@ -392,7 +391,7 @@ const UserInfo = () => {
         actionIcon={hasJoined && icons.check}
         onPress={async () => {
           playSoundEffect(SoundType.Submit)
-          Haptics.selectionAsync();
+          // Haptics.selectionAsync();
         
           if (item.username) {
             router.push({
@@ -599,8 +598,8 @@ const UserInfo = () => {
   ];
 
   const handleNext = () => {
-    playSoundEffect(SoundType.Navigation);
-    Haptics.selectionAsync();
+    playSoundEffect(SoundType.Navigation)
+    // Haptics.selectionAsync();
   
     if (step < totalSteps - 1) setStep((prev) => prev + 1);
     else {

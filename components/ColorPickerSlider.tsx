@@ -30,15 +30,14 @@ const ColorPickerSlider: React.FC<ColorPickerSliderProps> = ({
   selectedColor,
   onColorSelect,
   height = 168,
-  handleSize = 36,
+  handleSize = 30,
 }) => {
   const position = useRef(new Animated.Value(0)).current; // Y position relative to top
-  const [dynamicHeight, setDynamicHeight] = useState(0);
   const [isDragging, setIsDragging] = useState(false); // Whether the slider is being dragged
 
   useEffect(() => {
     // If the slider is being dragged, don't update position programmatically
-    if (isDragging) return setDynamicHeight(height);
+    if (isDragging) return;
 
     // Check if selected color is valid
     if (!selectedColor || !colors.includes(selectedColor)) {
@@ -80,10 +79,7 @@ const ColorPickerSlider: React.FC<ColorPickerSliderProps> = ({
         position.setValue(dy);
 
         // Update selected color (based on new Y position)
-        let colorIndex = 0;
-        if (height > 0) {
-          colorIndex = Math.floor((newY / height) * colors.length);
-        }
+        let colorIndex = Math.floor((newY / height) * colors.length);
         if (colorIndex === colors.length) colorIndex = colors.length - 1;
         const newSelectedColor = colors[colorIndex];
         onColorSelect(newSelectedColor);
@@ -117,7 +113,7 @@ const ColorPickerSlider: React.FC<ColorPickerSliderProps> = ({
   const colorMap = colors.map((c) => c.hex)
 
   return (
-    <View style={[styles.container, { height: isDragging ? height : 0 }]}>
+    <View style={[styles.container, { height }]}>
        <LinearGradient
                 colors={colorMap}
                 start={{ x: 0, y: 0 }}
@@ -130,25 +126,18 @@ const ColorPickerSlider: React.FC<ColorPickerSliderProps> = ({
       <Animated.View
         {...panResponder.panHandlers}
         style={{
-          transform: [{ translateY: isDragging ?  position : 0 }],
+          transform: [{ translateY: position }],
           position: "relative",
           top: -(handleSize / 2) - handleMargin, // Small vertical offset to center the handle
           left: 0,
         }}
       >
-       {isDragging ? (
         <Circle
-          color="white"
-          size={24}
-          selected={isDragging}
-          style={styles.handle}
-        />
-       ) : (<Circle
           color={selectedColor.hex}
           size={handleSize}
           selected={isDragging}
           style={styles.handle}
-        />)}
+        />
       </Animated.View>
     </View>
   );
@@ -167,7 +156,7 @@ const styles = StyleSheet.create({
   sliderTrack: {
     width: "100%",
     height: "100%",
-    borderRadius: 32,
+    borderRadius: 16,
     overflow: "hidden",
     position: "absolute",
     top: 0,

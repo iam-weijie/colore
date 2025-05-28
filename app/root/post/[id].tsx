@@ -542,3 +542,77 @@ console.log("happend", "id", id)
 
 export default PostScreen;
 
+
+ {/* <View className="flex-row justify-between items-center mx-6 my-6">
+            <TouchableOpacity onPress={() => router.back()} className="mr-4">
+              <AntDesign name="caretleft" size={18} />
+            </TouchableOpacity>
+            <TouchableOpacity
+            onPress={() => {
+              router.push({
+                pathname: "/root/new-personal-post",
+                params: { 
+                  recipient_id: clerk_id,
+                  source: 'board'
+                }
+              })
+            }}
+            className="py-3 px-4 bg-white rounded-[24px] shadow-xs">
+              <Text className="font-JakartaSemiBold" style={{
+                color: postColor?.fontColor ?? color 
+              }}>Reply to {anonymousComments ? "Author" : username}</Text>
+            </TouchableOpacity>
+          </View>*/}
+          {/*<View 
+          className="mb-6 p-6 rounded-[24px] mx-auto flex flex-row items-center justify-between"
+          style={{
+            backgroundColor: postColor?.hex ?? color,
+            width: isIpad ? "95%" : "90%"
+          }}>
+            <View className="flex-1">
+              <TouchableOpacity onPress={() => handleUserProfile(userId)}>
+                <Text className="font-JakartaSemiBold text-lg">
+                  {anonymousComments
+                    ? clerk_id === user!.id
+                      ? "Me"
+                      : "Anonymous"
+                    : username}
+                </Text>
+              </TouchableOpacity>
+              <Text className="text-sm text-gray-700">
+                {typeof created_at === "string"
+                  ? getRelativeTime(convertToLocal(new Date(created_at)))
+                  : "No date"}
+              </Text>
+              <TouchableWithoutFeedback
+                onPress={() => Keyboard.dismiss()}
+                onPressIn={() => Keyboard.dismiss()}
+              >
+                <ScrollView
+                  style={{ maxHeight: screenHeight / 6 }}
+                  showsVerticalScrollIndicator={false}
+                >
+                  <Text className="font-Jakarta min-h-[30]">{content}</Text>
+                </ScrollView>
+              </TouchableWithoutFeedback>
+            </View>
+            <View className="flex flex-row justify-center items-center">
+                <View>
+                  <Text
+                    className={`${clerk_id === user?.id ? "text-gray-800" : "text-transparent"} text-center mr-1 text-sm`}
+                  >
+                    {clerk_id === user?.id ? likeCount : "0"}
+                  </Text>
+                </View>
+                  <TouchableOpacity
+                    onPress={handleLikePress}
+                    disabled={isLoadingLike}
+                  >
+                    <MaterialCommunityIcons
+                      name={isLiked ? "heart" : "heart-outline"}
+                      size={24}
+                      color={isLiked ? "red" : "black"}
+                    />
+                  </TouchableOpacity>
+                </View>
+          </View>*/}

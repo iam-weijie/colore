@@ -19,11 +19,11 @@ import {
   Text,
 } from "react-native";
 import React, { useEffect, useRef } from "react";
-import PostContainer from "./PostContainer";
+import StarringContainer from "./StarringContainer";
 
 const { height } = Dimensions.get("window");
 
-const PostModal: React.FC<PostModalProps> = ({
+const StarringModal: React.FC<PostModalProps> = ({
   isVisible,
   selectedPosts,
   handleCloseModal,
@@ -80,13 +80,7 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
   return (
-    <Modal
-      visible={isVisible}
-      transparent={true}
-      animationType="none" // We're handling animation manually
-      onRequestClose={handleCloseModal}
-    >
-      {/* Animated Background */}
+    <>
       <Animated.View
         className="w-full h-full"
         style={[
@@ -103,7 +97,7 @@ const PostModal: React.FC<PostModalProps> = ({
         <Pressable style={{ flex: 1 }} onPress={handleCloseModal} />
 
         {/* Animated Content */}
-        <PostContainer
+        <StarringContainer
           selectedPosts={selectedPosts}
           handleCloseModal={handleCloseModal}
           handleUpdate={handleUpdate}
@@ -114,8 +108,44 @@ const PostModal: React.FC<PostModalProps> = ({
           scrollToLoad={scrollToLoad}
         />
       </Animated.View>
-    </Modal>
+    </>
+    // <Modal
+    //   visible={isVisible}
+    //   transparent={true}
+    //   animationType="none" // We're handling animation manually
+    //   onRequestClose={handleCloseModal}
+    // >
+    //   {/* Animated Background */}
+    //   <Animated.View
+    //     className="w-full h-full"
+    //     style={[
+    //       {
+    //         flex: 1,
+    //         position: "absolute",
+    //         backgroundColor: "rgba(250,250,250,1)",
+    //       },
+    //       backgroundStyle,
+    //       modalStyle,
+    //     ]}
+    //   >
+    //     {header}
+    //     {/* Pressable area to close modal when background is tapped */}
+    //     <Pressable style={{ flex: 1 }} onPress={handleCloseModal} />
+
+    //     {/* Animated Content */}
+    //     <StarringContainer
+    //       selectedPosts={selectedPosts}
+    //       handleCloseModal={handleCloseModal}
+    //       handleUpdate={handleUpdate}
+    //       invertedColors={invertedColors}
+    //       isPreview={isPreview}
+    //       header={header}
+    //       infiniteScroll={infiniteScroll}
+    //       scrollToLoad={scrollToLoad}
+    //     />
+    //   </Animated.View>
+    // </Modal>
   );
 };
 
-export default PostModal;
+export default StarringModal;

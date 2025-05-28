@@ -78,7 +78,7 @@ const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextSt
   }
 
   return (
-    <View className="flex items-center justify-center h-[50px] w-full">
+    <View className="flex items-center justify-center h-[50px] w-full pl-6">
       <ScrollView 
       horizontal 
       keyboardShouldPersistTaps="handled" 

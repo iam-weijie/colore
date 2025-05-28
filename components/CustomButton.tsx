@@ -8,10 +8,8 @@ import Animated, {
   withSpring,
   Easing
 } from "react-native-reanimated";
-import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
 
 const getBgVariantStyle = (
   variant: ButtonProps["bgVariant"],
@@ -25,7 +23,7 @@ const getBgVariantStyle = (
     case "primary":
       return "bg-[#FFFFFF]";
     case "secondary":
-      return "bg-black";
+      return "bg-gray-500";
     case "danger":
       return "bg-red-500";
     case "success":
@@ -53,7 +51,7 @@ const getTextVariantStyle = (
     case "primary":
       return "text-black";
     case "secondary":
-      return "text-white";
+      return "text-gray-100";
     case "danger":
       return "text-red-100";
     case "success":
@@ -76,7 +74,6 @@ const CustomButton = ({
   padding = "4",
   ...props
 }: ButtonProps) => {
-  const { playSoundEffect } = useSoundEffects()
   const scale = useSharedValue(1);
   const bgStyle = getBgVariantStyle(bgVariant, disabled);
 
@@ -89,10 +86,9 @@ const CustomButton = ({
 
   const handlePressIn = () => {
     if (!disabled) {
-      playSoundEffect(SoundType.Button);
-      scale.value = withSpring(0.9, {
-        damping: 25,
-        stiffness: 90,
+      scale.value = withSpring(0.95, {
+        damping: 10,
+        stiffness: 40,
       });
     }
   };
@@ -100,8 +96,8 @@ const CustomButton = ({
   const handlePressOut = () => {
     if (!disabled) {
       scale.value = withSpring(1, {
-        damping: 25,
-        stiffness: 90,
+        damping: 10,
+        stiffness: 40,
       });
     }
   };
@@ -112,8 +108,8 @@ const CustomButton = ({
       onPressOut={handlePressOut}
       onPress={onPress}
       disabled={disabled}
-      activeOpacity={0.95}
-      style={[animatedStyle]}
+      activeOpacity={0.8}
+      style={animatedStyle}
       className={`w-full rounded-full ${
         ["gradient", "gradient2"].includes(bgVariant) ? "" : bgStyle
       } p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}

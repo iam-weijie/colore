@@ -3,71 +3,12 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { TextStyle, Format } from '@/types/type';
 import { useGlobalContext } from '@/app/globalcontext';
 
-const getMarkdownTags = (type: TextStyle) => {
-  switch (type) {
-    case 'bold': return ['**', '**'];
-    case 'italic': return ['*', '*'];
-    case 'h1': return ['# ', ''];
-    case 'h2': return ['## ', ''];
-    case 'h3': return ['### ', ''];
-    case 'underline': return ['<u>', '</u>'];
-    case 'ordered': return ['1. ', ''];
-    case 'unordered': return ['- ', ''];
-    default: return ['', ''];
-  }
-};
-
-const getMarkdownOffset = (formats: Format[], selection: { start: number; end: number }) => {
-  let offsetStart = 0;
-  let offsetEnd = 0;
-
-  formats.forEach(({ start, end, type }) => {
-    const [prefix, suffix] = getMarkdownTags(type);
-    const prefixLength = prefix.length;
-    const suffixLength = suffix.length;
-
-    if (start <= selection.start) offsetStart += prefixLength;
-    if (start <= selection.end) offsetEnd += prefixLength;
-    if (end <= selection.start) offsetStart += suffixLength;
-    if (end <= selection.end) offsetEnd += suffixLength;
-  });
-
-  return {
-    start: selection.start - offsetStart,
-    end: selection.end - offsetEnd,
-  };
-};
-
-const applyMarkdown = (text: string, formats: Format[]) => {
-  const sortedFormats = [...formats].sort((a, b) => b.start - a.start);
-
-  for (const format of sortedFormats) {
-    const [prefix, suffix] = getMarkdownTags(format.type);
-    const { start, end } = format;
-
-    const before = text.slice(0, start);
-    const inside = text.slice(start, end);
-    const after = text.slice(end);
-
-    text = before + prefix + inside + suffix + after;
-  }
-
-  return text;
-};
-
-export const stripMarkdown = (text: string) => {
-  return text
-    .replace(/^###\s/gm, '')
-    .replace(/^##\s/gm, '')
-    .replace(/^#\s/gm, '')
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
-    .replace(/<u>(.*?)<\/u>/g, '$1')
-    .replace(/^1\.\s/gm, '')
-    .replace(/^-\s?/gm, '');
-};
-
-const RichTextInput = ({ refresh, style, exportText, exportStyling }: {
+const RichTextInput = ({
+  refresh,
+  style,
+  exportText,
+  exportStyling,
+}: {
   refresh: number;
   style: TextStyle;
   exportText: (value: string) => void;
@@ -77,7 +18,7 @@ const RichTextInput = ({ refresh, style, exportText, exportStyling }: {
   const [value, setValue] = useState('');
   const [formats, setFormats] = useState<Format[]>([]);
   const [selection, setSelection] = useState({ start: 0, end: 0 });
-  const [isFocused, setIsFocused] = useState(true);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const isOverlap = (aStart: number, aEnd: number, bStart: number, bEnd: number) => {
@@ -97,63 +38,61 @@ const RichTextInput = ({ refresh, style, exportText, exportStyling }: {
     return lines;
   };
 
-  const cleanInvalidFormats = (text: string, inputFormats: Format[]) => {
-    return inputFormats.filter(({ start, end }) => end <= text.length);
-  };
-
-  const correctMarkdownFromFormats = (rawText: string, cleanFormats: Format[]) => {
-    const noMdText = stripMarkdown(rawText);
-    return applyMarkdown(noMdText, cleanFormats);
-  };
-
-const toggleFormat = (type: TextStyle) => {
-  if (selection.start === selection.end) return;
-
-  const newFormats: Format[] = [];
-  let removedSomething = false;
-  const correctedSelection = getMarkdownOffset(formats, selection);
-
-  for (const format of formats) {
-    const overlap = isOverlap(correctedSelection.start, correctedSelection.end, format.start, format.end);
-    const sameType = format.type === type;
-
-    if (!overlap || !sameType) {
-      newFormats.push(format);
-      continue;
-    }
-
-    removedSomething = true;
-
-    // Add left segment if it remains
-    if (format.start < correctedSelection.start) {
-      newFormats.push({ start: format.start, end: correctedSelection.start, type: format.type });
-    }
-
-    // Add right segment if it remains
-    if (format.end > correctedSelection.end) {
-      newFormats.push({ start: correctedSelection.end, end: format.end, type: format.type });
+  const loadFormatting = (formatting: Format[]) => {
+    for (const format in formatting) {
+      toggleFormat
     }
   }
+  const toggleFormat = (type: TextStyle) => {
+    if (selection.start === selection.end) return;
 
-  if (!removedSomething) {
-    newFormats.push({ start: correctedSelection.start, end: correctedSelection.end, type });
-  }
+    const newFormats: Format[] = [];
+    let removedSomething = false;
 
-  setFormats(cleanInvalidFormats(value, newFormats));
-};
+    for (const format of formats) {
+      const overlap = isOverlap(selection.start, selection.end, format.start, format.end);
+      const sameType = format.type === type;
 
+      if (!overlap || !sameType) {
+        newFormats.push(format);
+        continue;
+      }
+
+      removedSomething = true;
+
+      if (format.start < selection.start) {
+        newFormats.push({ start: format.start, end: selection.start, type: format.type });
+      }
+
+      if (format.end > selection.end) {
+        newFormats.push({ start: selection.end, end: format.end, type: format.type });
+      }
+    }
+
+    if (!removedSomething) {
+      newFormats.push({ start: selection.start, end: selection.end, type });
+    }
+
+    setFormats(newFormats);
+  };
 
   useEffect(() => {
     setValue(draftPost.content ?? '');
-    setFormats(cleanInvalidFormats(draftPost.content ?? '', draftPost.formatting ?? []));
-    setIsFocused(true);
-  }, [refresh]);
+    setFormats(draftPost.formatting ?? [])
+
+
+
+
+    console.log("formatting: ", draftPost.formatting, formats)
+  }, []);
 
   useEffect(() => {
     toggleFormat(style);
   }, [style, refresh]);
 
+
   useEffect(() => {
+
     exportText(value);
     exportStyling(formats);
   }, [value, formats]);
@@ -242,31 +181,19 @@ const toggleFormat = (type: TextStyle) => {
   };
 
   return (
-    <View className="flex-1 mx-4 pr-12 py-8">
+    <View className="flex-1 mx-4 pr-12 py-6">
       <View className="relative min-h-[250px] mb-4">
         {isFocused ? (
           <TextInput
             ref={inputRef}
             value={value}
-            onChangeText={(newText) => {
-              const cleanedFormats = cleanInvalidFormats(newText, formats);
-              setValue(newText);
-              setFormats(cleanedFormats);
-            }}
+            onChangeText={setValue}
             multiline
             placeholder="Type here..."
-            placeholderTextColor="#F1F1F1"
+            placeholderTextColor="#E1E1E1"
             onSelectionChange={({ nativeEvent }) => setSelection(nativeEvent.selection)}
-            onFocus={() => {
-              const corrected = correctMarkdownFromFormats(value, formats);
-              setValue(corrected);
-              setIsFocused(true);
-            }}
-            onBlur={() => {
-              const plainText = stripMarkdown(value);
-              setValue(plainText);
-              setIsFocused(false);
-            }}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             className="font-JakartaSemiBold"
             style={{
               position: 'absolute',
@@ -291,94 +218,12 @@ const toggleFormat = (type: TextStyle) => {
             className="absolute top-0 left-0 right-0 p-4"
           >
             <Text className="font-JakartaSemiBold text-[#FAFAFA]">
+              {value.length < 1 && "Click here to start a text..."}
               {renderStyledOverlay()}
             </Text>
           </TouchableOpacity>
         )}
       </View>
-    </View>
-  );
-};
-
-
-
-export const RichText = ({
-  formatStyling,
-  content,
-}: {
-  formatStyling: Format[];
-  content: string;
-}) => {
-  const [value, setValue] = useState("");
-  const [formats, setFormats] = useState<Format[]>([]);
-
-  useEffect(() => {
-    setValue(content);
-    setFormats(formatStyling);
-  }, [content, formatStyling]);
-
-  const getStyleClass = (types: TextStyle[]) => {
-    let classNames = 'text-black';
-
-    if (types.includes('h1')) classNames += ' text-[24px] font-JakartaBold';
-    else if (types.includes('h2')) classNames += ' text-[20px] font-JakartaBold';
-    else if (types.includes('h3')) classNames += ' text-[18px] font-JakartaSemiBold';
-    else classNames += ' text-[16px]';
-
-    if (types.includes('italic')) classNames += ' font-JakartaSemiBoldItalic';
-    else if (types.includes('bold')) classNames += ' font-JakartaBold';
-    else classNames += ' font-Jakarta';
-
-    if (types.includes('underline')) classNames += ' underline';
-    if (types.includes('unordered') || types.includes('ordered')) classNames += ' pl-6';
-
-    return classNames;
-  };
-
-  const getStylesByChar = () => {
-    const charMap: { [index: number]: TextStyle[] } = {};
-    formats.forEach(({ start, end, type }) => {
-      for (let i = start; i < end; i++) {
-        if (!charMap[i]) charMap[i] = [];
-        charMap[i].push(type);
-      }
-    });
-    return charMap;
-  };
-
-  const renderStyledOverlay = () => {
-    const charStyles = getStylesByChar();
-    const chunks: JSX.Element[] = [];
-    let buffer = '';
-    let prevStyle = getStyleClass([]);
-
-    for (let i = 0; i <= value.length; i++) {
-      const currentStyle = getStyleClass(charStyles[i] || []);
-      const char = value[i] || '';
-
-      if (currentStyle !== prevStyle || i === value.length) {
-        if (buffer) {
-          chunks.push(
-            <Text key={`chunk-${i}`} className={prevStyle}>
-              {buffer}
-            </Text>
-          );
-          buffer = '';
-        }
-        prevStyle = currentStyle;
-      }
-
-      buffer += char;
-    }
-
-    return chunks;
-  };
-
-  return (
-    <View className="flex-1">
-      <Text className="font-Jakarta text-black my-4 p-1">
-        {renderStyledOverlay()}
-      </Text>
     </View>
   );
 };

@@ -14,7 +14,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants";
-import { Ionicons } from "@expo/vector-icons";
 
 const SavedPostGallery = () => {
   const router = useRouter();
@@ -64,10 +63,6 @@ const SavedPostGallery = () => {
 
     setUpdate(true);
   };
-
-  const handleClearSearch = () => {
-    setQuery("");
-  };
   return (
     <View className="flex-1 bg-[#FAFAFA]">
       <View className="flex-row justify-between items-end pl-11 pt-16 bg-white">
@@ -75,30 +70,12 @@ const SavedPostGallery = () => {
       </View>
       {savedPostsList.length > 0 ? (
         <View className="flex-1 flex flex-column items-center px-6 pt-6">
-            <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 "
-        style={{
-          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
-        }}
-        >
-          <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
-            className="flex-1 pl-2 text-md "
-            placeholder="Search emojis..."
-             placeholderTextColor="#9CA3AF"
-            value={query}
+            className="w-full  h-12 px-5 rounded-[16px] bg-[#F1F1F1] mb-6"
+            placeholder="Search"
             onChangeText={setQuery}
-            returnKeyType="search"
-            clearButtonMode="while-editing"
+            value={query}
           />
-          {query.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearSearch}
-              className="w-6 h-6 items-center justify-center"
-            >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
-        </View>
           <View className="flex-1">
             <PostGallery
               posts={savedPostsList}

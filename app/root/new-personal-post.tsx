@@ -1,7 +1,7 @@
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -14,9 +14,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import EmojiSelector from "@/components/EmojiSelector";
-import RecentEmojiPopup from "@/components/RecentEmojiPopup";
-import { useRecentEmojis } from "@/hooks/useRecentEmojis";
+import EmojiSelector from "react-native-emoji-selector";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
@@ -25,16 +23,14 @@ import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
 import ColorPickerSlider from "@/components/ColorPickerSlider";
-import * as Haptics from "expo-haptics";
-import { useHaptics } from "@/hooks/useHaptics";
 
 
 const NewPersonalPost = () => {
   const { user } = useUser();
   const { content, color, emoji, recipient_id, username } = useLocalSearchParams();
   const { showAlert } = useAlert();
-
-
+  
+  
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
@@ -43,31 +39,26 @@ const NewPersonalPost = () => {
   );
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
-  const [showRecentPopup, setShowRecentPopup] = useState(false);
-  const [triggerPosition, setTriggerPosition] = useState({ x: 0, y: 0 });
   const [isPosting, setIsPosting] = useState(false);
   const [fromPreview, setFromPreview] = useState(false);
-
-  const emojiButtonRef = useRef<any>(null);
-  const { recentEmojis, addRecentEmoji } = useRecentEmojis();
 
   // Initialize from route params when component mounts or params change
   useEffect(() => {
     if (content) {
-      setPostContent(typeof content === 'string' ? content : Array.isArray(content) ? content[0] : '');
+      setPostContent(Array.isArray(content) ? content[0] : content as string);
       setFromPreview(true);
     }
-
+    
     if (color) {
-      const colorValue = typeof color === 'string' ? color : Array.isArray(color) ? color[0] : '';
+      const colorValue = Array.isArray(color) ? color[0] : color as string;
       const savedColor = temporaryColors.find(c => c.name === colorValue);
       if (savedColor) {
         setSelectedColor(savedColor);
       }
     }
-
+    
     if (emoji) {
-      setSelectedEmoji(typeof emoji === 'string' ? emoji : Array.isArray(emoji) ? emoji[0] : null);
+      setSelectedEmoji(Array.isArray(emoji) ? emoji[0] : emoji as string);
     }
   }, [content, color, emoji]);
 
@@ -75,17 +66,12 @@ const NewPersonalPost = () => {
   const handleBackNavigation = () => {
     // If we came from preview, we need to go to the home tab
     if (fromPreview) {
-       if (typeof recipient_id === 'string' && recipient_id === user!.id) {
+       if (recipient_id == user!.id) {
                 router.replace(`/root/tabs/personal-board`);
               } else {
                 router.replace({
                   pathname: "/root/user-board/[id]",
-                  params: { 
-                    id: typeof recipient_id === 'string' ? recipient_id : 
-                        Array.isArray(recipient_id) ? recipient_id[0] : '',
-                    username: typeof username === 'string' ? username :
-                        Array.isArray(username) ? username[0] : ''
-                  },
+                  params: { id: recipient_id, username: username },
                 });
               }
     } else {
@@ -110,15 +96,13 @@ const NewPersonalPost = () => {
          router.push({
                pathname: "/root/preview-post",
                params: {
-                 id: "",
-                 content: postContent,
-                 color: selectedColor.name,
-                 emoji: selectedEmoji,
-                 personal: "true",
-                 recipientId: typeof recipient_id === 'string' ? recipient_id : 
-                             Array.isArray(recipient_id) ? recipient_id[0] : '',
-                 username: typeof username === 'string' ? username :
-                           Array.isArray(username) ? username[0] : ''
+                 id: "", 
+                 content: postContent, 
+                 color: selectedColor.name, 
+                 emoji: selectedEmoji, 
+                 personal: "true", 
+                 recipientId: recipient_id,
+                 username: username
                }
              })
              setPostContent("");
@@ -144,56 +128,12 @@ const NewPersonalPost = () => {
     // console.log(selectedEmoji);
   };
 
-  const handleEmojiLongPress = () => {
-    // Don't require recent emojis for testing - comment this line when testing is complete
-    // if (recentEmojis.length === 0) return; // Don't show if no recent emojis
-
-    // Don't show emoji selector when long pressing
-    if (isEmojiSelectorVisible) {
-      setIsEmojiSelectorVisible(false);
-    }
-
-    if (emojiButtonRef.current) {
-      emojiButtonRef.current.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
-        setTriggerPosition({
-          x: pageX + width / 2,  // Center horizontally
-          y: pageY + height + 5  // Bottom of button with small offset
-        });
-        
-        // Show popup - haptic feedback is now handled in the popup component
-        setShowRecentPopup(true);
-      });
-    }
-  };
-
-  const handleRecentEmojiSelect = async (emoji: string) => {
-    // Add to recent emojis (moves to front)
-    await addRecentEmoji(emoji);
-
-    // Set as selected emoji
-    setSelectedEmoji(emoji);
-    
-    // The popup handles its own animation now, 
-    // but we still need to update the state after animation completes
-    setTimeout(() => {
-      setShowRecentPopup(false);
-    }, 350); // Wait for animation to complete
-  };
-
-  const handleEmojiSelect = async (emoji: string) => {
-    // Add to recent emojis
-    await addRecentEmoji(emoji);
-
-    // Set as selected emoji
-    setSelectedEmoji(emoji);
-  };
-
    useEffect(() => {
      if (selectedEmoji && isEmojiSelectorVisible) {
        toggleEmojiSelector();
      }
    }, [selectedEmoji]);
-
+   
 
   return (
     <SafeAreaView className="flex-1">
@@ -245,7 +185,7 @@ const NewPersonalPost = () => {
                 />
               )}
             </View>
-
+    
             <View className=" w-full flex flex-row justify-center items-center mb-12">
               <ColorPickerSlider
                 colors={temporaryColors}
@@ -253,12 +193,7 @@ const NewPersonalPost = () => {
                 onColorSelect={handleColorSelect}
               />
 
-              <TouchableOpacity
-                ref={emojiButtonRef}
-                onPress={toggleEmojiSelector}
-                onLongPress={handleEmojiLongPress}
-                delayLongPress={300}
-              >
+              <TouchableOpacity onPress={toggleEmojiSelector}>
                 {selectedEmoji ? (
                   <Text style={{ fontSize: 35, margin: 1 }}>
                     {selectedEmoji}
@@ -268,29 +203,19 @@ const NewPersonalPost = () => {
                 )}
               </TouchableOpacity>
               </View>
-
+             
               </View>
               </KeyboardAvoidingView>
 
             {isEmojiSelectorVisible && (
-              <EmojiSelector
-                showInModal={true}
-                isVisible={true}
-                onClose={() => setIsEmojiSelectorVisible(false)}
-                onEmojiSelected={handleEmojiSelect}
-                selectedEmoji={selectedEmoji}
-                mode="both"
-              />
+              <View className="w-full h-screen bg-white">
+                <EmojiSelector
+                  onEmojiSelected={(emoji) => {
+                    setSelectedEmoji(emoji);
+                  }}
+                />
+              </View>
             )}
-
-            {/* Recent Emoji Popup */}
-            <RecentEmojiPopup
-              visible={showRecentPopup}
-              recentEmojis={recentEmojis}
-              onEmojiSelect={handleRecentEmojiSelect}
-              onClose={() => setShowRecentPopup(false)}
-              triggerPosition={triggerPosition}
-            />
           </View>
         </TouchableWithoutFeedback>
       </SignedIn>
