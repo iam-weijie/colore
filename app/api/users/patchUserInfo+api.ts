@@ -8,7 +8,8 @@ import { neon } from "@neondatabase/serverless";
 export async function PATCH(request: Request) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const { clerkId, country, state, city, username, email } = await request.json();
+    const { clerkId, country, state, city, username, nickname, email } =
+      await request.json();
 
     if (!clerkId) {
       return Response.json(
@@ -17,9 +18,33 @@ export async function PATCH(request: Request) {
       );
     }
 
+    // If the user wants to update their nickname first check if nickname column exists
+    if (nickname !== undefined) {
+      const columnExists = await sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'users'
+      AND column_name = 'nickname'
+      `;
+
+      if (columnExists.length === 0) {
+        return Response.json(
+          {
+            error:
+              "Database column missing. Please add the nickname column to your users table.",
+            instructions:
+              "Run this SQL in your database: ALTER TABLE users ADD COLUMN nickname VARCHAR(255) DEFAULT NULL;",
+            sqlFile:
+              "See scripts/add-nickname-column.sql for the complete migration script",
+          },
+          { status: 503 }
+        );
+      }
+    }
+
     // Handle each update case separately to ensure proper SQL syntax
     let response;
-    
+
     if (username !== undefined) {
       response = await sql`
         UPDATE users
@@ -27,7 +52,18 @@ export async function PATCH(request: Request) {
         WHERE clerk_id = ${clerkId}
         RETURNING *
       `;
-    } else if (country !== undefined && state !== undefined && city !== undefined) {
+    } else if (nickname !== undefined) {
+      response = await sql`
+        UPDATE users
+        SET nickname = ${nickname}
+        WHERE clerk_id = ${clerkId}
+        RETURNING *
+      `;
+    } else if (
+      country !== undefined &&
+      state !== undefined &&
+      city !== undefined
+    ) {
       response = await sql`
         UPDATE users
         SET 
@@ -47,7 +83,6 @@ export async function PATCH(request: Request) {
           )
           RETURNING *;
         `;
-        
     } else {
       return Response.json(
         { error: "Invalid update parameters" },
@@ -56,11 +91,10 @@ export async function PATCH(request: Request) {
     }
 
     // Check for email uniqueness violation
-  
+
     if (response.length === 0 && email !== undefined) {
       throw new Error("Email is already taken.");
     }
-
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
@@ -68,12 +102,11 @@ export async function PATCH(request: Request) {
   } catch (error: any) {
     console.error("Error updating user info:", error);
     // Check for username uniqueness violation
-    if (error.code === '23505' && error.constraint === 'users_username_key') {
+    if (error.code === "23505" && error.constraint === "users_username_key") {
       return Response.json(
         { error: "Username already taken" },
         { status: 409 }
       );
-
     }
     return Response.json({ error: error.message }, { status: 500 });
   }
