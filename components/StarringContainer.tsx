@@ -100,6 +100,9 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
+  const [contentHeight, setContentHeight] = useState(240);
+  const scrollViewRef = useRef<ScrollView>(null);
+
   const [currentPost, setCurrentPost] = useState<Post>();
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
@@ -386,8 +389,8 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   const handleCommentsPress = () => {
     setSelectedBoard(() => (
       <PostScreen
-        id={currentPost?.id.toString()}
-        clerkId={currentPost?.clerk_id}
+        id={currentPost?.id?.toString() || ""}
+        clerkId={currentPost?.clerk_id || ""}
       />
     ));
   };
@@ -641,6 +644,18 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     }, [])
   );
 
+  const handleContentSizeChange = (
+    contentWidth: number,
+    contentHeight: number
+  ) => {
+    // Minimum 300px, maximum 500px, or content height + padding (whichever is smaller)
+    const calculatedHeight = Math.min(
+      Math.max(contentHeight + 80, 240), // 80px for padding and buttons
+      320
+    );
+    setContentHeight(calculatedHeight);
+  };
+
   return (
     <AnimatedView
       ref={viewRef}
@@ -660,8 +675,18 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       >
         <GestureDetector gesture={swipeGesture}>
           <Animated.View
-            style={[animatedStyle]}
-            className="w-4/5 max-w-[500px] min-h-[300px] max-h-80 overflow-hidden p-6 rounded-3xl bg-white"
+            style={[
+              animatedStyle,
+              {
+                width: "80%",
+                maxWidth: 500,
+                height: contentHeight,
+                overflow: "hidden",
+                borderRadius: 24,
+                backgroundColor: "white",
+                padding: 24,
+              },
+            ]}
           >
             <TouchableOpacity
               onPress={handleCloseModal}
@@ -695,12 +720,11 @@ const StarringContainer: React.FC<PostContainerProps> = ({
 
               {/* Scrollable content */}
               <ScrollView
-                style={{ zIndex: 0 }}
+                ref={scrollViewRef}
+                style={{ flex: 1 }}
+                onContentSizeChange={handleContentSizeChange}
                 showsVerticalScrollIndicator={true}
                 persistentScrollbar={true}
-                scrollEventThrottle={16}
-                directionalLockEnabled={true}
-                alwaysBounceVertical={true} // Better iOS scrolling
               >
                 <Text className="text-base p-1 my-4 font-Jakarta leading-6">
                   {currentPost?.content}

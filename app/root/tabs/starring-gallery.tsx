@@ -303,10 +303,7 @@ export default function Page() {
   return (
     <View className="flex-1">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <KeyboardAvoidingView
-          className="flex-1"
-          keyboardVerticalOffset={32} // adjust if your header height is different
-        >
+        <KeyboardAvoidingView behavior="height" className="flex-1">
           <View className="flex-1">
             <Header
               title="Starring"
