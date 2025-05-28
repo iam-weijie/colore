@@ -25,8 +25,8 @@ export async function GET(request: Request) {
         p.report_count,
         p.unread_comments,
         p.color,
-        p.post_type
-        p.board_id
+        p.post_type,
+        p.board_id,
         json_agg(
           json_build_object(
             'id', c.id,
