@@ -12,11 +12,15 @@ import { useUser } from "@clerk/clerk-expo";
 import Header from "@/components/Header";
 import { CustomButtonBar } from "@/components/CustomTabBar";
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
+import { Post } from "@/types/type";
+import PostModal from "@/components/PostModal";
 
 const UserPersonalBoard = () => {
   const { user } = useUser();
-  const { id, username, boardId } = useLocalSearchParams();
+  const { id, username, boardId, postId } = useLocalSearchParams();
   const [boardInfo, setBoardInfo] = useState<any>();
+  const [post, setPost] = useState<Post>();
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const isOwnBoard = !id || id == user?.id;
   const [postCount, setPostCount] = useState<number>(0);
   const [joinedCommunity, setJoinedCommunity] = useState<boolean>(false);
@@ -32,6 +36,21 @@ const UserPersonalBoard = () => {
       }
     });
   };
+
+  const fetchPosts = async (id: string[]) => {
+        try {
+          const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`);
+          const post = response.data;
+    
+          if (!post || post.length === 0) {
+            return null;
+          }
+          setPost(post);
+          setIsModalVisible(true);
+        } catch (error) {
+          return null;
+        }
+      };
 
   const fetchBoard = async () => {
     if (boardId == "-1" || username == "Personal Board") return;
@@ -171,11 +190,17 @@ const UserPersonalBoard = () => {
     fetchBoard()
   }, [joinedCommunity])
 
+  useEffect(() => {
+    if (postId) {
+      fetchPosts([postId as string])
+    }
+  }, [postId])
 
 console.log("info pass to user profile", id, username, boardId)
 
 
   return (
+    <>
     <View className="flex-1 bg-[#FAFAFA]">
        <LinearGradient
             colors={["#FAFAFA", "#FAFAFA"]} 
@@ -238,7 +263,9 @@ console.log("info pass to user profile", id, username, boardId)
         />
 
     </View>
-  );
+    {isModalVisible && post &&
+      <PostModal isVisible={!!isModalVisible} selectedPosts={[post]} handleCloseModal={() => {setIsModalVisible(false)}} />}
+  </>);
 };
 
 export default UserPersonalBoard;
