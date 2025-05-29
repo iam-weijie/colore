@@ -122,6 +122,7 @@ export default function Page() {
     const response = await fetchAPI(
       `/api/posts/getRandomPosts?number=${isIpad ? 48 : 32}&id=${user!.id}&mode=${geographicalMode}`
     );
+    console.log("response: ", response.data.length)
     return response.data;
   };
 

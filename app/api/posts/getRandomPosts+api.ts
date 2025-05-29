@@ -2,16 +2,13 @@ import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const sql = neon(process.env.DATABASE_URL!);
     const url = new URL(request.url);
-    const number = url.searchParams.get("number");
-    const id = url.searchParams.get("id");
-    const mode = url.searchParams.get("mode") as
-      | keyof typeof locationFilter
-      | null;
+    const limit = Number(url.searchParams.get("number")) || 10;
+    const userId = url.searchParams.get("id");
+    const mode = url.searchParams.get("mode");
 
-    // Define the base select fields that are common to all queries
-    const baseSelectFields = `
+     const baseSelectFields = `
       p.id, 
       p.content, 
       p.like_count, 
@@ -34,31 +31,27 @@ export async function GET(request: Request) {
       pr.content as prompt
     `;
 
-    // Determine the filter based on mode
-    const locationFilter = {
-      city: `u.city = (SELECT u1.city FROM users u1 WHERE u1.clerk_id = ${id})`,
-      state: `u.state = (SELECT u1.state FROM users u1 WHERE u1.clerk_id = ${id})`,
-      country: `u.country = (SELECT u1.country FROM users u1 WHERE u1.clerk_id = ${id})`,
-    };
+    // Validate mode against allowed values
+    const allowedModes = ["city", "state", "country"];
+    const locationFilter = allowedModes.includes(mode ?? "")
+      ? `u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = '${userId}')`
+      : "1=1";
 
-    const locationCondition =
-      mode && locationFilter[mode as keyof typeof locationFilter]
-        ? locationFilter[mode as keyof typeof locationFilter]
-        : "1=1"; // Default to no filter for global mode
+    // Directly interpolate values into the SQL string
+    const query = `
+      SELECT
+        ${baseSelectFields}
+      FROM posts p
+      JOIN users u ON p.user_id = u.clerk_id
+      LEFT JOIN prompts pr ON p.prompt_id = pr.id
+      WHERE p.user_id != '${userId}'
+      AND p.post_type = 'public'
+      AND ${locationFilter}
+      ORDER BY RANDOM()
+      LIMIT ${limit};
+    `;
 
-    /*lolol this is safe as 100% hardcoded -- no sql injection */
-    const response = await sql`
-        SELECT
-        ${sql.unsafe(baseSelectFields)}
-        FROM posts p
-        JOIN users u ON p.user_id = u.clerk_id
-        LEFT JOIN prompts pr ON p.prompt_id = pr.id
-        WHERE p.user_id != ${id}
-        AND p.post_type = 'public'
-        AND ${sql.unsafe(locationCondition)}
-        ORDER BY RANDOM()
-        LIMIT ${number};
-      `;
+    const response = await sql(query);
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
@@ -67,9 +60,7 @@ export async function GET(request: Request) {
     console.error(error);
     return new Response(
       JSON.stringify({ error: "Failed to fetch random posts" }),
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

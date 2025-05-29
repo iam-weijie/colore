@@ -47,7 +47,6 @@ const Layout = () => {
       <Stack.Screen name="post" options={{ headerShown: false }} />
       <Stack.Screen name="settings" options={{ headerShown: false }} />
       <Stack.Screen name="user-board" options={{ headerShown: false }} />
-      <Stack.Screen name="global-board" options={{ headerShown: false }} />
       <Stack.Screen
         name="new-personal-post"
         options={{

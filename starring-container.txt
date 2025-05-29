@@ -198,7 +198,28 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     shadowOpacity: starGlowOpacity.value,
   }));
 
-
+  // Create particle styles outside render
+  const particleAnimatedStyle = useMemo(() => {
+    return Array.from({ length: 8 }).map((_, index) => {
+      return useAnimatedStyle(() => {
+        const angle = (index * (360 / 8)) + starRotation.value;
+        const distance = 50 + starParticles.value * 30;
+        
+        return {
+          transform: [
+            { 
+              translateX: Math.cos(angle * (Math.PI / 180)) * distance 
+            },
+            { 
+              translateY: Math.sin(angle * (Math.PI / 180)) * distance 
+            },
+            { scale: 1 - starParticles.value },
+          ],
+          opacity: 1 - starParticles.value,
+        };
+      });
+    });
+  }, []);
 
   const SPRING_CONFIG = {
     stiffness: 150,
@@ -216,7 +237,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       starParticles.value = 0;
       
       starScale.value = withSequence(
-        withTiming(125, { duration: 100 }),
+        withTiming(1.2, { duration: 100 }),
         withSpring(1, { stiffness: 100 })
       );
       runOnJS(setShowStar)(true);
@@ -253,11 +274,11 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       });
 
       // Star exit animation
-      starScale.value = withTiming(0.5, { 
+      starScale.value = withTiming(0, { 
         duration: 500,
         easing: Easing.out(Easing.exp)
       });
-      starRotation.value = withTiming(starRotation.value * 10, {
+      starRotation.value = withTiming(starRotation.value * 3, {
         duration: 500
       });
       starGlowOpacity.value = withTiming(0, { duration: 500 });
@@ -677,6 +698,23 @@ const backgroundColor = useSharedValue(
     );
     setContentHeight(calculatedHeight);
   };
+    const renderParticles = () => {
+    return Array.from({ length: 8 }).map((_, index) => (
+      <Animated.View
+        key={`particle-${index}`}
+        style={[
+          {
+            position: 'absolute',
+            width: 12,
+            height: 12,
+            borderRadius: 6,
+            backgroundColor: postColor?.hex || '#FFD700',
+          },
+          particleAnimatedStyle(index)
+        ]}
+      />
+    ));
+  };
 
 
   if (isLoading) {
@@ -713,6 +751,19 @@ const backgroundColor = useSharedValue(
             ]}
           >
 
+            <View style={{ flex: 1, marginTop: 10 }}>
+              <TouchableWithoutFeedback>
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 1,
+                  }}
+                />
+              </TouchableWithoutFeedback>
 
               {/* Scrollable content */}
               <ScrollView
@@ -726,35 +777,7 @@ const backgroundColor = useSharedValue(
                   {currentPost?.content}
                 </Text>
               </ScrollView>
-              <View className="my-2 flex-row justify-between items-center">
-                                  <View className="flex flex-row items-center">
-                                    <TouchableOpacity onPress={handleCommentsPress}>
-                                      <Image source={icons.comment} className="w-7 h-7" />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={handleLikePress} className="ml-2">
-                                      <MaterialCommunityIcons
-                                        name={isLiked ? "heart" : "heart-outline"}
-                                        size={30}
-                                        color={isLiked ? "red" : "black"}
-                                      />
-                                    </TouchableOpacity>
-                                    {/* Show like count only to post creator */}
-                                  {currentPost?.user_id == user?.id && (
-                                      <Text className="ml-1 text-gray-600">{likeCount}</Text>
-                                    )}
-                                  </View>
-            
-                 {
-                      <DropdownMenu
-                        menuItems={getMenuItems(
-                          currentPost?.clerk_id === user!.id ||
-                            currentPost?.recipient_user_id === user!.id,
-                          invertedColors,
-                          isPreview
-                        )}
-                      />
-                    }
-                    </View>
+            </View>
           </Animated.View>}
         </GestureDetector>
       </GestureHandlerRootView>
@@ -823,29 +846,26 @@ const backgroundColor = useSharedValue(
               left: "50%",
               marginLeft: -32,
               marginTop: -32,
-              zIndex: -1,
-              shadowColor: postColor?.hex || "#FAFAFA",
-              shadowOffset: { width: -3, height: -4 },
-              shadowRadius: 8,
-              elevation: 8,
+              zIndex: 100, // Increased zIndex
             },
             starAnimatedStyle,
           ]}
-          entering={ZoomIn.duration(400)}
-          exiting={ZoomOut.duration(400)}
+          entering={ZoomIn.duration(200).springify()}
+          exiting={ZoomOut.duration(300)}
         >
           <MaterialCommunityIcons
             name="star"
             size={64}
-            color={"#FFFFFF"}
+            color={postColor?.hex || "white"}
             style={{
-              shadowColor: postColor?.hex || "#FAFAFA",
-              shadowOffset: { width: 0, height: 2 },
-              shadowRadius: 8,
-              shadowOpacity: 0.85,
+              shadowColor: postColor?.hex || '#FFD700',
+              shadowOffset: { width: 0, height: 0 },
+              shadowRadius: interpolate(starGlowOpacity.value, [0, 1], [8, 20]),
+              shadowOpacity: starGlowOpacity.value,
               elevation: 8,
             }}
           />
+          {renderParticles()}
         </Animated.View>
       )}
       {!!selectedEmoji && (
@@ -864,24 +884,6 @@ const backgroundColor = useSharedValue(
           />
         </View>
       )}
-                  {!!selectedBoard &&
-          <ModalSheet 
-            isVisible={!!selectedBoard}
-            title={"Comments"}
-            onClose={() => {
-              if (currentPost) {
-                handleReadComments(currentPost, user!.id);
-              }
-              console.log("has closed.")
-              setSelectedBoard(null)
-            }}
-            >
-              <View className="flex-1 h-full">
-              {selectedBoard}
-              </View>
-              
-              </ModalSheet>
-}
     </AnimatedView>
   );
 };
