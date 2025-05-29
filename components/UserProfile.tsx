@@ -410,11 +410,11 @@ const handleClearSearch = () => {
            <Header 
         title=""
         item={
-          <View className="flex-row w-full  justify-between items-center pl-10 pr-6">
+          <View className="flex-row w-full  justify-between items-center pl-10 pr-6 mt-2">
           <Animated.View entering={FadeIn.duration(800)}>
           { (nickname || profileUser?.username) ? (
           
-             <Text className={`text-2xl font-JakartaBold`}>
+             <Text className={`text-xl font-JakartaBold`}>
               {nickname
                 ? nickname
                 : profileUser?.username
@@ -422,11 +422,11 @@ const handleClearSearch = () => {
                   : `${profileUser?.firstname?.charAt(0)}.`} {emojiLoading ? "" : countryEmoji}
             </Text> 
           ) : 
-           <Text className={`text-2xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
+           <Text className={`text-xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
            }
               { profileUser ?  (<View className="max-w-[200px]">
-          <Text className=" text-xs text-gray-600 text-left font-Jakarta">
-              {profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
+          <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
+              {profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{" "}
               {profileUser?.country}
             </Text> 
           </View>) : (
@@ -441,7 +441,7 @@ const handleClearSearch = () => {
               <Text className="text-lg font-JakartaSemiBold">
                 {userPosts.length}
               </Text>
-              <Text className="text-xs font-JakartaSemiBold">
+              <Text className="text-[14px] font-JakartaSemiBold">
                 Posts
               </Text>
               </View>
@@ -449,7 +449,7 @@ const handleClearSearch = () => {
               <Text className="text-lg font-JakartaSemiBold">
                 {friendCount}
               </Text>
-              <Text className="text-xs font-JakartaSemiBold">
+              <Text className="text-[14px] font-JakartaSemiBold">
                 Friends
               </Text>
               </View>

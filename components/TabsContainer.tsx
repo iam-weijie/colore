@@ -93,9 +93,9 @@ const TabsContainer: React.FC<TabsContainerProps> = ({
           style={[
             {
               position: 'absolute',
-              top: 0,
+              top: 4,
               left: 16,
-              height: 48,
+              height: 44,
               borderRadius: 24,
               borderWidth: 2,
               shadowColor: "#000",
