@@ -241,10 +241,10 @@ async function handleSendNotificationExternal(
       );
     }
     if (type === "Posts") {
-      const username = "Someone";
+      //const username = "Someone";
       await sendPushNotification(
         pushToken,
-        `${username} has posted on your board`,
+        `${n.username} has posted on your board`,
         `${n.content}`,
         "comment",
         {
