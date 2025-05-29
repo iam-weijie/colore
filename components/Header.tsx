@@ -67,9 +67,9 @@ const Header = ({
           </TouchableOpacity>
         )}
         {title && (
-          <View className="pl-12 w-full mt-2">
+          <View className="pl-8 w-full mt-2 max-w-[80%]">
             <Text 
-              className="text-2xl font-JakartaBold"
+              className="text-xl font-JakartaBold"
               style={{
                 marginBottom: tabs ? 0 : (item ? 8 : 16)
               }}
