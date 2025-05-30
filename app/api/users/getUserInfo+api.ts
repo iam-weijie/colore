@@ -33,6 +33,7 @@ export async function GET(request: Request) {
         firstname: u.firstname,
         lastname: u.lastname,
         username: u.username,
+        nickname: u.nickname,
         incognito_name: u.incognito_name,
         email: u.email,
         date_of_birth: u.date_of_birth,
