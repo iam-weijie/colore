@@ -13,8 +13,6 @@ export async function PATCH(request: Request) {
       });
     }
 
-    console.log("yolooooo")
-
     // Execute the SQL update query
 
     const updateBoardMembership = !isJoining
@@ -33,6 +31,7 @@ export async function PATCH(request: Request) {
     RETURNING  *;
   `;
     const response = await updateBoardMembership;
+    console.log("[handleJoinCommunity]: ", response)
 
     if (response.length === 0) {
       return new Response(JSON.stringify({ error: "Board not found" }), {

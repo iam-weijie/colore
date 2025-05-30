@@ -33,6 +33,12 @@ import Circle from "@/components/Circle";
 import ItemContainer from "@/components/ItemContainer";
 import ProgressBar from "@/components/ProgressBar";
 import EmojiSettings from "@/components/EmojiSettings";
+import {
+  HeaderCard,
+  DetailRow,
+  ActionRow,
+  ToggleRow,
+} from "@/components/CardInfo";
 
 const Settings = () => {
   const {
@@ -50,10 +56,6 @@ const Settings = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
   const [username, setUsername] = useState(profile?.username || "");
-  const [nickname, setNickname] = useState(profile?.nickname || "");
-  const [incognitoName, setIncognitoName] = useState(
-    profile?.incognito_name || ""
-  );
   const [email, setEmail] = useState(profile?.email || "");
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
@@ -164,14 +166,14 @@ const Settings = () => {
     fetchLikedPosts();
   }, []);
 
-  const verifyValidName = (username: string): boolean => {
+  const verifyValidUsername = (username: string): boolean => {
     const usernameRegex = /^[\w\-\.]{1,20}$/;
     return usernameRegex.test(username);
   };
 
   const handleUsernameUpdate = async (newName: string) => {
     console.log("New Username: ", newName);
-    if (!verifyValidName(newName)) {
+    if (!verifyValidUsername(newName)) {
       showAlert({
         title: "Invalid Username",
         message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
@@ -217,100 +219,6 @@ const Settings = () => {
       showAlert({
         title: "Error",
         message: `Failed to update username. Please try again.`,
-        type: "ERROR",
-        status: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleNicknameUpdate = async (newName: string) => {
-    console.log("New Nickname: ", newName);
-    if (!verifyValidName(newName)) {
-      showAlert({
-        title: "Invalid Nickname",
-        message: `Nickname can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
-        type: "ERROR",
-        status: "error",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetchAPI("/api/users/patchUserInfo", {
-        method: "PATCH",
-        body: JSON.stringify({
-          clerkId: user!.id,
-          nickname: newName,
-        }),
-      });
-
-      //console.log("Changed Nickname", response)
-      if (response.error) {
-        throw new Error(response.error);
-      } else {
-        showAlert({
-          title: "New Nickname",
-          message: `Nickname updated successfully to ${newName}.`,
-          type: "UPDATE",
-          status: "success",
-        });
-        await fetchUserData();
-      }
-    } catch (error) {
-      console.error("Failed to update nickname:", error);
-      showAlert({
-        title: "Error",
-        message: `Failed to update nickname. Please try again.`,
-        type: "ERROR",
-        status: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleIncognitoNameUpdate = async (newName: string) => {
-    console.log("New Incognito Name: ", newName);
-    if (!verifyValidName(newName)) {
-      showAlert({
-        title: "Invalid Incognito Name",
-        message: `Incognito Name can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
-        type: "ERROR",
-        status: "error",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetchAPI("/api/users/patchUserInfo", {
-        method: "PATCH",
-        body: JSON.stringify({
-          clerkId: user!.id,
-          incognito_name: newName,
-        }),
-      });
-
-      //console.log("Changed Incognito Name", response)
-      if (response.error) {
-        throw new Error(response.error);
-      } else {
-        showAlert({
-          title: "New Incognito Name",
-          message: `Incognito Name updated successfully to ${newName}.`,
-          type: "UPDATE",
-          status: "success",
-        });
-        await fetchUserData();
-      }
-    } catch (error) {
-      console.error("Failed to update incognito name:", error);
-      showAlert({
-        title: "Error",
-        message: `Failed to update incognito name. Please try again.`,
         type: "ERROR",
         status: "error",
       });
@@ -408,19 +316,13 @@ const Settings = () => {
   };
 
   const handleUpdateValue = (type: string) => {
-    setSelectedTitle(
-      `${type === "username" ? "New username" : type === "nickname" ? "New nickname" : type === "incognito_name" ? "New incognito name" : "New Email"}`
-    );
+    setSelectedTitle(`${type == "username" ? "New username" : "New Email"}`);
     setSelectedModal(
       <RenameContainer
         initialValue={""}
         onSave={(newName: string) => {
           if (type === "username") {
             handleUsernameUpdate(newName);
-          } else if (type === "nickname") {
-            handleNicknameUpdate(newName);
-          } else if (type === "incognito_name") {
-            handleIncognitoNameUpdate(newName);
           } else {
             handleEmailUpdate(newName);
           }
@@ -432,22 +334,8 @@ const Settings = () => {
           setSelectedModal(null);
           setSelectedTitle("");
         }}
-        placeholder={
-          type === "username"
-            ? username
-            : type === "nickname"
-              ? nickname
-              : type === "incognito_name"
-                ? incognitoName
-                : email
-        }
-        maxCharacters={
-          type === "username" ||
-          type === "nickname" ||
-          type === "incognito_name"
-            ? 20
-            : 50
-        }
+        placeholder={type === "username" ? username : email}
+        maxCharacters={type === "username" ? 20 : 50}
       />
     );
   };
@@ -482,48 +370,6 @@ const Settings = () => {
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 90 }}
     >
-      {/* Header Card Component */}
-      <View className="mx-6 mb-6">
-        <HeaderCard
-          title="Account"
-          color="#93c5fd"
-          content={
-            <>
-              <DetailRow
-                label="Username"
-                value={username}
-                onPress={() => handleUpdateValue("username")}
-                accentColor="#93c5fd"
-              />
-              <DetailRow
-                label="Nickname"
-                value={nickname}
-                onPress={() => handleUpdateValue("nickname")}
-                accentColor="#93c5fd"
-              />
-              <DetailRow
-                label="Incognito Name"
-                value={incognitoName}
-                onPress={() => handleUpdateValue("incognito_name")}
-                accentColor="#93c5fd"
-              />
-              <DetailRow
-                label="Email"
-                value={email}
-                onPress={() => handleUpdateValue("email")}
-                accentColor="#93c5fd"
-              />
-              <DetailRow
-                label="Location"
-                value={currentLocation}
-                onPress={handleLocationUpdate}
-                accentColor="#93c5fd"
-              />
-            </>
-          }
-        />
-      </View>
-
       {/* Color Section */}
       <View className="mx-6 mb-6">
         <HeaderCard
@@ -605,6 +451,36 @@ const Settings = () => {
                 count={3}
                 onPress={handleAttemptColorCreation}
                 accentColor="#CFB1FB"
+              />
+            </>
+          }
+        />
+      </View>
+
+      {/* Header Card Component */}
+      <View className="mx-6 mb-6">
+        <HeaderCard
+          title="Information"
+          color="#93c5fd"
+          content={
+            <>
+              <DetailRow
+                label="Username"
+                value={username}
+                onPress={() => handleUpdateValue("username")}
+                accentColor="#93c5fd"
+              />
+              <DetailRow
+                label="Email"
+                value={email}
+                onPress={() => handleUpdateValue("email")}
+                accentColor="#93c5fd"
+              />
+              <DetailRow
+                label="Location"
+                value={currentLocation}
+                onPress={handleLocationUpdate}
+                accentColor="#93c5fd"
               />
             </>
           }
@@ -784,114 +660,6 @@ const Settings = () => {
     </ScrollView>
   );
 };
-
-// Reusable Components
-const HeaderCard = ({ title, color, content }) => (
-  <View
-    className="rounded-[48px] py-3"
-    style={{
-      backgroundColor: "#ffffff",
-      borderColor: "#fafafa80",
-      shadowColor: "#63636388",
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.1,
-      shadowRadius: 5,
-    }}
-  >
-    <View
-      className="px-4 py-2 rounded-[48px] w-[70%] ml-5 overflow-hidden shadow-sm border-2"
-      style={{
-        backgroundColor: color,
-        borderColor: "#ffffff80",
-        shadowColor: "#636363",
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-      }}
-    >
-      <View className="px-5 py-2">
-        <Text
-          className={`text-[18px] font-JakartaSemiBold ${color === "#FAFAFA" ? "text-black" : "text-white"}`}
-        >
-          {title}
-        </Text>
-      </View>
-    </View>
-
-    <View className="px-4 pb-4 rounded-[48px] overflow-hidden shadow-sm">
-      {content}
-    </View>
-  </View>
-);
-
-const DetailRow = ({ label, value, onPress, accentColor }) => (
-  <View className="px-5 py-3  last:border-b-0">
-    <View className="flex flex-row items-center justify-between mb-1">
-      <Text className="text-[16px] font-JakartaSemiBold text-gray-800">
-        {label}
-      </Text>
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={onPress}
-        className="px-3 py-2 rounded-full"
-        style={{ backgroundColor: accentColor }}
-      >
-        <Text className="text-sm font-JakartaSemiBold text-white">Update</Text>
-      </TouchableOpacity>
-    </View>
-    <Text className="text-gray-800 text-[14px] font-JakartaMedium">
-      {value || "Not specified"}
-    </Text>
-  </View>
-);
-
-const ActionRow = ({ icon, label, count, onPress, accentColor }) => (
-  <TouchableOpacity
-    activeOpacity={0.7}
-    onPress={onPress}
-    className="px-5 py-4 flex flex-row items-center justify-between "
-  >
-    <View className="flex flex-row items-center">
-      <View
-        className="p-2 rounded-xl mr-3"
-        style={{ backgroundColor: "#fafafa" }}
-      >
-        {icon}
-      </View>
-      <Text className="text-[14px] font-JakartaSemiBold text-gray-800">
-        {label}
-      </Text>
-    </View>
-    <View className="flex flex-row items-center">
-      <Text className="text-gray-600 text-sm mr-2">{count}</Text>
-      <MaterialCommunityIcons name="chevron-right" size={20} color="#9ca3af" />
-    </View>
-  </TouchableOpacity>
-);
-
-const ToggleRow = ({
-  label,
-  description,
-  value,
-  onValueChange,
-  accentColor,
-}) => (
-  <View className="px-5 py-3 flex flex-row items-center justify-between last:border-b-0">
-    <View className="flex-1">
-      <Text className="text-[16px] font-JakartaSemiBold text-gray-800 mb-1">
-        {label}
-      </Text>
-      <Text className="text-[14px] text-gray-800">{description}</Text>
-    </View>
-    <Switch
-      trackColor={{ false: "#fafafa", true: accentColor }}
-      thumbColor={value ? "#ffffff" : "#f4f3f4"}
-      ios_backgroundColor="#E5E7EB"
-      onValueChange={onValueChange}
-      value={value}
-    />
-  </View>
-);
 
 export default Settings;
 

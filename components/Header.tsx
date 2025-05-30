@@ -52,7 +52,7 @@ const Header = ({
 
   return (
      <View 
-     className="flex-column justify-end items-start pt-16  bg-white z-10 rounded-b-[44px] overflow-hidden "
+     className="flex-column justify-end items-start pt-12  bg-white z-10 rounded-b-[44px] overflow-hidden "
      style={{
         boxShadow: '0 8px 24px rgba(180, 180, 180, 0.1)', // Custom shadow
       }}
@@ -67,9 +67,9 @@ const Header = ({
           </TouchableOpacity>
         )}
         {title && (
-          <View className="pl-12 w-full">
+          <View className="pl-8 w-full mt-2 max-w-[80%]">
             <Text 
-              className="text-2xl font-JakartaBold mt-4"
+              className="text-[24px] font-JakartaBold"
               style={{
                 marginBottom: tabs ? 0 : (item ? 8 : 24)
               }}

@@ -26,7 +26,6 @@ export async function GET(request: Request) {
     const raw_boards = fetch_boards;
     const raw_boards_id: String[] = fetch_boards.map((b) => b.id);
 
-    console.log("raw boards", raw_boards_id)
 
     const ids = raw_boards_id
     .map((id) => Number(id))
@@ -41,7 +40,6 @@ export async function GET(request: Request) {
     GROUP BY p.board_id;
     `;
 
-    console.log("raw board count", fetch_count)
 
        const boards: Board[] = fetch_count.map((b) => {
           const board = raw_boards.find((i) => i.id === b.board_id )
