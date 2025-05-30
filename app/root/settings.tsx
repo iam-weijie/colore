@@ -56,6 +56,10 @@ const Settings = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
   const [username, setUsername] = useState(profile?.username || "");
+  const [nickname, setNickname] = useState(profile?.nickname || "");
+  const [incognitoName, setIncognitoName] = useState(
+    profile?.incognito_name || ""
+  );
   const [email, setEmail] = useState(profile?.email || "");
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
@@ -166,14 +170,14 @@ const Settings = () => {
     fetchLikedPosts();
   }, []);
 
-  const verifyValidUsername = (username: string): boolean => {
+  const verifyValidName = (username: string): boolean => {
     const usernameRegex = /^[\w\-\.]{1,20}$/;
     return usernameRegex.test(username);
   };
 
   const handleUsernameUpdate = async (newName: string) => {
     console.log("New Username: ", newName);
-    if (!verifyValidUsername(newName)) {
+    if (!verifyValidName(newName)) {
       showAlert({
         title: "Invalid Username",
         message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
@@ -219,6 +223,100 @@ const Settings = () => {
       showAlert({
         title: "Error",
         message: `Failed to update username. Please try again.`,
+        type: "ERROR",
+        status: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNicknameUpdate = async (newName: string) => {
+    console.log("New Nickname: ", newName);
+    if (!verifyValidName(newName)) {
+      showAlert({
+        title: "Invalid Nickname",
+        message: `Nickname can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetchAPI("/api/users/patchUserInfo", {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user!.id,
+          nickname: newName,
+        }),
+      });
+
+      //console.log("Changed Nickname", response)
+      if (response.error) {
+        throw new Error(response.error);
+      } else {
+        showAlert({
+          title: "New Nickname",
+          message: `Nickname updated successfully to ${newName}.`,
+          type: "UPDATE",
+          status: "success",
+        });
+        await fetchUserData();
+      }
+    } catch (error) {
+      console.error("Failed to update nickname:", error);
+      showAlert({
+        title: "Error",
+        message: `Failed to update nickname. Please try again.`,
+        type: "ERROR",
+        status: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleIncognitoNameUpdate = async (newName: string) => {
+    console.log("New Incognito Name: ", newName);
+    if (!verifyValidName(newName)) {
+      showAlert({
+        title: "Invalid Incognito Name",
+        message: `Incognito Name can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetchAPI("/api/users/patchUserInfo", {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user!.id,
+          incognito_name: newName,
+        }),
+      });
+
+      //console.log("Changed Incognito Name", response)
+      if (response.error) {
+        throw new Error(response.error);
+      } else {
+        showAlert({
+          title: "New Incognito Name",
+          message: `Incognito Name updated successfully to ${newName}.`,
+          type: "UPDATE",
+          status: "success",
+        });
+        await fetchUserData();
+      }
+    } catch (error) {
+      console.error("Failed to update incognito name:", error);
+      showAlert({
+        title: "Error",
+        message: `Failed to update incognito name. Please try again.`,
         type: "ERROR",
         status: "error",
       });
@@ -316,13 +414,19 @@ const Settings = () => {
   };
 
   const handleUpdateValue = (type: string) => {
-    setSelectedTitle(`${type == "username" ? "New username" : "New Email"}`);
+    setSelectedTitle(
+      `${type === "username" ? "New username" : type === "nickname" ? "New nickname" : type === "incognito_name" ? "New incognito name" : "New Email"}`
+    );
     setSelectedModal(
       <RenameContainer
         initialValue={""}
         onSave={(newName: string) => {
           if (type === "username") {
             handleUsernameUpdate(newName);
+          } else if (type === "nickname") {
+            handleNicknameUpdate(newName);
+          } else if (type === "incognito_name") {
+            handleIncognitoNameUpdate(newName);
           } else {
             handleEmailUpdate(newName);
           }
@@ -334,8 +438,22 @@ const Settings = () => {
           setSelectedModal(null);
           setSelectedTitle("");
         }}
-        placeholder={type === "username" ? username : email}
-        maxCharacters={type === "username" ? 20 : 50}
+        placeholder={
+          type === "username"
+            ? username
+            : type === "nickname"
+              ? nickname
+              : type === "incognito_name"
+                ? incognitoName
+                : email
+        }
+        maxCharacters={
+          type === "username" ||
+          type === "nickname" ||
+          type === "incognito_name"
+            ? 20
+            : 50
+        }
       />
     );
   };
@@ -468,6 +586,18 @@ const Settings = () => {
                 label="Username"
                 value={username}
                 onPress={() => handleUpdateValue("username")}
+                accentColor="#93c5fd"
+              />
+              <DetailRow
+                label="Nickname"
+                value={nickname}
+                onPress={() => handleUpdateValue("nickname")}
+                accentColor="#93c5fd"
+              />
+              <DetailRow
+                label="Incognito Name"
+                value={incognitoName}
+                onPress={() => handleUpdateValue("incognito_name")}
                 accentColor="#93c5fd"
               />
               <DetailRow
