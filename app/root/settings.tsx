@@ -32,9 +32,11 @@ import CustomButton from "@/components/CustomButton";
 import Circle from "@/components/Circle";
 import ItemContainer from "@/components/ItemContainer";
 import ProgressBar from "@/components/ProgressBar";
+import { Modal } from "react-native";
 
 
 const Settings = () => {
+  const [infoVisible, setInfoVisible] = useState(false);
 
 
   const { signOut } = useAuth();
@@ -50,8 +52,14 @@ const Settings = () => {
   const [likedPosts, setLikedPosts] = useState<string[]>();
   const [libraryVisible, setLibraryVisible] = useState(false);
   const [colorLibrary, setColorLibrary] = useState<PostItColor[]>([]);
-  const blueProgress = Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20);
-  const yellowProgress = Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20);
+  const blueProgress = Math.min(
+    100,
+    Math.floor((savedPosts?.length || 0) / 3) * 20
+  );
+  const yellowProgress = Math.min(
+    100,
+    Math.floor((likedPosts?.length || 0) / 10) * 20
+  );
   const pinkProgress = Math.min(
     100,
     Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
@@ -62,7 +70,7 @@ const Settings = () => {
     const R = Math.floor((likedPosts?.length || 0) / 10);
     const B = Math.floor((profileUser?.customizations?.length || 0) / 5);
     const userSRB = [S, R, B];
-  
+
     const matchedColor = colorLibrary.find(
       (c) =>
         c.SRB[0] === userSRB[0] &&
@@ -74,10 +82,10 @@ const Settings = () => {
       const alreadyUnlocked = unlockedColors.some(
         (uc) => uc.name === matchedColor.name
       );
-  
+
       if (!alreadyUnlocked) {
         setUnlockedColors((prev) => [...prev, matchedColor]);
-  
+
         showAlert({
           title: "🎉 Color Unlocked!",
           message: `${matchedColor.name} has been added to your collection.`,
@@ -575,6 +583,7 @@ const Settings = () => {
       </View>
 
       {/* Colors Section */}
+
       <View className="mx-6 mb-6">
         <View
           className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4"
@@ -592,6 +601,93 @@ const Settings = () => {
               Colors
             </Text>
           </View>
+
+          {/* SRB Info Button */}
+          <View className="px-5 py-2">
+            <TouchableOpacity
+              onPress={() => setInfoVisible(true)}
+              className="border border-black px-4 py-3 rounded-full items-center"
+              activeOpacity={0.8}
+            >
+              <Text className="text-black text-sm font-JakartaSemiBold">ℹ️ What is SRB?</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* SRB Info Modal */}
+          <Modal visible={infoVisible} animationType="slide">
+            <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", padding: 24 }}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <Text style={{ fontSize: 26, fontWeight: "700", marginBottom: 16 }}>
+                  🎨 SRB & Color Progress System
+                </Text>
+
+                <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>
+                  What is SRB?
+                </Text>
+                <Text style={{ fontSize: 15, marginBottom: 12 }}>
+                  SRB stands for:
+                  {"\n"}- S: Saved Posts
+                  {"\n"}- R: Reacted/Liked Posts
+                  {"\n"}- B: Beautification Actions (like profile customization)
+                </Text>
+
+                <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>
+                  How Do You Earn SRB Points?
+                </Text>
+                <Text style={{ fontSize: 15, marginBottom: 12 }}>
+                  - Every 3 saved posts ➜ +1 S
+                  {"\n"}- Every 10 liked posts ➜ +1 R
+                  {"\n"}- Every 5 customizations ➜ +1 B
+                </Text>
+
+                <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>
+                  How Are Colors Unlocked?
+                </Text>
+                <Text style={{ fontSize: 15, marginBottom: 12 }}>
+                  Each color in our system has a unique SRB combination (e.g., [2, 1, 1]).
+                  If your current SRB distribution matches any of them, you unlock that color!
+                </Text>
+
+                <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>
+                  Example:
+                </Text>
+                <Text style={{ fontSize: 15, marginBottom: 12 }}>
+                  If you have:
+                  {"\n"}- 6 saved posts ➜ S = 2
+                  {"\n"}- 11 likes ➜ R = 1
+                  {"\n"}- 5 customizations ➜ B = 1
+                  {"\n"}→ SRB = [2,1,1]
+                  {"\n"}If a color like "Ocean Breeze" matches this, it's added to your library!
+                </Text>
+
+                <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>
+                  Why Unlock Colors?
+                </Text>
+                <Text style={{ fontSize: 15, marginBottom: 12 }}>
+                  Unlocking colors allows you to:
+                  {"\n"}- Use them in your profile, app themes, and badges
+                  {"\n"}- Track progress and achievements
+                  {"\n"}- Stand out with your unique palette!
+                </Text>
+
+                <TouchableOpacity
+                  onPress={() => setInfoVisible(false)}
+                  style={{
+                    backgroundColor: "#000",
+                    padding: 14,
+                    borderRadius: 12,
+                    alignItems: "center",
+                    marginTop: 16,
+                  }}
+                >
+                  <Text style={{ color: "#fff", fontWeight: "600" }}>Close</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </SafeAreaView>
+          </Modal>
+
+
+
 
           <View className="px-5 py-4">
             <TouchableOpacity
@@ -611,10 +707,11 @@ const Settings = () => {
               className="bg-yellow-500 px-4 py-3 rounded-full items-center"
               activeOpacity={0.8}
             >
-              <Text className="text-black text-sm font-JakartaSemiBold">✨ Attempt Create Color</Text>
+              <Text className="text-black text-sm font-JakartaSemiBold">
+                ✨ Attempt Create Color
+              </Text>
             </TouchableOpacity>
           </View>
-
 
           {/* Blue Progress */}
           <View className="px-5 py-2">
@@ -622,13 +719,15 @@ const Settings = () => {
               🔵 Blue Level
             </Text>
 
-             <ProgressBar 
-                  progress={Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20)} 
-                  height={8}
-                  progressColor="#60a5fa"
-                  backgroundColor="#E5E7EB"
-                />
-
+            <ProgressBar
+              progress={Math.min(
+                100,
+                Math.floor((savedPosts?.length || 0) / 3) * 20
+              )}
+              height={8}
+              progressColor="#60a5fa"
+              backgroundColor="#E5E7EB"
+            />
           </View>
 
           {/* Yellow Progress */}
@@ -637,12 +736,15 @@ const Settings = () => {
               🟡 Yellow Level
             </Text>
 
-             <ProgressBar 
-                  progress={Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20)} 
-                  height={8}
-                  progressColor="#facc15"
-                  backgroundColor="#E5E7EB"
-                />
+            <ProgressBar
+              progress={Math.min(
+                100,
+                Math.floor((likedPosts?.length || 0) / 10) * 20
+              )}
+              height={8}
+              progressColor="#facc15"
+              backgroundColor="#E5E7EB"
+            />
           </View>
 
           {/* Pink Progress */}
@@ -651,13 +753,12 @@ const Settings = () => {
               🩷 Pink Level
             </Text>
 
-                <ProgressBar 
-                  progress={pinkProgress} 
-                  height={8}
-                  progressColor="#FBB1F5"
-                  backgroundColor="#E5E7EB"
-                />
-
+            <ProgressBar
+              progress={pinkProgress}
+              height={8}
+              progressColor="#FBB1F5"
+              backgroundColor="#E5E7EB"
+            />
           </View>
         </View>
       </View>
@@ -691,49 +792,49 @@ const Settings = () => {
           }}
         />
       )}
-{libraryVisible && 
-<ModalSheet
-          title={"Your Color Library"} 
+      {libraryVisible && (
+        <ModalSheet
+          title={"Your Color Library"}
           isVisible={libraryVisible}
-           onClose={() => {}} > 
-   <View 
-   className="flex-1 p-6"
+          onClose={() => {}}
         >
-          <FlatList
-            className="flex-1"
-            data={colorLibrary}
-            keyExtractor={(item, index) => index.toString()}
-            ListEmptyComponent={
-              <Text style={{ fontSize: 16, color: "gray" }}>
-                You haven't collected any colors yet.
-              </Text>
-            }
-            renderItem={({ item }) => (
-              <ItemContainer
-                label={item.name}
-                caption={item.meaning || "No description available."}
-                icon={0}
-                colors={[item.hex, item.foldcolorhex]}
-                iconColor={""}
-                onPress={() => {}}
-              />
-            )}
-            contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
-            showsVerticalScrollIndicator={false}
-          />
-           <CustomButton
-          className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
-          fontSize="lg"
-          title="Close"
-          padding="0"
-          onPress={() => {
-            setLibraryVisible(false);
-          }}
-        />
-        </View>
-  </ModalSheet>}
- 
+          <View className="flex-1 p-6">
+            <FlatList
+              className="flex-1"
+              data={colorLibrary}
+              keyExtractor={(item, index) => index.toString()}
+              ListEmptyComponent={
+                <Text style={{ fontSize: 16, color: "gray" }}>
+                  You haven't collected any colors yet.
+                </Text>
+              }
+              renderItem={({ item }) => (
+                <ItemContainer
+                  label={item.name}
+                  caption={item.meaning || "No description available."}
+                  icon={0}
+                  colors={[item.hex, item.foldcolorhex]}
+                  iconColor={""}
+                  onPress={() => {}}
+                />
+              )}
+              contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
+              showsVerticalScrollIndicator={false}
+            />
+            <CustomButton
+              className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+              fontSize="lg"
+              title="Close"
+              padding="0"
+              onPress={() => {
+                setLibraryVisible(false);
+              }}
+            />
+          </View>
+        </ModalSheet>
+      )}
     </ScrollView>
+  
   );
 };
 
