@@ -10,11 +10,13 @@ import {
 
 interface KeyboardOverlayProps {
   children: React.ReactNode;
+  offsetY?: number;
+  onFocus?: boolean
 }
 
-const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({ children }) => {
+const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({ children, offsetY = 0, onFocus = false }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(onFocus);
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
@@ -57,15 +59,16 @@ const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({ children }) => {
     };
   }, [fadeAnim]);
 
-  if (!isVisible || keyboardHeight === 0) return null;
 
   return (
     <Animated.View
-      className="absolute left-0 right-0 bg-white shadow-md border-t border-neutral-200 z-50 rounded-t-[32px]"
+      className="absolute left-0 right-0 bg-white h-[60px] shadow-md z-50 rounded-t-[32px]"
       style={{
-        bottom: keyboardHeight,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        ...(offsetY > 0
+          ? { top: offsetY + keyboardHeight - 70 }
+          : { bottom: keyboardHeight }),
+        paddingHorizontal: 12,
+        paddingVertical: 8,
         opacity: fadeAnim,
         transform: [
           {

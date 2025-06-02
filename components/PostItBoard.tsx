@@ -503,14 +503,12 @@ const reorderPost = (topPost: Post) => {
 
 
   if (postsWithPosition.length == 0) {
-    return (
-      <View className="flex-1 items-center justify-center">
+      return (
+        <View className="flex-1 items-center justify-center">
           <ColoreActivityIndicator text="Summoning Bob..." />
-            {/* Closing tag for the parent View */}
-          </View>
-    )
-  }
-  //console.log("remaingring loaded", stacks)
+        </View>
+      );
+    }
 
   const onRefresh = async () => {
     setRefreshing(true);

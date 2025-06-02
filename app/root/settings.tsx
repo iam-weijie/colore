@@ -15,6 +15,8 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   Switch, // Import Switch
   Text,
@@ -39,6 +41,7 @@ import {
   ActionRow,
   ToggleRow,
 } from "@/components/CardInfo";
+import KeyboardOverlay from "@/components/KeyboardOverlay";
 
 const Settings = () => {
   const {
@@ -55,6 +58,7 @@ const Settings = () => {
 
   const { signOut } = useAuth();
   const { user } = useUser();
+  const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 });
   const [username, setUsername] = useState(profile?.username || "");
   const [nickname, setNickname] = useState(profile?.nickname || "");
   const [incognitoName, setIncognitoName] = useState(
@@ -64,6 +68,8 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
   const [selectedModal, setSelectedModal] = useState<any>(null);
+  const [type, setUpdateType] = useState<string>("");
+  const [onFocus, setOnFocus] = useState<boolean>(false);
   const [selectedTitle, setSelectedTitle] = useState<string>("");
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(
     profile
@@ -418,48 +424,9 @@ const Settings = () => {
   };
 
   const handleUpdateValue = (type: string) => {
-    setSelectedTitle(
-      `${type === "username" ? "New username" : type === "nickname" ? "New nickname" : type === "incognito_name" ? "New incognito name" : "New Email"}`
-    );
-    setSelectedModal(
-      <RenameContainer
-        initialValue={""}
-        onSave={(newName: string) => {
-          if (type === "username") {
-            handleUsernameUpdate(newName);
-          } else if (type === "nickname") {
-            handleNicknameUpdate(newName);
-          } else if (type === "incognito_name") {
-            handleIncognitoNameUpdate(newName);
-          } else {
-            handleEmailUpdate(newName);
-          }
-
-          setSelectedModal(null);
-          setSelectedTitle("");
-        }}
-        onCancel={() => {
-          setSelectedModal(null);
-          setSelectedTitle("");
-        }}
-        placeholder={
-          type === "username"
-            ? username
-            : type === "nickname"
-              ? nickname
-              : type === "incognito_name"
-                ? incognitoName
-                : email
-        }
-        maxCharacters={
-          type === "username" ||
-          type === "nickname" ||
-          type === "incognito_name"
-            ? 20
-            : 50
-        }
-      />
-    );
+    setUpdateType(type)
+    setOnFocus(true)
+    console.log("[Settings]: ", onFocus)
   };
 
   const currentLocation = profileUser
@@ -486,9 +453,20 @@ const Settings = () => {
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
   };
 
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const x = event.nativeEvent.contentOffset.x;  
+      const y = event.nativeEvent.contentOffset.y;
+      setScrollOffset({
+        x:  x,
+        y: y,
+      });
+    };
+
   return (
     <ScrollView
       className="flex-1 pt-6 bg-gray-50"
+      onScroll={onScroll}
+      scrollEnabled={!onFocus}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 90 }}
     >
@@ -733,7 +711,38 @@ const Settings = () => {
         </TouchableOpacity>
       </View>
 
-      {!!selectedModal && (
+      {onFocus && (
+        <KeyboardOverlay
+        onFocus={onFocus}
+        offsetY={scrollOffset.y}
+        >
+          <RenameContainer 
+          onSave={(newName: string) => {
+          if (type === "username") {
+            handleUsernameUpdate(newName);
+          } else if (type === "nickname") {
+            handleNicknameUpdate(newName);
+          } else if (type === "incognito_name") {
+            handleIncognitoNameUpdate(newName);
+          } else {
+            handleEmailUpdate(newName);
+          }
+        }} 
+        placeholder={
+          type === "username"
+            ? username
+            : type === "nickname"
+            ? nickname
+            : type === "incognito_name"
+            ? incognitoName
+            : email
+        }
+        
+          onCancel={() => setOnFocus(false)} />
+        </KeyboardOverlay>
+        
+      )}
+       {!!selectedModal && (
         <ModalSheet
           children={selectedModal}
           title={selectedTitle}
@@ -744,6 +753,7 @@ const Settings = () => {
           }}
         />
       )}
+      
       {libraryVisible && (
         <ModalSheet
           title={"Your Color Library"}

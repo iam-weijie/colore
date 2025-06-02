@@ -389,20 +389,21 @@ const BoardSetting = () => {
         <Animated.View entering={FadeIn.duration(800)}>
                        { username ? (
                        <View className="max-w-[200px]">
-                          <Text className={`text-2xl font-JakartaBold`}>
+                          <Text className={`text-xl font-JakartaBold`}>
                            {username}
                          </Text> 
                          </View>
                        ) : 
-                        <Text className={`text-2xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Personal Board</Text>
+                        <Text className={`text-xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Personal Board</Text>
                         }
                            { boardInfo ?  (<View className="max-w-[200px]">
-                       <Text className=" text-xs text-gray-600 text-left font-Jakarta">
+                       <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
                            {boardInfo.description}
                          </Text> 
                        </View>) : (
                          <View>
-                         <Text className=" text-xs text-gray-600 text-left font-Jakarta">
+                         <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
+                          Your personal space.
                          </Text> 
                          </View>)}
          </Animated.View>

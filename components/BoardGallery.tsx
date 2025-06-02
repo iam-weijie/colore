@@ -126,7 +126,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
   numColumns={isIpad ? 6 : 2}
   renderItem={({ item }) => <BoardContainer item={item} />}
   contentContainerStyle={{
-    paddingHorizontal: isIpad ? 16 : 8, // More padding on iPad
+    paddingHorizontal: isIpad ? 16 : 4, // More padding on iPad
     paddingBottom: 20,
   }}
   columnWrapperStyle={isIpad ? {

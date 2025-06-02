@@ -47,12 +47,9 @@ export const DetailRow = ({ label, value, onPress, accentColor }) => (
         onPress={onPress}
         className="flex flex-row w-full"
       >
-        <View className=" w-full flex flex-row items-center justify-between mb-1">
+        <View className=" w-full flex flex-row items-center justify-start mb-1">
       <Text className="text-[14px] font-JakartaSemiBold text-gray-800">{label}</Text>
-      <View className="flex flex-row items-center">
-        <Text className={`text-[12px] font-JakartaMedium text-[${accentColor}]`}>Update</Text>
          <MaterialCommunityIcons name="chevron-right" size={20} color={accentColor} />
-         </View>
           </View>
       </TouchableOpacity>
    

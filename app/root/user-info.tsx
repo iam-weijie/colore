@@ -97,18 +97,7 @@ const UserInfo = () => {
     }
   };
 
-  const fetchPersonalPosts = async () => {
-    const response = await fetchAPI(
-      `/api/posts/getPersonalPosts?number=${8}&recipient_id=${user!.id}&user_id=${user!.id}`
-    );
 
-    if (response.data.length > 0) {
-      const filteredPosts = response.data.filter((p) => p.pinned);
-      return filteredPosts;
-    } else {
-      return [];
-    }
-  };
   const fetchDiscoverBoards = async () => {
     try {
       const response = await fetchAPI(`/api/boards/getDiscoverBoards`, {
@@ -161,7 +150,6 @@ const UserInfo = () => {
     const getData = async () => {
       setLoading(true);
       const data = await fetchUserData();
-      const post = await fetchPersonalPosts();
 
       setForm({
         ...form,
@@ -174,8 +162,7 @@ const UserInfo = () => {
         data.state &&
         data.country &&
         data.email &&
-        data.username &&
-        post.length > 0
+        data.username
       ) {
         router.replace("/root/tabs/home");
       } else {
@@ -481,63 +468,6 @@ const UserInfo = () => {
                 onPressIn={handleNavigateToCountry}
               />
             </Pressable>
-          </View>
-        </View>
-      ),
-    },
-    {
-      label: "About you",
-      caption: "Share something cool about yourself!",
-      color: "#FBB1F5",
-      disabled: postContent.length == 0,
-      children: (
-        <View className="flex-1">
-          <View
-            className="flex-1 mx-6 mt-0 rounded-[48px] overflow-hidden shadow-sm border-4"
-            style={{
-              backgroundColor: selectedColor.hex,
-              borderColor: "#ffffff80",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 3 },
-              shadowOpacity: 0.1,
-              shadowRadius: 5,
-            }}
-          >
-            <View className="flex-1 flex-column justify-center items-center ">
-              <View className="flex w-full ">
-                <View>
-                  <TextInput
-                    className="text-[20px] text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
-                    placeholder="Type something..."
-                    value={postContent}
-                    onChangeText={handleChangeText}
-                    onContentSizeChange={handleContentSizeChange}
-                    autoFocus
-                    multiline
-                    scrollEnabled
-                    style={{
-                      paddingTop: 10,
-                      paddingBottom: 0,
-                      minHeight: screenHeight * 0.2,
-                      maxHeight: screenHeight * 0.5,
-                      textAlignVertical: "top",
-                    }}
-                  />
-                </View>
-              </View>
-            </View>
-
-            <View className="flex-1 absolute m-4 left-4 top-2">
-              <Text className="text-[16px] font-JakartaBold text-white"></Text>
-            </View>
-            <View className="flex-1 flex-col items-end absolute p-4 right-0">
-              <ColorPickerSlider
-                colors={temporaryColors}
-                selectedColor={selectedColor}
-                onColorSelect={handleColorSelect}
-              />
-              <View className="flex flex-row items-center"></View>
-            </View>
           </View>
         </View>
       ),
