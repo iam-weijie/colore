@@ -7,6 +7,8 @@ import { useUser } from "@clerk/clerk-expo";
 import { Link, useFocusEffect } from "expo-router";
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import { router } from "expo-router";
+import * as Haptics from 'expo-haptics';
+import { useHaptics } from "@/hooks/useHaptics";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
@@ -23,15 +25,15 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   handleUpdate,
   disableModal = false,
   query = "",
-  header
+  header,
+  offsetY
 }) => {
   const { user } = useUser();
   const { isIpad } = useGlobalContext(); 
   const isOwnProfile = user!.id === profileUserId;
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [sortedPosts, setSortedPosts] = useState<Post[]>([]);
-  const [queueRefresh, setQueueRefresh] = useState(false);
-  const [hasNavigatedAway, setHasNavigatedAway] = useState(false);
+  const { triggerHaptic } = useHaptics();
   const [isSaved, setIsSaved] = useState(true);
   const { stateVars, setStateVars } = useNavigationContext();
 
@@ -84,6 +86,7 @@ const renderItem = ({ item }: { item: Post }) => {
       <TouchableOpacity 
         onPress={() => 
           {
+            triggerHaptic(Haptics.ImpactFeedbackStyle.Light)
             setSelectedPost(item)
             disableModal && handleUpdate && handleUpdate(item.id);}}
         activeOpacity={0.9}
@@ -172,6 +175,10 @@ const renderItem = ({ item }: { item: Post }) => {
         <FlatList
           className="flex-1 mt-4 h-full rounded-[24px]"
           data={filteredPosts}
+          contentContainerStyle={{
+            paddingTop: offsetY,
+            paddingBottom: offsetY
+          }}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
           numColumns={isIpad ? 3 : 1}

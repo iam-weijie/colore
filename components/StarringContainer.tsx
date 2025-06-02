@@ -734,7 +734,7 @@ const backgroundColor = useSharedValue(
                                     <TouchableOpacity onPress={handleLikePress} className="ml-2">
                                       <MaterialCommunityIcons
                                         name={isLiked ? "heart" : "heart-outline"}
-                                        size={30}
+                                        size={31}
                                         color={isLiked ? "red" : "black"}
                                       />
                                     </TouchableOpacity>

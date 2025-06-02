@@ -69,7 +69,7 @@ const Header = ({
         {title && (
           <View className="pl-8 w-full mt-2 max-w-[80%]">
             <Text 
-              className="text-[24px] font-JakartaBold"
+              className="text-[22px] font-JakartaBold"
               style={{
                 marginBottom: tabs ? 0 : (item ? 8 : 24)
               }}

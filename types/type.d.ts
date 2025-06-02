@@ -199,6 +199,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
 declare interface UserPostsGalleryProps {
   posts: Post[];
   profileUserId: string;
+  offsetY?: number;
   disableModal?: boolean;
   handleUpdate?: (id: number, isRemove?: boolean) => void;
   query?: string;

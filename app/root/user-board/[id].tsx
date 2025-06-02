@@ -172,17 +172,6 @@ const UserPersonalBoard = () => {
         onPress={() => setSelectedSetting("Name")}
       />},
        {
-        label: "Cover",
-        role: "admin",
-        component: <ItemContainer
-        label={"Edit Board Cover"}
-        caption={"Modify this board's cover."}
-        icon={icons.palette}
-        colors={["#3FF01E", "#93c5fd"]}
-        iconColor="#000"
-        onPress={() => setSelectedSetting("Cover")}
-      />},
-       {
         label: "Permissions",
         role: "admin",
         component: <ItemContainer
@@ -192,6 +181,17 @@ const UserPersonalBoard = () => {
         colors={["#3FF01E", "#93c5fd"]}
         iconColor="#000"
         onPress={() => setSelectedSetting("Permissions")}
+      />},
+       {
+        label: "Delete",
+        role: "admin",
+        component: <ItemContainer
+        label={"Delete Board"}
+        caption={"Delete this board"}
+        icon={icons.trash}
+        colors={["#3FF01E", "#93c5fd"]}
+        iconColor="#000"
+        onPress={() => setSelectedSetting("Delete")}
       />},
       {
         label: "Membership",
@@ -236,18 +236,7 @@ const UserPersonalBoard = () => {
         colors={["#3FF01E", "#93c5fd"]}
         iconColor="#000"
         onPress={() => setSelectedSetting("Info")}
-      />},
-       {
-        label: "Delete",
-        role: "admin",
-        component: <ItemContainer
-        label={"Delete Board"}
-        caption={"Delete this board"}
-        icon={icons.trash}
-        colors={["#3FF01E", "#93c5fd"]}
-        iconColor="#000"
-        onPress={() => setSelectedSetting("Delete")}
-      />},
+      />}
 
 ]
   
@@ -257,7 +246,7 @@ const BoardSetting = () => {
 
     return (
       <ModalSheet 
-      title={"Board Settings"} 
+      title={!selectedSetting ? "Board Settings" : selectedSetting} 
       isVisible={isBoardSettingsVisible} 
       onClose={() => {}}      >
         <View className="flex-1 px-6 py-4">
@@ -265,7 +254,20 @@ const BoardSetting = () => {
                     <FlatList
                     data={menuOptions}
                     keyExtractor={(item, index) => item.label ?? `option-${index}`}
-                    renderItem={({ item }) => item.component ?? null}
+                    renderItem={({ item, index }) => {
+                      
+                      return(
+                        
+                      <View>
+                        {item.role == "admin" ? 
+                        (index > 0 && menuOptions[index - 1].role === item.role ? <></>  : <Text className="text-[14px] font-JakartaSemiBold ml-4 text-gray-400">Edit</Text>)
+                         : (index > 0 && menuOptions[index - 1].role === item.role ? <></> : <Text className="text-[14px] font-JakartaSemiBold ml-4 text-gray-400">Interact</Text>)}
+                        {item.component}
+                      </View>
+                      
+                      )
+                    
+                    }}
                     contentContainerStyle={{ paddingBottom: 80, marginBottom: 16 }}
                     showsVerticalScrollIndicator={false}
                   />): selectedSetting == "Share" ? (

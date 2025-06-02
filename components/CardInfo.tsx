@@ -8,7 +8,7 @@ import {
 } from "react-native";
 
 export const HeaderCard = ({ title, color, content }) => (
-  <View className="rounded-[48px] py-3"
+  <View className="rounded-[48px] py-4 mb-2"
     style={{
       backgroundColor: "#ffffff",
       borderColor: "#fafafa80",
@@ -18,7 +18,7 @@ export const HeaderCard = ({ title, color, content }) => (
       shadowRadius: 5,
     }}>
     <View 
-      className="px-4 py-2 rounded-[48px] w-[70%] ml-5 overflow-hidden shadow-sm border-2" 
+      className="px-2 py-1 rounded-[48px] w-[60%] ml-5 overflow-hidden shadow-sm border-2" 
       style={{
         backgroundColor: color,
         borderColor: "#ffffff80",
@@ -28,31 +28,35 @@ export const HeaderCard = ({ title, color, content }) => (
         shadowRadius: 5,
       }}
     >
-      <View className="px-5 py-2">
-        <Text className={`text-[18px] font-JakartaSemiBold ${color === "#FAFAFA" ? "text-black" : "text-white"}`}>{title}</Text>
+      <View className="px-4 py-2">
+        <Text className={`text-[16px] font-JakartaSemiBold ${color === "#FAFAFA" ? "text-black" : "text-white"}`}>{title}</Text>
       </View>
     </View>
     
-    <View className="px-4 pb-4 rounded-[48px] overflow-hidden shadow-sm">
+    <View className="px-4 py-4 rounded-[48px] overflow-hidden shadow-sm">
       {content}
     </View>
   </View>
 );
 
 export const DetailRow = ({ label, value, onPress, accentColor }) => (
-  <View className="px-5 py-3  last:border-b-0">
-    <View className="flex flex-row items-center justify-between mb-1">
-      <Text className="text-[16px] font-JakartaSemiBold text-gray-800">{label}</Text>
-      {onPress && <TouchableOpacity
+  <View className="px-6 py-2  last:border-b-0">
+    
+      <TouchableOpacity
         activeOpacity={0.7}
         onPress={onPress}
-        className="px-3 py-2 rounded-full"
-        style={{ backgroundColor: accentColor }}
+        className="flex flex-row w-full"
       >
-        <Text className="text-sm font-JakartaSemiBold text-white">Update</Text>
-      </TouchableOpacity>}
-    </View>
-    <Text className="text-gray-800 text-[14px] font-JakartaMedium">
+        <View className=" w-full flex flex-row items-center justify-between mb-1">
+      <Text className="text-[14px] font-JakartaSemiBold text-gray-800">{label}</Text>
+      <View className="flex flex-row items-center">
+        <Text className={`text-[12px] font-JakartaMedium text-[${accentColor}]`}>Update</Text>
+         <MaterialCommunityIcons name="chevron-right" size={20} color={accentColor} />
+         </View>
+          </View>
+      </TouchableOpacity>
+   
+    <Text className="text-gray-800 text-[12px] font-JakartaMedium">
       {value || "Not specified"}
     </Text>
   </View>
@@ -62,7 +66,7 @@ export const ActionRow = ({ icon, label, count, onPress, accentColor }) => (
   <TouchableOpacity
     activeOpacity={0.7}
     onPress={onPress}
-    className="px-5 py-4 flex flex-row items-center justify-between "
+    className="px-4 py-2 flex flex-row items-center justify-between "
   >
     <View className="flex flex-row items-center">
       <View className="p-2 rounded-xl mr-3" style={{ backgroundColor: "#fafafa" }}>
@@ -78,10 +82,10 @@ export const ActionRow = ({ icon, label, count, onPress, accentColor }) => (
 );
 
 export const ToggleRow = ({ label, description, value, onValueChange, accentColor }) => (
-  <View className="px-5 py-3 flex flex-row items-center justify-between last:border-b-0">
+  <View className="px-6 py-2 flex flex-row items-center justify-between last:border-b-0">
     <View className="flex-1">
-      <Text className="text-[16px] font-JakartaSemiBold text-gray-800 mb-1">{label}</Text>
-      <Text className="text-[14px] text-gray-800">{description}</Text>
+      <Text className="text-[14px] font-JakartaSemiBold text-gray-800 mb-1">{label}</Text>
+      <Text className="text-[12px] text-gray-800">{description}</Text>
     </View>
     <Switch
       trackColor={{ false: "#fafafa", true: accentColor }}

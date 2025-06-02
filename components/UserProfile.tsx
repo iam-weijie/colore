@@ -478,9 +478,9 @@ const handleClearSearch = () => {
               )}
             </View>}
 
-            {selectedTab === "Posts" && <View className="flex-1 w-full bg-[#FAFAFA] pb-24">
+            {selectedTab === "Posts" && <View className="relative flex-1 w-full h-full bg-[#FAFAFA] ">
                    
-            <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 mx-6 mt-4 "
+            <View className="absolute  flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[85%] top-6 self-center z-[10] "
         style={{
           boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
         }}
@@ -506,12 +506,13 @@ const handleClearSearch = () => {
               {loading ? (
                   <PostGallerySkeleton />
                 ) : (
-                  <View className="flex-1 w-full px-6">
+                  <View className="flex-1 h-full w-full px-4 -mt-12">
                   <PostGallery
                     posts={userPosts}
                     profileUserId={user!.id}
                     handleUpdate={fetchUserData}
                     query={query}
+                    offsetY={120}
                   />
                   </View>
                 )}

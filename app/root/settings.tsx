@@ -9,7 +9,7 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -74,18 +74,22 @@ const Settings = () => {
   const [colorLibrary, setColorLibrary] = useState<PostItColor[]>(
     userColors || temporaryColors
   );
-  const blueProgress = Math.min(
-    100,
-    Math.floor((savedPosts?.length || 0) / 3) * 20
-  );
-  const yellowProgress = Math.min(
+  const blueProgress = useMemo(
+    () =>
+      Math.min(
+        100,
+        Math.floor((savedPosts?.length || 0) / 3) * 20
+      ),
+    [savedPosts]
+  )
+  const yellowProgress = useMemo(() => Math.min(
     100,
     Math.floor((likedPosts?.length || 0) / 10) * 20
-  );
-  const pinkProgress = Math.min(
+  ), []);
+  const pinkProgress = useMemo(() => Math.min(
     100,
     Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
-  );
+  ), [])
   const [unlockedColors, setUnlockedColors] = useState<PostItColor[]>([]);
   const handleAttemptColorCreation = () => {
     const S = Math.floor((savedPosts?.length || 0) / 3);
@@ -489,7 +493,7 @@ const Settings = () => {
       contentContainerStyle={{ paddingBottom: 90 }}
     >
       {/* Color Section */}
-      <View className="mx-6 mb-6">
+      <View className="mx-4 mb-6">
         <HeaderCard
           title="Colors"
           color="#FAFAFA"
@@ -502,10 +506,7 @@ const Settings = () => {
                 </Text>
 
                 <ProgressBar
-                  progress={Math.min(
-                    100,
-                    Math.floor((savedPosts?.length || 0) / 3) * 20
-                  )}
+                  progress={blueProgress}
                   height={12}
                   progressColor="#60a5fa"
                   backgroundColor="#fafafa"
@@ -519,10 +520,7 @@ const Settings = () => {
                 </Text>
 
                 <ProgressBar
-                  progress={Math.min(
-                    100,
-                    Math.floor((likedPosts?.length || 0) / 10) * 20
-                  )}
+                  progress={yellowProgress}
                   height={12}
                   progressColor="#facc15"
                   backgroundColor="#fafafa"
@@ -576,7 +574,7 @@ const Settings = () => {
       </View>
 
       {/* Header Card Component */}
-      <View className="mx-6 mb-6">
+      <View className="mx-4 mb-6">
         <HeaderCard
           title="Information"
           color="#93c5fd"
@@ -618,7 +616,7 @@ const Settings = () => {
       </View>
 
       {/* Activity Section */}
-      <View className="mx-6 mb-6">
+      <View className="mx-4 mb-6">
         <HeaderCard
           title="Your Activity"
           color="#CFB1FB"
@@ -691,7 +689,7 @@ const Settings = () => {
       </View>
 
       {/* Preferences Section */}
-      <View className="mx-6 mb-6">
+      <View className="mx-4 mb-6">
         <HeaderCard
           title="Preferences"
           color="#ffe640"

@@ -33,13 +33,15 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
 >
 
   <View className="flex flex-row items-center justify-center w-full">
+
     <Text
-      className={`text-[14px] ${focused ? "font-JakartaSemiBold" : "font-JakartaMedium"} text-center `}
+      className={`relative text-[14px] ${focused ? "font-JakartaSemiBold" : "font-JakartaMedium"} text-center `}
       style={{ color: focused ? "#000" : "#B1B1B1" }}
     >
       {name}
     </Text>
-    {notifications > 0 && <View className="absolute right-2 top-[50%] -mt-1"><NotificationBubble unread={notifications} color={"#FF0000"} /></View>}
+
+              {notifications > 0 && <View className="ml-1 -mt-1"><NotificationBubble unread={notifications} color={"#FF0000"} /></View>}
     </View>
  
 </TouchableOpacity>
