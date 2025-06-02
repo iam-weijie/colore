@@ -7,6 +7,7 @@ import { PostComment } from "@/types/type";
 import * as Linking from "expo-linking";
 import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
+import { useSoundGesture } from "@/hooks/useSoundGesture";
 import {
     useRouter,
   } from "expo-router";
@@ -58,6 +59,7 @@ export const CommentItem: React.FC<PostComment> = ({
     const { replyTo, setReplyTo, setScrollTo, soundEffectsEnabled } = useGlobalContext() // Add soundEffectsEnabled
     const [onlyEmoji, setOnlyEmoji] = useState(false);
     const { playSoundEffect } = useSoundEffects(); // Get sound function
+    const { handlePanGestureStateChange } = useSoundGesture(SoundType.Swipe);
 
 
     // Comment Reply
@@ -177,6 +179,12 @@ export const CommentItem: React.FC<PostComment> = ({
     >({
       onStart: (_, context) => {
         context.startX = translateX.value;
+        // Add sound effect on gesture start - safely
+        try {
+          runOnJS(handlePanGestureStateChange)({ nativeEvent: { state: 1 } });
+        } catch (error) {
+          console.log("Error playing swipe start sound:", error);
+        }
       },
       onActive: (event, context) => {
         // Calculate the translation, limit swipe range
@@ -188,18 +196,24 @@ export const CommentItem: React.FC<PostComment> = ({
         }
       },
       onEnd: () => {
-        runOnJS(setShowReplyIcon)(false)
-        const offSetX = translateX.value
-        if (Math.abs(offSetX) > 25 ) {
-            
-            if (replyTo == `${id}`) {
-                runOnJS(setReplyTo)(null);
-            } else {
-            runOnJS(setReplyTo)(`${id}`);
-            }
-          
+        runOnJS(setShowReplyIcon)(false);
+        const offSetX = translateX.value;
+        
+        // Add sound effect on gesture end - safely
+        try {
+          runOnJS(handlePanGestureStateChange)({ nativeEvent: { state: 5 } });
+        } catch (error) {
+          console.log("Error playing swipe end sound:", error);
         }
-        translateX.value = withTiming(0, { damping: 20, stiffness: 300 }); // Use `withTiming` to reset smoothly
+        
+        if (Math.abs(offSetX) > 30) {
+          if (replyTo == `${id}`) {
+            runOnJS(setReplyTo)(null);
+          } else {
+            runOnJS(setReplyTo)(`${id}`);
+          }
+        }
+        translateX.value = withTiming(0, { duration: 300 }); // Use `withTiming` to reset smoothly
       },
     });
   

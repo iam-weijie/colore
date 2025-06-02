@@ -11,6 +11,8 @@ import TabIcon from '@/components/TabIcon';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useNavigationContext } from "@/components/NavigationContext";
 import { transform } from '@babel/core';
+import { useHaptics } from '@/hooks/useHaptics';
+import { useSoundEffects, SoundType } from '@/hooks/useSoundEffects';
 
 interface HapticTabBarButtonProps {
   children: React.ReactNode;
@@ -19,17 +21,23 @@ interface HapticTabBarButtonProps {
 }
 
 const HapticTabBarButton: React.FC<HapticTabBarButtonProps> = ({ children, onPress, style, ...rest }) => {
-  const { hapticsEnabled } = useGlobalContext();
+  const { hapticsEnabled, soundEffectsEnabled } = useGlobalContext();
+  const { triggerHaptic } = useHaptics();
+  const { playSoundEffect } = useSoundEffects();
   const scale = useRef(new Animated.Value(1)).current;
 
-  const handlePress = (e: GestureResponderEvent) => {
+  const handlePress = async (e: GestureResponderEvent) => {
     if (hapticsEnabled) {
-      Haptics.selectionAsync();
+      triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
     }
+  
+    playSoundEffect(SoundType.Navigation)
+  
     if (onPress) {
       onPress(e);
     }
   };
+  
 
   const handlePressIn = () => {
     Animated.spring(scale, {
@@ -146,7 +154,7 @@ const Layout: React.FC = () => {
               focused={focused}
               unread={unreadPersonalPosts}
               color="#E2C7FF"
-              label='Home'
+              isCenter
             />
           ),
           tabBarButton: (props) => <HapticTabBarButton {...props} />,

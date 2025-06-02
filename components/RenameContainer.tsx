@@ -25,41 +25,27 @@ const RenameContainer = ({
 
   return (
  
-      <View className="flex-1 w-full flex items-between justify-between rounded-lg p-4 h-[400px] ">
+      <View className="flex-1 w-full flex items-center justify-center h-[50px]">
 
         {/* Text Input */}
         <TextInput
-          className="flex-1 text-[20px] text-black rounded-[24px] font-JakartaBold mx-10 "
+          className="flex-1 w-full text-[16px] text-black bg-gray-50 rounded-[24px] font-JakartaMedium py-2 px-4 mx-2 "
           value={text}
           onChangeText={handleChangeText}
           placeholder={placeholder}
+          placeholderTextColor={"#757575"}
           autoFocus
+          onBlur={onCancel}
         />
-        
-        {/* Buttons */}
-        <View className="flex-row justify-end space-x-2">
-          <TouchableOpacity
-           className="rounded-full bg-white justify-center items-center py-4 px-6"
-           style={{
-             shadowColor: "#505050",
-             shadowOpacity: 0.15,
-             shadowRadius: 6,
-             shadowOffset: { width: 0, height: 3 }
-           }}
-            onPress={onCancel}
-          >
-            <Text className="text-black font-JakartaBold text-sm" >Cancel</Text>
-          </TouchableOpacity>
           
           <TouchableOpacity
-            className="rounded-full bg-black justify-center items-center mx-1 py-4 px-6"
+            className="absolute rounded-full bg-black justify-center items-center mx-1 py-2 px-3 right-2"
             onPress={() => onSave(text)}
             disabled={!text.trim()}
           >
-            <Text className="text-white font-JakartaBold text-sm">Save</Text>
+            <Text className="text-white font-JakartaSemiBold text-[14px]">Save</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
   );
 };

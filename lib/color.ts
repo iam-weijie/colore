@@ -1,0 +1,2 @@
+import { fetchAPI  } from "./fetch"
+

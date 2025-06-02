@@ -44,6 +44,18 @@ import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import placeholder from "@/assets/icons/placeholder.png";
 import back from "@/assets/icons/back.png";
+import bold from "@/assets/icons/bold.png"
+import italics from "@/assets/icons/italics.png"
+import at from "@/assets/icons/at.png"
+import link from "@/assets/icons/link.png"
+import sparkles from "@/assets/icons/sparkles.png"
+import sparklesFill from "@/assets/icons/sparkles-fill.png"
+import underline from "@/assets/icons/underline.png"
+import H from "@/assets/icons/h.png"
+import oList from "@/assets/icons/ordered-list.png"
+import add from "@/assets/icons/add.png"
+import uList from "@/assets/icons/unordered-list.png"
+import eraser from "@/assets/icons/eraser.png";
 
 
 import login from "@/assets/images/login_squares.png";
@@ -75,6 +87,12 @@ export const icons = {
   back,
   check,
   home,
+  bold,
+  italics,
+  underline,
+  H,
+  oList,
+  uList,
   home1,
   pin,
   chat,
@@ -112,7 +130,13 @@ export const icons = {
   chevron,
   notification,
   hamburgerMenu,
-  addUser
+  addUser,
+  at,
+  eraser,
+  link,
+  sparklesFill,
+  sparkles,
+  add
 };
 
 export const countries = {
@@ -144,6 +168,8 @@ export const temporaryColors: PostItColor[] = [
     hex: "#ffe640",
     rarity: "default",
     foldcolorhex: "#fef08a",
+    SRB: [0, 0, 0],
+    meaning: "",
     fontColor: "#B29B00",
   },
   {
@@ -152,6 +178,8 @@ export const temporaryColors: PostItColor[] = [
     hex: "#FBB1F5",
     rarity: "default",
     foldcolorhex: "#FFC8FB",
+    SRB: [0, 0, 0],
+    meaning: "",
     fontColor: "#D82C82",
   },
   {
@@ -160,6 +188,8 @@ export const temporaryColors: PostItColor[] = [
     hex: "#93c5fd",
     rarity: "default",
     foldcolorhex: "#b8e1ff",
+    SRB: [0, 0, 0],
+    meaning: "",
     fontColor: "#2775CC",
   },
   {
@@ -168,6 +198,62 @@ export const temporaryColors: PostItColor[] = [
     hex: "#CFB1FB",
     rarity: "default",
     foldcolorhex: "#E2C7FF",
+    SRB: [0, 0, 0],
+    meaning: "",
+    attributes: {
+      class: "Curious",
+      level: 1,
+      description: "A soft and calming color, perfect for gentle reminders.",
+    },
+    fontColor: "#8654CF",
+  },
+];
+
+
+export const allColors: PostItColor[] = [
+  {
+    name: "yellow",
+    id: 0,
+    hex: "#ffe640",
+    rarity: "default",
+    foldcolorhex: "#fef08a",
+    SRB: [0, 0, 0],
+    meaning: "",
+    fontColor: "#B29B00",
+  },
+  {
+    name: "pink",
+    id: 1,
+    hex: "#FBB1F5",
+    rarity: "default",
+    foldcolorhex: "#FFC8FB",
+    SRB: [0, 0, 0],
+    meaning: "",
+    fontColor: "#D82C82",
+  },
+  {
+    name: "light-blue",
+    id: 2,
+    hex: "#93c5fd",
+    rarity: "default",
+    foldcolorhex: "#b8e1ff",
+    SRB: [0, 0, 0],
+    meaning: "",
+    fontColor: "#2775CC",
+  },
+  {
+    name: "baby-purple",
+    id: 3,
+    hex: "#CFB1FB",
+    rarity: "default",
+    foldcolorhex: "#E2C7FF",
+    SRB: [0, 0, 0],
+    meaning: "",
+    attributes: {
+      class: "Curious",
+      level: 1,
+      description: "A soft and calming color, perfect for gentle reminders.",
+    },
     fontColor: "#8654CF",
   },
 ];

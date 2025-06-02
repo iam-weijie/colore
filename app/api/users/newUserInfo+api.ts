@@ -12,9 +12,17 @@ export async function POST(request: Request) {
 
     if (request.method === "POST") {
       //console.log("Received POST request.");
-      const { username, city, state, country, clerkId } = await request.json();
+      const { username, incognito_name, city, state, country, clerkId } =
+        await request.json();
 
-      if (!username || !city || !state || !country || !clerkId) {
+      if (
+        !username ||
+        !incognito_name ||
+        !city ||
+        !state ||
+        !country ||
+        !clerkId
+      ) {
         return Response.json(
           { error: "Missing required fields" },
           { status: 400 }
@@ -35,6 +43,7 @@ export async function POST(request: Request) {
         UPDATE users
         SET
           username = ${username},
+          incognito_name = ${incognito_name},
           city = ${city},
           state = ${state},
           country = ${country}

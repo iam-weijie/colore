@@ -30,7 +30,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState, useRef } from "react";
 
 import { icons } from "@/constants/index";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import {
   Alert,
   Dimensions,
@@ -65,7 +65,12 @@ import { useGlobalContext } from "@/app/globalcontext";
 import ItemContainer from "@/components/ItemContainer";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import TabsContainer from "@/components/TabsContainer";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
+import { useSoundGesture } from "@/hooks/useSoundGesture";
 //import { ScrollView } from "react-native-gesture-handler";
+import { useHaptics } from "@/hooks/useHaptics";
+
+
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -76,8 +81,14 @@ declare interface FriendRequestList {
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = () => {
+  const { triggerHaptic } = useHaptics();
+
   const { user } = useUser();
   const { showAlert } = useAlert();
+  const { stateVars, setStateVars } = useNavigationContext();
+  const { soundEffectsEnabled } = useGlobalContext();
+  const { playSoundEffect } = useSoundEffects();
+  const { handlePanGestureStateChange } = useSoundGesture(SoundType.Swipe);
 
   // User experience
   const [loading, setLoading] = useState<boolean>(false);
@@ -85,7 +96,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [users, setUsers] = useState<UserNicknamePair[]>([]);
   const [showDeleteIcon, setShowDeleteIcon] = useState<boolean>(false);
-  const { stateVars, setStateVars } = useNavigationContext();
 
   // Messages constants
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
@@ -381,24 +391,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 
   const FriendItem = ({ item, loading, setShowDeleteIcon }) => {
     return (
-      <ItemContainer
-        label={
-          nicknames && item.friend_id in nicknames
-            ? nicknames[item.friend_id]
-            : item.friend_username
-        }
-        caption={
-          item.city !== item.state
-            ? `${item.city}, ${item.state}, ${item.country}`
-            : `${item.state}, ${item.country}`
-        }
-        colors={["#93c5fd", "#93c5fd"]}
-        icon={icons.addUser}
-        iconColor="#000"
-        actionIcon={icons.chevron}
-        onPress={() => {
-          handleUserProfile(item.friend_id);
-        }}
+      <ItemContainer 
+      label={nicknames && item.friend_id in nicknames
+        ? nicknames[item.friend_id]
+        : item.friend_username}
+      caption={item.city !== item.state ? `${item.city}, ${item.state}, ${item.country}` : `${item.state}, ${item.country}`}
+      colors={["#93c5fd", "#93c5fd"]}
+      icon={icons.addUser}
+      iconColor="#000"
+      actionIcon={icons.chevron}
+      onPress={() => {
+        
+        handleUserProfile(item.friend_id, item.friend_username)
+      }}
       />
     );
   };
@@ -412,22 +417,23 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   const renderIncomingRequest = ({ item }: { item: FriendRequest }) => (
-    <View className="flex-row justify-between items-center">
-      <ItemContainer
-        label={
-          nicknames && item.senderId in nicknames
-            ? nicknames[item.senderId]
-            : item.senderUsername
-        }
-        caption={getRelativeTime(convertToLocal(new Date(item.createdAt)))}
-        colors={["#CFB1FB", "#CFB1FB"]}
-        icon={icons.send}
-        iconColor="#000"
-        onPress={() => {
-          handleUserProfile(item.senderId);
-        }}
-      />
-      <View className="absolute right-3">
+   
+      <View className="flex-row justify-between items-center">
+        <ItemContainer 
+        label= {nicknames && item.senderId in nicknames
+      ? nicknames[item.senderId]
+      : item.senderUsername}
+      caption={
+          getRelativeTime(convertToLocal(new Date(item.createdAt)))
+      }
+      colors={["#CFB1FB", "#CFB1FB"]}
+      icon={icons.send}
+      iconColor="#000"
+      onPress={() => {
+      handleUserProfile(item.senderId, item.senderUsername)
+    }}
+    />
+    <View className="absolute right-3">
         <DropdownMenu
           menuItems={[
             {
@@ -483,14 +489,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           ? nicknames[item.receiverId]
           : item.receiverUsername
       }
-      caption={getRelativeTime(convertToLocal(new Date(item.createdAt)))}
-      colors={["#CFB1FB", "#CFB1FB"]}
-      icon={icons.send}
-      actionIcon={icons.chevron}
-      iconColor="#000"
-      onPress={() => {
-        handleUserProfile(item.receiverId);
-      }}
+    colors={["#CFB1FB", "#CFB1FB"]}
+    icon={icons.send}
+    actionIcon={icons.chevron}
+    iconColor="#000"
+    onPress={() => {
+      handleUserProfile(item.receiverId, item.receiverUsername)
+    }}
     />
   );
 
@@ -555,10 +560,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     );
   };
 
-  const handleUserProfile = async (userId: string) => {
+  const handleUserProfile = async (userId: string, username: string) => {
     router.push({
       pathname: "/root/profile/[id]",
-      params: { userId },
+      params: { userId, username },
     });
   };
 
@@ -586,83 +591,121 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   // console.log(conversations);
   // console.log("firends", friendList, "\n\nSent", allFriendRequests?.sent, "\n\nReceived", allFriendRequests?.received);
 
+  const handleClearSearch = () => {
+    setSearchText("");
+    Keyboard.dismiss();
+  };
   return (
     <TouchableWithoutFeedback
-      className="flex-1"
-      onPress={() => Keyboard.dismiss()}
-      onPressIn={() => Keyboard.dismiss()}
-    >
-      <View className="flex-1">
-        <View className="w-full flex-row items-start justify-between ">
-          <TabNavigation
-            name="Find"
-            focused={selectedTab === "Find"}
-            onPress={() => {
-              setSelectedTab("Find");
-              setSearchText("");
-            }}
-            notifications={0}
-          />
-          <TabNavigation
-            name="Friends"
-            focused={selectedTab === "Friends"}
-            onPress={() => {
-              setSelectedTab("Friends");
-              setSearchText("");
-            }}
-            notifications={0}
-          />
-          <TabNavigation
-            name="Requests"
-            focused={selectedTab === "Requests"}
-            onPress={() => setSelectedTab("Requests")}
-            notifications={
-              allFriendRequests ? allFriendRequests.received.length : 0
-            }
-          />
-        </View>
+    className="flex-1"
+    onPress={() => Keyboard.dismiss()}
+    onPressIn={() => Keyboard.dismiss()}>
+      <View className="flex-1 px-6">
+
+          
+            <View className="w-full flex-row items-start justify-between ">
+              
+
+            <TabNavigation
+                name="Find"
+                focused={selectedTab === "Find"}
+                onPress={() => {
+                  setSelectedTab("Find");
+                  setSearchText("");
+                }}
+                notifications={0}
+              />
+              <TabNavigation
+                name="Friends"
+                focused={selectedTab === "Friends"}
+                onPress={() => {
+                  setSelectedTab("Friends");
+                  setSearchText("");
+                }}
+                notifications={0}
+              />
+              <TabNavigation
+                name="Requests"
+                focused={selectedTab === "Requests"}
+                onPress={() => setSelectedTab("Requests")}
+                notifications={
+                  allFriendRequests
+                    ? allFriendRequests.received.length
+                    : 0
+                }
+              />
+            </View>
 
         {selectedTab == "Find" && (
           <View>
-            <View className="flex-grow mt-4 mx-4">
-              <TextInput
-                className="w-full h-12 px-3 -pt-1 bg-[#F1F1F1] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Search users..."
-                placeholderTextColor="#888"
-                value={searchText}
-                onChangeText={(text): void => setSearchText(text)}
-              />
-            </View>
-            {loading ? (
-              <View className="flex-1 items-center justify-center">
-                <ColoreActivityIndicator text="Summoning Bob..." />
-              </View>
-            ) : error ? (
-              <Text>{error}</Text>
-            ) : (
-              <FlatList
-                className="px-2 rounded-[24px] my-4"
-                data={filteredUsers}
-                contentContainerStyle={{
-                  paddingBottom: 80,
-                }}
-                renderItem={renderUser}
-                keyExtractor={(item): string => String(item[0])}
-                showsVerticalScrollIndicator={false}
-              />
-            )}
-          </View>
-        )}
-        {selectedTab == "Friends" && (
-          <View className="flex-1">
-            <View className="flex flex-row items-center w-[90%] mx-auto ">
-              <TextInput
-                className="w-full h-12 px-3 -pt-1 rounded-[16px] bg-[#F1F1F1] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Search friend..."
-                value={searchText}
-                onChangeText={(text): void => setSearchText(text)}
-              />
-            </View>
+           <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 mx-6 mt-4 "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 pl-2 text-md "
+            placeholder="Search emojis..."
+             placeholderTextColor="#9CA3AF"
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
+                          {loading ? (
+                                        <View className="flex-1 items-center justify-center">
+                                        <ColoreActivityIndicator text="Summoning Bob..." />
+                                        </View>
+                                      ) : error ? (
+                                        <Text>{error}</Text>
+                                      ) : (
+                                        <FlatList
+                                          className="px-2 rounded-[24px] my-4"
+                                          data={filteredUsers}
+                                          contentContainerStyle={{ 
+                                            paddingBottom: 80,
+
+                                          }} 
+                                          renderItem={renderUser}
+                                          keyExtractor={(item): string => String(item[0])}
+                                          showsVerticalScrollIndicator={false}
+                                        />
+                                      )}
+            </View>}
+          {selectedTab == "Friends" && (
+            <View className="flex-1">
+           <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 mx-6 mt-4 "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 pl-2 text-md "
+            placeholder="Search emojis..."
+             placeholderTextColor="#9CA3AF"
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
             <FlatList
               className="rounded-[16px] mt-3"
               data={filteredFriendList}
@@ -867,33 +910,36 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   }, [storedNotifications]);
 
   return (
-    <View className="flex-1 max-h-[450px]">
-      <View className="flex-row items-start justify-between mx-2">
-        <TabNavigation
-          name="Comments"
-          focused={selectedTab === "Comments"}
-          onPress={() => {
-            setSelectedTab("Comments");
-            //setSearchText("");
-          }}
-          notifications={commentsNotif?.length ?? 0}
-        />
-        <TabNavigation
-          name="Posts"
-          focused={selectedTab === "Posts"}
-          onPress={() => setSelectedTab("Posts")}
-          notifications={postsNotif?.length ?? 0}
-        />
-        <TabNavigation
-          name="Likes"
-          focused={selectedTab === "Likes"}
-          onPress={() => {
-            setSelectedTab("Likes");
-            //setSearchText("");
-          }}
-          notifications={0}
-        />
-      </View>
+      <View className="flex-1 max-h-[450px] px-6">
+
+          
+            <View className="flex-row items-start justify-between mx-2">
+
+            <TabNavigation
+                name="Comments"
+                focused={selectedTab === "Comments"}
+                onPress={() => {
+                  setSelectedTab("Comments");
+                  //setSearchText("");
+                }}
+                notifications={commentsNotif?.length ?? 0}
+              />
+              <TabNavigation
+                name="Posts"
+                focused={selectedTab === "Posts"}
+                onPress={() => setSelectedTab("Posts")}
+                notifications={postsNotif?.length ?? 0}
+              />
+              <TabNavigation
+                name="Likes"
+                focused={selectedTab === "Likes"}
+                onPress={() => {
+                  setSelectedTab("Likes");
+                  //setSearchText("");
+                }}
+                notifications={0}
+              />
+            </View>
 
       {selectedTab === "Comments" && (
         <FlatList

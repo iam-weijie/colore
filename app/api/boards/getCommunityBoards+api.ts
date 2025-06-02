@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const user_id = url.searchParams.get("user_id");
+    const user_id = url.searchParams.get("userId");
 
     const fetch_boards = await sql`
     SELECT 
@@ -28,7 +28,6 @@ export async function GET(request: Request) {
     const raw_boards = fetch_boards;
     const raw_boards_id: String[] = fetch_boards.map((b) => b.id);
 
-    console.log("community boards", raw_boards_id)
 
     const ids = raw_boards_id
     .map((id) => Number(id))
