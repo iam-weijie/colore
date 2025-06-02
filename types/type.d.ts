@@ -1,5 +1,9 @@
-import { ImageSourcePropType, TextInputProps, TouchableOpacityProps } from "react-native";
-import * as Haptics from 'expo-haptics'; // Import Haptics for the style type
+import {
+  ImageSourcePropType,
+  TextInputProps,
+  TouchableOpacityProps,
+} from "react-native";
+import * as Haptics from "expo-haptics"; // Import Haptics for the style type
 
 declare interface Post {
   id: number;
@@ -33,23 +37,21 @@ declare interface Post {
     left: number;
   };
   formatting: Format[];
-
 }
 
 declare interface StylingType {
-  id: number,
-  bold?: boolean,
-  italic?: boolean,
-  underlinde?: boolean,
-  orderedList?: boolean,
-  underedList?: boolean,
-  quote?: boolean
+  id: number;
+  bold?: boolean;
+  italic?: boolean;
+  underlinde?: boolean;
+  orderedList?: boolean;
+  underedList?: boolean;
+  quote?: boolean;
 }
 declare interface TextStylingType {
   id: number;
   value: string;
   style: StylingType[];
-
 }
 
 declare interface InfoScreenProps {
@@ -65,7 +67,6 @@ declare interface EmojiBackgroundProps {
   emoji: string;
   color: string;
 }
-
 
 declare interface Board {
   id: number;
@@ -85,18 +86,18 @@ declare interface Board {
 }
 
 declare interface DraftPost {
-content: string;
-recipient_id: string;
-color: string;
-emoji: string;
+  content: string;
+  recipient_id: string;
+  color: string;
+  emoji: string;
 }
 
 declare interface DraftBoard {
-user_id: string;
-title: string;
-board_type: string;
-restriction: string;
-description: string;
+  user_id: string;
+  title: string;
+  board_type: string;
+  restriction: string;
+  description: string;
 }
 
 declare interface PostComment {
@@ -120,6 +121,8 @@ declare interface UserProfileType {
   firstname: string;
   lastname: string;
   username: string;
+  nickname: string;
+  incognito_name: string;
   email: string;
   date_of_birth: string;
   city: string;
@@ -145,11 +148,11 @@ declare interface PostWithPosition extends Post {
   };
 }
 
-type Attribute={
+type Attribute = {
   class: string;
   level: number;
   description: string;
-}
+};
 declare interface PostItColor {
   name: string;
   id: number;
@@ -252,7 +255,6 @@ type MappingPostitProps = {
   };
 };
 
-
 declare interface InputFieldProps extends TextInputProps {
   label: string;
   icon?: any;
@@ -285,7 +287,6 @@ declare interface ConversationItem {
   active_participants: number;
   unread_messages: number;
 }
-
 
 declare interface Message {
   id: number;
@@ -336,12 +337,12 @@ declare interface Stacks {
   name: string;
   ids: [];
   elements: [];
-  center: {x: number, y: number};
+  center: { x: number; y: number };
   boardId: number;
   userId: string;
   createdAt: string;
   isSharing: string[];
-};
+}
 
 type Prompt = {
   id: number;
@@ -349,14 +350,11 @@ type Prompt = {
   content: string;
   theme: string;
   engagement: number;
-  created_at: string,
+  created_at: string;
   color?: string;
 };
 
-
-
-type GeographicalMode = 'city' | 'state' | 'country' | 'world'
-
+type GeographicalMode = "city" | "state" | "country" | "world";
 
 type AlertProps = {
   title: string;
@@ -368,7 +366,7 @@ type AlertProps = {
   action?: () => void;
   actionText?: string;
   color?: string;
-}
+};
 
 type Position = { top: number; left: number };
 
@@ -377,7 +375,6 @@ type RadioButtonProps = {
   selected: boolean;
   onSelect: () => void;
 };
-
 
 type TabItem = {
   name: string;
@@ -393,7 +390,18 @@ type TabsContainerProps = {
   tabCount?: number;
 };
 
-type TextStyle = 'bold' | 'italic' | 'underline' | 'H' | 'h1' | 'h2' | 'h3' | 'h4' | 'ordered' | 'unordered' | null;
+type TextStyle =
+  | "bold"
+  | "italic"
+  | "underline"
+  | "H"
+  | "h1"
+  | "h2"
+  | "h3"
+  | "h4"
+  | "ordered"
+  | "unordered"
+  | null;
 
 declare interface EmojiData {
   id: string;
@@ -404,7 +412,7 @@ declare interface EmojiData {
 declare interface EmojiSelectorProps {
   onEmojiSelected: (emoji: string) => void;
   selectedEmoji?: string | null;
-  mode?: 'shorthand' | 'library' | 'both';
+  mode?: "shorthand" | "library" | "both";
   showInModal?: boolean;
   isVisible?: boolean;
   onClose?: () => void;

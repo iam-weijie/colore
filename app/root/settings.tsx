@@ -33,39 +33,55 @@ import Circle from "@/components/Circle";
 import ItemContainer from "@/components/ItemContainer";
 import ProgressBar from "@/components/ProgressBar";
 import EmojiSettings from "@/components/EmojiSettings";
-import { HeaderCard, DetailRow, ActionRow, ToggleRow } from "@/components/CardInfo";
-
+import {
+  HeaderCard,
+  DetailRow,
+  ActionRow,
+  ToggleRow,
+} from "@/components/CardInfo";
 
 const Settings = () => {
-
-    const {
+  const {
     hapticsEnabled,
     setHapticsEnabled,
     soundEffectsEnabled,
     setSoundEffectsEnabled,
     profile,
     setProfile,
-    userColors
+    userColors,
   } = useGlobalContext();
   const { playSoundEffect } = useSoundEffects(); // Use the sound hook
   const { showAlert } = useAlert();
 
-
   const { signOut } = useAuth();
   const { user } = useUser();
   const [username, setUsername] = useState(profile?.username || "");
+  const [nickname, setNickname] = useState(profile?.nickname || "");
+  const [incognitoName, setIncognitoName] = useState(
+    profile?.incognito_name || ""
+  );
   const [email, setEmail] = useState(profile?.email || "");
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
   const [selectedModal, setSelectedModal] = useState<any>(null);
   const [selectedTitle, setSelectedTitle] = useState<string>("");
-  const [profileUser, setProfileUser] = useState<UserProfileType | null>(profile);
+  const [profileUser, setProfileUser] = useState<UserProfileType | null>(
+    profile
+  );
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
   const [libraryVisible, setLibraryVisible] = useState(false);
-  const [colorLibrary, setColorLibrary] = useState<PostItColor[]>(userColors || temporaryColors);
-  const blueProgress = Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20);
-  const yellowProgress = Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20);
+  const [colorLibrary, setColorLibrary] = useState<PostItColor[]>(
+    userColors || temporaryColors
+  );
+  const blueProgress = Math.min(
+    100,
+    Math.floor((savedPosts?.length || 0) / 3) * 20
+  );
+  const yellowProgress = Math.min(
+    100,
+    Math.floor((likedPosts?.length || 0) / 10) * 20
+  );
   const pinkProgress = Math.min(
     100,
     Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
@@ -76,7 +92,7 @@ const Settings = () => {
     const R = Math.floor((likedPosts?.length || 0) / 10);
     const B = Math.floor((profileUser?.customizations?.length || 0) / 5);
     const userSRB = [S, R, B];
-  
+
     const matchedColor = colorLibrary.find(
       (c) =>
         c.SRB[0] === userSRB[0] &&
@@ -88,10 +104,10 @@ const Settings = () => {
       const alreadyUnlocked = unlockedColors.some(
         (uc) => uc.name === matchedColor.name
       );
-  
+
       if (!alreadyUnlocked) {
         setUnlockedColors((prev) => [...prev, matchedColor]);
-  
+
         showAlert({
           title: "🎉 Color Unlocked!",
           message: `${matchedColor.name} has been added to your collection.`,
@@ -117,7 +133,6 @@ const Settings = () => {
   };
 
   // Get settings state and setters from Global Context
-
 
   const fetchUserData = async () => {
     try {
@@ -155,14 +170,14 @@ const Settings = () => {
     fetchLikedPosts();
   }, []);
 
-  const verifyValidUsername = (username: string): boolean => {
+  const verifyValidName = (username: string): boolean => {
     const usernameRegex = /^[\w\-\.]{1,20}$/;
     return usernameRegex.test(username);
   };
 
   const handleUsernameUpdate = async (newName: string) => {
     console.log("New Username: ", newName);
-    if (!verifyValidUsername(newName)) {
+    if (!verifyValidName(newName)) {
       showAlert({
         title: "Invalid Username",
         message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
@@ -208,6 +223,100 @@ const Settings = () => {
       showAlert({
         title: "Error",
         message: `Failed to update username. Please try again.`,
+        type: "ERROR",
+        status: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNicknameUpdate = async (newName: string) => {
+    console.log("New Nickname: ", newName);
+    if (!verifyValidName(newName)) {
+      showAlert({
+        title: "Invalid Nickname",
+        message: `Nickname can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetchAPI("/api/users/patchUserInfo", {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user!.id,
+          nickname: newName,
+        }),
+      });
+
+      //console.log("Changed Nickname", response)
+      if (response.error) {
+        throw new Error(response.error);
+      } else {
+        showAlert({
+          title: "New Nickname",
+          message: `Nickname updated successfully to ${newName}.`,
+          type: "UPDATE",
+          status: "success",
+        });
+        await fetchUserData();
+      }
+    } catch (error) {
+      console.error("Failed to update nickname:", error);
+      showAlert({
+        title: "Error",
+        message: `Failed to update nickname. Please try again.`,
+        type: "ERROR",
+        status: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleIncognitoNameUpdate = async (newName: string) => {
+    console.log("New Incognito Name: ", newName);
+    if (!verifyValidName(newName)) {
+      showAlert({
+        title: "Invalid Incognito Name",
+        message: `Incognito Name can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetchAPI("/api/users/patchUserInfo", {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user!.id,
+          incognito_name: newName,
+        }),
+      });
+
+      //console.log("Changed Incognito Name", response)
+      if (response.error) {
+        throw new Error(response.error);
+      } else {
+        showAlert({
+          title: "New Incognito Name",
+          message: `Incognito Name updated successfully to ${newName}.`,
+          type: "UPDATE",
+          status: "success",
+        });
+        await fetchUserData();
+      }
+    } catch (error) {
+      console.error("Failed to update incognito name:", error);
+      showAlert({
+        title: "Error",
+        message: `Failed to update incognito name. Please try again.`,
         type: "ERROR",
         status: "error",
       });
@@ -305,13 +414,19 @@ const Settings = () => {
   };
 
   const handleUpdateValue = (type: string) => {
-    setSelectedTitle(`${type == "username" ? "New username" : "New Email"}`);
+    setSelectedTitle(
+      `${type === "username" ? "New username" : type === "nickname" ? "New nickname" : type === "incognito_name" ? "New incognito name" : "New Email"}`
+    );
     setSelectedModal(
       <RenameContainer
         initialValue={""}
         onSave={(newName: string) => {
           if (type === "username") {
             handleUsernameUpdate(newName);
+          } else if (type === "nickname") {
+            handleNicknameUpdate(newName);
+          } else if (type === "incognito_name") {
+            handleIncognitoNameUpdate(newName);
           } else {
             handleEmailUpdate(newName);
           }
@@ -323,8 +438,22 @@ const Settings = () => {
           setSelectedModal(null);
           setSelectedTitle("");
         }}
-        placeholder={type === "username" ? username : email}
-        maxCharacters={type === "username" ? 20 : 50}
+        placeholder={
+          type === "username"
+            ? username
+            : type === "nickname"
+              ? nickname
+              : type === "incognito_name"
+                ? incognitoName
+                : email
+        }
+        maxCharacters={
+          type === "username" ||
+          type === "nickname" ||
+          type === "incognito_name"
+            ? 20
+            : 50
+        }
       />
     );
   };
@@ -353,262 +482,314 @@ const Settings = () => {
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
   };
 
-  
   return (
+    <ScrollView
+      className="flex-1 pt-6 bg-gray-50"
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 90 }}
+    >
+      {/* Color Section */}
+      <View className="mx-6 mb-6">
+        <HeaderCard
+          title="Colors"
+          color="#FAFAFA"
+          content={
+            <>
+              {/* Blue Progress */}
+              <View className="px-5 py-2">
+                <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
+                  🔵 Blue Level
+                </Text>
 
-   <ScrollView 
-   className="flex-1 pt-6 bg-gray-50" 
-   showsVerticalScrollIndicator={false}
-   contentContainerStyle={{ paddingBottom: 90 }}>
-
-     {/* Color Section */}
-  <View className="mx-6 mb-6">
-    <HeaderCard 
-      title="Colors" 
-      color="#FAFAFA"
-      content={
-        <>
-      
-            {/* Blue Progress */}
-          <View className="px-5 py-2">
-            <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
-              🔵 Blue Level
-            </Text>
-
-             <ProgressBar 
-                  progress={Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20)} 
+                <ProgressBar
+                  progress={Math.min(
+                    100,
+                    Math.floor((savedPosts?.length || 0) / 3) * 20
+                  )}
                   height={12}
                   progressColor="#60a5fa"
                   backgroundColor="#fafafa"
                 />
+              </View>
 
-          </View>
+              {/* Yellow Progress */}
+              <View className="px-5 py-2">
+                <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
+                  🟡 Yellow Level
+                </Text>
 
-          {/* Yellow Progress */}
-          <View className="px-5 py-2">
-            <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
-              🟡 Yellow Level
-            </Text>
-
-             <ProgressBar 
-                  progress={Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20)} 
+                <ProgressBar
+                  progress={Math.min(
+                    100,
+                    Math.floor((likedPosts?.length || 0) / 10) * 20
+                  )}
                   height={12}
                   progressColor="#facc15"
                   backgroundColor="#fafafa"
                 />
-          </View>
+              </View>
 
-           {/* Pink Progress */}
-          <View className="px-5 py-2">
-            <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
-              🩷 Pink Level
-            </Text>
+              {/* Pink Progress */}
+              <View className="px-5 py-2">
+                <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
+                  🩷 Pink Level
+                </Text>
 
-                <ProgressBar 
-                  progress={pinkProgress} 
+                <ProgressBar
+                  progress={pinkProgress}
                   height={12}
                   progressColor="#FBB1F5"
                   backgroundColor="#fafafa"
                 />
-
-          </View>
-           <ActionRow 
-            icon={<Image source={icons.palette} tintColor="#000" resizeMode="contain" className="w-5 h-5" />}
-            label="View Color Library"
-            count={colorLibrary.length || 0}
-            onPress={() => setLibraryVisible(true)}
-            accentColor="#CFB1FB"
-          />
-          <ActionRow 
-            icon={<Image source={icons.sparkles} tintColor="#000" resizeMode="contain" className="w-5 h-5" />}
-            label="Attempt Create Color"
-            count={3}
-            onPress={handleAttemptColorCreation}
-            accentColor="#CFB1FB"
-          />
-        </>
-      }
-    />
-  </View>
-
-  {/* Header Card Component */}
-  <View className="mx-6 mb-6">
-    <HeaderCard 
-      title="Information" 
-      color="#93c5fd"
-      content={
-        <>
-          <DetailRow 
-            label="Username" 
-            value={username} 
-            onPress={() => handleUpdateValue("username")}
-            accentColor="#93c5fd"
-          />
-          <DetailRow 
-            label="Email" 
-            value={email} 
-            onPress={() => handleUpdateValue("email")}
-            accentColor="#93c5fd"
-          />
-          <DetailRow 
-            label="Location" 
-            value={currentLocation} 
-            onPress={handleLocationUpdate}
-            accentColor="#93c5fd"
-          />
-        </>
-      }
-    />
-  </View>
-
-
-  {/* Activity Section */}
-  <View className="mx-6 mb-6">
-    <HeaderCard 
-      title="Your Activity" 
-      color="#CFB1FB"
-      content={
-        <>
-          <ActionRow 
-            icon={<Image source={icons.bookmark} tintColor="#000" resizeMode="contain" className="w-5 h-5" />}
-            label="Saved Posts"
-            count={savedPosts?.length || 0}
-            onPress={() => router.push({
-              pathname: "/root/saved-post-gallery",
-              params: { posts: JSON.stringify(savedPosts), name: "Saved Posts" }
-            })}
-            accentColor="#CFB1FB"
-          />
-          <ActionRow 
-            icon={<MaterialCommunityIcons name="heart-outline" size={20} color="#000" />}
-            label="Liked Posts"
-            count={likedPosts?.length || 0}
-            onPress={() => router.push({
-              pathname: "/root/saved-post-gallery",
-              params: { posts: JSON.stringify(likedPosts), name: "Liked Posts" }
-            })}
-            accentColor="#CFB1FB"
-          />
-          <ActionRow
-            icon={<AntDesign name="clockcircleo" size={20} color="#000" />}
-            label="Quick Reaction Emojis"
-            count={0} // Placeholder for future implementation
-            onPress={() => {
-              playSoundEffect(SoundType.Navigation);
-              setSelectedTitle("Customize Emojis");
-              setSelectedModal(
-                <EmojiSettings
-                  onClose={() => {
-                    setSelectedModal(null);
-                    setSelectedTitle("");
-                  }}
-                />
-              );
-            }}
-            accentColor="#CFB1FB" />
-        </>
-      }
-    />
-  </View>
-
-  {/* Preferences Section */}
-  <View className="mx-6 mb-6">
-    <HeaderCard 
-      title="Preferences" 
-      color="#ffe640"
-      content={
-        <>
-          <ToggleRow 
-            label="Haptic Feedback"
-            description="Get physical feedback for interactions"
-            value={hapticsEnabled}
-            onValueChange={handleHapticsToggle}
-            accentColor="#ffe640" // Dark gray from your shadows
-          />
-          <ToggleRow 
-            label="Sound Effects"
-            description="Play sounds for certain actions"
-            value={soundEffectsEnabled}
-            onValueChange={handleSoundToggle}
-            accentColor="#ffe640"
-          />
-        </>
-      }
-    />
-  </View>
-
-  {/* Sign Out Button */}
-  <View className="mx-6 mb-10">
-    <TouchableOpacity 
-      onPress={handleSignOut}
-      activeOpacity={0.7}
-      className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center border-2 border-gray-100"
-      style={{
-        shadowColor: "#636363",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      }}
-    >
-      <Text className="font-JakartaBold text-lg text-red-500">Sign Out</Text>
-    </TouchableOpacity>
-  </View>
-
-  {!!selectedModal && 
-    <ModalSheet 
-      children={selectedModal} 
-      title={selectedTitle} 
-      isVisible={!!selectedModal} 
-      onClose={() => {
-        setSelectedModal(null)
-        setSelectedTitle("")
-      }} 
-    />
-  }
-  {libraryVisible && 
-<ModalSheet
-          title={"Your Color Library"} 
-          isVisible={libraryVisible}
-           onClose={() => {}} > 
-   <View 
-   className="flex-1 p-6"
-        >
-          <FlatList
-            className="flex-1"
-            data={colorLibrary}
-            keyExtractor={(item, index) => index.toString()}
-            ListEmptyComponent={
-              <Text style={{ fontSize: 16, color: "gray" }}>
-                You haven't collected any colors yet.
-              </Text>
-            }
-            renderItem={({ item }) => (
-              <ItemContainer
-                label={item.name}
-                caption={item.meaning || "No description available."}
-                icon={0}
-                colors={[item.hex, item.foldcolorhex]}
-                iconColor={""}
-                onPress={() => {}}
+              </View>
+              <ActionRow
+                icon={
+                  <Image
+                    source={icons.palette}
+                    tintColor="#000"
+                    resizeMode="contain"
+                    className="w-5 h-5"
+                  />
+                }
+                label="View Color Library"
+                count={colorLibrary.length || 0}
+                onPress={() => setLibraryVisible(true)}
+                accentColor="#CFB1FB"
               />
-            )}
-            contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
-            showsVerticalScrollIndicator={false}
-          />
-           <CustomButton
-          className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
-          fontSize="lg"
-          title="Close"
-          padding="0"
-          onPress={() => {
-            setLibraryVisible(false);
+              <ActionRow
+                icon={
+                  <Image
+                    source={icons.sparkles}
+                    tintColor="#000"
+                    resizeMode="contain"
+                    className="w-5 h-5"
+                  />
+                }
+                label="Attempt Create Color"
+                count={3}
+                onPress={handleAttemptColorCreation}
+                accentColor="#CFB1FB"
+              />
+            </>
+          }
+        />
+      </View>
+
+      {/* Header Card Component */}
+      <View className="mx-6 mb-6">
+        <HeaderCard
+          title="Information"
+          color="#93c5fd"
+          content={
+            <>
+              <DetailRow
+                label="Username"
+                value={username}
+                onPress={() => handleUpdateValue("username")}
+                accentColor="#93c5fd"
+              />
+              <DetailRow
+                label="Nickname"
+                value={nickname}
+                onPress={() => handleUpdateValue("nickname")}
+                accentColor="#93c5fd"
+              />
+              <DetailRow
+                label="Incognito Name"
+                value={incognitoName}
+                onPress={() => handleUpdateValue("incognito_name")}
+                accentColor="#93c5fd"
+              />
+              <DetailRow
+                label="Email"
+                value={email}
+                onPress={() => handleUpdateValue("email")}
+                accentColor="#93c5fd"
+              />
+              <DetailRow
+                label="Location"
+                value={currentLocation}
+                onPress={handleLocationUpdate}
+                accentColor="#93c5fd"
+              />
+            </>
+          }
+        />
+      </View>
+
+      {/* Activity Section */}
+      <View className="mx-6 mb-6">
+        <HeaderCard
+          title="Your Activity"
+          color="#CFB1FB"
+          content={
+            <>
+              <ActionRow
+                icon={
+                  <Image
+                    source={icons.bookmark}
+                    tintColor="#000"
+                    resizeMode="contain"
+                    className="w-5 h-5"
+                  />
+                }
+                label="Saved Posts"
+                count={savedPosts?.length || 0}
+                onPress={() =>
+                  router.push({
+                    pathname: "/root/saved-post-gallery",
+                    params: {
+                      posts: JSON.stringify(savedPosts),
+                      name: "Saved Posts",
+                    },
+                  })
+                }
+                accentColor="#CFB1FB"
+              />
+              <ActionRow
+                icon={
+                  <MaterialCommunityIcons
+                    name="heart-outline"
+                    size={20}
+                    color="#000"
+                  />
+                }
+                label="Liked Posts"
+                count={likedPosts?.length || 0}
+                onPress={() =>
+                  router.push({
+                    pathname: "/root/saved-post-gallery",
+                    params: {
+                      posts: JSON.stringify(likedPosts),
+                      name: "Liked Posts",
+                    },
+                  })
+                }
+                accentColor="#CFB1FB"
+              />
+              <ActionRow
+                icon={<AntDesign name="clockcircleo" size={20} color="#000" />}
+                label="Quick Reaction Emojis"
+                count={0} // Placeholder for future implementation
+                onPress={() => {
+                  playSoundEffect(SoundType.Navigation);
+                  setSelectedTitle("Customize Emojis");
+                  setSelectedModal(
+                    <EmojiSettings
+                      onClose={() => {
+                        setSelectedModal(null);
+                        setSelectedTitle("");
+                      }}
+                    />
+                  );
+                }}
+                accentColor="#CFB1FB"
+              />
+            </>
+          }
+        />
+      </View>
+
+      {/* Preferences Section */}
+      <View className="mx-6 mb-6">
+        <HeaderCard
+          title="Preferences"
+          color="#ffe640"
+          content={
+            <>
+              <ToggleRow
+                label="Haptic Feedback"
+                description="Get physical feedback for interactions"
+                value={hapticsEnabled}
+                onValueChange={handleHapticsToggle}
+                accentColor="#ffe640" // Dark gray from your shadows
+              />
+              <ToggleRow
+                label="Sound Effects"
+                description="Play sounds for certain actions"
+                value={soundEffectsEnabled}
+                onValueChange={handleSoundToggle}
+                accentColor="#ffe640"
+              />
+            </>
+          }
+        />
+      </View>
+
+      {/* Sign Out Button */}
+      <View className="mx-6 mb-10">
+        <TouchableOpacity
+          onPress={handleSignOut}
+          activeOpacity={0.7}
+          className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center border-2 border-gray-100"
+          style={{
+            shadowColor: "#636363",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+          }}
+        >
+          <Text className="font-JakartaBold text-lg text-red-500">
+            Sign Out
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {!!selectedModal && (
+        <ModalSheet
+          children={selectedModal}
+          title={selectedTitle}
+          isVisible={!!selectedModal}
+          onClose={() => {
+            setSelectedModal(null);
+            setSelectedTitle("");
           }}
         />
-        </View>
-  </ModalSheet>}
-</ScrollView>)
+      )}
+      {libraryVisible && (
+        <ModalSheet
+          title={"Your Color Library"}
+          isVisible={libraryVisible}
+          onClose={() => {}}
+        >
+          <View className="flex-1 p-6">
+            <FlatList
+              className="flex-1"
+              data={colorLibrary}
+              keyExtractor={(item, index) => index.toString()}
+              ListEmptyComponent={
+                <Text style={{ fontSize: 16, color: "gray" }}>
+                  You haven't collected any colors yet.
+                </Text>
+              }
+              renderItem={({ item }) => (
+                <ItemContainer
+                  label={item.name}
+                  caption={item.meaning || "No description available."}
+                  icon={0}
+                  colors={[item.hex, item.foldcolorhex]}
+                  iconColor={""}
+                  onPress={() => {}}
+                />
+              )}
+              contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
+              showsVerticalScrollIndicator={false}
+            />
+            <CustomButton
+              className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+              fontSize="lg"
+              title="Close"
+              padding="0"
+              onPress={() => {
+                setLibraryVisible(false);
+              }}
+            />
+          </View>
+        </ModalSheet>
+      )}
+    </ScrollView>
+  );
 };
-
 
 export default Settings;
 

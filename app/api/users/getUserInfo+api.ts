@@ -10,7 +10,6 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
 
-
     if (!clerkId) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
         status: 400,
@@ -25,7 +24,6 @@ export async function GET(request: Request) {
       });
     }
 
-
     const user = response.map((u) => {
       return {
         id: u.id,
@@ -35,6 +33,8 @@ export async function GET(request: Request) {
         firstname: u.firstname,
         lastname: u.lastname,
         username: u.username,
+        nickname: u.nickname,
+        incognito_name: u.incognito_name,
         email: u.email,
         date_of_birth: u.date_of_birth,
         city: u.city,
@@ -50,9 +50,9 @@ export async function GET(request: Request) {
           if (foundColor) {
             return foundColor;
           }
-        })
+        }),
       } as unknown as UserProfileProps;
-    })
+    });
 
     return new Response(JSON.stringify({ data: user }), {
       status: 200,
