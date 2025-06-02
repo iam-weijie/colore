@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { AlgorithmRandomPosition } from "@/lib/utils";
+import { Format } from "@/lib/types";
 
 export async function GET(request: Request) {
   try {
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
         p.top,
         p.left,
         p.expires_at,
+        p.formatting,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -49,6 +51,8 @@ export async function GET(request: Request) {
       WHERE p.recipient_user_id = '${recipientId}'
         AND p.post_type = 'personal'
         AND (p.board_id IS NULL OR p.board_id < 0)
+        AND p.expires_at > NOW()
+        AND p.available_at <= NOW()
       ORDER BY p.created_at DESC
       LIMIT ${number};
     `;
@@ -82,7 +86,9 @@ export async function GET(request: Request) {
       position: {
         top: post.top,
         left: post.left
-      }
+      },
+      expires_at: post.expires_at || "",
+      formatting: post.formatting as Format || [],
     }));
 
     return new Response(JSON.stringify({ data: mappedPosts }), {

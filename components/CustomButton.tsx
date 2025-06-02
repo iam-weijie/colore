@@ -1,7 +1,17 @@
 import { ButtonProps } from "@/types/type";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity, Pressable } from "react-native";
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring,
+  Easing
+} from "react-native-reanimated";
+import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
 
 const getBgVariantStyle = (
   variant: ButtonProps["bgVariant"],
@@ -12,8 +22,10 @@ const getBgVariantStyle = (
   }
 
   switch (variant) {
+    case "primary":
+      return "bg-[#FFFFFF]";
     case "secondary":
-      return "bg-gray-500";
+      return "bg-black";
     case "danger":
       return "bg-red-500";
     case "success":
@@ -41,7 +53,7 @@ const getTextVariantStyle = (
     case "primary":
       return "text-black";
     case "secondary":
-      return "text-gray-100";
+      return "text-white";
     case "danger":
       return "text-red-100";
     case "success":
@@ -50,7 +62,6 @@ const getTextVariantStyle = (
       return "text-white";
   }
 };
-
 
 const CustomButton = ({
   onPress,
@@ -65,14 +76,47 @@ const CustomButton = ({
   padding = "4",
   ...props
 }: ButtonProps) => {
+  const { playSoundEffect } = useSoundEffects()
+  const scale = useSharedValue(1);
   const bgStyle = getBgVariantStyle(bgVariant, disabled);
- 
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+      opacity: disabled ? 0.7 : 1,
+    };
+  });
+
+  const handlePressIn = () => {
+    if (!disabled) {
+      playSoundEffect(SoundType.Button);
+      scale.value = withSpring(0.9, {
+        damping: 25,
+        stiffness: 90,
+      });
+    }
+  };
+
+  const handlePressOut = () => {
+    if (!disabled) {
+      scale.value = withSpring(1, {
+        damping: 25,
+        stiffness: 90,
+      });
+    }
+  };
 
   return (
-    <TouchableOpacity
+    <AnimatedTouchable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       onPress={onPress}
       disabled={disabled}
-      className={`w-full rounded-full ${["gradient", "gradient2"].includes(bgVariant) ? "" : bgStyle} p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}
+      activeOpacity={0.95}
+      style={[animatedStyle]}
+      className={`w-full rounded-full ${
+        ["gradient", "gradient2"].includes(bgVariant) ? "" : bgStyle
+      } p-${bgVariant === "gradient" ? "" : padding} flex flex-row justify-center items-center shadow-sm shadow-neutral-300 ${className}`}
       {...props}
     >
       {["gradient", "gradient2"].includes(bgVariant) && Array.isArray(bgStyle) ? (
@@ -84,7 +128,10 @@ const CustomButton = ({
         >
           {IconLeft && <IconLeft />}
           <Text
-            className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}
+            className={`font-bold text-${fontSize} ${getTextVariantStyle(
+              textVariant,
+              disabled
+            )}`}
           >
             {title}
           </Text>
@@ -94,14 +141,17 @@ const CustomButton = ({
         <>
           {IconLeft && <IconLeft />}
           <Text
-            className={`font-bold text-${fontSize} ${getTextVariantStyle(textVariant, disabled)}`}
+            className={`font-bold text-${fontSize} ${getTextVariantStyle(
+              textVariant,
+              disabled
+            )}`}
           >
             {title}
           </Text>
           {IconRight && <IconRight />}
         </>
       )}
-    </TouchableOpacity>
+    </AnimatedTouchable>
   );
 };
 

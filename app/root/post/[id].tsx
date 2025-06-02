@@ -4,8 +4,6 @@ import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import AntDesign from "@expo/vector-icons/AntDesign";
 import { useAlert } from '@/notifications/AlertContext';
 import { CommentItem } from "@/components/Comment";
 import { useGlobalContext } from "@/app/globalcontext";
@@ -17,19 +15,20 @@ import {
   useRouter,
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 import {
-  Alert,
   Dimensions,
   Image,
   FlatList,
   Keyboard,
-  KeyboardAvoidingView,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -37,8 +36,6 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 import { useNavigationContext } from "@/components/NavigationContext";
 
-import * as Linking from "expo-linking";
-import { SafeAreaView } from "react-native-safe-area-context";
 import React from "react";
 
 interface GestureContext {
@@ -65,6 +62,7 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
     color,
   } = useLocalSearchParams();
 
+  const height = useSharedValue(450);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const flatListRef = useRef(null);
@@ -101,6 +99,9 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const [replyView, setReplyView] = useState<PostComment | null>(null);
   const inputRef = useRef(null);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+
 
 
   const fetchCommentById = async (id: string) => {
@@ -389,15 +390,6 @@ console.log("happend", "id", id)
     }
   }, [replyView])
 
-  /*
-  useEffect(() => {
-    navigation.addListener("beforeRemove", (e) => {
-      handleReadComments()
-      setStateVars({ ...stateVars, queueRefresh: true });
-      console.log("User goes back from post screen");
-    });
-  }, []);
-  */
 
   const renderCommentItem = ({
     item,
@@ -443,8 +435,24 @@ console.log("happend", "id", id)
     );
   };
 
+    useEffect(() => {
+    if (keyboardVisible) {
+      height.value = withTiming(300, { duration: 500 });
+    } else {
+      height.value = withTiming(450, { duration: 500 });
+    }
+    
+
+    
+  }, [keyboardVisible]);
+
+ 
+    const animatedHeightStyle = useAnimatedStyle(() => ({
+    height: height.value,
+  }));
+
   return (
-    <View className="flex-1 h-[450px]">
+    <Animated.View style={[{ flex: 1, paddingHorizontal: 24, paddingVertical: 8 }, animatedHeightStyle]}>
 
          <Pressable onPress={() => 
                   {
@@ -518,6 +526,8 @@ console.log("happend", "id", id)
               value={newComment}
               multiline
               scrollEnabled
+              onFocus={() => setKeyboardVisible(true)}
+              onBlur={() => setKeyboardVisible(false)}
               onChangeText={handleChangeText}
               onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
               editable={!isSubmitting && !isSubmitting}
@@ -536,83 +546,9 @@ console.log("happend", "id", id)
           </View>
           </View>
         </View>
-  </View>
+  </Animated.View>
   );
 };
 
 export default PostScreen;
 
-
- {/* <View className="flex-row justify-between items-center mx-6 my-6">
-            <TouchableOpacity onPress={() => router.back()} className="mr-4">
-              <AntDesign name="caretleft" size={18} />
-            </TouchableOpacity>
-            <TouchableOpacity
-            onPress={() => {
-              router.push({
-                pathname: "/root/new-personal-post",
-                params: { 
-                  recipient_id: clerk_id,
-                  source: 'board'
-                }
-              })
-            }}
-            className="py-3 px-4 bg-white rounded-[24px] shadow-xs">
-              <Text className="font-JakartaSemiBold" style={{
-                color: postColor?.fontColor ?? color 
-              }}>Reply to {anonymousComments ? "Author" : username}</Text>
-            </TouchableOpacity>
-          </View>*/}
-          {/*<View 
-          className="mb-6 p-6 rounded-[24px] mx-auto flex flex-row items-center justify-between"
-          style={{
-            backgroundColor: postColor?.hex ?? color,
-            width: isIpad ? "95%" : "90%"
-          }}>
-            <View className="flex-1">
-              <TouchableOpacity onPress={() => handleUserProfile(userId)}>
-                <Text className="font-JakartaSemiBold text-lg">
-                  {anonymousComments
-                    ? clerk_id === user!.id
-                      ? "Me"
-                      : "Anonymous"
-                    : username}
-                </Text>
-              </TouchableOpacity>
-              <Text className="text-sm text-gray-700">
-                {typeof created_at === "string"
-                  ? getRelativeTime(convertToLocal(new Date(created_at)))
-                  : "No date"}
-              </Text>
-              <TouchableWithoutFeedback
-                onPress={() => Keyboard.dismiss()}
-                onPressIn={() => Keyboard.dismiss()}
-              >
-                <ScrollView
-                  style={{ maxHeight: screenHeight / 6 }}
-                  showsVerticalScrollIndicator={false}
-                >
-                  <Text className="font-Jakarta min-h-[30]">{content}</Text>
-                </ScrollView>
-              </TouchableWithoutFeedback>
-            </View>
-            <View className="flex flex-row justify-center items-center">
-                <View>
-                  <Text
-                    className={`${clerk_id === user?.id ? "text-gray-800" : "text-transparent"} text-center mr-1 text-sm`}
-                  >
-                    {clerk_id === user?.id ? likeCount : "0"}
-                  </Text>
-                </View>
-                  <TouchableOpacity
-                    onPress={handleLikePress}
-                    disabled={isLoadingLike}
-                  >
-                    <MaterialCommunityIcons
-                      name={isLiked ? "heart" : "heart-outline"}
-                      size={24}
-                      color={isLiked ? "red" : "black"}
-                    />
-                  </TouchableOpacity>
-                </View>
-          </View>*/}

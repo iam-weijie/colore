@@ -14,15 +14,21 @@ import { BackgroundFetchResult } from "expo-background-fetch"; // Import the Res
 import * as TaskManager from "expo-task-manager";
 import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
-import { Stacks, Post } from "@/types/type";
+import { Stacks, Post, UserProfileType, PostItColor } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from "@/notifications/NotificationContext";
+import { set } from "date-fns";
+import { temporaryColors } from "@/constants";
 import { io } from "socket.io-client";
 
 // ===== Types & Constants =====
 type GlobalContextType = {
   stacks: Stacks[];
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
+  profile: UserProfileType;
+  setProfile: React.Dispatch<React.SetStateAction<UserProfileType>>;
+  userColors: PostItColor[];
+  setUserColors: React.Dispatch<React.SetStateAction<PostItColor[]>>;
   draftPost: Post;
   setDraftPost: React.Dispatch<React.SetStateAction<Post | null>>;
   notifications: any[];
@@ -296,6 +302,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     content: "",
     created_at: "",
     expires_at: "",
+    available_at: "",
+    static_emoji: false,
     city: "",
     state: "",
     country: "",
@@ -312,7 +320,10 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     board_id: 0,
     reply_to: 0,
     unread: false,
+    formatting: [], // Add a default value for formatting
   });
+  const [profile, setProfile] = useState<UserProfileType>();
+  const [userColors, setUserColors] = useState<PostItColor[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [storedNotifications, setStoredNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
@@ -403,6 +414,31 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [user, pushToken]);
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        try {
+          const response = await fetchAPI(
+            `/api/users/getUserInfo?id=${user.id}`,
+            {
+              method: "GET",
+            }
+          );
+          if (response.error) {
+            throw new Error(response.error);
+          }
+          const userData = response.data[0];
+          setProfile(userData);
+          setUserColors(userData.colors || temporaryColors);
+          console.log("userData", userData);
+          setLastConnection(new Date(userData.last_connection));
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error);
+        }
+      }
+    };
+    fetchUserProfile();
+  }, [user]);
   const incrementUnreadAmount = (notificationType: string) => {
     switch (notificationType) {
       case "Comments":
@@ -562,6 +598,10 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         stacks,
         setStacks,
         draftPost,
+        profile,
+        setProfile,
+        userColors,
+        setUserColors,
         setDraftPost,
         notifications,
         storedNotifications,

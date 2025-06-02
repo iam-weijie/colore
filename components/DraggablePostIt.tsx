@@ -17,6 +17,7 @@
     View,
   } from "react-native";
   import { MappingPostitProps } from "@/types/type";
+  import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
   import React from "react";
 
 interface DraggablePostItProps {
@@ -26,6 +27,7 @@ interface DraggablePostItProps {
     updatePosition: (x: number, y: number, post: PostWithPosition) => void;
     onPress: () => void;
     showText?: boolean;
+    isViewed?: boolean;
     enabledPan: () => void;
     scrollOffset: { x: number; y: number }; 
     zoomScale: number;
@@ -40,12 +42,15 @@ interface DraggablePostItProps {
     updatePosition,
     onPress,
     showText = false,
+    isViewed = false,
     enabledPan,
     scrollOffset,
     zoomScale,
     disabled = false,
     visibility = 1,
   }) => {
+
+    const { playSoundEffect } = useSoundEffects();
     
     const animatedPosition = useRef(
       new Animated.ValueXY({
@@ -132,6 +137,7 @@ interface DraggablePostItProps {
   
     // Start drag animation - ALL animations will use JS driver
     const startDragAnimation = () => {
+      playSoundEffect(SoundType.Button);
       Animated.parallel([
         Animated.spring(scale, {
           toValue: 1.1,
@@ -151,6 +157,7 @@ interface DraggablePostItProps {
   
     // End drag animation - ALL animations will use JS driver
     const endDragAnimation = () => {
+      playSoundEffect(SoundType.Button);
       Animated.parallel([
         Animated.spring(scale, {
           toValue: 1,
@@ -273,7 +280,9 @@ interface DraggablePostItProps {
       >
         {/* Rest of your component remains exactly the same */}
         <TouchableWithoutFeedback onPress={onPress}>
-          <PostIt color={post.color || "yellow"} />
+          <PostIt 
+          viewed={isViewed}
+          color={post.color || "yellow"} />
         </TouchableWithoutFeedback>
         {isPinned && (
           <View className="absolute text-black h-full -top-2 -left-2">

@@ -23,9 +23,8 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
     return (
       <Animated.View
         entering={FadeIn.duration(400).springify().delay(item.id % 10 * 100)}
-        className="relative rounded-[32px] h-[225px] w-[170px] overflow-hidden m-2 shadow-sm border-2"
+        className="relative rounded-[36px] h-[225px] w-[170px] overflow-hidden m-2 shadow-sm border-2"
         style={{
-          borderRadius: 28,
           backgroundColor: item.color,
           borderColor: "#ffffff80",
           height: 225,
@@ -59,21 +58,11 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
           {/* Gradient overlay at bottom */}
           <View className="absolute bottom-0 left-0 right-0 h-1/3" />
           
-          {/* Optional image placeholder - you could replace this with actual board cover images */}
-          {item.imageUrl ? (
-            <Image 
-              source={{ uri: item.imageUrl }}
-              className="absolute w-full h-full"
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="absolute w-full h-full " />
-          )}
           
           {/* Title and metadata at bottom */}
-          <View className="absolute bottom-2 w-full p-3 left-2">
+          <View className="w-full h-full flex-col items-center justify-center p-3 z-[10]">
             <Text 
-              className="text-white text-[16px] font-JakartaBold  drop-shadow-md"
+              className="text-white text-center text-[16px] font-JakartaBold  drop-shadow-md"
               numberOfLines={2}
             >
               {item.title}
@@ -81,7 +70,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
             
             {/* Additional metadata - you can customize these */}
             <View className="flex-row items-center">
-              {item.id > 0 && <Text className="text-white/80 text-[12px] font-JakartaSemiBold ">
+              {item.id > 0 && <Text className="text-white/90 text-[12px] font-JakartaSemiBold drop-shadow-md ">
                 {item.count || 0} notes
               </Text>}
               {item.isPrivate && (
@@ -101,6 +90,17 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
             <View className="absolute top-4 left-4 bg-red-500 px-2 py-1 rounded-full">
               <Text className="text-white text-[10px] font-JakartaBold">NEW</Text>
             </View>
+          )}
+
+          {/* Optional image placeholder - you could replace this with actual board cover images */}
+          {item.imageUrl ? (
+            <Image 
+              source={{ uri: item.imageUrl }}
+              className="absolute w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="absolute self-center w-[97%] h-[97%]  top-[50%] -mt-[48.5%] border-2 border-white rounded-[32px] bg-white/20 z-[-1] " />
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -126,7 +126,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
   numColumns={isIpad ? 6 : 2}
   renderItem={({ item }) => <BoardContainer item={item} />}
   contentContainerStyle={{
-    paddingHorizontal: isIpad ? 16 : 8, // More padding on iPad
+    paddingHorizontal: isIpad ? 16 : 4, // More padding on iPad
     paddingBottom: 20,
   }}
   columnWrapperStyle={isIpad ? {

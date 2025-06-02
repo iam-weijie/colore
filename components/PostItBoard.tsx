@@ -22,6 +22,7 @@ import {
   View,
 } from "react-native";
 import { GeographicalMode, MappingPostitProps } from "@/types/type";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import React from "react";
 import { distanceBetweenPosts } from "@/lib/post";
@@ -76,6 +77,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   isEditable = true,
   randomPostion = true,
 }) => {
+  const [mapType, setMapType] = useState<string>("satellite");
+  const [isUserInfoModalVisible, setIsUserInfoModalVisible] = useState(false);
   const [postsWithPosition, setPostsWithPosition] = useState<
     Post[]
   >([]);
@@ -83,12 +86,15 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   Post[]
 >([]);
 
-  const { isIpad, stacks, setStacks } = useGlobalContext(); // Add more global constants here
+  const { isIpad, stacks, setStacks, soundEffectsEnabled } = useGlobalContext();
+  const { playSoundEffect } = useSoundEffects(); // Get sound function
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPosts, setSelectedPosts] = useState<Post[] | null>(
     null
   );
+
+  const [excludeIds, setExcludeIds] = useState<string[]>([]);
 
   const [selectedModal, setSelectedModal] = useState<any>(null);
   const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
@@ -100,6 +106,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [maps, setMap] = useState<MappingPostitProps[]>([]);
   const [isPanningMode, setIsPanningMode] = useState(true);
   const [isStackMoving, setIsStackMoving] = useState(false);
+  const pendingStackSound = useRef(false);
   const stackUpdating = useRef(false);
 
 
@@ -109,7 +116,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [refreshing, setRefreshing] = useState(false);
   const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 });
   const [zoomScale, setZoomScale] = useState(1); // default no zoom
-  const offsetY = useSharedValue(0);
+  const offsetY = useSharedValue(0)
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const x = event.nativeEvent.contentOffset.x;  
@@ -208,7 +215,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
     } catch (error) {
       setError("Failed to fetch new posts.");
-      console.error(error);
     } finally {
       setLoading(false);
 
@@ -345,6 +351,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       id: id,
       coordinates: { x_coordinate: dx, y_coordinate: dy },
     });
+    
+    
+    // Update map immediately
     setMap((prevMap) => [
       ...prevMap.filter((p) => p.id !== id),
       postItCoordinates,
@@ -353,6 +362,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
 
     if (!randomPostion) {
+      pendingStackSound.current = true;
     try {
       await fetchAPI(`/api/posts/updatePostPosition`, {
         method: "PATCH",
@@ -377,7 +387,6 @@ const reorderPost = (topPost: Post) => {
       ...prevPosts.filter((post) => post.id !== topPost.id), // Remove the moved post
       topPost, // Add the moved post to the end
     ]);
-
   };
 
   // USE EFFECTS
@@ -405,6 +414,9 @@ const reorderPost = (topPost: Post) => {
   }, [mode]);
 
 
+  useEffect(() => {
+    fetchRandomPosts();
+  }, []);
   const handleOuterLayout = () => {
     scrollViewRef.current?.scrollTo({ x: postsWithPosition[0].position.left ?? screenWidth / 2, animated: true })
   };
@@ -419,9 +431,11 @@ const reorderPost = (topPost: Post) => {
     const stack = stacks.find((stack) => stack.ids.includes(post.id));
     if (stack) {
       setSelectedPosts(stack.elements);
+      setExcludeIds((prev) => [...prev, ...stack.ids]);
       console.log("this is a stack")
     } else {
       setSelectedPosts([post]);
+      setExcludeIds((prev) => [...prev, String(post.id)])
       console.log("this is a post", stack)
     }
 
@@ -480,7 +494,6 @@ const reorderPost = (topPost: Post) => {
 
   const handleCloseModal = async () => {
 
-
     setSelectedPosts(null);
     setIsPanningMode(true);
   }
@@ -490,14 +503,12 @@ const reorderPost = (topPost: Post) => {
 
 
   if (postsWithPosition.length == 0) {
-    return (
-      <View className="flex-1 items-center justify-center">
+      return (
+        <View className="flex-1 items-center justify-center">
           <ColoreActivityIndicator text="Summoning Bob..." />
-            {/* Closing tag for the parent View */}
-          </View>
-    )
-  }
-  //console.log("remaingring loaded", stacks)
+        </View>
+      );
+    }
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -620,6 +631,7 @@ if (!hasPostsOnCurrentBoard) {
   updatePosition={(dx, dy, post) => updatePostPosition(dx, dy, post)}
   onPress={() => handlePostPress(post)}
   showText={showPostItText}
+  isViewed={excludeIds.includes(String(post.id))}
   enabledPan={() => setIsPanningMode(prev => !prev)}
   zoomScale={zoomScale}
   scrollOffset={scrollOffset}
@@ -664,6 +676,7 @@ if (!hasPostsOnCurrentBoard) {
 };
 
 export default PostItBoard;
+
 
 
 
@@ -724,8 +737,6 @@ export default PostItBoard;
 
         return updateMap;
       });
-
-      //("remainging right after", stacks)
 
       const existingPostIds = postsWithPosition.map((post) => post.id);
 

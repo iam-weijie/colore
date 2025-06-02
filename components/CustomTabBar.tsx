@@ -6,7 +6,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import TabIcon from './TabIcon'; // Adjust your import
 
 const { width } = Dimensions.get('window');
-const height = 90; // Change this if you want
+const height = 85; // Change this if you want
 
 // --- 1. Regular Custom Tab Bar (linked to Tabs state)
 export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {

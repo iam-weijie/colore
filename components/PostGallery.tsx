@@ -7,6 +7,8 @@ import { useUser } from "@clerk/clerk-expo";
 import { Link, useFocusEffect } from "expo-router";
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import { router } from "expo-router";
+import * as Haptics from 'expo-haptics';
+import { useHaptics } from "@/hooks/useHaptics";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
@@ -21,16 +23,17 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   posts,
   profileUserId,
   handleUpdate,
+  disableModal = false,
   query = "",
-  header
+  header,
+  offsetY
 }) => {
   const { user } = useUser();
   const { isIpad } = useGlobalContext(); 
   const isOwnProfile = user!.id === profileUserId;
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [sortedPosts, setSortedPosts] = useState<Post[]>([]);
-  const [queueRefresh, setQueueRefresh] = useState(false);
-  const [hasNavigatedAway, setHasNavigatedAway] = useState(false);
+  const { triggerHaptic } = useHaptics();
   const [isSaved, setIsSaved] = useState(true);
   const { stateVars, setStateVars } = useNavigationContext();
 
@@ -67,56 +70,65 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     return <Text>An error occurred.</Text>;
   }
 
-  const renderItem = ({ item }: { item: Post }) => {
-    const backgroundColor = temporaryColors?.find((c) => c.name === item.color)?.hex || item.color;
-    const isOwner = item.clerk_id === user?.id;
-    const hasNewComments = isOwner && item.unread_comments > 0;
-    
-    return (
-      <Animated.View
-        entering={FadeInDown.duration(500)}
-        style={{
-          marginHorizontal: isIpad ? 8 : 0,
-          maxWidth: 360,
-          transform: [{ rotate: `${(Math.random() * 2 - 1).toFixed(2)}deg` }],
-        }}
+const renderItem = ({ item }: { item: Post }) => {
+  const backgroundColor = temporaryColors?.find((c) => c.name === item.color)?.hex || item.color;
+  const isOwner = item.clerk_id === user?.id;
+  const hasNewComments = isOwner && item.unread_comments > 0;
+  
+  return (
+    <Animated.View
+      entering={FadeInDown.duration(400)}
+      style={{
+        marginHorizontal: isIpad ? 6 : 0,
+        transform: [{ rotate: `${(Math.random() * 1.5 - 0.75).toFixed(2)}deg` }], // Reduced rotation range
+      }}
+    >
+      <TouchableOpacity 
+        onPress={() => 
+          {
+            triggerHaptic(Haptics.ImpactFeedbackStyle.Light)
+            setSelectedPost(item)
+            disableModal && handleUpdate && handleUpdate(item.id);}}
+        activeOpacity={0.9}
       >
-        <TouchableOpacity onPress={() => setSelectedPost(item)}>
-          <View
-            className="w-full mb-4 px-5 py-4 mx-auto shadow-sm border-2"
-            style={{
-              borderRadius: 32,
-              backgroundColor,
-              borderColor: "#ffffff80",
-              minHeight: isIpad ? 80 : "auto",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 3 },
-              shadowOpacity: 0.1,
-              shadowRadius: 5,
-            }}
+        <View
+          className="w-full mb-3 py-4 px-6 mx-auto"
+          style={{
+            borderRadius: 32,
+            backgroundColor,
+            borderColor: "#ffffff90",
+            borderWidth: 2, 
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 }, 
+            shadowOpacity: 0.08,
+            shadowRadius: 4,
+          }}
+        >
+          <Text 
+            className="font-JakartaSemiBold text-white/90 text-[15px] shadow leading-snug" 
+            numberOfLines={3}
           >
-            <Text className="font-JakartaSemiBold text-black text-base leading-relaxed">
-              {truncateText(item.content, 100)}
+            {truncateText(item.content, 120)} 
+          </Text>
+
+          <View className="flex-row justify-between items-center mt-2.5">
+            <Text className="font-Jakarta text-xs text-white/80">
+              {item.created_at ? getRelativeTime(new Date(item.created_at)) : ""}
             </Text>
-  
-            <View className="flex-row justify-between items-center mt-3">
-              <Text className="font-Jakarta text-xs text-gray-600">
-                {item.created_at ? getRelativeTime(new Date(item.created_at)) : ""}
-              </Text>
-  
-              {hasNewComments && (
-                <View className="p-2 bg-red-500 rounded-full">
-                  <Text className="text-xs font-JakartaBold text-white">
-                    🔔 {item.unread_comments} new comment{item.unread_comments > 1 ? "s" : ''}
-                  </Text>
-                </View>
-              )}
-            </View>
+
+            {hasNewComments && (
+              <View className="px-3 py-2 bg-red-500/95 rounded-full">
+                <Text className="text-xs font-JakartaSemiBold text-white">
+                  {item.unread_comments} comment{item.unread_comments > 1 ? 's' : ''}
+                </Text>
+              </View>
+            )}
           </View>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  };
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 
  const handleUnsave = () => {
   setIsSaved((prevPost) => !isSaved);
@@ -141,7 +153,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
 
   return (
-    <View className=" rounded-[24px] max-h-[100%]">
+    <View className="flex-1  w-full rounded-[24px] max-h-[100%]">
       {filteredPosts.length > 0 ? 
       (
         header
@@ -161,15 +173,19 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
        
       {posts.length > 0 && (
         <FlatList
-          className="mt-4 mx-7 rounded-[24px]"
+          className="flex-1 mt-4 h-full rounded-[24px]"
           data={filteredPosts}
+          contentContainerStyle={{
+            paddingTop: offsetY,
+            paddingBottom: offsetY
+          }}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
           numColumns={isIpad ? 3 : 1}
           showsVerticalScrollIndicator={false}
         />
       )}
-      {selectedPost && (
+      {selectedPost && !disableModal && (
         <PostModal
           isVisible={!!selectedPost}
           selectedPosts={[selectedPost]}

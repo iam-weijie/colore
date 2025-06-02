@@ -28,16 +28,20 @@ import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import { MotiView } from 'moti';
 import { Easing } from 'react-native-reanimated';
 import React from "react";
+import PostModal from "./PostModal";
+import { set } from "date-fns";
 
 type PersonalBoardProps = {
     userId: string;
     boardId: number;
+    shuffleModeOn?: boolean;
+    setShuffleModeOn?: (value: boolean) => void;
 }
   const screenHeight = Dimensions.get("screen").height;
   const screenWidth = Dimensions.get("screen").width;
 
 
-const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
+const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleModeOn, setShuffleModeOn }) => {
   const { user } = useUser();
   const {isIpad} = useGlobalContext();
   const [loading, setLoading] = useState(true);
@@ -47,6 +51,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
   const isOwnBoard = !userId || userId == user?.id;
   const [maxPosts, setMaxPosts] = useState(0);
   const [postRefIDs, setPostRefIDS] = useState<number[]>([]);
+  const [ boardOnlyPosts, setBoardOnlyPosts ] = useState<Post[]>([]);
   const [updatePinnedPosts, setUpdatePinnedPosts] = useState<boolean>(false);
   const [action, setAction] = useState(ActionType.NONE);
   const screenHeight = Dimensions.get('window').height;
@@ -157,6 +162,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
   
       const boardOnlyPosts = boardId == -1 ? filteredPosts : filteredPosts.filter((p: Post) => p.board_id == boardId);
 
+      
       console.log("filtered Post", filteredPosts.length, boardOnlyPosts.length)
     
       // Validate and format each post
@@ -170,6 +176,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       }));
       
       //getAction(formattedPosts)
+      setBoardOnlyPosts(formattedPosts);
       return formattedPosts;
     } catch (error) {
       console.log("Failed to fetch posts", error)
@@ -180,6 +187,12 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
   };
 
 
+  const handleShuffle = () => {
+    if (shuffleModeOn) {
+      const randomizePosts = boardOnlyPosts.sort(() => Math.random() - 0.5);
+      return randomizePosts
+    }
+  }
 
 
   const fetchNewPersonalPost = async (excludeIds: number[]) => {
@@ -321,7 +334,12 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId }) => {
       </View>
     </MotiView>
 
-
+      {shuffleModeOn && 
+      <PostModal 
+      isVisible={shuffleModeOn} 
+      selectedPosts={handleShuffle() ?? []} 
+      handleCloseModal={() => setShuffleModeOn && setShuffleModeOn(false)} />
+      }
   </SignedIn>
 </View>
 

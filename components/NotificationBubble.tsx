@@ -16,7 +16,7 @@ const NotificationBubble: React.FC<NotificationBubbleProps> = ({ unread, color }
     <Animated.View
       exiting={FadeOut.duration(200)}
       entering={BounceIn}
-      className="absolute items-center font-JakartaBold justify-center p-1 rounded-full"
+      className="absolute items-center font-JakartaBold justify-center p-[3] rounded-full"
       style={[{ backgroundColor: color }]}
     >
     </Animated.View>
