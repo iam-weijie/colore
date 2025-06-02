@@ -675,12 +675,12 @@ const cleanFormatting: Format[] = isPreview
                   <View className="my-2 flex-row justify-between items-center">
                     <View className="flex flex-row items-center">
                       <TouchableOpacity onPress={handleCommentsPress}>
-                        <Image source={icons.comment} className="w-8 h-8" />
+                        <Image source={icons.comment} className="w-7 h-7" />
                       </TouchableOpacity>
                       <TouchableOpacity onPress={handleLikePress} className="ml-2">
                         <MaterialCommunityIcons
                           name={isLiked ? "heart" : "heart-outline"}
-                          size={32}
+                          size={31}
                           color={isLiked ? "red" : "black"}
                         />
                       </TouchableOpacity>

@@ -35,7 +35,7 @@ const TabIcon: React.FC<TabIconProps> = ({ source, focused, unread, color, label
         )}
         <Animated.Image
           source={source}
-          className={`${nativeIcon ? "w-10 h-10" : isCenter ? "w-6 h-6" : "w-5 h-5" }`}
+          className={`${nativeIcon ? "w-10 h-10" : isCenter ? "w-[20] h-[20]" : "w-[18] h-[18]" }`}
           style={{
             opacity: !nativeIcon ? isCenter ? 1 : focused ? 1 : 0.75 : 1,
           }}

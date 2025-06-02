@@ -35,7 +35,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
   <View className="flex flex-row items-center justify-center w-full">
     <Text
       className={`text-[14px] ${focused ? "font-JakartaSemiBold" : "font-JakartaMedium"} text-center `}
-      style={{ color: focused ? "#000" : "#D1D1D1" }}
+      style={{ color: focused ? "#000" : "#B1B1B1" }}
     >
       {name}
     </Text>
