@@ -9,60 +9,120 @@ export async function POST(request: Request) {
       clerkId,
       color = "yellow",
       emoji = null,
-      expires_at,
-      available_at,
-      static_emoji,
+      expiration = "14 days",
       postType = "public",
       recipientId,
       promptId,
       boardId,
-      formatting,
     } = await request.json();
 
+    console.log(
+      "all params",
+      content,
+      clerkId,
+      color,
+      emoji,
+      expiration,
+      postType,
+      recipientId,
+      promptId,
+      boardId
+    );
     if (!content || !clerkId) {
-      console.error("Missing required fields:", {
-        content,
-        clerkId,
-        expires_at,
-        available_at,
-      });
       return Response.json(
         { error: "content and clerkId are required" },
         { status: 400 }
       );
     }
 
-    console.log("Creating new post with data:", {
-      content,
-      clerkId,
-      color,
-      emoji,
-      expires_at,
-      available_at,
-      static_emoji,
-      postType,
-      recipientId,
-      promptId,
-      boardId,
-      formatting,
-    });
+    // Validate expiration format
+    if (!/^\d+\s+(day|month|hour|minute|second)s?$/.test(expiration)) {
+      return Response.json(
+        {
+          error:
+            "Invalid expiration format. Use formats like '14 days', '1 hour', etc.",
+        },
+        { status: 400 }
+      );
+    }
 
-    // Literal for the interval
+    // Fix 1: Use a template literal for the interval
     // Fix 2: Handle null emoji properly
     // Fix 3: Ensure proper parenthesis placement
 
     const unread = postType === "personal";
     const [insertedPost] = await sql`
       INSERT INTO posts 
-        (user_id, content, like_count, report_count, post_type, recipient_user_id, color, emoji, expires_at, available_at, static_emoji, prompt_id, board_id, unread, formatting)
+        (user_id, content, like_count, report_count, post_type, recipient_user_id, color, emoji, expires_at, prompt_id, board_id, unread)
       VALUES 
-        (${clerkId}, ${content}, 0, 0, ${postType}, ${recipientId}, ${color}, ${emoji}, ${expires_at}, ${available_at}, ${static_emoji}, ${promptId}, ${boardId}, ${unread}, ${formatting})
-      RETURNING id, color, expires_at, unread;
+        (${clerkId}, ${content}, 0, 0, ${postType}, ${recipientId}, ${color}, ${emoji}, NOW() + ${expiration}::INTERVAL, ${promptId}, ${boardId}, ${unread})
+      RETURNING 
+        id,
+        user_id, 
+        content, 
+        like_count, 
+        report_count, 
+        created_at, 
+        unread_comments, 
+        pinned, 
+        color, 
+        emoji, 
+        recipient_user_id,
+        notified,
+        expires_at, 
+        unread,
+        post_type
     `;
+
+    if (
+      postType === "personal" &&
+      insertedPost.recipient_user_id !== clerkId &&
+      insertedPost.unread
+    ) {
+      const posterUser = await sql`
+          SELECT 
+            clerk_id,
+            firstname,
+            lastname,
+            username,
+            country,
+            state,
+            city
+          FROM posts 
+          WHERE clerk_id = ${insertedPost.user_id}
+        `;
+
+      // building notification object
+      const notification = {
+        ...insertedPost,
+        ...posterUser,
+      };
+
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: insertedPost.recipient_user_id,
+            type: "Posts",
+            notification,
+            content: notification,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (!data.success) {
+        console.log(data.message!);
+      } else {
+        console.log("Successfully shot a message");
+      }
+    }
 
     console.log("inserted Posts", insertedPost);
 
-    return Response.json({ data: insertedPost, status: 201 });
+    return Response.json({ data: insertedPost }, { status: 201 });
   } catch (error: unknown) {
     console.error("Database operation failed:", error);
 
