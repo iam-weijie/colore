@@ -6,19 +6,16 @@ import {
   PanResponder,
   Image,
   Text,
-  TouchableWithoutFeedback,
+  TouchableOpacity,
   View,
 } from "react-native";
 import PinIcon from "./PinComponent";
 
 type Stacks = {
   name: string;
-  ids: number[]; // IDs of the posts in the stack
-  elements: any[]; //! Elements of any type in the stack (Change to a specific type later)
-  center: {
-    x: number;
-    y: number;
-  }; // Center coords
+  ids: number[];
+  elements: any[];
+  center: { x: number; y: number };
 };
 
 const StackCircle = ({
@@ -48,15 +45,15 @@ const StackCircle = ({
   const [isDragging, setIsDragging] = useState(false);
 
   const basePosition = useRef({
-    x: stack?.center?.x ?? 0, // added null safety check
+    x: stack?.center?.x ?? 0,
     y: stack?.center?.y ?? 0,
   }).current;
 
   const dragOffset = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const scale = useRef(new Animated.Value(1)).current;
-  const shadowRadius = useRef(new Animated.Value(8)).current;
-  const longPressTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tilt = useRef(new Animated.Value(0)).current;
 
+  const longPressTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isReadyToDrag = useRef(false);
 
   const panResponder = useRef(
@@ -73,38 +70,33 @@ const StackCircle = ({
             setIsDragging(true);
             isReadyToDrag.current = true;
             Animated.parallel([
-              Animated.spring(scale, { toValue: 1.05, useNativeDriver: false }),
-              Animated.spring(shadowRadius, { toValue: 16, useNativeDriver: false }),
+              Animated.spring(scale, { toValue: 1.08, useNativeDriver: false }),
+              Animated.spring(tilt, { toValue: 1, useNativeDriver: false }),
             ]).start();
           }, 300);
         }
       },
-      onPanResponderMove: (e, gestureState) => {
+      onPanResponderMove: (_, gesture) => {
         if (isReadyToDrag.current) {
-          dragOffset.setValue({ x: gestureState.dx, y: gestureState.dy });
+          dragOffset.setValue({ x: gesture.dx, y: gesture.dy });
         }
       },
-      onPanResponderRelease: (e, gestureState) => {
-        if (longPressTimeout.current) {
-          clearTimeout(longPressTimeout.current);
-        }
+      onPanResponderRelease: (_, gesture) => {
+        if (longPressTimeout.current) clearTimeout(longPressTimeout.current);
 
         if (isReadyToDrag.current) {
           const offset = dragOffset.__getValue();
-
           const newX = basePosition.x + offset.x;
           const newY = basePosition.y + offset.y;
-
           basePosition.x = newX;
           basePosition.y = newY;
-
           updateStackPosition(newX, newY, stack);
-
-          Animated.parallel([
-            Animated.spring(scale, { toValue: 1, useNativeDriver: false }),
-            Animated.spring(shadowRadius, { toValue: 8, useNativeDriver: false }),
-          ]).start();
         }
+
+        Animated.parallel([
+          Animated.spring(scale, { toValue: 1, useNativeDriver: false }),
+          Animated.spring(tilt, { toValue: 0, useNativeDriver: false }),
+        ]).start();
 
         setIsDragging(false);
         stackMoving();
@@ -119,11 +111,11 @@ const StackCircle = ({
       basePosition.y = stack?.center?.y;
       dragOffset.setValue({ x: 0, y: 0 });
     }
-  }, [stack?.center?.x, stack?.center?.y]); //TODO: Perform better nullity checks
+  }, [stack.center.x, stack.center.y]);
 
   const shouldShowButtons = () => {
     const dx = Math.abs(scrollOffset.x + 120 - stack?.center?.x);
-    const dy = Math.abs((scrollOffset.y + 160) - stack?.center?.y);
+    const dy = Math.abs(scrollOffset.y + 160 - stack?.center?.y);
     const distance = Math.sqrt(dx * dx + dy * dy);
     setIsFocused(distance <= SHOW_BUTTONS_THRESHOLD && isEditable);
   };
@@ -132,68 +124,78 @@ const StackCircle = ({
     shouldShowButtons();
   }, [scrollOffset.x, scrollOffset.y, isEditable, stack.center]);
 
+  const tiltInterpolation = tilt.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "3deg"],
+  });
+
   return (
     <Animated.View
       {...panResponder.panHandlers}
-      pointerEvents={isFocused ? "auto" : "none"}
-      className="absolute items-center justify-center rounded-[48px] border-6 bg-white/90 border-white/80"
-      style={[
-        {
-          top: basePosition.y - 110,
-          left: basePosition.x - 40,
-          width: 240,
-          height: 320,
-          shadowColor: "#9CA3AF",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: shadowRadius,
-          elevation: 5,
-          zIndex: isFocused ? 999 : 1,
-          transform: [
-            { translateX: dragOffset.x },
-            { translateY: dragOffset.y },
-            { scale: scale },
-          ],
-        },
-      ]}
+      className="absolute items-center justify-center"
+      style={{
+        top: basePosition.y - 110,
+        left: basePosition.x - 40,
+        width: 260,
+        height: 340,
+        transform: [
+          { translateX: dragOffset.x },
+          { translateY: dragOffset.y },
+          { scale },
+          { rotate: tiltInterpolation },
+        ],
+        zIndex: isFocused ? 999 : 1,
+      }}
     >
-      {/* Pin Component */}
-      <View className="absolute top-0 w-full mx-auto items-center">
-        <PinIcon size={40} />
-      </View>
+      {/* Card */}
+      <View className="w-full h-full rounded-[64px] bg-white/90 border border-white shadow-2xl items-center justify-center px-6 py-8 relative">
 
-      {/* Stack Name */}
-      <Text
-        className="absolute top-12 w-full px-6 text-center text-black font-JakartaBold"
-        numberOfLines={2}
-        ellipsizeMode="tail"
-        style={{ fontSize: isOnlyEmoji(stack.name) ? 40 : 20 }}
-      >
-        {stack.name}
-      </Text>
+        {/* Pin */}
+        <View className="absolute top-2">
+          <PinIcon size={42} />
+        </View>
 
-      {/* Action Buttons */}
-      <View className="absolute -bottom-[25px] flex-row justify-end items-center">
+        {/* Stack Name */}
+        <Text
+          className="text-black font-JakartaBold text-center"
+          numberOfLines={2}
+          ellipsizeMode="tail"
+          style={{ fontSize: isOnlyEmoji(stack.name) ? 44 : 24 }}
+        >
+          {stack.name}
+        </Text>
+
+        {/* Post Count Bubble */}
+        <View className="absolute top-[90px] bg-indigo-400 px-4 py-1.5 rounded-full shadow-md">
+          <Text className="text-white font-bold text-sm">
+            {stack.ids.length} posts
+          </Text>
+        </View>
+
         {/* View Button */}
-        <TouchableWithoutFeedback onPress={onViewPress}>
-          <View className="rounded-full bg-black justify-center items-center mx-1" style={{ width: 100, height: 50 }}>
-            <Text className="text-white font-JakartaBold" style={{ fontSize: 16 }}>View</Text>
-          </View>
-        </TouchableWithoutFeedback>
+        <TouchableOpacity
+          onPress={onViewPress}
+          className="absolute bottom-6 px-8 py-3 bg-black rounded-full shadow-lg"
+        >
+          <Text className="text-white font-JakartaBold text-lg">View</Text>
+        </TouchableOpacity>
 
-        {isEditable && (
+        {/* Orbit Buttons */}
+        {isEditable && isFocused && (
           <>
-            <TouchableWithoutFeedback onPress={onEditPress}>
-              <View className="rounded-full bg-white justify-center items-center mx-1" style={{ width: 50, height: 50 }}>
-                <Image source={icons.pencil} tintColor="black" resizeMode="contain" className="w-5 h-5" />
-              </View>
-            </TouchableWithoutFeedback>
+            <TouchableOpacity
+              onPress={onEditPress}
+              className="absolute right-6 top-6 w-12 h-12 bg-white rounded-full items-center justify-center shadow"
+            >
+              <Image source={icons.pencil} className="w-6 h-6" tintColor="black" />
+            </TouchableOpacity>
 
-            <TouchableWithoutFeedback onPress={onSendPress}>
-              <View className="rounded-full bg-white justify-center items-center mx-1" style={{ width: 50, height: 50 }}>
-                <Image source={icons.send} tintColor="black" resizeMode="contain" className="w-5 h-5" />
-              </View>
-            </TouchableWithoutFeedback>
+            <TouchableOpacity
+              onPress={onSendPress}
+              className="absolute left-6 top-6 w-12 h-12 bg-white rounded-full items-center justify-center shadow"
+            >
+              <Image source={icons.send} className="w-6 h-6" tintColor="black" />
+            </TouchableOpacity>
           </>
         )}
       </View>

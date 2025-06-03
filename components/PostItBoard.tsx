@@ -109,6 +109,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const pendingStackSound = useRef(false);
   const stackUpdating = useRef(false);
 
+  const [allPostsInStack, setAllPostsInStack] = useState<Post[]>([])
+
 
   const scrollViewRef = useRef<ScrollView>(null);
   const innerScrollViewRef = useRef<ScrollView>(null);
@@ -300,6 +302,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   
       updatedStacks.push(newStack);
       setStacks(updatedStacks);
+      const allPosts = updatedStacks.flatMap((s) => s.elements)
+      setAllPostsInStack(allPosts)
       return;
     }
   
@@ -619,6 +623,10 @@ if (!hasPostsOnCurrentBoard) {
 {/* Render all posts independently */}
 {postsWithPosition.map(post => {
 
+const isInStack = allPostsInStack.includes(post)
+
+if (isInStack) return;
+
   return (
 <DraggablePostIt
   key={post.id}
@@ -669,7 +677,6 @@ if (!hasPostsOnCurrentBoard) {
           </ScrollView>
         </ScrollView>
       )}
-      {/*</Pressable>*/}
   </SignedIn>
 </View>
   );
@@ -679,79 +686,4 @@ export default PostItBoard;
 
 
 
-
-/*
-
-  const handleReloadPosts = () => {
-    setLoading(true);
-    fetchRandomPosts();
-  };
-
-  const handleGatherPosts = () => {
-    //console.log("handleGatherPosts");
-    if (maps.length > 0) {
-      const ref = maps[maps.length - 1].coordinates;
-      const newPostsPostions = postsWithPosition.map((post) => ({
-        id: post.id,
-        coordinates: {
-          x_coordinate: ref.x_coordinate,
-          y_coordinate: ref.y_coordinate,
-        },
-      }));
-      setMap(newPostsPostions);
-      //console.log("new posts", newPostsPostions)
-    }
-  };
-
-  */
-
-
-  // CLOSING MODAL
-
-     /* if (selectedPost && !isPinned) {
-      const postId = selectedPost.id;
-      
      
-      
-    //console.log("Post to remove", selectedPost.id, "tria;l", i)
-      setPostsWithPosition((prevPosts) => {
-        const updatePosts = prevPosts.filter((post) => post.id !== postId);
-       console.log(
-          "post id list", "\n\n", 
-          "Prev", prevPosts.map((p) => p.id), "\n\n",
-          "Post",  postsWithPosition.map((p) => p.id), "\n\n", 
-           "update", updatePosts.map((p) => p.id), "\n\n") 
-        return updatePosts;
-      });
-
-      setStacks((prevStacks) => {
-        const updatedStacks = prevStacks.map((stack) => ({
-          ...stack,
-          ids: stack.ids.filter((id: number) => id !== postId),
-        }));
-        return updatedStacks.filter((stack) => stack.ids.length > 1);
-      });
-
-      setMap((prevMap) => {
-        const updateMap = prevMap.filter((c) => c.id != postId);
-
-        return updateMap;
-      });
-
-      const existingPostIds = postsWithPosition.map((post) => post.id);
-
-      const newPost = await handleNewPostFetch(existingPostIds);
-
-      console.log("new post id", newPost.id)
-
-  
-        const newPostWithPosition: PostWithPosition = newPost;
-        setPostsWithPosition((prevPosts) => [
-          ...prevPosts,
-          newPostWithPosition,
-        ]);
-        updatePostPosition(0, 0, newPostWithPosition);
-      
-       
-      
-    }*/
