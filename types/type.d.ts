@@ -180,6 +180,8 @@ declare interface ButtonProps extends TouchableOpacityProps {
     | "success"
     | "gradient"
     | "gradient2"
+    | "gradient3"
+    | "gradient4"
     | "oauth";
   textVariant?:
     | "primary"

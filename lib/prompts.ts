@@ -1,9 +1,10 @@
+/*
 import { fetchAPI } from "@/lib/fetch";
 
 import { ImageSourcePropType } from "react-native";
-import bob from "@/assets/characters/bob-1.png";
+import bob from "@/assets/characters/bob-chill-1.png";
 import steve from "@/assets/characters/steve-annoyed-1.png";
-import rosie from "@/assets/characters/rosie-1.png";
+import rosie from "@/assets/characters/rosie-money-1.png";
 
 
 // ENUM
@@ -158,3 +159,5 @@ export const generateRandomPrompt = (actionName: string, friendName: string) => 
     return prompts[randomIndex]
   }
 };
+
+*/

@@ -601,7 +601,6 @@ const cleanFormatting: Format[] = isPreview
                         ? JSON.parse(currentPost.formatting)
                         : (currentPost?.formatting ?? []);
 
-                    console.log("cleanFormatting", cleanFormatting)
   return (
 
         <AnimatedView
@@ -704,73 +703,17 @@ const cleanFormatting: Format[] = isPreview
               </Animated.View>
             </GestureDetector>
           </GestureHandlerRootView>
-           {infiniteScroll ? (
-            <View className="absolute top-[75%] self-center flex flex-row items-center justify-center">
-              {currentPost?.prompt_id && <InteractionButton 
-              label="Nay"
-              icon={icons.close}
-              emoji="😤"
-              showLabel={true}
-              color={"#FF0000"}
-              onPress={() => 
-                handleInteractionPress("😤")}
-              />}
-              <InteractionButton 
-              label="Reply"
-              icon={icons.pencil}
-              showLabel={true}
-              color={postColor?.fontColor || "rgba(0, 0, 0, 0.5)"}
-              onPress={() => {
-                handleCloseModal();
-                if (currentPost?.prompt_id) {
-                  router.push({  
-                    pathname: "/root/new-post",
-                    params: {
-                      promptId: currentPost?.prompt_id,
-                      prompt: currentPost?.prompt,
-                      source: "board"
-                    },
-                })
-                } else {
-                  router.push({  
-                    pathname: "/root/new-post",
-                    params: {
-                      recipient_id: currentPost?.clerk_id,
-                      username: currentPost?.username,
-                      source: "board"
-                    },
-                })
-                }
-              
-             
-              if (soundEffectsEnabled) {  
-                //playSoundEffect(SoundType.Reply);
-              }
-            }}
-              />
-              {currentPost?.prompt_id && 
-                <InteractionButton 
-              label="Hard agree"
-              icon={icons.check}
-              emoji="🤩"
-              showLabel={true}
-              color={"#000000"}
-              onPress={() =>
-                handleInteractionPress("🤩")}
-              />}
-
-            </View>
-           ) : (<View className="absolute top-[10%] left-[10%]  flex flex-row">
+           <View className="absolute top-[10%] left-[10%]  flex flex-row">
             {posts.length > 1 &&
               posts.map((post, index) => {
                 return (
                   <CarrouselIndicator
                     key={post.id}
                     id={index}
-                    index={currentPostIndex} color={""}                  />
+                    index={currentPostIndex} color={"#FFFFFF"}                  />
                 );
               })}
-          </View>)}
+          </View>
           {!!selectedEmoji && !staticEmoji && 
           
           

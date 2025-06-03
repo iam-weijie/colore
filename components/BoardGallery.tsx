@@ -13,11 +13,14 @@ import Animated, { FadeIn } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { icons } from "@/constants";
 import { Board } from "@/types/type";
+import { useHaptics } from "@/hooks/useHaptics";
+import * as Haptics from 'expo-haptics';
   
 const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
   
   const router = useRouter();
   const { user } = useUser();
+  const { triggerHaptic } = useHaptics();
 
 
     return (
@@ -38,7 +41,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => {
-
+            triggerHaptic(Haptics.ImpactFeedbackStyle.Soft)
             if (item.id == 0 && item.user_id === user!.id) {
               router.push({
                 pathname: "/root/user-board/[id]",

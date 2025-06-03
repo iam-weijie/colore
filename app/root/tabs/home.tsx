@@ -34,7 +34,7 @@ import DropdownMenu from "@/components/DropdownMenu";
 import Action from "@/components/InfoScreen";
 import { useAlert } from "@/notifications/AlertContext";
 
-import { ActionType } from "@/lib/prompts";
+
 import { GeographicalMode } from "@/types/type";
 import UserInfo from "../user-info";
 
@@ -44,16 +44,17 @@ import ItemContainer from "@/components/ItemContainer";
 import ModalSheet from "@/components/Modal";
 import Header from "@/components/Header";
 import * as Haptics from "expo-haptics";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
+import { useHaptics } from "@/hooks/useHaptics";
 
 export default function Page() {
  const { playSoundEffect } = useSoundEffects()
+ const { triggerHaptic } = useHaptics();
 
 
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
   const { isIpad, unreadComments, unreadPersonalPosts, profile } = useGlobalContext();
-  const [action, setAction] = useState(ActionType.NONE);
   const { showAlert } = useAlert();
   const [geographicalMode, setGeographicalMode] =
     useState<GeographicalMode>("world");
@@ -180,6 +181,8 @@ export default function Page() {
                 <TouchableOpacity
                   onPress={() => {
                     //router.push("/root/chat/chat-screen");
+                    triggerHaptic(Haptics.ImpactFeedbackStyle.Light)
+                    playSoundEffect(SoundType.Navigation)
                     setSelectedModal(() => <ChatScreen />);
                     setActiveModalTitle("Socials");
                   }}
@@ -192,6 +195,8 @@ export default function Page() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => {
+                    triggerHaptic(Haptics.ImpactFeedbackStyle.Light)
+                    playSoundEffect(SoundType.Navigation)
                     setSelectedModal(() => <NotificationScreen />);
                     setActiveModalTitle("Notifications");
                   }}
@@ -211,6 +216,8 @@ export default function Page() {
 
                 <TouchableOpacity
                   onPress={() => {
+                    triggerHaptic(Haptics.ImpactFeedbackStyle.Light)
+                    playSoundEffect(SoundType.Navigation)
                     setSelectedModal(() => (
                       <View className="flex-1 px-6"> 
                         <ItemContainer

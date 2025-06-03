@@ -42,8 +42,8 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
             // If dragged more than 20% of screen height, close modal
             if (e.translationY > screenHeight * 0.2) {
                 translateY.value = withSpring(screenHeight, {
-                    damping: 25,
-                    stiffness: 90,
+                    damping: 40,
+                    stiffness: 120,
                     mass: 1,
                 });
                 modalOpacity.value = withTiming(0, { duration: 200 });
@@ -52,8 +52,8 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
             } else {
                 // Return to original position
                 translateY.value = withSpring(0, {
-                    damping: 25,
-                    stiffness: 90,
+                    damping: 40,
+                    stiffness: 120,
                     mass: 1,
                 });
             }
@@ -71,8 +71,8 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
         if (isVisible) {
             setVisible(true);
             translateY.value = withSpring(0, {
-                damping: 25,
-                stiffness: 90,
+                damping: 40,
+                stiffness: 120,
                 mass: 1,
             });
             modalOpacity.value = withTiming(0.2, { duration: 200 });
@@ -81,8 +81,8 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
 
     const handleClose = () => {
         translateY.value = withSpring(screenHeight, {
-            damping: 25,
-            stiffness: 90,
+            damping: 40,
+            stiffness: 120,
             mass: 1,
         });
         modalOpacity.value = withTiming(0, { duration: 200 });
@@ -127,6 +127,7 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
                             maxHeight: '75%',
                             left: '50%',
                             marginLeft: '-46%',
+                            paddingBottom: 8,
                             backgroundColor: '#FAFAFA',
                             borderRadius: 48,
                             bottom: 20,

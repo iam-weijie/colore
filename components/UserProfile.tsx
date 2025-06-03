@@ -1,9 +1,11 @@
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useGlobalContext } from "@/app/globalcontext";
 import PostGallery from "@/components/PostGallery";
+import { countries } from "@/constants/countries";
 import { icons, temporaryColors } from "@/constants/index";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
+
 import axios from "axios";
 import {
   acceptFriendRequest,
@@ -98,6 +100,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const { stateVars, setStateVars } = useNavigationContext();
 
+  const Flag = countries[profileUser?.country || "Canada"];
+  console.log("[FlagComponent]: ", Flag);
+
   const [myBoards, setMyBoards] = useState<any>();
   const [communityBoards, setCommunityBoards] = useState<any>();
 
@@ -175,6 +180,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       const userInfo = response.data[0] as UserProfileType;
       setProfileUser(userInfo);
+      const countryCode = await fetchCountryByName(profileUser?.country ?? "");
 
       setLoading(false);
     } catch (error) {
@@ -399,47 +405,56 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const handleClearSearch = () => {
     setQuery("");
   };
+
   return (
     <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
       {/* HEADER */}
       <Header
         title=""
         item={
-          <View className="flex-row w-full  justify-between items-center pl-10 pr-6 mt-2">
-            <Animated.View entering={FadeIn.duration(800)}>
-              {nickname || profileUser?.username ? (
-                <Text className={`text-xl font-JakartaBold`}>
-                  {nickname
-                    ? nickname
-                    : profileUser?.username
-                      ? `${profileUser?.username}`
-                      : `${profileUser?.firstname?.charAt(0)}.`}{" "}
-                  {emojiLoading ? "" : countryEmoji}
-                </Text>
-              ) : (
-                <Text
-                  className={`text-xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}
-                >
-                  Username
-                </Text>
-              )}
-              {profileUser ? (
-                <View className="max-w-[200px]">
-                  <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
-                    {profileUser?.city == profileUser?.state
-                      ? ""
-                      : `${profileUser?.city}, `}{" "}
-                    {profileUser?.country}
+          <View className="flex-row w-full  justify-between items-center pl-6 pr-6 mt-2">
+            <Animated.View
+              entering={FadeIn.duration(800)}
+              className="flex flex-row items-center gap-2"
+            >
+              <View>
+                <Flag width={32} height={32} />
+              </View>
+              <View>
+                {nickname || profileUser?.username ? (
+                  <Text className={`text-xl font-JakartaBold`}>
+                    {nickname
+                      ? nickname
+                      : profileUser?.username
+                        ? `${profileUser?.username}`
+                        : `${profileUser?.firstname?.charAt(0)}.`}{" "}
+                    {emojiLoading ? "" : countryEmoji}
                   </Text>
-                </View>
-              ) : (
-                <View>
-                  <Text className="text-[14px] text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta">
-                    {" "}
-                    Location updating...{" "}
+                ) : (
+                  <Text
+                    className={`text-xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}
+                  >
+                    Username
                   </Text>
-                </View>
-              )}
+                )}
+                {profileUser ? (
+                  <View className="max-w-[200px]">
+                    <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
+                      {profileUser?.city == profileUser?.state
+                        ? ""
+                        : `${profileUser?.city}, `}{" "}
+                      {profileUser?.country}
+                    </Text>
+                  </View>
+                ) : (
+                  <View>
+                    <Text className="text-[14px] text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta">
+                      {" "}
+                      Location updating...{" "}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </Animated.View>
 
             {isEditable ? (

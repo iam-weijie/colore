@@ -4,6 +4,8 @@ import Svg, { Path } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import TabIcon from './TabIcon'; // Adjust your import
+import { useHaptics } from '@/hooks/useHaptics';
+import * as Haptics from "expo-haptics"
 
 const { width } = Dimensions.get('window');
 const height = 85; // Change this if you want
@@ -11,6 +13,7 @@ const height = 85; // Change this if you want
 // --- 1. Regular Custom Tab Bar (linked to Tabs state)
 export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
   const centerIndex = Math.floor(state.routes.length / 2);
+   const { triggerHaptic } = useHaptics();
 
   return (
     <View 
@@ -57,6 +60,7 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
           }));
 
           const onPress = () => {
+            triggerHaptic(Haptics.ImpactFeedbackStyle.Medium)
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,
@@ -123,6 +127,8 @@ export const CustomButtonBar: React.FC<{ buttons: CustomButton[] }> = ({ buttons
   const leftButtons = buttons.slice(0, centerIndex);
   const centerButton = buttons[centerIndex];
   const rightButtons = buttons.slice(centerIndex + 1);
+  
+  const { triggerHaptic } = useHaptics();
 
   return (
     <View 
@@ -162,7 +168,9 @@ export const CustomButtonBar: React.FC<{ buttons: CustomButton[] }> = ({ buttons
     {leftButtons.map((button, index) => (
       <TouchableOpacity
         key={`left-${index}`}
-        onPress={button.onPress}
+        onPress={() => {
+          triggerHaptic(Haptics.ImpactFeedbackStyle.Medium)
+          button.onPress()}}
         activeOpacity={0.9}
         style={{
           alignItems: 'center',
@@ -199,7 +207,9 @@ export const CustomButtonBar: React.FC<{ buttons: CustomButton[] }> = ({ buttons
     {rightButtons.map((button, index) => (
       <TouchableOpacity
         key={`right-${index}`}
-        onPress={button.onPress}
+       onPress={() => {
+          triggerHaptic(Haptics.ImpactFeedbackStyle.Medium)
+          button.onPress()}}
         activeOpacity={0.9}
         style={{
           alignItems: 'center',
@@ -223,7 +233,9 @@ export const CustomButtonBar: React.FC<{ buttons: CustomButton[] }> = ({ buttons
 
       {/* CENTER BUTTON (absolutely positioned) */}
       <TouchableOpacity
-        onPress={centerButton.onPress}
+       onPress={() => {
+          triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy)
+          centerButton.onPress()}}
         activeOpacity={0.9}
         style={{
           position: 'absolute',

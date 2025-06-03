@@ -122,6 +122,8 @@ const LogIn = () => {
             placeholder="Enter your email"
             icon={icons.email}
             textContentType="emailAddress"
+            keyboardType="email-address"
+            autoComplete="email"
             value={form.email}
             onChangeText={(value) => setForm({ ...form, email: value })}
           />

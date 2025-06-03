@@ -33,7 +33,7 @@ export const HeaderCard = ({ title, color, content }) => (
       </View>
     </View>
     
-    <View className="px-4 py-4 rounded-[48px] overflow-hidden shadow-sm">
+    <View className="px-4 py-4 rounded-[48px] overflow-hidden">
       {content}
     </View>
   </View>
@@ -53,7 +53,7 @@ export const DetailRow = ({ label, value, onPress, accentColor }) => (
           </View>
       </TouchableOpacity>
    
-    <Text className="text-gray-800 text-[12px] font-JakartaMedium">
+    <Text className="text-gray-400 text-[14px] font-Jakarta">
       {value || "Not specified"}
     </Text>
   </View>

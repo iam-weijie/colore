@@ -7,7 +7,6 @@ import { fetchAPI } from "@/lib/fetch";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
 import Action from "./InfoScreen";
-import { ActionType } from "@/lib/prompts";
 import { useEffect, useState } from "react";
 import {
   Image,
@@ -53,7 +52,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleM
   const [postRefIDs, setPostRefIDS] = useState<number[]>([]);
   const [ boardOnlyPosts, setBoardOnlyPosts ] = useState<Post[]>([]);
   const [updatePinnedPosts, setUpdatePinnedPosts] = useState<boolean>(false);
-  const [action, setAction] = useState(ActionType.NONE);
   const screenHeight = Dimensions.get('window').height;
   const [boardTilt, setBoardTilt] = useState({ x: 0, y: 0 });
 

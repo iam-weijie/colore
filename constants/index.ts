@@ -67,16 +67,14 @@ import highlightLg1 from "@/assets/images/highlight-large-1.png";
 
 import { PostItColor } from "@/types/type";
 
-import canada from "@/assets/countries/canada.png";
-import usa from "@/assets/countries/united-states-of-america.png";
-import france from "@/assets/countries/france.png";
-import italy from "@/assets/countries/italy.png";
-import china from "@/assets/countries/china.png";
-import argentina from "@/assets/countries/argentina.png";
 
 /* CHARACTER IMAGES */
 import steveAmazed from "@/assets/characters/steve-amazed-1.png";
 import steveAnnoyed from "@/assets/characters/steve-annoyed-1.png";
+
+import rosieMoney from "@/assets/characters/rosie-money-1.png";
+
+import bobChill from "@/assets/characters/bob-chill-1.png";
 
 export const icons = {
   person,
@@ -139,14 +137,6 @@ export const icons = {
   add
 };
 
-export const countries = {
-  canada,
-  usa,
-  france,
-  italy,
-  china,
-  argentina,
-}
 export const images = {
   login,
   highlight1,
@@ -158,7 +148,10 @@ export const images = {
 
 export const characters = {
   steveAmazed,
-  steveAnnoyed
+  steveAnnoyed,
+  rosieMoney,
+  bobChill
+  
 }
 
 export const temporaryColors: PostItColor[] = [

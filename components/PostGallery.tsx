@@ -72,7 +72,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
 
 const renderItem = ({ item }: { item: Post }) => {
   const backgroundColor = temporaryColors?.find((c) => c.name === item.color)?.hex || item.color;
-  const isOwner = item.clerk_id === user?.id;
+  const isOwner = item.user_id === user?.id;
   const hasNewComments = isOwner && item.unread_comments > 0;
   
   return (
@@ -86,7 +86,7 @@ const renderItem = ({ item }: { item: Post }) => {
       <TouchableOpacity 
         onPress={() => 
           {
-            triggerHaptic(Haptics.ImpactFeedbackStyle.Light)
+            triggerHaptic(Haptics.ImpactFeedbackStyle.Soft)
             setSelectedPost(item)
             disableModal && handleUpdate && handleUpdate(item.id);}}
         activeOpacity={0.9}

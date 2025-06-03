@@ -499,27 +499,27 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     />
   );
 
-  const renderUser = ({
-    item,
-  }: {
-    item: UserNicknamePair;
-  }): React.ReactElement => (
-    <ItemContainer
-      label={item[1]}
-      colors={["#FBB1F5", "#CFB1FB"]}
-      icon={icons.addUser}
-      actionIcon={icons.chevron}
-      iconColor="#000"
-      onPress={() => {
-        router.push({
-          pathname: "/root/profile/[id]",
-          params: { userId: item[0] },
-        });
-      }}
-    />
-  );
-  {
-    /* <CustomButton
+       const renderUser = ({
+          item,
+        }: {
+          item: UserNicknamePair;
+        }): React.ReactElement => (
+          <ItemContainer 
+          label={item[1]}
+          colors={["#FBB1F5", "#CFB1FB"]}
+          icon={icons.addUser}
+          actionIcon={icons.chevron}
+          iconColor="#000"
+          onPress={() => {
+            router.push({
+              pathname: "/root/profile/[id]",
+              params: { userId: item[0] },
+            });
+          }}
+          />
+        );
+    {
+      /* <CustomButton
           title="Chat"
           onPress={() => startChat(item)}
           disabled={!item[1]}
@@ -646,7 +646,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
             className="flex-1 pl-2 text-md "
-            placeholder="Search emojis..."
+            placeholder="Write your friend's name..."
              placeholderTextColor="#9CA3AF"
             value={searchText}
             onChangeText={setSearchText}
