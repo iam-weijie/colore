@@ -1,9 +1,11 @@
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useGlobalContext } from "@/app/globalcontext";
 import PostGallery from "@/components/PostGallery";
+import { countries } from "@/constants/countries";
 import { icons, temporaryColors } from "@/constants/index";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
+
 import axios from "axios";
 import {
   acceptFriendRequest,
@@ -90,10 +92,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
   const [emojiLoading, setEmojiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(isEditable ? profile : null);
+  const [FlagComponent, setFlagComponent] = useState(countries[(profileUser?.country ?? "Canada")])
   const [countryEmoji, setCountryEmoji] = useState<string>("");
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const { stateVars, setStateVars } = useNavigationContext();
 
+
+  console.log("[FlagComponent]: ", FlagComponent)
   const [myBoards, setMyBoards] = useState<any>();
   const [communityBoards, setCommunityBoards] = useState<any>();
 
@@ -176,6 +181,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
 
       const userInfo = response.data[0] as UserProfileType;
       setProfileUser(userInfo);
+      const countryCode = await fetchCountryByName(profileUser?.country ?? "")
+
       
       setLoading(false);
     } catch (error) {
@@ -401,6 +408,8 @@ const handleTabChange = (tabKey: string) => {
 const handleClearSearch = () => {
   setQuery("");
 };
+
+
   return (
     <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
 
@@ -411,7 +420,12 @@ const handleClearSearch = () => {
         title=""
         item={
           <View className="flex-row w-full  justify-between items-center pl-10 pr-6 mt-2">
-          <Animated.View entering={FadeIn.duration(800)}>
+          <Animated.View entering={FadeIn.duration(800)}
+          className="flex flex-row">
+            <View>
+              <FlagComponent width={32} height={32} />
+            </View>
+            <View>
           { (nickname || profileUser?.username) ? (
           
              <Text className={`text-xl font-JakartaBold`}>
@@ -433,6 +447,7 @@ const handleClearSearch = () => {
             <View>
             <Text className="text-[14px] text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta"> Location updating... </Text>
             </View>)}
+            </View>
           </Animated.View>
           
           {isEditable ? (
