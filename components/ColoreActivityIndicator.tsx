@@ -25,69 +25,68 @@ const ColoreActivityIndicator = ({
   colors?: string[];
 }) => {
   const rotation = useSharedValue(0);
-  const colorCycle = useSharedValue(0);
+  const colorProgress = useSharedValue(0);
 
   useEffect(() => {
+    // Single smooth rotation
     rotation.value = withRepeat(
       withTiming(360, { duration: 2000, easing: Easing.linear }),
       -1
     );
-    colorCycle.value = withRepeat(
-      withTiming(colors.length, { duration: 4000, easing: Easing.linear }),
+
+    // Simple color cycling
+    colorProgress.value = withRepeat(
+      withTiming(colors.length - 1, { duration: 3000, easing: Easing.linear }),
       -1
     );
-  }, []);
+  }, [colors.length]);
 
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  const arcAngles = [0, 120, 240]; // rotation offsets
-  const arcLengthRatio = 0.25; // 25% of the circle
-
+  // Simplified arc props with just color animation
   const getArcProps = (index: number) =>
     useAnimatedProps(() => {
+      const colorIndex = (colorProgress.value + index) % colors.length;
       const stroke = interpolateColor(
-        (colorCycle.value + index) % colors.length,
+        colorIndex,
         colors.map((_, i) => i),
         colors
       );
-
-      return {
-        stroke,
-      };
+      
+      return { stroke };
     });
 
-  const containerSpin = useAnimatedStyle(() => ({
+  const spinnerStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotation.value}deg` }],
   }));
 
-  // Bouncing dots
+  // Simple dot animation - just vertical bounce
   const getDotStyle = (index: number) =>
     useAnimatedStyle(() => {
-      const phase = (rotation.value + index * 120) * (Math.PI / 180);
+      const phase = (rotation.value + index * 90) * (Math.PI / 180);
+      const translateY = Math.sin(phase) * 4;
+      
       return {
-        transform: [{ translateY: Math.sin(phase) * 4 }],
-        opacity: 0.6 + 0.3 * Math.sin(phase),
-        backgroundColor: interpolateColor(
-          (colorCycle.value + index) % colors.length,
-          colors.map((_, i) => i),
-          colors
-        ),
+        transform: [{ translateY }],
+        backgroundColor: colors[index % colors.length],
+        opacity: 0.6 + 0.4 * Math.sin(phase),
       };
     });
 
   return (
     <View className="items-center justify-center space-y-3">
-      <Animated.View style={[{ width: size, height: size }, containerSpin]}>
+      {/* Simplified spinner - 3 arcs with staggered colors */}
+      <Animated.View style={[{ width: size, height: size }, spinnerStyle]}>
         <Svg width={size} height={size}>
-          {arcAngles.map((angle, i) => (
+          {[0, 120, 240].map((angle, i) => (
             <AnimatedCircle
               key={i}
               cx={size / 2}
               cy={size / 2}
               r={radius}
               strokeWidth={strokeWidth}
-              strokeDasharray={`${circumference * arcLengthRatio} ${circumference}`}
+              strokeDasharray={`${circumference * 0.25} ${circumference}`}
               strokeLinecap="round"
               fill="none"
               animatedProps={getArcProps(i)}
@@ -101,7 +100,7 @@ const ColoreActivityIndicator = ({
 
       <Text className="text-sm text-gray-700 font-JakartaMedium">{text}</Text>
 
-      {/* Bouncing dots */}
+      {/* Simple bouncing dots */}
       <View className="flex-row space-x-2 mt-1">
         {[0, 1, 2].map((i) => (
           <Animated.View

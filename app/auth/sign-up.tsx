@@ -1,7 +1,7 @@
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { Alert, Image, ScrollView, Text, View } from "react-native";
+import { Alert, Image, Keyboard, KeyboardAvoidingView, ScrollView, Text, TouchableWithoutFeedback, View } from "react-native";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -221,7 +221,7 @@ const SignUp = () => {
           colors={["#ffd12b", "#ff9f45"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          className="w-full items-start justify-center rounded-b-[36px] pt-16 pl-11 min-h-[22%] mb-6"
+          className="w-full items-start justify-center rounded-b-[48px] pt-16 pl-11 min-h-[18%] pb-6 mb-6"
         >   
           <Animated.Text 
             entering={FadeInDown.delay(200).duration(600)}
@@ -231,21 +231,26 @@ const SignUp = () => {
           </Animated.Text>
           <Animated.Text 
             entering={FadeInDown.delay(300).duration(600)}
-            className="text-white text-xl font-JakartaSemiBold"
+            className="text-white text-xl font-JakartaMedium"
           >
             Your Account
           </Animated.Text>
         </LinearGradient>
       </Animated.View>
-
+<TouchableWithoutFeedback className="flex-1"
+onPress={() => {
+  Keyboard.dismiss()
+}}>
       <View className="flex-1 justify-between mb-12">
         <View className="flex-1 mx-6 justify-start p-5">
           <Animated.View entering={FadeInDown.duration(600).delay(400)}>
             <InputField
               label="Email"
               placeholder="Enter your email"
+              autoComplete="email"
               icon={icons.email}
               textContentType="emailAddress"
+              keyboardType="email-address"
               value={form.email}
               onChangeText={(value) => setForm({ ...form, email: value })}
             />
@@ -309,6 +314,7 @@ const SignUp = () => {
           </Link>
         </Animated.Text>
       </View>
+      </TouchableWithoutFeedback>
     </Animated.View>
   );
 };

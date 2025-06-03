@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     const mappedPosts = response.map((post) => ({
       id: post.id,
       clerk_id: post.clerk_id,
-      user_id: post.clerk_id, // Using clerk_id as user_id for temporary fix
+      user_id: post.user_id, // Using clerk_id as user_id for temporary fix
       firstname: post.firstname,
       username: post.username,
       content: post.content,

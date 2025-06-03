@@ -66,7 +66,7 @@ export async function GET(request: Request) {
       .map((post) => ({
         id: post.id,
         clerk_id: post.clerk_id,
-        user_id: post.clerk_id, // Temporary fix
+        user_id: post.user_id, // Temporary fix
         firstname: post.firstname,
         username: post.username,
         content: post.content,

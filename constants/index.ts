@@ -72,6 +72,10 @@ import { PostItColor } from "@/types/type";
 import steveAmazed from "@/assets/characters/steve-amazed-1.png";
 import steveAnnoyed from "@/assets/characters/steve-annoyed-1.png";
 
+import rosieMoney from "@/assets/characters/rosie-money-1.png";
+
+import bobChill from "@/assets/characters/bob-chill-1.png";
+
 export const icons = {
   person,
   email,
@@ -144,7 +148,10 @@ export const images = {
 
 export const characters = {
   steveAmazed,
-  steveAnnoyed
+  steveAnnoyed,
+  rosieMoney,
+  bobChill
+  
 }
 
 export const temporaryColors: PostItColor[] = [

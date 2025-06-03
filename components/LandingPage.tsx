@@ -18,6 +18,7 @@ import { Link, router, useRouter } from "expo-router";
 import CustomButton from '@/components/CustomButton';
 import InfoScreen from './InfoScreen';
 import CarrouselIndicator from './CarrouselIndicator';
+import Header from './Header';
 
 const { width } = Dimensions.get("window");
 const slides = [
@@ -29,27 +30,30 @@ const slides = [
       hasAction: false,
       onAgree: () => {},
     }, 
-    {
-      title: "Ideas & Thoughts",
-      subtitle: "",
-      image: characters.steveAmazed,
-      content: "Color a board, with your ideas and thoughts. Share it with the world or keep it for yourself to never forget them.",
-      hasAction: false,
-      onAgree: () => {}, 
-    }, 
-    {
+      {
         title: "Meet & Greet",
         subtitle: "",
-        image: characters.steveAmazed,
+        image: characters.bobChill,
         content: "A real friend is someone who knows the real you. Meet real friends, and share your colors with them.",
         hasAction: false,
         onAgree: () => {}, 
+    }, 
+    {
+      title: "Create & Share",
+      subtitle: "",
+      image: characters.rosieMoney,
+      content: "Color a board, with your ideas and thoughts. Share it with the world or keep it for yourself to never forget them.",
+      hasAction: false,
+      onAgree: () => {}, 
     }, 
 ]
 
 const LandingPage = () => {
     const flatListRef = useRef<FlatList>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
+
+    const bgVariant = ["gradient2", "gradient3", "gradient4"]
+    const bgVariantHex = [["#54C1EE", "#91C5FC", "#54C1EE"], ["#FFB85A", "#FF8864", "#FFB85A"], ["#FF99CC", "#FFCCF2", "#FF99CC"]]
   
     const handleScroll = (event: any) => {
       const slideIndex = Math.round(
@@ -58,6 +62,7 @@ const LandingPage = () => {
       setCurrentIndex(slideIndex);
     };
 
+    
   return (
     <Animated.View 
       entering={FadeIn.duration(500)}
@@ -68,23 +73,24 @@ const LandingPage = () => {
         entering={SlideInUp.duration(800)}
       >
         <LinearGradient
-          colors={['#54C1EE', '#91C5FC']}
+          colors={bgVariantHex[currentIndex]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          className="w-full items-start justify-center rounded-b-[36px] pt-16 pl-11 min-h-[22%] mb-6"
+          className="w-full items-start justify-center rounded-b-[48px] pt-16 pl-11 min-h-[18%] pb-6 mb-6"
         >   
           <Animated.Text 
-            entering={FadeInDown.delay(100).duration(800)}
+            entering={FadeInDown.delay(200).duration(800)}
             className="text-white text-3xl font-JakartaBold"
           >
-            Welcome ✨
+            Coloré
           </Animated.Text>
           <Animated.Text 
-            entering={FadeInDown.delay(200).duration(800)}
-            className="text-white text-xl font-JakartaSemiBold"
+            entering={FadeInDown.delay(100).duration(800)}
+            className="text-white text-lg font-JakartaMedium"
           >
-            to Coloré
+            wishes you a warm welcome ✨
           </Animated.Text>
+        
         </LinearGradient>
       </Animated.View>
 
@@ -98,7 +104,7 @@ const LandingPage = () => {
             key={slide.title}
             id={index}
             index={currentIndex} 
-            color={'#54C1EE'}
+            color={bgVariantHex[currentIndex][0]}
           />
         ))}
       </Animated.View>
@@ -147,7 +153,7 @@ const LandingPage = () => {
             title="Sign Up"
             padding="0"
             onPress={() => router.push("/auth/sign-up")}
-            bgVariant='gradient2'
+            bgVariant={bgVariant[currentIndex]}
           />
         </View>
 

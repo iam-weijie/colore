@@ -18,6 +18,7 @@ export async function GET(request: Request) {
     const response = await sql`
       SELECT 
         p.id, 
+        p.user_id,
         p.content, 
         p.like_count, 
         p.report_count, 
@@ -54,8 +55,7 @@ export async function GET(request: Request) {
 
    const mappedPosts = response.map((post) => ({
       id: post.id,
-      clerk_id: post.clerk_id,
-      user_id: post.clerk_id, // Using clerk_id as user_id for temporary fix
+      user_id: post.user_id,
       firstname: post.firstname,
       username: post.username,
       content: post.content,

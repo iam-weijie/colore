@@ -22,7 +22,7 @@ const InfoScreen: React.FC<InfoScreenProps> = ({
     <View className={`flex-1 ${hasAction ? 'bg-[#FAFAFA]' : 'bg-[#FFFFFF]'} p-6 items-center justify-center`}>
       {image ? (
         <Animated.View entering={FadeIn.duration(1000)}>
-          <Image source={image} className="w-52 h-52 mb-6" resizeMode="contain" />
+          <Image source={image} className="w-60 h-60 mb-6" resizeMode="contain" />
         </Animated.View>
       ) : (
         <ColoreActivityIndicator

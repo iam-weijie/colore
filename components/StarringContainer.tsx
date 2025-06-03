@@ -21,6 +21,7 @@ import {
   PostContainerProps,
   UserNicknamePair,
   PostWithPosition,
+  Format,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from "@react-navigation/native";
@@ -82,6 +83,7 @@ import PostScreen from "@/app/root/post/[id]";
 import ItemContainer from "./ItemContainer";
 import EmojiBackground from "./EmojiBackground";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
+import { RichText } from "./RichTextInput";
 
 const { width, height } = Dimensions.get("window");
 
@@ -683,6 +685,10 @@ const backgroundColor = useSharedValue(
   return <ColoreActivityIndicator />;
 }
 
+const cleanFormatting: Format[] = typeof currentPost?.formatting === "string"
+                        ? JSON.parse(currentPost.formatting)
+                        : (currentPost?.formatting ?? []);
+
   return (
     <AnimatedView
       ref={viewRef}
@@ -698,7 +704,7 @@ const backgroundColor = useSharedValue(
 
       {header}
       <GestureHandlerRootView
-        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        style={{ flex: 1, justifyContent: "center", alignItems: "center", top: "-2%" }}
       >
         <GestureDetector gesture={swipeGesture}>
           {currentPost && <Animated.View
@@ -722,9 +728,7 @@ const backgroundColor = useSharedValue(
                 showsVerticalScrollIndicator={true}
                 persistentScrollbar={true}
               >
-                <Text className="text-base p-1 my-4 font-Jakarta leading-6">
-                  {currentPost?.content}
-                </Text>
+               <RichText formatStyling={cleanFormatting} content={currentPost?.content ?? ""} />
               </ScrollView>
               <View className="my-2 flex-row justify-between items-center">
                                   <View className="flex flex-row items-center">
