@@ -15,7 +15,7 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const ColoreActivityIndicator = ({
   text = 'Loading...',
-  size = 50,
+  size = 40,
   strokeWidth = 6,
   colors = ['#ffe640', '#FBB1F5', '#93c5fd', '#CFB1FB'],
 }: {

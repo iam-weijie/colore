@@ -92,13 +92,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
   const [emojiLoading, setEmojiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(isEditable ? profile : null);
-  const [FlagComponent, setFlagComponent] = useState(countries[(profileUser?.country ?? "Canada")])
   const [countryEmoji, setCountryEmoji] = useState<string>("");
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const { stateVars, setStateVars } = useNavigationContext();
 
-
-  console.log("[FlagComponent]: ", FlagComponent)
+  const Flag = countries[profileUser?.country || "Canada"];
+  console.log("[FlagComponent]: ", Flag)
+  
   const [myBoards, setMyBoards] = useState<any>();
   const [communityBoards, setCommunityBoards] = useState<any>();
 
@@ -419,11 +419,11 @@ const handleClearSearch = () => {
            <Header 
         title=""
         item={
-          <View className="flex-row w-full  justify-between items-center pl-10 pr-6 mt-2">
+          <View className="flex-row w-full  justify-between items-center pl-6 pr-6 mt-2">
           <Animated.View entering={FadeIn.duration(800)}
-          className="flex flex-row">
+          className="flex flex-row items-center gap-2">
             <View>
-              <FlagComponent width={32} height={32} />
+              <Flag width={32} height={32} />
             </View>
             <View>
           { (nickname || profileUser?.username) ? (

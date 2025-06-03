@@ -520,7 +520,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           onPress={() => {
             router.push({
               pathname: "/root/profile/[id]",
-              params: { id: item[0] },
+              params: { userId: item[0] },
             });
           }}
           />
@@ -655,7 +655,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
             className="flex-1 pl-2 text-md "
-            placeholder="Search emojis..."
+            placeholder="Write your friend's name..."
              placeholderTextColor="#9CA3AF"
             value={searchText}
             onChangeText={setSearchText}

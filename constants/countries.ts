@@ -196,7 +196,7 @@ import yemen from '@/assets/countries/flags/ye.svg';
 import zambia from '@/assets/countries/flags/zm.svg';
 import zimbabwe from '@/assets/countries/flags/zw.svg'
 
-console.log("[Countries Test]: ", zambia)
+
 export const countries = {
   "Afghanistan": afghanistan,
   "Albania": albania,
