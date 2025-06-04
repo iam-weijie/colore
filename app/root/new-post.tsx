@@ -165,7 +165,17 @@ const NewPost = () => {
 
   const expirationDate = ["1 day", "3 days", "7 days", "14 days"];
 
-  //console.log("arguments passed: ", postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId  )
+  console.log("arguments passed: ", 
+    "postId", postId, 
+    "content", content, 
+    "color", color, 
+    "emoji", emoji, 
+    "recipient", recipientId,
+    "username", username, 
+    "exp", expiration, 
+    "prompt", prompt, 
+    "promptId", promptId,
+    "board", boardId  )
 
   const tabs = [
     {name: "Create", key: "create", color: "#000"},
@@ -285,7 +295,7 @@ const resetDraftPost = () => {
     }
     setDraftPost({
       id: Number(postId ?? 0),
-      clerk_id: user?.id ?? "",
+      user_id: user?.id ?? "",
       firstname: "",
       username: userUsername ?? "",
       content: postContent ? stripMarkdown(postContent) : "",

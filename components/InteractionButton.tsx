@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useCallback } from "react";
 import {
   Image,
   ImageSourcePropType,
   TouchableOpacity,
   View,
+  Text,
 } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -11,13 +12,46 @@ import Animated, {
   withTiming,
   withSpring,
   withSequence,
+  runOnJS,
 } from "react-native-reanimated";
 import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-const InteractionButton = ({
+// Memoized size configurations to avoid recalculation
+const SIZE_CONFIGS = {
+  sm: { width: 40, height: 40, fontSize: 24, iconSize: 24 },
+  md: { width: 48, height: 48, fontSize: 32, iconSize: 24 },
+  lg: { width: 56, height: 56, fontSize: 36, iconSize: 24 },
+} as const;
+
+// Memoized animation configs
+const ANIMATION_CONFIG = {
+  entry: {
+    opacity: { duration: 200 },
+    spring: { damping: 12, stiffness: 100 },
+    scale: { damping: 10, stiffness: 90 },
+  },
+  press: {
+    scale: { duration: 60 },
+    bounce: { damping: 6, stiffness: 200 },
+  },
+} as const;
+
+interface InteractionButtonProps {
+  label: string;
+  onPress: () => void;
+  showLabel: boolean;
+  icon?: ImageSourcePropType;
+  emoji?: string;
+  color: string;
+  size?: keyof typeof SIZE_CONFIGS;
+  soundType?: SoundType;
+  styling?: string;
+}
+
+const InteractionButton = React.memo(({
   label,
   onPress,
   showLabel,
@@ -26,62 +60,92 @@ const InteractionButton = ({
   size = "sm",
   color,
   soundType,
-  styling,
-}: {
-  label: string;
-  onPress: () => void;
-  showLabel: boolean;
-  icon?: ImageSourcePropType;
-  emoji?: string;
-  color: string;
-  size: string;
-  soundType?: SoundType;
-  styling: string;
-}) => {
+  styling = "",
+}: InteractionButtonProps) => {
   const { soundEffectsEnabled } = useGlobalContext();
   const { playSoundEffect } = useSoundEffects();
 
-  // Shared animation values
-  const scale = useSharedValue(0.95);
-  const opacity = useSharedValue(0);
-  const yOffset = useSharedValue(30); // smaller for faster entry
+  // Memoized size config
+  const sizeConfig = useMemo(() => SIZE_CONFIGS[size], [size]);
 
-  // Entry animation (simplified)
+  // Memoized fallback sound calculation
+  const fallbackSound = useMemo((): SoundType => {
+    if (soundType) return soundType;
+    
+    switch (label) {
+      case "Reply":
+        return SoundType.Reply;
+      case "Hard agree":
+        return SoundType.Like;
+      default:
+        return SoundType.Button;
+    }
+  }, [label, soundType]);
+
+  // Shared animation values with initial values
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0);
+  const yOffset = useSharedValue(30);
+
+  // Entry animation (only run once)
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 200 });
-    yOffset.value = withSpring(0, { damping: 12, stiffness: 100 });
-    scale.value = withSpring(1, { damping: 10, stiffness: 90 });
+    opacity.value = withTiming(1, ANIMATION_CONFIG.entry.opacity);
+    yOffset.value = withSpring(0, ANIMATION_CONFIG.entry.spring);
+    scale.value = withSpring(1, ANIMATION_CONFIG.entry.scale);
   }, []);
 
-  // Press animation and sound
-  const handlePress = () => {
-    scale.value = withSequence(
-      withTiming(0.94, { duration: 60 }),
-      withSpring(1, { damping: 6, stiffness: 200 })
-    );
-
+  // Memoized sound effect handler
+  const playSoundCallback = useCallback(() => {
     if (soundEffectsEnabled) {
-      const fallbackSound: SoundType =
-        soundType ||
-        (label === "Reply"
-          ? SoundType.Reply
-          : label === "Hard agree"
-          ? SoundType.Like
-          : SoundType.Button);
-
       playSoundEffect(fallbackSound);
     }
+  }, [soundEffectsEnabled, playSoundEffect, fallbackSound]);
 
-    onPress();
-  };
+  // Optimized press handler
+  const handlePress = useCallback(() => {
+    scale.value = withSequence(
+      withTiming(0.94, ANIMATION_CONFIG.press.scale),
+      withSpring(1, ANIMATION_CONFIG.press.bounce, () => {
+        runOnJS(onPress)();
+      })
+    );
+    
+    // Play sound immediately, don't wait for animation
+    playSoundCallback();
+  }, [scale, onPress, playSoundCallback]);
 
+  // Memoized animated styles
   const containerStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [
       { scale: scale.value },
       { translateY: yOffset.value },
     ],
-  }));
+  }), []);
+
+  const textStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }), []);
+
+  // Memoized container style
+  const touchableStyle = useMemo(() => ({
+    width: sizeConfig.width,
+    height: sizeConfig.height,
+    borderRadius: sizeConfig.width / 2,
+    backgroundColor: 'white',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    // Apply custom styling if provided
+    ...(styling ? { className: styling } : {}),
+  }), [sizeConfig, styling]);
+
+  // Memoized emoji style
+  const emojiStyle = useMemo(() => ({
+    fontSize: sizeConfig.fontSize,
+    includeFontPadding: false,
+    textAlignVertical: 'center' as const,
+  }), [sizeConfig.fontSize]);
 
   return (
     <View>
@@ -89,41 +153,45 @@ const InteractionButton = ({
         <AnimatedTouchable
           onPress={handlePress}
           activeOpacity={0.9}
-          className={`flex-row items-center justify-center ${
-            size === "sm"
-              ? "w-10 h-10"
-              : size === "md"
-              ? "w-12 h-12"
-              : "w-14 h-14"
-          } rounded-full bg-white ${styling}`}
+          style={touchableStyle}
         >
           {emoji ? (
-            <Animated.Text
-              style={{
-                fontSize: size === "sm" ? 24 : size === "md" ? 32 : 36,
-                includeFontPadding: false,
-                textAlignVertical: "center",
-                transform: [{ scale: scale.value }],
-              }}
-            >
+            <Text style={emojiStyle}>
               {emoji}
-            </Animated.Text>
+            </Text>
           ) : (
-            <Image source={icon} className="w-6 h-6" tintColor={color} />
+            <Image 
+              source={icon} 
+              style={{ 
+                width: sizeConfig.iconSize, 
+                height: sizeConfig.iconSize,
+                tintColor: color 
+              }} 
+            />
           )}
         </AnimatedTouchable>
       </Animated.View>
-
+      
       {showLabel && (
         <Animated.Text
-          className="text-[12px] font-JakartaSemiBold shadow-md text-white mt-2"
-          style={{ opacity: opacity.value }}
+          style={[
+            {
+              fontSize: 12,
+              fontWeight: '600',
+              color: 'white',
+              marginTop: 8,
+              textAlign: 'center',
+            },
+            textStyle,
+          ]}
         >
           {label}
         </Animated.Text>
       )}
     </View>
   );
-};
+});
+
+InteractionButton.displayName = 'InteractionButton';
 
 export default InteractionButton;

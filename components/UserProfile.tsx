@@ -502,7 +502,7 @@ const handleClearSearch = () => {
           <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
             className="flex-1 pl-2 text-md "
-            placeholder="Search emojis..."
+            placeholder="Looking for a Post..?"
              placeholderTextColor="#9CA3AF"
             value={query}
             onChangeText={setQuery}

@@ -30,6 +30,7 @@ type GlobalContextType = {
   setUserColors: React.Dispatch<React.SetStateAction<PostItColor[]>>;
   draftPost: Post;
   setDraftPost:  React.Dispatch<React.SetStateAction<Post | null>>; 
+  resetDraftPost: () => void;
   notifications: any[];
   storedNotifications: any[];
   unreadComments: number;
@@ -324,6 +325,37 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const { user } = useUser();
   const { pushToken } = useNotification();
 
+  const resetDraftPost = () => {
+      setDraftPost({
+                    id: 0,
+                    clerk_id:  "",
+                    firstname: "",
+                    username:  "",
+                    content: "",
+                    created_at: new Date().toISOString(),
+                    expires_at:  "",
+                    available_at: "",
+                    static_emoji: false,
+                    city: "",
+                    state: "",
+                    country: "",
+                    like_count: 0,
+                    report_count: 0,
+                    unread_comments: 0,
+                    recipient_user_id:  "",
+                    pinned: false,
+                    color: "",
+                    emoji:  "",
+                    notified: false,
+                    prompt_id:  0,
+                    prompt:  "",
+                    board_id: -1,
+                    reply_to: 0,
+                    unread: false,
+                    formatting: []
+          });
+  }
+
   // In-app polling every 5 seconds
   useEffect(() => {
     
@@ -354,7 +386,6 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           const userData = response.data[0];
           setProfile(userData);
           setUserColors(userData.colors || temporaryColors);
-          console.log("userData", userData)
           setLastConnection(new Date(userData.last_connection));
         } catch (error) {
           console.error("Failed to fetch user profile:", error);
@@ -501,6 +532,7 @@ const sendTokenDB = async (token) => {
         userColors,
         setUserColors,
         setDraftPost,
+        resetDraftPost,
         notifications,
         storedNotifications,
         unreadComments,

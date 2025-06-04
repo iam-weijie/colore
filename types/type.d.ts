@@ -7,8 +7,7 @@ import * as Haptics from "expo-haptics"; // Import Haptics for the style type
 
 declare interface Post {
   id: number;
-  clerk_id: string;
-  user_id?: string; // this is supposed to be a temporary fix to prevent weird type mismatch errors
+  user_id: string;
   firstname: string;
   username: string;
   content: string;
@@ -51,6 +50,16 @@ declare interface PostItBoardProps {
   mode?: GeographicalMode;
   isEditable?: boolean;
   randomPostion: boolean;
+}
+declare interface UsePersonalPostsParams {
+  userId: string;
+  viewerId: string;
+  boardId: number;
+  isIpad: boolean;
+  isOwnBoard: boolean;
+  postRefIDs: number[];
+  updatePinnedPosts?: boolean;
+  setUpdatePinnedPosts?: (value: boolean) => void;
 }
 
 

@@ -469,9 +469,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           actionIcon={icons.chevron}
           iconColor="#000"
           onPress={() => {
+
             router.push({
               pathname: "/root/profile/[id]",
-              params: { userId: item[0] },
+              params: { userId: item[0], username: item[1] },
             });
           }}
           />

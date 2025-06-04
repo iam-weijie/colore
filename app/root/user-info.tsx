@@ -183,50 +183,7 @@ const UserInfo = () => {
     fetchUsers();
   }, [user]);
 
-  const submitPost = async () => {
-    setLoading(true);
-    const cleanedContent = postContent;
-    if (cleanedContent === "") {
-      showAlert({
-        title: "Error",
-        message: `Post cannot be empty.`,
-        type: "ERROR",
-        status: "error",
-      });
-      return;
-    }
-    try {
-      await fetchAPI("/api/posts/newPersonalPost", {
-        method: "POST",
-        body: JSON.stringify({
-          content: cleanedContent,
-          clerkId: user!.id,
-          recipientId: user!.id,
-          postType: "personal",
-          color: selectedColor.name,
-          pinned: true,
-        }),
-      });
 
-      setTimeout(() => {
-        showAlert({
-          title: "Success",
-          message: `Post created.`,
-          type: "POST",
-          status: "success",
-        });
-      }, 500);
-    } catch (error) {
-      showAlert({
-        title: "Error",
-        message: `An error occurred. Please try again.`,
-        type: "ERROR",
-        status: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const currentScreen = usePathname().replace("/", "");
   const { stateVars, setStateVars } = useNavigationContext();
@@ -542,7 +499,6 @@ const UserInfo = () => {
 
     if (step < totalSteps - 1) setStep((prev) => prev + 1);
     else {
-      submitPost();
       router.push("/root/tabs/home");
     }
   };

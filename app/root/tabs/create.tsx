@@ -19,129 +19,145 @@ import { icons } from "@/constants";
 import { 
   addDays
 } from 'date-fns';
+import { useGlobalContext } from "@/app/globalcontext";
 
 const Create = () => {
-  const { user } = useUser();
-  const { content, color, emoji } = useLocalSearchParams();
-  const { showAlert } = useAlert();
-  const [selectedTab, setSelectedTab] = useState<string>("notes");
+const { user } = useUser();
+const { content, color, emoji } = useLocalSearchParams();
+const { draftPost, resetDraftPost } = useGlobalContext()
+const { showAlert } = useAlert();
+const [selectedTab, setSelectedTab] = useState<string>("notes");
 
-  const tabs = [
-    { name: "Prompts", key: "prompts", color: "#CFB1FB", notifications: 0 },
-    { name: "Notes", key: "notes", color: "#CFB1FB" },
-    { name: "Boards", key: "boards", color: "#93c5fd", notifications: 0 }
-  ];
+const tabs = [
+  { name: "Prompts", key: "prompts", color: "#CFB1FB", notifications: 0 },
+  { name: "Notes", key: "notes", color: "#CFB1FB" },
+  { name: "Boards", key: "boards", color: "#93c5fd", notifications: 0 }
+];
 
-  const promptOptions = [
-    {
-      label: "Answer a prompt", 
-      icon: icons.fire ,
-      caption: "You and a random thought!", 
-      onPress: () => handlePromptSubmit()}
-  ]
-  const notesOptions = [
-    {
-      label: "Temporary Notes", 
-      icon: icons.timer ,
-      caption: "Quick, it will disappear!", 
-      onPress: () => {
-      router.push({
-        pathname: "root/new-post",
-        params: {
-          expiration: new Date(addDays(new Date(), 3)).toISOString(), 
-        }
-      });
-    }
+// Generic navigation handler
+const navigateTo = ({
+  type,
+  params = {},
+}: {
+  type: "prompt" | "note" | "board";
+  params?: Record<string, any>;
+}) => {
+  let pathname = "";
+  let reset = true;
+  
+  if (draftPost.recipient_user_id && params.recipientId && draftPost.recipient_user_id == params.recipientId ) reset = false;
+  if (draftPost.expires_at && params.expiration) reset = false;
+
+  if (reset) resetDraftPost();
+
+  switch (type) {
+    case "prompt":
+    case "note":
+      pathname = "root/new-post";
+      break;
+    case "board":
+      pathname = "root/new-board";
+      break;
+  }
+
+  router.push({ pathname, params });
+};
+
+const handlePromptSubmit = async () => {
+  try {
+    const response = await fetchAPI("/api/prompts/getPrompts");
+    const uniquePrompts = response.data.filter(
+      (value, index, self) =>
+        index === self.findIndex((t) => t.cue === value.cue)
+    );
+
+    const randomIndex = Math.floor(Math.random() * uniquePrompts.length);
+    const prompt = uniquePrompts[randomIndex];
+
+    navigateTo({
+      type: "prompt",
+      params: {
+        prompt: prompt.content,
+        promptId: prompt.id,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to fetch prompts:", error);
+  }
+};
+
+const promptOptions = [
+  {
+    label: "Answer a prompt",
+    icon: icons.fire,
+    caption: "You and a random thought!",
+    onPress: handlePromptSubmit,
   },
-    {
-      label: "Global Notes", 
-      icon: icons.globe ,
-      caption: "A thought for the world to see!", 
-      onPress: () => {
-        router.push({
-          pathname: "root/new-post"
-        });
-      }
-     },
-    {
-      label: "Personal Notes", 
-      icon: icons.lock ,
-      caption: "A thought? Write in here!", 
-      onPress: () => {
-        router.push({
-          pathname: "root/new-post",
-          params: {
-            recipientId: user!.id,
-            username: "Yourself"
-          }
-        });
-      } }
-  ]
+];
 
-  const boardOptions = [
-    {
-      label: "Private Board", 
-      icon: icons.bookmark ,
-      caption: "Only you can post here!", 
-      onPress: () => {
-        router.push({
-          pathname: "root/new-board",
-          params: {
-            type: 'personal',
-          }
-        });
-      } },
-    {label: "Community Board", 
-      icon: icons.comment,
-      caption: "Hear everyone's thoughts!", onPress: () => {
-      router.push({
-        pathname: "root/new-board",
+const notesOptions = [
+  {
+    label: "Temporary Notes",
+    icon: icons.timer,
+    caption: "Quick, it will disappear!",
+    onPress: () =>
+      navigateTo({
+        type: "note",
         params: {
-          type: 'community',
-        }
-      });
-    }}
-  ]
-  const handleTabChange = (tabKey: string) => {
-    console.log("Tab changed to:", tabKey);
-    setSelectedTab(tabKey);
-    // You can add additional logic here when tabs change
-  };
+          expiration: new Date(addDays(new Date(), 3)).toISOString(),
+        },
+      }),
+  },
+  {
+    label: "Global Notes",
+    icon: icons.globe,
+    caption: "A thought for the world to see!",
+    onPress: () =>
+      navigateTo({
+        type: "note",
+      }),
+  },
+  {
+    label: "Personal Notes",
+    icon: icons.lock,
+    caption: "A thought? Write in here!",
+    onPress: () =>
+      navigateTo({
+        type: "note",
+        params: {
+          recipientId: user!.id,
+          username: "Yourself",
+        },
+      }),
+  },
+];
 
+const boardOptions = [
+  {
+    label: "Private Board",
+    icon: icons.bookmark,
+    caption: "Only you can post here!",
+    onPress: () =>
+      navigateTo({
+        type: "board",
+        params: { type: "personal" },
+      }),
+  },
+  {
+    label: "Community Board",
+    icon: icons.comment,
+    caption: "Hear everyone's thoughts!",
+    onPress: () =>
+      navigateTo({
+        type: "board",
+        params: { type: "community" },
+      }),
+  },
+];
 
-  const handlePromptSubmit = async () => {
-
-      let prompt;
-
-      try {
-            const response = await fetchAPI(
-              `/api/prompts/getPrompts`
-            );
-         
-            const uniquePrompts = response.data.filter((value, index, self) => 
-              index === self.findIndex((t) => (
-                t.cue === value.cue // Compare by cue
-              ))
-            );
-
-            let randomIndex = Math.floor(Math.random() * uniquePrompts.length);
-            prompt = uniquePrompts[randomIndex];
-      
-          } catch (error) {
-            console.error("Failed to fetch posts:", error);
-          } finally {
-            router.push({
-              pathname: "root/new-post",
-              params: {
-                prompt: prompt.content,
-                promptId: prompt.id
-              }
-            });
-          }
-
-     
-    }
-    
+const handleTabChange = (tabKey: string) => {
+  setSelectedTab(tabKey);
+};
   
   
   return (

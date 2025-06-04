@@ -46,6 +46,7 @@ const UserPersonalBoard = () => {
       params: { 
         recipient_id: id,
         username: username,
+        boardId: boardId,
         source: 'board'
       }
     });
@@ -167,7 +168,7 @@ const UserPersonalBoard = () => {
         label={"Edit Name"}
         caption={"Modify this board's name."}
         icon={icons.pencil}
-        colors={["#3FF01E", "#93c5fd"]}
+        colors={["#CFB1FB", "#fef08a"]}
         iconColor="#000"
         onPress={() => setSelectedSetting("Name")}
       />},
@@ -178,7 +179,7 @@ const UserPersonalBoard = () => {
         label={"Edit Board Permissions"}
         caption={"Modify this board's permissions."}
         icon={icons.pencil}
-        colors={["#3FF01E", "#93c5fd"]}
+        colors={["#CFB1FB", "#fef08a"]}
         iconColor="#000"
         onPress={() => setSelectedSetting("Permissions")}
       />},
@@ -189,7 +190,7 @@ const UserPersonalBoard = () => {
         label={"Delete Board"}
         caption={"Delete this board"}
         icon={icons.trash}
-        colors={["#3FF01E", "#93c5fd"]}
+        colors={["#CFB1FB", "#fef08a"]}
         iconColor="#000"
         onPress={() => setSelectedSetting("Delete")}
       />},
@@ -200,7 +201,7 @@ const UserPersonalBoard = () => {
         label={joinedCommunity ? "Wanna leave?" : "Wanna join?"}
         caption={joinedCommunity ? "Leave this community." : "Join this community."}
         icon={joinedCommunity ? icons.close : icons.add}
-        colors={["#3FF01E", "#93c5fd"]}
+        colors={["#CFB1FB", "#fef08a"]}
         iconColor="#000"
         onPress={() => handleJoinCommunity()}
       />},
@@ -211,7 +212,7 @@ const UserPersonalBoard = () => {
         label={"Share board"}
         caption={"Invite your friends to this board."}
         icon={icons.send}
-        colors={["#3FF01E", "#93c5fd"]}
+        colors={["#CFB1FB", "#fef08a"]}
         iconColor="#000"
         onPress={() => setSelectedSetting("Share")}
       />},
@@ -222,7 +223,7 @@ const UserPersonalBoard = () => {
         label={"See Members"}
         caption={"View the members of this board."}
         icon={icons.addUser}
-        colors={["#3FF01E", "#93c5fd"]}
+        colors={["#CFB1FB", "#fef08a"]}
         iconColor="#000"
         onPress={() => setSelectedSetting("Members")}
       />},
@@ -233,7 +234,7 @@ const UserPersonalBoard = () => {
         label={"Show Board Info"}
         caption={"View this board's information."}
         icon={icons.info}
-        colors={["#3FF01E", "#93c5fd"]}
+        colors={["#CFB1FB", "#fef08a"]}
         iconColor="#000"
         onPress={() => setSelectedSetting("Info")}
       />}

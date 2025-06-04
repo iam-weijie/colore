@@ -28,8 +28,7 @@ import { MotiView } from 'moti';
 import { Easing } from 'react-native-reanimated';
 import React from "react";
 import PostModal from "./PostModal";
-import { set } from "date-fns";
-import { useFetchUserData } from "@/hooks/usePersonalBoard";
+import { usePersonalPosts } from "@/hooks/usePersonalBoard";
 
 type PersonalBoardProps = {
     userId: string;
@@ -45,24 +44,35 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleM
   const { user } = useUser();
   const { isIpad } = useGlobalContext();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [postRefIDs, setPostRefIDS] = useState<number[]>([]);
-  const [updatePinnedPosts, setUpdatePinnedPosts] = useState<boolean>(false);
+const [updatePinnedPosts, setUpdatePinnedPosts] = useState<boolean>(false);
 
-
-const handleError = (e: string) => {
-  setError(e)
+const updatePinPosts = (existingIds: number[]) => {
+  setUpdatePinnedPosts(true)
+  setPostRefIDS(existingIds)
 }
 
 const handleUpdatePin = () => {
   setUpdatePinnedPosts(!updatePinnedPosts)
 }
- const userProfile = useFetchUserData(userId, handleError)
-  const isOwnBoard = !userId || userId == user?.id;
- const { boardOnlyPosts, fetchPosts } = userPersonalPosts(userId, user!.id, boardId, isIpad, isOwnBoard, postRefIDs, updatePinPosts, handleUpdatePin)
 
+const isOwnBoard = !userId || userId == user?.id;
+const { boardOnlyPosts, fetchPosts, maxPosts, isLoading, error } = usePersonalPosts({
+  userId: userId,
+  viewerId: user!.id,
+  boardId: boardId,
+  isIpad: isIpad,
+  isOwnBoard: isOwnBoard,
+  postRefIDs: postRefIDs,
+  updatePinnedPosts
+})
 
+const handleFetchPosts = async () => {
+  await fetchPosts();
+  console.log("[PersonalBoard]: ", boardOnlyPosts)
+  return boardOnlyPosts
+}
   const handleShuffle = () => {
     if (shuffleModeOn) {
       const randomizePosts = boardOnlyPosts.sort(() => Math.random() - 0.5);
@@ -84,16 +94,10 @@ const handleUpdatePin = () => {
       const newPostWithPosition = filteredForBoard;
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];
     } catch (error) {
-      setError("Failed to fetch new post.");
       console.error(error);
       return null;
     }
   };
-
-  const updatePinPosts = (existingIds: number[]) => {
-    setUpdatePinnedPosts(true)
-    setPostRefIDS(existingIds)
-  }
 
   
   if (error) {
@@ -104,14 +108,12 @@ const handleUpdatePin = () => {
     );
   }
 
-  
 
 
   return (
     <View 
   className="flex-1 relative overflow-hidden" 
   style={{ height: screenHeight }}
-  onTouchEnd={() => setBoardTilt({ x: 0, y: 0 })}
 >
   {/* Animated Gradient Background */}
   <View
@@ -191,6 +193,3 @@ const handleUpdatePin = () => {
 
 export default PersonalBoard;
 
-function userPersonalPosts() {
-  throw new Error("Function not implemented.");
-}
