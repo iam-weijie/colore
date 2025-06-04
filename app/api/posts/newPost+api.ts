@@ -9,42 +9,43 @@ export async function POST(request: Request) {
       clerkId,
       color = "yellow",
       emoji = null,
-      expiration = "14 days",
+      expires_at,
+      available_at,
+      static_emoji,
       postType = "public",
       recipientId,
       promptId,
       boardId,
+      formatting,
     } = await request.json();
 
-    console.log(
-      "all params",
-      content,
-      clerkId,
-      color,
-      emoji,
-      expiration,
-      postType,
-      recipientId,
-      promptId,
-      boardId
-    );
     if (!content || !clerkId) {
+      console.error("Missing required fields:", {
+        content,
+        clerkId,
+        expires_at,
+        available_at,
+      });
       return Response.json(
         { error: "content and clerkId are required" },
         { status: 400 }
       );
     }
 
-    // Validate expiration format
-    if (!/^\d+\s+(day|month|hour|minute|second)s?$/.test(expiration)) {
-      return Response.json(
-        {
-          error:
-            "Invalid expiration format. Use formats like '14 days', '1 hour', etc.",
-        },
-        { status: 400 }
-      );
-    }
+    console.log("Creating new post with data:", {
+      content,
+      clerkId,
+      color,
+      emoji,
+      expires_at,
+      available_at,
+      static_emoji,
+      postType,
+      recipientId,
+      promptId,
+      boardId,
+      formatting,
+    });
 
     // Fix 1: Use a template literal for the interval
     // Fix 2: Handle null emoji properly
@@ -53,9 +54,9 @@ export async function POST(request: Request) {
     const unread = postType === "personal";
     const [insertedPost] = await sql`
       INSERT INTO posts 
-        (user_id, content, like_count, report_count, post_type, recipient_user_id, color, emoji, expires_at, prompt_id, board_id, unread)
+        (user_id, content, like_count, report_count, post_type, recipient_user_id, color, emoji, expires_at, available_at, static_emoji, prompt_id, board_id, unread, formatting)
       VALUES 
-        (${clerkId}, ${content}, 0, 0, ${postType}, ${recipientId}, ${color}, ${emoji}, NOW() + ${expiration}::INTERVAL, ${promptId}, ${boardId}, ${unread})
+        (${clerkId}, ${content}, 0, 0, ${postType}, ${recipientId}, ${color}, ${emoji}, ${expires_at}, ${available_at}, ${static_emoji}, ${promptId}, ${boardId}, ${unread}, ${formatting})
       RETURNING 
         id,
         user_id, 
@@ -73,6 +74,8 @@ export async function POST(request: Request) {
         unread,
         post_type
     `;
+
+    console.log("inserted Posts", insertedPost);
 
     if (
       postType === "personal" &&
@@ -119,8 +122,6 @@ export async function POST(request: Request) {
         console.log("Successfully shot a message");
       }
     }
-
-    console.log("inserted Posts", insertedPost);
 
     return Response.json({ data: insertedPost }, { status: 201 });
   } catch (error: unknown) {
