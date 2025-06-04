@@ -47,13 +47,15 @@ export async function POST(request: Request) {
       WHERE clerk_id = ${receiver_id}
     `;
 
+    console.log(receiver_username[0]);
+
     const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userId: sender_id,
         type: "Requests",
-        notification: null,
+        notification: {},
         content: receiver_username[0],
       }),
     });
