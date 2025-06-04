@@ -231,20 +231,36 @@ async function handleSendNotificationExternal(
       // await sendPushNotification( ... );
     }
     if (type === "Requests") {
-      const username =
-        content.requestor === "UID1"
-          ? content.user1_username
-          : content.user2_username;
-      await sendPushNotification(
-        pushToken,
-        `${username} wants to be your friend!`,
-        "Click here to accept their friend request",
-        "comment",
-        {
-          route: `/root/chat`,
-          params: { tab: "Requests" },
-        }
-      );
+      // sending out notification for sending friend request
+      if (content.requestor) {
+        const username =
+          content.requestor === "UID1"
+            ? content.user1_username
+            : content.user2_username;
+        await sendPushNotification(
+          pushToken,
+          `${username} wants to be your friend!`,
+          "Click here to accept their friend request",
+          "comment",
+          {
+            route: `/root/chat`,
+            params: { tab: "Requests" },
+          }
+        );
+
+        // sending out notification for accepting friend request
+      } else if (content.receiver_username) {
+        await sendPushNotification(
+          pushToken,
+          `${content.receiver_username} accepted your friend request!`,
+          "Say hello",
+          "comment",
+          {
+            route: `/root/chat`,
+            params: { tab: "Requests" },
+          }
+        );
+      }
     }
     if (type === "Posts") {
       //const username = "Someone";
