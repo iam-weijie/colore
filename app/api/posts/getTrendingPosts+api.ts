@@ -39,6 +39,7 @@ export async function GET(request: Request) {
         p.prompt_id,
         p.board_id,
         p.formatting,
+        p.static_emoji,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -95,6 +96,7 @@ export async function GET(request: Request) {
             ? { top: Number(post.top), left: Number(post.left) } 
             : undefined,
           formatting: post.formatting as Format || [],
+          static_emoji: post.static_emoji
         }));
 
     return new Response(JSON.stringify({ data: mappedPosts }), {

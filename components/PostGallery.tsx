@@ -86,7 +86,6 @@ const renderItem = ({ item }: { item: Post }) => {
       <TouchableOpacity 
         onPress={() => 
           {
-            triggerHaptic(Haptics.ImpactFeedbackStyle.Soft)
             setSelectedPost(item)
             disableModal && handleUpdate && handleUpdate(item.id);}}
         activeOpacity={0.9}

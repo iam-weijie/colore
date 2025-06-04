@@ -252,7 +252,6 @@ export default function Page() {
     setSelectedTab(tabKey);
   };
 
-  console.log("[Starring Gallery] Posts Count: ", posts.length)
   return (
     <View className="flex-1">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>

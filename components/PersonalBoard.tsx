@@ -29,6 +29,7 @@ import { Easing } from 'react-native-reanimated';
 import React from "react";
 import PostModal from "./PostModal";
 import { set } from "date-fns";
+import { useFetchUserData } from "@/hooks/usePersonalBoard";
 
 type PersonalBoardProps = {
     userId: string;
@@ -42,147 +43,24 @@ type PersonalBoardProps = {
 
 const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleModeOn, setShuffleModeOn }) => {
   const { user } = useUser();
-  const {isIpad} = useGlobalContext();
+  const { isIpad } = useGlobalContext();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [profileUser, setProfileUser] = useState<any>(null);
-  const [shouldRefresh, setShouldRefresh] = useState(0); // Add a refresh counter
-  const isOwnBoard = !userId || userId == user?.id;
-  const [maxPosts, setMaxPosts] = useState(0);
+
   const [postRefIDs, setPostRefIDS] = useState<number[]>([]);
-  const [ boardOnlyPosts, setBoardOnlyPosts ] = useState<Post[]>([]);
   const [updatePinnedPosts, setUpdatePinnedPosts] = useState<boolean>(false);
-  const screenHeight = Dimensions.get('window').height;
-  const [boardTilt, setBoardTilt] = useState({ x: 0, y: 0 });
-
-  const fetchUserData = async () => {
-    
-      try {
-        const response = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
-          method: 'GET'
-        });
-
-        setProfileUser(response.data[0]);
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-        setError("Failed to load profile");
-      }
-    
-    setLoading(false);
-  };
 
 
+const handleError = (e: string) => {
+  setError(e)
+}
 
-  const fetchPersonalPosts = async () => {
-
-    if (updatePinnedPosts) {
-      const existingPostIds = postRefIDs;
-    
-      try {
-        const posts = await fetchAPI(`/api/posts/getPostsById?ids=${existingPostIds}`);
-
-        const updatedPosts: Post[] = boardId == -1 ? posts.data : posts.data.filter((p: Post) => p.board_id == boardId);
-    
-       
-        const formattedPosts = updatedPosts.map((post: Post) => ({
-          ...post,
-          recipient_user_id: post.recipient_user_id,
-          pinned: post.pinned,
-          like_count: post.like_count || 0,
-          report_count: post.report_count || 0,
-          unread_comments: post.unread_comments || 0
-        }));
-      
-        setUpdatePinnedPosts(false)
-        //getAction(formattedPosts)
-        return formattedPosts
-       
-    
-      } catch (error) {
-        console.error("Failed to update posts: ", error);
-      }
-    }
-    else {
-      const viewerId = user!.id;
-      const maxPostOnScreen = postRefIDs.length == 0 ? (isIpad ? 48 : 32) : Math.min(postRefIDs.length  + 14, (isIpad ? 24 : 18) )
-      setMaxPosts(maxPostOnScreen); 
-    
-      try {
-    
-      let board;
-      if (boardId > 0) {
-       board = await fetchAPI(
-        `/api/boards/getBoardById?id=${boardId}`
-      );
-
-    }
-      let filteredPosts;
-      let posts;
-      
-     
-      if (board) {
-        posts = await fetchAPI(
-          `/api/posts/getPostsByBoardId?id=${boardId}`
-        );
-
-        if (board.data.restrictions.includes("Everyone")) {
-          console.log(
-            "Ran1"
-          )
-        filteredPosts =  posts.data 
-      } else {
-        console.log(
-          "Ran2"
-        )
-        filteredPosts = posts.data.filter((p: Post) => p.recipient_user_id == userId);
-      }
-        
-    
-      
-      } else {
-        console.log(
-          "Ran3"
-        )
-         posts = await fetchAPI(
-          `/api/posts/getPersonalPosts?number=${maxPostOnScreen}&recipient_id=${userId}&user_id=${viewerId}`
-        );
-
-        if (posts.data.length === 0) {
-          return
-        }
-        filteredPosts = posts.data.filter((post: Post) => (
-          isOwnBoard || (!isOwnBoard && post.clerk_id == user!.id) || (post.pinned)
-        ));
-      }
-      
-      
-     
-  
-      const boardOnlyPosts = boardId == -1 ? filteredPosts : filteredPosts.filter((p: Post) => p.board_id == boardId);
-
-      
-      console.log("filtered Post", filteredPosts.length, boardOnlyPosts.length)
-    
-      // Validate and format each post
-      const formattedPosts = boardOnlyPosts.map((post: Post) => ({
-        ...post,
-        recipient_user_id: post.recipient_user_id,
-        pinned: post.pinned,
-        like_count: post.like_count || 0,
-        report_count: post.report_count || 0,
-        unread_comments: post.unread_comments || 0
-      }));
-      
-      //getAction(formattedPosts)
-      setBoardOnlyPosts(formattedPosts);
-      return formattedPosts;
-    } catch (error) {
-      console.log("Failed to fetch posts", error)
-    }
-      
-    }
-   
-  };
+const handleUpdatePin = () => {
+  setUpdatePinnedPosts(!updatePinnedPosts)
+}
+ const userProfile = useFetchUserData(userId, handleError)
+  const isOwnBoard = !userId || userId == user?.id;
+ const { boardOnlyPosts, fetchPosts } = userPersonalPosts(userId, user!.id, boardId, isIpad, isOwnBoard, postRefIDs, updatePinPosts, handleUpdatePin)
 
 
   const handleShuffle = () => {
@@ -215,29 +93,9 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleM
   const updatePinPosts = (existingIds: number[]) => {
     setUpdatePinnedPosts(true)
     setPostRefIDS(existingIds)
-    fetchPersonalPosts()
-    setShouldRefresh((prev) => prev + 1);
   }
 
   
-
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      fetchUserData();
-      fetchPersonalPosts();
-      //setShouldRefresh((prev) => prev + 1); // Increment refresh counter
-    }, [userId])
-  );
-
-  if (loading) {
-    return (
-      <View className="flex-1 items-center justify-center">
-                <ColoreActivityIndicator text="Summoning Bob..." />
-                </View>
-    );
-  }
-
   if (error) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -246,17 +104,6 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleM
     );
   }
 
-    // Parallax effect handler
-    const handleParallax = (event) => {
-      const { locationX, locationY } = event.nativeEvent;
-      const centerX = event.nativeEvent.pageX / Dimensions.get('window').width;
-      const centerY = event.nativeEvent.pageY / Dimensions.get('window').height;
-      
-      setBoardTilt({
-        x: (centerX - 0.5) * 5, // -2.5° to +2.5° tilt
-        y: (centerY - 0.5) * -3 // Reverse tilt for natural feel
-      });
-    };
   
 
 
@@ -264,22 +111,18 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleM
     <View 
   className="flex-1 relative overflow-hidden" 
   style={{ height: screenHeight }}
-  onTouchMove={handleParallax}
   onTouchEnd={() => setBoardTilt({ x: 0, y: 0 })}
 >
   {/* Animated Gradient Background */}
-  <MotiView
-    from={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ type: 'timing', duration: 800 }}
-    className="absolute inset-0"
+  <View
+    className="absolute flex-1 inset-0"
   >
     <LinearGradient
       colors={['#fdf4ff', '#f0f9ff', '#f3e8ff']} // softer pink, blue, purple
       locations={[0, 0.5, 1]}
       style={{ flex: 1 }}
     />
-  </MotiView>
+  </View>
 
   <SignedIn>
     {/* Interactive Cork Board */}
@@ -295,7 +138,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleM
     >
       <PostItBoard
         userId={userId}
-        handlePostsRefresh={fetchPersonalPosts}
+        handlePostsRefresh={fetchPosts}
         handleNewPostFetch={fetchNewPersonalPost}
         handleUpdatePin={(ids) => updatePinPosts(ids)}
         allowStacking={true}
@@ -347,3 +190,7 @@ const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleM
 
 
 export default PersonalBoard;
+
+function userPersonalPosts() {
+  throw new Error("Function not implemented.");
+}

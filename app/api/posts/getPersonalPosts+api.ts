@@ -38,6 +38,7 @@ export async function GET(request: Request) {
         p.left,
         p.expires_at,
         p.formatting,
+        p.static_emoji,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -89,6 +90,7 @@ export async function GET(request: Request) {
       },
       expires_at: post.expires_at || "",
       formatting: post.formatting as Format || [],
+      static_emoji: post.static_emoji
     }));
 
     return new Response(JSON.stringify({ data: mappedPosts }), {

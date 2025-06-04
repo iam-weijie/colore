@@ -23,8 +23,13 @@ export async function GET(request: Request) {
 
     // Fetch all entries where pl.user_id = userId
     const response = await sql`
-      SELECT * FROM post_likes WHERE user_id = ${userId}
-    `;
+    SELECT * 
+    FROM post_likes pl
+    JOIN posts p ON pl.post_id = p.id 
+    WHERE pl.user_id = ${userId}
+      AND p.expires_at > NOW()::timestamp
+      AND p.available_at <= NOW()::timestamp
+  `;
 
     if (!response || response.length === 0) {
       return new Response(

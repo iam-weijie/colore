@@ -39,6 +39,21 @@ declare interface Post {
   formatting: Format[];
 }
 
+declare interface PostItBoardProps {
+  userId: string;
+  handlePostsRefresh: () => Promise<Post[]>;
+  handleBack?: () => void;
+  handleNewPostFetch: (excludeIds: number[]) => Promise<Post>; // do not refetch IDs
+  handleUpdatePin: (ids: number[]) => void;
+  allowStacking: boolean;
+  showPostItText?: boolean;
+  invertColors?: boolean;
+  mode?: GeographicalMode;
+  isEditable?: boolean;
+  randomPostion: boolean;
+}
+
+
 declare interface StylingType {
   id: number;
   bold?: boolean;

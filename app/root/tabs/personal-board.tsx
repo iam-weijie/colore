@@ -5,6 +5,8 @@ import {
   View,
   Image,
   Text,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
 import Animated, { 
   useSharedValue, 
@@ -24,6 +26,7 @@ import InteractionButton from "@/components/InteractionButton";
 import BoardGallery from "@/components/BoardGallery"
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
+import { Ionicons } from "@expo/vector-icons";
 
 const UserPersonalBoard = () => {
   const router = useRouter();
@@ -32,7 +35,7 @@ const UserPersonalBoard = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [selectedTab, setSelectedTab] = useState<string>("MyBoards");
-  const [selectedBoard, setSelectedBoard] = useState<any | null>(null);
+  const [searchText, setSearchText] = useState<string>("");
   const [myBoards, setMyBoards] = useState<any>();
   const [discoverBoards, setDiscoverBoards] = useState<any>();
   const [communityBoards, setCommunityBoards] = useState<any>();
@@ -176,8 +179,9 @@ const UserPersonalBoard = () => {
 
 
 
-
-
+const handleClearSearch = () => {
+  setSearchText("")
+}
   return (
 <View className="flex-1 bg-[#FAFAFA]">
       
@@ -190,11 +194,35 @@ const UserPersonalBoard = () => {
         onTabChange={handleTabChange} 
         tabCount={0}    />
 
-
+            <View className=" z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 mx-6"
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
+          width: '90%'
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 pl-2 text-md "
+            placeholder="Looking for a specific board..?"
+             placeholderTextColor="#9CA3AF"
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
       
             {!loading ? (<View className="flex-1 overflow-hidden ">
         {selectedTab === "MyBoards" ? (
         <View className="flex-1">
+
           <BoardGallery
             boards={myBoards}
             />
@@ -226,32 +254,3 @@ const UserPersonalBoard = () => {
 
 export default UserPersonalBoard;
 
-
-/*
-
-  {!!selectedBoard  && <TouchableOpacity onPress={() => {
-        setSelectedBoard(null)
-        setSelectedBoardTitle("")
-        setSelectedBoardUserInfo("")
-        setSelectedBoardId(0)
-      }}>
-                  <AntDesign name="caretleft" size={18} color="0076e3" />
-                </TouchableOpacity>}
-
-  {!!selectedBoard  && <TouchableOpacity
-                              onPress={() => {
-                                 router.push({
-                                                pathname: "root/new-post",
-                                                params: {
-                                                  recipient_id: user!.id,
-                                                  boardId: selectedBoardId,
-                                                  username: "Yourself"
-                                                }
-                                              });
-                              }
-                                }>
-                              <Image
-                              source={icons.plus}
-                              className="w-5 h-5"
-                              tintColor={"#000"} />
-                              </TouchableOpacity>}*/

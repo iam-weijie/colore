@@ -15,6 +15,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants";
 import { Ionicons } from "@expo/vector-icons";
+import Header from "@/components/Header";
 
 const SavedPostGallery = () => {
   const router = useRouter();
@@ -70,9 +71,9 @@ const SavedPostGallery = () => {
   };
   return (
     <View className="flex-1 bg-[#FAFAFA]">
-      <View className="flex-row justify-between items-end pl-11 pt-16 bg-white">
-          <Text className="text-2xl font-JakartaBold my-4">{name}</Text>
-      </View>
+     <Header 
+     title={Array.isArray(name) ? name.join(", ") : name}
+     />
       {savedPostsList.length > 0 ? (
         <View className="flex-1 flex flex-column items-center px-6 pt-6">
             <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 "
@@ -99,7 +100,10 @@ const SavedPostGallery = () => {
             </TouchableOpacity>
           )}
         </View>
-          <View className="flex-1">
+          <View className=" flex-1"
+          style={{
+            width: '100%'
+          }}>
             <PostGallery
               posts={savedPostsList}
               profileUserId={user!.id}
@@ -107,15 +111,6 @@ const SavedPostGallery = () => {
                 handleUpdate(id, isRemoved);
               }}
               query={query}
-              header={
-                <View className="w-screen px-8 flex flex-row items-center justify-between">
-                  <View>
-                    <Text className="text-lg font-JakartaSemiBold">
-                      Most Recent
-                    </Text>
-                  </View>
-                </View>
-              }
             />
           </View>
         </View>

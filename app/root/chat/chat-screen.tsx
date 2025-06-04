@@ -288,59 +288,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     await fetchNicknames();
     setLoading(false);
   };
-  const filteredConversations = conversations.filter((conversation) =>
-    conversation.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+
   const filteredFriendList = friendList.filter((friend) =>
     friend.friend_username.toLowerCase().includes(searchText.toLowerCase())
   );
-
-  const handleUnfriending = async (friendId: string) => {
-    Alert.alert(
-      "Unfriend", // Title
-      "Are you sure you want to unfriend this person?", // Message
-      [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Unfriending Cancelled"),
-          style: "cancel", // Makes the Cancel button stand out
-        },
-        {
-          text: "Unfriend",
-          onPress: async () => {
-            try {
-              setHandlingFriendRequest(true);
-              const response: FriendStatusType = await unfriend(
-                user!.id,
-                friendId
-              );
-              if (response === FriendStatus.NONE) {
-                showAlert({
-                  title: 'Unfriended',
-                  message: "You have unfriended this user.",
-                  type: 'FRIEND_REQUEST',
-                  status: 'success',
-                });
-              } else {
-                showAlert({
-                  title: 'Error',
-                  message: `Error unfriending this user.`,
-                  type: 'ERROR',
-                  status: 'error',
-                });
-              }
-              fetchFriendData();
-              setHandlingFriendRequest(false);
-            } catch (error) {
-              console.error("Couldn't unfriend that person...", error);
-            }
-          }, // Replace with your API call
-          style: "destructive", // Red color for emphasis
-        },
-      ],
-      { cancelable: true } // Close alert by tapping outside
-    );
-  };
 
   // RENDER LISTS ------ START
   const renderConversationItem = ({
@@ -574,29 +525,18 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     });
   };
 
-  const handleCreateNewConversation = (): void => {
-   router.push("/root/chat/new-conversation");
-  };
 
   // console.log("All Friend Request", allFriendRequests?.sent);
   // HANDLE REQUESTS ------ END
 
   // USE EFFECT ------- START
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchConversations();
-      fetchFriendData();
-      setStateVars({ ...stateVars, queueRefresh: true});
-    }, [])
-  );
-
-
   useEffect(() => {
     fetchUsers();
+    fetchFriendData();
   }, []);
 
-
+console.log("Re-rendered")
   // console.log(conversations);
   // console.log("firends", friendList, "\n\nSent", allFriendRequests?.sent, "\n\nReceived", allFriendRequests?.received);
 
@@ -607,9 +547,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   return (
     <TouchableWithoutFeedback
     className="flex-1"
+
     onPress={() => Keyboard.dismiss()}
     onPressIn={() => Keyboard.dismiss()}>
-      <View className="flex-1 px-6">
+      <View className="flex-1 px-6"
+          style={{
+      height: screenHeight * 0.6
+    }}>
 
           
             <View className="w-full flex-row items-start justify-between ">
@@ -647,12 +591,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 
           {selectedTab == "Find" && 
           <View>
-           <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 mx-6 mt-4 "
+                       <View className="absolute z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 self-center"
         style={{
-          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
+          width: '90%'
         }}
         >
-          <Ionicons name="search" size={20} color="#9ca3af" />
+            <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
             className="flex-1 pl-2 text-md "
             placeholder="Write your friend's name..."
@@ -670,6 +615,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             </TouchableOpacity>
           )}
         </View>
+
                           {loading ? (
                                         <View className="flex-1 items-center justify-center">
                                         <ColoreActivityIndicator text="Summoning Bob..." />
@@ -678,11 +624,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                                         <Text>{error}</Text>
                                       ) : (
                                         <FlatList
-                                          className="px-2 rounded-[24px] my-4"
+                                          className="rounded-[24px]"
                                           data={filteredUsers}
                                           contentContainerStyle={{ 
-                                            paddingBottom: 80,
-
+                                            marginTop: 64,
+                                            paddingBottom: 120 
                                           }} 
                                           renderItem={renderUser}
                                           keyExtractor={(item): string => String(item[0])}
@@ -692,15 +638,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             </View>}
           {selectedTab == "Friends" && (
             <View className="flex-1">
-           <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 mx-6 mt-4 "
+           <View className="absolute z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 self-center"
         style={{
-          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
+          width: '90%'
         }}
         >
           <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
             className="flex-1 pl-2 text-md "
-            placeholder="Search emojis..."
+            placeholder="Search for a friend..."
              placeholderTextColor="#9CA3AF"
             value={searchText}
             onChangeText={setSearchText}
@@ -716,13 +663,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           )}
         </View>
             <FlatList
-              className="rounded-[16px] mt-3"
+              className="rounded-[16px]"
               
             
               data={filteredFriendList}
               contentContainerStyle={{ 
-                paddingBottom: 40,
-              minHeight: screenHeight * 0.46 }} 
+                marginTop: 64,
+                paddingBottom: 90
+              }} 
               renderItem={renderFriend}
               keyExtractor={(item) => item.id.toString()}
               ListEmptyComponent={
@@ -756,7 +704,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   <FlatList
                      className="px-2 rounded-[24px]"
                     data={allFriendRequests?.received}
-                    contentContainerStyle={{ paddingBottom: 80 }} 
+                    contentContainerStyle={{ 
+                      paddingBottom: 80 }} 
                     renderItem={renderIncomingRequest}
                     keyExtractor={(item) => item.id.toString()}
                     ListEmptyComponent={
@@ -792,7 +741,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                     className="rounded-[24px]"
                     data={allFriendRequests?.sent}
                     contentContainerStyle={{ 
-                      paddingBottom: 80 }} 
+                      paddingBottom: 200 }} 
                     renderItem={renderOutgoingRequest}
                     keyExtractor={(item) => item.id.toString()}
                     ListEmptyComponent={

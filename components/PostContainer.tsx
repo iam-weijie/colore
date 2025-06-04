@@ -7,7 +7,8 @@ import {
     handleEditing,
     handlePin,
     handleShare,
-    handleSavePost } from "@/lib/post";
+    handleSavePost, 
+    fetchLikeStatus} from "@/lib/post";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
 import {
@@ -96,6 +97,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const [currentPost, setCurrentPost] = useState<Post>();
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
+  const [isEmojiStatic, setIsEmojiStatic] = useState<boolean>(staticEmoji);
   const [posts, setPosts] = useState<Post[]>([]);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
@@ -116,32 +118,14 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const post = selectedPosts
 
 
-  useEffect(() => {
-    fetchUserdata();
-    fetchLikeStatus();
-  }, [isSaved, isLiked, user]);
 
   useEffect(() => {
     if (post.length) {
       setPosts(post);
       setCurrentPost(post[currentPostIndex]);
+      setIsEmojiStatic(post[currentPostIndex].static_emoji)
     }
   }, [post]);
-
-  const fetchLikeStatus = async () => {
-    try {
-      const response = await fetchAPI(
-        `/api/posts/updateLikeCount?postId=${post[currentPostIndex].id}&userId=${user!.id}`,
-        { method: "GET" }
-      );
-      if (response.error) return;
-
-      setIsLiked(response.data.liked);
-      setLikeCount(response.data.likeCount);
-    } catch (error) {
-      console.error("Failed to fetch like status:", error);
-    }
-  };
 
   useEffect(() => {
     setCurrentPost(post[currentPostIndex]);
@@ -154,11 +138,24 @@ const PostContainer: React.FC<PostContainerProps> = ({
     } 
   }, [currentPostIndex])
   // Fetch like status only when post or user changes
+    const getLikeStatus = async () => {
+    const {isLiked, likeCount } = await fetchLikeStatus(currentPost, user!.id);
+    setIsLiked(isLiked)
+    setLikeCount(likeCount)
+    }
   useEffect(() => {
     if (!user?.id || !currentPost?.id) return;
-    fetchLikeStatus();
+    getLikeStatus()
     setIsPinned(currentPost?.pinned)
   }, [post, currentPostIndex, user?.id]);
+
+    useEffect(() => {
+      if (currentPost) {
+    fetchUserdata();
+    getLikeStatus()
+
+      }
+  }, [isSaved, isLiked, user]);
 
   const dateCreated = convertToLocal(
     new Date(currentPost?.created_at || "")
@@ -613,7 +610,7 @@ const cleanFormatting: Format[] = isPreview
         >
           <TouchableWithoutFeedback onPress={() => handleCloseModal()}>
             <View className="absolute flex-1 top-0 -ml-3">
-            {<EmojiBackground emoji={staticEmoji ? selectedEmoji : ""} color="" />}
+            {<EmojiBackground emoji={isEmojiStatic ? selectedEmoji : ""} color="" />}
             </View>
           
           </TouchableWithoutFeedback>
@@ -714,7 +711,7 @@ const cleanFormatting: Format[] = isPreview
                 );
               })}
           </View>
-          {!!selectedEmoji && !staticEmoji && 
+          {!!selectedEmoji && !isEmojiStatic && 
           
           
           <View className="absolute -top-[150px] self-center inset-0">

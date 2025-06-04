@@ -97,7 +97,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
   const { stateVars, setStateVars } = useNavigationContext();
 
   const Flag = countries[profileUser?.country || "Canada"];
-  console.log("[FlagComponent]: ", Flag)
   
   const [myBoards, setMyBoards] = useState<any>();
   const [communityBoards, setCommunityBoards] = useState<any>();
