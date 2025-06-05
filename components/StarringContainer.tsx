@@ -625,21 +625,21 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   };
 
 const backgroundColor = useSharedValue(
-  currentPost ? (postColor?.hex || "rgba(0, 0, 0, 0.5)") : "white"
+  currentPost ? (postColor?.hex || "rgba(0, 0, 0, 0)") : "white"
 );
   const prevColor = React.useRef(backgroundColor.value);
 
   // Animate color change
   useEffect(() => {
-    if (prevColor.current !== (postColor?.hex || "rgba(0, 0, 0, 0.5)")) {
+    if (prevColor.current !== (postColor?.hex || "rgba(0, 0, 0, 0)")) {
       backgroundColor.value = withTiming(
-        postColor?.hex || "rgba(0, 0, 0, 0.5)",
+        postColor?.hex || "rgba(0, 0, 0, 0)",
         {
           duration: 300,
           easing: Easing.inOut(Easing.quad),
         }
       );
-      prevColor.current = postColor?.hex || "rgba(0, 0, 0, 0.5)";
+      prevColor.current = postColor?.hex || "rgba(0, 0, 0, 0)";
     }
   }, [postColor]);
 

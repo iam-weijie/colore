@@ -123,7 +123,7 @@ const Settings = () => {
           title: "🎉 Color Unlocked!",
           message: `${matchedColor.name} has been added to your collection.`,
           type: "UPDATE",
-          status: "success",
+          status: "success"
         });
       } else {
         showAlert({
@@ -474,8 +474,8 @@ const Settings = () => {
       {/* Color Section */}
       <View className="mx-4 mb-6">
         <HeaderCard
-          title="Colors"
-          color="#FAFAFA"
+          title="SRB Progression"
+          color="#FFFFFF"
           content={
             <>
               {/* Blue Progress */}

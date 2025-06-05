@@ -81,7 +81,7 @@ export const allColors: PostItColor[] = [
   {
     id: "zenith-clarity",
     name: "Zenith Clarity",
-    hex: "#86c4f0",
+    hex: "#5DC5F2",
     rarity: "Common",
     foldcolorhex: "#c3e3fd",
     fontColor: "#000000",
@@ -186,7 +186,7 @@ export const allColors: PostItColor[] = [
   {
     id: "crimson-whisper",
     name: "Crimson Whisper",
-    hex: "#9e2b45",
+    hex: "#D82F57",
     rarity: "Rare",
     foldcolorhex: "#d86a7e",
     fontColor: "#ffffff",
@@ -201,7 +201,7 @@ export const allColors: PostItColor[] = [
   {
     id: "terracotta-flame",
     name: "Terracotta Flame",
-    hex: "#d1542a",
+    hex: "#EF734A",
     rarity: "Rare",
     foldcolorhex: "#f38f6f",
     fontColor: "#ffffff",
@@ -216,10 +216,10 @@ export const allColors: PostItColor[] = [
   {
     id: "oak-resolve",
     name: "Oak Resolve",
-    hex: "#824d2f",
+    hex: "#EEB391",
     rarity: "Legendary",
-    foldcolorhex: "#b77c58",
-    fontColor: "#ffffff",
+    foldcolorhex: "#FFCCAF",
+    fontColor: "#D58559",
     SRB: [60, 15, 25],
     meaning: "One who anchors wisdom.",
     attributes: {

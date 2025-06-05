@@ -29,7 +29,7 @@ export const HeaderCard = ({ title, color, content }) => (
       }}
     >
       <View className="px-4 py-2">
-        <Text className={`text-[16px] font-JakartaSemiBold ${color === "#FAFAFA" ? "text-black" : "text-white"}`}>{title}</Text>
+        <Text className={`text-[16px] font-JakartaSemiBold ${color === "#FFFFFF" ? "text-black" : "text-white"}`}>{title}</Text>
       </View>
     </View>
     
