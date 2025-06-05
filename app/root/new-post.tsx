@@ -19,7 +19,7 @@ import RecentEmojiPopup from "@/components/RecentEmojiPopup";
 import { useRecentEmojis } from "@/hooks/useRecentEmojis";
 
 import ColorSelector from "@/components/ColorSelector";
-import { icons, temporaryColors } from "@/constants";
+import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor, UserNicknamePair, TextStyle, Format, Post, Board } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
@@ -63,7 +63,7 @@ const NewPost = () => {
   // ✅ Imports & Hooks
   const { user } = useUser();
   const { postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
-  const { profile, setDraftPost, draftPost } = useGlobalContext();
+  const { profile, userColors, setDraftPost, draftPost } = useGlobalContext();
   const { showAlert } = useAlert();
 
 
@@ -81,7 +81,7 @@ const NewPost = () => {
 
   // 🎨 STYLING & FORMATTING
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors.find((c) => c.name === color) ?? temporaryColors[Math.floor(Math.random() * 4)]
+    userColors.find((c) => c.id === color) ?? userColors[Math.floor(Math.random() * 4)]
   );
   const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
   const [formats, setFormats] = useState<Format[]>([]);
@@ -342,8 +342,8 @@ const resetDraftPost = () => {
   useEffect(() => {
     if (draftPost && !postId) {
       setPostContent(draftPost.content);
-      const savedColor = temporaryColors.find(
-        (c) => c.name === draftPost.color
+      const savedColor = userColors.find(
+        (c) => c.id === draftPost.color
       );
       if (savedColor) setSelectedColor(savedColor);
       if (draftPost.emoji) setSelectedEmoji(draftPost.emoji);
@@ -778,7 +778,7 @@ const LinkPlaceholder = () => {
               <View  className="flex-1 flex-col items-center justify-center gap-2 absolute p-4 mt-4 right-0" >
                <View>
               <ColorPickerSlider
-                colors={temporaryColors}
+                colors={userColors}
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
               />

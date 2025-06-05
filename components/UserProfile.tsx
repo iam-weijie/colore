@@ -2,17 +2,12 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { useGlobalContext } from "@/app/globalcontext";
 import PostGallery from "@/components/PostGallery";
 import { countries } from "@/constants/countries";
-import { icons, temporaryColors } from "@/constants/index";
+import { allColors } from "@/constants/colors"
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
-
-import axios from "axios";
 import {
-  acceptFriendRequest,
-  cancelFriendRequest,
   fetchFriends,
   fetchFriendStatus,
-  unfriend,
 } from "@/lib/friend";
 import {
   FriendStatusType,
@@ -34,21 +29,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
-import ColorGallery from "./ColorGallery";
-import DropdownMenu from "./DropdownMenu";
-import TabNavigation from "./TabNavigation";
+import Animated, {  FadeIn } from "react-native-reanimated";
 import { useAlert } from '@/notifications/AlertContext';
-import Circle from "./Circle";
 import Settings from "@/app/root/settings";
 import BoardGallery from "./BoardGallery";
-import PersonalBoard from "./PersonalBoard";
 import PostContainer from "./PostContainer";
-import ColoreActivityIndicator from "./ColoreActivityIndicator";
-import TabsContainer from "./TabsContainer";
 import { fetchCountryEmoji } from "@/lib/post";
 import Header from "./Header";
-import { set } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
@@ -81,7 +68,7 @@ const PostGallerySkeleton = () => (
 const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }) => {
   const { user } = useUser();
   const router = useRouter();
-  const { isIpad, profile, unreadComments } = useGlobalContext(); 
+  const { isIpad, userColors, profile, unreadComments } = useGlobalContext(); 
   const { showAlert } = useAlert();
 
    const isEditable = user!.id === userId;
@@ -266,14 +253,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
           if (isEditable && response.data) {
             const boardsWithColor = response.data.map((board: any, index: number) => ({
               ...board,
-              color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+              color: userColors[Math.floor(Math.random() * userColors.length)].hex, // only assign if not already set
             }));
           
             setMyBoards([...boardsWithColor, personalBoard]);
           } else if (!isEditable && response.data) {
             const boardsWithColor = checkForPrivacy.map((board: any, index: number) => ({
               ...board,
-              color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+              color: userColors[Math.floor(Math.random() * userColors.length)].hex, // only assign if not already set
             }));
           
             setMyBoards([...boardsWithColor, personalBoard]);
@@ -305,7 +292,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
         
             const boardsWithColor = response.data.map((board: any, index: number) => ({
               ...board,
-              color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+              color: userColors[Math.floor(Math.random() * userColors.length)].hex, // only assign if not already set
             }));
           
             setCommunityBoards(boardsWithColor);

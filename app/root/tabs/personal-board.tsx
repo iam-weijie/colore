@@ -18,19 +18,17 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { fetchAPI } from "@/lib/fetch";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import PersonalBoard from "@/components/PersonalBoard";
-import { icons, temporaryColors } from "@/constants";
-import TabsContainer from "@/components/TabsContainer";
-import { Board } from "@/types/type";
-import EmojiBackground from "@/components/EmojiBackground";
-import InteractionButton from "@/components/InteractionButton";
+import { icons } from "@/constants";
 import BoardGallery from "@/components/BoardGallery"
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import { Ionicons } from "@expo/vector-icons";
+import { useGlobalContext } from "@/app/globalcontext";
 
 const UserPersonalBoard = () => {
   const router = useRouter();
   const { user } = useUser();
+  const { userColors } = useGlobalContext();
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -91,7 +89,7 @@ const UserPersonalBoard = () => {
         if (response.data) {
           const boardsWithColor = response.data.map((board: any, index: number) => ({
             ...board,
-            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           }));
         
           setMyBoards([personalBoard, shareWithMeBoard, ...boardsWithColor]);
@@ -123,7 +121,7 @@ const UserPersonalBoard = () => {
       
           const boardsWithColor = response.data.map((board: any, index: number) => ({
             ...board,
-            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           }));
         
           setCommunityBoards(boardsWithColor);
@@ -152,7 +150,7 @@ const UserPersonalBoard = () => {
         if (response.data) {
           const boardsWithColor = response.data.map((board: any, index: number) => ({
             ...board,
-            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           }));
         
           setDiscoverBoards([...boardsWithColor]);

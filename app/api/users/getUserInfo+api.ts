@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { UserProfileProps } from "@/types/type";
-import { allColors } from "@/constants";
+import { allColors } from "@/constants/colors";
 
 export async function GET(request: Request) {
   //console.log("received GET request for user information");
@@ -30,8 +30,6 @@ export async function GET(request: Request) {
         created_at: u.created_at,
         updated_at: u.updated_at,
         clerk_id: u.clerk_id,
-        firstname: u.firstname,
-        lastname: u.lastname,
         username: u.username,
         nickname: u.nickname,
         incognito_name: u.incognito_name,
@@ -46,13 +44,14 @@ export async function GET(request: Request) {
         saved_posts: u.saved_posts ? u.saved_posts : [],
         shorthand_emojis: u.shorthand_emojis ? u.shorthand_emojis : [],
         colors: u.colors.map((color: string) => {
-          const foundColor = allColors.find((c) => c.name === color);
+          const foundColor = allColors.find((c) => c.id == color);
           if (foundColor) {
             return foundColor;
           }
         }),
       } as unknown as UserProfileProps;
     });
+
 
     return new Response(JSON.stringify({ data: user }), {
       status: 200,

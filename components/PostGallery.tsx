@@ -1,6 +1,6 @@
 import PostModal from "@/components/PostModal";
 import { useGlobalContext } from "@/app/globalcontext";
-import { temporaryColors } from "@/constants";
+import { allColors } from "@/constants/colors";
 import { formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
@@ -71,7 +71,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   }
 
 const renderItem = ({ item }: { item: Post }) => {
-  const backgroundColor = temporaryColors?.find((c) => c.name === item.color)?.hex || item.color;
+  const backgroundColor = allColors?.find((c) => c.id === item.color)?.hex || item.color;
   const isOwner = item.user_id === user?.id;
   const hasNewComments = isOwner && item.unread_comments > 0;
   

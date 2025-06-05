@@ -18,7 +18,7 @@ import {
 import EmojiSelector from "@/components/EmojiSelector";
 import { LinearGradient } from "expo-linear-gradient";
 import CustomButton from "@/components/CustomButton";
-import { icons, images, temporaryColors } from "@/constants";
+import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
 import { useNavigationContext } from "@/components/NavigationContext";
@@ -33,12 +33,14 @@ import { CustomButtonBar } from "@/components/CustomTabBar";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
+import { useGlobalContext } from "../globalcontext";
 
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
 
 
   const { user } = useUser();
+  const { userColors } = useGlobalContext();
   const { type } = useLocalSearchParams();
   const { showAlert } = useAlert();
 
@@ -59,7 +61,7 @@ const NewPost = () => {
   const maxTitleCharacters = 20;
   const maxDescriptionCharacters = 300;
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors[Math.floor(Math.random() * 4)]
+    userColors[Math.floor(Math.random() * 4)]
   );
   const [isPosting, setIsPosting] = useState(false);
 
@@ -405,7 +407,7 @@ Perfect for open discussions or quiet sharing.`,
   };
 
   useEffect(() => {
-    setSelectedColor(temporaryColors[Math.floor(Math.random() * 4)]);
+    setSelectedColor(userColors[Math.floor(Math.random() * 4)]);
   }, [navigationIndex]);
 
   return (

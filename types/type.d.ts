@@ -179,7 +179,7 @@ type Attribute = {
 };
 declare interface PostItColor {
   name: string;
-  id: number;
+  id: string;
   hex: string;
   rarity: string;
   SRB: number[];

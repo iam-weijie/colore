@@ -18,19 +18,11 @@ import {
 } from "react-native";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
-import CustomButton from "@/components/CustomButton";
-import ModalSheet from "@/components/Modal";
-import InfoScreen from "@/components/InfoScreen";
 import EmojiBackground from "@/components/EmojiBackground";
-import { icons, temporaryColors } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from "@/notifications/AlertContext";
-import { LinearGradient } from "expo-linear-gradient";
-import { RenderPromptCard } from "@/components/RenderCard";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
-import CardCarrousel from "@/components/CardCarroussel";
-import StarringPeekTab from "@/components/StarringModal";
 import StarringModal from "@/components/StarringModal";
 
 const screenWidth = Dimensions.get("window").width;

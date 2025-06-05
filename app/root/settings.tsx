@@ -2,7 +2,8 @@
 
 import InputField from "@/components/InputField";
 import { useNavigationContext } from "@/components/NavigationContext";
-import { icons, temporaryColors } from "@/constants";
+import { icons } from "@/constants";
+import { allColors } from "@/constants/colors";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor, UserProfileType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -78,7 +79,7 @@ const Settings = () => {
   const [likedPosts, setLikedPosts] = useState<string[]>();
   const [libraryVisible, setLibraryVisible] = useState(false);
   const [colorLibrary, setColorLibrary] = useState<PostItColor[]>(
-    userColors || temporaryColors
+    userColors || allColors
   );
   const blueProgress = useMemo(
     () =>
@@ -112,7 +113,7 @@ const Settings = () => {
 
     if (matchedColor) {
       const alreadyUnlocked = unlockedColors.some(
-        (uc) => uc.name === matchedColor.name
+        (uc) => uc.id === matchedColor.name
       );
 
       if (!alreadyUnlocked) {

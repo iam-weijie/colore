@@ -1,9 +1,9 @@
 import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
-import { icons, temporaryColors } from "@/constants/index";
+import { icons } from "@/constants/index";
+import { allColors } from "@/constants/colors";
 import CardCarrousel from "@/components/CardCarroussel";
 import { RenderCreateCard } from "@/components/RenderCard";
-import Carousel from "react-native-reanimated-carousel";
 
 import {
   handleReportPress,
@@ -186,7 +186,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
 
   const dateCreated = convertToLocal(new Date(currentPost?.created_at || ""));
   const formattedDate = formatDateTruncatedMonth(dateCreated);
-  const postColor = temporaryColors.find(
+  const postColor = allColors.find(
     (color) => color.name === currentPost?.color
   ) as PostItColor;
 

@@ -38,7 +38,7 @@ const EditPost = () => {
   const { showAlert } = useAlert();
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
     temporaryColors.find(
-      (c) => c.name === color
+      (c) => c.id === color
     ) as PostItColor
   );
   const [selectedEmoji, setSelectedEmoji] = useState<string>(emoji);

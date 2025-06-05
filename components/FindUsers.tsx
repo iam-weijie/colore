@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { icons, temporaryColors } from "@/constants";
+import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor, UserNicknamePair, TextStyle, Post } from "@/types/type";
 import {
