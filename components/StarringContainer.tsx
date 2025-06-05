@@ -187,7 +187,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   const dateCreated = convertToLocal(new Date(currentPost?.created_at || ""));
   const formattedDate = formatDateTruncatedMonth(dateCreated);
   const postColor = allColors.find(
-    (color) => color.name === currentPost?.color
+    (color) => color.id === currentPost?.color
   ) as PostItColor;
 
     // Enhanced star animation

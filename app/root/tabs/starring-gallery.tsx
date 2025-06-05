@@ -255,7 +255,6 @@ export default function Page() {
               selectedTab={selectedTab}
               onTabChange={handleTabChange}
               tabCount={starringTabs.length}
-              className="z-10"
             />
             <EmojiBackground emoji="" color="#ffe640" />
              {loading ? (

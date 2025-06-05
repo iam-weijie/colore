@@ -1,8 +1,10 @@
+import { icons } from "@/constants";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
   Switch, // Import Switch
   Text,
+  Image,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -17,6 +19,7 @@ export const HeaderCard = ({ title, color, content }) => (
       shadowOpacity: 0.1,
       shadowRadius: 5,
     }}>
+      <View className="flex flex-row justify-between items-center">
     <View 
       className="px-2 py-1 rounded-[48px] w-[60%] ml-5 overflow-hidden shadow-sm border-2" 
       style={{
@@ -31,6 +34,17 @@ export const HeaderCard = ({ title, color, content }) => (
       <View className="px-4 py-2">
         <Text className={`text-[16px] font-JakartaSemiBold ${color === "#FFFFFF" ? "text-black" : "text-white"}`}>{title}</Text>
       </View>
+    </View>
+    <View className="mr-8">
+      <TouchableOpacity
+      onPress={() => {}}>
+    <Image
+    source={icons.info}
+    className="w-5 h-5"
+    tintColor="#E1E1E1"
+    />
+    </TouchableOpacity>
+    </View>
     </View>
     
     <View className="px-4 py-4 rounded-[48px] overflow-hidden">
