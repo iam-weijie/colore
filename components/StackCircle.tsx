@@ -119,7 +119,7 @@ const StackCircle = ({
       basePosition.y = stack?.center?.y;
       dragOffset.setValue({ x: 0, y: 0 });
     }
-  }, [stack.center.x, stack.center.y]);
+  }, [stack?.center?.x, stack?.center?.y]);
 
   useEffect(() => {
     const dx = Math.abs(scrollOffset.x + 120 - stack?.center?.x);

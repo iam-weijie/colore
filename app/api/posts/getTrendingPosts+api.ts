@@ -1,112 +1,100 @@
-import { Format } from "@/types/type";
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(process.env.DATABASE_URL!);
+    const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const number = Number(url.searchParams.get("number")) || 10;
+    const number = url.searchParams.get("number");
     const id = url.searchParams.get("id");
-    const mode = url.searchParams.get("mode") as "city" | "state" | "country" | null;
+    const mode = url.searchParams.get("mode") as
+      | keyof typeof locationFilter
+      | null;
 
-    // Define score weights
+    const baseSelectFields = `
+      p.id, 
+      p.content, 
+      p.like_count, 
+      p.report_count, 
+      p.created_at,
+      p.unread_comments,
+      p.recipient_user_id,
+      p.pinned,
+      p.color,
+      p.emoji,
+      p.prompt_id,
+      p.board_id,
+      u.clerk_id,
+      u.firstname, 
+      u.lastname, 
+      u.username,
+      u.country, 
+      u.state, 
+      u.city,
+      pr.content as prompt
+    `;
+
+    // Determine the filter based on mode
+    const locationFilter = {
+      city: `u.city = (SELECT u1.city FROM users u1 WHERE u1.clerk_id = ${id})`,
+      state: `u.state = (SELECT u1.state FROM users u1 WHERE u1.clerk_id = ${id})`,
+      country: `u.country = (SELECT u1.country FROM users u1 WHERE u1.clerk_id = ${id})`,
+    };
+
+    const locationCondition =
+      mode && locationFilter[mode as keyof typeof locationFilter]
+        ? locationFilter[mode as keyof typeof locationFilter]
+        : "1=1"; // Default to no filter for global mode
+
     const SCORE_WEIGHTS = {
       likes: 0.7,
       replies: 0.3,
       reports: -0.4,
-      timeDecay: 1.2,
+      timeDecay: 1.2, // Higher values make newer posts more important
+      minimumLikes: 0, // Minimum likes to be considered trending
+      maximumReports: 5, // Maximum reports before exclusion
+      timeWindowDays: 364, // Only take posts from last X days
     };
 
-    // Build location condition
-    let locationCondition = "";
-    if (mode && ["city", "state", "country"].includes(mode)) {
-      locationCondition = `AND u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = '${id}')`;
-    }
+    /**
+     *TODO Add reply count when the field is added to the database
+     * (p.reply_count * ${SCORE_WEIGHTS.replies}) +
+     */
+    const trendingScoreFormula = `
+      (
+        (p.like_count * ${SCORE_WEIGHTS.likes}) +
+        (p.report_count * ${SCORE_WEIGHTS.reports})
+      ) /
+      (
+        EXTRACT(EPOCH FROM (NOW() - p.created_at))/3600 +
+        ${SCORE_WEIGHTS.timeDecay}
+      )
+    `;
 
-    // Build the complete query
-    const query = `
+    /*lolol this is safe as 100% hardcoded -- no sql injection */
+    const response = await sql`
       SELECT
-        p.id, 
-        p.content, 
-        p.like_count, 
-        p.report_count, 
-        p.created_at,
-        p.unread_comments,
-        p.recipient_user_id,
-        p.pinned,
-        p.color,
-        p.emoji,
-        p.prompt_id,
-        p.board_id,
-        p.formatting,
-        p.static_emoji,
-        u.clerk_id,
-        u.firstname, 
-        u.lastname, 
-        u.username,
-        u.country, 
-        u.state, 
-        u.city,
-        pr.content as prompt,
-        (
-          (p.like_count * ${SCORE_WEIGHTS.likes}) +
-          (p.report_count * ${SCORE_WEIGHTS.reports})
-        ) /
-        (
-          EXTRACT(EPOCH FROM (NOW() - p.created_at))/3600 +
-          ${SCORE_WEIGHTS.timeDecay}
-        ) AS trending_score
+        ${sql.unsafe(baseSelectFields)},
+        ${sql.unsafe(trendingScoreFormula)} AS trending_score
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.user_id != '${id}' 
-      AND p.post_type = 'public'
-      ${locationCondition}
+      WHERE p.user_id != ${id}
+        AND p.post_type = 'public'
+        AND ${sql.unsafe(locationCondition)}
       ORDER BY trending_score DESC
       LIMIT ${number};
     `;
 
-    const response = await sql(query);
-
-    const mappedPosts = response.map((post) => ({
-          id: post.id,
-          user_id: post.user_id,
-          firstname: post.firstname,
-          username: post.username,
-          content: post.content,
-          created_at: post.created_at,
-          expires_at: post.expires_at, // Not available in query - set default
-          city: post.city,
-          state: post.state,
-          country: post.country,
-          like_count: post.like_count,
-          report_count: post.report_count,
-          unread_comments: post.unread_comments,
-          recipient_user_id: post.recipient_user_id,
-          pinned: post.pinned,
-          color: post.color,
-          emoji: post.emoji,
-          notified: post.notified,
-          prompt_id: post.prompt_id,
-          prompt: post.prompt,
-          board_id: post.board_id,
-          reply_to: post.reply_to, 
-          unread: post.unread,
-          position: post.top !== null && post.left !== null 
-            ? { top: Number(post.top), left: Number(post.left) } 
-            : undefined,
-          formatting: post.formatting as Format || [],
-          static_emoji: post.static_emoji
-        }));
-
-    return new Response(JSON.stringify({ data: mappedPosts }), {
+    return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
   } catch (error) {
     console.error(error);
     return new Response(
-      JSON.stringify({ error: "Failed to fetch trending posts" }),
-      { status: 500 }
+      JSON.stringify({ error: "Failed to fetch random posts" }),
+      {
+        status: 500,
+      }
     );
   }
 }

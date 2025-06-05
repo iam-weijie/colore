@@ -7,6 +7,7 @@ import * as Haptics from "expo-haptics"; // Import Haptics for the style type
 
 declare interface Post {
   id: number;
+  clerk_id: string;
   user_id: string;
   firstname: string;
   username: string;

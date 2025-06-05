@@ -1979,12 +1979,13 @@
     hey-listen "^1.0.8"
     tslib "^2.3.1"
 
-"@neondatabase/serverless@^0.9.4":
-  version "0.9.5"
-  resolved "https://registry.npmjs.org/@neondatabase/serverless/-/serverless-0.9.5.tgz"
-  integrity sha512-siFas6gItqv6wD/pZnvdu34wEqgG3nSE6zWZdq5j2DEsa+VvX8i/5HXJOo06qrw5axPXn+lGCxeR+NLaSPIXug==
+"@neondatabase/serverless@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/@neondatabase/serverless/-/serverless-1.0.0.tgz"
+  integrity sha512-XWmEeWpBXIoksZSDN74kftfTnXFEGZ3iX8jbANWBc+ag6dsiQuvuR4LgB0WdCOKMb5AQgjqgufc0TgAsZubUYw==
   dependencies:
-    "@types/pg" "8.11.6"
+    "@types/node" "^22.10.2"
+    "@types/pg" "^8.8.0"
 
 "@noble/hashes@^1.4.0":
   version "1.8.0"
@@ -2698,7 +2699,7 @@
   resolved "https://registry.npmjs.org/@types/json5/-/json5-0.0.29.tgz"
   integrity sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==
 
-"@types/node@*":
+"@types/node@*", "@types/node@^22.10.2":
   version "22.15.3"
   resolved "https://registry.npmjs.org/@types/node/-/node-22.15.3.tgz"
   integrity sha512-lX7HFZeHf4QG/J7tBZqrCAXwz9J5RD56Y6MpP0eJkka8p+K0RY/yBTW7CYFJ4VGCclxqOLKmiGP5juQc6MKgcw==
@@ -2710,7 +2711,7 @@
   resolved "https://registry.npmjs.org/@types/parse-json/-/parse-json-4.0.2.tgz"
   integrity sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==
 
-"@types/pg@8.11.6":
+"@types/pg@^8.8.0":
   version "8.11.6"
   resolved "https://registry.npmjs.org/@types/pg/-/pg-8.11.6.tgz"
   integrity sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==
@@ -3972,7 +3973,7 @@ color@^4.2.3:
     "@gorhom/bottom-sheet" "^4.6.4"
     "@lottiefiles/dotlottie-react" "^0.6.5"
     "@motify/core" "^0.18.0"
-    "@neondatabase/serverless" "^0.9.4"
+    "@neondatabase/serverless" "1.0.0"
     "@react-native-async-storage/async-storage" "^1.23.1"
     "@react-native-clipboard/clipboard" "^1.16.2"
     "@react-native-community/datetimepicker" "8.3.0"

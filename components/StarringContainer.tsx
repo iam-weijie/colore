@@ -141,9 +141,8 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   }, [isSaved, isLiked, user]);
 
   useEffect(() => {
-    console.log("[Starring Tab] Post Count: ", post.length)
+    console.log("[Starring Tab] Post Count: ", post.length);
     if (post.length) {
-
       setPosts(post);
       setCurrentPost(post[currentPostIndex]);
       setIsLoading(false);
@@ -190,7 +189,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     (color) => color.id === currentPost?.color
   ) as PostItColor;
 
-    // Enhanced star animation
+  // Enhanced star animation
   const starAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       { scale: starScale.value * starPulseScale.value },
@@ -199,8 +198,6 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     opacity: starScale.value,
     shadowOpacity: starGlowOpacity.value,
   }));
-
-
 
   const SPRING_CONFIG = {
     stiffness: 150,
@@ -216,7 +213,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       starPulseScale.value = 1;
       starGlowOpacity.value = 0;
       starParticles.value = 0;
-      
+
       starScale.value = withSequence(
         withTiming(125, { duration: 100 }),
         withSpring(1, { stiffness: 100 })
@@ -226,15 +223,15 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     .onUpdate((event) => {
       translateX.value = event.translationX;
 
-       // Rotate star based on swipe direction
+      // Rotate star based on swipe direction
       starRotation.value = event.translationX * 0.2;
-      
+
       // Pulse effect during swipe
       starPulseScale.value = withSequence(
         withTiming(1.1, { duration: 100 }),
         withSpring(1, { stiffness: 200 })
       );
-      
+
       // Glow effect
       starGlowOpacity.value = interpolate(
         Math.abs(event.translationX),
@@ -247,7 +244,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       const velocityX = Math.abs(event.velocityX);
       const dynamicThreshold = threshold + velocityX * 0.16;
       const isLastPost = currentPostIndex === posts.length - 1;
-        // Trigger particle explosion
+      // Trigger particle explosion
       starParticles.value = withTiming(1, { duration: 500 }, (finished) => {
         if (finished) {
           starParticles.value = 0;
@@ -255,12 +252,12 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       });
 
       // Star exit animation
-      starScale.value = withTiming(0.5, { 
+      starScale.value = withTiming(0.5, {
         duration: 500,
-        easing: Easing.out(Easing.exp)
+        easing: Easing.out(Easing.exp),
       });
       starRotation.value = withTiming(starRotation.value * 10, {
-        duration: 500
+        duration: 500,
       });
       starGlowOpacity.value = withTiming(0, { duration: 500 });
 
@@ -310,7 +307,6 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     opacity: interpolate(Math.abs(translateX.value), [0.75, width], [1, 0.5]),
   }));
 
-
   const handleLikePress = async () => {
     if (isLoadingLike || !currentPost?.id || !user?.id) return;
     setIsLoadingLike(true);
@@ -352,8 +348,6 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       setIsLoadingLike(false);
     }
   };
-
-
 
   const fetchUserdata = async () => {
     try {
@@ -624,21 +618,18 @@ const StarringContainer: React.FC<PostContainerProps> = ({
         ];
   };
 
-const backgroundColor = useSharedValue(
-  currentPost ? (postColor?.hex || "rgba(0, 0, 0, 0)") : "white"
-);
+  const backgroundColor = useSharedValue(
+    currentPost ? postColor?.hex || "rgba(0, 0, 0, 0)" : "white"
+  );
   const prevColor = React.useRef(backgroundColor.value);
 
   // Animate color change
   useEffect(() => {
     if (prevColor.current !== (postColor?.hex || "rgba(0, 0, 0, 0)")) {
-      backgroundColor.value = withTiming(
-        postColor?.hex || "rgba(0, 0, 0, 0)",
-        {
-          duration: 300,
-          easing: Easing.inOut(Easing.quad),
-        }
-      );
+      backgroundColor.value = withTiming(postColor?.hex || "rgba(0, 0, 0, 0)", {
+        duration: 300,
+        easing: Easing.inOut(Easing.quad),
+      });
       prevColor.current = postColor?.hex || "rgba(0, 0, 0, 0)";
     }
   }, [postColor]);
@@ -680,14 +671,14 @@ const backgroundColor = useSharedValue(
     setContentHeight(calculatedHeight);
   };
 
-
   if (isLoading) {
-  return <ColoreActivityIndicator />;
-}
+    return <ColoreActivityIndicator />;
+  }
 
-const cleanFormatting: Format[] = typeof currentPost?.formatting === "string"
-                        ? JSON.parse(currentPost.formatting)
-                        : (currentPost?.formatting ?? []);
+  const cleanFormatting: Format[] =
+    typeof currentPost?.formatting === "string"
+      ? JSON.parse(currentPost.formatting)
+      : (currentPost?.formatting ?? []);
 
   return (
     <AnimatedView
@@ -704,22 +695,26 @@ const cleanFormatting: Format[] = typeof currentPost?.formatting === "string"
 
       {header}
       <GestureHandlerRootView
-        style={{ flex: 1, justifyContent: "center", alignItems: "center", top: "-2%" }}
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          top: "-2%",
+        }}
       >
         <GestureDetector gesture={swipeGesture}>
-          {currentPost && <Animated.View
-          className="bg-white px-6 py-4 rounded-[24px] w-[80%] max-w-[500px] mx-auto"
-            style={[
-              animatedStyle,
+          {currentPost && (
+            <Animated.View
+              className="bg-white px-6 py-4 rounded-[24px] w-[80%] max-w-[500px] mx-auto"
+              style={[
+                animatedStyle,
                 {
-                    minHeight:isIpad ? 250 : 200,
-                    maxHeight: isIpad ? "55%" : "40%",
-                    backgroundColor: "rgba(255, 255, 255, 1)",
-                  },
-            ]}
-          >
-
-
+                  minHeight: isIpad ? 250 : 200,
+                  maxHeight: isIpad ? "55%" : "40%",
+                  backgroundColor: "rgba(255, 255, 255, 1)",
+                },
+              ]}
+            >
               {/* Scrollable content */}
               <ScrollView
                 ref={scrollViewRef}
@@ -728,38 +723,42 @@ const cleanFormatting: Format[] = typeof currentPost?.formatting === "string"
                 showsVerticalScrollIndicator={true}
                 persistentScrollbar={true}
               >
-               <RichText formatStyling={cleanFormatting} content={currentPost?.content ?? ""} />
+                <RichText
+                  formatStyling={cleanFormatting}
+                  content={currentPost?.content ?? ""}
+                />
               </ScrollView>
               <View className="my-2 flex-row justify-between items-center">
-                                  <View className="flex flex-row items-center">
-                                    <TouchableOpacity onPress={handleCommentsPress}>
-                                      <Image source={icons.comment} className="w-7 h-7" />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={handleLikePress} className="ml-2">
-                                      <MaterialCommunityIcons
-                                        name={isLiked ? "heart" : "heart-outline"}
-                                        size={31}
-                                        color={isLiked ? "red" : "black"}
-                                      />
-                                    </TouchableOpacity>
-                                    {/* Show like count only to post creator */}
-                                  {currentPost?.user_id == user?.id && (
-                                      <Text className="ml-1 text-gray-600">{likeCount}</Text>
-                                    )}
-                                  </View>
-            
-                 {
-                      <DropdownMenu
-                        menuItems={getMenuItems(
-                          currentPost?.clerk_id === user!.id ||
-                            currentPost?.recipient_user_id === user!.id,
-                          invertedColors,
-                          isPreview
-                        )}
-                      />
-                    }
-                    </View>
-          </Animated.View>}
+                <View className="flex flex-row items-center">
+                  <TouchableOpacity onPress={handleCommentsPress}>
+                    <Image source={icons.comment} className="w-7 h-7" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleLikePress} className="ml-2">
+                    <MaterialCommunityIcons
+                      name={isLiked ? "heart" : "heart-outline"}
+                      size={31}
+                      color={isLiked ? "red" : "black"}
+                    />
+                  </TouchableOpacity>
+                  {/* Show like count only to post creator */}
+                  {currentPost?.user_id == user?.id && (
+                    <Text className="ml-1 text-gray-600">{likeCount}</Text>
+                  )}
+                </View>
+
+                {
+                  <DropdownMenu
+                    menuItems={getMenuItems(
+                      currentPost?.clerk_id === user!.id ||
+                        currentPost?.recipient_user_id === user!.id,
+                      invertedColors,
+                      isPreview
+                    )}
+                  />
+                }
+              </View>
+            </Animated.View>
+          )}
         </GestureDetector>
       </GestureHandlerRootView>
       {/*infiniteScroll && 
@@ -818,7 +817,7 @@ const cleanFormatting: Format[] = typeof currentPost?.formatting === "string"
        }
         </View>
       )*/}
-        {showStar && (
+      {showStar && (
         <Animated.View
           style={[
             {
@@ -868,27 +867,23 @@ const cleanFormatting: Format[] = typeof currentPost?.formatting === "string"
           />
         </View>
       )}
-                  {!!selectedBoard &&
-          <ModalSheet 
-            isVisible={!!selectedBoard}
-            title={"Comments"}
-            onClose={() => {
-              if (currentPost) {
-                handleReadComments(currentPost, user!.id);
-              }
-              console.log("has closed.")
-              setSelectedBoard(null)
-            }}
-            >
-              <View className="flex-1 h-full">
-              {selectedBoard}
-              </View>
-              
-              </ModalSheet>
-}
+      {!!selectedBoard && (
+        <ModalSheet
+          isVisible={!!selectedBoard}
+          title={"Comments"}
+          onClose={() => {
+            if (currentPost) {
+              handleReadComments(currentPost, user!.id);
+            }
+            console.log("has closed.");
+            setSelectedBoard(null);
+          }}
+        >
+          <View className="flex-1 h-full">{selectedBoard}</View>
+        </ModalSheet>
+      )}
     </AnimatedView>
   );
 };
 
 export default StarringContainer;
-
