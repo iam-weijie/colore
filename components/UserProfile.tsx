@@ -167,7 +167,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
 
       const userInfo = response.data[0] as UserProfileType;
       setProfileUser(userInfo);
-      const countryCode = await fetchCountryByName(profileUser?.country ?? "")
 
       
       setLoading(false);
