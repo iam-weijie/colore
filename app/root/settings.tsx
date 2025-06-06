@@ -81,21 +81,21 @@ const Settings = () => {
     userColors || temporaryColors
   );
   const blueProgress = useMemo(
+    () => Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20),
+    [savedPosts]
+  );
+  const yellowProgress = useMemo(
+    () => Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20),
+    []
+  );
+  const pinkProgress = useMemo(
     () =>
       Math.min(
         100,
-        Math.floor((savedPosts?.length || 0) / 3) * 20
+        Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
       ),
-    [savedPosts]
-  )
-  const yellowProgress = useMemo(() => Math.min(
-    100,
-    Math.floor((likedPosts?.length || 0) / 10) * 20
-  ), []);
-  const pinkProgress = useMemo(() => Math.min(
-    100,
-    Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
-  ), [])
+    []
+  );
   const [unlockedColors, setUnlockedColors] = useState<PostItColor[]>([]);
   const handleAttemptColorCreation = () => {
     const S = Math.floor((savedPosts?.length || 0) / 3);
@@ -179,6 +179,15 @@ const Settings = () => {
   useEffect(() => {
     fetchLikedPosts();
   }, []);
+
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username || "");
+      setNickname(profile.nickname || "");
+      setIncognitoName(profile.incognito_name || "");
+      setEmail(profile.email || "");
+    }
+  }, [profile]);
 
   const verifyValidName = (username: string): boolean => {
     const usernameRegex = /^[\w\-\.]{1,20}$/;
@@ -424,9 +433,9 @@ const Settings = () => {
   };
 
   const handleUpdateValue = (type: string) => {
-    setUpdateType(type)
-    setOnFocus(true)
-    console.log("[Settings]: ", onFocus)
+    setUpdateType(type);
+    setOnFocus(true);
+    console.log("[Settings]: ", onFocus);
   };
 
   const currentLocation = profileUser
@@ -454,13 +463,13 @@ const Settings = () => {
   };
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const x = event.nativeEvent.contentOffset.x;  
-      const y = event.nativeEvent.contentOffset.y;
-      setScrollOffset({
-        x:  x,
-        y: y,
-      });
-    };
+    const x = event.nativeEvent.contentOffset.x;
+    const y = event.nativeEvent.contentOffset.y;
+    setScrollOffset({
+      x: x,
+      y: y,
+    });
+  };
 
   return (
     <ScrollView
@@ -712,37 +721,33 @@ const Settings = () => {
       </View>
 
       {onFocus && (
-        <KeyboardOverlay
-        onFocus={onFocus}
-        offsetY={scrollOffset.y}
-        >
-          <RenameContainer 
-          onSave={(newName: string) => {
-          if (type === "username") {
-            handleUsernameUpdate(newName);
-          } else if (type === "nickname") {
-            handleNicknameUpdate(newName);
-          } else if (type === "incognito_name") {
-            handleIncognitoNameUpdate(newName);
-          } else {
-            handleEmailUpdate(newName);
-          }
-        }} 
-        placeholder={
-          type === "username"
-            ? username
-            : type === "nickname"
-            ? nickname
-            : type === "incognito_name"
-            ? incognitoName
-            : email
-        }
-        
-          onCancel={() => setOnFocus(false)} />
+        <KeyboardOverlay onFocus={onFocus} offsetY={scrollOffset.y}>
+          <RenameContainer
+            onSave={(newName: string) => {
+              if (type === "username") {
+                handleUsernameUpdate(newName);
+              } else if (type === "nickname") {
+                handleNicknameUpdate(newName);
+              } else if (type === "incognito_name") {
+                handleIncognitoNameUpdate(newName);
+              } else {
+                handleEmailUpdate(newName);
+              }
+            }}
+            placeholder={
+              type === "username"
+                ? username
+                : type === "nickname"
+                  ? nickname
+                  : type === "incognito_name"
+                    ? incognitoName
+                    : email
+            }
+            onCancel={() => setOnFocus(false)}
+          />
         </KeyboardOverlay>
-        
       )}
-       {!!selectedModal && (
+      {!!selectedModal && (
         <ModalSheet
           children={selectedModal}
           title={selectedTitle}
@@ -753,7 +758,7 @@ const Settings = () => {
           }}
         />
       )}
-      
+
       {libraryVisible && (
         <ModalSheet
           title={"Your Color Library"}
