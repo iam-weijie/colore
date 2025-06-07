@@ -403,7 +403,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           ]);
           incrementUnreadAmount(type);
         } else {
-          throw new Error("Missing information to send info");
+          throw new Error("Missing information to send notification");
         }
       });
 

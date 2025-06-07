@@ -89,6 +89,52 @@ export async function PATCH(request: Request) {
           TRUE as is_liked
         FROM update_count uc
       `;
+
+      /* 
+      // Dispatching notification of liking post to post owner
+      // Fix: turn 2 sql queries into 1
+
+      const postInfo = await sql`
+        SELECT
+          id,
+          user_id,
+          content
+        FROM posts 
+        WHERE id = ${postIdNum}
+      `;
+
+      const likerUsername = await sql`
+        SELECT 
+          username
+        FROM users
+        WHERE clerk_id = ${userId}
+      `;
+
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: postInfo[0].user_id,
+            type: "Likes",
+            notification: {},
+            content: {
+              postId: postInfo[0].id,
+              postContent: postInfo[0].content,
+              likerUsername: likerUsername[0].username,
+            },
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (!data.success) {
+        console.log(data.message!);
+      } else {
+        console.log("successfully shot like notification!");
+      }
+    */
     } else {
       // Unlike the post
       result = await sql`
