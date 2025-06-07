@@ -471,7 +471,8 @@ const handleClearSearch = () => {
             {selectedTab === "Profile" && <View className="flex-1">
               {!profileLoading ? (
                 <View className={`absolute -top-[20%]`}>
-                  <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>)
+                  <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions} isShowCasing={true}/>
+                  </View>)
               : (
                 <View className={`absolute -top-[25%]`}>
                   <PostContainer selectedPosts={[post]} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>

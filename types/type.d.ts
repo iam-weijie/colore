@@ -265,6 +265,7 @@ declare interface PostContainerProps {
   infiniteScroll?: boolean;
   header?: React.ReactElement;
   isPreview?: boolean;
+  isShowCasing?: boolean;
   infiniteScroll?: boolean;
   scrollToLoad?: () => void;
   staticEmoji?: boolean;

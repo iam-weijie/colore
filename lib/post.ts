@@ -46,7 +46,7 @@ export const handleEditing = (post: Post) => {
   
 export const handleReadComments = async (post: Post, userId: string) => {
     
-    if (post.clerk_id === userId) {
+    if (post.user_id === userId) {
       try {
         console.log("Patching comments")
         
@@ -55,7 +55,7 @@ export const handleReadComments = async (post: Post, userId: string) => {
           body: JSON.stringify({
             clerkId: userId,
             postId: post?.id,
-            postClerkId: post.clerk_id,
+            postUserId: post.user_id,
           }),
         });
       } catch (error) {

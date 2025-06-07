@@ -88,6 +88,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
   infiniteScroll = false,
   staticEmoji = false,
   isPreview = false,
+  isShowCasing = false,
   header,
   scrollToLoad,
 }) => {
@@ -275,7 +276,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
         throw new Error(response.error);
       }
       const nicknames = response.data[0].nicknames || [];
-      return findUserNickname(nicknames, post!.clerk_id) === -1
+      return findUserNickname(nicknames, post!.user_id) === -1
         ? ""
         : nicknames[findUserNickname(nicknames, post!.user_id)][1];
     } catch (error) {
@@ -349,7 +350,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
   };
 
   const handleCommentsPress = () => {
-   setSelectedBoard(() => <PostScreen id={currentPost?.id.toString()} clerkId={currentPost?.clerk_id} />); 
+   setSelectedBoard(() => <PostScreen id={currentPost?.id.toString()} clerkId={currentPost?.user_id} />); 
   };
 
 
@@ -701,7 +702,7 @@ const cleanFormatting: Format[] = isPreview
               </Animated.View>
             </GestureDetector>
           </GestureHandlerRootView>
-           <View className="absolute top-[10%] left-[10%]  flex flex-row">
+           <View className={`absolute flex flex-row ${isShowCasing ? "top-40 left-8" :  "top-16 left-8"}`}>
             {posts.length > 1 &&
               posts.map((post, index) => {
                 return (

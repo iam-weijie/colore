@@ -1,6 +1,6 @@
 import { icons } from "@/constants";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import {
   Switch, // Import Switch
   Text,
@@ -8,8 +8,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import ModalSheet from "./Modal";
 
-export const HeaderCard = ({ title, color, content }) => (
+export const HeaderCard = ({ title, color, content, infoView }) => {
+
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
+ return (
   <View className="rounded-[48px] py-4 mb-2"
     style={{
       backgroundColor: "#ffffff",
@@ -37,7 +42,7 @@ export const HeaderCard = ({ title, color, content }) => (
     </View>
     <View className="mr-8">
       <TouchableOpacity
-      onPress={() => {}}>
+      onPress={() => {setIsModalVisible(true)}}>
     <Image
     source={icons.info}
     className="w-5 h-5"
@@ -50,8 +55,15 @@ export const HeaderCard = ({ title, color, content }) => (
     <View className="px-4 py-4 rounded-[48px] overflow-hidden">
       {content}
     </View>
+      {isModalVisible && 
+      <ModalSheet title={"Description"} isVisible={isModalVisible} onClose={() => {setIsModalVisible(false)}}>
+        <View>
+          {infoView}
+        </View>
+      </ModalSheet>}
+    
   </View>
-);
+)};
 
 export const DetailRow = ({ label, value, onPress, accentColor }) => (
   <View className="px-6 py-2  last:border-b-0">
