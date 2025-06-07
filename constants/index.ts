@@ -187,4 +187,38 @@ export const defaultColors: PostItColor[] = [
   }
 ];
 
+export const temporaryColors: PostItColor[] = [
+  {
+    name: "yellow",
+    id: 0,
+    hex: "#ffe640",
+    rarity: "default",
+    foldcolorhex: "#fef08a",
+    fontColor: "#B29B00",
+  },
+  {
+    name: "pink",
+    id: 1,
+    hex: "#FBB1F5",
+    rarity: "default",
+    foldcolorhex: "#FFC8FB",
+    fontColor: "#D82C82",
+  },
+  {
+    name: "light-blue",
+    id: 2,
+    hex: "#93c5fd",
+    rarity: "default",
+    foldcolorhex: "#b8e1ff",
+    fontColor: "#2775CC",
+  },
+  {
+    name: "baby-purple",
+    id: 3,
+    hex: "#CFB1FB",
+    rarity: "default",
+    foldcolorhex: "#E2C7FF",
+    fontColor: "#8654CF",
+  },
+];
 

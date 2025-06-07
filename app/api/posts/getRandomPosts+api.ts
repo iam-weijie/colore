@@ -1,15 +1,17 @@
-import { Format } from "@/types/type";
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(process.env.DATABASE_URL!);
+    const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const limit = Number(url.searchParams.get("number")) || 10;
-    const userId = url.searchParams.get("id");
-    const mode = url.searchParams.get("mode");
+    const number = url.searchParams.get("number");
+    const id = url.searchParams.get("id");
+    const mode = url.searchParams.get("mode") as
+      | keyof typeof locationFilter
+      | null;
 
-     const baseSelectFields = `
+    // Define the base select fields that are common to all queries
+    const baseSelectFields = `
       p.id, 
       p.content, 
       p.like_count, 
@@ -22,8 +24,6 @@ export async function GET(request: Request) {
       p.emoji,
       p.prompt_id,
       p.board_id,
-      p.formatting,
-      p.static_emoji,
       u.clerk_id,
       u.firstname, 
       u.lastname, 
@@ -34,61 +34,35 @@ export async function GET(request: Request) {
       pr.content as prompt
     `;
 
-    // Validate mode against allowed values
-    const allowedModes = ["city", "state", "country"];
-    const locationFilter = allowedModes.includes(mode ?? "")
-      ? `u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = '${userId}')`
-      : "1=1";
+    // Determine the filter based on mode
+    const locationFilter = {
+      city: `u.city = (SELECT u1.city FROM users u1 WHERE u1.clerk_id = ${id})`,
+      state: `u.state = (SELECT u1.state FROM users u1 WHERE u1.clerk_id = ${id})`,
+      country: `u.country = (SELECT u1.country FROM users u1 WHERE u1.clerk_id = ${id})`,
+    };
 
-    // Directly interpolate values into the SQL string
-    const query = `
-      SELECT
-        ${baseSelectFields}
-      FROM posts p
-      JOIN users u ON p.user_id = u.clerk_id
-      LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.user_id != '${userId}'
-      AND p.post_type = 'public'
-      AND ${locationFilter}
-      ORDER BY RANDOM()
-      LIMIT ${limit};
-    `;
+    const locationCondition =
+      mode && locationFilter[mode as keyof typeof locationFilter]
+        ? locationFilter[mode as keyof typeof locationFilter]
+        : "1=1"; // Default to no filter for global mode
 
-    const response = await sql(query);
-       const mappedPosts = response.map((post) => ({
-      id: post.id,
-      user_id: post.user_id,
-      firstname: post.firstname,
-      username: post.username,
-      content: post.content,
-      created_at: post.created_at,
-      expires_at: post.expires_at, // Not available in query - set default
-      city: post.city,
-      state: post.state,
-      country: post.country,
-      like_count: post.like_count,
-      report_count: post.report_count,
-      unread_comments: post.unread_comments,
-      recipient_user_id: post.recipient_user_id,
-      pinned: post.pinned,
-      color: post.color,
-      emoji: post.emoji,
-      notified: post.notified,
-      prompt_id: post.prompt_id,
-      prompt: post.prompt,
-      board_id: post.board_id,
-      reply_to: post.reply_to, 
-      unread: post.unread,
-      position: post.top !== null && post.left !== null 
-        ? { top: Number(post.top), left: Number(post.left) } 
-        : undefined,
-      formatting: post.formatting as Format || [],
-      static_emoji: post.static_emoji,
-    }));
+    /*lolol this is safe as 100% hardcoded -- no sql injection */
+    const response = await sql`
+        SELECT
+        ${sql.unsafe(baseSelectFields)}
+        FROM posts p
+        JOIN users u ON p.user_id = u.clerk_id
+        LEFT JOIN prompts pr ON p.prompt_id = pr.id
+        WHERE p.user_id != ${id}
+        AND p.post_type = 'public'
+        AND ${sql.unsafe(locationCondition)}
+        ORDER BY RANDOM()
+        LIMIT ${number};
+      `;
 
-      return new Response(JSON.stringify({ data: mappedPosts }), {
-        status: 200,
-      });
+    return new Response(JSON.stringify({ data: response }), {
+      status: 200,
+    });
   } catch (error) {
     console.error(error);
     return new Response(

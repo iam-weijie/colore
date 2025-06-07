@@ -24,7 +24,7 @@
     "@gorhom/bottom-sheet": "^4.6.4",
     "@lottiefiles/dotlottie-react": "^0.6.5",
     "@motify/core": "^0.18.0",
-    "@neondatabase/serverless": "^0.9.4",
+    "@neondatabase/serverless": "^1.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-clipboard/clipboard": "^1.16.2",
     "@react-native-community/datetimepicker": "8.3.0",

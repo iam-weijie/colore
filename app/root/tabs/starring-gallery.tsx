@@ -2,7 +2,8 @@ import PostModal from "@/components/PostModal";
 import { fetchAPI } from "@/lib/fetch";
 import { Post, UserData } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import * as React from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { router, useFocusEffect } from "expo-router";
 import {
   Animated,
@@ -18,11 +19,19 @@ import {
 } from "react-native";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
+import CustomButton from "@/components/CustomButton";
+import ModalSheet from "@/components/Modal";
+import InfoScreen from "@/components/InfoScreen";
 import EmojiBackground from "@/components/EmojiBackground";
+import { icons } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from "@/notifications/AlertContext";
+import { LinearGradient } from "expo-linear-gradient";
+import { RenderPromptCard } from "@/components/RenderCard";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
+import CardCarrousel from "@/components/CardCarroussel";
+// import StarringPeekTab from "@/components/StarringModal";
 import StarringModal from "@/components/StarringModal";
 
 const screenWidth = Dimensions.get("window").width;
@@ -30,7 +39,7 @@ const screenWidth = Dimensions.get("window").width;
 export default function Page() {
   const { user } = useUser();
   const { showAlert } = useAlert();
-  const { isIpad } = useGlobalContext();
+  const { isIpad, stacks, setStacks } = useGlobalContext();
 
   const [userInfo, setUserInfo] = useState<UserData | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -42,10 +51,13 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [hasSubmittedPrompt, setHasSubmittedPrompt] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState<string>("Create");
+  const [selectedTab, setSelectedTab] = useState<string>("Starring");
 
   const selectedPostRef = useRef<Post | null>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
   const inputRef = useRef<TextInput>(null);
+
+  const [selectedModal, setSelectedModal] = useState<any>();
 
   const starringTabs = [
     { name: "Create", key: "Create", color: "#CFB1FB", notifications: 0 },
@@ -76,24 +88,25 @@ export default function Page() {
 
   // 3) fetch initial batch of posts
   const fetchPosts = async () => {
-   
     setLoading(true);
-   
     try {
-      const response = await fetchAPI(
+      const res = await fetchAPI(
         //TODO Adjust this to get trending posts
         `/api/posts/getTrendingPosts?number=${isIpad ? 24 : 18}&id=${user?.id}`
       );
 
-      
-      setPosts(response.data);
-      selectedPostRef.current = response.data[0];
-      setExcludedIds(response.data.map((p: Post) => p.id));
-      setLoading(false);
+      setPosts(res.data);
+      selectedPostRef.current = res.data[0];
+      setExcludedIds(res.data.map((p: Post) => p.id));
+      // Log posts to console for debugging
+      console.log("Fetched posts:", res.data);
+      console.log("setPosts:", posts);
     } catch (e) {
       console.error("Failed to fetch posts:", e);
       setError("Failed to load posts");
-    } 
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchPrompts = async () => {
@@ -142,7 +155,7 @@ export default function Page() {
   // reset modal visible each time the screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      {/*setSelectedModal(
+      setSelectedModal(
         <InfoScreen
           title="Your Turn!"
           content="Dive into creative exploration.
@@ -154,12 +167,15 @@ export default function Page() {
           }}
         />
       );
-      setIsModalVisible(true);*/}
+      setIsModalVisible(true);
 
-     
+      if (user && stacks.length == 0) {
         fetchPosts();
-      
-    }, [user])
+      } else if (user && stacks.length > 0) {
+        setPosts(stacks[0].elements);
+        setExcludedIds(stacks[0].ids);
+      }
+    }, [user, isIpad])
   );
 
   // on-mount (and whenever user / isIpad changes) load everything
@@ -168,11 +184,52 @@ export default function Page() {
     fetchPrompts();
     if (user) {
       fetchUserData();
-      fetchPosts();
+      if (stacks.length == 0) {
+        fetchPosts();
+      }
     }
-  }, [user]);
+  }, [user, isIpad]);
 
+  // Ensure uniqueness of posts and ids in stack
+  useEffect(() => {
+    if (posts.length > 0) {
+      setStacks((prev) => {
+        // Ensure only the first stack is updated or created
+        const existingIds = prev.length > 0 ? prev[0].ids : [];
+        const existingElements = prev.length > 0 ? prev[0].elements : [];
 
+        // Filter out posts with duplicate IDs and elements
+        const newPosts = posts.filter((post) => !existingIds.includes(post.id));
+
+        // If there are new posts, add them to the stack
+        if (newPosts.length > 0) {
+          const newIds = [...existingIds, ...newPosts.map((post) => post.id)];
+          const newElements = [...existingElements, ...newPosts];
+
+          // Remove duplicates from newIds and newElements
+          const uniqueIds = [...new Set(newIds)];
+          const uniqueElements = newElements.filter(
+            (value, index, self) =>
+              index === self.findIndex((el) => el.id === value.id)
+          );
+
+          return [
+            {
+              ids: uniqueIds,
+              elements: uniqueElements,
+            },
+          ];
+        }
+        return prev; // If no new posts, return the previous state
+      });
+    }
+  }, [posts]);
+
+  const handleCloseModalPress = () => {
+    router.push("/root/tabs/home");
+    setIsModalVisible(false);
+    //setStacks([])
+  };
 
   const handleScrollToLoad = async () => {
     setLoading(true);
@@ -255,28 +312,16 @@ export default function Page() {
               selectedTab={selectedTab}
               onTabChange={handleTabChange}
               tabCount={starringTabs.length}
+              className="z-10"
             />
-            <EmojiBackground emoji="" color="#ffe640" />
-             {loading ? (
-              <View className="flex-1 flex-col items-center justify-center">
-                <ColoreActivityIndicator colors={["#FFFFFF", "#FFFFFF", "#FFFFFF"]}/>
-              </View>
-            ) : posts.length > 0 ? (
-              <View className="flex-1 absolute top-[5%]">
-              <StarringModal
-                isVisible={true}
-                selectedPosts={posts}
-                handleCloseModal={() => {}}
-                infiniteScroll={true}
-                scrollToLoad={handleScrollToLoad}
-              />
-              </View>
-              
-            ) : (
-              <View>
-                <Text>No posts available</Text>
-              </View>
-            )}
+            <EmojiBackground emoji="😳" color="#ffe640" />
+            <StarringModal
+              isVisible={isModalVisible}
+              selectedPosts={posts}
+              handleCloseModal={handleCloseModalPress}
+              infiniteScroll={true}
+              scrollToLoad={handleScrollToLoad}
+            />
             {hasSubmittedPrompt ? (
               <>
                 {/*
@@ -327,6 +372,13 @@ export default function Page() {
             </View> */}
               </>
             )}
+            {/* !!selectedModal && 
+  <ModalSheet
+  title=""
+  isVisible={!!selectedModal}
+  onClose={() => {setSelectedModal(null)}}>
+   {selectedModal}
+  </ModalSheet>*/}
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
