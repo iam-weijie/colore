@@ -259,6 +259,26 @@ async function handleSendNotificationExternal(
         }
       );
     }
+    if (type == "Likes") {
+      // handling a post like
+      if (n.post_id) {
+        const notificationContent = n.post_content.slice(0, 120);
+
+        await sendPushNotification(
+          pushToken,
+          `${n.liker_username} has liked your post`,
+          notificationContent,
+          "comment",
+          {
+            route: `/root/posts/${n.post_id}`,
+            params: {
+              content: n.post_content,
+              color: n.post_color,
+            },
+          }
+        );
+      } // else if (n.comment_id) {}
+    }
 
     await fetchAPI(`/api/notifications/updateNotified${type}`, {
       method: "PATCH",
@@ -330,6 +350,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
   const [unreadPersonalPosts, setUnreadPersonalPosts] = useState<number>(0);
   const [unreadRequests, setUnreadRequests] = useState<number>(0);
+  const [unreadLikes, setUnreadLikes] = useState<number>(0);
   const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
   const [isIpad, setIsIpad] = useState<boolean>(false);
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -439,6 +460,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     };
     fetchUserProfile();
   }, [user]);
+
   const incrementUnreadAmount = (notificationType: string) => {
     switch (notificationType) {
       case "Comments":
@@ -452,6 +474,9 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         break;
       case "Posts":
         setUnreadPersonalPosts((prevCount) => prevCount + 1);
+        break;
+      case "Likes":
+        setUnreadLikes((prevCount) => prevCount + 1);
         break;
     }
   };
@@ -609,6 +634,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         unreadMessages,
         unreadPersonalPosts,
         unreadRequests,
+        unreadLikes,
         lastConnection,
         isIpad,
         replyTo,

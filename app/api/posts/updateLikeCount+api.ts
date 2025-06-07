@@ -90,7 +90,6 @@ export async function PATCH(request: Request) {
         FROM update_count uc
       `;
 
-      /* 
       // Dispatching notification of liking post to post owner
       // Fix: turn 2 sql queries into 1
 
@@ -98,7 +97,8 @@ export async function PATCH(request: Request) {
         SELECT
           id,
           user_id,
-          content
+          content,
+          color
         FROM posts 
         WHERE id = ${postIdNum}
       `;
@@ -118,12 +118,13 @@ export async function PATCH(request: Request) {
           body: JSON.stringify({
             userId: postInfo[0].user_id,
             type: "Likes",
-            notification: {},
-            content: {
-              postId: postInfo[0].id,
-              postContent: postInfo[0].content,
-              likerUsername: likerUsername[0].username,
+            notification: {
+              post_id: postInfo[0].id,
+              post_content: postInfo[0].content,
+              post_color: postInfo[0].color,
+              liker_username: likerUsername[0].username,
             },
+            content: {},
           }),
         }
       );
@@ -132,9 +133,8 @@ export async function PATCH(request: Request) {
       if (!data.success) {
         console.log(data.message!);
       } else {
-        console.log("successfully shot like notification!");
+        console.log("successfully shot post like notification!");
       }
-    */
     } else {
       // Unlike the post
       result = await sql`
