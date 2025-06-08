@@ -1,13 +1,20 @@
+import { icons } from "@/constants";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import {
   Switch, // Import Switch
   Text,
+  Image,
   TouchableOpacity,
   View,
 } from "react-native";
+import ModalSheet from "./Modal";
 
-export const HeaderCard = ({ title, color, content }) => (
+export const HeaderCard = ({ title, color, content, infoView }) => {
+
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
+ return (
   <View className="rounded-[48px] py-4 mb-2"
     style={{
       backgroundColor: "#ffffff",
@@ -17,6 +24,7 @@ export const HeaderCard = ({ title, color, content }) => (
       shadowOpacity: 0.1,
       shadowRadius: 5,
     }}>
+      <View className="flex flex-row justify-between items-center">
     <View 
       className="px-2 py-1 rounded-[48px] w-[60%] ml-5 overflow-hidden shadow-sm border-2" 
       style={{
@@ -29,15 +37,33 @@ export const HeaderCard = ({ title, color, content }) => (
       }}
     >
       <View className="px-4 py-2">
-        <Text className={`text-[16px] font-JakartaSemiBold ${color === "#FAFAFA" ? "text-black" : "text-white"}`}>{title}</Text>
+        <Text className={`text-[16px] font-JakartaSemiBold ${color === "#FFFFFF" ? "text-black" : "text-white"}`}>{title}</Text>
       </View>
+    </View>
+    <View className="mr-8">
+      <TouchableOpacity
+      onPress={() => {setIsModalVisible(true)}}>
+    <Image
+    source={icons.info}
+    className="w-5 h-5"
+    tintColor="#E1E1E1"
+    />
+    </TouchableOpacity>
+    </View>
     </View>
     
     <View className="px-4 py-4 rounded-[48px] overflow-hidden">
       {content}
     </View>
+      {isModalVisible && 
+      <ModalSheet title={"Description"} isVisible={isModalVisible} onClose={() => {setIsModalVisible(false)}}>
+        <View>
+          {infoView}
+        </View>
+      </ModalSheet>}
+    
   </View>
-);
+)};
 
 export const DetailRow = ({ label, value, onPress, accentColor }) => (
   <View className="px-6 py-2  last:border-b-0">

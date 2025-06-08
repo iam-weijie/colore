@@ -75,7 +75,7 @@ const CardCarrousel =  <T,>({
 
 return (
   <Animated.View
-  className=" h-[90%]"
+  className=" h-[85%]"
     style={{
       transform: [{ scale }],
       shadowColor: "#000",

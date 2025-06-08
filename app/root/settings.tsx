@@ -1,8 +1,7 @@
 // Need to configure Email Verification & Update
-
-import InputField from "@/components/InputField";
 import { useNavigationContext } from "@/components/NavigationContext";
-import { icons, temporaryColors } from "@/constants";
+import { icons } from "@/constants";
+import { allColors } from "@/constants/colors";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor, UserProfileType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -11,27 +10,21 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Alert,
   FlatList,
   Image,
-  KeyboardAvoidingView,
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
-  Switch, // Import Switch
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
 import RenameContainer from "@/components/RenameContainer";
-import { Modal as RNModal } from "react-native";
 import CustomButton from "@/components/CustomButton";
-import Circle from "@/components/Circle";
 import ItemContainer from "@/components/ItemContainer";
 import ProgressBar from "@/components/ProgressBar";
 import EmojiSettings from "@/components/EmojiSettings";
@@ -42,6 +35,7 @@ import {
   ToggleRow,
 } from "@/components/CardInfo";
 import KeyboardOverlay from "@/components/KeyboardOverlay";
+import { SRBInfoPage, InformationInfoPage, YourActivityInfoPage, PreferencesInfoPage } from "@/components/InfoView";
 
 const Settings = () => {
   const {
@@ -78,7 +72,7 @@ const Settings = () => {
   const [likedPosts, setLikedPosts] = useState<string[]>();
   const [libraryVisible, setLibraryVisible] = useState(false);
   const [colorLibrary, setColorLibrary] = useState<PostItColor[]>(
-    userColors || temporaryColors
+    userColors || allColors
   );
   const blueProgress = useMemo(
     () =>
@@ -112,7 +106,7 @@ const Settings = () => {
 
     if (matchedColor) {
       const alreadyUnlocked = unlockedColors.some(
-        (uc) => uc.name === matchedColor.name
+        (uc) => uc.id === matchedColor.name
       );
 
       if (!alreadyUnlocked) {
@@ -122,7 +116,7 @@ const Settings = () => {
           title: "🎉 Color Unlocked!",
           message: `${matchedColor.name} has been added to your collection.`,
           type: "UPDATE",
-          status: "success",
+          status: "success"
         });
       } else {
         showAlert({
@@ -473,13 +467,13 @@ const Settings = () => {
       {/* Color Section */}
       <View className="mx-4 mb-6">
         <HeaderCard
-          title="Colors"
-          color="#FAFAFA"
+          title="SRB Progression"
+          color="#FFFFFF"
           content={
             <>
               {/* Blue Progress */}
               <View className="px-5 py-2">
-                <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
+                <Text className="text-[14px] font-JakartaSemiBold text-gray-800 my-2">
                   🔵 Blue Level
                 </Text>
 
@@ -493,7 +487,7 @@ const Settings = () => {
 
               {/* Yellow Progress */}
               <View className="px-5 py-2">
-                <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
+                <Text className="text-[14px] font-JakartaSemiBold text-gray-800 my-2">
                   🟡 Yellow Level
                 </Text>
 
@@ -507,7 +501,7 @@ const Settings = () => {
 
               {/* Pink Progress */}
               <View className="px-5 py-2">
-                <Text className="text-sm font-JakartaSemiBold text-gray-800 my-2">
+                <Text className="text-[14px] font-JakartaSemiBold text-gray-800 my-2">
                   🩷 Pink Level
                 </Text>
 
@@ -548,10 +542,14 @@ const Settings = () => {
               />
             </>
           }
+          infoView={
+            <>
+            <SRBInfoPage />
+            </>}
         />
       </View>
 
-      {/* Header Card Component */}
+      {/* Information Section */}
       <View className="mx-4 mb-6">
         <HeaderCard
           title="Information"
@@ -588,6 +586,11 @@ const Settings = () => {
                 onPress={handleLocationUpdate}
                 accentColor="#93c5fd"
               />
+            </>
+          }
+          infoView={
+             <>
+            <InformationInfoPage />
             </>
           }
         />
@@ -663,6 +666,11 @@ const Settings = () => {
               />
             </>
           }
+          infoView={
+            <>
+            <YourActivityInfoPage />
+            </>
+          }
         />
       </View>
 
@@ -687,6 +695,11 @@ const Settings = () => {
                 onValueChange={handleSoundToggle}
                 accentColor="#ffe640"
               />
+            </>
+          }
+          infoView={
+             <>
+            <PreferencesInfoPage />
             </>
           }
         />
@@ -800,16 +813,3 @@ const Settings = () => {
 };
 
 export default Settings;
-
-/*
-
-                    console.log("Pressed")
-                   if (!newUsername || loading) {
-                      return;
-                    }
-                    handleUsernameUpdate();
-                    setUsername(newUsername)
-                    setNewUsername("");
-
-                  }}
-                    */

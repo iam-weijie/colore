@@ -7,8 +7,7 @@ import * as Haptics from "expo-haptics"; // Import Haptics for the style type
 
 declare interface Post {
   id: number;
-  clerk_id: string;
-  user_id?: string; // this is supposed to be a temporary fix to prevent weird type mismatch errors
+  user_id: string;
   firstname: string;
   username: string;
   content: string;
@@ -38,6 +37,31 @@ declare interface Post {
   };
   formatting: Format[];
 }
+
+declare interface PostItBoardProps {
+  userId: string;
+  handlePostsRefresh: () => Promise<Post[]>;
+  handleBack?: () => void;
+  handleNewPostFetch: (excludeIds: number[]) => Promise<Post>; // do not refetch IDs
+  handleUpdatePin: (ids: number[]) => void;
+  allowStacking: boolean;
+  showPostItText?: boolean;
+  invertColors?: boolean;
+  mode?: GeographicalMode;
+  isEditable?: boolean;
+  randomPostion: boolean;
+}
+declare interface UsePersonalPostsParams {
+  userId: string;
+  viewerId: string;
+  boardId: number;
+  isIpad: boolean;
+  isOwnBoard: boolean;
+  postRefIDs: number[];
+  updatePinnedPosts?: boolean;
+  setUpdatePinnedPosts?: (value: boolean) => void;
+}
+
 
 declare interface StylingType {
   id: number;
@@ -155,7 +179,7 @@ type Attribute = {
 };
 declare interface PostItColor {
   name: string;
-  id: number;
+  id: string;
   hex: string;
   rarity: string;
   SRB: number[];
@@ -242,6 +266,7 @@ declare interface PostContainerProps {
   infiniteScroll?: boolean;
   header?: React.ReactElement;
   isPreview?: boolean;
+  isShowCasing?: boolean;
   infiniteScroll?: boolean;
   scrollToLoad?: () => void;
   staticEmoji?: boolean;

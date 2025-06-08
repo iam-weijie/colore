@@ -25,10 +25,12 @@ import { CustomButtonBar } from "@/components/CustomTabBar";
 import ModalSheet from "@/components/Modal";
 import { set } from "date-fns";
 import ItemContainer from "@/components/ItemContainer";
+import { useGlobalContext } from "@/app/globalcontext";
 
 
 const Profile = () => {
   const { user } = useUser();
+  const { resetDraftPost } = useGlobalContext()
   const { userId, username } = useLocalSearchParams();
   const [isUserSettingsVisible, setIsUserSettingsVisible] = useState(false);
   const [nickname, setNickname] = useState("");
@@ -192,6 +194,7 @@ const Profile = () => {
           icon: icons.pencil,
           label: "New Post",
           onPress: () => {
+            resetDraftPost()
               router.push({
                             pathname: "root/new-post",
                             params: {
@@ -210,11 +213,14 @@ const Profile = () => {
         },
       ] : []
 
+  const [userSettingTab, setUserSettingTab] = useState<string>("")
   const UserSettings = () => {
 
     return (
       <ModalSheet 
-       title={"Settings"} isVisible={isUserSettingsVisible} onClose={() => {
+       title={"Settings"} 
+       isVisible={isUserSettingsVisible} 
+       onClose={() => {
         setIsUserSettingsVisible(false);
        }} >
         <View className="flex-1 items-center justify-center px-6">
@@ -273,7 +279,7 @@ const Profile = () => {
   return (
     <View className="flex-1 bg-[#FAFAFA]">
       {userId && <UserProfile userId={userId as string} friendStatus={FriendStatus.UNKNOWN} nickname={nickname}/>}
-      {isUserSettingsVisible && <UserSettings />}
+      <UserSettings />
         <CustomButtonBar
               buttons={navigationControls}
               />

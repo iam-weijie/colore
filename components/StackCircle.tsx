@@ -39,7 +39,7 @@ const StackCircle = ({
   stackMoving: () => void;
   updateStackPosition: (x: number, y: number, stack: Stacks) => void;
 }) => {
-  const SHOW_BUTTONS_THRESHOLD = 200;
+  const SHOW_BUTTONS_THRESHOLD = 120;
 
   const [isFocused, setIsFocused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -50,11 +50,26 @@ const StackCircle = ({
   }).current;
 
   const dragOffset = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
-  const scale = useRef(new Animated.Value(1)).current;
   const tilt = useRef(new Animated.Value(0)).current;
+  const scaleValue = useRef(new Animated.Value(0.85)).current; // Start scaled down
 
   const longPressTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isReadyToDrag = useRef(false);
+
+  // Animate on focus change
+  useEffect(() => {
+    Animated.spring(scaleValue, {
+      toValue: isFocused ? 1 : 0.85,
+      friction: 5,
+      tension: 120,
+      useNativeDriver: false,
+    }).start();
+  }, [isFocused]);
+
+  const tiltInterpolation = tilt.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "3deg"],
+  });
 
   const panResponder = useRef(
     PanResponder.create({
@@ -69,10 +84,7 @@ const StackCircle = ({
           longPressTimeout.current = setTimeout(() => {
             setIsDragging(true);
             isReadyToDrag.current = true;
-            Animated.parallel([
-              Animated.spring(scale, { toValue: 1.08, useNativeDriver: false }),
-              Animated.spring(tilt, { toValue: 1, useNativeDriver: false }),
-            ]).start();
+            Animated.spring(tilt, { toValue: 1, useNativeDriver: false }).start();
           }, 300);
         }
       },
@@ -93,14 +105,10 @@ const StackCircle = ({
           updateStackPosition(newX, newY, stack);
         }
 
-        Animated.parallel([
-          Animated.spring(scale, { toValue: 1, useNativeDriver: false }),
-          Animated.spring(tilt, { toValue: 0, useNativeDriver: false }),
-        ]).start();
-
+        Animated.spring(tilt, { toValue: 0, useNativeDriver: false }).start();
         setIsDragging(false);
-        stackMoving();
         isReadyToDrag.current = false;
+        stackMoving();
       },
     })
   ).current;
@@ -113,20 +121,21 @@ const StackCircle = ({
     }
   }, [stack.center.x, stack.center.y]);
 
-  const shouldShowButtons = () => {
+  useEffect(() => {
     const dx = Math.abs(scrollOffset.x + 120 - stack?.center?.x);
     const dy = Math.abs(scrollOffset.y + 160 - stack?.center?.y);
     const distance = Math.sqrt(dx * dx + dy * dy);
     setIsFocused(distance <= SHOW_BUTTONS_THRESHOLD && isEditable);
-  };
-
-  useEffect(() => {
-    shouldShowButtons();
   }, [scrollOffset.x, scrollOffset.y, isEditable, stack.center]);
 
-  const tiltInterpolation = tilt.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "3deg"],
+  const containerWidth = scaleValue.interpolate({
+    inputRange: [0.85, 1],
+    outputRange: [220, 260],
+  });
+
+  const containerHeight = scaleValue.interpolate({
+    inputRange: [0.85, 1],
+    outputRange: [280, 340],
   });
 
   return (
@@ -136,20 +145,17 @@ const StackCircle = ({
       style={{
         top: basePosition.y - 110,
         left: basePosition.x - 40,
-        width: 260,
-        height: 340,
+        width: containerWidth,
+        height: containerHeight,
         transform: [
           { translateX: dragOffset.x },
           { translateY: dragOffset.y },
-          { scale },
           { rotate: tiltInterpolation },
         ],
         zIndex: isFocused ? 999 : 1,
       }}
     >
-      {/* Card */}
       <View className="w-full h-full rounded-[64px] bg-white/90 border border-white shadow-2xl items-center justify-center px-6 py-8 relative">
-
         {/* Pin */}
         <View className="absolute top-2">
           <PinIcon size={42} />

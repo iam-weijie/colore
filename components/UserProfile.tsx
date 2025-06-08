@@ -2,17 +2,12 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { useGlobalContext } from "@/app/globalcontext";
 import PostGallery from "@/components/PostGallery";
 import { countries } from "@/constants/countries";
-import { icons, temporaryColors } from "@/constants/index";
+import { allColors } from "@/constants/colors"
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
-
-import axios from "axios";
 import {
-  acceptFriendRequest,
-  cancelFriendRequest,
   fetchFriends,
   fetchFriendStatus,
-  unfriend,
 } from "@/lib/friend";
 import {
   FriendStatusType,
@@ -34,26 +29,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Animated, {
-  SlideInDown,
-  SlideInUp,
-  FadeInDown,
-  FadeIn,
-} from "react-native-reanimated";
-import ColorGallery from "./ColorGallery";
-import DropdownMenu from "./DropdownMenu";
-import TabNavigation from "./TabNavigation";
-import { useAlert } from "@/notifications/AlertContext";
-import Circle from "./Circle";
+import Animated, {  FadeIn } from "react-native-reanimated";
+import { useAlert } from '@/notifications/AlertContext';
 import Settings from "@/app/root/settings";
 import BoardGallery from "./BoardGallery";
-import PersonalBoard from "./PersonalBoard";
 import PostContainer from "./PostContainer";
-import ColoreActivityIndicator from "./ColoreActivityIndicator";
-import TabsContainer from "./TabsContainer";
 import { fetchCountryEmoji } from "@/lib/post";
 import Header from "./Header";
-import { set } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
@@ -83,7 +65,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 }) => {
   const { user } = useUser();
   const router = useRouter();
-  const { isIpad, profile, unreadComments } = useGlobalContext();
+  const { isIpad, userColors, profile, unreadComments } = useGlobalContext(); 
   const { showAlert } = useAlert();
 
   const isEditable = user!.id === userId;
@@ -101,8 +83,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const { stateVars, setStateVars } = useNavigationContext();
 
   const Flag = countries[profileUser?.country || "Canada"];
-  console.log("[FlagComponent]: ", Flag);
-
+  
   const [myBoards, setMyBoards] = useState<any>();
   const [communityBoards, setCommunityBoards] = useState<any>();
 
@@ -180,8 +161,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       const userInfo = response.data[0] as UserProfileType;
       setProfileUser(userInfo);
-      const countryCode = await fetchCountryByName(profileUser?.country ?? "");
 
+      
       setLoading(false);
     } catch (error) {
       setError("Failed to fetch user data.");
@@ -257,63 +238,63 @@ const UserProfile: React.FC<UserProfileProps> = ({
         color: "#93c5fd",
       };
 
-      const checkForPrivacy = response.data.filter((b) =>
-        b.restrictions.includes("Everyone")
-      );
-
-      if (isEditable && response.data) {
-        const boardsWithColor = response.data.map(
-          (board: any, index: number) => ({
-            ...board,
-            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
-          })
-        );
-
-        setMyBoards([...boardsWithColor, personalBoard]);
-      } else if (!isEditable && response.data) {
-        const boardsWithColor = checkForPrivacy.map(
-          (board: any, index: number) => ({
-            ...board,
-            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
-          })
-        );
-
-        setMyBoards([...boardsWithColor, personalBoard]);
-      } else {
-        setMyBoards(personalBoard);
+        const checkForPrivacy = response.data.filter((b) => b.restrictions.includes("Everyone"))
+  
+          if (isEditable && response.data) {
+            const boardsWithColor = response.data.map((board: any, index: number) => ({
+              ...board,
+              color: userColors[Math.floor(Math.random() * userColors.length)].hex, // only assign if not already set
+            }));
+          
+            setMyBoards([...boardsWithColor, personalBoard]);
+          } else if (!isEditable && response.data) {
+            const boardsWithColor = checkForPrivacy.map((board: any, index: number) => ({
+              ...board,
+              color: userColors[Math.floor(Math.random() * userColors.length)].hex, // only assign if not already set
+            }));
+          
+            setMyBoards([...boardsWithColor, personalBoard]);
+          } else {
+           
+            setMyBoards(personalBoard)
+          }
+  
+      } catch (error) {
+        console.error("Failed to fetch board data:", error);
+      } finally {
+        setProfileLoading(false)
       }
-    } catch (error) {
-      console.error("Failed to fetch board data:", error);
-    } finally {
-      setProfileLoading(false);
     }
   };
 
   const fetchCommunityBoards = async () => {
-    try {
-      setLoading(true);
-      const response = await fetchAPI(
-        `/api/boards/getCommunityBoards?userId=${userId}`,
-        {
-          method: "GET",
+      try {
+        setLoading(true)
+        const response = await fetchAPI(`/api/boards/getCommunityBoards?userId=${userId}`,
+            {
+              method: "GET",
+            }
+        )
+        if (response.error) {
+          throw new Error(response.error);
         }
-      );
-      if (response.error) {
-        throw new Error(response.error);
+  
+  
+        
+            const boardsWithColor = response.data.map((board: any, index: number) => ({
+              ...board,
+              color: userColors[Math.floor(Math.random() * userColors.length)].hex, // only assign if not already set
+            }));
+          
+            setCommunityBoards(boardsWithColor);
+  
+          
+  
+      } catch (error) {
+        console.error("Failed to fetch board data:", error);
+      } finally {
+        setLoading(false)
       }
-
-      const boardsWithColor = response.data.map(
-        (board: any, index: number) => ({
-          ...board,
-          color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
-        })
-      );
-
-      setCommunityBoards(boardsWithColor);
-    } catch (error) {
-      console.error("Failed to fetch board data:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -487,71 +468,58 @@ const UserProfile: React.FC<UserProfileProps> = ({
         tabCount={0}
       />
 
-      {/* TABS */}
+            {/* TABS */}
+            
+            {selectedTab === "Profile" && <View className="flex-1">
+              {!profileLoading ? (
+                <View className={`absolute -top-[20%]`}>
+                  <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions} isShowCasing={true}/>
+                  </View>)
+              : (
+                <View className={`absolute -top-[25%]`}>
+                  <PostContainer selectedPosts={[post]} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>
+              )}
+            </View>}
 
-      {selectedTab === "Profile" && (
-        <View className="flex-1">
-          {!profileLoading ? (
-            <View className={`absolute -top-[20%]`}>
-              <PostContainer
-                selectedPosts={personalPosts}
-                handleCloseModal={() => {}}
-                isPreview={disableInteractions}
-              />
-            </View>
-          ) : (
-            <View className={`absolute -top-[25%]`}>
-              <PostContainer
-                selectedPosts={[post]}
-                handleCloseModal={() => {}}
-                isPreview={disableInteractions}
-              />
-            </View>
+            {selectedTab === "Posts" && <View className="relative flex-1 w-full h-full bg-[#FAFAFA] ">
+                   
+            <View className="absolute  flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[85%] top-6 self-center z-[10] "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 pl-2 text-md "
+            placeholder="Looking for a Post..?"
+             placeholderTextColor="#9CA3AF"
+            value={query}
+            onChangeText={setQuery}
+            returnKeyType="search"
+          />
+          {query.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
           )}
         </View>
-      )}
-
-      {selectedTab === "Posts" && (
-        <View className="relative flex-1 w-full h-full bg-[#FAFAFA] ">
-          <View
-            className="absolute  flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[85%] top-6 self-center z-[10] "
-            style={{
-              boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
-            }}
-          >
-            <Ionicons name="search" size={20} color="#9ca3af" />
-            <TextInput
-              className="flex-1 pl-2 text-md "
-              placeholder="Search emojis..."
-              placeholderTextColor="#9CA3AF"
-              value={query}
-              onChangeText={setQuery}
-              returnKeyType="search"
-            />
-            {query.length > 0 && (
-              <TouchableOpacity
-                onPress={handleClearSearch}
-                className="w-6 h-6 items-center justify-center"
-              >
-                <Ionicons name="close-circle" size={20} color="#9ca3af" />
-              </TouchableOpacity>
-            )}
-          </View>
-          {loading ? (
-            <PostGallerySkeleton />
-          ) : (
-            <View className="flex-1 h-full w-full px-4 -mt-12">
-              <PostGallery
-                posts={userPosts}
-                profileUserId={user!.id}
-                handleUpdate={fetchUserData}
-                query={query}
-                offsetY={120}
-              />
-            </View>
-          )}
-        </View>
-      )}
+              {loading ? (
+                  <PostGallerySkeleton />
+                ) : (
+                  <View className="flex-1 h-full w-full px-4 -mt-12">
+                  <PostGallery
+                    posts={userPosts}
+                    profileUserId={user!.id}
+                    handleUpdate={fetchUserData}
+                    query={query}
+                    offsetY={120}
+                  />
+                  </View>
+                )}
+            </View>}
 
       {selectedTab === "Boards" && (
         <View className="flex-1 pt-4">

@@ -139,30 +139,6 @@ export default function Page() {
   };
 
 
-  const getCountryFlag = (country: string) => {
-    if (country) {
-      switch (country) {
-        case "Canada":
-          return countries.canada;
-        case "USA":
-          return countries.usa;
-        case "France":
-          return countries.france;
-        case "Italy":
-          return countries.italy;
-        case "China":
-          return countries.china;
-        case "Argentina":
-          return countries.argentina;
-        default:
-          console.warn(`Country flag not found for: ${country}`);
-          return countries.canada;
-      }
-    } else {
-      console.warn(`Country flag not found for: ${country}`);
-      return countries.canada;
-    }
-  };
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
@@ -297,10 +273,6 @@ export default function Page() {
           mode={geographicalMode}
           randomPostion={true} 
           handleUpdatePin={() => {}}        />
-        {/* <Action 
-        friendName={""}
-         action={action} 
-         handleAction={() => {}}/>*/}
         {!!selectedModal && (
           <ModalSheet
             children={selectedModal}

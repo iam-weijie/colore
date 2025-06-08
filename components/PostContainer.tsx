@@ -1,13 +1,16 @@
 import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
-import { icons, temporaryColors } from "@/constants/index";
-import { 
-    handleReportPress,
-    handleReadComments, 
-    handleEditing,
-    handlePin,
-    handleShare,
-    handleSavePost } from "@/lib/post";
+import { icons } from "@/constants/index";
+import { allColors } from "@/constants/colors";
+import {
+  handleReportPress,
+  handleReadComments,
+  handleEditing,
+  handlePin,
+  handleShare,
+  handleSavePost,
+  fetchLikeStatus,
+} from "@/lib/post";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
 import {
@@ -16,15 +19,21 @@ import {
   PostContainerProps,
   UserNicknamePair,
   PostWithPosition,
-  Format
+  Format,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import {
   Alert,
   Dimensions,
@@ -58,11 +67,11 @@ import Animated, {
   withSequence,
   withSpring,
   withTiming,
-  ZoomIn
+  ZoomIn,
 } from "react-native-reanimated";
 import { captureRef } from "react-native-view-shot";
 import DropdownMenu from "./DropdownMenu";
-import { useAlert } from '@/notifications/AlertContext';
+import { useAlert } from "@/notifications/AlertContext";
 import InteractionButton from "./InteractionButton";
 import CarrouselIndicator from "./CarrouselIndicator";
 import EmojiExplosionModal from "./EmojiExplosiveModal";
@@ -71,10 +80,7 @@ import ItemContainer from "./ItemContainer";
 import EmojiBackground from "./EmojiBackground";
 import { RichText } from "./RichTextInput";
 
-
 const { width, height } = Dimensions.get("window");
-
-
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
@@ -86,6 +92,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
   infiniteScroll = false,
   staticEmoji = false,
   isPreview = false,
+  isShowCasing = false,
   header,
   scrollToLoad,
 }) => {
@@ -96,6 +103,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const [currentPost, setCurrentPost] = useState<Post>();
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
+  const [isEmojiStatic, setIsEmojiStatic] = useState<boolean>(staticEmoji);
   const [posts, setPosts] = useState<Post[]>([]);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
@@ -113,61 +121,52 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   // Memoize the posts array to prevent unnecessary re-renders
-  const post = selectedPosts
-
-
-  useEffect(() => {
-    fetchUserdata();
-    fetchLikeStatus();
-  }, [isSaved, isLiked, user]);
+  const post = selectedPosts;
 
   useEffect(() => {
     if (post.length) {
       setPosts(post);
       setCurrentPost(post[currentPostIndex]);
+      setIsEmojiStatic(post[currentPostIndex].static_emoji);
     }
   }, [post]);
-
-  const fetchLikeStatus = async () => {
-    try {
-      const response = await fetchAPI(
-        `/api/posts/updateLikeCount?postId=${post[currentPostIndex].id}&userId=${user!.id}`,
-        { method: "GET" }
-      );
-      if (response.error) return;
-
-      setIsLiked(response.data.liked);
-      setLikeCount(response.data.likeCount);
-    } catch (error) {
-      console.error("Failed to fetch like status:", error);
-    }
-  };
 
   useEffect(() => {
     setCurrentPost(post[currentPostIndex]);
 
-
-    if (infiniteScroll && typeof scrollToLoad === "function" && currentPostIndex + 1 === posts.length - 1) {
+    if (
+      infiniteScroll &&
+      typeof scrollToLoad === "function" &&
+      currentPostIndex + 1 === posts.length - 1
+    ) {
       // If last post and infiniteScroll is enabled
       runOnJS(scrollToLoad)();
-      
-    } 
-  }, [currentPostIndex])
+    }
+  }, [currentPostIndex]);
   // Fetch like status only when post or user changes
+  const getLikeStatus = async () => {
+    const { isLiked, likeCount } = await fetchLikeStatus(currentPost, user!.id);
+    setIsLiked(isLiked);
+    setLikeCount(likeCount);
+  };
   useEffect(() => {
     if (!user?.id || !currentPost?.id) return;
-    fetchLikeStatus();
-    setIsPinned(currentPost?.pinned)
+    getLikeStatus();
+    setIsPinned(currentPost?.pinned);
   }, [post, currentPostIndex, user?.id]);
 
-  const dateCreated = convertToLocal(
-    new Date(currentPost?.created_at || "")
-  );
-  const formattedDate = formatDateTruncatedMonth(dateCreated);
-  const postColor = temporaryColors.find(
-    (color) => color.name === currentPost?.color
-  ) as PostItColor;
+  useEffect(() => {
+    if (currentPost) {
+      fetchUserdata();
+      getLikeStatus();
+    }
+  }, [isSaved, isLiked, user]);
 
+  const dateCreated = convertToLocal(new Date(currentPost?.created_at || ""));
+  const formattedDate = formatDateTruncatedMonth(dateCreated);
+  const postColor = allColors.find(
+    (color) => color.id === currentPost?.color
+  ) as PostItColor;
 
   const swipeGesture = Gesture.Pan()
     .onStart((event) => {
@@ -180,8 +179,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
       const threshold = 15;
       const isLastPost = currentPostIndex === posts.length - 1;
 
-
-      
       if (translateX.value > threshold && currentPostIndex > 0) {
         translateX.value = withTiming(0);
         opacity.value = withTiming(0, {}, () => {
@@ -203,7 +200,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
       } else {
         translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
       }
-    })
+    });
 
   // Animated styles for swiping
   const animatedStyle = useAnimatedStyle(() => ({
@@ -243,10 +240,10 @@ const PostContainer: React.FC<PostContainerProps> = ({
         setIsLiked(!increment);
         setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
         showAlert({
-          title: 'Error',
+          title: "Error",
           message: "Unable to update like status.",
-          type: 'ERROR',
-          status: 'error',
+          type: "ERROR",
+          status: "error",
         });
         return;
       }
@@ -277,7 +274,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
         throw new Error(response.error);
       }
       const nicknames = response.data[0].nicknames || [];
-      return findUserNickname(nicknames, post!.clerk_id) === -1
+      return findUserNickname(nicknames, post!.user_id) === -1
         ? ""
         : nicknames[findUserNickname(nicknames, post!.user_id)][1];
     } catch (error) {
@@ -296,9 +293,8 @@ const PostContainer: React.FC<PostContainerProps> = ({
     try {
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
       const savePostsList = response.data[0].saved_posts;
-      const savedStatus = savePostsList?.includes(
-        `${currentPost?.id}`
-      ) ?? false;
+      const savedStatus =
+        savePostsList?.includes(`${currentPost?.id}`) ?? false;
       setSavedPosts(savePostsList);
       setIsSaved(savedStatus);
     } catch (error) {
@@ -308,42 +304,40 @@ const PostContainer: React.FC<PostContainerProps> = ({
 
   const handleDeletePress = async () => {
     handleCloseModal();
-    
+
     showAlert({
-      title: 'Delete Post',
+      title: "Delete Post",
       message: "Are you sure you want to delete this post?",
-      type: 'DELETE',
-      status: 'success',
+      type: "DELETE",
+      status: "success",
       action: async () => {
         try {
-            const response = await fetchAPI(
-              `/api/posts/deletePost?id=${currentPost?.id}`,
-              {
-                method: "DELETE",
-              }
-            );
-      
-            if (response.error) {
-              throw new Error(response.error);
+          const response = await fetchAPI(
+            `/api/posts/deletePost?id=${currentPost?.id}`,
+            {
+              method: "DELETE",
             }
-      
-            
-          } catch (error) {
-            console.error("Failed to delete post:", error);
-            showAlert({
-              title: 'Error',
-              message: "Failed to delete post. Please try again.",
-              type: 'ERROR',
-              status: 'error',
-            });
-          } finally {
-            showAlert({
-              title: 'Post deleted',
-              message: "Your post has been deleted successfully.",
-              type: 'DELETE',
-              status: 'success',
-            });
+          );
+
+          if (response.error) {
+            throw new Error(response.error);
           }
+        } catch (error) {
+          console.error("Failed to delete post:", error);
+          showAlert({
+            title: "Error",
+            message: "Failed to delete post. Please try again.",
+            type: "ERROR",
+            status: "error",
+          });
+        } finally {
+          showAlert({
+            title: "Post deleted",
+            message: "Your post has been deleted successfully.",
+            type: "DELETE",
+            status: "success",
+          });
+        }
       },
       actionText: "Delete",
       duration: 5000,
@@ -351,52 +345,49 @@ const PostContainer: React.FC<PostContainerProps> = ({
   };
 
   const handleCommentsPress = () => {
-   setSelectedBoard(() => <PostScreen id={currentPost?.id.toString()} clerkId={currentPost?.clerk_id} />); 
+    const current = post[currentPostIndex];
+    setSelectedBoard(() => (
+      <PostScreen id={current?.id.toString()} clerkId={current?.user_id} />
+    ));
   };
 
-
-
   const handleInteractionPress = async (emoji: string) => {
-
     try {
-      console.log("Patching prompts")
-      
+      console.log("Patching prompts");
+
       await fetchAPI(`/api/prompts/updateEngagement`, {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user?.id,
-          promptId: currentPost?.prompt_id
+          promptId: currentPost?.prompt_id,
         }),
       });
     } catch (error) {
       console.error("Failed to update unread comments:", error);
     } finally {
-      setSelectedEmoji(emoji)
+      setSelectedEmoji(emoji);
       const timeoutId = setTimeout(() => {
-      setCurrentPostIndex((prevIndex) => {
-        const newIndex = prevIndex + 1;
-        if (newIndex < 0) {
-          return posts.length - 1; // Loop back to the last post
-        } else if (newIndex >= posts.length) {
-          return 0; // Loop back to the first post
+        setCurrentPostIndex((prevIndex) => {
+          const newIndex = prevIndex + 1;
+          if (newIndex < 0) {
+            return posts.length - 1; // Loop back to the last post
+          } else if (newIndex >= posts.length) {
+            return 0; // Loop back to the first post
+          }
+          return newIndex;
+        });
+        translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+        opacity.value = withTiming(0, {}, () => {
+          runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+          opacity.value = withTiming(1);
+        });
+        if (soundEffectsEnabled) {
+          //playSoundEffect(SoundType.Dislike);
         }
-        return newIndex;
-      }
-      );
-      translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-      opacity.value = withTiming(0, {}, () => {
-        runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-        opacity.value = withTiming(1);
-      }
-      );
-      if (soundEffectsEnabled) {
-        //playSoundEffect(SoundType.Dislike);
-      }
-    }, 2000)
-    return () => clearTimeout(timeoutId);
+      }, 2000);
+      return () => clearTimeout(timeoutId);
     }
-   
-  }
+  };
 
   // Capture the content as soon as the component mounts (first render)
   useEffect(() => {
@@ -436,60 +427,69 @@ const PostContainer: React.FC<PostContainerProps> = ({
     }
   };
 
-
-  const getMenuItems = (isOwner: boolean, invertedColors: boolean, isPreview: boolean) => {
+  const getMenuItems = (
+    isOwner: boolean,
+    invertedColors: boolean,
+    isPreview: boolean
+  ) => {
     if (isPreview) {
       return []; // Return empty array when in preview mode to disable menu
     }
-    
-    if (invertedColors) {
-      return currentPost?.recipient_user_id == user!.id ? [
-        {
-          label: isPinned ? "Unpin" : "Pin",
-          source: icons.pin,
-          color: "#000000",
-          onPress: () => {
-            handlePin(currentPost, isPinned, user!.id)
-            handleUpdate(!isPinned)
-            setIsPinned((prevIsPinned) => !prevIsPinned);
-            handleCloseModal;
-        }
-        },
-        {
-          label: "Share",
-          source: icons.send,
-          color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-          onPress: () => {handleShare(imageUri, currentPost)},
-        },
-        {
-          label: "Delete",
-          source: icons.trash,
-          color: "#DA0808",
-          onPress: handleDeletePress,
-        },
-      ] : [
-        {
-          label: "Share",
-          source: icons.send,
-          color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-          onPress: () => {handleShare(imageUri, currentPost)},
-        },
-        {
-          label: isSaved ? "Remove" : "Save",
-          color: "#000000",
-          source: isSaved ? icons.close : icons.bookmark,
-          onPress: () => {
-            handleSavePost(currentPost?.id, isSaved, user!.id)
-            setIsSaved((prevIsSaved) => !prevIsSaved);},
-        },
-        {
-          label: "Report",
-          source: icons.email,
-          color: "#DA0808",
-          onPress: handleReportPress,
-        },
-      ];
 
+    if (invertedColors) {
+      return currentPost?.recipient_user_id == user!.id
+        ? [
+            {
+              label: isPinned ? "Unpin" : "Pin",
+              source: icons.pin,
+              color: "#000000",
+              onPress: () => {
+                handlePin(currentPost, isPinned, user!.id);
+                handleUpdate(!isPinned);
+                setIsPinned((prevIsPinned) => !prevIsPinned);
+                handleCloseModal;
+              },
+            },
+            {
+              label: "Share",
+              source: icons.send,
+              color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
+              onPress: () => {
+                handleShare(imageUri, currentPost);
+              },
+            },
+            {
+              label: "Delete",
+              source: icons.trash,
+              color: "#DA0808",
+              onPress: handleDeletePress,
+            },
+          ]
+        : [
+            {
+              label: "Share",
+              source: icons.send,
+              color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
+              onPress: () => {
+                handleShare(imageUri, currentPost);
+              },
+            },
+            {
+              label: isSaved ? "Remove" : "Save",
+              color: "#000000",
+              source: isSaved ? icons.close : icons.bookmark,
+              onPress: () => {
+                handleSavePost(currentPost?.id, isSaved, user!.id);
+                setIsSaved((prevIsSaved) => !prevIsSaved);
+              },
+            },
+            {
+              label: "Report",
+              source: icons.email,
+              color: "#DA0808",
+              onPress: handleReportPress,
+            },
+          ];
     }
 
     return isOwner
@@ -498,48 +498,54 @@ const PostContainer: React.FC<PostContainerProps> = ({
             label: "Share",
             source: icons.send,
             color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-            onPress: () => {handleShare(imageUri, currentPost)},
+            onPress: () => {
+              handleShare(imageUri, currentPost);
+            },
           },
           {
             label: "Edit",
             source: icons.pencil,
             color: "#0851DA",
-            onPress:() => {
-                setTimeout(() => {
-                    handleCloseModal();
-                  }, 250);
-                handleEditing(currentPost)
-            } ,
+            onPress: () => {
+              setTimeout(() => {
+                handleCloseModal();
+              }, 250);
+              handleEditing(currentPost);
+            },
           },
           {
             label: isSaved ? "Remove" : "Save",
             color: "#000000",
             source: isSaved ? icons.close : icons.bookmark,
             onPress: () => {
-                handleSavePost(currentPost?.id, isSaved, user!.id)
-                setIsSaved((prevIsSaved) => !prevIsSaved);},
+              handleSavePost(currentPost?.id, isSaved, user!.id);
+              setIsSaved((prevIsSaved) => !prevIsSaved);
+            },
           },
           {
             label: "Delete",
             source: icons.trash,
             color: "#DA0808",
             onPress: handleDeletePress,
-          }
+          },
         ]
       : [
           {
             label: "Share",
             source: icons.send,
             color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-            onPress: () => {handleShare(imageUri, currentPost)},
+            onPress: () => {
+              handleShare(imageUri, currentPost);
+            },
           },
           {
             label: isSaved ? "Remove" : "Save",
             color: "#000000",
             source: isSaved ? icons.close : icons.bookmark,
             onPress: () => {
-                handleSavePost(currentPost?.id, isSaved, user!.id)
-                setIsSaved((prevIsSaved) => !prevIsSaved);},
+              handleSavePost(currentPost?.id, isSaved, user!.id);
+              setIsSaved((prevIsSaved) => !prevIsSaved);
+            },
           },
           {
             label: "Report",
@@ -550,32 +556,30 @@ const PostContainer: React.FC<PostContainerProps> = ({
         ];
   };
 
-  const backgroundColor = useSharedValue(postColor?.hex || "rgba(0, 0, 0, 0.5)");
+  const backgroundColor = useSharedValue(
+    postColor?.hex || "rgba(0, 0, 0, 0.5)"
+  );
   const prevColor = useRef<string>(postColor?.hex || "rgba(0, 0, 0, 0.5)");
-
 
   // Animate color change
   useEffect(() => {
-   const newColor = postColor?.hex || "rgba(0, 0, 0, 0.5)";
-  if (prevColor.current !== newColor) {
-    backgroundColor.value = withTiming(newColor, {
-      duration: 300,
-      easing: Easing.inOut(Easing.quad),
-    });
-    prevColor.current = newColor;
-  }
+    const newColor = postColor?.hex || "rgba(0, 0, 0, 0.5)";
+    if (prevColor.current !== newColor) {
+      backgroundColor.value = withTiming(newColor, {
+        duration: 300,
+        easing: Easing.inOut(Easing.quad),
+      });
+      prevColor.current = newColor;
+    }
   }, [postColor]);
 
-
   useEffect(() => {
-
     const timeoutId = setTimeout(() => {
       setSelectedEmoji(post[currentPostIndex]?.emoji);
     }, 300);
-  
-    return () => clearTimeout(timeoutId);
-  }, [post, currentPost])
 
+    return () => clearTimeout(timeoutId);
+  }, [post, currentPost]);
 
   const animatedBackgroundStyle = useAnimatedStyle(() => ({
     backgroundColor: backgroundColor.value,
@@ -584,175 +588,184 @@ const PostContainer: React.FC<PostContainerProps> = ({
   useFocusEffect(
     useCallback(() => {
       // Screen is focused
-  
+
       return () => {
         setTimeout(() => {
           handleCloseModal();
-          setSelectedBoard(null)
+          setSelectedBoard(null);
         }, 250);
       };
     }, [])
   );
 
-
-const cleanFormatting: Format[] = isPreview
-                    ? draftPost?.formatting ?? []
-                    : typeof currentPost?.formatting === "string"
-                        ? JSON.parse(currentPost.formatting)
-                        : (currentPost?.formatting ?? []);
+  const cleanFormatting: Format[] = isPreview
+    ? (draftPost?.formatting ?? [])
+    : typeof currentPost?.formatting === "string"
+      ? JSON.parse(currentPost.formatting)
+      : (currentPost?.formatting ?? []);
 
   return (
+    <AnimatedView
+      ref={viewRef}
+      className="flex-1 absolute w-screen h-screen justify-center"
+      //entering={FadeInUp.duration(300)}
+      style={[animatedBackgroundStyle]}
+    >
+      <TouchableWithoutFeedback onPress={() => handleCloseModal()}>
+        <View className="absolute flex-1 top-0 -ml-3">
+          {
+            <EmojiBackground
+              emoji={isEmojiStatic ? selectedEmoji : ""}
+              color=""
+            />
+          }
+        </View>
+      </TouchableWithoutFeedback>
 
-        <AnimatedView
-          ref={viewRef}
-          className="flex-1 absolute w-screen h-screen justify-center"
-          //entering={FadeInUp.duration(300)}
-          style={[
-            animatedBackgroundStyle
-          ]}
-        >
-          <TouchableWithoutFeedback onPress={() => handleCloseModal()}>
-            <View className="absolute flex-1 top-0 -ml-3">
-            {<EmojiBackground emoji={staticEmoji ? selectedEmoji : ""} color="" />}
-            </View>
-          
-          </TouchableWithoutFeedback>
-
-          {header}
-          {currentPost?.prompt && !isPreview &&  <Animated.View 
+      {header}
+      {currentPost?.prompt && !isPreview && (
+        <Animated.View
           className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center"
           entering={FadeInUp.duration(200)}
-          exiting={FadeOutDown.duration(200)}>
-            <View 
-            className="w-[75%] max-w-[300px]"
-            >
-             <ItemContainer 
-             label={currentPost?.prompt}
-             icon={icons.fire}
-             colors={[currentPost?.color, "#FFB512"]}
-             iconColor="#000"
-             isPrompt
-             onPress={() => {
-              router.push({
-                pathname: "/root/new-post",
-                params: {
-                  prompt: currentPost?.prompt,
-                  promptId: currentPost?.prompt_id
-                }
-              })
-             }}
-             />
-             </View>
-            </Animated.View>}
-
-          <GestureHandlerRootView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <GestureDetector gesture={swipeGesture}>
-              <Animated.View
-                entering={FadeInUp.duration(400)}
-                exiting={FadeOutDown.duration(250)}
-                className="bg-white px-6 py-4 rounded-[24px] w-[80%] max-w-[500px] mx-auto"
-                style={[
-                  animatedStyle,
-                  {
-                    minHeight:isIpad ? 250 : 200,
-                    maxHeight: isIpad ? "55%" : "40%",
-                    backgroundColor: "rgba(255, 255, 255, 1)",
+          exiting={FadeOutDown.duration(200)}
+        >
+          <View className="w-[75%] max-w-[300px]">
+            <ItemContainer
+              label={currentPost?.prompt}
+              icon={icons.fire}
+              colors={[currentPost?.color, "#FFB512"]}
+              iconColor="#000"
+              isPrompt
+              onPress={() => {
+                router.push({
+                  pathname: "/root/new-post",
+                  params: {
+                    prompt: currentPost?.prompt,
+                    promptId: currentPost?.prompt_id,
                   },
-                ]}
-              >
-                <TouchableOpacity onPress={handleCloseModal}>
-                  <Image
-                    source={icons.close}
-                    style={{ width: 18, height: 18, top: 4, alignSelf: "flex-end", opacity: 0.5 }}
-                  />
-                </TouchableOpacity>
-
-                <ScrollView>
-                  <RichText formatStyling={cleanFormatting} content={currentPost?.content ?? ""} />
-                </ScrollView>
-                {!isPreview && (
-                  <View className="my-2 flex-row justify-between items-center">
-                    <View className="flex flex-row items-center">
-                      <TouchableOpacity onPress={handleCommentsPress}>
-                        <Image source={icons.comment} className="w-7 h-7" />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={handleLikePress} className="ml-2">
-                        <MaterialCommunityIcons
-                          name={isLiked ? "heart" : "heart-outline"}
-                          size={31}
-                          color={isLiked ? "red" : "black"}
-                        />
-                      </TouchableOpacity>
-                      {/* Show like count only to post creator */}
-                    {currentPost?.user_id == user?.id && (
-                        <Text className="ml-1 text-gray-600">{likeCount}</Text>
-                      )}
-                    </View>
-                    {
-                      <DropdownMenu
-                        menuItems={getMenuItems(
-                          currentPost?.clerk_id === user!.id ||
-                            currentPost?.recipient_user_id === user!.id,
-                          invertedColors,
-                          isPreview
-                        )}
-                      />
-                    }
-                  </View>
-                )}
-              </Animated.View>
-            </GestureDetector>
-          </GestureHandlerRootView>
-           <View className="absolute top-[10%] left-[10%]  flex flex-row">
-            {posts.length > 1 &&
-              posts.map((post, index) => {
-                return (
-                  <CarrouselIndicator
-                    key={post.id}
-                    id={index}
-                    index={currentPostIndex} color={"#FFFFFF"}                  />
-                );
-              })}
-          </View>
-          {!!selectedEmoji && !staticEmoji && 
-          
-          
-          <View className="absolute -top-[150px] self-center inset-0">
-            <EmojiExplosionModal
-              isVisible={!!selectedEmoji}
-              verticalForce={50}
-              radius={isIpad ? 1200 : 800}
-              emojiSize="text-[150px]"
-              duration={8000}
-              emoji={selectedEmoji}
-              onComplete={() => {
-                setSelectedEmoji("")
-                console.log("done")
+                });
               }}
             />
           </View>
-          }
-            {!!selectedBoard &&
-          <ModalSheet 
-            isVisible={!!selectedBoard}
-            title={"Comments"}
-            onClose={() => {
-              if (currentPost) {
-                handleReadComments(currentPost, user!.id);
-              }
-              console.log("has closed.")
-              setSelectedBoard(null)
-            }}
-            >
-              <View className="flex-1 h-full">
-              {selectedBoard}
+        </Animated.View>
+      )}
+
+      <GestureHandlerRootView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <GestureDetector gesture={swipeGesture}>
+          <Animated.View
+            entering={FadeInUp.duration(400)}
+            exiting={FadeOutDown.duration(250)}
+            className="bg-white px-6 py-4 rounded-[24px] w-[80%] max-w-[500px] mx-auto"
+            style={[
+              animatedStyle,
+              {
+                minHeight: isIpad ? 250 : 200,
+                maxHeight: isIpad ? "55%" : "40%",
+                backgroundColor: "rgba(255, 255, 255, 1)",
+              },
+            ]}
+          >
+            <TouchableOpacity onPress={handleCloseModal}>
+              <Image
+                source={icons.close}
+                style={{
+                  width: 18,
+                  height: 18,
+                  top: 4,
+                  alignSelf: "flex-end",
+                  opacity: 0.5,
+                }}
+              />
+            </TouchableOpacity>
+
+            <ScrollView>
+              <RichText
+                formatStyling={cleanFormatting}
+                content={currentPost?.content ?? ""}
+              />
+            </ScrollView>
+            {!isPreview && (
+              <View className="my-2 flex-row justify-between items-center">
+                <View className="flex flex-row items-center">
+                  <TouchableOpacity onPress={handleCommentsPress}>
+                    <Image source={icons.comment} className="w-7 h-7" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleLikePress} className="ml-2">
+                    <MaterialCommunityIcons
+                      name={isLiked ? "heart" : "heart-outline"}
+                      size={31}
+                      color={isLiked ? "red" : "black"}
+                    />
+                  </TouchableOpacity>
+                  {/* Show like count only to post creator */}
+                  {currentPost?.user_id == user?.id && (
+                    <Text className="ml-1 text-gray-600">{likeCount}</Text>
+                  )}
+                </View>
+                {
+                  <DropdownMenu
+                    menuItems={getMenuItems(
+                      currentPost?.clerk_id === user!.id ||
+                        currentPost?.recipient_user_id === user!.id,
+                      invertedColors,
+                      isPreview
+                    )}
+                  />
+                }
               </View>
-              
-              </ModalSheet>
-}
-        </AnimatedView>
- 
-        
+            )}
+          </Animated.View>
+        </GestureDetector>
+      </GestureHandlerRootView>
+      <View
+        className={`absolute flex flex-row ${isShowCasing ? "top-40 left-8" : "top-16 left-8"}`}
+      >
+        {posts.length > 1 &&
+          posts.map((post, index) => {
+            return (
+              <CarrouselIndicator
+                key={post.id}
+                id={index}
+                index={currentPostIndex}
+                color={"#FFFFFF"}
+              />
+            );
+          })}
+      </View>
+      {!!selectedEmoji && !isEmojiStatic && (
+        <View className="absolute -top-[150px] self-center inset-0">
+          <EmojiExplosionModal
+            isVisible={!!selectedEmoji}
+            verticalForce={50}
+            radius={isIpad ? 1200 : 800}
+            emojiSize="text-[150px]"
+            duration={8000}
+            emoji={selectedEmoji}
+            onComplete={() => {
+              setSelectedEmoji("");
+              console.log("done");
+            }}
+          />
+        </View>
+      )}
+      {!!selectedBoard && (
+        <ModalSheet
+          isVisible={!!selectedBoard}
+          title={"Comments"}
+          onClose={() => {
+            if (currentPost) {
+              handleReadComments(currentPost, user!.id);
+            }
+            console.log("has closed.");
+            setSelectedBoard(null);
+          }}
+        >
+          <View className="flex-1 h-full">{selectedBoard}</View>
+        </ModalSheet>
+      )}
+    </AnimatedView>
   );
 };
 

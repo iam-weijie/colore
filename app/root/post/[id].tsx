@@ -1,5 +1,6 @@
 import CustomButton from "@/components/CustomButton";
-import { icons, temporaryColors } from "@/constants/index";
+import { icons } from "@/constants/index";
+import { allColors } from "@/constants/colors";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
@@ -91,8 +92,8 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const screenHeight = Dimensions.get("screen").height;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPostDeleted, setIsPostDeleted] = useState(false);
-  const postColor = temporaryColors.find(
-    (c) => c.name === color
+  const postColor = allColors.find(
+    (c) => c.id === color
   ) as PostItColor;
   const { stateVars, setStateVars } = useNavigationContext();
   const { replyTo, setReplyTo, scrollTo, setScrollTo, isIpad, soundEffectsEnabled } = useGlobalContext(); // Add soundEffectsEnabled

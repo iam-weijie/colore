@@ -33,11 +33,46 @@ const EmojiBackground: React.FC<EmojiBackgroundProps> = ({ emoji, color }) => {
         x: new Animated.Value(0),
         y: new Animated.Value(0),
         rotation: new Animated.Value(0),
+        // New animated values for enter animation
+        enterScale: new Animated.Value(0.5),
+        enterOpacity: new Animated.Value(0),
       };
     })
   ).current;
 
-  // Animation for all emojis
+  // Enter animation (runs once when component mounts)
+  useEffect(() => {
+    const enterAnimations = gridItems.map((item, index) => {
+      // Stagger the animations based on index for a wave-like effect
+      const delay = index * 30;
+      
+      return Animated.parallel([
+        Animated.timing(item.enterScale, {
+          toValue: 1,
+          duration: 800,
+          delay,
+          easing: Easing.out(Easing.back(1.2)),
+          useNativeDriver: true,
+        }),
+        Animated.timing(item.enterOpacity, {
+          toValue: 0.9,
+          duration: 600,
+          delay,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]);
+    });
+
+    // Start all enter animations
+    enterAnimations.forEach(anim => anim.start());
+    
+    return () => {
+      enterAnimations.forEach(anim => anim.stop());
+    };
+  }, []);
+
+  // Floating animation for all emojis (starts after enter animation)
   useEffect(() => {
     const animations = gridItems.map((item) => {
       // Very subtle movement parameters (3-8px)
@@ -46,7 +81,7 @@ const EmojiBackground: React.FC<EmojiBackgroundProps> = ({ emoji, color }) => {
       
       // Longer duration for smoother, less noticeable movement
       const duration = 4000 + Math.random() * 1000;
-      const delay = Math.random() * 3000;
+      const delay = 1000 + Math.random() * 3000; // Added initial delay to let enter animation finish
       
       // X-axis movement (very slow and subtle)
       const moveX = Animated.loop(
@@ -134,7 +169,7 @@ const EmojiBackground: React.FC<EmojiBackgroundProps> = ({ emoji, color }) => {
   }, []);
 
   return (
-    <View 
+    <Animated.View 
       className="absolute w-full h-full"
       style={{ backgroundColor: color }}
     >
@@ -157,20 +192,21 @@ const EmojiBackground: React.FC<EmojiBackgroundProps> = ({ emoji, color }) => {
                 { translateX: item.x },
                 { translateY: item.y },
                 { rotate },
+                { scale: item.enterScale }, // Added scale transform for enter animation
               ],
+              opacity: item.enterOpacity, // Added opacity for enter animation
             }}
           >
             <Text style={{ 
               fontSize: 50, 
               textAlign: 'center',
-              opacity: 0.9 // Slightly reduced opacity for subtlety
             }}>
               {emoji}
             </Text>
           </Animated.View>
         );
       })}
-    </View>
+    </Animated.View>
   );
 };
 

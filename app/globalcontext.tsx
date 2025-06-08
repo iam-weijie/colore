@@ -18,7 +18,7 @@ import { Stacks, Post, UserProfileType, PostItColor } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from "@/notifications/NotificationContext";
 import { set } from "date-fns";
-import { temporaryColors } from "@/constants";
+import { defaultColors } from "@/constants";
 import { io } from "socket.io-client";
 
 // ===== Types & Constants =====
@@ -31,6 +31,7 @@ type GlobalContextType = {
   setUserColors: React.Dispatch<React.SetStateAction<PostItColor[]>>;
   draftPost: Post;
   setDraftPost: React.Dispatch<React.SetStateAction<Post | null>>;
+  resetDraftPost: () => void;
   notifications: any[];
   storedNotifications: any[];
   unreadComments: number;
@@ -323,7 +324,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     formatting: [], // Add a default value for formatting
   });
   const [profile, setProfile] = useState<UserProfileType>();
-  const [userColors, setUserColors] = useState<PostItColor[]>([]);
+  const [userColors, setUserColors] = useState<PostItColor[]>(defaultColors);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [storedNotifications, setStoredNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
@@ -343,6 +344,37 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const hasUpdatedLastConnection = useRef(false);
   const { user } = useUser();
   const { pushToken } = useNotification();
+
+  const resetDraftPost = () => {
+    setDraftPost({
+      id: 0,
+      clerk_id: "",
+      firstname: "",
+      username: "",
+      content: "",
+      created_at: new Date().toISOString(),
+      expires_at: "",
+      available_at: "",
+      static_emoji: false,
+      city: "",
+      state: "",
+      country: "",
+      like_count: 0,
+      report_count: 0,
+      unread_comments: 0,
+      recipient_user_id: "",
+      pinned: false,
+      color: "",
+      emoji: "",
+      notified: false,
+      prompt_id: 0,
+      prompt: "",
+      board_id: -1,
+      reply_to: 0,
+      unread: false,
+      formatting: [],
+    });
+  };
 
   // In-app polling every 5 seconds
   /*useEffect(() => {
@@ -429,8 +461,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           }
           const userData = response.data[0];
           setProfile(userData);
-          setUserColors(userData.colors || temporaryColors);
-          console.log("userData", userData);
+          setUserColors(userData.colors || defaultColors);
           setLastConnection(new Date(userData.last_connection));
         } catch (error) {
           console.error("Failed to fetch user profile:", error);
@@ -603,6 +634,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         userColors,
         setUserColors,
         setDraftPost,
+        resetDraftPost,
         notifications,
         storedNotifications,
         unreadComments,

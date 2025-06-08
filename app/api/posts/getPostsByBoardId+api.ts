@@ -16,6 +16,8 @@ export async function GET(request: Request) {
         p.created_at,
         p.unread_comments,
         p.recipient_user_id,
+        p.expires_at,
+        p.available_at,
         p.pinned,
         p.color,
         p.emoji,
@@ -27,6 +29,7 @@ export async function GET(request: Request) {
         p.notified,
         p.unread,
         p.formatting,
+        p.static_emoji,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -40,16 +43,15 @@ export async function GET(request: Request) {
       JOIN boards b ON p.board_id = b.id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
       WHERE p.board_id = ${boardId}
-        AND p.expires_at > NOW() 
-        AND p.available_at <= NOW()
+        AND p.expires_at >= NOW()::timestamp
+        AND p.available_at <= NOW()::timestamp
       ORDER BY p.created_at ASC;
     `;
 
     // Transform the response to match the Post interface
     const mappedPosts = response.map((post) => ({
       id: post.id,
-      clerk_id: post.clerk_id,
-      user_id: post.user_id, // Using clerk_id as user_id for temporary fix
+      user_id: post.user_id,
       firstname: post.firstname,
       username: post.username,
       content: post.content,
@@ -75,9 +77,10 @@ export async function GET(request: Request) {
         ? { top: Number(post.top), left: Number(post.left) } 
         : undefined,
       formatting: post.formatting as Format || [],
+      static_emoji: post.static_emoji
     }));
 
-    console.log("Mapped Post", mappedPosts)
+    //console.log("Mapped Post", mappedPosts)
     return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
       headers: {

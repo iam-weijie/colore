@@ -69,6 +69,7 @@ export async function GET(request: Request) {
         ? { top: Number(post.top), left: Number(post.left) } 
         : undefined,
       formatting: post.formatting as Format || [],
+      static_emoji: post.static_emoji
     }));
 
     // Return the posts data in the response

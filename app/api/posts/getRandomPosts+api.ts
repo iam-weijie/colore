@@ -9,9 +9,10 @@ export async function GET(request: Request) {
     const userId = url.searchParams.get("id");
     const mode = url.searchParams.get("mode");
 
-     const baseSelectFields = `
+    const baseSelectFields = `
       p.id, 
-      p.content, 
+      p.content,
+      p.user_id,
       p.like_count, 
       p.report_count, 
       p.created_at,
@@ -23,6 +24,7 @@ export async function GET(request: Request) {
       p.prompt_id,
       p.board_id,
       p.formatting,
+      p.static_emoji,
       u.clerk_id,
       u.firstname, 
       u.lastname, 
@@ -54,7 +56,8 @@ export async function GET(request: Request) {
     `;
 
     const response = await sql(query);
-       const mappedPosts = response.map((post) => ({
+
+    const mappedPosts = response.map((post) => ({
       id: post.id,
       user_id: post.user_id,
       firstname: post.firstname,
@@ -76,17 +79,19 @@ export async function GET(request: Request) {
       prompt_id: post.prompt_id,
       prompt: post.prompt,
       board_id: post.board_id,
-      reply_to: post.reply_to, 
+      reply_to: post.reply_to,
       unread: post.unread,
-      position: post.top !== null && post.left !== null 
-        ? { top: Number(post.top), left: Number(post.left) } 
-        : undefined,
-      formatting: post.formatting as Format || [],
+      position:
+        post.top !== null && post.left !== null
+          ? { top: Number(post.top), left: Number(post.left) }
+          : undefined,
+      formatting: (post.formatting as Format) || [],
+      static_emoji: post.static_emoji,
     }));
 
-      return new Response(JSON.stringify({ data: mappedPosts }), {
-        status: 200,
-      });
+    return new Response(JSON.stringify({ data: mappedPosts }), {
+      status: 200,
+    });
   } catch (error) {
     console.error(error);
     return new Response(

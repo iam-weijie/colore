@@ -22,14 +22,13 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { useAlert } from "@/notifications/AlertContext";
 import CarouselPage from "@/components/CarrousselPage";
-import { temporaryColors } from "@/constants";
 import { PostItColor } from "@/types/type";
 import BoardGallery from "@/components/BoardGallery";
 import ItemContainer from "@/components/ItemContainer";
 import { icons } from "@/constants";
+import { allColors } from "@/constants/colors";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
-import ColorPickerSlider from "@/components/ColorPickerSlider";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useGlobalContext } from "../globalcontext";
 import * as Haptics from "expo-haptics";
@@ -41,9 +40,13 @@ const UserInfo = () => {
   const { user } = useUser();
   const { showAlert } = useAlert();
 
+  const { userColors } = useGlobalContext();
+
   const [postContent, setPostContent] = useState("");
+
+  console.log("[user-info]: ", allColors.length,  allColors.find((c) => c.id === "pink"))
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors.find((c) => c.name === "pink") as PostItColor
+    allColors.find((c) => c.id === "pink") as PostItColor
   );
 
   const [inputHeight, setInputHeight] = useState(40);
@@ -107,11 +110,12 @@ const UserInfo = () => {
         throw new Error(response.error);
       }
 
+     
       if (response.data) {
         const boardsWithColor = response.data.map(
           (board: any, index: number) => ({
             ...board,
-            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           })
         );
 
@@ -183,50 +187,7 @@ const UserInfo = () => {
     fetchUsers();
   }, [user]);
 
-  const submitPost = async () => {
-    setLoading(true);
-    const cleanedContent = postContent;
-    if (cleanedContent === "") {
-      showAlert({
-        title: "Error",
-        message: `Post cannot be empty.`,
-        type: "ERROR",
-        status: "error",
-      });
-      return;
-    }
-    try {
-      await fetchAPI("/api/posts/newPersonalPost", {
-        method: "POST",
-        body: JSON.stringify({
-          content: cleanedContent,
-          clerkId: user!.id,
-          recipientId: user!.id,
-          postType: "personal",
-          color: selectedColor.name,
-          pinned: true,
-        }),
-      });
 
-      setTimeout(() => {
-        showAlert({
-          title: "Success",
-          message: `Post created.`,
-          type: "POST",
-          status: "success",
-        });
-      }, 500);
-    } catch (error) {
-      showAlert({
-        title: "Error",
-        message: `An error occurred. Please try again.`,
-        type: "ERROR",
-        status: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const currentScreen = usePathname().replace("/", "");
   const { stateVars, setStateVars } = useNavigationContext();
@@ -542,7 +503,6 @@ const UserInfo = () => {
 
     if (step < totalSteps - 1) setStep((prev) => prev + 1);
     else {
-      submitPost();
       router.push("/root/tabs/home");
     }
   };

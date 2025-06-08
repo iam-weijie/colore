@@ -1,6 +1,7 @@
 
   import { useGlobalContext } from "@/app/globalcontext";
-  import { icons, temporaryColors } from "@/constants";
+  import { icons } from "@/constants";
+  import { allColors } from "@/constants/colors";
   import { Post, PostWithPosition, Position, Stacks } from "@/types/type";
   import { useEffect, useRef, useState, useMemo } from "react";
   import PostIt from "@/components/PostIt";
@@ -79,7 +80,7 @@ interface DraggablePostItProps {
     const hasUpdatedPosition = useRef(false);
 
   const getFontColorHex = (colorName: string | undefined) => {
-    const foundColor = temporaryColors.find((c) => c.name === colorName);
+    const foundColor = allColors.find((c) => c.id === colorName);
     setFontColor(foundColor?.fontColor || "#ff0000");
   };
 

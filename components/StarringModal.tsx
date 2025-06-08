@@ -1,7 +1,6 @@
 import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useSoundGesture } from "@/hooks/useSoundGesture"; // Import swipe sound hook
-import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import {
   convertToLocal,
@@ -87,7 +86,7 @@ const StarringModal: React.FC<PostModalProps> = ({
           {
             flex: 1,
             position: "absolute",
-            backgroundColor: "rgba(250,250,250,1)",
+            backgroundColor: "rgba(255,255,255,1)",
           },
           backgroundStyle,
           modalStyle,
@@ -109,42 +108,6 @@ const StarringModal: React.FC<PostModalProps> = ({
         />
       </Animated.View>
     </>
-    // <Modal
-    //   visible={isVisible}
-    //   transparent={true}
-    //   animationType="none" // We're handling animation manually
-    //   onRequestClose={handleCloseModal}
-    // >
-    //   {/* Animated Background */}
-    //   <Animated.View
-    //     className="w-full h-full"
-    //     style={[
-    //       {
-    //         flex: 1,
-    //         position: "absolute",
-    //         backgroundColor: "rgba(250,250,250,1)",
-    //       },
-    //       backgroundStyle,
-    //       modalStyle,
-    //     ]}
-    //   >
-    //     {header}
-    //     {/* Pressable area to close modal when background is tapped */}
-    //     <Pressable style={{ flex: 1 }} onPress={handleCloseModal} />
-
-    //     {/* Animated Content */}
-    //     <StarringContainer
-    //       selectedPosts={selectedPosts}
-    //       handleCloseModal={handleCloseModal}
-    //       handleUpdate={handleUpdate}
-    //       invertedColors={invertedColors}
-    //       isPreview={isPreview}
-    //       header={header}
-    //       infiniteScroll={infiniteScroll}
-    //       scrollToLoad={scrollToLoad}
-    //     />
-    //   </Animated.View>
-    // </Modal>
   );
 };
 

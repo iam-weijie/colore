@@ -46,7 +46,7 @@ export const handleEditing = (post: Post) => {
   
 export const handleReadComments = async (post: Post, userId: string) => {
     
-    if (post.clerk_id === userId) {
+    if (post.user_id === userId) {
       try {
         console.log("Patching comments")
         
@@ -55,7 +55,7 @@ export const handleReadComments = async (post: Post, userId: string) => {
           body: JSON.stringify({
             clerkId: userId,
             postId: post?.id,
-            postClerkId: post.clerk_id,
+            postUserId: post.user_id,
           }),
         });
       } catch (error) {
@@ -248,3 +248,21 @@ const cleanContent = stripMarkdown(draftPost.content);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
   }
 };
+
+
+export const fetchLikeStatus = async (post: Post, userId: string) => {
+    try {
+      const response = await fetchAPI(
+        `/api/posts/updateLikeCount?postId=${post}&userId=${userId}`,
+        { method: "GET" }
+      );
+      if (response.error) return;
+
+      const isLiked: boolean = response.data?.liked 
+      const likeCount: number = response.data?.likeCount 
+
+      return {isLiked: isLiked ?? false, likeCount: likeCount ?? 0}
+    } catch (error) {
+      console.error("Failed to fetch like status:", error);
+    }
+  };

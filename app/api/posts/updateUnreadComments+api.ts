@@ -4,9 +4,9 @@ export async function PATCH(request: Request) {
   try {
     //console.log("Received PATCH request for unread comments on post");
     const sql = neon(`${process.env.DATABASE_URL}`);
-    const { clerkId, postId, postClerkId } = await request.json();
+    const { clerkId, postId, postUserId } = await request.json();
 
-    if (!clerkId || !postId || !postClerkId) {
+    if (!clerkId || !postId || !postUserId) {
       return Response.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -16,7 +16,7 @@ export async function PATCH(request: Request) {
     // should be checked on front-end, but just in case, return error
     // if attempting to call this route when the post owner is not
     // the same as the current user
-    if (postClerkId !== clerkId) {
+    if (postUserId !== clerkId) {
       return Response.json({ error: "Unauthorized action." }, { status: 403 });
     }
 
