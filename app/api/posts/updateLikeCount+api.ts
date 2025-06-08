@@ -86,12 +86,14 @@ export async function PATCH(request: Request) {
         )
         SELECT 
           uc.like_count,
-          TRUE as is_liked
+          TRUE as is_liked,
+          il.id as like_id
         FROM update_count uc
+        LEFT JOIN insert_like il ON true
       `;
 
       // Dispatching notification of liking post to post owner
-      // Fix: turn 2 sql queries into 1
+      // Refactor: turn 2 sql queries into 1
 
       const postInfo = await sql`
         SELECT
@@ -110,30 +112,34 @@ export async function PATCH(request: Request) {
         WHERE clerk_id = ${userId}
       `;
 
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: postInfo[0].user_id,
-            type: "Likes",
-            notification: {
-              post_id: postInfo[0].id,
-              post_content: postInfo[0].content,
-              post_color: postInfo[0].color,
-              liker_username: likerUsername[0].username,
-            },
-            content: {},
-          }),
-        }
-      );
+      // don't send a notification if someone likes their own post
+      if (postInfo[0].user_id !== userId) {
+        const res = await fetch(
+          `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: postInfo[0].user_id,
+              type: "Likes",
+              notification: {
+                id: result[0].like_id,
+                post_id: postInfo[0].id,
+                post_content: postInfo[0].content,
+                post_color: postInfo[0].color,
+                liker_username: likerUsername[0].username,
+              },
+              content: {},
+            }),
+          }
+        );
 
-      const data = await res.json();
-      if (!data.success) {
-        console.log(data.message!);
-      } else {
-        console.log("successfully shot post like notification!");
+        const data = await res.json();
+        if (!data.success) {
+          console.log(data.message!);
+        } else {
+          console.log("successfully shot post like notification!");
+        }
       }
     } else {
       // Unlike the post

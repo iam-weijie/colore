@@ -278,6 +278,7 @@ async function handleSendNotificationExternal(
           }
         );
       } // else if (n.comment_id) {}
+      return; // returning early for now, will need to update updateNotified api
     }
 
     await fetchAPI(`/api/notifications/updateNotified${type}`, {

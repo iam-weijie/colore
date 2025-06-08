@@ -115,6 +115,14 @@ declare interface PostComment {
   postColor: string;
 }
 
+declare interface PostLike {
+  id: number;
+  post_id: number;
+  post_content: string;
+  post_color: string;
+  liker_username: string;
+}
+
 declare interface UserProfileType {
   id: number;
   clerk_id: string;

@@ -23,6 +23,7 @@ import {
   UserNicknamePair,
   Post,
   PostComment,
+  PostLike,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from "@react-navigation/native";
@@ -815,6 +816,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   // Notifications
   const [commentsNotif, setCommentsNotif] = useState<PostComment[]>();
   const [postsNotif, setPostsNotif] = useState<Post[]>();
+  const [likesNotif, setLikesNotif] = useState<PostLike[]>();
 
   // User experience
   const [loading, setLoading] = useState<boolean>(false);
@@ -845,22 +847,34 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   const NotificationItem = ({ item, loading, setShowDeleteIcon }) => {
     // Find post info for comments
     let post;
-
-    if (!item.recipient_user_id) {
-      // 🔍 Find the post (notification) that contains the specific comment
-      const post = storedNotifications.find((n) =>
+    if (item.commenter_username) {
+      post = storedNotifications.find((n) =>
         n.comments?.some((comment) => comment.id === item.id)
       );
+    }
 
-      // post = storedNotifications.find((n) => n.comments.includes(item))
+    let label = "";
+
+    if (item.commenter_username) {
+      label = `${item.commenter_username} has commented a post`;
+    } else if (item.username) {
+      label = `${item.username} has sent you a post`;
+    } else if (item.liker_username) {
+      label = `${item.liker_username} has liked your post`;
     }
 
     return (
       <ItemContainer
-        label={`${item.commenter_username ?? item.username} has ${item.commenter_username ? "commented a post." : "sent you a post"}`}
-        caption={`${item.comment_content ?? item.content ?? ""}`}
+        label={label}
+        caption={`${item.comment_content ?? item.content ?? item.post_content}`}
         colors={["#93c5fd", "#93c5fd"]}
-        icon={item.comment_content ? icons.comment : icons.pencil}
+        icon={
+          item.comment_content
+            ? icons.comment
+            : item.content
+              ? icons.pencil
+              : icons.heart
+        }
         actionIcon={icons.chevron}
         iconColor="#000"
         onPress={() => {
@@ -870,7 +884,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
               params: { id: `${user!.id}`, username: `Personal board` },
             });
           } else {
-            router.push(`/root/tabs/profile`);
+            router.push("/root/tabs/profile");
           }
         }}
       />
@@ -892,20 +906,23 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   useEffect(() => {
     const commentsArray: PostComment[] = [];
     const postsArray: Post[] = [];
+    const likesArray: PostLike[] = [];
 
     storedNotifications.forEach((notif) => {
       if (notif.comments) {
         commentsArray.push(...notif.comments);
       }
-
       if (notif.recipient_user_id) {
-        console.log("here");
         postsArray.push(notif);
+      }
+      if (notif.liker_username) {
+        likesArray.push(notif);
       }
     });
 
     setCommentsNotif(commentsArray);
     setPostsNotif(postsArray);
+    setLikesNotif(likesArray);
   }, [storedNotifications]);
 
   return (
@@ -914,10 +931,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
         <TabNavigation
           name="Comments"
           focused={selectedTab === "Comments"}
-          onPress={() => {
-            setSelectedTab("Comments");
-            //setSearchText("");
-          }}
+          onPress={() => setSelectedTab("Comments")}
           notifications={commentsNotif?.length ?? 0}
         />
         <TabNavigation
@@ -929,11 +943,8 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
         <TabNavigation
           name="Likes"
           focused={selectedTab === "Likes"}
-          onPress={() => {
-            setSelectedTab("Likes");
-            //setSearchText("");
-          }}
-          notifications={0}
+          onPress={() => setSelectedTab("Likes")}
+          notifications={likesNotif?.length ?? 0}
         />
       </View>
 
@@ -976,7 +987,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
       {selectedTab === "Likes" && (
         <FlatList
           className="rounded-[16px] "
-          data={[]}
+          data={likesNotif}
           contentContainerStyle={{
             paddingBottom: 40,
             minHeight: screenHeight * 0.46,
