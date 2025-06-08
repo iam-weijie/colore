@@ -452,28 +452,27 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     />
   );
 
-       const renderUser = ({
-          item,
-        }: {
-          item: UserNicknamePair;
-        }): React.ReactElement => (
-          <ItemContainer 
-          label={item[1]}
-          colors={["#FBB1F5", "#CFB1FB"]}
-          icon={icons.addUser}
-          actionIcon={icons.chevron}
-          iconColor="#000"
-          onPress={() => {
-
-            router.push({
-              pathname: "/root/profile/[id]",
-              params: { userId: item[0], username: item[1] },
-            });
-          }}
-          />
-        );
-    {
-      /* <CustomButton
+  const renderUser = ({
+    item,
+  }: {
+    item: UserNicknamePair;
+  }): React.ReactElement => (
+    <ItemContainer
+      label={item[1]}
+      colors={["#FBB1F5", "#CFB1FB"]}
+      icon={icons.addUser}
+      actionIcon={icons.chevron}
+      iconColor="#000"
+      onPress={() => {
+        router.push({
+          pathname: "/root/profile/[id]",
+          params: { userId: item[0], username: item[1] },
+        });
+      }}
+    />
+  );
+  {
+    /* <CustomButton
           title="Chat"
           onPress={() => startChat(item)}
           disabled={!item[1]}
@@ -521,7 +520,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     });
   };
 
-
   // console.log("All Friend Request", allFriendRequests?.sent);
   // HANDLE REQUESTS ------ END
 
@@ -532,7 +530,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     fetchFriendData();
   }, []);
 
-console.log("Re-rendered")
+  console.log("Re-rendered");
   // console.log(conversations);
   // console.log("firends", friendList, "\n\nSent", allFriendRequests?.sent, "\n\nReceived", allFriendRequests?.received);
 
@@ -542,131 +540,128 @@ console.log("Re-rendered")
   };
   return (
     <TouchableWithoutFeedback
-    className="flex-1"
-
-    onPress={() => Keyboard.dismiss()}
-    onPressIn={() => Keyboard.dismiss()}>
-      <View className="flex-1 px-6"
-          style={{
-      height: screenHeight * 0.6
-    }}>
-
-          
-            <View className="w-full flex-row items-start justify-between ">
-              
-
-            <TabNavigation
-                name="Find"
-                focused={selectedTab === "Find"}
-                onPress={() => {
-                  setSelectedTab("Find");
-                  setSearchText("");
-                }}
-                notifications={0}
-              />
-              <TabNavigation
-                name="Friends"
-                focused={selectedTab === "Friends"}
-                onPress={() => {
-                  setSelectedTab("Friends");
-                  setSearchText("");
-                }}
-                notifications={0}
-              />
-              <TabNavigation
-                name="Requests"
-                focused={selectedTab === "Requests"}
-                onPress={() => setSelectedTab("Requests")}
-                notifications={
-                  allFriendRequests
-                    ? allFriendRequests.received.length
-                    : 0
-                }
-              />
-            </View>
+      className="flex-1"
+      onPress={() => Keyboard.dismiss()}
+      onPressIn={() => Keyboard.dismiss()}
+    >
+      <View
+        className="flex-1 px-6"
+        style={{
+          height: screenHeight * 0.6,
+        }}
+      >
+        <View className="w-full flex-row items-start justify-between ">
+          <TabNavigation
+            name="Find"
+            focused={selectedTab === "Find"}
+            onPress={() => {
+              setSelectedTab("Find");
+              setSearchText("");
+            }}
+            notifications={0}
+          />
+          <TabNavigation
+            name="Friends"
+            focused={selectedTab === "Friends"}
+            onPress={() => {
+              setSelectedTab("Friends");
+              setSearchText("");
+            }}
+            notifications={0}
+          />
+          <TabNavigation
+            name="Requests"
+            focused={selectedTab === "Requests"}
+            onPress={() => setSelectedTab("Requests")}
+            notifications={
+              allFriendRequests ? allFriendRequests.received.length : 0
+            }
+          />
+        </View>
 
         {selectedTab == "Find" && (
           <View>
-                       <View className="absolute z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 self-center"
-        style={{
-          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
-          width: '90%'
-        }}
-        >
-            <Ionicons name="search" size={20} color="#9ca3af" />
-          <TextInput
-            className="flex-1 pl-2 text-md "
-            placeholder="Write your friend's name..."
-             placeholderTextColor="#9CA3AF"
-            value={searchText}
-            onChangeText={setSearchText}
-            returnKeyType="search"
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearSearch}
-              className="w-6 h-6 items-center justify-center"
+            <View
+              className="absolute z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 self-center"
+              style={{
+                boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
+                width: "90%",
+              }}
             >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
-        </View>
+              <Ionicons name="search" size={20} color="#9ca3af" />
+              <TextInput
+                className="flex-1 pl-2 text-md "
+                placeholder="Write your friend's name..."
+                placeholderTextColor="#9CA3AF"
+                value={searchText}
+                onChangeText={setSearchText}
+                returnKeyType="search"
+              />
+              {searchText.length > 0 && (
+                <TouchableOpacity
+                  onPress={handleClearSearch}
+                  className="w-6 h-6 items-center justify-center"
+                >
+                  <Ionicons name="close-circle" size={20} color="#9ca3af" />
+                </TouchableOpacity>
+              )}
+            </View>
 
-                          {loading ? (
-                                        <View className="flex-1 items-center justify-center">
-                                        <ColoreActivityIndicator text="Summoning Bob..." />
-                                        </View>
-                                      ) : error ? (
-                                        <Text>{error}</Text>
-                                      ) : (
-                                        <FlatList
-                                          className="rounded-[24px]"
-                                          data={filteredUsers}
-                                          contentContainerStyle={{ 
-                                            marginTop: 64,
-                                            paddingBottom: 120 
-                                          }} 
-                                          renderItem={renderUser}
-                                          keyExtractor={(item): string => String(item[0])}
-                                          showsVerticalScrollIndicator={false}
-                                        />
-                                      )}
-            </View>}
-          {selectedTab == "Friends" && (
-            <View className="flex-1">
-           <View className="absolute z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 self-center"
-        style={{
-          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
-          width: '90%'
-        }}
-        >
-          <Ionicons name="search" size={20} color="#9ca3af" />
-          <TextInput
-            className="flex-1 pl-2 text-md "
-            placeholder="Search for a friend..."
-             placeholderTextColor="#9CA3AF"
-            value={searchText}
-            onChangeText={setSearchText}
-            returnKeyType="search"
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearSearch}
-              className="w-6 h-6 items-center justify-center"
+            {loading ? (
+              <View className="flex-1 items-center justify-center">
+                <ColoreActivityIndicator text="Summoning Bob..." />
+              </View>
+            ) : error ? (
+              <Text>{error}</Text>
+            ) : (
+              <FlatList
+                className="rounded-[24px]"
+                data={filteredUsers}
+                contentContainerStyle={{
+                  marginTop: 64,
+                  paddingBottom: 120,
+                }}
+                renderItem={renderUser}
+                keyExtractor={(item): string => String(item[0])}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
+          </View>
+        )}
+        {selectedTab == "Friends" && (
+          <View className="flex-1">
+            <View
+              className="absolute z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 self-center"
+              style={{
+                boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
+                width: "90%",
+              }}
             >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
-        </View>
+              <Ionicons name="search" size={20} color="#9ca3af" />
+              <TextInput
+                className="flex-1 pl-2 text-md "
+                placeholder="Search for a friend..."
+                placeholderTextColor="#9CA3AF"
+                value={searchText}
+                onChangeText={setSearchText}
+                returnKeyType="search"
+              />
+              {searchText.length > 0 && (
+                <TouchableOpacity
+                  onPress={handleClearSearch}
+                  className="w-6 h-6 items-center justify-center"
+                >
+                  <Ionicons name="close-circle" size={20} color="#9ca3af" />
+                </TouchableOpacity>
+              )}
+            </View>
             <FlatList
               className="rounded-[16px]"
-              
-            
               data={filteredFriendList}
-              contentContainerStyle={{ 
+              contentContainerStyle={{
                 marginTop: 64,
-                paddingBottom: 90
-              }} 
+                paddingBottom: 90,
+              }}
               renderItem={renderFriend}
               keyExtractor={(item) => item.id.toString()}
               ListEmptyComponent={
@@ -683,79 +678,83 @@ console.log("Re-rendered")
               {/* Top half: Incoming Requests */}
               <View className="mb-2">
                 <View className="p-2">
-                <View className="flex-row items-center justify-start mx-4">
-                        <Text className="font-JakartaBold text-[16px]">Request </Text>
-                        <View className="absolute top-[50%] right-3">
-                        <NotificationBubble
-                          unread={
-                            allFriendRequests?.received
-                              ? allFriendRequests.received.length
-                              : 0
-                          }
-                          color="#CFB1FB"
-                        />
-                        </View>
-                        </View>
-                      </View>
-                  <FlatList
-                     className="px-2 rounded-[24px]"
-                    data={allFriendRequests?.received}
-                    contentContainerStyle={{ 
-                      paddingBottom: 80 }} 
-                    renderItem={renderIncomingRequest}
-                    keyExtractor={(item) => item.id.toString()}
-                    ListEmptyComponent={
-                      <Text className="text-left text-gray-500 py-2 text-[12px] mx-4">
-                        No friend requests
-                      </Text>
-                    }
-                    showsVerticalScrollIndicator={false}
-                    scrollEnabled={
-                      allFriendRequests && allFriendRequests.received.length > 0
-                    }
-                  />
+                  <View className="flex-row items-center justify-start mx-4">
+                    <Text className="font-JakartaBold text-[16px]">
+                      Request{" "}
+                    </Text>
+                    <View className="absolute top-[50%] right-3">
+                      <NotificationBubble
+                        unread={
+                          allFriendRequests?.received
+                            ? allFriendRequests.received.length
+                            : 0
+                        }
+                        color="#CFB1FB"
+                      />
+                    </View>
+                  </View>
                 </View>
+                <FlatList
+                  className="px-2 rounded-[24px]"
+                  data={allFriendRequests?.received}
+                  contentContainerStyle={{
+                    paddingBottom: 80,
+                  }}
+                  renderItem={renderIncomingRequest}
+                  keyExtractor={(item) => item.id.toString()}
+                  ListEmptyComponent={
+                    <Text className="text-left text-gray-500 py-2 text-[12px] mx-4">
+                      No friend requests
+                    </Text>
+                  }
+                  showsVerticalScrollIndicator={false}
+                  scrollEnabled={
+                    allFriendRequests && allFriendRequests.received.length > 0
+                  }
+                />
+              </View>
 
               {/* Bottom half: Outgoing Requests */}
               <View className=" flex-col mt-2">
                 <View className="p-2">
                   <View className="flex-row items-center justify-start mx-4">
-                        <Text className="font-JakartaBold text-[16px]">Sent </Text>
-                        <View className="absolute top-[50%] right-3">
-                        <NotificationBubble
-                          unread={
-                            allFriendRequests?.sent
-                              ? allFriendRequests.sent.length
-                              : 0
-                          }
-                          color="#CFB1FB"
-                        />
-                        </View>
-                        </View>
-                      </View>
-                  <FlatList
-                    className="rounded-[24px]"
-                    data={allFriendRequests?.sent}
-                    contentContainerStyle={{ 
-                      paddingBottom: 200 }} 
-                    renderItem={renderOutgoingRequest}
-                    keyExtractor={(item) => item.id.toString()}
-                    ListEmptyComponent={
-                      <Text className="text-left text-gray-500 py-2 text-[12px] mx-4">
-                        No outgoing friend requests
-                      </Text>
-                    }
-                    showsVerticalScrollIndicator={false}
-                    scrollEnabled={
-                      allFriendRequests && allFriendRequests?.sent.length > 0
-                    }
-                  />
+                    <Text className="font-JakartaBold text-[16px]">Sent </Text>
+                    <View className="absolute top-[50%] right-3">
+                      <NotificationBubble
+                        unread={
+                          allFriendRequests?.sent
+                            ? allFriendRequests.sent.length
+                            : 0
+                        }
+                        color="#CFB1FB"
+                      />
+                    </View>
+                  </View>
                 </View>
+                <FlatList
+                  className="rounded-[24px]"
+                  data={allFriendRequests?.sent}
+                  contentContainerStyle={{
+                    paddingBottom: 200,
+                  }}
+                  renderItem={renderOutgoingRequest}
+                  keyExtractor={(item) => item.id.toString()}
+                  ListEmptyComponent={
+                    <Text className="text-left text-gray-500 py-2 text-[12px] mx-4">
+                      No outgoing friend requests
+                    </Text>
+                  }
+                  showsVerticalScrollIndicator={false}
+                  scrollEnabled={
+                    allFriendRequests && allFriendRequests?.sent.length > 0
+                  }
+                />
               </View>
             </View>
-          )}
-        </View>
-        </TouchableWithoutFeedback>
+          </View>
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
