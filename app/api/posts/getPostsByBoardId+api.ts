@@ -34,6 +34,8 @@ export async function GET(request: Request) {
         u.firstname, 
         u.lastname, 
         u.username,
+        u.nickname,
+        u.incognito_name,
         u.country, 
         u.state, 
         u.city,
@@ -54,6 +56,8 @@ export async function GET(request: Request) {
       user_id: post.user_id,
       firstname: post.firstname,
       username: post.username,
+      nickname: post.nickname,
+      incognito_name: post.incognito_name,
       content: post.content,
       created_at: post.created_at,
       expires_at: "", // Not available in query - set default
@@ -71,20 +75,21 @@ export async function GET(request: Request) {
       prompt_id: post.prompt_id,
       prompt: post.prompt,
       board_id: post.board_id,
-      reply_to: post.reply_to, 
+      reply_to: post.reply_to,
       unread: post.unread,
-      position: post.top !== null && post.left !== null 
-        ? { top: Number(post.top), left: Number(post.left) } 
-        : undefined,
-      formatting: post.formatting as Format || [],
-      static_emoji: post.static_emoji
+      position:
+        post.top !== null && post.left !== null
+          ? { top: Number(post.top), left: Number(post.left) }
+          : undefined,
+      formatting: (post.formatting as Format) || [],
+      static_emoji: post.static_emoji,
     }));
 
     //console.log("Mapped Post", mappedPosts)
     return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
   } catch (error) {

@@ -35,7 +35,9 @@ export async function GET(request: Request) {
         u1.country,
         u1.state,
         u1.city,
-        u1.username AS friend_username
+        u1.username AS friend_username,
+        u1.nickname AS friend_nickname,
+        u1.incognito_name AS friend_incognito_name
       FROM friendships fr
       JOIN users u1 ON fr.friend_id = u1.clerk_id
       WHERE fr.user_id = ${userId}

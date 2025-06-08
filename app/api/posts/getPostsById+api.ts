@@ -39,13 +39,15 @@ export async function GET(request: Request) {
       });
     }
 
-     // Transform the response to match the Post interface
+    // Transform the response to match the Post interface
     const mappedPosts = response.map((post) => ({
       id: post.id,
       clerk_id: post.clerk_id,
       user_id: post.user_id, // Using clerk_id as user_id for temporary fix
       firstname: post.firstname,
       username: post.username,
+      nickname: post.nickname,
+      incognito_name: post.incognito_name,
       content: post.content,
       created_at: post.created_at,
       expires_at: post.expires_at, // Not available in query - set default
@@ -63,13 +65,14 @@ export async function GET(request: Request) {
       prompt_id: post.prompt_id,
       prompt: post.prompt,
       board_id: post.board_id,
-      reply_to: post.reply_to, 
+      reply_to: post.reply_to,
       unread: post.unread,
-      position: post.top !== null && post.left !== null 
-        ? { top: Number(post.top), left: Number(post.left) } 
-        : undefined,
-      formatting: post.formatting as Format || [],
-      static_emoji: post.static_emoji
+      position:
+        post.top !== null && post.left !== null
+          ? { top: Number(post.top), left: Number(post.left) }
+          : undefined,
+      formatting: (post.formatting as Format) || [],
+      static_emoji: post.static_emoji,
     }));
 
     // Return the posts data in the response

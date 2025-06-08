@@ -43,6 +43,8 @@ export async function GET(request: Request) {
         u.firstname, 
         u.lastname, 
         u.username,
+        u.nickname,
+        u.incognito_name,
         u.country, 
         u.state, 
         u.city,
@@ -67,6 +69,8 @@ export async function GET(request: Request) {
       user_id: post.user_id,
       firstname: post.firstname,
       username: post.username,
+      nickname: post.nickname,
+      incognito_name: post.incognito_name,
       content: post.content,
       created_at: post.created_at,
       city: post.city,
@@ -82,24 +86,23 @@ export async function GET(request: Request) {
       notified: post.notified,
       prompt_id: post.prompt_id,
       prompt: post.prompt,
-      board_id: post.board_id || -1, 
+      board_id: post.board_id || -1,
       unread: post.unread,
       position: {
         top: post.top,
-        left: post.left
+        left: post.left,
       },
       expires_at: post.expires_at || "",
-      formatting: post.formatting as Format || [],
-      static_emoji: post.static_emoji
+      formatting: (post.formatting as Format) || [],
+      static_emoji: post.static_emoji,
     }));
 
     return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
-  
   } catch (error) {
     console.error("Error fetching personal posts:", error);
     return new Response(

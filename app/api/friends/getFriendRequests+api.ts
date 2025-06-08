@@ -36,7 +36,9 @@ export async function GET(request: Request) {
         fr.created_at,
         fr.notified,
         u1.username AS user1_username,
-        u2.username AS user2_username
+        u1.nickname AS user1_nickname,
+        u2.username AS user2_username,
+        u2.nickname AS user2_nickname
       FROM friend_requests fr
       JOIN users u1 ON fr.user_id1 = u1.clerk_id
       JOIN users u2 ON fr.user_id2 = u2.clerk_id

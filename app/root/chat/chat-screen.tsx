@@ -286,7 +286,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   };
 
   const filteredFriendList = friendList.filter((friend) =>
-    friend.friend_username.toLowerCase().includes(searchText.toLowerCase())
+    friend.friend_nickname.toLowerCase().includes(searchText.toLowerCase())
   );
 
   // RENDER LISTS ------ START
@@ -344,7 +344,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         label={
           nicknames && item.friend_id in nicknames
             ? nicknames[item.friend_id]
-            : item.friend_username
+            : item.friend_nickname
         }
         caption={
           item.city !== item.state
@@ -376,7 +376,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         label={
           nicknames && item.senderId in nicknames
             ? nicknames[item.senderId]
-            : item.senderUsername
+            : item.senderNickname
         }
         caption={getRelativeTime(convertToLocal(new Date(item.createdAt)))}
         colors={["#CFB1FB", "#CFB1FB"]}
@@ -500,6 +500,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         senderUsername: isRequestorUID1
           ? friendRequest.user1_username
           : friendRequest.user2_username,
+        senderNickname: isRequestorUID1
+          ? friendRequest.user1_nickname
+          : friendRequest.user2_nickname,
         receiverUsername: isRequestorUID1
           ? friendRequest.user2_username
           : friendRequest.user1_username,

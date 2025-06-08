@@ -10,6 +10,8 @@ declare interface Post {
   user_id: string;
   firstname: string;
   username: string;
+  nickname: string;
+  incognito_name: string;
   content: string;
   created_at: string;
   expires_at: string;
@@ -61,7 +63,6 @@ declare interface UsePersonalPostsParams {
   updatePinnedPosts?: boolean;
   setUpdatePinnedPosts?: (value: boolean) => void;
 }
-
 
 declare interface StylingType {
   id: number;
@@ -334,7 +335,9 @@ declare interface RawFriendRequest {
   createdAt: Date;
   notified: boolean;
   user1_username: string;
+  user1_nickname: string;
   user2_username: string;
+  user2_nickname: string;
 }
 
 declare interface FriendRequest {
@@ -344,6 +347,7 @@ declare interface FriendRequest {
   createdAt: Date;
   notified: boolean;
   senderUsername: string;
+  senderNickname: string;
   receiverUsername: string;
 }
 
@@ -357,6 +361,8 @@ declare interface Friendship {
   friend_id: string;
   created_at: Date;
   friend_username: string;
+  friend_nickname: string;
+  friend_incognito_name: string;
 }
 
 declare interface Stacks {

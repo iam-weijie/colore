@@ -61,6 +61,7 @@ const UserInfo = () => {
     country: "",
     email: "",
     username: "",
+    nickname: "",
     incognito_name: "",
   });
   const [loading, setLoading] = useState(false);
@@ -96,7 +97,6 @@ const UserInfo = () => {
       console.error("Failed to fetch user data:", error);
     }
   };
-
 
   const fetchDiscoverBoards = async () => {
     try {
@@ -172,6 +172,7 @@ const UserInfo = () => {
           country: data.country,
           email: data.email,
           username: data.username,
+          nickname: data.nickname,
           incognito_name: data.incognito_name,
         });
       }
@@ -183,13 +184,12 @@ const UserInfo = () => {
     fetchUsers();
   }, [user]);
 
-
-
   const currentScreen = usePathname().replace("/", "");
   const { stateVars, setStateVars } = useNavigationContext();
 
   const [form, setForm] = useState({
     username: userData.username || stateVars.username || user?.username || "",
+    nickname: userData.nickname || stateVars.nickname || "",
     incognito_name: userData.incognito_name || stateVars.incognito_name || "",
     userLocation: stateVars.userLocation || "",
   });

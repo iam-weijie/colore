@@ -29,7 +29,7 @@ type GlobalContextType = {
   userColors: PostItColor[];
   setUserColors: React.Dispatch<React.SetStateAction<PostItColor[]>>;
   draftPost: Post;
-  setDraftPost:  React.Dispatch<React.SetStateAction<Post | null>>; 
+  setDraftPost: React.Dispatch<React.SetStateAction<Post | null>>;
   resetDraftPost: () => void;
   notifications: any[];
   storedNotifications: any[];
@@ -45,16 +45,20 @@ type GlobalContextType = {
   setScrollTo: React.Dispatch<React.SetStateAction<string | null>>;
   // New settings state
   hapticsEnabled: boolean;
-  setHapticsEnabled: (value: boolean | ((prevState: boolean) => boolean)) => void; // Use custom setter type
+  setHapticsEnabled: (
+    value: boolean | ((prevState: boolean) => boolean)
+  ) => void; // Use custom setter type
   soundEffectsEnabled: boolean;
-  setSoundEffectsEnabled: (value: boolean | ((prevState: boolean) => boolean)) => void; // Use custom setter type
+  setSoundEffectsEnabled: (
+    value: boolean | ((prevState: boolean) => boolean)
+  ) => void; // Use custom setter type
 };
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 const screenWidth = Dimensions.get("screen").width;
 const NOTIFICATION_TASK = "background-notification-fetch";
-const HAPTICS_ENABLED_KEY = 'hapticsEnabled';
-const SOUND_EFFECTS_ENABLED_KEY = 'soundEffectsEnabled';
+const HAPTICS_ENABLED_KEY = "hapticsEnabled";
+const SOUND_EFFECTS_ENABLED_KEY = "soundEffectsEnabled";
 
 // ===== External Notification Fetch Logic =====
 // This function is designed to run in both the in-app polling and background fetch.
@@ -77,7 +81,7 @@ export async function fetchNotificationsExternal(
       fetch(`/api/notifications/getUserPersonalPosts?id=${userId}`),
       fetch(`/api/friends/getFriendRequests?userId=${userId}`),
     ]);
-    
+
     const commentsData = await commentsResponse.json();
     const comments = commentsData.toNotify;
     const storedComments = commentsData.toStore;
@@ -121,10 +125,7 @@ export async function fetchNotificationsExternal(
       ...friendRequests,
     ];
 
-    const allStoredNotifications = [
-      ...storedComments,
-      ...storedPosts
-    ]
+    const allStoredNotifications = [...storedComments, ...storedPosts];
     // Process each notification and send push if needed.
     const processFetchedNotifications = async (notifications: any[]) => {
       //console.log("notifications", notifications);
@@ -133,39 +134,55 @@ export async function fetchNotificationsExternal(
         //console.log("No new notifications to process");
         return; // Exit the function early
       }
-    
+
       for (const n of allNotifications) {
         //console.log("n", n)
         if (n.messages) {
           for (const message of n.messages) {
-            await handleSendNotificationExternal(n, message, "Messages", pushToken);
+            await handleSendNotificationExternal(
+              n,
+              message,
+              "Messages",
+              pushToken
+            );
           }
         }
         if (n.comments) {
-          
           for (const comment of n.comments) {
-            await handleSendNotificationExternal(n, comment, "Comments", pushToken);
+            await handleSendNotificationExternal(
+              n,
+              comment,
+              "Comments",
+              pushToken
+            );
           }
         }
         if (n.requests) {
           for (const request of n.requests) {
-            await handleSendNotificationExternal(n, request, "Requests", pushToken);
+            await handleSendNotificationExternal(
+              n,
+              request,
+              "Requests",
+              pushToken
+            );
           }
         }
-        if(n.recipient_user_id) {
-         console.log("n", n)
-            await handleSendNotificationExternal(n, n, "Posts", pushToken);
-           
+        if (n.recipient_user_id) {
+          console.log("n", n);
+          await handleSendNotificationExternal(n, n, "Posts", pushToken);
         }
       }
     };
 
-   
-    processFetchedNotifications(allNotifications)
-    return {notifs: allNotifications, history: allStoredNotifications, counts: [unread_comments, unread_messages, unread_posts, unread_requests]};
+    processFetchedNotifications(allNotifications);
+    return {
+      notifs: allNotifications,
+      history: allStoredNotifications,
+      counts: [unread_comments, unread_messages, unread_posts, unread_requests],
+    };
   } catch (error) {
     console.error("Error fetching notifications externally", error);
-    return
+    return;
   }
 }
 
@@ -177,12 +194,12 @@ async function handleSendNotificationExternal(
   pushToken: string
 ) {
   if (!pushToken) return;
-  
+
   try {
     if (type === "Comments") {
       const notificationContent = content.comment_content.slice(0, 120);
-  
-      console.log("n", n)
+
+      console.log("n", n);
       await sendPushNotification(
         pushToken,
         `${content.commenter_username} responded to your post`,
@@ -201,7 +218,7 @@ async function handleSendNotificationExternal(
             report_count: n.report_count,
             created_at: n.created_at,
             unread_comments: n.unread_comments,
-            color: n.color
+            color: n.color,
           },
         }
       );
@@ -215,8 +232,8 @@ async function handleSendNotificationExternal(
     if (type === "Requests") {
       const username =
         content.requestor === "UID1"
-          ? content.user1_username
-          : content.user2_username;
+          ? content.user1_nickname
+          : content.user2_nickname;
       await sendPushNotification(
         pushToken,
         `${username} wants to be your friend!`,
@@ -229,7 +246,7 @@ async function handleSendNotificationExternal(
       );
     }
     if (type === "Posts") {
-      const username = "Someone"
+      const username = "Someone";
       await sendPushNotification(
         pushToken,
         `${username} has posted on your board`,
@@ -237,7 +254,7 @@ async function handleSendNotificationExternal(
         "comment",
         {
           route: `/root/tabs/personal-board`,
-          params: { },
+          params: {},
         }
       );
     }
@@ -246,7 +263,7 @@ async function handleSendNotificationExternal(
       method: "PATCH",
       body: JSON.stringify({ id: content.id }),
     });
-    console.log("Tried to patch")
+    console.log("Tried to patch");
   } catch (error) {
     console.error("Failed to send notification externally:", error);
   }
@@ -281,6 +298,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     clerk_id: "",
     firstname: "",
     username: "",
+    nickname: "",
+    incognito_name: "",
     content: "",
     created_at: "",
     expires_at: "",
@@ -319,46 +338,48 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // New state for settings
   const [hapticsEnabled, setHapticsEnabledState] = useState<boolean>(true); // Default to true
-  const [soundEffectsEnabled, setSoundEffectsEnabledState] = useState<boolean>(true); // Default to true
+  const [soundEffectsEnabled, setSoundEffectsEnabledState] =
+    useState<boolean>(true); // Default to true
 
   const hasUpdatedLastConnection = useRef(false);
   const { user } = useUser();
   const { pushToken } = useNotification();
 
   const resetDraftPost = () => {
-      setDraftPost({
-                    id: 0,
-                    clerk_id:  "",
-                    firstname: "",
-                    username:  "",
-                    content: "",
-                    created_at: new Date().toISOString(),
-                    expires_at:  "",
-                    available_at: "",
-                    static_emoji: false,
-                    city: "",
-                    state: "",
-                    country: "",
-                    like_count: 0,
-                    report_count: 0,
-                    unread_comments: 0,
-                    recipient_user_id:  "",
-                    pinned: false,
-                    color: "",
-                    emoji:  "",
-                    notified: false,
-                    prompt_id:  0,
-                    prompt:  "",
-                    board_id: -1,
-                    reply_to: 0,
-                    unread: false,
-                    formatting: []
-          });
-  }
+    setDraftPost({
+      id: 0,
+      clerk_id: "",
+      firstname: "",
+      username: "",
+      nickname: "",
+      incognito_name: "",
+      content: "",
+      created_at: new Date().toISOString(),
+      expires_at: "",
+      available_at: "",
+      static_emoji: false,
+      city: "",
+      state: "",
+      country: "",
+      like_count: 0,
+      report_count: 0,
+      unread_comments: 0,
+      recipient_user_id: "",
+      pinned: false,
+      color: "",
+      emoji: "",
+      notified: false,
+      prompt_id: 0,
+      prompt: "",
+      board_id: -1,
+      reply_to: 0,
+      unread: false,
+      formatting: [],
+    });
+  };
 
   // In-app polling every 5 seconds
   useEffect(() => {
-    
     if (user && pushToken) {
       // When user signs in, persist the necessary info for background tasks.
       AsyncStorage.setItem("userId", user.id);
@@ -367,19 +388,22 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       // Initial fetch and then polling every 5 seconds
       fetchNotifications();
       updateLastConnection();
-  
+
       const interval = setInterval(fetchNotifications, 5000);
       return () => clearInterval(interval);
-    } 
+    }
   }, [user, pushToken]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (user) {
         try {
-          const response = await fetchAPI(`/api/users/getUserInfo?id=${user.id}`, {
-            method: "GET",
-          });
+          const response = await fetchAPI(
+            `/api/users/getUserInfo?id=${user.id}`,
+            {
+              method: "GET",
+            }
+          );
           if (response.error) {
             throw new Error(response.error);
           }
@@ -391,10 +415,9 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           console.error("Failed to fetch user profile:", error);
         }
       }
-    }
+    };
     fetchUserProfile();
   }, [user]);
-
 
   // In-app fetchNotifications function that uses the external function
   const fetchNotifications = async () => {
@@ -402,17 +425,17 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const result = await fetchNotificationsExternal(user.id, pushToken);
       if (result) {
-         // For UI state, update unread counts, last connection, etc.
-      // (You can parse the responses as needed; here we simply set the notifications.)
+        // For UI state, update unread counts, last connection, etc.
+        // (You can parse the responses as needed; here we simply set the notifications.)
         const { notifs, history, counts } = result;
         if (notifs.length > 0) {
           const prevNotifications = storedNotifications;
           setStoredNotifications([...prevNotifications, ...notifs]);
         } else {
-         // console.log("history", history.length)
-          setStoredNotifications(history)
+          // console.log("history", history.length)
+          setStoredNotifications(history);
         }
-        
+
         setNotifications(notifs);
         setUnreadComments(counts[0]);
         setUnreadMessages(counts[1]);
@@ -425,7 +448,6 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Error in in-app fetchNotifications", error);
     }
   };
-
 
   // Example function to update the last connection (as before)
   const updateLastConnection = async () => {
@@ -447,23 +469,22 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Register New Push Token
 
-const sendTokenDB = async (token) => {
-      // PushToken to Database
+  const sendTokenDB = async (token) => {
+    // PushToken to Database
 
-      console.log("sending it")
-      try {
-        await fetchAPI(`/api/notifications/updatePushToken`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            clerkId: user?.id,
-            pushToken: token,
-          })
-        })
-    }
-  catch(error) {
+    console.log("sending it");
+    try {
+      await fetchAPI(`/api/notifications/updatePushToken`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user?.id,
+          pushToken: token,
+        }),
+      });
+    } catch (error) {
       console.error("Failed to update unread message:", error);
     }
-    }
+  };
 
   // Register the background fetch task on mount
   useEffect(() => {
@@ -493,7 +514,9 @@ const sendTokenDB = async (token) => {
     const loadSettings = async () => {
       try {
         const hapticsSetting = await AsyncStorage.getItem(HAPTICS_ENABLED_KEY);
-        const soundSetting = await AsyncStorage.getItem(SOUND_EFFECTS_ENABLED_KEY);
+        const soundSetting = await AsyncStorage.getItem(
+          SOUND_EFFECTS_ENABLED_KEY
+        );
 
         if (hapticsSetting !== null) {
           setHapticsEnabledState(JSON.parse(hapticsSetting));
@@ -509,16 +532,27 @@ const sendTokenDB = async (token) => {
   }, []);
 
   // Wrap setters to also save to AsyncStorage
-  const setHapticsEnabled = (value: boolean | ((prevState: boolean) => boolean)) => {
-    const newValue = typeof value === 'function' ? value(hapticsEnabled) : value;
+  const setHapticsEnabled = (
+    value: boolean | ((prevState: boolean) => boolean)
+  ) => {
+    const newValue =
+      typeof value === "function" ? value(hapticsEnabled) : value;
     setHapticsEnabledState(newValue);
-    AsyncStorage.setItem(HAPTICS_ENABLED_KEY, JSON.stringify(newValue)).catch(e => console.error("Failed to save haptics setting.", e));
+    AsyncStorage.setItem(HAPTICS_ENABLED_KEY, JSON.stringify(newValue)).catch(
+      (e) => console.error("Failed to save haptics setting.", e)
+    );
   };
 
-  const setSoundEffectsEnabled = (value: boolean | ((prevState: boolean) => boolean)) => {
-    const newValue = typeof value === 'function' ? value(soundEffectsEnabled) : value;
+  const setSoundEffectsEnabled = (
+    value: boolean | ((prevState: boolean) => boolean)
+  ) => {
+    const newValue =
+      typeof value === "function" ? value(soundEffectsEnabled) : value;
     setSoundEffectsEnabledState(newValue);
-    AsyncStorage.setItem(SOUND_EFFECTS_ENABLED_KEY, JSON.stringify(newValue)).catch(e => console.error("Failed to save sound setting.", e));
+    AsyncStorage.setItem(
+      SOUND_EFFECTS_ENABLED_KEY,
+      JSON.stringify(newValue)
+    ).catch((e) => console.error("Failed to save sound setting.", e));
   };
 
   return (
