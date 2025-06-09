@@ -38,6 +38,7 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import { useNavigationContext } from "@/components/NavigationContext";
 
 import React from "react";
+import { Ionicons } from "@expo/vector-icons";
 
 interface GestureContext {
   startX: number;
@@ -478,7 +479,7 @@ console.log("happend", "id", id)
                 <FlatList
                   ref={flatListRef}
                   data={postComments}
-                  className="rounded-[20px] max-h-[400px] "
+                  className="rounded-[20px]"
                   renderItem={renderCommentItem}
                   keyExtractor={(item) => item.date as unknown as string}
                   contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
@@ -519,11 +520,15 @@ console.log("happend", "id", id)
     </TouchableOpacity>
   </View>
 )}
-          <View className="flex-row items-center p-2">
-            <TextInput
-              ref={inputRef}
-              className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
-              placeholder="Write a something..."
+  <View className="flex flex-row items-center bg-white rounded-[32px] px-4 py-2 min-h-[44px] mx-2 mb-2 "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+        }}
+        >
+          <TextInput
+            className="flex-1 pl-2 text-[14px] "
+             placeholderTextColor="#9CA3AF"
+            placeholder="Write a something..."
               value={newComment}
               multiline
               scrollEnabled
@@ -532,19 +537,23 @@ console.log("happend", "id", id)
               onChangeText={handleChangeText}
               onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
               editable={!isSubmitting && !isSubmitting}
-            />
-            <CustomButton
+          />
+          <View className=" ">
+                        <CustomButton
               title={isSubmitting ? "..." : "Send"}
               onPress={handleCommentSubmit}
               disabled={
                 newComment.length === 0 || isSubmitting || isPostDeleted
               }
-              className="ml-3 w-14 h-10 rounded-full shadow-none"
+              className="ml-3 w-14 h-9 rounded-full shadow-none"
               style={{ backgroundColor: postColor ? (postColor.hex || color) : "black" }}
               fontSize="sm"
               padding="0"
             />
           </View>
+        </View>
+        
+
           </View>
         </View>
   </Animated.View>

@@ -269,7 +269,7 @@ export const CommentItem: React.FC<PostComment> = ({
             ]}
           >
             {username && <View
-              className="flex mt-4"
+              className="flex text-[14px] font-JakartaMedium mt-4"
               style={{
                 [user_id === user?.id ? "right" : "left"]: 5,
                 alignSelf: user_id === user?.id ? "flex-end" : "flex-start",
@@ -284,7 +284,7 @@ export const CommentItem: React.FC<PostComment> = ({
                   });
                 }}
               >
-                <Text className="font-JakartaSemiBold">{username}</Text>
+                <Text className="font-JakartaMedium">{username}</Text>
               </TouchableOpacity>
             </View>}
             { replyingTo &&
@@ -297,7 +297,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 <TouchableOpacity
                 onPress={() => {setScrollTo(`${replyingTo.id}`)}}>
                 <View 
-                className="flex flex-row rounded-[20px] py-3 px-4"
+                className="flex flex-row rounded-[32px] py-3 px-4"
                 style={{
                   backgroundColor: replyingTo.sender_id == user_id
                       ? postColor
@@ -306,7 +306,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 }}
                 >
                     <Text 
-                    className="ml-1 text-xs italic"
+                    className="ml-1 text-[14px] italic"
                     style={{
                         color: replyingTo.sender_id == user_id ? "white" : "black"
                     }}
@@ -319,7 +319,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 </View>
                 }
             <View
-            className="py-3 px-4 rounded-[20px] max-w-[70%]"
+            className="py-3 px-4 rounded-[32px] max-w-[70%]"
             style={{
               backgroundColor:
               onlyEmoji ? "rgba(0,0,0,0)" : (user_id === user?.id
@@ -375,7 +375,7 @@ export const CommentItem: React.FC<PostComment> = ({
               hitSlop={5}
             >
               <Text
-                className="font-600 font-Jakarta"
+                className="font-JakartaMedium text-[14px]"
                 style={{ fontSize: onlyEmoji ? 50 : 12, color: user_id === user?.id ? "white" : "black" }}
               >
                 {content}

@@ -1,16 +1,12 @@
-import PostModal from "@/components/PostModal";
 import { fetchAPI } from "@/lib/fetch";
 import { Post, UserData } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import {
-  Animated,
   Dimensions,
   Keyboard,
   KeyboardAvoidingView,
-  SafeAreaView,
-  TouchableOpacity,
   Text,
   TextInput,
   TouchableWithoutFeedback,
@@ -24,18 +20,47 @@ import { useAlert } from "@/notifications/AlertContext";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import StarringModal from "@/components/StarringModal";
+import { checkTutorialStatus } from "@/hooks/useTutorial";
+import { starringTutorialPages } from "@/constants/tutorials";
+import CarouselPage from "@/components/CarrousselPage";
+import ModalSheet from "@/components/Modal";
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function Page() {
   const { user } = useUser();
   const { showAlert } = useAlert();
-  const { isIpad } = useGlobalContext();
+  const { isIpad, profile } = useGlobalContext();
 
-  const [userInfo, setUserInfo] = useState<UserData | null>(null);
+  // Tutorial constants
+  
+  const pages = starringTutorialPages;
+  const totalSteps = pages.length;
+  
+  
+  // Tutorial Logic
+  const [skipIntro, setSkipIntro] = useState<boolean>(false);
+  
+  useEffect(() => {
+    const fetchTutorialStatus = async () => {
+    const isTutorialcompleted = await checkTutorialStatus("starring-1")
+    setSkipIntro(isTutorialcompleted)
+  }
+  fetchTutorialStatus()
+  }, [])
+  const [step, setStep] = useState(0);
+    const handleNext = () => {
+  
+      if (step < totalSteps - 1) setStep((prev) => prev + 1);
+      else {
+        setSkipIntro(true)
+      }
+    };
+  
+
+  const [userInfo, setUserInfo] = useState<UserData | null>();
   const [posts, setPosts] = useState<Post[]>([]);
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [promptContent, setPromptContent] = useState<string>("");
 
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -142,20 +167,6 @@ export default function Page() {
   // reset modal visible each time the screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      {/*setSelectedModal(
-        <InfoScreen
-          title="Your Turn!"
-          content="Dive into creative exploration.
-                  Pick a cue, write your thoughts, and see how others responded to similar prompts.
-                  Every post is a chance to express and discover."
-          image={icons.star}
-          onAgree={() => {
-            setSelectedModal(null);
-          }}
-        />
-      );
-      setIsModalVisible(true);*/}
-
      
         fetchPosts();
       
@@ -330,6 +341,27 @@ export default function Page() {
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
+              {!skipIntro && <ModalSheet 
+        title={"Learn more"} 
+        isVisible={!skipIntro} 
+        onClose={() => {
+          setSkipIntro(true)
+          }} >
+            <View className="flex-1 px-4">
+            <CarouselPage
+          label={pages[step].label}
+          caption={pages[step].caption}
+          color={pages[step].color}
+          onSubmit={handleNext}
+          progress={step + 1}
+          total={totalSteps}
+          disabled={pages[step].disabled}
+        >
+          {pages[step].children}
+        </CarouselPage>
+        </View>
+        </ModalSheet>}
+      
     </View>
   );
 }

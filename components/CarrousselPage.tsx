@@ -106,8 +106,8 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
             transform: [{ translateX: slideAnim }],
           }}
         >
-          <Text className="text-2xl font-JakartaBold mb-1">{label}</Text>
-          <Text className="text-neutral-500 mb-6 text-base font-Jakarta">
+          <Text className="text-[20px] font-JakartaBold mb-1">{label}</Text>
+          <Text className="text-neutral-500 mb-6 text-[16px] font-Jakarta">
             {caption}
           </Text>
         </Animated.View>
@@ -131,7 +131,7 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
             }}
           >
             <CustomButton
-              className="w-[50%] h-16 rounded-full shadow-none bg-black"
+              className="w-[50%] h-14 rounded-full shadow-none bg-black"
               fontSize="lg"
               title={progressPercent < 100 ? "continue" : "submit"}
               padding="0"
