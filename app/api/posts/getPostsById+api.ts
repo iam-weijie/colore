@@ -25,6 +25,8 @@ export async function GET(request: Request) {
         status: 400,
       });
     }
+
+    console.log("[getPostsById] ids:", ids)
     // Execute the query using `ANY($1::int[])` for safer parameter handling
     const response = await sql`
       SELECT *
@@ -38,6 +40,8 @@ export async function GET(request: Request) {
         status: 404,
       });
     }
+
+    console.log("[getPostsById] response:", response)
 
      // Transform the response to match the Post interface
     const mappedPosts = response.map((post) => ({

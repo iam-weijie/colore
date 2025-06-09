@@ -73,9 +73,11 @@ export default function RootLayout() {
     
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
         <ClerkLoaded>
+         <GlobalProvider>
+          <AlertProvider>
         <NotificationProvider>
-          <GlobalProvider>
-            <AlertProvider>
+          
+            
             <NavigationProvider>
               <Animated.View style={{ flex: 1 }} entering={FadeIn}>
                 <Stack>
@@ -86,9 +88,11 @@ export default function RootLayout() {
                 </Stack>
               </Animated.View>
             </NavigationProvider>
-            </AlertProvider>
-          </GlobalProvider>
+            
+          
           </NotificationProvider>
+          </AlertProvider>
+          </GlobalProvider>
         </ClerkLoaded>
       </ClerkProvider>
    

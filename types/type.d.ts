@@ -155,6 +155,7 @@ declare interface UserProfileType {
   device_token: string;
   is_paid_user: boolean;
   report_count: number;
+  push_token: string;
   saved_posts: string[];
   shorthand_emojis?: string[];
   colors: PostItColor[];

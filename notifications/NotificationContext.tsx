@@ -10,6 +10,8 @@ import React, {
   useRef,
   useState,
 } from "react";
+import PostModal from "@/components/PostModal";
+import { Post } from "@/types/type";
 
 interface NotificationContextType {
   pushToken: string | null;
@@ -41,6 +43,20 @@ export const NotificationProvider = ({
 
   const { user } = useUser();
 
+  const [post, setPost] = useState<Post>();
+
+
+  const fetchPost = async (id: string) => {
+        try {
+              const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`)
+
+              const data = response.data[0]
+
+              setPost(data)
+            } catch (error) {
+              console.log("[Notifications] Failed to fetch post: ", error)
+            }
+  }
   useEffect(() => {
     const registerForPushNotifications = async () => {
       if (Device.isDevice) {
@@ -90,16 +106,12 @@ export const NotificationProvider = ({
         // Handle different actions based on notification data
         if (data) {
           if (data.type === "comment") {
-            // Example: Navigate to a specific screen, passing the data (e.g., postId)
-            // console.log(
-            //   "Navigating to post:",
-            //   data.path.params.id,
-            //   data.path.params.content,
-            //   data.path.route
-            // );
+
             console.log("Navigating to post", data.path.params)
+
+            fetchPost(data.path.params!.id)
             
-            router.push({
+           /* router.push({
               pathname: data.path.route,
               // send through params to avoid doing another API call for post
               params: {
@@ -115,8 +127,10 @@ export const NotificationProvider = ({
                 unread_comments: data.path.params!.unread_comments,
                 color: data.path.params!.color,
               },
-            });
+            });*/
           }
+
+        
         }
       });
 
@@ -162,7 +176,13 @@ catch(error) {
 
   return (
     <NotificationContext.Provider value={{ pushToken, scheduleNotification }}>
+      <>
       {children}
+      {!!post && <PostModal
+       isVisible={!!post} 
+       selectedPosts={post ? [post] : []}
+       handleCloseModal={() => {setPost(undefined)}} />}
+      </>
     </NotificationContext.Provider>
   );
 };

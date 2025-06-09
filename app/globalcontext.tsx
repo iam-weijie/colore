@@ -16,7 +16,6 @@ import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
 import { Stacks, Post, UserProfileType, PostItColor } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
-import { useNotification } from "@/notifications/NotificationContext";
 import { set } from "date-fns";
 import { defaultColors } from "@/constants";
 import { io } from "socket.io-client";
@@ -225,12 +224,6 @@ async function handleSendNotificationExternal(
         }
       );
     }
-    if (type === "Messages") {
-      const notificationContent = content.message.slice(0, 120);
-      // Optionally, fetch extra conversation info here...
-      // For brevity, that part is omitted.
-      // await sendPushNotification( ... );
-    }
     if (type === "Requests") {
       const username =
         content.requestor === "UID1"
@@ -240,7 +233,7 @@ async function handleSendNotificationExternal(
         pushToken,
         `${username} wants to be your friend!`,
         "Click here to accept their friend request",
-        "comment",
+        "request",
         {
           route: `/root/chat`,
           params: { tab: "Requests" },
@@ -253,7 +246,7 @@ async function handleSendNotificationExternal(
         pushToken,
         `${n.username} has posted on your board`,
         `${n.content}`,
-        "comment",
+        "posts",
         {
           route: `/root/tabs/personal-board`,
           params: {},
@@ -341,9 +334,17 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [soundEffectsEnabled, setSoundEffectsEnabledState] =
     useState<boolean>(true); // Default to true
 
+  const getPushToken = async () => {
+    const pushToken = await AsyncStorage.getItem("pushToken");
+    return pushToken;
+  };
   const hasUpdatedLastConnection = useRef(false);
   const { user } = useUser();
-  const { pushToken } = useNotification();
+  const [pushToken, setPushToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    getPushToken().then(setPushToken);
+  }, []);
 
   const resetDraftPost = () => {
     setDraftPost({
