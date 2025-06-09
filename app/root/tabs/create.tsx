@@ -199,7 +199,7 @@ const handleTabChange = (tabKey: string) => {
           
                     
             <Header 
-            title=""
+            title="Create"
             tabs={tabs}
             selectedTab={selectedTab}
             onTabChange={handleTabChange} 
@@ -224,7 +224,7 @@ const handleTabChange = (tabKey: string) => {
           />}/>
         </View>
         {!skipIntro && <ModalSheet 
-        title={"Learn more"} 
+        title={""} 
         isVisible={!skipIntro} 
         onClose={() => {
           setSkipIntro(true)
