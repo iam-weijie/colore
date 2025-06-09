@@ -118,7 +118,7 @@ const State = () => {
       });
 
       // Update user info
-      await fetchAPI("/api/users/patchUserInfo", {
+      await fetchAPI("/api/users/updateUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,

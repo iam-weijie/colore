@@ -208,7 +208,7 @@ const Settings = () => {
 
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/patchUserInfo", {
+      const response = await fetchAPI("/api/users/updateUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
@@ -264,7 +264,7 @@ const Settings = () => {
 
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/patchUserInfo", {
+      const response = await fetchAPI("/api/users/updateUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
@@ -311,7 +311,7 @@ const Settings = () => {
 
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/patchUserInfo", {
+      const response = await fetchAPI("/api/users/updateUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
@@ -364,7 +364,7 @@ const Settings = () => {
     }
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/patchUserInfo", {
+      const response = await fetchAPI("/api/users/updateUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
@@ -471,6 +471,10 @@ const Settings = () => {
     });
   };
 
+  const maskedIncognito = "*".repeat(incognitoName.length);
+
+
+  console.log("[Settings] Masked Incognito: ", maskedIncognito)
   return (
     <ScrollView
       className="flex-1 pt-6 bg-gray-50"
@@ -581,7 +585,7 @@ const Settings = () => {
               />
               <DetailRow
                 label="Incognito Name"
-                value={incognitoName}
+                value={maskedIncognito}
                 onPress={() => handleUpdateValue("incognito_name")}
                 accentColor="#93c5fd"
               />
