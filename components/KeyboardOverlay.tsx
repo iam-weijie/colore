@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Keyboard,
   KeyboardEvent,
@@ -11,23 +11,33 @@ import {
 interface KeyboardOverlayProps {
   children: React.ReactNode;
   offsetY?: number;
-  onFocus?: boolean
+  onFocus?: boolean;
 }
 
-const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({ children, offsetY = 0, onFocus = false }) => {
+const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({ 
+  children, 
+  offsetY = 0, 
+  onFocus = false 
+}) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isVisible, setIsVisible] = useState(onFocus);
-  const fadeAnim = useState(new Animated.Value(0))[0];
+  
+  // Use useRef instead of useState for Animated.Value
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       (e: KeyboardEvent) => {
+        if (!isMountedRef.current) return;
+        
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setKeyboardHeight(e.endCoordinates.height);
         
         // Delay the appearance to let keyboard slide in
         setTimeout(() => {
+          if (!isMountedRef.current) return;
           setIsVisible(true);
           Animated.timing(fadeAnim, {
             toValue: 1,
@@ -46,19 +56,22 @@ const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({ children, offsetY = 0
           duration: 50,
           useNativeDriver: true,
         }).start(() => {
-          setIsVisible(false);
-          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-          setKeyboardHeight(0);
+          // Check if component is still mounted before updating state
+          if (isMountedRef.current) {
+            setIsVisible(false);
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setKeyboardHeight(0);
+          }
         });
       }
     );
 
     return () => {
+      isMountedRef.current = false;
       showSub.remove();
       hideSub.remove();
     };
   }, [fadeAnim]);
-
 
   return (
     <Animated.View

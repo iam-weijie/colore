@@ -726,6 +726,7 @@ const Settings = () => {
             onSave={(newName: string) => {
               if (type === "username") {
                 handleUsernameUpdate(newName);
+                console.log("[Settings] New Username: ", newName)
               } else if (type === "nickname") {
                 handleNicknameUpdate(newName);
               } else if (type === "incognito_name") {
@@ -806,15 +807,3 @@ const Settings = () => {
 
 export default Settings;
 
-/*
-
-                    console.log("Pressed")
-                   if (!newUsername || loading) {
-                      return;
-                    }
-                    handleUsernameUpdate();
-                    setUsername(newUsername)
-                    setNewUsername("");
-
-                  }}
-                    */
