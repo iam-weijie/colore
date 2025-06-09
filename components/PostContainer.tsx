@@ -95,6 +95,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
   isShowCasing = false,
   header,
   scrollToLoad,
+  seeComments = false,
 }) => {
   const { stacks, isIpad, soundEffectsEnabled, draftPost } = useGlobalContext(); // Add soundEffectsEnabled
   const { playSoundEffect } = useSoundEffects(); // Get sound function
@@ -143,6 +144,12 @@ const PostContainer: React.FC<PostContainerProps> = ({
       runOnJS(scrollToLoad)();
     }
   }, [currentPostIndex]);
+
+   useEffect(() => {
+    if (seeComments) {
+      handleCommentsPress()
+    }
+  }, [])
   // Fetch like status only when post or user changes
   const getLikeStatus = async () => {
     const { isLiked, likeCount } = await fetchLikeStatus(currentPost, user!.id);
@@ -257,10 +264,10 @@ const PostContainer: React.FC<PostContainerProps> = ({
     }
   };
 
-  function findUserNickname(
+  const findUserNickname = (
     userArray: UserNicknamePair[],
     userId: string
-  ): number {
+  ): number => {
     const index = userArray.findIndex((pair) => pair[0] === userId);
     return index;
   }
@@ -343,6 +350,8 @@ const PostContainer: React.FC<PostContainerProps> = ({
       duration: 5000,
     });
   };
+
+ 
 
   const handleCommentsPress = () => {
     const current = post[currentPostIndex];

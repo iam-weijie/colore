@@ -14,7 +14,8 @@ const PostModal: React.FC<PostModalProps> = ({
   header,
   isPreview = false,
   infiniteScroll = false,
-  scrollToLoad
+  scrollToLoad,
+  seeComments = false
 }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;

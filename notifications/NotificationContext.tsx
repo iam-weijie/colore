@@ -181,7 +181,8 @@ catch(error) {
       {!!post && <PostModal
        isVisible={!!post} 
        selectedPosts={post ? [post] : []}
-       handleCloseModal={() => {setPost(undefined)}} />}
+       handleCloseModal={() => {setPost(undefined)}}
+       seeComments />}
       </>
     </NotificationContext.Provider>
   );

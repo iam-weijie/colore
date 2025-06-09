@@ -257,6 +257,7 @@ declare interface PostModalProps {
   isPreview?: boolean;
   infiniteScroll?: boolean;
   scrollToLoad?: () => void;
+  seeComments?: boolean;
 }
 
 declare interface PostContainerProps {
@@ -271,6 +272,7 @@ declare interface PostContainerProps {
   infiniteScroll?: boolean;
   scrollToLoad?: () => void;
   staticEmoji?: boolean;
+  seeComments?: boolean;
 }
 
 declare interface UserPostsGalleryProps {
