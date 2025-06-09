@@ -345,6 +345,38 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const { user } = useUser();
   const { pushToken } = useNotification();
 
+  function generateRandomUsername() {
+    const words1 = [
+      "blue",
+      "green",
+      "fast",
+      "silent",
+      "fuzzy",
+      "bright",
+      "dark",
+      "happy",
+      "wild",
+      "brave",
+    ];
+    const words2 = [
+      "tiger",
+      "eagle",
+      "lion",
+      "wolf",
+      "panther",
+      "dragon",
+      "falcon",
+      "shark",
+      "phoenix",
+      "rhino",
+    ];
+
+    const randomWord1 = words1[Math.floor(Math.random() * words1.length)];
+    const randomWord2 = words2[Math.floor(Math.random() * words2.length)];
+    const randomNumber = Math.floor(Math.random() * 1000);
+    return `${randomWord1}_${randomWord2}${randomNumber}`;
+  }
+
   const resetDraftPost = () => {
     setDraftPost({
       id: 0,
@@ -408,6 +440,42 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
             throw new Error(response.error);
           }
           const userData = response.data[0];
+          console.log("NICKNAME: ", userData.nickname);
+          console.log("INCOG NAME: ", userData.incognito_name);
+          if (!userData.nickname || !userData.incognito_name) {
+            try {
+              const response = await fetchAPI("/api/users/patchUserInfo", {
+                method: "PATCH",
+                body: JSON.stringify(
+                  !userData.nickname && !userData.incognito_name
+                    ? {
+                        clerkId: user!.id,
+                        incognito_name: generateRandomUsername(),
+                        nickname: userData.username,
+                      }
+                    : !userData.nickname
+                      ? {
+                          clerkId: user!.id,
+                          nickname: userData.nickname,
+                        }
+                      : {
+                          clerkId: user!.id,
+                          incognito_name: generateRandomUsername(),
+                        }
+                ),
+              });
+
+              if (response.error) {
+                throw new Error(response.error);
+              }
+              console.log("UPDATED SUCCESSFULLYYYYYYY");
+            } catch (error) {
+              console.error(
+                "Failed to update placeholder names on start:",
+                error
+              );
+            }
+          }
           setProfile(userData);
           setUserColors(userData.colors || temporaryColors);
           setLastConnection(new Date(userData.last_connection));
