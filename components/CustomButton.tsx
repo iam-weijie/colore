@@ -140,6 +140,7 @@ const CustomButton = ({
       className={`relative w-full rounded-full ${isGradient ? "" : bgStyle} ${
         isGradient ? "" : paddingMap[padding]
       } flex flex-row justify-center items-center ${className} py-4`}
+      
     >
       {isGradient && Array.isArray(bgStyle) ? (
         <AnimatedLinearGradient
@@ -170,7 +171,7 @@ const CustomButton = ({
                 position: "absolute",
                 backgroundColor: "#ffffff10",
                 borderColor: "#ffffff60",
-                borderWidth: 2,
+                borderWidth: 3,
               },
               animatedStyle,
             ]}

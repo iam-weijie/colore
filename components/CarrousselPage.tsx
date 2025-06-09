@@ -87,7 +87,7 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
         }}
       >
         {/* Animated Progress Bar */}
-        <View className="h-2 rounded-full bg-neutral-200 mb-4 overflow-hidden">
+        <View className="h-2 rounded-full bg-[#FAFAFA] mb-4 overflow-hidden">
           <Animated.View
             style={{ 
               width: progressAnim.interpolate({

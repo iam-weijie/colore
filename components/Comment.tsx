@@ -284,7 +284,7 @@ export const CommentItem: React.FC<PostComment> = ({
                   });
                 }}
               >
-                <Text className="font-JakartaMedium">{username}</Text>
+                <Text className="font-JakartaMedium text-[14px]">{username}</Text>
               </TouchableOpacity>
             </View>}
             { replyingTo &&

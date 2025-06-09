@@ -144,24 +144,24 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
                             <View style={{
                                 width: '100%',
                                 alignItems: 'center',
-                                paddingVertical: 16,
+                                paddingTop: 16,
                                 paddingHorizontal: 24
                             }}>
                                 <View className="w-12 h-1 bg-gray-300 rounded-full" />
                             </View>
                         </GestureDetector>
 
-                        <View style={{
+                        {title && <View style={{
                             width: '100%',
                             alignItems: 'center',
                             justifyContent: 'center',
                             marginBottom: 8,
                             paddingHorizontal: 24
                         }}>
-                            {title && <Text className="text-[16px] font-JakartaBold">
+                             <Text className="text-[16px] font-JakartaBold">
                                 {title}
-                            </Text>}
-                        </View>
+                            </Text>
+                        </View>}
 
                         <View style={{
                             flex: 1,
