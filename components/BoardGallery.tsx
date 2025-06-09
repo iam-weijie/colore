@@ -131,7 +131,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
   contentContainerStyle={{
     paddingHorizontal: isIpad ? 16 : 4, // More padding on iPad
     paddingBottom: 20,
-    paddingTop: 48
+    paddingTop: 64
   }}
   columnWrapperStyle={isIpad ? {
     justifyContent: 'flex-start', // Align items from left

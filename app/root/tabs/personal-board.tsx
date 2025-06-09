@@ -216,10 +216,11 @@ const handleClearSearch = () => {
         onTabChange={handleTabChange} 
         tabCount={0}    />
 
-            <View className=" absolute z-10 flex flex-row items-center bg-white rounded-[24px] top-36 px-4 mt-4 h-12 mx-6"
+            <View className=" absolute z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 mx-6"
         style={{
           boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
-          width: '90%'
+          width: '90%',
+          marginTop: 170
         }}
         >
           <Ionicons name="search" size={20} color="#9ca3af" />
