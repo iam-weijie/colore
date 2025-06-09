@@ -228,7 +228,7 @@ const Profile = () => {
         label={nickname ? nickname : "Set a nickname"}
         caption={nickname ? `Change ${nickname}'s nickname`: "Nickname me!"}
         icon={icons.addUser}
-        colors={["#ffe640", "#b8e1ff"]}
+        colors={["#93c5fd", "#b8e1ff"]}
         iconColor="#000"
         onPress={() => {
           handleAddNickname()
@@ -240,7 +240,7 @@ const Profile = () => {
         label={"Unfriend"}
         caption={ "Add recipient to this post"}
         icon={icons.trash}
-        colors={["#ffe640", "#b8e1ff"]}
+        colors={["#93c5fd", "#b8e1ff"]}
         iconColor="#000"
         onPress={() => handleUnfriend()}
       />}
@@ -249,7 +249,7 @@ const Profile = () => {
         label={"Cancel friend request"}
         caption={ "Cancel the friend request you sent to this user"}
         icon={icons.trash}
-        colors={["#ffe640", "#b8e1ff"]}
+        colors={["#93c5fd", "#b8e1ff"]}
         iconColor="#000"
         onPress={() => handleCancelFriendRequest()}
       />}
@@ -258,7 +258,7 @@ const Profile = () => {
         label={"Send a friend request"}
         caption={ "Begin a legendary friendship with this user"}
         icon={icons.addUser}
-        colors={["#ffe640", "#b8e1ff"]}
+        colors={["#93c5fd", "#b8e1ff"]}
         iconColor="#000"
         onPress={() => handleSendFriendRequest()}
       />}
@@ -266,7 +266,7 @@ const Profile = () => {
         label={"Report user"}
         caption={ "Report this user to the support team"}
         icon={icons.email}
-        colors={["#ffe640", "#b8e1ff"]}
+        colors={["#93c5fd", "#b8e1ff"]}
         iconColor="#000"
         onPress={() => handleReportPress()}
       />

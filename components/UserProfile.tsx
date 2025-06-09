@@ -243,7 +243,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         const boardsWithColor = response.data.map(
           (board: any, index: number) => ({
             ...board,
-            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           })
         );
 
@@ -252,7 +252,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         const boardsWithColor = checkForPrivacy.map(
           (board: any, index: number) => ({
             ...board,
-            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           })
         );
 
