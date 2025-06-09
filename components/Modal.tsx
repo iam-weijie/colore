@@ -115,7 +115,7 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
                         }}
                     >
                         <Animated.View
-                            style={[animatedOpacity, {backgroundColor: "#FFFFFF"}]}
+                            style={[animatedOpacity, {backgroundColor: "#000000"}]}
                             className="flex-1 absolute top-0 left-0 right-0 bottom-0"
                         />
                     </Pressable>

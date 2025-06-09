@@ -110,7 +110,7 @@ export const TutorialScreen: React.FC<InfoScreenProps> = ({
       {hasAction && (
         <Animated.View entering={FadeInUp.delay(300).duration(800)} className="w-full items-center">
           <CustomButton
-            className="w-[60%] h-14 rounded-full bg-black"
+            className="w-[60%] h-14"
             fontSize="lg"
             title="Explore"
             padding="0"
