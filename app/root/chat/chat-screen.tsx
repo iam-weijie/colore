@@ -352,7 +352,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             : `${item.state}, ${item.country}`
         }
         colors={["#93c5fd", "#93c5fd"]}
-        icon={icons.addUser}
+        icon={icons.user}
         iconColor="#000"
         actionIcon={icons.chevron}
         onPress={() => {
@@ -460,7 +460,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     <ItemContainer
       label={item[1]}
       colors={["#FBB1F5", "#CFB1FB"]}
-      icon={icons.addUser}
+      icon={icons.user}
       actionIcon={icons.chevron}
       iconColor="#000"
       onPress={() => {
@@ -618,7 +618,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                 className="rounded-[24px]"
                 data={filteredUsers}
                 contentContainerStyle={{
-                  marginTop: 64,
+                  marginTop: 80,
                   paddingBottom: 120,
                 }}
                 renderItem={renderUser}
@@ -659,7 +659,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               className="rounded-[16px]"
               data={filteredFriendList}
               contentContainerStyle={{
-                marginTop: 64,
+                marginTop: 80,
                 paddingBottom: 90,
               }}
               renderItem={renderFriend}

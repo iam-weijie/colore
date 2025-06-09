@@ -208,7 +208,7 @@ const handleClearSearch = () => {
 <View className="flex-1 bg-[#FAFAFA]">
       
     
-        <View className="flex-1">
+        <View className="flex-1 relative">
         <Header 
         title="Boards"
         tabs={tabs}
@@ -216,7 +216,7 @@ const handleClearSearch = () => {
         onTabChange={handleTabChange} 
         tabCount={0}    />
 
-            <View className=" z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 mx-6"
+            <View className=" absolute z-10 flex flex-row items-center bg-white rounded-[24px] top-36 px-4 mt-4 h-12 mx-6"
         style={{
           boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
           width: '90%'

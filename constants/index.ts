@@ -22,7 +22,6 @@ import chevron from "@/assets/icons/chevron.png";
 import hamburgerMenu from "@/assets/icons/hamburger-menu.png";
 import palette from "@/assets/icons/palette.png";
 import pencil from "@/assets/icons/pencil.png";
-import person from "@/assets/icons/person.png";
 import plus from "@/assets/icons/plus.png";
 import info from "@/assets/icons/info.png";
 import shuffle from "@/assets/icons/shuffle.png";
@@ -56,6 +55,10 @@ import oList from "@/assets/icons/ordered-list.png"
 import add from "@/assets/icons/add.png"
 import uList from "@/assets/icons/unordered-list.png"
 import eraser from "@/assets/icons/eraser.png";
+import user from "@/assets/icons/user.png";
+import users from "@/assets/icons/users.png";
+import searchUsers from "@/assets/icons/search-users.png";
+import removeUser from "@/assets/icons/remove-user.png";
 
 
 import login from "@/assets/images/login_squares.png";
@@ -77,7 +80,6 @@ import rosieMoney from "@/assets/characters/rosie-money-1.png";
 import bobChill from "@/assets/characters/bob-chill-1.png";
 
 export const icons = {
-  person,
   email,
   lock,
   globe,
@@ -134,7 +136,11 @@ export const icons = {
   link,
   sparklesFill,
   sparkles,
-  add
+  add,
+  user,
+  users,
+  searchUsers,
+  removeUser
 };
 
 export const images = {

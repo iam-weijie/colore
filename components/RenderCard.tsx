@@ -98,7 +98,6 @@ export const RenderPromptCard = ({
         </KeyboardAvoidingView>
 
         <CustomButton
-          className="my-4 w-[50%] h-16 rounded-full shadow-none bg-black"
           fontSize="lg"
           title="submit"
           padding={4}
@@ -186,15 +185,14 @@ export const RenderCreateCard = ({
         <Text className="text-black text-sm font-JakartaSemiBold tracking-widest mb-1">
           {item.label.toUpperCase()}
         </Text>
-        <Text className="text-black text-3xl text-center font-JakartaBold mb-6 leading-tight">
+        <Text className="text-black text-3xl text-center font-JakartaBold mb-8 leading-tight">
           {item.caption}
         </Text>
 
         {/* Button */}
         <CustomButton
-          className="my-4 w-[175px] h-16 rounded-full shadow-none bg-black"
           fontSize="lg"
-          title="Create now"
+          title="Create"
           padding={4}
           onPress={() => {
             handleOptionSubmit();

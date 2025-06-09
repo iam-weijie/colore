@@ -2,7 +2,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { useGlobalContext } from "@/app/globalcontext";
 import PostGallery from "@/components/PostGallery";
 import { countries } from "@/constants/countries";
-import { allColors } from "@/constants/colors";
+import { allColors, defaultColors } from "@/constants/colors";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
 import { fetchFriends, fetchFriendStatus } from "@/lib/friend";
@@ -66,7 +66,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 }) => {
   const { user } = useUser();
   const router = useRouter();
-  const { isIpad, userColors, profile, unreadComments } = useGlobalContext();
+  const { isIpad, profile, unreadComments } = useGlobalContext();
   const { showAlert } = useAlert();
 
   const isEditable = user!.id === userId;
@@ -195,7 +195,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       const userInfo = response.data[0] as UserProfileType;
       setProfileUser(userInfo);
-      const countryCode = await fetchCountryByName(profileUser?.country ?? "");
 
       setLoading(false);
     } catch (error) {
@@ -280,7 +279,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         const boardsWithColor = response.data.map(
           (board: any, index: number) => ({
             ...board,
-            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * defaultColors.length)].hex, // only assign if not already set
           })
         );
 
@@ -289,7 +288,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         const boardsWithColor = checkForPrivacy.map(
           (board: any, index: number) => ({
             ...board,
-            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * defaultColors.length)].hex, // only assign if not already set
           })
         );
 
@@ -320,7 +319,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       const boardsWithColor = response.data.map(
         (board: any, index: number) => ({
           ...board,
-          color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+          color: defaultColors[Math.floor(Math.random() * defaultColors.length)].hex, // only assign if not already set
         })
       );
 

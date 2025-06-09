@@ -522,7 +522,7 @@ console.log("happend", "id", id)
 )}
   <View className="relative flex flex-row items-center justify-between bg-white rounded-[32px] px-4 h-[48px] mx-2 mb-2 "
         style={{
-          boxShadow: "0 0 7px 1px rgba(180,180,180,.1)"
+          boxShadow: "0 0 7px 1px rgba(150,150,150,.15)"
         }}
         >
           <TextInput
@@ -546,6 +546,7 @@ console.log("happend", "id", id)
                 newComment.length === 0 || isSubmitting || isPostDeleted
               }
               fontSize="sm"
+              bgVariant={newComment.length === 0 || isSubmitting || isPostDeleted ? "gradient2" : undefined}
               padding={3}
             />
           </View>

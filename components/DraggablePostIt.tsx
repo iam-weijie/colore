@@ -287,12 +287,12 @@ interface DraggablePostItProps {
         </TouchableWithoutFeedback>
         {isPinned && (
           <View className="absolute text-black h-full -top-2 -left-2">
-            <View className="p-[6px] rounded-full bg-[#fafafa] flex-row items-center justify-start">
+            <View className="p-3 rounded-full bg-[#fafafa] flex-row items-center justify-start">
               <Image 
                 source={icons.pin}
                 tintColor="black"
                 resizeMode="contain"
-                className="w-7 h-7"
+                className="w-4 h-4"
                 style={{
                   opacity: 0.8,
                   transform: [{ scaleX: -1 }]

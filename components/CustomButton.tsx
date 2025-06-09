@@ -190,7 +190,7 @@ const CustomButton = ({
         <>
 
                 <Animated.View
-            className="flex-1 w-full h-full rounded-full py-6"
+            className={`flex-1 w-full h-full rounded-full py-6`}
             style={[
               {
                 position: "absolute",

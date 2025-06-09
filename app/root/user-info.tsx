@@ -26,7 +26,7 @@ import { PostItColor } from "@/types/type";
 import BoardGallery from "@/components/BoardGallery";
 import ItemContainer from "@/components/ItemContainer";
 import { icons } from "@/constants";
-import { allColors } from "@/constants/colors";
+import { allColors, defaultColors } from "@/constants/colors";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
@@ -42,7 +42,6 @@ const UserInfo = () => {
 
   const { userColors } = useGlobalContext();
 
-  const [postContent, setPostContent] = useState("");
 
   console.log("[user-info]: ", allColors.length,  allColors.find((c) => c.id === "pink"))
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
@@ -115,7 +114,7 @@ const UserInfo = () => {
         const boardsWithColor = response.data.map(
           (board: any, index: number) => ({
             ...board,
-            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * defaultColors.length)].hex, // only assign if not already set
           })
         );
 
@@ -198,19 +197,6 @@ const UserInfo = () => {
     userLocation: stateVars.userLocation || "",
   });
 
-  const handleChangeText = (text: string) => {
-    if (text.length <= maxCharacters) {
-      setPostContent(text);
-    } else {
-      setPostContent(text.substring(0, maxCharacters));
-      showAlert({
-        title: "Limit Reached",
-        message: `You can only enter up to ${maxCharacters} characters.`,
-        type: "ERROR",
-        status: "error",
-      });
-    }
-  };
 
   const handleNavigateToCountry = () => {
     playSoundEffect(SoundType.Navigation);

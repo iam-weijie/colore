@@ -55,7 +55,6 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
   const { isIpad, unreadComments, unreadPersonalPosts, profile } = useGlobalContext();
-  const { showAlert } = useAlert();
   const [geographicalMode, setGeographicalMode] =
     useState<GeographicalMode>("world");
   const userInfo = profile;
@@ -164,7 +163,7 @@ export default function Page() {
                   }}
                 >
                   <Image
-                    source={icons.addUser}
+                    source={icons.searchUsers}
                     className="w-5 h-5"
                     style={{ tintColor: "#000" }}
                   />

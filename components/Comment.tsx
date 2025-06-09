@@ -319,7 +319,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 </View>
                 }
             <View
-            className="py-3 px-4 rounded-[32px] max-w-[70%]"
+            className="py-3 px-4 rounded-[32px] max-w-[70%] shadow-md"
             style={{
               backgroundColor:
               onlyEmoji ? "rgba(0,0,0,0)" : (user_id === user?.id
