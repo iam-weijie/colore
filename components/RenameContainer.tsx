@@ -39,8 +39,11 @@ const RenameContainer = ({
         />
           
           <TouchableOpacity
-            className="absolute rounded-full bg-black justify-center items-center mx-1 py-2 px-3 right-2"
-            onPress={() => onSave(text)}
+            className="absolute rounded-full bg-black justify-center items-center mx-1 py-2 px-3 right-2 z-[999]"
+            onPress={() => {
+              console.log("[RenamingContainer]: Pressed!")
+              onSave(text)
+              }}
             disabled={!text.trim()}
           >
             <Text className="text-white font-JakartaSemiBold text-[14px]">Save</Text>
