@@ -1,7 +1,7 @@
 import { ButtonProps } from "@/types/type";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -141,11 +141,6 @@ const CustomButton = ({
         isGradient ? "" : paddingMap[padding]
       } flex flex-row justify-center items-center ${className} py-4`}
     >
-      <View 
-      className="absolute"
-      style={{
-        filter: blur(5)
-      }} />
       {isGradient && Array.isArray(bgStyle) ? (
         <AnimatedLinearGradient
           colors={bgStyle}
