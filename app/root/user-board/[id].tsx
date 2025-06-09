@@ -314,25 +314,12 @@ const UserPersonalBoard = () => {
               keyExtractor={(item, index) => item.label ?? `option-${index}`}
               renderItem={({ item, index }) => {
                 return (
-                  <View>
-                    {item.role == "admin" ? (
-                      index > 0 && menuOptions[index - 1].role === item.role ? (
-                        <></>
-                      ) : (
-                        <Text className="text-[14px] font-JakartaSemiBold ml-4 text-gray-400">
-                          Edit
-                        </Text>
-                      )
-                    ) : index > 0 &&
-                      menuOptions[index - 1].role === item.role ? (
-                      <></>
-                    ) : (
-                      <Text className="text-[14px] font-JakartaSemiBold ml-4 text-gray-400">
-                        Interact
-                      </Text>
-                    )}
-                    {item.component}
-                  </View>
+                   <View>
+                        {item.role == "admin" ? 
+                        (index > 0 && menuOptions[index - 1].role === item.role ? <></>  : <Text className="text-center text-[14px] font-JakartaMedium ml-4 text-gray-300">Edit</Text>)
+                         : (index > 0 && menuOptions[index - 1].role === item.role ? <></> : <Text className="text-center  text-[14px] font-JakartaMedium ml-4 text-gray-300">Interact</Text>)}
+                        {item.component}
+                      </View>
                 );
               }}
               contentContainerStyle={{ paddingBottom: 80, marginBottom: 16 }}
