@@ -211,8 +211,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     }
   };
 
+   console.log("[ChatScreen] Users: ", users)
+
+
   const filteredUsers =
-    searchText.length > 0
+    searchText.length > 0 && users.length > 0
       ? users.filter(
           (user) =>
             user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
@@ -285,9 +288,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     setLoading(false);
   };
 
-  const filteredFriendList = friendList.filter((friend) =>
-    friend.friend_nickname.toLowerCase().includes(searchText.toLowerCase())
+
+
+  const filteredFriendList = friendList.filter((friend) => searchText.length > 0 ? 
+  (friend.friend_nickname ?
+    friend.friend_nickname.toLowerCase().includes(searchText.toLowerCase()) : friend.friend_username.toLowerCase().includes(searchText.toLowerCase())) : friend.friend_username.length > 0
   );
+
+    console.log("[ChatScreen] Friend List: ", filteredFriendList)
 
   // RENDER LISTS ------ START
   const renderConversationItem = ({
@@ -344,7 +352,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         label={
           nicknames && item.friend_id in nicknames
             ? nicknames[item.friend_id]
-            : item.friend_nickname
+            : item.friend_nickname || item.friend_username
         }
         caption={
           item.city !== item.state
@@ -356,7 +364,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         iconColor="#000"
         actionIcon={icons.chevron}
         onPress={() => {
-          handleUserProfile(item.friend_id, item.friend_nickname);
+          handleUserProfile(item.friend_id, item.friend_nickname || item.friend_username);
         }}
       />
     );

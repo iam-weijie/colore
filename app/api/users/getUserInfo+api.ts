@@ -54,6 +54,7 @@ export async function GET(request: Request) {
       } as unknown as UserProfileProps;
     });
 
+
     return new Response(JSON.stringify({ data: user }), {
       status: 200,
     });
