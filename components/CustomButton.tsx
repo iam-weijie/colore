@@ -30,6 +30,7 @@ const getBgVariantStyle = (variant, disabled) => {
     case "gradient2": return ["#54C1EE", "#91C5FC", "#54C1EE"];
     case "gradient3": return ["#FFB85A", "#FF8864", "#FFB85A"];
     case "gradient4": return ["#FF99CC", "#FFCCF2", "#FF99CC"];
+     case "gradient5": return ["#FBB1F5", "#93c5fd"];
     default: return "bg-[#333333]";
   }
 };
@@ -163,7 +164,7 @@ const CustomButton = ({
       </>}
 
         <BlurView intensity={60} tint="light" 
-        className={`flex-1 ${isGradient ? "" : `py-${padding}`} flex flex-row items-center justify-center`}
+        className={`flex-1 ${isGradient ? "p-1" : `py-${padding}`} flex flex-row items-center justify-center`}
         style={{
            borderRadius: 70,
            overflow: 'hidden',

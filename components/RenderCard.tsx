@@ -194,6 +194,7 @@ export const RenderCreateCard = ({
           fontSize="lg"
           title="Create"
           padding={4}
+          bgVariant="gradient5"
           onPress={() => {
             handleOptionSubmit();
           }}
