@@ -13,8 +13,30 @@ export async function GET(request: Request) {
       SELECT 
         c.id::text,
         CASE 
-          WHEN c.clerk_id_1 = ${userId} THEN u2.username
-          ELSE u1.username
+          WHEN c.clerk_id_1 = ${userId} THEN
+            CASE
+              WHEN EXISTS (
+                SELECT 1
+                FROM friends f
+                WHERE 
+                  (f.user_id = ${userId} AND f.friend_id = c.clerk_id_2)
+                  OR
+                  (f.friend_id = ${userId} AND f.user_id = c.clerk_id_2)
+              ) THEN u2.incognito_name
+              ELSE u2.username
+            END
+          ELSE
+            CASE
+              WHEN EXISTS (
+                SELECT 1
+                FROM friends f
+                WHERE 
+                  (f.user_id = ${userId} AND f.friend_id = c.clerk_id_1)
+                  OR
+                  (f.friend_id = ${userId} AND f.user_id = c.clerk_id_1)
+              ) THEN u1.incognito_name
+              ELSE u1.username
+            END
         END AS username,
         CASE 
           WHEN c.clerk_id_1 = ${userId} THEN c.clerk_id_2
@@ -49,7 +71,7 @@ export async function GET(request: Request) {
           : null,
         nickname: row.nicknames,
         active_participants: row.active_participants,
-        unread_messages: row.unread_messages
+        unread_messages: row.unread_messages,
       };
     });
 

@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const clerkId = url.searchParams.get("id");
     const max = url.searchParams.get("maxUsers");
 
-   // console.log("Extracted Clerk ID:", clerkId);
+    // console.log("Extracted Clerk ID:", clerkId);
 
     if (!clerkId) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
@@ -20,7 +20,17 @@ export async function GET(request: Request) {
       SELECT
         id,
         clerk_id,
-        username,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friends f
+            WHERE 
+              (f.user_id = ${clerkId} AND f.friend_id = users.clerk_id)
+              OR
+              (f.friend_id = ${clerkId} AND f.user_id = users.clerk_id)
+          ) THEN nickname
+          ELSE username
+        END AS username,
         country,
         state,
         city

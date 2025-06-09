@@ -25,7 +25,17 @@ export async function GET(request: Request) {
         u.clerk_id AS user_id,
         c.content, 
         u.firstname,
-        u.username,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friends f
+            WHERE 
+              (f.user_id = ${userId} AND f.friend_id = u.clerk_id)
+              OR
+              (f.friend_id = ${userId} AND f.user_id = u.clerk_id)
+          ) THEN u.incognito_name
+          ELSE u.username
+        END AS username,
         c.created_at,
         c.like_count, 
         c.report_count,

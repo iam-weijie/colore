@@ -57,8 +57,6 @@ export async function GET(request: Request) {
       user_id: post.user_id,
       firstname: post.firstname,
       username: post.username,
-      nickname: post.nickname,
-      incognito_name: post.incognito_name,
       content: post.content,
       created_at: post.created_at,
       expires_at: post.expires_at, // Not available in query - set default

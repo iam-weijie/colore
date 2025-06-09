@@ -75,66 +75,84 @@ export async function GET(request: Request) {
     // Sum up all unread_comments
 
     if (postsWithComments.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }),
+        {
+          status: 200,
+        }
+      );
     }
-
 
     if (postsWithComments.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }),
+        {
+          status: 200,
+        }
+      );
     }
-
 
     if (postsWithComments.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }),
+        {
+          status: 200,
+        }
+      );
     }
-
 
     if (postsWithComments.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }),
+        {
+          status: 200,
+        }
+      );
     }
-
 
     if (postsWithComments.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }),
+        {
+          status: 200,
+        }
+      );
     }
 
-
-    const filteredPosts = postsWithComments
-  .filter((post: any) => post.comments) // 
+    const filteredPosts = postsWithComments.filter(
+      (post: any) => post.comments
+    ); //
 
     const postWithUnreadComments = filteredPosts
-    .filter((post: any) => post.comments.some((c: any) => !c.notified))
-    .map((post: any) => ({
-    ...post,
-    comments: post.comments.filter((comment: any) => comment.id !== clerkId),
-  }));
+      .filter((post: any) => post.comments.some((c: any) => !c.notified))
+      .map((post: any) => ({
+        ...post,
+        comments: post.comments.filter(
+          (comment: any) => comment.id !== clerkId
+        ),
+      }));
 
-  const unread_comments = filteredPosts.reduce(
-    (sum: number, post: any) => sum + (post.unread_comments || 0),
-    0
-  );
+    const unread_comments = filteredPosts.reduce(
+      (sum: number, post: any) => sum + (post.unread_comments || 0),
+      0
+    );
 
-  const storedPosts = postsWithComments
-  .filter((post: any) => post.comments)
-  .map((post: any) => ({
-    ...post,
-    comments: post.comments.filter((comment: any) => comment.id !== clerkId),
-  }));
-  
+    const storedPosts = postsWithComments
+      .filter((post: any) => post.comments)
+      .map((post: any) => ({
+        ...post,
+        comments: post.comments.filter(
+          (comment: any) => comment.id !== clerkId
+        ),
+      }));
 
-  //console.log("stored", storedPosts.length)
+    //console.log("stored", storedPosts.length)
     return new Response(
-      JSON.stringify({ toNotify: postWithUnreadComments, toStore: storedPosts, unread_count: unread_comments }),
+      JSON.stringify({
+        toNotify: postWithUnreadComments,
+        toStore: storedPosts,
+        unread_count: unread_comments,
+      }),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },

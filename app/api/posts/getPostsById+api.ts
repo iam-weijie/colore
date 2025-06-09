@@ -46,8 +46,6 @@ export async function GET(request: Request) {
       user_id: post.user_id, // Using clerk_id as user_id for temporary fix
       firstname: post.firstname,
       username: post.username,
-      nickname: post.nickname,
-      incognito_name: post.incognito_name,
       content: post.content,
       created_at: post.created_at,
       expires_at: post.expires_at, // Not available in query - set default

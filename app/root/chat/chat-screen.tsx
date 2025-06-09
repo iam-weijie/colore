@@ -356,7 +356,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         iconColor="#000"
         actionIcon={icons.chevron}
         onPress={() => {
-          handleUserProfile(item.friend_id, item.friend_username);
+          handleUserProfile(item.friend_id, item.friend_nickname);
         }}
       />
     );
@@ -383,7 +383,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         icon={icons.send}
         iconColor="#000"
         onPress={() => {
-          handleUserProfile(item.senderId, item.senderUsername);
+          handleUserProfile(item.senderId, item.senderNickname);
         }}
       />
       <View className="absolute right-3">

@@ -23,17 +23,16 @@ import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
-import { useAlert } from '@/notifications/AlertContext';
+import { useAlert } from "@/notifications/AlertContext";
 import ColorPickerSlider from "@/components/ColorPickerSlider";
 import * as Haptics from "expo-haptics";
 import { useHaptics } from "@/hooks/useHaptics";
 
-
 const NewPersonalPost = () => {
   const { user } = useUser();
-  const { content, color, emoji, recipient_id, username } = useLocalSearchParams();
+  const { content, color, emoji, recipient_id, username } =
+    useLocalSearchParams();
   const { showAlert } = useAlert();
-
 
   const [postContent, setPostContent] = useState("");
   const [inputHeight, setInputHeight] = useState(40);
@@ -54,20 +53,37 @@ const NewPersonalPost = () => {
   // Initialize from route params when component mounts or params change
   useEffect(() => {
     if (content) {
-      setPostContent(typeof content === 'string' ? content : Array.isArray(content) ? content[0] : '');
+      setPostContent(
+        typeof content === "string"
+          ? content
+          : Array.isArray(content)
+            ? content[0]
+            : ""
+      );
       setFromPreview(true);
     }
 
     if (color) {
-      const colorValue = typeof color === 'string' ? color : Array.isArray(color) ? color[0] : '';
-      const savedColor = temporaryColors.find(c => c.name === colorValue);
+      const colorValue =
+        typeof color === "string"
+          ? color
+          : Array.isArray(color)
+            ? color[0]
+            : "";
+      const savedColor = temporaryColors.find((c) => c.name === colorValue);
       if (savedColor) {
         setSelectedColor(savedColor);
       }
     }
 
     if (emoji) {
-      setSelectedEmoji(typeof emoji === 'string' ? emoji : Array.isArray(emoji) ? emoji[0] : null);
+      setSelectedEmoji(
+        typeof emoji === "string"
+          ? emoji
+          : Array.isArray(emoji)
+            ? emoji[0]
+            : null
+      );
     }
   }, [content, color, emoji]);
 
@@ -75,24 +91,31 @@ const NewPersonalPost = () => {
   const handleBackNavigation = () => {
     // If we came from preview, we need to go to the home tab
     if (fromPreview) {
-       if (typeof recipient_id === 'string' && recipient_id === user!.id) {
-                router.replace(`/root/tabs/personal-board`);
-              } else {
-                router.replace({
-                  pathname: "/root/user-board/[id]",
-                  params: { 
-                    id: typeof recipient_id === 'string' ? recipient_id : 
-                        Array.isArray(recipient_id) ? recipient_id[0] : '',
-                    username: typeof username === 'string' ? username :
-                        Array.isArray(username) ? username[0] : ''
-                  },
-                });
-              }
+      if (typeof recipient_id === "string" && recipient_id === user!.id) {
+        router.replace(`/root/tabs/personal-board`);
+      } else {
+        router.replace({
+          pathname: "/root/user-board/[id]",
+          params: {
+            id:
+              typeof recipient_id === "string"
+                ? recipient_id
+                : Array.isArray(recipient_id)
+                  ? recipient_id[0]
+                  : "",
+            username:
+              typeof username === "string"
+                ? username
+                : Array.isArray(username)
+                  ? username[0]
+                  : "",
+          },
+        });
+      }
     } else {
       router.back();
     }
   };
-
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -107,22 +130,30 @@ const NewPersonalPost = () => {
   };
 
   const handlePostSubmit = async () => {
-         router.push({
-               pathname: "/root/preview-post",
-               params: {
-                 id: "",
-                 content: postContent,
-                 color: selectedColor.name,
-                 emoji: selectedEmoji,
-                 personal: "true",
-                 recipientId: typeof recipient_id === 'string' ? recipient_id : 
-                             Array.isArray(recipient_id) ? recipient_id[0] : '',
-                 username: typeof username === 'string' ? username :
-                           Array.isArray(username) ? username[0] : ''
-               }
-             })
-             setPostContent("");
-             setSelectedEmoji(null);
+    router.push({
+      pathname: "/root/preview-post",
+      params: {
+        id: "",
+        content: postContent,
+        color: selectedColor.name,
+        emoji: selectedEmoji,
+        personal: "true",
+        recipientId:
+          typeof recipient_id === "string"
+            ? recipient_id
+            : Array.isArray(recipient_id)
+              ? recipient_id[0]
+              : "",
+        username:
+          typeof username === "string"
+            ? username
+            : Array.isArray(username)
+              ? username[0]
+              : "",
+      },
+    });
+    setPostContent("");
+    setSelectedEmoji(null);
   };
 
   const handleChangeText = (text: string) => {
@@ -131,10 +162,10 @@ const NewPersonalPost = () => {
     } else {
       setPostContent(text.substring(0, maxCharacters));
       showAlert({
-        title: 'Limit Reached',
+        title: "Limit Reached",
         message: `You can only enter up to ${maxCharacters} characters.`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
     }
   };
@@ -154,15 +185,24 @@ const NewPersonalPost = () => {
     }
 
     if (emojiButtonRef.current) {
-      emojiButtonRef.current.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
-        setTriggerPosition({
-          x: pageX + width / 2,  // Center horizontally
-          y: pageY + height + 5  // Bottom of button with small offset
-        });
-        
-        // Show popup - haptic feedback is now handled in the popup component
-        setShowRecentPopup(true);
-      });
+      emojiButtonRef.current.measure(
+        (
+          x: number,
+          y: number,
+          width: number,
+          height: number,
+          pageX: number,
+          pageY: number
+        ) => {
+          setTriggerPosition({
+            x: pageX + width / 2, // Center horizontally
+            y: pageY + height + 5, // Bottom of button with small offset
+          });
+
+          // Show popup - haptic feedback is now handled in the popup component
+          setShowRecentPopup(true);
+        }
+      );
     }
   };
 
@@ -172,8 +212,8 @@ const NewPersonalPost = () => {
 
     // Set as selected emoji
     setSelectedEmoji(emoji);
-    
-    // The popup handles its own animation now, 
+
+    // The popup handles its own animation now,
     // but we still need to update the state after animation completes
     setTimeout(() => {
       setShowRecentPopup(false);
@@ -188,12 +228,11 @@ const NewPersonalPost = () => {
     setSelectedEmoji(emoji);
   };
 
-   useEffect(() => {
-     if (selectedEmoji && isEmojiSelectorVisible) {
-       toggleEmojiSelector();
-     }
-   }, [selectedEmoji]);
-
+  useEffect(() => {
+    if (selectedEmoji && isEmojiSelectorVisible) {
+      toggleEmojiSelector();
+    }
+  }, [selectedEmoji]);
 
   return (
     <SafeAreaView className="flex-1">
@@ -216,61 +255,63 @@ const NewPersonalPost = () => {
                 className="w-14 h-10 rounded-full shadow-none"
                 fontSize="sm"
                 title="next"
-                style={{backgroundColor: selectedColor.hex}}
+                style={{ backgroundColor: selectedColor.hex }}
                 padding="0"
                 onPress={handlePostSubmit}
                 disabled={!postContent || isPosting}
               />
             </View>
-            <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
-          <View className="flex h-full flex-column justify-between items-center pb-4">
-            <View className="flex w-full mx-3">
-              {!isEmojiSelectorVisible && (
-                <TextInput
-                  className="text-[16px] font-Jakarta mx-10 my-5 "
-                  placeholder="Type something..."
-                  value={postContent}
-                  onChangeText={handleChangeText}
-                  onContentSizeChange={handleContentSizeChange}
-                  autoFocus
-                  multiline
-                  scrollEnabled
-                  style={{
-                    paddingTop: 10,
-                    paddingBottom: 0,
-                    minHeight: screenHeight * 0.2,
-                    maxHeight: screenHeight * 0.5,
-                    textAlignVertical: "top",
-                  }}
-                />
-              )}
-            </View>
+            <KeyboardAvoidingView
+              behavior="padding"
+              className="flex-1 flex w-full"
+            >
+              <View className="flex h-full flex-column justify-between items-center pb-4">
+                <View className="flex w-full mx-3">
+                  {!isEmojiSelectorVisible && (
+                    <TextInput
+                      className="text-[16px] font-Jakarta mx-10 my-5 "
+                      placeholder="Type something..."
+                      value={postContent}
+                      onChangeText={handleChangeText}
+                      onContentSizeChange={handleContentSizeChange}
+                      autoFocus
+                      multiline
+                      scrollEnabled
+                      style={{
+                        paddingTop: 10,
+                        paddingBottom: 0,
+                        minHeight: screenHeight * 0.2,
+                        maxHeight: screenHeight * 0.5,
+                        textAlignVertical: "top",
+                      }}
+                    />
+                  )}
+                </View>
 
-            <View className=" w-full flex flex-row justify-center items-center mb-12">
-              <ColorPickerSlider
-                colors={temporaryColors}
-                selectedColor={selectedColor}
-                onColorSelect={handleColorSelect}
-              />
+                <View className=" w-full flex flex-row justify-center items-center mb-12">
+                  <ColorPickerSlider
+                    colors={temporaryColors}
+                    selectedColor={selectedColor}
+                    onColorSelect={handleColorSelect}
+                  />
 
-              <TouchableOpacity
-                ref={emojiButtonRef}
-                onPress={toggleEmojiSelector}
-                onLongPress={handleEmojiLongPress}
-                delayLongPress={300}
-              >
-                {selectedEmoji ? (
-                  <Text style={{ fontSize: 35, margin: 1 }}>
-                    {selectedEmoji}
-                  </Text>
-                ) : (
-                  <Image source={icons.wink} className="w-8 h-9 m-1" />
-                )}
-              </TouchableOpacity>
+                  <TouchableOpacity
+                    ref={emojiButtonRef}
+                    onPress={toggleEmojiSelector}
+                    onLongPress={handleEmojiLongPress}
+                    delayLongPress={300}
+                  >
+                    {selectedEmoji ? (
+                      <Text style={{ fontSize: 35, margin: 1 }}>
+                        {selectedEmoji}
+                      </Text>
+                    ) : (
+                      <Image source={icons.wink} className="w-8 h-9 m-1" />
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
-
-              </View>
-              </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
 
             {isEmojiSelectorVisible && (
               <EmojiSelector

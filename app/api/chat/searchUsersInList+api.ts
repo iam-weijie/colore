@@ -8,19 +8,29 @@ export async function GET(request: Request) {
     const userId = url.searchParams.get("userId");
     const ids = url.searchParams.get("ids");
 
-        if (!ids) {
+    if (!ids) {
       return new Response(
         JSON.stringify({ error: "Missing or invalid 'ids' query parameter" }),
         { status: 400 }
       );
     }
 
-    const cleanIds = ids.trim().split(",") 
-    
+    const cleanIds = ids.trim().split(",");
+
     const rawResponse = await sql`
       SELECT 
         u.clerk_id,
-        u.username,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friends f
+            WHERE 
+              (f.user_id = ${userId} AND f.friend_id = u.clerk_id)
+              OR
+              (f.friend_id = ${userId} AND f.user_id = u.clerk_id)
+          ) THEN u.nickname
+          ELSE u.username
+        END AS username,
         u_self.nicknames as nicknames
       FROM users u
       LEFT JOIN users u_self ON u_self.clerk_id = ${userId}

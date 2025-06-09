@@ -18,7 +18,17 @@ export async function GET(request: Request) {
         c.last_message as "lastMessageContent", 
         c.last_message_timestamp as "lastMessageTimestamp",
         u_self.nicknames as nicknames,
-        u2.username
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friends f
+            WHERE 
+              (f.user_id = ${userId1} AND f.friend_id = c.clerk_id_2)
+              OR
+              (f.friend_id = ${userId1} AND f.user_id = c.clerk_id_2)
+          ) THEN u2.incognito_name
+          ELSE u2.username
+        END AS username
       FROM conversations c
       LEFT JOIN users u2 ON c.clerk_id_2 = u2.clerk_id
       LEFT JOIN users u_self ON u_self.clerk_id = ${userId1}

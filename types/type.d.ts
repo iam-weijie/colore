@@ -133,6 +133,8 @@ declare interface PostComment {
   index: number;
   content: string;
   username: string;
+  nickname: string;
+  incognito_name: string;
   created_at: string;
   like_count: number;
   report_count: number;

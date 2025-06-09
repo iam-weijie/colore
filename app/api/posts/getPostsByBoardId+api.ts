@@ -6,6 +6,7 @@ export async function GET(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const boardId = url.searchParams.get("id");
+    const clerkId = url.searchParams.get("userId");
 
     const response = await sql`
       SELECT 
@@ -33,9 +34,17 @@ export async function GET(request: Request) {
         u.clerk_id,
         u.firstname, 
         u.lastname, 
-        u.username,
-        u.nickname,
-        u.incognito_name,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friends f
+            WHERE 
+              (f.user_id = ${clerkId} AND f.friend_id = u.clerk_id)
+              OR
+              (f.friend_id = ${clerkId} AND f.user_id = u.clerk_id)
+          ) THEN u.incognito_name
+          ELSE u.username
+        END AS username,
         u.country, 
         u.state, 
         u.city,
@@ -56,8 +65,6 @@ export async function GET(request: Request) {
       user_id: post.user_id,
       firstname: post.firstname,
       username: post.username,
-      nickname: post.nickname,
-      incognito_name: post.incognito_name,
       content: post.content,
       created_at: post.created_at,
       expires_at: "", // Not available in query - set default
