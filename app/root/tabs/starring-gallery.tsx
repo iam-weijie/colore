@@ -342,7 +342,7 @@ export default function Page() {
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
               {!skipIntro && <ModalSheet 
-        title={"Learn more"} 
+        title={""} 
         isVisible={!skipIntro} 
         onClose={() => {
           setSkipIntro(true)

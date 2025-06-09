@@ -107,7 +107,7 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
           }}
         >
           <Text className="text-[20px] font-JakartaBold mb-1">{label}</Text>
-          <Text className="text-neutral-500 mb-6 text-[16px] font-Jakarta">
+          <Text className="text-tray-700 mb-6 text-[16px] font-Jakarta">
             {caption}
           </Text>
         </Animated.View>

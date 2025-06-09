@@ -158,9 +158,9 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
                             marginBottom: 8,
                             paddingHorizontal: 24
                         }}>
-                            <Text className="text-[16px] font-JakartaBold">
+                            {title && <Text className="text-[16px] font-JakartaBold">
                                 {title}
-                            </Text>
+                            </Text>}
                         </View>
 
                         <View style={{

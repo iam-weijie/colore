@@ -262,7 +262,7 @@ const handleClearSearch = () => {
        
         </View>
         {!skipIntro && <ModalSheet 
-        title={"Learn more"} 
+        title={""} 
         isVisible={!skipIntro} 
         onClose={() => {
           setSkipIntro(true)

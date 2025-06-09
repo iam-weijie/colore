@@ -199,7 +199,7 @@ const handleTabChange = (tabKey: string) => {
           
                     
             <Header 
-            title="Create"
+            title=""
             tabs={tabs}
             selectedTab={selectedTab}
             onTabChange={handleTabChange} 
