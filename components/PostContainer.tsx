@@ -127,7 +127,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
     if (post.length) {
       setPosts(post);
       setCurrentPost(post[currentPostIndex]);
-      setIsEmojiStatic(post[currentPostIndex].static_emoji);
+      setIsEmojiStatic(post[currentPostIndex]?.static_emoji ?? false);
     }
   }, [post]);
 
