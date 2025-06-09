@@ -137,7 +137,7 @@ const SignUp = () => {
             title="Continue"
             onPress={() => router.push("/root/user-info")}
             className="w-full bg-indigo-500"
-            padding="4"
+            padding={4}
           />
         </Animated.View>
       </Animated.View>
@@ -192,7 +192,7 @@ const SignUp = () => {
             title="Verify Email"
             onPress={onPressVerify}
             className="mt-5 bg-success-500 bg-indigo-500"
-            padding="3"
+            padding={4}
           />
         </Animated.View>
 
@@ -201,7 +201,7 @@ const SignUp = () => {
             title="Back"
             onPress={() => setShowVerification(false)}
             className="mt-5"
-            padding="3"
+            padding={4}
           />
         </Animated.View>
       </Animated.View>
@@ -221,19 +221,13 @@ const SignUp = () => {
           colors={["#ffd12b", "#ff9f45"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          className="w-full items-start justify-center rounded-b-[48px] pt-16 pl-11 min-h-[18%] pb-6 mb-6"
+         className="w-full items-start justify-center rounded-b-[48px] pt-12 pl-11 min-h-[16%] pb-4 mb-6"
         >   
           <Animated.Text 
             entering={FadeInDown.delay(200).duration(600)}
-            className="text-white text-3xl font-JakartaBold"
+            className="text-white text-[24px] font-JakartaBold"
           >
-            Create
-          </Animated.Text>
-          <Animated.Text 
-            entering={FadeInDown.delay(300).duration(600)}
-            className="text-white text-xl font-JakartaMedium"
-          >
-            Your Account
+            Create Your Account
           </Animated.Text>
         </LinearGradient>
       </Animated.View>
@@ -295,8 +289,8 @@ onPress={() => {
             <CustomButton
               className="w-[50%] h-16 mt-8 rounded-full shadow-none"
               fontSize="lg"
-              title="Sign Up"
-              padding="0"
+              title="Complete"
+              padding={4}
               onPress={onSignUpPress}
               bgVariant='gradient'
             />

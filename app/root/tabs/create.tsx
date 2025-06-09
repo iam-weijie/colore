@@ -1,5 +1,4 @@
-import { SignedIn, useUser } from "@clerk/clerk-expo";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -10,9 +9,7 @@ import {
 import Header from "@/components/Header";
 import CardCarrousel from "@/components/CardCarroussel";
 import { RenderCreateCard } from "@/components/RenderCard";
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAlert } from '@/notifications/AlertContext';
-import ItemContainer from "@/components/ItemContainer";
 import EmojiBackground from "@/components/EmojiBackground";
 import { fetchAPI } from "@/lib/fetch";
 import { icons } from "@/constants";
@@ -20,12 +17,51 @@ import {
   addDays
 } from 'date-fns';
 import { useGlobalContext } from "@/app/globalcontext";
+import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
+import { createTutorialPages } from "@/constants/tutorials";
+import ModalSheet from "@/components/Modal";
+import CarouselPage from "@/components/CarrousselPage";
+
+
+
 
 const Create = () => {
+
 const { user } = useUser();
-const { content, color, emoji } = useLocalSearchParams();
+
+// Tutorial constants
+
+const pages = createTutorialPages;
+const totalSteps = pages.length;
+
+
+// Tutorial Logic
+const [skipIntro, setSkipIntro] = useState<boolean>(false);
+
+const fetchTutorialStatus = async () => {
+  const isTutorialcompleted = await checkTutorialStatus("create-1")
+  setSkipIntro(isTutorialcompleted)
+}
+
+const handleCompleteTutorial = async () => {
+  const isCompleted = await completedTutorialStep("create-1")
+  return isCompleted
+}
+
+useEffect(() => {
+fetchTutorialStatus()
+}, [])
+const [step, setStep] = useState(0);
+  const handleNext = () => {
+
+    if (step < totalSteps - 1) setStep((prev) => prev + 1);
+    else {
+      handleCompleteTutorial()
+      setSkipIntro(true)
+    }
+  };
+
 const { draftPost, resetDraftPost } = useGlobalContext()
-const { showAlert } = useAlert();
 const [selectedTab, setSelectedTab] = useState<string>("notes");
 
 const tabs = [
@@ -194,6 +230,26 @@ const handleTabChange = (tabKey: string) => {
           handleOptionSubmit={() => item.onPress()}
           />}/>
         </View>
+        {!skipIntro && <ModalSheet 
+        title={""} 
+        isVisible={!skipIntro} 
+        onClose={() => {
+          setSkipIntro(true)
+          }} >
+            <View className="flex-1 px-4">
+            <CarouselPage
+          label={pages[step].label}
+          caption={pages[step].caption}
+          color={pages[step].color}
+          onSubmit={handleNext}
+          progress={step + 1}
+          total={totalSteps}
+          disabled={pages[step].disabled}
+        >
+          {pages[step].children}
+        </CarouselPage>
+        </View>
+        </ModalSheet>}
     </View>
   );
 };

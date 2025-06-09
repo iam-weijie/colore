@@ -79,7 +79,7 @@ const PwReset = () => {
           title="Start"
           onPress={() => router.push("/auth/log-in")}
           className="w-full"
-          padding="3"
+          padding={3}
         />
       </View>
     );
@@ -139,14 +139,14 @@ const PwReset = () => {
           title="Reset Password"
           onPress={onReset}
           className="mt-5 bg-success-500"
-          padding="3"
+          padding={3}
         />
 
         <CustomButton
           title="Back"
           onPress={() => setShowVerification(false)}
           className="mt-5"
-          padding="3"
+          padding={3}
         />
       </View>
     );
@@ -205,7 +205,7 @@ const PwReset = () => {
               className="w-[50%] h-16 mt-8 rounded-full shadow-none"
               fontSize="lg"
               title="Continue"
-              padding="0"
+             padding={4}
               onPress={onRequestReset}
               bgVariant='gradient'
             />

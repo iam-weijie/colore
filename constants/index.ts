@@ -154,37 +154,6 @@ export const characters = {
   
 }
 
-export const defaultColors: PostItColor[] = [
-  {
-    name: "yellow",
-    id: "yellow",
-    hex: "#ffe640",
-    rarity: "default",
-    foldcolorhex: "#fef08a",
-    SRB: [0, 0, 0],
-    meaning: "",
-    fontColor: "#B29B00",
-  },
-  {
-    name: "pink",
-    id: "pink",
-    hex: "#FBB1F5",
-    rarity: "default",
-    foldcolorhex: "#FFC8FB",
-    SRB: [0, 0, 0],
-    meaning: "",
-    fontColor: "#D82C82",
-  },
-  {
-    name: "light-blue",
-    id: "light-blue",
-    hex: "#93c5fd",
-    rarity: "default",
-    foldcolorhex: "#b8e1ff",
-    SRB: [0, 0, 0],
-    meaning: "",
-    fontColor: "#2775CC",
-  }
-];
+
 
 

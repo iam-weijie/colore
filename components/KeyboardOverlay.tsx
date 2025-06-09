@@ -90,9 +90,9 @@ const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({
   };
 
   return (
-    <Modal transparent visible={isVisible} onRequestClose={handleClose}>
+    <Modal transparent visible={isVisible} onRequestClose={() => {}}>
       <Animated.View
-        className="absolute left-0 right-0 bg-white h-[60px] shadow-md z-50 rounded-t-[32px]"
+        className="absolute left-0 right-0 bg-white h-[70px] shadow-md z-50 rounded-t-[32px]"
         style={{
           bottom: keyboardHeight,
           paddingHorizontal: 12,

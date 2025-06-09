@@ -43,7 +43,7 @@ const OAuth = () => {
         )}
         bgVariant="outline"
         textVariant="primary"
-        padding="3"
+       padding={3}
         onPress={handleGoogleLogIn}
       />
     </View>

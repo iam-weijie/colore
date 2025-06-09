@@ -367,69 +367,67 @@ const UserPersonalBoard = () => {
                       accentColor="#93c5fd"
                     />
 
-                    <DetailRow
-                      label="Description"
-                      value={`${boardInfo.description}`}
-                      onPress={null}
-                      accentColor="#93c5fd"
-                    />
-                    <DetailRow
-                      label="Owner"
-                      value={"A good person"}
-                      onPress={null}
-                      accentColor="#93c5fd"
-                    />
-                  </>
-                }
-              />
-              <View className="my-4"></View>
-              <HeaderCard
-                title="Preferences"
-                color="#ffe640"
-                content={
-                  <>
-                    <ToggleRow
-                      label="Notifications"
-                      description="Get notified whenever there is a new post"
-                      value={hapticsEnabled}
-                      onValueChange={handleHapticsToggle}
-                      accentColor="#ffe640"
-                    />
-                  </>
-                }
-              />
-              <View className="my-4"></View>
-              {selectedSetting && (
-                <View className="flex-1 flex items-center w-full mb-4">
-                  <CustomButton
-                    className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
-                    fontSize="lg"
-                    title="Close"
-                    padding="0"
-                    onPress={() => {
-                      setSelectedSetting("");
-                    }}
-                  />
-                </View>
-              )}
-              <View className="my-8"></View>
-            </ScrollView>
-          ) : (
-            <View className="flex-1 px-6 max-h-[80%]"></View>
-          )}
-          {selectedSetting && (
-            <View className="flex-1 flex items-center w-full mb-4">
-              <CustomButton
-                className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
-                fontSize="lg"
-                title="Close"
-                padding="0"
-                onPress={() => {
-                  setSelectedSetting("");
-                }}
-              />
-            </View>
-          )}
+                                <DetailRow 
+                                          label="Description" 
+                                          value={`${boardInfo.description}`} 
+                                          onPress={null}
+                                          accentColor="#93c5fd"
+                                />
+                                <DetailRow 
+                                          label="Owner" 
+                                          value={"A good person"} 
+                                          onPress={null}
+                                          accentColor="#93c5fd"
+                                />
+                                                         </>
+                            }
+                          />
+                          <View className="my-4"></View>
+                      <HeaderCard 
+                            title="Preferences" 
+                            color="#ffe640"
+                            content={
+                              <>
+                                <ToggleRow 
+                                  label="Notifications"
+                                  description="Get notified whenever there is a new post"
+                                  value={hapticsEnabled}
+                                  onValueChange={handleHapticsToggle}
+                                  accentColor="#ffe640"
+                                />
+                              </>
+                            }
+                          />
+                           <View className="my-4"></View>
+                    {selectedSetting &&  <View className="flex-1 flex items-center w-full mb-4">
+                              <CustomButton
+                              className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+                              fontSize="lg"
+                              title="Close"
+                              padding={4}
+                              onPress={() => {
+                                setSelectedSetting("");
+                              }}
+                            />
+                            </View>}
+                            <View className="my-8"></View>
+                    </ScrollView>
+                  ): (
+                    <View className="flex-1 px-6 max-h-[80%]">
+
+                    </View>
+                  )}
+         {selectedSetting &&  <View className="flex-1 flex items-center w-full mb-4">
+          <CustomButton
+          className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+          fontSize="lg"
+          title="Close"
+          padding={4}
+          onPress={() => {
+            setSelectedSetting("");
+          }}
+        />
+        </View>}
         </View>
       </ModalSheet>
     );

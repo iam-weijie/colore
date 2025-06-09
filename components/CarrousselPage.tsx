@@ -87,7 +87,7 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
         }}
       >
         {/* Animated Progress Bar */}
-        <View className="h-2 rounded-full bg-neutral-200 mb-4 overflow-hidden">
+        <View className="h-2 rounded-full bg-[#FAFAFA] mb-4 overflow-hidden">
           <Animated.View
             style={{ 
               width: progressAnim.interpolate({
@@ -106,8 +106,8 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
             transform: [{ translateX: slideAnim }],
           }}
         >
-          <Text className="text-2xl font-JakartaBold mb-1">{label}</Text>
-          <Text className="text-neutral-500 mb-6 text-base font-Jakarta">
+          <Text className="text-[20px] font-JakartaBold mb-1">{label}</Text>
+          <Text className="text-tray-700 mb-6 text-[16px] font-Jakarta">
             {caption}
           </Text>
         </Animated.View>
@@ -131,10 +131,10 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
             }}
           >
             <CustomButton
-              className="w-[50%] h-16 rounded-full shadow-none bg-black"
+              className="w-[50%] h-14 rounded-full shadow-none bg-black"
               fontSize="lg"
               title={progressPercent < 100 ? "continue" : "submit"}
-              padding="0"
+              padding={4}
               onPress={onSubmit}
               disabled={disabled}
             />

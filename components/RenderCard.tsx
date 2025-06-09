@@ -101,7 +101,7 @@ export const RenderPromptCard = ({
           className="my-4 w-[50%] h-16 rounded-full shadow-none bg-black"
           fontSize="lg"
           title="submit"
-          padding="0"
+          padding={4}
           disabled={promptContent.length === 0}
           onPress={() => {
             handlePromptSubmit(item);
@@ -195,7 +195,7 @@ export const RenderCreateCard = ({
           className="my-4 w-[175px] h-16 rounded-full shadow-none bg-black"
           fontSize="lg"
           title="Create now"
-          padding="0"
+          padding={4}
           onPress={() => {
             handleOptionSubmit();
           }}

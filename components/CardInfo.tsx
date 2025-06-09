@@ -4,11 +4,15 @@ import React, { useState } from "react";
 import {
   Switch, // Import Switch
   Text,
+  Dimensions,
   Image,
   TouchableOpacity,
   View,
 } from "react-native";
 import ModalSheet from "./Modal";
+
+
+const SCREEN_HEIGHT = Dimensions.get("screen").height
 
 export const HeaderCard = ({ title, color, content, infoView }) => {
 
@@ -57,7 +61,10 @@ export const HeaderCard = ({ title, color, content, infoView }) => {
     </View>
       {isModalVisible && 
       <ModalSheet title={"Description"} isVisible={isModalVisible} onClose={() => {setIsModalVisible(false)}}>
-        <View>
+        <View className="flex-1 px-2"
+        style={{
+          height: SCREEN_HEIGHT * 0.6
+        }}>
           {infoView}
         </View>
       </ModalSheet>}

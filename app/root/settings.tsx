@@ -797,10 +797,10 @@ const Settings = () => {
               showsVerticalScrollIndicator={false}
             />
             <CustomButton
-              className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+              className="my-2 w-[50%] h-14 self-center rounded-full shadow-none bg-black"
               fontSize="lg"
               title="Close"
-              padding="0"
+             padding={4}
               onPress={() => {
                 setLibraryVisible(false);
               }}

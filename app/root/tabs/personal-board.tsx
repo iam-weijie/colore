@@ -1,34 +1,58 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { SignedIn, useUser } from "@clerk/clerk-expo";
+import React, { useState, useCallback, useEffect } from "react";
+import { useUser } from "@clerk/clerk-expo";
 import {
-  Dimensions,
   View,
-  Image,
-  Text,
   TextInput,
   TouchableOpacity,
 } from "react-native";
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
-  withTiming
-} from "react-native-reanimated";
 import { useRouter, useFocusEffect } from "expo-router";
 import { fetchAPI } from "@/lib/fetch";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import PersonalBoard from "@/components/PersonalBoard";
-import { icons } from "@/constants";
 import BoardGallery from "@/components/BoardGallery"
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import { Ionicons } from "@expo/vector-icons";
 import { useGlobalContext } from "@/app/globalcontext";
+import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
+import { boardTutorialPages } from "@/constants/tutorials";
+import CarouselPage from "@/components/CarrousselPage";
+import ModalSheet from "@/components/Modal";
+import { defaultColors } from "@/constants/colors";
 
 const UserPersonalBoard = () => {
   const router = useRouter();
   const { user } = useUser();
   const { userColors } = useGlobalContext();
+  
+  // Tutorial constants
+  
+  const pages = boardTutorialPages;
+  const totalSteps = pages.length;
+  
+  
+  // Tutorial Logic
+  const [skipIntro, setSkipIntro] = useState<boolean>(false);
+
+  const fetchTutorialStatus = async () => {
+    const isTutorialcompleted = await checkTutorialStatus("board-1")
+    setSkipIntro(isTutorialcompleted)
+  }
+  const handleCompleteTutorial = async () => {
+    const isCompleted = await completedTutorialStep("board-1")
+    return isCompleted
+  }
+  
+  useEffect(() => {
+  fetchTutorialStatus()
+  }, [])
+  const [step, setStep] = useState(0);
+    const handleNext = () => {
+  
+      if (step < totalSteps - 1) setStep((prev) => prev + 1);
+      else {
+        handleCompleteTutorial()
+        setSkipIntro(true)
+      }
+    };
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -89,7 +113,7 @@ const UserPersonalBoard = () => {
         if (response.data) {
           const boardsWithColor = response.data.map((board: any, index: number) => ({
             ...board,
-            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * 3)].hex, // only assign if not already set
           }));
         
           setMyBoards([personalBoard, shareWithMeBoard, ...boardsWithColor]);
@@ -121,7 +145,7 @@ const UserPersonalBoard = () => {
       
           const boardsWithColor = response.data.map((board: any, index: number) => ({
             ...board,
-            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * 3)].hex, // only assign if not already set
           }));
         
           setCommunityBoards(boardsWithColor);
@@ -150,7 +174,7 @@ const UserPersonalBoard = () => {
         if (response.data) {
           const boardsWithColor = response.data.map((board: any, index: number) => ({
             ...board,
-            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * 3)].hex, // only assign if not already set
           }));
         
           setDiscoverBoards([...boardsWithColor]);
@@ -244,6 +268,26 @@ const handleClearSearch = () => {
         )}
        
         </View>
+        {!skipIntro && <ModalSheet 
+        title={""} 
+        isVisible={!skipIntro} 
+        onClose={() => {
+          setSkipIntro(true)
+          }} >
+            <View className="flex-1 px-4">
+            <CarouselPage
+          label={pages[step].label}
+          caption={pages[step].caption}
+          color={pages[step].color}
+          onSubmit={handleNext}
+          progress={step + 1}
+          total={totalSteps}
+          disabled={pages[step].disabled}
+        >
+          {pages[step].children}
+        </CarouselPage>
+        </View>
+        </ModalSheet>}
        
  
 </View>

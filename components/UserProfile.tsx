@@ -34,6 +34,10 @@ import PostContainer from "./PostContainer";
 import { fetchCountryEmoji } from "@/lib/post";
 import Header from "./Header";
 import { Ionicons } from "@expo/vector-icons";
+import { myProfileTutorialPages, userTutorialPages } from "@/constants/tutorials";
+import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
+import CarouselPage from "./CarrousselPage";
+import ModalSheet from "./Modal";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View entering={FadeIn.duration(600)} className="w-full px-4 my-3">
@@ -66,6 +70,39 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const { showAlert } = useAlert();
 
   const isEditable = user!.id === userId;
+
+     // Tutorial constants
+     
+     const pages = isEditable ? myProfileTutorialPages : userTutorialPages;
+     const totalSteps = pages.length;
+     
+     
+     // Tutorial Logic
+     const [skipIntro, setSkipIntro] = useState<boolean>(false);
+
+       
+       const fetchTutorialStatus = async () => {
+       const isTutorialcompleted = isEditable ? await checkTutorialStatus("my-profile-1") : await checkTutorialStatus("user-profile-1")
+       setSkipIntro(isTutorialcompleted)
+     }
+
+         const handleCompleteTutorial = async () => {
+           const isCompleted = isEditable ?  await completedTutorialStep("my-profile-1") : await completedTutorialStep("user-profile-1");
+           return isCompleted
+         }
+     
+     useEffect(() => {
+     fetchTutorialStatus()
+     }, [])
+     const [step, setStep] = useState(0);
+       const handleNext = () => {
+     
+         if (step < totalSteps - 1) setStep((prev) => prev + 1);
+         else {
+          handleCompleteTutorial()
+           setSkipIntro(true)
+         }
+       };
 
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -537,13 +574,35 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </View>
       )}
 
-      {selectedTab === "Communities" && (
-        <View className="flex-1 pt-4">
-          <BoardGallery boards={communityBoards} />
-        </View>
-      )}
+            {selectedTab === "Communities" && <View className="flex-1 pt-4">
+            <BoardGallery boards={communityBoards} />
+            </View>}
 
-      {selectedTab === "Settings" && <Settings />}
+            {selectedTab === "Settings" && 
+            <Settings />
+            }
+        
+       
+  {!skipIntro && <ModalSheet 
+        title={""} 
+        isVisible={!skipIntro} 
+        onClose={() => {
+          setSkipIntro(true)
+          }} >
+            <View className="flex-1 px-4">
+            <CarouselPage
+          label={pages[step].label}
+          caption={pages[step].caption}
+          color={pages[step].color}
+          onSubmit={handleNext}
+          progress={step + 1}
+          total={totalSteps}
+          disabled={pages[step].disabled}
+        >
+          {pages[step].children}
+        </CarouselPage>
+        </View>
+        </ModalSheet>}
     </View>
   );
 };

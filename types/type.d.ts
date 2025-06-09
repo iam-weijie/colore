@@ -216,7 +216,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
     | "success"
     | "oauth";
   fontSize?: "sm" | "md" | "lg" | "xl" | "2xl"; // Added "2xl"
-  padding?: string;
+  padding?: number;
   IconLeft?: React.ComponentType<any>;
   IconRight?: React.ComponentType<any>;
   className?: string;

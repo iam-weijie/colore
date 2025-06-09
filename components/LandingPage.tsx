@@ -76,19 +76,13 @@ const LandingPage = () => {
           colors={bgVariantHex[currentIndex]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          className="w-full items-start justify-center rounded-b-[48px] pt-16 pl-11 min-h-[18%] pb-6 mb-6"
+          className="w-full items-start justify-center rounded-b-[48px] pt-12 pl-11 min-h-[16%] pb-4 mb-6"
         >   
           <Animated.Text 
             entering={FadeInDown.delay(200).duration(800)}
-            className="text-white text-3xl font-JakartaBold"
+            className="text-white text-[28px] font-JakartaBold"
           >
             Coloré
-          </Animated.Text>
-          <Animated.Text 
-            entering={FadeInDown.delay(100).duration(800)}
-            className="text-white text-lg font-JakartaMedium"
-          >
-            wishes you a warm welcome ✨
           </Animated.Text>
         
         </LinearGradient>
@@ -144,14 +138,13 @@ const LandingPage = () => {
       {/* Sign Up Buttons */}
       <Animated.View 
         entering={FadeInUp.delay(800).duration(800)}
-        className='w-full gap-4 flex flex-col mb-4'
+        className='w-full gap-4 flex flex-col mb-8'
       >
         <View className="flex items-center w-full">
           <CustomButton
-            className="w-[50%] h-16 rounded-full shadow-none"
             fontSize="lg"
             title="Sign Up"
-            padding="0"
+            padding={4}
             onPress={() => router.push("/auth/sign-up")}
             bgVariant={bgVariant[currentIndex]}
           />
@@ -162,10 +155,9 @@ const LandingPage = () => {
           className="flex items-center w-full"
         >
           <CustomButton
-            className="w-[50%] h-16 rounded-full shadow-none bg-black"
             fontSize="lg"
             title="Log In"
-            padding="0"
+           padding={4}
             onPress={() => router.push("/auth/log-in")}
           />
         </Animated.View>

@@ -142,7 +142,7 @@ const LogIn = () => {
                         className="w-[50%] h-16 mt-8 rounded-full shadow-none"
                         fontSize="lg"
                         title="Log In"
-                        padding="0"
+                        padding={4}
                         onPress={onLogInPress}
                         bgVariant='gradient'
                       />
