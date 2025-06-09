@@ -168,7 +168,7 @@ const EditPost = () => {
                 fontSize="sm"
                 title="next"
                 style={{backgroundColor: selectedColor.hex}}
-                padding="0"
+                padding={4}
                 onPress={handlePostUpdate}
                 disabled={!postContent || isPosting}
               />

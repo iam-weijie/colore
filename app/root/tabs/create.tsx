@@ -17,7 +17,7 @@ import {
   addDays
 } from 'date-fns';
 import { useGlobalContext } from "@/app/globalcontext";
-import { checkTutorialStatus } from "@/hooks/useTutorial";
+import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
 import { createTutorialPages } from "@/constants/tutorials";
 import ModalSheet from "@/components/Modal";
 import CarouselPage from "@/components/CarrousselPage";
@@ -38,11 +38,17 @@ const totalSteps = pages.length;
 // Tutorial Logic
 const [skipIntro, setSkipIntro] = useState<boolean>(false);
 
-useEffect(() => {
-  const fetchTutorialStatus = async () => {
+const fetchTutorialStatus = async () => {
   const isTutorialcompleted = await checkTutorialStatus("create-1")
   setSkipIntro(isTutorialcompleted)
 }
+
+const handleCompleteTutorial = async () => {
+  const isCompleted = await completedTutorialStep("create-1")
+  return isCompleted
+}
+
+useEffect(() => {
 fetchTutorialStatus()
 }, [])
 const [step, setStep] = useState(0);
@@ -50,6 +56,7 @@ const [step, setStep] = useState(0);
 
     if (step < totalSteps - 1) setStep((prev) => prev + 1);
     else {
+      handleCompleteTutorial()
       setSkipIntro(true)
     }
   };

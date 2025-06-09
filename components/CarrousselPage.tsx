@@ -134,7 +134,7 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
               className="w-[50%] h-14 rounded-full shadow-none bg-black"
               fontSize="lg"
               title={progressPercent < 100 ? "continue" : "submit"}
-              padding="0"
+              padding={4}
               onPress={onSubmit}
               disabled={disabled}
             />

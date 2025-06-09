@@ -269,7 +269,7 @@ export const CommentItem: React.FC<PostComment> = ({
             ]}
           >
             {username && <View
-              className="flex text-[14px] font-JakartaMedium mt-4"
+              className="text-[12px] text-tray-400 font-JakartaMedium mt-4"
               style={{
                 [user_id === user?.id ? "right" : "left"]: 5,
                 alignSelf: user_id === user?.id ? "flex-end" : "flex-start",
@@ -284,7 +284,7 @@ export const CommentItem: React.FC<PostComment> = ({
                   });
                 }}
               >
-                <Text className="font-JakartaMedium text-[14px]">{username}</Text>
+                <Text className="font-JakartaMedium text-[12px] text-tray-400">{username}</Text>
               </TouchableOpacity>
             </View>}
             { replyingTo &&

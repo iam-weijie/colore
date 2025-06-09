@@ -20,7 +20,7 @@ import { useAlert } from "@/notifications/AlertContext";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import StarringModal from "@/components/StarringModal";
-import { checkTutorialStatus } from "@/hooks/useTutorial";
+import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
 import { starringTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
 import ModalSheet from "@/components/Modal";
@@ -41,11 +41,16 @@ export default function Page() {
   // Tutorial Logic
   const [skipIntro, setSkipIntro] = useState<boolean>(false);
   
-  useEffect(() => {
     const fetchTutorialStatus = async () => {
-    const isTutorialcompleted = await checkTutorialStatus("starring-1")
-    setSkipIntro(isTutorialcompleted)
-  }
+      const isTutorialcompleted = await checkTutorialStatus("starring-1")
+      setSkipIntro(isTutorialcompleted)
+    }
+    const handleCompleteTutorial = async () => {
+      const isCompleted = await completedTutorialStep("starring-1")
+      return isCompleted
+    }
+    
+  useEffect(() => {
   fetchTutorialStatus()
   }, [])
   const [step, setStep] = useState(0);
@@ -53,6 +58,7 @@ export default function Page() {
   
       if (step < totalSteps - 1) setStep((prev) => prev + 1);
       else {
+        handleCompleteTutorial()
         setSkipIntro(true)
       }
     };

@@ -261,8 +261,8 @@ const BoardSetting = () => {
                         
                       <View>
                         {item.role == "admin" ? 
-                        (index > 0 && menuOptions[index - 1].role === item.role ? <></>  : <Text className="text-[14px] font-JakartaSemiBold ml-4 text-gray-400">Edit</Text>)
-                         : (index > 0 && menuOptions[index - 1].role === item.role ? <></> : <Text className="text-[14px] font-JakartaSemiBold ml-4 text-gray-400">Interact</Text>)}
+                        (index > 0 && menuOptions[index - 1].role === item.role ? <></>  : <Text className="text-center text-[14px] font-JakartaMedium ml-4 text-gray-300">Edit</Text>)
+                         : (index > 0 && menuOptions[index - 1].role === item.role ? <></> : <Text className="text-center  text-[14px] font-JakartaMedium ml-4 text-gray-300">Interact</Text>)}
                         {item.component}
                       </View>
                       
@@ -338,7 +338,7 @@ const BoardSetting = () => {
                               className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
                               fontSize="lg"
                               title="Close"
-                              padding="0"
+                              padding={4}
                               onPress={() => {
                                 setSelectedSetting("");
                               }}
@@ -356,7 +356,7 @@ const BoardSetting = () => {
           className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
           fontSize="lg"
           title="Close"
-          padding="0"
+          padding={4}
           onPress={() => {
             setSelectedSetting("");
           }}

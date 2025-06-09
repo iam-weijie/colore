@@ -38,7 +38,7 @@ import { fetchCountryEmoji } from "@/lib/post";
 import Header from "./Header";
 import { Ionicons } from "@expo/vector-icons";
 import { myProfileTutorialPages, userTutorialPages } from "@/constants/tutorials";
-import { checkTutorialStatus } from "@/hooks/useTutorial";
+import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
 import CarouselPage from "./CarrousselPage";
 import ModalSheet from "./Modal";
 // Skeleton component for post loading states
@@ -85,12 +85,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
      
      // Tutorial Logic
      const [skipIntro, setSkipIntro] = useState<boolean>(false);
-     
-     useEffect(() => {
+
+       
        const fetchTutorialStatus = async () => {
        const isTutorialcompleted = isEditable ? await checkTutorialStatus("my-profile-1") : await checkTutorialStatus("user-profile-1")
        setSkipIntro(isTutorialcompleted)
      }
+
+         const handleCompleteTutorial = async () => {
+           const isCompleted = isEditable ?  await completedTutorialStep("my-profile-1") : await completedTutorialStep("user-profile-1");
+           return isCompleted
+         }
+     
+     useEffect(() => {
      fetchTutorialStatus()
      }, [])
      const [step, setStep] = useState(0);
@@ -98,6 +105,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, nickname, onSignOut }
      
          if (step < totalSteps - 1) setStep((prev) => prev + 1);
          else {
+          handleCompleteTutorial()
            setSkipIntro(true)
          }
        };

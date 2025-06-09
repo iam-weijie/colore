@@ -5,3 +5,10 @@ export const checkTutorialStatus = async (step: string) => {
 
   return seenIntro
 };
+
+export const completedTutorialStep = async (step: string) => {
+  const completedIntro = await tutorialCache.markCompleted(step)
+
+  return completedIntro
+}
+

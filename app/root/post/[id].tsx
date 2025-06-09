@@ -520,13 +520,13 @@ console.log("happend", "id", id)
     </TouchableOpacity>
   </View>
 )}
-  <View className="flex flex-row items-center bg-white rounded-[32px] px-4 py-2 min-h-[44px] mx-2 mb-2 "
+  <View className="relative flex flex-row items-center justify-between bg-white rounded-[32px] px-4 h-[48px] mx-2 mb-2 "
         style={{
-          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+          boxShadow: "0 0 7px 1px rgba(180,180,180,.1)"
         }}
         >
           <TextInput
-            className="flex-1 pl-2 text-[14px] "
+            className="flex-1 pl-2 text-[14px] pr-16 "
              placeholderTextColor="#9CA3AF"
             placeholder="Write a something..."
               value={newComment}
@@ -538,17 +538,15 @@ console.log("happend", "id", id)
               onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
               editable={!isSubmitting && !isSubmitting}
           />
-          <View className=" ">
+          <View className="absolute right-1 w-[25%]">
                         <CustomButton
               title={isSubmitting ? "..." : "Send"}
               onPress={handleCommentSubmit}
               disabled={
                 newComment.length === 0 || isSubmitting || isPostDeleted
               }
-              className="ml-3 w-14 h-9 rounded-full shadow-none"
-              style={{ backgroundColor: postColor ? (postColor.hex || color) : "black" }}
               fontSize="sm"
-              padding="0"
+              padding={3}
             />
           </View>
         </View>

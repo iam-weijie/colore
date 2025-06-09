@@ -48,15 +48,11 @@ const PreviewPost = () => {
               className="w-[50%] h-16 rounded-full shadow-none bg-black"
               fontSize="lg"
               title="submit"
-              padding="0"
+              padding={4}
               onPress={() => {
                 console.log("supposed to submit")
                 handleSubmitPost(user!.id, draftPost)}}
-              onPress={() => {
-                console.log("supposed to submit")
-                handleSubmitPost(user!.id, draftPost)}}
-              //disabled={!postContent || isPosting}
-            />
+/>
                <TouchableOpacity
                   onPress={handleCloseModal}
                   className="mt-4"

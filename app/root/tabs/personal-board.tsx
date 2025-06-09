@@ -12,10 +12,11 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import { Ionicons } from "@expo/vector-icons";
 import { useGlobalContext } from "@/app/globalcontext";
-import { checkTutorialStatus } from "@/hooks/useTutorial";
+import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
 import { boardTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
 import ModalSheet from "@/components/Modal";
+import { defaultColors } from "@/constants/colors";
 
 const UserPersonalBoard = () => {
   const router = useRouter();
@@ -30,12 +31,17 @@ const UserPersonalBoard = () => {
   
   // Tutorial Logic
   const [skipIntro, setSkipIntro] = useState<boolean>(false);
-  
-  useEffect(() => {
-    const fetchTutorialStatus = async () => {
+
+  const fetchTutorialStatus = async () => {
     const isTutorialcompleted = await checkTutorialStatus("board-1")
     setSkipIntro(isTutorialcompleted)
   }
+  const handleCompleteTutorial = async () => {
+    const isCompleted = await completedTutorialStep("board-1")
+    return isCompleted
+  }
+  
+  useEffect(() => {
   fetchTutorialStatus()
   }, [])
   const [step, setStep] = useState(0);
@@ -43,6 +49,7 @@ const UserPersonalBoard = () => {
   
       if (step < totalSteps - 1) setStep((prev) => prev + 1);
       else {
+        handleCompleteTutorial()
         setSkipIntro(true)
       }
     };
@@ -106,7 +113,7 @@ const UserPersonalBoard = () => {
         if (response.data) {
           const boardsWithColor = response.data.map((board: any, index: number) => ({
             ...board,
-            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * 3)].hex, // only assign if not already set
           }));
         
           setMyBoards([personalBoard, shareWithMeBoard, ...boardsWithColor]);
@@ -138,7 +145,7 @@ const UserPersonalBoard = () => {
       
           const boardsWithColor = response.data.map((board: any, index: number) => ({
             ...board,
-            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * 3)].hex, // only assign if not already set
           }));
         
           setCommunityBoards(boardsWithColor);
@@ -167,7 +174,7 @@ const UserPersonalBoard = () => {
         if (response.data) {
           const boardsWithColor = response.data.map((board: any, index: number) => ({
             ...board,
-            color: userColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * 3)].hex, // only assign if not already set
           }));
         
           setDiscoverBoards([...boardsWithColor]);

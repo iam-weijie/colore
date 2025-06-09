@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { AlertProps } from '@/types/type';
+import { BlurView } from 'expo-blur';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -113,6 +114,8 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
   return (
     <GestureHandlerRootView className="absolute flex-1 top-0 w-full shadow-lg">
       <PanGestureHandler onGestureEvent={handlePanGesture}>
+        <BlurView
+        >
         <Animated.View
           style={[
             animatedStyle,
@@ -138,7 +141,6 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
             pt-8
             pb-4
             px-8
-            bg-[#FAFAFA]
             rounded-[44px]
             min-h-[18%]
             shadow-lg
@@ -184,6 +186,7 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
             )}
           </View>
         </Animated.View>
+        </BlurView>
       </PanGestureHandler>
     </GestureHandlerRootView>
   );

@@ -1,7 +1,7 @@
 import { ButtonProps } from "@/types/type";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -12,6 +12,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
+import { BlurView } from "expo-blur";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
@@ -46,18 +47,13 @@ const getTextVariantStyle = (variant, disabled) => {
 };
 
 const fontSizeMap = {
-  sm: "text-[12px]",
-  md: "text-[14px]",
-  lg: "text-[16px]",
-  xl: "text-[18px]",
+  "sm": "text-[12px]",
+  "md": "text-[14px]",
+  "lg": "text-[16px]",
+  "xl": "text-[18px]",
+  "2xl": "text-[20px]",
 };
 
-const paddingMap = {
-  sm: "p-2",
-  md: "p-3",
-  lg: "p-4",
-  xl: "p-5",
-};
 
 const CustomButton = ({
   onPress,
@@ -66,10 +62,9 @@ const CustomButton = ({
   textVariant = "default",
   IconLeft,
   IconRight,
-  className = "",
   disabled = false,
   fontSize = "lg",
-  padding = "lg",
+  padding = 4,
 }: ButtonProps) => {
   const { playSoundEffect } = useSoundEffects();
 
@@ -122,6 +117,7 @@ const CustomButton = ({
     textScale.value = withSpring(1, { damping: 20, stiffness: 150 });
   };
 
+
   return (
     <AnimatedTouchable
       onPressIn={handlePressIn}
@@ -130,33 +126,61 @@ const CustomButton = ({
       disabled={disabled}
       activeOpacity={1}
       style={[
-        animatedStyle,
         {
-          width: "50%",
-          shadowColor: "rgba(10,10,10,0.15)",
-          shadowRadius: 5,
+        width: fontSize == "sm" ? "100%" : "50%",
+        backgroundColor: '#ffffff30', // Semi-transparent background
+        borderColor: '#ffffff80',
+        shadowColor: "rgba(90,90,90,1)",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
         },
       ]}
-      className={`relative w-full rounded-full ${isGradient ? "" : bgStyle} ${
-        isGradient ? "" : paddingMap[padding]
-      } flex flex-row justify-center items-center ${className} py-4`}
+      className={`relative w-full rounded-full ${isGradient ? "" : bgStyle} flex flex-row justify-center items-center`}
       
     >
+
+      
+      {!isGradient && !disabled && <>
+      <View className={`absolute top-[60%] left-[18%] rounded-full`}
+      style={{
+        backgroundColor: "#CFB1FB",
+        width: padding * 4,
+        height: padding * 4
+      }}/>
+       <View className={`absolute top-[60%] left-[30%] rounded-full`}
+      style={{
+        backgroundColor: "#44C1EE",
+        width: padding * 4,
+        height: padding * 4
+      }}/>
+       <View className={`absolute top-[60%] right-[10%] rounded-full`}
+      style={{
+        backgroundColor: "#FF99CC",
+        width: padding * 4,
+        height: padding * 4
+      }}/>
+      </>}
+
+        <BlurView intensity={60} tint="light" 
+        className={`flex-1 ${isGradient ? "" : `py-${padding}`} flex flex-row items-center justify-center`}
+        style={{
+           borderRadius: 70,
+           overflow: 'hidden',
+        }}>
+       
       {isGradient && Array.isArray(bgStyle) ? (
         <AnimatedLinearGradient
           colors={bgStyle}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={gradientAnimatedStyle}
-          className={`flex flex-row justify-center items-center w-full h-full ${paddingMap[padding]} rounded-full`}
+          className={`flex-1 flex flex-row justify-center items-center rounded-full flex-1  py-${padding}`}
         >
           {IconLeft && <Animated.View style={textAnimatedStyle}><IconLeft /></Animated.View>}
           <Animated.Text
             style={textAnimatedStyle}
-            className={`font-JakartaSemiBold ${fontSizeMap[fontSize]} ${getTextVariantStyle(
-              textVariant,
-              disabled
-            )}`}
+            className={`font-JakartaSemiBold ${fontSizeMap[fontSize]} text-white`}
           >
             {title}
           </Animated.Text>
@@ -164,14 +188,22 @@ const CustomButton = ({
         </AnimatedLinearGradient>
       ) : (
         <>
-          <Animated.View
-            className="w-full h-full rounded-full py-6"
+
+                <Animated.View
+            className="flex-1 w-full h-full rounded-full py-6"
             style={[
               {
                 position: "absolute",
-                backgroundColor: "#ffffff10",
+                backgroundColor: "#ffffffAA",
                 borderColor: "#ffffff60",
                 borderWidth: 3,
+                borderRadius: 24,
+                shadowColor: "#00000044",
+                shadowOffset: { width: 0, height: 2 },
+                shadowRadius: 4,
+                shadowOpacity: 0.1,
+                elevation: 2,
+                backdropFilter: 'blur(10px)',
               },
               animatedStyle,
             ]}
@@ -189,6 +221,7 @@ const CustomButton = ({
           {IconRight && <Animated.View style={textAnimatedStyle}><IconRight /></Animated.View>}
         </>
       )}
+            </BlurView>
     </AnimatedTouchable>
   );
 };

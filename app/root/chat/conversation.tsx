@@ -363,7 +363,7 @@ const checkNumberOfParticipants = async (activity: boolean) => {
               disabled={!newMessage.trim()}
               className="ml-3 w-14 h-10 rounded-full shadow-none"
               fontSize="sm"
-              padding="0"
+              padding={4}
             />
           </View>
         </View>

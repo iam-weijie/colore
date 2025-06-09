@@ -32,17 +32,17 @@ const InfoScreen: React.FC<InfoScreenProps> = ({
       )}
 
       <Animated.View entering={FadeInDown.duration(800)}>
-        <Text className="text-center text-2xl font-bold mb-2">{title}</Text>
+        <Text className="text-center text-[20px] font-bold mb-2">{title}</Text>
       </Animated.View>
 
       {subtitle && (
         <Animated.View entering={FadeInDown.delay(100).duration(800)}>
-          <Text className="text-center text-lg font-semibold mb-4">{subtitle}</Text>
+          <Text className="text-center text-[18px] font-semibold mb-4">{subtitle}</Text>
         </Animated.View>
       )}
 
       <Animated.View entering={FadeInDown.delay(200).duration(800)}>
-        <Text className="text-center text-base text-gray-500 leading-relaxed mb-10 mx-4">
+        <Text className="text-center text-[16px] text-tray-700 leading-relaxed mb-10 mx-4">
           {content}
         </Text>
       </Animated.View>
@@ -53,7 +53,7 @@ const InfoScreen: React.FC<InfoScreenProps> = ({
             className="w-[50%] h-16 rounded-full shadow-none bg-black mb-6"
             fontSize="lg"
             title="Explore"
-            padding="0"
+            padding={4}
             onPress={() => {
               // Optional: Add button press animation
               onAgree();
@@ -113,7 +113,7 @@ export const TutorialScreen: React.FC<InfoScreenProps> = ({
             className="w-[60%] h-14"
             fontSize="lg"
             title="Explore"
-            padding="0"
+            padding={4}
             onPress={onAgree}
           />
         </Animated.View>

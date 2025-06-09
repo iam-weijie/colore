@@ -65,7 +65,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
           {/* Title and metadata at bottom */}
           <View className="w-full h-full flex-col items-center justify-center p-3 z-[10]">
             <Text 
-              className="text-white text-center text-[16px] font-JakartaBold  drop-shadow-md"
+              className="text-white text-center text-[16px] font-JakartaBold shadow-md"
               numberOfLines={2}
             >
               {item.title}

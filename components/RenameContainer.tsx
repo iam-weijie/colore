@@ -48,7 +48,7 @@ const RenameContainer = ({
                   className="ml-3 w-14 h-9 rounded-full shadow-none"
                   style={{ backgroundColor: "black" }}
                   fontSize="sm"
-                  padding="0"
+                  padding={2}
                 />
               </View>
             </View>

@@ -155,7 +155,7 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
                             width: '100%',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            marginBottom: 8,
+                            marginVertical: 8,
                             paddingHorizontal: 24
                         }}>
                              <Text className="text-[16px] font-JakartaBold">
