@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     // Build location condition
     let locationCondition = "";
     if (mode && ["city", "state", "country"].includes(mode)) {
-      locationCondition = `AND u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = '${id}')`;
+      locationCondition = `AND u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = $1)`;
     }
 
     // Build the complete query
@@ -50,11 +50,11 @@ export async function GET(request: Request) {
         CASE
           WHEN EXISTS (
             SELECT 1
-            FROM friends f
+            FROM friendships f
             WHERE 
-              (f.user_id = ${id} AND f.friend_id = u.clerk_id)
+              (f.user_id = $1 AND f.friend_id = u.clerk_id)
               OR
-              (f.friend_id = ${id} AND f.user_id = u.clerk_id)
+              (f.friend_id = $1 AND f.user_id = u.clerk_id)
           ) THEN u.incognito_name
           ELSE u.username
         END AS username,
@@ -73,14 +73,14 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.user_id != '${id}' 
+      WHERE p.user_id != $1 
       AND p.post_type = 'public'
       ${locationCondition}
       ORDER BY trending_score DESC
-      LIMIT ${number};
+      LIMIT $2;
     `;
 
-    const response = await sql(query);
+    const response = await sql(query, [id, number]);
 
     const mappedPosts = response.map((post) => ({
       id: post.id,

@@ -48,11 +48,11 @@ export async function GET(request: Request) {
         CASE
           WHEN EXISTS (
             SELECT 1
-            FROM friends f
+            FROM friendships f
             WHERE 
-              (f.user_id = '${recipientId}' AND f.friend_id = u.clerk_id)
+              (f.user_id = $1 AND f.friend_id = u.clerk_id)
               OR
-              (f.friend_id = '${recipientId}' AND f.user_id = u.clerk_id)
+              (f.friend_id = $1 AND f.user_id = u.clerk_id)
           ) THEN u.incognito_name
           ELSE u.username
         END AS username,
@@ -63,16 +63,16 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.recipient_user_id = '${recipientId}'
+      WHERE p.recipient_user_id = $1
         AND p.post_type = 'personal'
         AND p.expires_at > NOW()
         AND p.available_at <= NOW()
-        ${excludeClause}
+        $2
       ORDER BY p.created_at DESC
-      LIMIT ${number};
+      LIMIT $3;
     `;
 
-    const response = await sql(query);
+    const response = await sql(query, [recipientId, excludeClause, number]);
 
     // Filter and transform the posts
     const personalPosts = response.map((post) => ({

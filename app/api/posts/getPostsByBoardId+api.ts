@@ -8,7 +8,8 @@ export async function GET(request: Request) {
     const boardId = url.searchParams.get("id");
     const clerkId = url.searchParams.get("userId");
 
-    const response = await sql`
+    const response = await sql(
+      `
       SELECT 
         p.id, 
         p.content, 
@@ -37,11 +38,11 @@ export async function GET(request: Request) {
         CASE
           WHEN EXISTS (
             SELECT 1
-            FROM friends f
+            FROM friendships f
             WHERE 
-              (f.user_id = ${clerkId} AND f.friend_id = u.clerk_id)
+              (f.user_id = $1 AND f.friend_id = u.clerk_id)
               OR
-              (f.friend_id = ${clerkId} AND f.user_id = u.clerk_id)
+              (f.friend_id = $1 AND f.user_id = u.clerk_id)
           ) THEN u.incognito_name
           ELSE u.username
         END AS username,
@@ -53,11 +54,13 @@ export async function GET(request: Request) {
       JOIN users u ON p.user_id = u.clerk_id
       JOIN boards b ON p.board_id = b.id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.board_id = ${boardId}
+      WHERE p.board_id = $2
         AND p.expires_at >= NOW()::timestamp
         AND p.available_at <= NOW()::timestamp
       ORDER BY p.created_at ASC;
-    `;
+    `,
+      [clerkId, boardId]
+    );
 
     // Transform the response to match the Post interface
     const mappedPosts = response.map((post) => ({

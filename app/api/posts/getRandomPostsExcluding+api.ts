@@ -35,11 +35,11 @@ export async function GET(request: Request) {
           CASE
             WHEN EXISTS (
               SELECT 1
-              FROM friends f
+              FROM friendships f
               WHERE 
-                (f.user_id = '${id}' AND f.friend_id = u.clerk_id)
+                (f.user_id = $1 AND f.friend_id = u.clerk_id)
                 OR
-                (f.friend_id = '${id}' AND f.user_id = u.clerk_id)
+                (f.friend_id = $1 AND f.user_id = u.clerk_id)
             ) THEN u.incognito_name
             ELSE u.username
           END AS username,
@@ -48,14 +48,14 @@ export async function GET(request: Request) {
           u.city
         FROM posts p
         JOIN users u ON p.user_id = u.clerk_id
-        WHERE p.user_id != '${id}' 
+        WHERE p.user_id != $1
           AND p.post_type = 'public' 
-          AND u.city = (SELECT u1.city FROM users u1 WHERE u1.clerk_id = '${id}')
+          AND u.city = (SELECT u1.city FROM users u1 WHERE u1.clerk_id = $1)
           ${excludeClause}
         ORDER BY RANDOM()
-        LIMIT ${number};
+        LIMIT $2;
       `;
-      const response = await sql(query);
+      const response = await sql(query, [id, number]);
 
       if (response.length === 0) {
         return new Response(JSON.stringify({ data: [] }), {

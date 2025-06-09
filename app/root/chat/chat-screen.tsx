@@ -192,7 +192,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         method: "GET",
       });
       if (response.error) {
-        //console.log("Error fetching user data");
+        console.log("Error fetching user data");
         //console.log("response data: ", response.data);
         //console.log("response status: ", response.status);
         // //console.log("response: ", response);
@@ -205,7 +205,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
       return;
     } catch (err) {
       console.error("Failed to fetch user data:", err);
-      setError("Failed to fetch nicknames.");
+      setError("Failed to fetch nssicknames.");
     } finally {
       setLoading(false);
     }

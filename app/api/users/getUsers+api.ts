@@ -16,18 +16,19 @@ export async function GET(request: Request) {
         status: 400,
       });
     }
-    const response = await sql`
+    const response = await sql(
+      `
       SELECT
         id,
         clerk_id,
         CASE
           WHEN EXISTS (
             SELECT 1
-            FROM friends f
+            FROM friendships f
             WHERE 
-              (f.user_id = ${clerkId} AND f.friend_id = users.clerk_id)
+              (f.user_id = $1 AND f.friend_id = users.clerk_id)
               OR
-              (f.friend_id = ${clerkId} AND f.user_id = users.clerk_id)
+              (f.friend_id = $1 AND f.user_id = users.clerk_id)
           ) THEN nickname
           ELSE username
         END AS username,
@@ -35,9 +36,11 @@ export async function GET(request: Request) {
         state,
         city
       FROM users
-      WHERE clerk_id != ${clerkId}
-      LIMIT ${max}
-    `;
+      WHERE clerk_id != $1
+      LIMIT $2
+    `,
+      [clerkId, max]
+    );
     if (response.length === 0) {
       return new Response(JSON.stringify({ error: "Users not found" }), {
         status: 404,

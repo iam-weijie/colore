@@ -30,11 +30,11 @@ export async function GET(request: Request) {
       CASE
         WHEN EXISTS (
           SELECT 1
-          FROM friends f
+          FROM friendships f
           WHERE 
-            (f.user_id = ${userId} AND f.friend_id = u.clerk_id)
+            (f.user_id = $1 AND f.friend_id = u.clerk_id)
             OR
-            (f.friend_id = ${userId} AND f.user_id = u.clerk_id)
+            (f.friend_id = $1 AND f.user_id = u.clerk_id)
         ) THEN u.incognito_name
         ELSE u.username
       END AS username,
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     // Validate mode against allowed values
     const allowedModes = ["city", "state", "country"];
     const locationFilter = allowedModes.includes(mode ?? "")
-      ? `u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = '${userId}')`
+      ? `u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = $1)`
       : "1=1";
 
     // Directly interpolate values into the SQL string
@@ -57,14 +57,14 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.user_id != '${userId}'
+      WHERE p.user_id != $1
       AND p.post_type = 'public'
       AND ${locationFilter}
       ORDER BY RANDOM()
-      LIMIT ${limit};
+      LIMIT $2;
     `;
 
-    const response = await sql(query);
+    const response = await sql(query, [userId, limit]);
     const mappedPosts = response.map((post) => ({
       id: post.id,
       user_id: post.user_id,

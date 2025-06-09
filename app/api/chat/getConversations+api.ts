@@ -9,19 +9,20 @@ export async function GET(request: Request) {
 
     ////console.log("Received GET request for conversations for user with ID: ", userId);
 
-    const rawResponse = await sql`
+    const rawResponse = await sql(
+      `
       SELECT 
         c.id::text,
         CASE 
-          WHEN c.clerk_id_1 = ${userId} THEN
+          WHEN c.clerk_id_1 = $1 THEN
             CASE
               WHEN EXISTS (
                 SELECT 1
-                FROM friends f
+                FROM friendships f
                 WHERE 
-                  (f.user_id = ${userId} AND f.friend_id = c.clerk_id_2)
+                  (f.user_id = $1 AND f.friend_id = c.clerk_id_2)
                   OR
-                  (f.friend_id = ${userId} AND f.user_id = c.clerk_id_2)
+                  (f.friend_id = $1 AND f.user_id = c.clerk_id_2)
               ) THEN u2.incognito_name
               ELSE u2.username
             END
@@ -29,17 +30,17 @@ export async function GET(request: Request) {
             CASE
               WHEN EXISTS (
                 SELECT 1
-                FROM friends f
+                FROM friendships f
                 WHERE 
-                  (f.user_id = ${userId} AND f.friend_id = c.clerk_id_1)
+                  (f.user_id = $1 AND f.friend_id = c.clerk_id_1)
                   OR
-                  (f.friend_id = ${userId} AND f.user_id = c.clerk_id_1)
+                  (f.friend_id = $1 AND f.user_id = c.clerk_id_1)
               ) THEN u1.incognito_name
               ELSE u1.username
             END
         END AS username,
         CASE 
-          WHEN c.clerk_id_1 = ${userId} THEN c.clerk_id_2
+          WHEN c.clerk_id_1 = $1 THEN c.clerk_id_2
           ELSE c.clerk_id_1
         END AS other_clerk_id,
         c.last_message as "lastMessageContent",
@@ -48,10 +49,12 @@ export async function GET(request: Request) {
       FROM conversations c
       LEFT JOIN users u1 ON c.clerk_id_1 = u1.clerk_id
       LEFT JOIN users u2 ON c.clerk_id_2 = u2.clerk_id
-      LEFT JOIN users u_self ON u_self.clerk_id = ${userId}
-      WHERE c.clerk_id_1 = ${userId} 
-      OR c.clerk_id_2 = ${userId}
-    `;
+      LEFT JOIN users u_self ON u_self.clerk_id = $1
+      WHERE c.clerk_id_1 = $1
+      OR c.clerk_id_2 = $1
+    `,
+      [userId]
+    );
 
     // Transform the raw response to match the interface
     const conversations: ConversationItem[] = rawResponse.map((row) => {

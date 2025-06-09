@@ -18,7 +18,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const response = await sql`
+    const response = await sql(
+      `
       SELECT 
         c.id, 
         c.post_id,
@@ -28,11 +29,11 @@ export async function GET(request: Request) {
         CASE
           WHEN EXISTS (
             SELECT 1
-            FROM friends f
+            FROM friendships f
             WHERE 
-              (f.user_id = ${userId} AND f.friend_id = u.clerk_id)
+              (f.user_id = $1 AND f.friend_id = u.clerk_id)
               OR
-              (f.friend_id = ${userId} AND f.user_id = u.clerk_id)
+              (f.friend_id = $1 AND f.user_id = u.clerk_id)
           ) THEN u.incognito_name
           ELSE u.username
         END AS username,
@@ -45,14 +46,16 @@ export async function GET(request: Request) {
           (SELECT TRUE 
            FROM comment_likes cl 
            WHERE cl.comment_id = c.id 
-           AND cl.user_id = ${userId || ""}),
+           AND cl.user_id = $1),
           FALSE
         ) as is_liked
       FROM comments c
       JOIN users u ON c.user_id = u.clerk_id
-      WHERE c.post_id = ${postId}
+      WHERE c.post_id = $2
       ORDER BY c.created_at ASC;
-    `;
+    `,
+      [userId || "", postId]
+    );
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,
