@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import CustomButton from './CustomButton';
 
 
 const RenameContainer = ({
@@ -23,29 +24,51 @@ const RenameContainer = ({
     }
   };
 
+   const handleSubmit = () => {
+    const cleanText = text.trim()
+    if (cleanText) {
+      console.log("[RenamingContainer]: Return pressed - saving!");
+      onSave(cleanText);
+    }
+  };
+
+
+    const handleCancel = () => {
+    console.log("[RenamingContainer]: Cancel pressed!");
+    onCancel();
+  };
+
   return (
  
-      <View className="flex-1 w-full flex items-center justify-center h-[50px]">
+      <View className="flex flex-row items-center bg-white rounded-[32px] px-4 py-2 min-h-[44px] mx-2 mb-2 "
+            style={{
+              boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+            }}
+            >
+              <TextInput
+                className="flex-1 pl-2 text-[14px] "
+                value={text}
+                onChangeText={handleChangeText}
+                placeholder={placeholder}
+                placeholderTextColor={"#757575"}
+                autoFocus
+                onBlur={handleCancel}
+                onSubmitEditing={handleSubmit}
+                returnKeyType="done"
+              />
+              <View className=" ">
+                            <CustomButton
+                  title={"Cancel"}
+                  onPress={() => {}}
+                  className="ml-3 w-16 h-9 rounded-full shadow-none"
+                  style={{ backgroundColor: "black" }}
+                  fontSize="sm"
+                  padding={2}
+                />
+              </View>
+            </View>
 
-        {/* Text Input */}
-        <TextInput
-          className="flex-1 w-full text-[16px] text-black bg-gray-50 rounded-[24px] font-JakartaMedium py-2 px-4 mx-2 "
-          value={text}
-          onChangeText={handleChangeText}
-          placeholder={placeholder}
-          placeholderTextColor={"#757575"}
-          autoFocus
-          onBlur={onCancel}
-        />
-          
-          <TouchableOpacity
-            className="absolute rounded-full bg-black justify-center items-center mx-1 py-2 px-3 right-2"
-            onPress={() => onSave(text)}
-            disabled={!text.trim()}
-          >
-            <Text className="text-white font-JakartaSemiBold text-[14px]">Save</Text>
-          </TouchableOpacity>
-        </View>
+ 
 
   );
 };
