@@ -468,7 +468,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
               if (response.error) {
                 throw new Error(response.error);
               }
-              console.log("UPDATED SUCCESSFULLYYYYYYY");
+              console.log("updated placeholder names on start successfully");
             } catch (error) {
               console.error(
                 "Failed to update placeholder names on start:",

@@ -192,7 +192,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         method: "GET",
       });
       if (response.error) {
-        console.log("Error fetching user data");
+        //console.log("Error fetching user data");
         //console.log("response data: ", response.data);
         //console.log("response status: ", response.status);
         // //console.log("response: ", response);
@@ -205,14 +205,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
       return;
     } catch (err) {
       console.error("Failed to fetch user data:", err);
-      setError("Failed to fetch nssicknames.");
+      setError("Failed to fetch nicknames.");
     } finally {
       setLoading(false);
     }
   };
 
-   console.log("[ChatScreen] Users: ", users)
-
+  console.log("[ChatScreen] Users: ", users);
 
   const filteredUsers =
     searchText.length > 0 && users.length > 0
@@ -288,14 +287,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     setLoading(false);
   };
 
-
-
-  const filteredFriendList = friendList.filter((friend) => searchText.length > 0 ? 
-  (friend.friend_nickname ?
-    friend.friend_nickname.toLowerCase().includes(searchText.toLowerCase()) : friend.friend_username.toLowerCase().includes(searchText.toLowerCase())) : friend.friend_username.length > 0
+  const filteredFriendList = friendList.filter((friend) =>
+    searchText.length > 0
+      ? friend.friend_nickname
+        ? friend.friend_nickname
+            .toLowerCase()
+            .includes(searchText.toLowerCase())
+        : friend.friend_username
+            .toLowerCase()
+            .includes(searchText.toLowerCase())
+      : friend.friend_username.length > 0
   );
 
-    console.log("[ChatScreen] Friend List: ", filteredFriendList)
+  console.log("[ChatScreen] Friend List: ", filteredFriendList);
 
   // RENDER LISTS ------ START
   const renderConversationItem = ({
@@ -364,7 +368,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         iconColor="#000"
         actionIcon={icons.chevron}
         onPress={() => {
-          handleUserProfile(item.friend_id, item.friend_nickname || item.friend_username);
+          handleUserProfile(
+            item.friend_id,
+            item.friend_nickname || item.friend_username
+          );
         }}
       />
     );
@@ -384,14 +391,17 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         label={
           nicknames && item.senderId in nicknames
             ? nicknames[item.senderId]
-            : item.senderNickname
+            : item.senderNickname || item.senderUsername
         }
         caption={getRelativeTime(convertToLocal(new Date(item.createdAt)))}
         colors={["#CFB1FB", "#CFB1FB"]}
         icon={icons.send}
         iconColor="#000"
         onPress={() => {
-          handleUserProfile(item.senderId, item.senderNickname);
+          handleUserProfile(
+            item.senderId,
+            item.senderNickname || item.senderUsername
+          );
         }}
       />
       <View className="absolute right-3">
