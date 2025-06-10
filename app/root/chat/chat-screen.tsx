@@ -856,11 +856,11 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
     let label = "";
 
     if (item.commenter_username) {
-      label = `${item.commenter_username} has commented a post`;
+      label = `${item.commenter_username} commented a post`;
     } else if (item.username) {
-      label = `${item.username} has sent you a post`;
+      label = `${item.username} sent you a post`;
     } else if (item.liker_username) {
-      label = `${item.liker_username} has liked your post`;
+      label = `${item.liker_username} liked your ${item.comment_id ? "comment" : "post"}`;
     }
 
     return (
