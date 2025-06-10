@@ -59,9 +59,9 @@ const CreateView = ({
   handlePromptSubmit,
   userId,
 }: any) => (
+  <View className="flex-1 py-3 ">
   <KeyboardAvoidingView
     behavior={Platform.OS === "ios" ? "padding" : "height"}
-    keyboardVerticalOffset={80}
     style={{ flex: 1 }}
   >
     
@@ -87,6 +87,7 @@ const CreateView = ({
       />
     )}
   </KeyboardAvoidingView>
+  </View>
 );
 
 export default function Page() {
@@ -337,8 +338,9 @@ export default function Page() {
         message: `Your prompt was submitted successfully.`,
         type: "POST",
         status: "success",
-        color: item.color,
+        color: "#ffe640",
       });
+
     } catch (error) {
       console.error("Couldn't submit prompt", error);
       showAlert({
@@ -348,6 +350,7 @@ export default function Page() {
         status: "error",
       });
     } finally {
+      setPromptContent("");
       const timeoutId = setTimeout(() => {
         setHasSubmittedPrompt(true);
       }, 2000);
