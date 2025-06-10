@@ -15,11 +15,6 @@ import {
   getRelativeTime,
 } from "@/lib/utils";
 import {
-  convertToLocal,
-  formatDateTruncatedMonth,
-  getRelativeTime,
-} from "@/lib/utils";
-import {
   ConversationItem,
   FriendRequest,
   Friendship,

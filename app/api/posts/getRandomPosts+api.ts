@@ -77,7 +77,7 @@ export async function GET(request: Request) {
     `;
 
     // Pass the parameters to the SQL query
-    const response = await sql(query, [userId, limit]);
+    const response = await sql.query(query, [userId, limit]);
     console.log(`getRandomPosts: Retrieved ${response.length} posts`);
 
     const mappedPosts = response.map((post) => ({
