@@ -10,6 +10,7 @@ import axios from "axios";
 import {
   acceptFriendRequest,
   cancelFriendRequest,
+  fetchFriendNickname,
   fetchFriends,
   fetchFriendStatus,
   unfriend,
@@ -110,6 +111,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
     FriendStatus.UNKNOWN
   );
+  const [friendNickname, setFriendNickname] = useState<string>("");
   const [friendCount, setFriendCount] = useState<number>(0);
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
   const [isFocusedOnProfile, setIsFocusedOnProfile] = useState<boolean>(true);
@@ -165,7 +167,16 @@ const UserProfile: React.FC<UserProfileProps> = ({
       }
     };
 
+    const getFriendNickname = async () => {
+      let result;
+      if (user!.id !== userId) {
+        result = await fetchFriendNickname(user!.id, userId);
+        setFriendNickname(result.nickname);
+      }
+    };
+
     getFriendStatus();
+    getFriendNickname();
     fetchFriendCount();
   }, []);
 
@@ -420,10 +431,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 <Flag width={32} height={32} />
               </View>
               <View>
-                {nickname || profileUser?.username ? (
+                {friendNickname || profileUser?.username ? (
                   <Text className={`text-xl font-JakartaBold`}>
-                    {nickname
-                      ? nickname
+                    {friendNickname
+                      ? friendNickname
                       : profileUser?.username
                         ? `${friendStatus === FriendStatus.RECEIVED || friendStatus === FriendStatus.FRIENDS ? profileUser?.nickname : profileUser?.username}`
                         : `${profileUser?.firstname?.charAt(0)}.`}{" "}

@@ -440,8 +440,6 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
             throw new Error(response.error);
           }
           const userData = response.data[0];
-          console.log("NICKNAME: ", userData.nickname);
-          console.log("INCOG NAME: ", userData.incognito_name);
           if (!userData.nickname || !userData.incognito_name) {
             try {
               const response = await fetchAPI("/api/users/patchUserInfo", {

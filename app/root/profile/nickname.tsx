@@ -50,7 +50,7 @@ const Nickname = () => {
 
   const updateNicknames = async () => {
     // //console.log("Updating nicknames to: ", nicknames);
-    await fetchAPI("/api/users/patchUserNicknames", {
+    await fetchAPI("/api/users/updateUserNicknames", {
       method: "PATCH",
       body: JSON.stringify({
         clerkId: user!.id,

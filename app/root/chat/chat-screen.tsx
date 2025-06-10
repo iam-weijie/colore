@@ -226,7 +226,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
         method: "GET",
       });
-
       // Ensure response data exists and contains nicknames
       const nicknames: UserNicknamePair[] = response.data?.[0]?.nicknames || [];
       const filteredNicknames = nicknames.filter((n) => n[1]);
