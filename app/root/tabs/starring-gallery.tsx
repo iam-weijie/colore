@@ -14,12 +14,12 @@ import {
   View,
   FlatList,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 import CustomButton from "@/components/CustomButton";
-import ModalSheet from "@/components/Modal";
 import InfoScreen from "@/components/InfoScreen";
 import EmojiBackground from "@/components/EmojiBackground";
 import { icons } from "@/constants";
@@ -28,7 +28,6 @@ import { useAlert } from "@/notifications/AlertContext";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   RenderPromptCard,
-  RenderPromptAnswerCard,
 } from "@/components/RenderCard";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
@@ -59,7 +58,7 @@ const CreateView = ({
   handlePromptSubmit,
   userId,
 }: any) => (
-  <View className="flex-1 py-3 ">
+  <View className="flex-1 py-3">
   <KeyboardAvoidingView
     behavior={Platform.OS === "ios" ? "padding" : "height"}
     style={{ flex: 1 }}
@@ -79,7 +78,6 @@ const CreateView = ({
             promptContent={promptContent}
             updatePromptContent={updatePromptContent}
             handlePromptSubmit={handlePromptSubmit}
-            inputRef={inputRef}
           />
         )}
         handleScrollBeginDrag={handleScrollBeginDrag}
@@ -271,11 +269,7 @@ export default function Page() {
   useFocusEffect(
     useCallback(() => {
      
-        fetchPosts();
-      } else if (user && stacks.length > 0) {
-        setPosts(stacks[0].elements);
-        setExcludedIds(stacks[0].ids);
-      }
+        fetchPosts()
     }, [user, isIpad])
   );
 
