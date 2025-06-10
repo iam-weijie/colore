@@ -17,12 +17,12 @@ export const acceptFriendRequest = async (
       method: "POST",
       body: JSON.stringify({
         sender_id: sender_id,
-        receiver_id: receiver_id
+        receiver_id: receiver_id,
       }),
     });
 
     const data = response;
-    console.log("data", data)
+    console.log("data", data);
 
     if (data.message === "Friend request accepted") {
       // Only delete request if friendship was created
@@ -56,7 +56,7 @@ export const rejectFriendRequest = async (
     console.error("Failed to reject friend:", error);
     return FriendStatus.UNKNOWN;
   } finally {
-    fetchFriends(receiver_id)
+    fetchFriends(receiver_id);
   }
 };
 
@@ -177,6 +177,21 @@ export const fetchFriends = async (userId: string) => {
     return response.data;
   } catch (error) {
     console.error("Failed to fetch friends:", error);
+    return [];
+  }
+};
+
+export const fetchFriendNickname = async (userId: string, friendId: string) => {
+  try {
+    const response = await fetchAPI(
+      `/api/friends/getFriendNickname?userId=${userId}&friendId=${friendId}`,
+      {
+        method: "GET",
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch friend nickname: ", error);
     return [];
   }
 };

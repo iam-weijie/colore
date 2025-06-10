@@ -28,7 +28,17 @@ export async function GET(request: Request) {
       u.clerk_id,
       u.firstname, 
       u.lastname, 
-      u.username,
+      CASE
+        WHEN EXISTS (
+          SELECT 1
+          FROM friendships f
+          WHERE 
+            (f.user_id = $1 AND f.friend_id = u.clerk_id)
+            OR
+            (f.friend_id = $1 AND f.user_id = u.clerk_id)
+        ) THEN u.incognito_name
+        ELSE u.username
+      END AS username,
       u.country, 
       u.state, 
       u.city,
@@ -38,7 +48,7 @@ export async function GET(request: Request) {
     // Validate mode against allowed values
     const allowedModes = ["city", "state", "country"];
     const locationFilter = allowedModes.includes(mode ?? "")
-      ? `u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = '${userId}')`
+      ? `u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = $1)`
       : "1=1";
 
     // Directly interpolate values into the SQL string
@@ -48,11 +58,11 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.user_id != '${userId}'
+      WHERE p.user_id != $1
       AND p.post_type = 'public'
       AND ${locationFilter}
       ORDER BY RANDOM()
-      LIMIT ${limit};
+      LIMIT $2;
     `;
 
     const response = await sql(query);
@@ -80,7 +90,13 @@ export async function GET(request: Request) {
       prompt: post.prompt,
       board_id: post.board_id,
       reply_to: post.reply_to,
+      reply_to: post.reply_to,
       unread: post.unread,
+      position:
+        post.top !== null && post.left !== null
+          ? { top: Number(post.top), left: Number(post.left) }
+          : undefined,
+      formatting: (post.formatting as Format) || [],
       position:
         post.top !== null && post.left !== null
           ? { top: Number(post.top), left: Number(post.left) }
@@ -89,6 +105,9 @@ export async function GET(request: Request) {
       static_emoji: post.static_emoji,
     }));
 
+    return new Response(JSON.stringify({ data: mappedPosts }), {
+      status: 200,
+    });
     return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
     });

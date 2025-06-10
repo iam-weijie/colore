@@ -45,6 +45,7 @@ const Settings = () => {
     setSoundEffectsEnabled,
     profile,
     setProfile,
+    refreshProfile,
     userColors,
   } = useGlobalContext();
   const { playSoundEffect } = useSoundEffects(); // Use the sound hook
@@ -75,21 +76,21 @@ const Settings = () => {
     userColors || allColors
   );
   const blueProgress = useMemo(
+    () => Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20),
+    [savedPosts]
+  );
+  const yellowProgress = useMemo(
+    () => Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20),
+    []
+  );
+  const pinkProgress = useMemo(
     () =>
       Math.min(
         100,
-        Math.floor((savedPosts?.length || 0) / 3) * 20
+        Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
       ),
-    [savedPosts]
-  )
-  const yellowProgress = useMemo(() => Math.min(
-    100,
-    Math.floor((likedPosts?.length || 0) / 10) * 20
-  ), []);
-  const pinkProgress = useMemo(() => Math.min(
-    100,
-    Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
-  ), [])
+    []
+  );
   const [unlockedColors, setUnlockedColors] = useState<PostItColor[]>([]);
   const handleAttemptColorCreation = () => {
     const S = Math.floor((savedPosts?.length || 0) / 3);
@@ -174,6 +175,15 @@ const Settings = () => {
     fetchLikedPosts();
   }, []);
 
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username || "");
+      setNickname(profile.nickname || "");
+      setIncognitoName(profile.incognito_name || "");
+      setEmail(profile.email || "");
+    }
+  }, [profile]);
+
   const verifyValidName = (username: string): boolean => {
     const usernameRegex = /^[\w\-\.]{1,20}$/;
     return usernameRegex.test(username);
@@ -193,7 +203,7 @@ const Settings = () => {
 
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/patchUserInfo", {
+      const response = await fetchAPI("/api/users/updateUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
@@ -249,7 +259,7 @@ const Settings = () => {
 
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/patchUserInfo", {
+      const response = await fetchAPI("/api/users/updateUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
@@ -279,6 +289,7 @@ const Settings = () => {
       });
     } finally {
       setLoading(false);
+      
     }
   };
 
@@ -296,7 +307,7 @@ const Settings = () => {
 
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/patchUserInfo", {
+      const response = await fetchAPI("/api/users/updateUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
@@ -349,7 +360,7 @@ const Settings = () => {
     }
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/patchUserInfo", {
+      const response = await fetchAPI("/api/users/updateUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
@@ -418,9 +429,8 @@ const Settings = () => {
   };
 
   const handleUpdateValue = (type: string) => {
-    setUpdateType(type)
-    setOnFocus(true)
-    console.log("[Settings]: ", onFocus)
+    setUpdateType(type);
+    setOnFocus(true);
   };
 
   const currentLocation = profileUser
@@ -448,13 +458,15 @@ const Settings = () => {
   };
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const x = event.nativeEvent.contentOffset.x;  
-      const y = event.nativeEvent.contentOffset.y;
-      setScrollOffset({
-        x:  x,
-        y: y,
-      });
-    };
+    const x = event.nativeEvent.contentOffset.x;
+    const y = event.nativeEvent.contentOffset.y;
+    setScrollOffset({
+      x: x,
+      y: y,
+    });
+  };
+
+  const maskedIncognito = "*".repeat(incognitoName.length);
 
   return (
     <ScrollView
@@ -570,7 +582,7 @@ const Settings = () => {
               />
               <DetailRow
                 label="Incognito Name"
-                value={incognitoName}
+                value={maskedIncognito}
                 onPress={() => handleUpdateValue("incognito_name")}
                 accentColor="#93c5fd"
               />
@@ -725,37 +737,34 @@ const Settings = () => {
       </View>
 
       {onFocus && (
-        <KeyboardOverlay
-        onFocus={onFocus}
-        offsetY={scrollOffset.y}
-        >
-          <RenameContainer 
-          onSave={(newName: string) => {
-          if (type === "username") {
-            handleUsernameUpdate(newName);
-          } else if (type === "nickname") {
-            handleNicknameUpdate(newName);
-          } else if (type === "incognito_name") {
-            handleIncognitoNameUpdate(newName);
-          } else {
-            handleEmailUpdate(newName);
-          }
-        }} 
-        placeholder={
-          type === "username"
-            ? username
-            : type === "nickname"
-            ? nickname
-            : type === "incognito_name"
-            ? incognitoName
-            : email
-        }
-        
-          onCancel={() => setOnFocus(false)} />
+        <KeyboardOverlay onFocus={onFocus} offsetY={scrollOffset.y}>
+          <RenameContainer
+            onSave={(newName: string) => {
+              if (type === "username") {
+                handleUsernameUpdate(newName);
+                console.log("[Settings] New Username: ", newName)
+              } else if (type === "nickname") {
+                handleNicknameUpdate(newName);
+              } else if (type === "incognito_name") {
+                handleIncognitoNameUpdate(newName);
+              } else {
+                handleEmailUpdate(newName);
+              }
+            }}
+            placeholder={
+              type === "username"
+                ? username
+                : type === "nickname"
+                  ? nickname
+                  : type === "incognito_name"
+                    ? incognitoName
+                    : email
+            }
+            onCancel={() => setOnFocus(false)}
+          />
         </KeyboardOverlay>
-        
       )}
-       {!!selectedModal && (
+      {!!selectedModal && (
         <ModalSheet
           children={selectedModal}
           title={selectedTitle}
@@ -766,7 +775,7 @@ const Settings = () => {
           }}
         />
       )}
-      
+
       {libraryVisible && (
         <ModalSheet
           title={"Your Color Library"}
@@ -813,3 +822,4 @@ const Settings = () => {
 };
 
 export default Settings;
+

@@ -102,6 +102,10 @@ export async function GET(request: Request) {
       (sum: number, post: any) => sum + (post.unread_comments || 0),
       0
     );
+    const unread_comments = filteredPosts.reduce(
+      (sum: number, post: any) => sum + (post.unread_comments || 0),
+      0
+    );
 
     const storedPosts = postsWithComments
       .filter((post: any) => post.comments)
@@ -111,7 +115,16 @@ export async function GET(request: Request) {
           (comment: any) => comment.id !== clerkId
         ),
       }));
+    const storedPosts = postsWithComments
+      .filter((post: any) => post.comments)
+      .map((post: any) => ({
+        ...post,
+        comments: post.comments.filter(
+          (comment: any) => comment.id !== clerkId
+        ),
+      }));
 
+    //console.log("stored", storedPosts.length)
     //console.log("stored", storedPosts.length)
     return new Response(
       JSON.stringify({

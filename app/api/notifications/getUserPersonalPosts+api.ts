@@ -13,8 +13,8 @@ export async function GET(request: Request) {
       });
     }
 
-  
-    const response = await sql`
+    const response = await sql(
+      `
       SELECT 
         p.id, 
         p.content, 
@@ -31,23 +31,38 @@ export async function GET(request: Request) {
         u.clerk_id,
         u.firstname, 
         u.lastname, 
-        u.username,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friendships f
+            WHERE 
+              (f.user_id = $1 AND f.friend_id = u.clerk_id)
+              OR
+              (f.friend_id = $1 AND f.user_id = u.clerk_id)
+          ) THEN u.incognito_name
+          ELSE u.username
+        END AS username,
         u.country, 
         u.state, 
         u.city
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
-      WHERE p.recipient_user_id = ${clerkId}
+      WHERE p.recipient_user_id = $1
         AND p.post_type = 'personal'
-        AND p.user_id != ${clerkId}
+        AND p.user_id != $1
         AND p.unread
     ORDER BY p.unread_comments DESC, p.created_at DESC;
-  `;
+  `,
+      [clerkId]
+    );
 
     if (response.length === 0) {
-      return new Response(JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }), {
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }),
+        {
+          status: 200,
+        }
+      );
     }
 
     const userPosts = response.map((post) => ({
@@ -64,16 +79,22 @@ export async function GET(request: Request) {
       unread_comments: post.unread_comments,
       recipient_user_id: post.recipient_user_id,
       color: post.color,
-      notified: post.notified
+      notified: post.notified,
     }));
 
-    
-    const filterPosts = userPosts.filter((p) => !p.notified)
-   // console.log("user post", userPosts.length, filterPosts.length)
+    const filterPosts = userPosts.filter((p) => !p.notified);
+    // console.log("user post", userPosts.length, filterPosts.length)
 
-    return new Response(JSON.stringify({ toNotify: filterPosts, toStore: userPosts, unread_count: userPosts.length }), {
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({
+        toNotify: filterPosts,
+        toStore: userPosts,
+        unread_count: userPosts.length,
+      }),
+      {
+        status: 200,
+      }
+    );
   } catch (error) {
     console.error(error);
     return new Response(

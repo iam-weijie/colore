@@ -194,7 +194,7 @@ const City = () => {
 
     // Update user info
     if (user!.id) {
-    await fetchAPI("/api/users/patchUserInfo", {
+    await fetchAPI("/api/users/updateUserInfo", {
       method: "PATCH",
       body: JSON.stringify({
         clerkId: user!.id,

@@ -32,6 +32,7 @@ export async function GET(request: Request) {
         clerk_id: u.clerk_id,
         username: u.username,
         nickname: u.nickname,
+        nicknames: u.nicknames ? u.nicknames : [],
         incognito_name: u.incognito_name,
         email: u.email,
         date_of_birth: u.date_of_birth,

@@ -7,7 +7,11 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const number = Number(url.searchParams.get("number")) || 10;
     const id = url.searchParams.get("id");
-    const mode = url.searchParams.get("mode") as "city" | "state" | "country" | null;
+    const mode = url.searchParams.get("mode") as
+      | "city"
+      | "state"
+      | "country"
+      | null;
 
     // Define score weights
     const SCORE_WEIGHTS = {
@@ -20,7 +24,7 @@ export async function GET(request: Request) {
     // Build location condition
     let locationCondition = "";
     if (mode && ["city", "state", "country"].includes(mode)) {
-      locationCondition = `AND u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = '${id}')`;
+      locationCondition = `AND u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = $1)`;
     }
 
     // Build the complete query
@@ -43,7 +47,17 @@ export async function GET(request: Request) {
         u.clerk_id,
         u.firstname, 
         u.lastname, 
-        u.username,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friendships f
+            WHERE 
+              (f.user_id = $1 AND f.friend_id = u.clerk_id)
+              OR
+              (f.friend_id = $1 AND f.user_id = u.clerk_id)
+          ) THEN u.incognito_name
+          ELSE u.username
+        END AS username,
         u.country, 
         u.state, 
         u.city,
@@ -59,45 +73,46 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.user_id != '${id}' 
+      WHERE p.user_id != $1 
       AND p.post_type = 'public'
       ${locationCondition}
       ORDER BY trending_score DESC
-      LIMIT ${number};
+      LIMIT $2;
     `;
 
-    const response = await sql(query);
+    const response = await sql(query, [id, number]);
 
     const mappedPosts = response.map((post) => ({
-          id: post.id,
-          user_id: post.user_id,
-          firstname: post.firstname,
-          username: post.username,
-          content: post.content,
-          created_at: post.created_at,
-          expires_at: post.expires_at, // Not available in query - set default
-          city: post.city,
-          state: post.state,
-          country: post.country,
-          like_count: post.like_count,
-          report_count: post.report_count,
-          unread_comments: post.unread_comments,
-          recipient_user_id: post.recipient_user_id,
-          pinned: post.pinned,
-          color: post.color,
-          emoji: post.emoji,
-          notified: post.notified,
-          prompt_id: post.prompt_id,
-          prompt: post.prompt,
-          board_id: post.board_id,
-          reply_to: post.reply_to, 
-          unread: post.unread,
-          position: post.top !== null && post.left !== null 
-            ? { top: Number(post.top), left: Number(post.left) } 
-            : undefined,
-          formatting: post.formatting as Format || [],
-          static_emoji: post.static_emoji
-        }));
+      id: post.id,
+      user_id: post.user_id,
+      firstname: post.firstname,
+      username: post.username,
+      content: post.content,
+      created_at: post.created_at,
+      expires_at: post.expires_at, // Not available in query - set default
+      city: post.city,
+      state: post.state,
+      country: post.country,
+      like_count: post.like_count,
+      report_count: post.report_count,
+      unread_comments: post.unread_comments,
+      recipient_user_id: post.recipient_user_id,
+      pinned: post.pinned,
+      color: post.color,
+      emoji: post.emoji,
+      notified: post.notified,
+      prompt_id: post.prompt_id,
+      prompt: post.prompt,
+      board_id: post.board_id,
+      reply_to: post.reply_to,
+      unread: post.unread,
+      position:
+        post.top !== null && post.left !== null
+          ? { top: Number(post.top), left: Number(post.left) }
+          : undefined,
+      formatting: (post.formatting as Format) || [],
+      static_emoji: post.static_emoji,
+    }));
 
     return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,

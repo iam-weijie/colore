@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
 
-    console
+    console;
     if (!clerkId) {
       return new Response(
         JSON.stringify({ error: "User ID parameter is required" }),
@@ -46,15 +46,13 @@ export async function GET(request: Request) {
       ORDER BY p.created_at DESC;
     `;
 
-
     if (response.length === 0) {
       return new Response(JSON.stringify({ error: "User not found" }), {
         status: 404,
       });
     }
 
-
-   const mappedPosts = response.map((post) => ({
+    const mappedPosts = response.map((post) => ({
       id: post.id,
       user_id: post.user_id,
       firstname: post.firstname,
@@ -76,31 +74,32 @@ export async function GET(request: Request) {
       prompt_id: post.prompt_id,
       prompt: post.prompt,
       board_id: post.board_id,
-      reply_to: post.reply_to, 
+      reply_to: post.reply_to,
       unread: post.unread,
-      position: post.top !== null && post.left !== null 
-        ? { top: Number(post.top), left: Number(post.left) } 
-        : undefined,
-      formatting: post.formatting as Format || [],
-      static_emoji: post.static_emoji
+      position:
+        post.top !== null && post.left !== null
+          ? { top: Number(post.top), left: Number(post.left) }
+          : undefined,
+      formatting: (post.formatting as Format) || [],
+      static_emoji: post.static_emoji,
     }));
 
     return new Response(JSON.stringify({ posts: mappedPosts }), {
       status: 200,
     });
-
   } catch (error) {
     console.error("Database operation failed:", error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: "Failed to fetch user posts",
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       }),
-      { 
+      {
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
   }

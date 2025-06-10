@@ -43,7 +43,7 @@ export async function GET(request: Request) {
 
     console.log("[getPostsById] response:", response)
 
-     // Transform the response to match the Post interface
+    // Transform the response to match the Post interface
     const mappedPosts = response.map((post) => ({
       id: post.id,
       clerk_id: post.clerk_id,
@@ -67,13 +67,14 @@ export async function GET(request: Request) {
       prompt_id: post.prompt_id,
       prompt: post.prompt,
       board_id: post.board_id,
-      reply_to: post.reply_to, 
+      reply_to: post.reply_to,
       unread: post.unread,
-      position: post.top !== null && post.left !== null 
-        ? { top: Number(post.top), left: Number(post.left) } 
-        : undefined,
-      formatting: post.formatting as Format || [],
-      static_emoji: post.static_emoji
+      position:
+        post.top !== null && post.left !== null
+          ? { top: Number(post.top), left: Number(post.left) }
+          : undefined,
+      formatting: (post.formatting as Format) || [],
+      static_emoji: post.static_emoji,
     }));
 
     // Return the posts data in the response

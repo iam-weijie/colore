@@ -6,8 +6,10 @@ export async function GET(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const boardId = url.searchParams.get("id");
+    const clerkId = url.searchParams.get("userId");
 
-    const response = await sql`
+    const response = await sql(
+      `
       SELECT 
         p.id, 
         p.content, 
@@ -33,7 +35,17 @@ export async function GET(request: Request) {
         u.clerk_id,
         u.firstname, 
         u.lastname, 
-        u.username,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friendships f
+            WHERE 
+              (f.user_id = $1 AND f.friend_id = u.clerk_id)
+              OR
+              (f.friend_id = $1 AND f.user_id = u.clerk_id)
+          ) THEN u.incognito_name
+          ELSE u.username
+        END AS username,
         u.country, 
         u.state, 
         u.city,
@@ -42,11 +54,13 @@ export async function GET(request: Request) {
       JOIN users u ON p.user_id = u.clerk_id
       JOIN boards b ON p.board_id = b.id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.board_id = ${boardId}
+      WHERE p.board_id = $2
         AND p.expires_at >= NOW()::timestamp
         AND p.available_at <= NOW()::timestamp
       ORDER BY p.created_at ASC;
-    `;
+    `,
+      [clerkId, boardId]
+    );
 
     // Transform the response to match the Post interface
     const mappedPosts = response.map((post) => ({
@@ -71,20 +85,21 @@ export async function GET(request: Request) {
       prompt_id: post.prompt_id,
       prompt: post.prompt,
       board_id: post.board_id,
-      reply_to: post.reply_to, 
+      reply_to: post.reply_to,
       unread: post.unread,
-      position: post.top !== null && post.left !== null 
-        ? { top: Number(post.top), left: Number(post.left) } 
-        : undefined,
-      formatting: post.formatting as Format || [],
-      static_emoji: post.static_emoji
+      position:
+        post.top !== null && post.left !== null
+          ? { top: Number(post.top), left: Number(post.left) }
+          : undefined,
+      formatting: (post.formatting as Format) || [],
+      static_emoji: post.static_emoji,
     }));
 
     //console.log("Mapped Post", mappedPosts)
     return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
   } catch (error) {

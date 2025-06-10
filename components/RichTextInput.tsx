@@ -67,11 +67,12 @@ export const stripMarkdown = (text: string) => {
     .replace(/^-\s?/gm, '');
 };
 
-const RichTextInput = ({ refresh, style, exportText, exportStyling }: {
+const RichTextInput = ({ refresh, style, exportText, exportStyling, onFocus }: {
   refresh: number;
   style: TextStyle;
   exportText: (value: string) => void;
   exportStyling: (styling: Format[]) => void;
+  onFocus: (state: boolean) => void;
 }) => {
   const { draftPost } = useGlobalContext();
   const [value, setValue] = useState('');
@@ -261,10 +262,12 @@ const toggleFormat = (type: TextStyle) => {
               const corrected = correctMarkdownFromFormats(value, formats);
               setValue(corrected);
               setIsFocused(true);
+              onFocus(isFocused)
             }}
             onBlur={() => {
               const plainText = stripMarkdown(value);
               setValue(plainText);
+              onFocus(!isFocused)
               setIsFocused(false);
             }}
             className="font-JakartaSemiBold"

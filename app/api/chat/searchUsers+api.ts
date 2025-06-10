@@ -9,15 +9,28 @@ export async function GET(request: Request) {
 
     //console.log("Received GET request for users from user:", userId);
 
-    const rawResponse = await sql`
+    const rawResponse = await sql(
+      `
       SELECT 
         u.clerk_id,
-        u.username,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friendships f
+            WHERE 
+              (f.user_id = $1 AND f.friend_id = u.clerk_id)
+              OR
+              (f.friend_id = $1 AND f.user_id = u.clerk_id)
+          ) THEN u.nickname
+          ELSE u.username
+        END AS username,
         u_self.nicknames as nicknames
       FROM users u
-      LEFT JOIN users u_self ON u_self.clerk_id = ${userId}
-      WHERE u.clerk_id != ${userId} 
-    `;
+      LEFT JOIN users u_self ON u_self.clerk_id = $1
+      WHERE u.clerk_id != $1
+    `,
+      [userId]
+    );
 
     // Transform to array of [clerk_id, nickname] pairs
     const response: UserNicknamePair[] = rawResponse.map((row) => {

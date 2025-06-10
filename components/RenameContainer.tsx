@@ -24,6 +24,20 @@ const RenameContainer = ({
     }
   };
 
+   const handleSubmit = () => {
+    const cleanText = text.trim()
+    if (cleanText) {
+      console.log("[RenamingContainer]: Return pressed - saving!");
+      onSave(cleanText);
+    }
+  };
+
+
+    const handleCancel = () => {
+    console.log("[RenamingContainer]: Cancel pressed!");
+    onCancel();
+  };
+
   return (
  
       <View className="flex flex-row items-center bg-white rounded-[32px] px-4 py-2 min-h-[44px] mx-2 mb-2 "
@@ -38,14 +52,15 @@ const RenameContainer = ({
                 placeholder={placeholder}
                 placeholderTextColor={"#757575"}
                 autoFocus
-                onBlur={onCancel}
+                onBlur={handleCancel}
+                onSubmitEditing={handleSubmit}
+                returnKeyType="done"
               />
               <View className=" ">
                             <CustomButton
-                  title={"Save"}
-                  onPress={() => onSave(text)}
-                  disabled={!text.trim()}
-                  className="ml-3 w-14 h-9 rounded-full shadow-none"
+                  title={"Cancel"}
+                  onPress={() => {}}
+                  className="ml-3 w-16 h-9 rounded-full shadow-none"
                   style={{ backgroundColor: "black" }}
                   fontSize="sm"
                   padding={2}

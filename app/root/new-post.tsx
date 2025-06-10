@@ -21,9 +21,17 @@ import { useRecentEmojis } from "@/hooks/useRecentEmojis";
 import ColorSelector from "@/components/ColorSelector";
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor, UserNicknamePair, TextStyle, Format, Post, Board } from "@/types/type";
-import { useAlert } from '@/notifications/AlertContext';
+import {
+  PostItColor,
+  UserNicknamePair,
+  TextStyle,
+  Format,
+  Post,
+  Board,
+} from "@/types/type";
+import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
+import { fetchFriendStatus } from "@/lib/friend";
 import { fetchFriends } from "@/lib/friend";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import ItemContainer from "@/components/ItemContainer";
@@ -32,7 +40,12 @@ import { useGlobalContext } from "../globalcontext";
 import { CustomButtonBar } from "@/components/CustomTabBar";
 import Header from "@/components/Header";
 import ColorPickerSlider from "@/components/ColorPickerSlider";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import RichTextEditor from "@/components/RichTextEditor";
 import RichTextInput from "@/components/RichTextInput";
 import KeyboardOverlay from "@/components/KeyboardOverlay";
@@ -50,53 +63,58 @@ import { format, isAfter } from "date-fns";
 import { stripMarkdown } from "@/components/RichTextInput";
 import { FindUser } from "@/components/FindUsers";
 import CustomButton from "@/components/CustomButton";
-
-
-
-
-
+import { defaultColors } from "@/constants/colors";
 
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
 
-
   // ✅ Imports & Hooks
   const { user } = useUser();
-  const { postId, content, color, emoji, recipientId, username, expiration, prompt, promptId, boardId } = useLocalSearchParams();
-  const { profile, userColors, setDraftPost, draftPost } = useGlobalContext();
+  const {
+    postId,
+    content,
+    color,
+    emoji,
+    recipientId,
+    username,
+    expiration,
+    prompt,
+    promptId,
+    boardId,
+  } = useLocalSearchParams();
+  const { profile, setDraftPost, draftPost } = useGlobalContext();
   const { showAlert } = useAlert();
-
 
   // 🔒 USER & GLOBAL STATE
   const [selectedUser, setSelectedUser] = useState<UserNicknamePair>();
   const [userUsername, setUserUsername] = useState<string>(username);
 
-
   // 📥 POST CONTENT & METADATA
   const [postContent, setPostContent] = useState<string>(content);
-  const [selectedRecipientId, setSelectedRecipientId] = useState<string>(recipientId);
+  const [selectedRecipientId, setSelectedRecipientId] =
+    useState<string>(recipientId);
   const [replyToPostId, setReplyToPostId] = useState<number | null>(null);
   const maxCharacters = 3000;
 
-
   // 🎨 STYLING & FORMATTING
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    userColors.find((c) => c.id === color) ?? userColors[Math.floor(Math.random() * 4)]
+    defaultColors.find((c) => c.id === color) ?? defaultColors[Math.floor(Math.random() * 4)]
   );
   const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
   const [formats, setFormats] = useState<Format[]>([]);
-  const [inputHeight, setInputHeight] = useState(40);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
 
 
   // 😊 EMOJI HANDLING
-  const [selectedStaticEmoji, setSelectedStaticEmoji] = useState<boolean>(false);
+  const [selectedStaticEmoji, setSelectedStaticEmoji] =
+    useState<boolean>(false);
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
-  const [isQuickEmojiSelectorVisible, setQuickEmojiSelectorVisible] = useState(false)
+  const [isQuickEmojiSelectorVisible, setQuickEmojiSelectorVisible] =
+    useState(false);
   const [showRecentPopup, setShowRecentPopup] = useState(false);
   const [triggerPosition, setTriggerPosition] = useState({ x: 200, y: 400 }); // Default position
   const [activeEmojiIndex, setActiveEmojiIndex] = useState(-1);
-
 
   // ⚙️ UI STATE & INTERACTIONS
   const [selectedTab, setSelectedTab] = useState<string>("create");
@@ -104,15 +122,13 @@ const NewPost = () => {
   const [link, setLink] = useState<string>("");
   const [isSettingVisible, setIsSettingVisible] = useState(false);
 
-
   // 📆 SCHEDULING & EXPIRATION
-  const [selectedExpirationDate, setSelectedExpirationDate] = useState<string>(expiration);
+  const [selectedExpirationDate, setSelectedExpirationDate] =
+    useState<string>(expiration);
   const [selectedScheduleDate, setSelectedScheduleDate] = useState<string>("");
-
 
   // 🔁 REFRESH & DATA FETCHING
   const [refreshingKey, setRefreshingKey] = useState<number>(0);
-
 
   const emojiButtonRef = useRef<any>(null);
   const { recentEmojis, addRecentEmoji } = useRecentEmojis();
@@ -126,23 +142,32 @@ const NewPost = () => {
     if (recentEmojis.length === 0) {
       return;
     }
-    
+
     // Close emoji selector if it's open
     if (isEmojiSelectorVisible) {
       setIsEmojiSelectorVisible(false);
     }
-    
+
     // Measure button position for popup placement
     if (emojiButtonRef.current) {
-      emojiButtonRef.current.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
-        setTriggerPosition({
-          x: pageX + width / 2,
-          y: pageY + height + 5 // Add a small offset for better appearance
-        });
-        
-        // Show popup - haptic feedback is now handled in the popup component
-        setShowRecentPopup(true);
-      });
+      emojiButtonRef.current.measure(
+        (
+          x: number,
+          y: number,
+          width: number,
+          height: number,
+          pageX: number,
+          pageY: number
+        ) => {
+          setTriggerPosition({
+            x: pageX + width / 2,
+            y: pageY + height + 5, // Add a small offset for better appearance
+          });
+
+          // Show popup - haptic feedback is now handled in the popup component
+          setShowRecentPopup(true);
+        }
+      );
     }
   };
 
@@ -152,35 +177,48 @@ const NewPost = () => {
 
     // Set as selected emoji
     setSelectedEmoji(emoji);
-    
-    // The popup handles its own animation now, 
+
+    // The popup handles its own animation now,
     // but we still need to update the state after animation completes
     setTimeout(() => {
       setShowRecentPopup(false);
     }, 350); // Wait for animation to complete
   };
 
-  const [selectExpirationDate, setSelectExpirationDate] =
-    useState<string>(expiration as string);
+  const [selectExpirationDate, setSelectExpirationDate] = useState<string>(
+    expiration as string
+  );
 
   const expirationDate = ["1 day", "3 days", "7 days", "14 days"];
 
-  console.log("arguments passed: ", 
-    "postId", postId, 
-    "content", content, 
-    "color", color, 
-    "emoji", emoji, 
-    "recipient", recipientId,
-    "username", username, 
-    "exp", expiration, 
-    "prompt", prompt, 
-    "promptId", promptId,
-    "board", boardId  )
+  console.log(
+    "arguments passed: ",
+    "postId",
+    postId,
+    "content",
+    content,
+    "color",
+    color,
+    "emoji",
+    emoji,
+    "recipient",
+    recipientId,
+    "username",
+    username,
+    "exp",
+    expiration,
+    "prompt",
+    prompt,
+    "promptId",
+    promptId,
+    "board",
+    boardId
+  );
 
   const tabs = [
-    {name: "Create", key: "create", color: "#000"},
-    {name: "Customize", key: "customize", color: "#000"}
-]
+    { name: "Create", key: "create", color: "#000" },
+    { name: "Customize", key: "customize", color: "#000" },
+  ];
 
   const handleColorSelect = (color: PostItColor) => {
     setSelectedColor(color);
@@ -208,18 +246,18 @@ const NewPost = () => {
   };
 
   const handleChangeFormat = (formats: Format[]) => {
-    setFormats(formats)
-  }
+    setFormats(formats);
+  };
 
-const isLink = (text: string) => {
-  try {
-    // Attempt to create a URL object (browser & Node.js compatible)
-    new URL(text.trim());
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
+  const isLink = (text: string) => {
+    try {
+      // Attempt to create a URL object (browser & Node.js compatible)
+      new URL(text.trim());
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
 
   const handleEmojiSelect = async (emoji: string) => {
     // Add to recent emojis
@@ -233,47 +271,51 @@ const isLink = (text: string) => {
     }
   };
 
-const resetDraftPost = () => {
-    setPostContent("");
-                setFormats([]);
-                setTextStyling(null)
-                setSelectedRecipientId("");
-                setSelectedUser(undefined);
-                setSelectedEmoji("");
-                setSelectedScheduleDate("");
-                setSelectedExpirationDate("");
-                setReplyToPostId(null);
-                setSelectedStaticEmoji(false);
 
-                 setDraftPost({
-                    id: 0,
-                    clerk_id: user?.id,
-                    firstname: "",
-                    username: userUsername ?? "",
-                    content: "",
-                    created_at: new Date().toISOString(),
-                    expires_at:  "",
-                    available_at: "",
-                    static_emoji: false,
-                    city: "",
-                    state: "",
-                    country: "",
-                    like_count: 0,
-                    report_count: 0,
-                    unread_comments: 0,
-                    recipient_user_id:  "",
-                    pinned: false,
-                    color: "",
-                    emoji:  "",
-                    notified: false,
-                    prompt_id:  0,
-                    prompt:  "",
-                    board_id: -1,
-                    reply_to: replyToPostId ?? 0,
-                    unread: false,
-                    formatting: []
-          });
-}
+  const handleChangeFocus = (state: boolean) => {
+    setIsFocused(state)
+  }
+  const resetDraftPost = () => {
+    setPostContent("");
+    setFormats([]);
+    setTextStyling(null);
+    setSelectedRecipientId("");
+    setSelectedUser(undefined);
+    setSelectedEmoji("");
+    setSelectedScheduleDate("");
+    setSelectedExpirationDate("");
+    setReplyToPostId(null);
+    setSelectedStaticEmoji(false);
+
+    setDraftPost({
+      id: 0,
+      clerk_id: user?.id,
+      firstname: "",
+      username: userUsername ?? "",
+      content: "",
+      created_at: new Date().toISOString(),
+      expires_at: "",
+      available_at: "",
+      static_emoji: false,
+      city: "",
+      state: "",
+      country: "",
+      like_count: 0,
+      report_count: 0,
+      unread_comments: 0,
+      recipient_user_id: "",
+      pinned: false,
+      color: "",
+      emoji: "",
+      notified: false,
+      prompt_id: 0,
+      prompt: "",
+      board_id: -1,
+      reply_to: replyToPostId ?? 0,
+      unread: false,
+      formatting: [],
+    });
+  };
 
   const selectedUserInfo = (info: UserNicknamePair) => {
     setSelectedUser(info);
@@ -288,8 +330,8 @@ const resetDraftPost = () => {
     }
   }, [selectedEmoji]);
 
-   useEffect(() => {
-   //console.log("Post content updated:", postContent);
+  useEffect(() => {
+    //console.log("Post content updated:", postContent);
     if (postId) {
       setPostContent(content as string);
     }
@@ -315,7 +357,7 @@ const resetDraftPost = () => {
       emoji: selectedEmoji ?? "",
       notified: false,
       prompt_id: promptId ? Number(promptId) : 0,
-      prompt: typeof prompt === 'string' ? prompt : "",
+      prompt: typeof prompt === "string" ? prompt : "",
       board_id: boardId ? Number(boardId) : -1,
       reply_to: replyToPostId ?? 0,
       unread: false,
@@ -349,18 +391,19 @@ const resetDraftPost = () => {
       if (draftPost.emoji) setSelectedEmoji(draftPost.emoji);
       if (draftPost.recipient_user_id)
         setSelectedRecipientId(draftPost.recipient_user_id);
-      if (draftPost.username && typeof draftPost.username === 'string') 
+      if (draftPost.username && typeof draftPost.username === "string")
         setUserUsername(draftPost.username);
       if (draftPost.formatting) setFormats(formats);
-      if (draftPost.available_at) setSelectedScheduleDate(draftPost.available_at);
+      if (draftPost.available_at)
+        setSelectedScheduleDate(draftPost.available_at);
       if (draftPost.expires_at) setSelectedExpirationDate(draftPost.expires_at);
       if (draftPost.reply_to) setReplyToPostId(draftPost.reply_to);
-      if (draftPost.static_emoji) setSelectedStaticEmoji(draftPost.static_emoji);
+      if (draftPost.static_emoji)
+        setSelectedStaticEmoji(draftPost.static_emoji);
       if (draftPost.reply_to > 0) setReplyToPostId(draftPost.reply_to);
     }
   }, []);
 
-  
   useEffect(() => {
     if (recipientId && username) {
       const id = Array.isArray(recipientId) ? recipientId[0] : recipientId;
@@ -368,145 +411,156 @@ const resetDraftPost = () => {
       setSelectedUser([id, uname]);
     }
   }, [recipientId, username]);
-      
 
   useEffect(() => {
-  if (!selectedScheduleDate || !selectedExpirationDate) {
-    return;
-  }
-
-  if (isAfter(new Date(selectedScheduleDate), new Date(selectedExpirationDate))) {
-      showAlert({
-      title: 'Error',
-      message: `Schedule date must be before expiration date`,
-      type: 'ERROR',
-      status: 'error'
-    });
-    setSelectedExpirationDate("")
-  }  else {
-    showAlert({
-      title: 'Success',
-      message: `Scheduled for ${format(new Date(selectedScheduleDate), 'MMMM do')} and expires on ${format(new Date(selectedExpirationDate), 'MMMM do')}`,
-      type: 'SUCCESS',
-      status: 'success',
-    });
-  }
-}, [selectedScheduleDate, selectedExpirationDate]);
-
-  const navigationControls =  [
-          {
-            icon: icons.back,
-            label: "Back",
-            onPress: () => {
-               playSoundEffect(SoundType.Navigation)
-        Haptics.selectionAsync();
-              if (selectedTab == "customize") {
-                setSelectedTab("create");
-                } else {
-       
-        router.back();
-                }
-      },
-          },
-          {
-            icon: selectedTab == "customize" ? icons.send : icons.eraser,
-            label: "New Post",
-            onPress: async () => {
-              playSoundEffect(SoundType.Navigation)
-        Haptics.selectionAsync();
-              if (selectedTab == "customize") {
-              const status = await handleSubmitPost(user!.id, draftPost)
-              console.log("status: ", status)
-              if (status == 'success') {
-                showAlert({
-                  title: "Success",
-                  message: "Post created successfully.",
-                  type: "SUCCESS",
-                  status: "success",
-                });
-                resetDraftPost()
-                router.back();
-              } else {
-                showAlert({
-                  title: "Error",
-                  message: "Failed to create post.",
-                  type: "ERROR",
-                  status: "error",
-                });
-              }} else {
-                
-               resetDraftPost()
-                setRefreshingKey(prev => prev + 1);
-
-            }},
-            isCenter: true,
-          },
-          {
-            icon: selectedTab == "customize" ? icons.settings : icons.pencil,
-            label: selectedTab == "customize" ? "More" : "Finalize",
-            onPress:() => {
-               playSoundEffect(SoundType.Navigation)
-        Haptics.selectionAsync();
-              if (selectedTab == "customize") {
-                
-                setIsSettingVisible(true);
-              } else {
-                if (postContent.trim() === "") {
-                  showAlert({
-                    title: "Warning",
-                    message: "Post content cannot be empty.",
-                    type: "WARNING",
-                    status: "error",
-                  });
-                  return;
-                }
-                setSelectedTab("customize");
-                setRefreshingKey(prev => prev + 1);
-              }},
-            isCenter: true,
-          },
-        ]
-
-
-const handleTabChange = (tabKey: string) => {
-          console.log("Tab changed to:", tabKey);
-          setSelectedTab(tabKey);
-        };
-
-const [selectedSetting, setSelectedSetting] = useState<string>("");
-const [userPosts, setUserPosts] = useState<Post[]>([]);
-
-const fetchUserPosts = async (userId: string) => {
-  
-  try {
-    const response = await fetchAPI(`/api/posts/getUserPosts?id=${userId}`);
-    if (response.error) {
-      throw new Error(response.error);
+    if (!selectedScheduleDate || !selectedExpirationDate) {
+      return;
     }
-    const { userInfo, posts } = response
-    console.log("response: ", response);
-    return posts;
-  } catch (err) {
-    console.error("Failed to fetch user posts:", err);
-    return [];
-  }
-};
 
-const PostSettings = () => {
+    if (
+      isAfter(new Date(selectedScheduleDate), new Date(selectedExpirationDate))
+    ) {
+      showAlert({
+        title: "Error",
+        message: `Schedule date must be before expiration date`,
+        type: "ERROR",
+        status: "error",
+      });
+      setSelectedExpirationDate("");
+    } else {
+      showAlert({
+        title: "Success",
+        message: `Scheduled for ${format(new Date(selectedScheduleDate), "MMMM do")} and expires on ${format(new Date(selectedExpirationDate), "MMMM do")}`,
+        type: "SUCCESS",
+        status: "success",
+      });
+    }
+  }, [selectedScheduleDate, selectedExpirationDate]);
 
-const allOptions = [
+  const navigationControls = [
+    {
+      icon: icons.back,
+      label: "Back",
+      onPress: () => {
+        playSoundEffect(SoundType.Navigation);
+        Haptics.selectionAsync();
+        if (selectedTab == "customize") {
+          setSelectedTab("create");
+        } else {
+          router.back();
+        }
+      },
+    },
+    {
+      icon: selectedTab == "customize" ? icons.send : icons.eraser,
+      label: "New Post",
+      onPress: async () => {
+        playSoundEffect(SoundType.Navigation);
+        Haptics.selectionAsync();
+        if (selectedTab == "customize") {
+          const status = await handleSubmitPost(user!.id, draftPost);
+          console.log("status: ", status);
+          if (status == "success") {
+            showAlert({
+              title: "Success",
+              message: "Post created successfully.",
+              type: "SUCCESS",
+              status: "success",
+            });
+            resetDraftPost();
+            router.back();
+          } else {
+            showAlert({
+              title: "Error",
+              message: "Failed to create post.",
+              type: "ERROR",
+              status: "error",
+            });
+          }
+        } else {
+          resetDraftPost();
+          setRefreshingKey((prev) => prev + 1);
+        }
+      },
+      isCenter: true,
+    },
+    {
+      icon: selectedTab == "customize" ? icons.settings : icons.pencil,
+      label: selectedTab == "customize" ? "More" : "Finalize",
+      onPress: () => {
+        playSoundEffect(SoundType.Navigation);
+        Haptics.selectionAsync();
+        if (selectedTab == "customize") {
+          setIsSettingVisible(true);
+        } else {
+          if (postContent.trim() === "") {
+            showAlert({
+              title: "Warning",
+              message: "Post content cannot be empty.",
+              type: "WARNING",
+              status: "error",
+            });
+            return;
+          }
+          setSelectedTab("customize");
+          setRefreshingKey((prev) => prev + 1);
+        }
+      },
+      isCenter: true,
+    },
+  ];
+
+  const handleTabChange = (tabKey: string) => {
+    console.log("Tab changed to:", tabKey);
+    setSelectedTab(tabKey);
+  };
+
+  const [selectedSetting, setSelectedSetting] = useState<string>("");
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+
+  const fetchUserPosts = async (userId: string) => {
+    try {
+      const response = await fetchAPI(`/api/posts/getUserPosts?id=${userId}`);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      const { userInfo, posts } = response;
+      console.log("response: ", response);
+      return posts;
+    } catch (err) {
+      console.error("Failed to fetch user posts:", err);
+      return [];
+    }
+  };
+
+  const PostSettings = () => {
+    const allOptions = [
       {
         label: "Recipient",
-        component: <ItemContainer
-        label={selectedUser ? (selectedUser[1] === profile.username ? "Youself" : selectedUser[1] ) : "Select recipient"}
-        caption={selectedUser ? `Sending this to ${selectedUser[1]}` : "Add recipient to this post"}
-        icon={icons.addUser}
-        colors={[selectedColor.foldcolorhex, selectedColor.hex]}
-        iconColor="#000"
-        onPress={() => setSelectedSetting("Recipient")}
-        actionIcon={selectedRecipientId && icons.check}
-      />},
-      {/*
+        component: (
+          <ItemContainer
+            label={
+              selectedUser
+                ? selectedUser[1] === profile.username
+                  ? "Youself"
+                  : selectedUser[1]
+                : "Select recipient"
+            }
+            caption={
+              selectedUser
+                ? `Sending this to ${selectedUser[1]}`
+                : "Add recipient to this post"
+            }
+            icon={icons.addUser}
+            colors={[selectedColor.foldcolorhex, selectedColor.hex]}
+            iconColor="#000"
+            onPress={() => setSelectedSetting("Recipient")}
+            actionIcon={selectedRecipientId && icons.check}
+          />
+        ),
+      },
+      {
+        /*
         label: "Board",
         component: <ItemContainer
         label="Select a board"
@@ -515,132 +569,188 @@ const allOptions = [
         colors={[selectedColor.foldcolorhex, selectedColor.hex]}
         iconColor="#000"
         onPress={() => setSelectedSetting}
-      />*/},
-      { label: "Schedule",
-        component: <ItemContainer
-        label={selectedScheduleDate ? `Set for ${format(new Date(selectedScheduleDate), 'MMMM do')}` : "Schedule"}
-        caption={selectedScheduleDate ? "Modify scheduled date" : "Schedule this post for later."}
-        icon={icons.chevron}
-        colors={[selectedColor.foldcolorhex, selectedColor.hex]}
-        iconColor="#000"
-        actionIcon={selectedScheduleDate && icons.check}
-        onPress={() => setSelectedSetting("Schedule")}
-      />},
-      {label: "Expiration",
-        component: <ItemContainer
-        label={selectedExpirationDate ? `Expires on ${format(new Date(selectedExpirationDate), 'MMMM do')}` : "Expiration"}
-        caption={selectedExpirationDate ? "Modify the expiration date" : "Set an expiration date for this post"}
-        icon={icons.timer}
-        colors={[selectedColor.foldcolorhex, selectedColor.hex]}
-        iconColor="#000"
-        actionIcon={selectedExpirationDate && icons.check}
-        onPress={() => setSelectedSetting("Expiration")}
-      />},
-      {label: "Reply",
-        component: <ItemContainer
-        label={replyToPostId ? "Reply selected!" : "Reply to another post"}
-        caption="Send this as a reply to another post"
-        icon={icons.link}
-        colors={[selectedColor.foldcolorhex, selectedColor.hex]}
-        iconColor="#000"
-        onPress={() => {
-          fetchUserPosts(user!.id).then((posts) => {
-            setUserPosts(posts);
-            setSelectedSetting("Reply");
-          });
-        }}
-        actionIcon={replyToPostId && icons.check}
-        />}
-
-]
-
-const menuOptions = promptId ? allOptions.filter(option => option.label !== "Recipient") : ((!recipientId && !boardId && !expiration) ? allOptions.filter(option => option.label !== "Recipient" && option.label !== "Mentions" && option.label !== "Board") : (recipientId ? allOptions.filter(option => option.label !== "Board") : allOptions.filter(option => option.label !== "Recipient")));
-  
-
-
-return (
-    <ModalSheet
-      title="Settings"
-      isVisible={true}
-      onClose={() => {
-        setIsSettingVisible(false)
-        setSelectedSetting("")}}
-    >
-      <View className="flex-1 h-full px-6">
-           
-        {!selectedSetting ? (
-          <FlatList
-          data={menuOptions}
-          keyExtractor={(item, index) => item.label ?? `option-${index}`}
-          renderItem={({ item }) => item.component ?? null}
-          contentContainerStyle={{ padding: 16 }}
-          showsVerticalScrollIndicator={false}
-        />) : selectedSetting == "Reply" ? (
-          <View className="flex-1">
-            <View className="flex-1">
-            <PostGallery 
-            posts={userPosts} 
-            profileUserId={""}
-            disableModal
-            handleUpdate={(id: number) => {
-              setReplyToPostId(id)
-              setSelectedSetting("")
-              }} />
-              </View>
-                {replyToPostId && <TouchableOpacity
-                      onPress={() => {
-                        setReplyToPostId(null)
-                        setSelectedSetting("");
-                      }}
-                      className="w-full mt-4 flex-row items-center justify-center"  
-                    > 
-                      <Text className="text-[14px] font-Jakarta font-regular text-gray-400">
-                        Remove reply
-                      </Text>
-                    </TouchableOpacity>}
-          </View>
-        ) : selectedSetting == "Recipient" ? (
-          <View className="flex-1">
-            <FindUser selectedUserInfo={(item: UserNicknamePair) => {
-              selectedUserInfo(item)
-              setSelectedRecipientId(item[0])
-              setSelectedSetting("")}} />
-              <TouchableOpacity
-                      onPress={() => {
-                        setSelectedRecipientId(user!.id)
-
-                    
-                        setUserUsername("Yourself");
-                        setSelectedUser([user!.id, profile.username]);
-                        setSelectedSetting("");
-                      }}
-                      className="w-full h-6 flex-row items-center justify-center"  
-                    > 
-                      <Text className="text-[14px] font-Jakarta font-regular text-gray-400">
-                        Keep it private
-                      </Text>
-                    </TouchableOpacity>
-          </View>
-        ) : ["Schedule", "Expiration"].includes(selectedSetting) ? (
-          <View className="flex-1">
-            <CalendarView onDateSelect={selectedSetting === "Schedule" ? (selected: Date) => {
-              setSelectedScheduleDate(selected.toISOString())
-              setSelectedSetting("")
-            } : (selected: Date) => {
-              setSelectedExpirationDate(selected.toISOString())
-              setSelectedSetting("")
+      />*/
+      },
+      {
+        label: "Schedule",
+        component: (
+          <ItemContainer
+            label={
+              selectedScheduleDate
+                ? `Set for ${format(new Date(selectedScheduleDate), "MMMM do")}`
+                : "Schedule"
+            }
+            caption={
+              selectedScheduleDate
+                ? "Modify scheduled date"
+                : "Schedule this post for later."
+            }
+            icon={icons.chevron}
+            colors={[selectedColor.foldcolorhex, selectedColor.hex]}
+            iconColor="#000"
+            actionIcon={selectedScheduleDate && icons.check}
+            onPress={() => setSelectedSetting("Schedule")}
+          />
+        ),
+      },
+      {
+        label: "Expiration",
+        component: (
+          <ItemContainer
+            label={
+              selectedExpirationDate
+                ? `Expires on ${format(new Date(selectedExpirationDate), "MMMM do")}`
+                : "Expiration"
+            }
+            caption={
+              selectedExpirationDate
+                ? "Modify the expiration date"
+                : "Set an expiration date for this post"
+            }
+            icon={icons.timer}
+            colors={[selectedColor.foldcolorhex, selectedColor.hex]}
+            iconColor="#000"
+            actionIcon={selectedExpirationDate && icons.check}
+            onPress={() => setSelectedSetting("Expiration")}
+          />
+        ),
+      },
+      {
+        label: "Reply",
+        component: (
+          <ItemContainer
+            label={replyToPostId ? "Reply selected!" : "Reply to another post"}
+            caption="Send this as a reply to another post"
+            icon={icons.link}
+            colors={[selectedColor.foldcolorhex, selectedColor.hex]}
+            iconColor="#000"
+            onPress={() => {
+              fetchUserPosts(user!.id).then((posts) => {
+                setUserPosts(posts);
+                setSelectedSetting("Reply");
+              });
             }}
-            selectedDate={
-              selectedSetting === "Schedule"
-                ? (selectedScheduleDate ? new Date(selectedScheduleDate) : null)
-                : (selectedExpirationDate ? new Date(selectedExpirationDate) : null)
-            } 
-            startDate={selectedSetting === "Expiration" && selectedScheduleDate ? new Date(selectedScheduleDate) : new Date()}/>
+            actionIcon={replyToPostId && icons.check}
+          />
+        ),
+      },
+    ];
+
+    const menuOptions = promptId
+      ? allOptions.filter((option) => option.label !== "Recipient")
+      : !recipientId && !boardId && !expiration
+        ? allOptions.filter(
+            (option) =>
+              option.label !== "Recipient" &&
+              option.label !== "Mentions" &&
+              option.label !== "Board"
+          )
+        : recipientId
+          ? allOptions.filter((option) => option.label !== "Board")
+          : allOptions.filter((option) => option.label !== "Recipient");
+
+    return (
+      <ModalSheet
+        title="Settings"
+        isVisible={true}
+        onClose={() => {
+          setIsSettingVisible(false);
+          setSelectedSetting("");
+        }}
+      >
+        <View className="flex-1 h-full px-6">
+          {!selectedSetting ? (
+            <FlatList
+              data={menuOptions}
+              keyExtractor={(item, index) => item.label ?? `option-${index}`}
+              renderItem={({ item }) => item.component ?? null}
+              contentContainerStyle={{ padding: 16 }}
+              showsVerticalScrollIndicator={false}
+            />
+          ) : selectedSetting == "Reply" ? (
+            <View className="flex-1">
+              <View className="flex-1">
+                <PostGallery
+                  posts={userPosts}
+                  profileUserId={""}
+                  disableModal
+                  handleUpdate={(id: number) => {
+                    setReplyToPostId(id);
+                    setSelectedSetting("");
+                  }}
+                />
+              </View>
+              {replyToPostId && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setReplyToPostId(null);
+                    setSelectedSetting("");
+                  }}
+                  className="w-full mt-4 flex-row items-center justify-center"
+                >
+                  <Text className="text-[14px] font-Jakarta font-regular text-gray-400">
+                    Remove reply
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
-        ) : (
-          <View>
+          ) : selectedSetting == "Recipient" ? (
+            <View className="flex-1">
+              <FindUser
+                selectedUserInfo={(item: UserNicknamePair) => {
+                  selectedUserInfo(item);
+                  setSelectedRecipientId(item[0]);
+                  setSelectedSetting("");
+                }}
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedRecipientId(user!.id);
+
+                  setUserUsername("Yourself");
+                  setSelectedUser([user!.id, profile.username]);
+                  setSelectedSetting("");
+                }}
+                className="w-full h-6 flex-row items-center justify-center"
+              >
+                <Text className="text-[14px] font-Jakarta font-regular text-gray-400">
+                  Keep it private
+                </Text>
+              </TouchableOpacity>
             </View>
-        )}
+          ) : ["Schedule", "Expiration"].includes(selectedSetting) ? (
+            <View className="flex-1">
+              <CalendarView
+                onDateSelect={
+                  selectedSetting === "Schedule"
+                    ? (selected: Date) => {
+                        setSelectedScheduleDate(selected.toISOString());
+                        setSelectedSetting("");
+                      }
+                    : (selected: Date) => {
+                        setSelectedExpirationDate(selected.toISOString());
+                        setSelectedSetting("");
+                      }
+                }
+                selectedDate={
+                  selectedSetting === "Schedule"
+                    ? selectedScheduleDate
+                      ? new Date(selectedScheduleDate)
+                      : null
+                    : selectedExpirationDate
+                      ? new Date(selectedExpirationDate)
+                      : null
+                }
+                startDate={
+                  selectedSetting === "Expiration" && selectedScheduleDate
+                    ? new Date(selectedScheduleDate)
+                    : new Date()
+                }
+              />
+            </View>
+          ) : (
+            <View></View>
+          )}
         </View>
       {selectedSetting && <View className="flex items-center w-full mb-4">
                      <CustomButton
@@ -653,24 +763,23 @@ return (
         />
                     </View>}
       </ModalSheet>
-  )
-}
+    );
+  };
 
-const LinkPlaceholder = () => {
-  const inputRef = useRef<TextInput>(null);
+  const LinkPlaceholder = () => {
+    const inputRef = useRef<TextInput>(null);
 
-  // Trigger keyboard immediately when component mounts
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      inputRef.current?.focus();
-    }, 150); // Small delay ensures proper mounting
-    
-    return () => clearTimeout(timer);
-  }, []);
+    // Trigger keyboard immediately when component mounts
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 150); // Small delay ensures proper mounting
 
-  return (
+      return () => clearTimeout(timer);
+    }, []);
 
-      <TextInput 
+    return (
+      <TextInput
         ref={inputRef}
         className="w-[90%] h-12 rounded-[16px] bg-gray-100 p-4 text-[16px] font-Jakarta"
         placeholder="Paste your link here"
@@ -683,10 +792,10 @@ const LinkPlaceholder = () => {
             setLink("");
           } else {
             showAlert({
-              title: 'Invalid Link',
-              message: 'Please enter a valid URL.',
-              type: 'ERROR',
-              status: 'error',
+              title: "Invalid Link",
+              message: "Please enter a valid URL.",
+              type: "ERROR",
+              status: "error",
             });
           }
         }}
@@ -694,12 +803,13 @@ const LinkPlaceholder = () => {
         keyboardType="url"
         returnKeyType="done"
       />
+    );
+  };
+
+  const backgroundColor = useSharedValue(
+    selectedColor?.hex || "rgba(0, 0, 0, 0.5)"
   );
-};
-
-  const backgroundColor = useSharedValue(selectedColor?.hex || "rgba(0, 0, 0, 0.5)");
   const prevColor = React.useRef(backgroundColor.value);
-
 
   useEffect(() => {
     if (prevColor.current !== (selectedColor?.hex || "rgba(0, 0, 0, 0.5)")) {
@@ -707,72 +817,69 @@ const LinkPlaceholder = () => {
         selectedColor?.hex || "rgba(0, 0, 0, 0.5)",
         {
           duration: 300,
-          easing: Easing.inOut(Easing.quad)
+          easing: Easing.inOut(Easing.quad),
         }
       );
       prevColor.current = selectedColor?.hex || "rgba(0, 0, 0, 0.5)";
     }
   }, [selectedColor]);
 
-    const animatedBackgroundStyle = useAnimatedStyle(() => ({
-      backgroundColor: backgroundColor.value,
+  const animatedBackgroundStyle = useAnimatedStyle(() => ({
+    backgroundColor: backgroundColor.value,
+  }));
 
-    }))
+  useEffect(() => {
+    setIsEmojiSelectorVisible(false);
+    setQuickEmojiSelectorVisible(false);
+  }, [selectedEmoji]);
 
-    useEffect(() => {
-      setIsEmojiSelectorVisible(false)
-      setQuickEmojiSelectorVisible(false)
-    }, [selectedEmoji])
 
+  
   return (
-    <Animated.View className="flex-1"
-    style={[
-      animatedBackgroundStyle
-    ]}>
-        <TouchableWithoutFeedback
-          onPress={() => Keyboard.dismiss()}
-          onPressIn={() => Keyboard.dismiss()}
-        >
-
-          <View className="flex-1" >
-
+    <Animated.View className="flex-1" style={[animatedBackgroundStyle]}>
+      <TouchableWithoutFeedback
+        onPress={() => Keyboard.dismiss()}
+        onPressIn={() => Keyboard.dismiss()}
+      >
+        <View className="flex-1">
           <Header
-          title={
-            postId ? 'Edit Post' : 
-            (prompt ? `${Array.isArray(prompt) ? prompt[0] : prompt}`.trim() : 
-              (recipientId ? `@${userUsername}` : 'New Post')
-            )}
-           />
+            title={
+              postId
+                ? "Edit Post"
+                : prompt
+                  ? `${Array.isArray(prompt) ? prompt[0] : prompt}`.trim()
+                  : recipientId
+                    ? `@${userUsername}`
+                    : "New Post"
+            }
+          />
 
-            <TouchableWithoutFeedback
-                      onPress={() => Keyboard.dismiss()}
-                      onPressIn={() => Keyboard.dismiss()}
-                    >
-           <View className="flex-1  mt-0 overflow-hidden "
-             style={[
-              animatedBackgroundStyle
-            ]}>
+          <TouchableWithoutFeedback
+            onPress={() => Keyboard.dismiss()}
+            onPressIn={() => Keyboard.dismiss()}
+          >
+            <View
+              className="flex-1  mt-0 overflow-hidden "
+              style={[animatedBackgroundStyle]}
+            >
               <View className="flex-1 ">
-                <KeyboardAvoidingView behavior="padding" className="flex-1 flex w-full">
-                        <View className="flex-1 flex-column justify-start items-center  ">
-              
-                            
-              <View 
-              className="w-full">
-                <RichTextInput
-                style={textStyling}
-                refresh={refreshingKey}
-                exportStyling={handleChangeFormat}
-                exportText={handleChangeText} />
-
-            </View>
-            </View>
-
-
-
-
-                            </KeyboardAvoidingView>
-                            </View>
+                <KeyboardAvoidingView
+                  behavior="padding"
+                  className="flex-1 flex w-full"
+                >
+                  <View className="flex-1 flex-column justify-start items-center  ">
+                    <View className="w-full">
+                      <RichTextInput
+                        style={textStyling}
+                        refresh={refreshingKey}
+                        exportStyling={handleChangeFormat}
+                        exportText={handleChangeText}
+                        onFocus={handleChangeFocus}
+                      />
+                    </View>
+                  </View>
+                </KeyboardAvoidingView>
+              </View>
 
               <View  className="flex-1 flex-col items-center justify-center gap-2 absolute p-4 mt-4 right-0" >
                <View>
@@ -796,38 +903,43 @@ const LinkPlaceholder = () => {
                     size={"sm"}
                     styling="shadow-md"              />
                     </View>
-                    {isQuickEmojiSelectorVisible && 
-                    <View>
-                      <EmojiShorthand 
-                      onEmojiSelected={(emoji: string) => handleEmojiSelect(emoji)} />
+                    {isQuickEmojiSelectorVisible && (
+                      <View>
+                        <EmojiShorthand
+                          onEmojiSelected={(emoji: string) =>
+                            handleEmojiSelect(emoji)
+                          }
+                        />
                       </View>
-                      }
-                       {isQuickEmojiSelectorVisible && <View>
-                       <InteractionButton 
-                    label=""
-                    icon={icons.add}
-                    emoji={""}
-                    showLabel={false}
-                    color={"#C1C1C1"}
-                    onPress={toggleEmojiSelector} 
-                    size={"sm"}
-                    styling="shadow-md"              />
-                    </View>}
-                    </View>
+                    )}
+                    {isQuickEmojiSelectorVisible && (
+                      <View>
+                        <InteractionButton
+                          label=""
+                          icon={icons.add}
+                          emoji={""}
+                          showLabel={false}
+                          color={"#C1C1C1"}
+                          onPress={toggleEmojiSelector}
+                          size={"sm"}
+                          styling="shadow-md"
+                        />
+                      </View>
+                    )}
+                  </View>
+                </View>
               </View>
-              </View>
-              </View></TouchableWithoutFeedback>
-            {selectedTab == "customize" && 
-            <View 
-            key={refreshingKey}
-            className="absolute top-8">
+            </View>
+          </TouchableWithoutFeedback>
+          {selectedTab == "customize" && (
+            <View key={refreshingKey} className="absolute top-8">
               <PostContainer
-              selectedPosts={[draftPost]}
-              handleCloseModal={() => {}}
-              isPreview={true}
-              header={
-                <View className="absolute z-[10] top-[15%] right-5 flex flex-row items-center justify-end gap-2">
-                     {/* <TouchableOpacity
+                selectedPosts={[draftPost]}
+                handleCloseModal={() => {}}
+                isPreview={true}
+                header={
+                  <View className="absolute z-[10] top-[15%] right-5 flex flex-row items-center justify-end gap-2">
+                    {/* <TouchableOpacity
                     onPress={() => {setIsLinkHolderVisible(true)}}
                     className="w-8 h-8 rounded-full flex items-center justify-center"
                   >
@@ -837,62 +949,65 @@ const LinkPlaceholder = () => {
                       tintColor={'#fff'}
                     />
                   </TouchableOpacity>*/}
-                  <TouchableOpacity
-                  activeOpacity={0.8}
-                    onPress={() => {
-                      if (selectedEmoji) {
-                      setSelectedStaticEmoji((prev) => !prev);
-                      setRefreshingKey((prev) => prev + 1);
-                      }
-                    }}
-                    className="w-8 h-8 rounded-full flex items-center justify-center"
-                  >
-                    <Image
-                      source={!selectedStaticEmoji ? icons.sparklesFill : icons.sparkles}
-                      className="w-7 h-7"
-                      tintColor={'#fff'}
-                    />
-                  </TouchableOpacity>
-                </View>
-              }
-             staticEmoji={selectedStaticEmoji} />
-            </View>}
-              
-      {isSettingVisible && PostSettings()}
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        if (selectedEmoji) {
+                          setSelectedStaticEmoji((prev) => !prev);
+                          setRefreshingKey((prev) => prev + 1);
+                        }
+                      }}
+                      className="w-8 h-8 rounded-full flex items-center justify-center"
+                    >
+                      <Image
+                        source={
+                          !selectedStaticEmoji
+                            ? icons.sparklesFill
+                            : icons.sparkles
+                        }
+                        className="w-7 h-7"
+                        tintColor={"#fff"}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                }
+                staticEmoji={selectedStaticEmoji}
+              />
+            </View>
+          )}
 
-        {isEmojiSelectorVisible && (
-          <EmojiSelector
-            showInModal={true}
-            isVisible={true}
-            onClose={() => setIsEmojiSelectorVisible(false)}
-            onEmojiSelected={handleEmojiSelect}
-            selectedEmoji={selectedEmoji}
-            mode="both"
+          {isSettingVisible && PostSettings()}
+
+          {isEmojiSelectorVisible && (
+            <EmojiSelector
+              showInModal={true}
+              isVisible={true}
+              onClose={() => setIsEmojiSelectorVisible(false)}
+              onEmojiSelected={handleEmojiSelect}
+              selectedEmoji={selectedEmoji}
+              mode="both"
+            />
+          )}
+
+          <CustomButtonBar buttons={navigationControls} />
+
+          {/* Recent Emoji Popup */}
+          <RecentEmojiPopup
+            visible={showRecentPopup}
+            recentEmojis={recentEmojis}
+            onEmojiSelect={handleRecentEmojiSelect}
+            onClose={() => setShowRecentPopup(false)}
+            triggerPosition={triggerPosition}
+            activeIndex={activeEmojiIndex}
           />
-        )}
-        
-      <CustomButtonBar buttons={navigationControls} />
-
-              
-
-
-        {/* Recent Emoji Popup */}
-        <RecentEmojiPopup
-          visible={showRecentPopup}
-          recentEmojis={recentEmojis}
-          onEmojiSelect={handleRecentEmojiSelect}
-          onClose={() => setShowRecentPopup(false)}
-          triggerPosition={triggerPosition}
-          activeIndex={activeEmojiIndex}
-        />
-      </View>
-      </TouchableWithoutFeedback>
-      <KeyboardOverlay>
+          {isFocused && (<KeyboardOverlay onFocus={isFocused}>
         <RichTextEditor handleApplyStyle={applyStyle} />
-      </KeyboardOverlay>
-      </Animated.View>
+      </KeyboardOverlay>)}
+        </View>
+      </TouchableWithoutFeedback>
+      
+    </Animated.View>
   );
 };
-
 
 export default NewPost;

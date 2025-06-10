@@ -8,7 +8,8 @@ export async function GET(request: Request) {
     const number = url.searchParams.get("number");
     const recipientId = url.searchParams.get("recipient_id");
     const viewerId = url.searchParams.get("user_id");
-    const excludeIds = url.searchParams.get("exclude_ids")?.split(",").map(String) || [];
+    const excludeIds =
+      url.searchParams.get("exclude_ids")?.split(",").map(String) || [];
 
     if (!recipientId || !viewerId) {
       return new Response(
@@ -17,9 +18,10 @@ export async function GET(request: Request) {
       );
     }
 
-    const excludeClause = excludeIds.length > 0
-      ? `AND p.id NOT IN (${excludeIds.map((id) => `'${id}'`).join(",")})`
-      : "";
+    const excludeClause =
+      excludeIds.length > 0
+        ? `AND p.id NOT IN (${excludeIds.map((id) => `'${id}'`).join(",")})`
+        : "";
 
     const query = `
       SELECT 
@@ -43,7 +45,17 @@ export async function GET(request: Request) {
         u.clerk_id,
         u.firstname, 
         u.lastname, 
-        u.username,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friendships f
+            WHERE 
+              (f.user_id = $1 AND f.friend_id = u.clerk_id)
+              OR
+              (f.friend_id = $1 AND f.user_id = u.clerk_id)
+          ) THEN u.incognito_name
+          ELSE u.username
+        END AS username,
         u.country, 
         u.state, 
         u.city,
@@ -51,55 +63,55 @@ export async function GET(request: Request) {
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.recipient_user_id = '${recipientId}'
+      WHERE p.recipient_user_id = $1
         AND p.post_type = 'personal'
         AND p.expires_at > NOW()
         AND p.available_at <= NOW()
-        ${excludeClause}
+        $2
       ORDER BY p.created_at DESC
-      LIMIT ${number};
+      LIMIT $3;
     `;
 
-    const response = await sql(query);
+    const response = await sql(query, [recipientId, excludeClause, number]);
 
     // Filter and transform the posts
-    const personalPosts = response
-      .map((post) => ({
-        id: post.id,
-        clerk_id: post.clerk_id,
-        user_id: post.user_id, // Temporary fix
-        firstname: post.firstname,
-        username: post.username,
-        content: post.content,
-        created_at: post.created_at,
-        expires_at: "", // Default value
-        city: post.city,
-        state: post.state,
-        country: post.country,
-        like_count: post.like_count,
-        report_count: post.report_count,
-        unread_comments: post.unread_comments,
-        recipient_user_id: post.recipient_user_id,
-        pinned: post.pinned,
-        color: post.color,
-        emoji: post.emoji,
-        notified: false, // Default value
-        prompt_id: post.prompt_id,
-        prompt: post.prompt,
-        board_id: post.board_id || -1,
-        reply_to: -1, // Default value
-        unread: post.unread,
-        position: post.top !== null && post.left !== null 
-          ? { top:  Number(post.top), left:  Number(post.left) } 
+    const personalPosts = response.map((post) => ({
+      id: post.id,
+      clerk_id: post.clerk_id,
+      user_id: post.user_id, // Temporary fix
+      firstname: post.firstname,
+      username: post.username,
+      content: post.content,
+      created_at: post.created_at,
+      expires_at: "", // Default value
+      city: post.city,
+      state: post.state,
+      country: post.country,
+      like_count: post.like_count,
+      report_count: post.report_count,
+      unread_comments: post.unread_comments,
+      recipient_user_id: post.recipient_user_id,
+      pinned: post.pinned,
+      color: post.color,
+      emoji: post.emoji,
+      notified: false, // Default value
+      prompt_id: post.prompt_id,
+      prompt: post.prompt,
+      board_id: post.board_id || -1,
+      reply_to: -1, // Default value
+      unread: post.unread,
+      position:
+        post.top !== null && post.left !== null
+          ? { top: Number(post.top), left: Number(post.left) }
           : undefined,
-      formatting: post.formatting as Format || [],
-      static_emoji: post.static_emoji
-      }));
+      formatting: (post.formatting as Format) || [],
+      static_emoji: post.static_emoji,
+    }));
 
     return new Response(JSON.stringify({ data: personalPosts }), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
   } catch (error) {

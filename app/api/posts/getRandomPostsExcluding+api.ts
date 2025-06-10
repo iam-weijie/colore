@@ -17,7 +17,7 @@ export async function GET(request: Request) {
         : "";
 
     if (mode === "city") {
-      const query =  `
+      const query = `
         SELECT 
           p.id, 
           p.content, 
@@ -32,20 +32,30 @@ export async function GET(request: Request) {
           u.clerk_id,
           u.firstname, 
           u.lastname, 
-          u.username,
+          CASE
+            WHEN EXISTS (
+              SELECT 1
+              FROM friendships f
+              WHERE 
+                (f.user_id = $1 AND f.friend_id = u.clerk_id)
+                OR
+                (f.friend_id = $1 AND f.user_id = u.clerk_id)
+            ) THEN u.incognito_name
+            ELSE u.username
+          END AS username,
           u.country, 
           u.state, 
           u.city
         FROM posts p
         JOIN users u ON p.user_id = u.clerk_id
-        WHERE p.user_id != '${id}' 
+        WHERE p.user_id != $1
           AND p.post_type = 'public' 
-          AND u.city = (SELECT u1.city FROM users u1 WHERE u1.clerk_id = '${id}')
+          AND u.city = (SELECT u1.city FROM users u1 WHERE u1.clerk_id = $1)
           ${excludeClause}
         ORDER BY RANDOM()
-        LIMIT ${number};
+        LIMIT $2;
       `;
-      const response = await sql(query);
+      const response = await sql(query, [id, number]);
 
       if (response.length === 0) {
         return new Response(JSON.stringify({ data: [] }), {
@@ -55,8 +65,7 @@ export async function GET(request: Request) {
       return new Response(JSON.stringify({ data: response }), {
         status: 200,
       });
-    }
-    else if (mode === "state") {
+    } else if (mode === "state") {
       const query = `
         SELECT 
           p.id, 
@@ -94,8 +103,7 @@ export async function GET(request: Request) {
       return new Response(JSON.stringify({ data: response }), {
         status: 200,
       });
-    }
-    else if (mode === "country") {
+    } else if (mode === "country") {
       const query = `
         SELECT 
           p.id, 
@@ -133,10 +141,9 @@ export async function GET(request: Request) {
       return new Response(JSON.stringify({ data: response }), {
         status: 200,
       });
-    }
-    else {
-   // Construct the full SQL query
-   const query = `
+    } else {
+      // Construct the full SQL query
+      const query = `
    SELECT 
       p.id, 
       p.content, 
@@ -168,13 +175,12 @@ export async function GET(request: Request) {
    LIMIT ${number};
  `;
 
- const response = await sql(query);
+      const response = await sql(query);
 
- return new Response(JSON.stringify({ data: response }), {
-   status: 200,
- });
+      return new Response(JSON.stringify({ data: response }), {
+        status: 200,
+      });
     }
- 
   } catch (error) {
     console.error(error);
     return new Response(

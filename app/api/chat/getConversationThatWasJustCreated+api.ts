@@ -10,7 +10,8 @@ export async function GET(request: Request) {
 
     //console.log("Received GET request for conversation between ", userId1, " and ", userId2);
 
-    const rawResponse = await sql`
+    const rawResponse = await sql(
+      `
       SELECT 
         c.id::text, 
         c.clerk_id_1, 
@@ -18,13 +19,25 @@ export async function GET(request: Request) {
         c.last_message as "lastMessageContent", 
         c.last_message_timestamp as "lastMessageTimestamp",
         u_self.nicknames as nicknames,
-        u2.username
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friendships f
+            WHERE 
+              (f.user_id = $1 AND f.friend_id = c.clerk_id_2)
+              OR
+              (f.friend_id = $1 AND f.user_id = c.clerk_id_2)
+          ) THEN u2.incognito_name
+          ELSE u2.username
+        END AS username
       FROM conversations c
       LEFT JOIN users u2 ON c.clerk_id_2 = u2.clerk_id
-      LEFT JOIN users u_self ON u_self.clerk_id = ${userId1}
-      WHERE c.clerk_id_1 = ${userId1} 
-      AND c.clerk_id_2 = ${userId2}
-    `;
+      LEFT JOIN users u_self ON u_self.clerk_id = $1
+      WHERE c.clerk_id_1 = $1
+      AND c.clerk_id_2 = $2
+    `,
+      [userId1, userId2]
+    );
 
     // Transform the raw response to match the interface
     const conversations: ConversationItem[] = rawResponse.map((row) => {

@@ -5,7 +5,16 @@ import { countries } from "@/constants/countries";
 import { allColors, defaultColors } from "@/constants/colors";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
-import { fetchFriends, fetchFriendStatus } from "@/lib/friend";
+
+import axios from "axios";
+import {
+  acceptFriendRequest,
+  cancelFriendRequest,
+  fetchFriendNickname,
+  fetchFriends,
+  fetchFriendStatus,
+  unfriend,
+} from "@/lib/friend";
 import {
   FriendStatusType,
   Post,
@@ -26,8 +35,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
+import Animated, {
+  SlideInDown,
+  SlideInUp,
+  FadeInDown,
+  FadeIn,
+} from "react-native-reanimated";
+import ColorGallery from "./ColorGallery";
+import DropdownMenu from "./DropdownMenu";
+import TabNavigation from "./TabNavigation";
 import { useAlert } from "@/notifications/AlertContext";
+import Circle from "./Circle";
 import Settings from "@/app/root/settings";
 import BoardGallery from "./BoardGallery";
 import PostContainer from "./PostContainer";
@@ -121,11 +139,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [myBoards, setMyBoards] = useState<any>();
   const [communityBoards, setCommunityBoards] = useState<any>();
 
+  const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
 
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
     FriendStatus.UNKNOWN
   );
+  const [friendNickname, setFriendNickname] = useState<string>("");
   const [friendCount, setFriendCount] = useState<number>(0);
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
   const [isFocusedOnProfile, setIsFocusedOnProfile] = useState<boolean>(true);
@@ -181,7 +201,16 @@ const UserProfile: React.FC<UserProfileProps> = ({
       }
     };
 
+    const getFriendNickname = async () => {
+      let result;
+      if (user!.id !== userId) {
+        result = await fetchFriendNickname(user!.id, userId);
+        setFriendNickname(result.nickname);
+      }
+    };
+
     getFriendStatus();
+    getFriendNickname();
     fetchFriendCount();
   }, []);
 
@@ -195,7 +224,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       const userInfo = response.data[0] as UserProfileType;
       setProfileUser(userInfo);
+      const countryCode = await fetchCountryByName(profileUser?.country ?? "")
 
+      
       setLoading(false);
     } catch (error) {
       setError("Failed to fetch user data.");
@@ -279,7 +310,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         const boardsWithColor = response.data.map(
           (board: any, index: number) => ({
             ...board,
-            color: defaultColors[Math.floor(Math.random() * defaultColors.length)].hex, // only assign if not already set
+            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           })
         );
 
@@ -288,7 +319,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         const boardsWithColor = checkForPrivacy.map(
           (board: any, index: number) => ({
             ...board,
-            color: defaultColors[Math.floor(Math.random() * defaultColors.length)].hex, // only assign if not already set
+            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           })
         );
 
@@ -319,7 +350,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       const boardsWithColor = response.data.map(
         (board: any, index: number) => ({
           ...board,
-          color: defaultColors[Math.floor(Math.random() * defaultColors.length)].hex, // only assign if not already set
+          color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
         })
       );
 
@@ -435,12 +466,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 <Flag width={32} height={32} />
               </View>
               <View>
-                {nickname || profileUser?.username ? (
+                {friendNickname || profileUser?.username ? (
                   <Text className={`text-xl font-JakartaBold`}>
-                    {nickname
-                      ? nickname
+                    {friendNickname
+                      ? friendNickname
                       : profileUser?.username
-                        ? `${profileUser?.username}`
+                        ? `${friendStatus === FriendStatus.RECEIVED || friendStatus === FriendStatus.FRIENDS ? profileUser?.nickname || profileUser?.username : profileUser?.username}`
                         : `${profileUser?.firstname?.charAt(0)}.`}{" "}
                     {emojiLoading ? "" : countryEmoji}
                   </Text>
@@ -536,7 +567,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <Ionicons name="search" size={20} color="#9ca3af" />
             <TextInput
               className="flex-1 pl-2 text-md "
-              placeholder="Search emojis..."
+              placeholder="Looking for a Post..?"
               placeholderTextColor="#9CA3AF"
               value={query}
               onChangeText={setQuery}

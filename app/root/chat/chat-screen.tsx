@@ -15,6 +15,11 @@ import {
   getRelativeTime,
 } from "@/lib/utils";
 import {
+  convertToLocal,
+  formatDateTruncatedMonth,
+  getRelativeTime,
+} from "@/lib/utils";
+import {
   ConversationItem,
   FriendRequest,
   Friendship,
@@ -212,7 +217,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   };
 
   const filteredUsers =
-    searchText.length > 0
+    searchText.length > 0 && users.length > 0
       ? users.filter(
           (user) =>
             user[1] && user[1].toLowerCase().includes(searchText.toLowerCase())
@@ -224,7 +229,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
       const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
         method: "GET",
       });
-
       // Ensure response data exists and contains nicknames
       const nicknames: UserNicknamePair[] = response.data?.[0]?.nicknames || [];
       const filteredNicknames = nicknames.filter((n) => n[1]);
@@ -286,8 +290,18 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   };
 
   const filteredFriendList = friendList.filter((friend) =>
-    friend.friend_username.toLowerCase().includes(searchText.toLowerCase())
+    searchText.length > 0
+      ? friend.friend_nickname
+        ? friend.friend_nickname
+            .toLowerCase()
+            .includes(searchText.toLowerCase())
+        : friend.friend_username
+            .toLowerCase()
+            .includes(searchText.toLowerCase())
+      : friend.friend_username.length > 0
   );
+
+  console.log("[ChatScreen] Friend List: ", filteredFriendList);
 
   // RENDER LISTS ------ START
   const renderConversationItem = ({
@@ -344,7 +358,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         label={
           nicknames && item.friend_id in nicknames
             ? nicknames[item.friend_id]
-            : item.friend_username
+            : item.friend_nickname || item.friend_username
         }
         caption={
           item.city !== item.state
@@ -352,11 +366,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             : `${item.state}, ${item.country}`
         }
         colors={["#93c5fd", "#93c5fd"]}
-        icon={icons.user}
+        icon={icons.addUser}
         iconColor="#000"
         actionIcon={icons.chevron}
         onPress={() => {
-          handleUserProfile(item.friend_id, item.friend_username);
+          handleUserProfile(
+            item.friend_id,
+            item.friend_nickname || item.friend_username
+          );
         }}
       />
     );
@@ -376,14 +393,17 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         label={
           nicknames && item.senderId in nicknames
             ? nicknames[item.senderId]
-            : item.senderUsername
+            : item.senderNickname || item.senderUsername
         }
         caption={getRelativeTime(convertToLocal(new Date(item.createdAt)))}
         colors={["#CFB1FB", "#CFB1FB"]}
         icon={icons.send}
         iconColor="#000"
         onPress={() => {
-          handleUserProfile(item.senderId, item.senderUsername);
+          handleUserProfile(
+            item.senderId,
+            item.senderNickname || item.senderUsername
+          );
         }}
       />
       <View className="absolute right-3">
@@ -442,6 +462,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
           ? nicknames[item.receiverId]
           : item.receiverUsername
       }
+      caption={getRelativeTime(convertToLocal(new Date(item.createdAt)))}
       colors={["#CFB1FB", "#CFB1FB"]}
       icon={icons.send}
       actionIcon={icons.chevron}
@@ -499,6 +520,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         senderUsername: isRequestorUID1
           ? friendRequest.user1_username
           : friendRequest.user2_username,
+        senderNickname: isRequestorUID1
+          ? friendRequest.user1_nickname
+          : friendRequest.user2_nickname,
         receiverUsername: isRequestorUID1
           ? friendRequest.user2_username
           : friendRequest.user1_username,
@@ -618,7 +642,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                 className="rounded-[24px]"
                 data={filteredUsers}
                 contentContainerStyle={{
-                  marginTop: 80,
+                  marginTop: 64,
                   paddingBottom: 120,
                 }}
                 renderItem={renderUser}
@@ -809,7 +833,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
 
     return (
       <ItemContainer
-        label={`${item.commenter_username ?? item.username} has ${item.commenter_username ? "commented a post." : "sent you a post"}`}
+        label={`${item.commenter_username ?? item.username} has ${item.commenter_username ? "has commented a post." : "sent you a post"}`}
         caption={`${item.comment_content ?? item.content ?? ""}`}
         colors={["#93c5fd", "#93c5fd"]}
         icon={item.comment_content ? icons.comment : icons.pencil}

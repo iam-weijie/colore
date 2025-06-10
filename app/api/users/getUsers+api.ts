@@ -9,25 +9,38 @@ export async function GET(request: Request) {
     const clerkId = url.searchParams.get("id");
     const max = url.searchParams.get("maxUsers");
 
-   // console.log("Extracted Clerk ID:", clerkId);
+    // console.log("Extracted Clerk ID:", clerkId);
 
     if (!clerkId) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
         status: 400,
       });
     }
-    const response = await sql`
+    const response = await sql(
+      `
       SELECT
         id,
         clerk_id,
-        username,
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM friendships f
+            WHERE 
+              (f.user_id = $1 AND f.friend_id = users.clerk_id)
+              OR
+              (f.friend_id = $1 AND f.user_id = users.clerk_id)
+          ) THEN nickname
+          ELSE username
+        END AS username,
         country,
         state,
         city
       FROM users
-      WHERE clerk_id != ${clerkId}
-      LIMIT ${max}
-    `;
+      WHERE clerk_id != $1
+      LIMIT $2
+    `,
+      [clerkId, max]
+    );
     if (response.length === 0) {
       return new Response(JSON.stringify({ error: "Users not found" }), {
         status: 404,

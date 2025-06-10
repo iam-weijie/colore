@@ -26,6 +26,7 @@ type GlobalContextType = {
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
   profile: UserProfileType;
   setProfile: React.Dispatch<React.SetStateAction<UserProfileType>>;
+  refreshProfile: () => void;
   userColors: PostItColor[];
   setUserColors: React.Dispatch<React.SetStateAction<PostItColor[]>>;
   draftPost: Post;
@@ -146,10 +147,22 @@ export async function fetchNotificationsExternal(
               "Messages",
               pushToken
             );
+            await handleSendNotificationExternal(
+              n,
+              message,
+              "Messages",
+              pushToken
+            );
           }
         }
         if (n.comments) {
           for (const comment of n.comments) {
+            await handleSendNotificationExternal(
+              n,
+              comment,
+              "Comments",
+              pushToken
+            );
             await handleSendNotificationExternal(
               n,
               comment,
@@ -166,8 +179,17 @@ export async function fetchNotificationsExternal(
               "Requests",
               pushToken
             );
+            await handleSendNotificationExternal(
+              n,
+              request,
+              "Requests",
+              pushToken
+            );
           }
         }
+        if (n.recipient_user_id) {
+          console.log("n", n);
+          await handleSendNotificationExternal(n, n, "Posts", pushToken);
         if (n.recipient_user_id) {
           console.log("n", n);
           await handleSendNotificationExternal(n, n, "Posts", pushToken);
@@ -227,8 +249,8 @@ async function handleSendNotificationExternal(
     if (type === "Requests") {
       const username =
         content.requestor === "UID1"
-          ? content.user1_username
-          : content.user2_username;
+          ? content.user1_nickname
+          : content.user2_nickname;
       await sendPushNotification(
         pushToken,
         `${username} wants to be your friend!`,
@@ -249,6 +271,7 @@ async function handleSendNotificationExternal(
         "posts",
         {
           route: `/root/tabs/personal-board`,
+          params: {},
           params: {},
         }
       );
@@ -293,6 +316,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     clerk_id: "",
     firstname: "",
     username: "",
+    nickname: "",
+    incognito_name: "",
     content: "",
     created_at: "",
     expires_at: "",
@@ -334,6 +359,62 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [soundEffectsEnabled, setSoundEffectsEnabledState] =
     useState<boolean>(true); // Default to true
 
+  const fetchUserProfile = async () => {
+      if (user) {
+        try {
+          const response = await fetchAPI(
+            `/api/users/getUserInfo?id=${user.id}`,
+            {
+              method: "GET",
+            }
+          );
+          if (response.error) {
+            throw new Error(response.error);
+          }
+          const userData = response.data[0];
+          if (!userData.nickname || !userData.incognito_name) {
+            try {
+              const response = await fetchAPI("/api/users/patchUserInfo", {
+                method: "PATCH",
+                body: JSON.stringify(
+                  !userData.nickname && !userData.incognito_name
+                    ? {
+                        clerkId: user!.id,
+                        incognito_name: generateRandomUsername(),
+                        nickname: userData.username,
+                      }
+                    : !userData.nickname
+                      ? {
+                          clerkId: user!.id,
+                          nickname: userData.nickname,
+                        }
+                      : {
+                          clerkId: user!.id,
+                          incognito_name: generateRandomUsername(),
+                        }
+                ),
+              });
+
+              if (response.error) {
+                throw new Error(response.error);
+              }
+              console.log("updated placeholder names on start successfully");
+            } catch (error) {
+              console.error(
+                "Failed to update placeholder names on start:",
+                error
+              );
+            }
+          }
+          setProfile(userData);
+          setUserColors(userData.colors || defaultColors);
+          setLastConnection(new Date(userData.last_connection));
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error);
+        }
+      }
+    };
+
   const getPushToken = async () => {
     const pushToken = await AsyncStorage.getItem("pushToken");
     return pushToken;
@@ -346,12 +427,46 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     getPushToken().then(setPushToken);
   }, []);
 
+  const generateRandomUsername = () => {
+    const words1 = [
+      "Blue",
+      "Green",
+      "Fast",
+      "Silent",
+      "Fuzzy",
+      "Bright",
+      "Dark",
+      "Happy",
+      "Wild",
+      "Brave",
+    ];
+    const words2 = [
+      "Tiger",
+      "Eagle",
+      "Lion",
+      "Wolf",
+      "Panther",
+      "Dragon",
+      "Falcon",
+      "Shark",
+      "Phoenix",
+      "Rhino",
+    ];
+
+    const randomWord1 = words1[Math.floor(Math.random() * words1.length)];
+    const randomWord2 = words2[Math.floor(Math.random() * words2.length)];
+    const randomNumber = Math.floor(Math.random() * 1000);
+    return `${randomWord1}${randomWord2}${randomNumber}`;
+  }
+
   const resetDraftPost = () => {
     setDraftPost({
       id: 0,
       clerk_id: "",
       firstname: "",
       username: "",
+      nickname: "",
+      incognito_name: "",
       content: "",
       created_at: new Date().toISOString(),
       expires_at: "",
@@ -377,8 +492,12 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
+  const refreshProfile = async () => {
+    fetchUserProfile();
+  }
+
   // In-app polling every 5 seconds
-  /*useEffect(() => {
+  useEffect(() => {
     if (user && pushToken) {
       // When user signs in, persist the necessary info for background tasks.
       AsyncStorage.setItem("userId", user.id);
@@ -451,12 +570,9 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     const fetchUserProfile = async () => {
       if (user) {
         try {
-          const response = await fetchAPI(
-            `/api/users/getUserInfo?id=${user.id}`,
-            {
-              method: "GET",
-            }
-          );
+          const response = await fetchAPI(`/api/users/getUserInfo?id=${user.id}`, {
+            method: "GET",
+          });
           if (response.error) {
             throw new Error(response.error);
           }
@@ -468,7 +584,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           console.error("Failed to fetch user profile:", error);
         }
       }
-    };
+    }
     fetchUserProfile();
   }, [user]);
   const incrementUnreadAmount = (notificationType: string) => {
@@ -632,6 +748,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         draftPost,
         profile,
         setProfile,
+        refreshProfile,
         userColors,
         setUserColors,
         setDraftPost,

@@ -85,6 +85,7 @@ export async function PATCH(request: Request) {
         RETURNING *
       `;
     } else if (nickname !== undefined && incognito_name !== undefined) {
+      console.log("ASDASDASDJADAJDIWIJDI");
       response = await sql`
         UPDATE users
         SET nickname = ${nickname}, incognito_name = ${incognito_name}
