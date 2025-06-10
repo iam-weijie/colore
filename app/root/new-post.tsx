@@ -98,7 +98,7 @@ const NewPost = () => {
 
   // 🎨 STYLING & FORMATTING
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    allColors.find((c) => c.id === color) || defaultColors[Math.floor(Math.random() * defaultColors.length)]
+    allColors.find((c) => c.id === color) ?? defaultColors[Math.floor(Math.random() * defaultColors.length)]
   );
   const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
   const [formats, setFormats] = useState<Format[]>([]);

@@ -9,25 +9,25 @@ export async function GET(request: Request) {
 
     //console.log("Received GET request for users from user:", userId);
 
-    const rawResponse = await sql`
-      SELECT 
-        u.clerk_id,
-        CASE
-          WHEN EXISTS (
-            SELECT 1
-            FROM friendships f
-            WHERE 
-              (f.user_id = ${userId} AND f.friend_id = u.clerk_id)
-              OR
-              (f.friend_id = ${userId} AND f.user_id = u.clerk_id)
-          ) THEN u.nickname
-          ELSE u.username
-        END AS username,
-        u_self.nicknames as nicknames
-      FROM users u
-      LEFT JOIN users u_self ON u_self.clerk_id = ${userId}
-      WHERE u.clerk_id != ${userId}
-    `;
+  const rawResponse = await sql`
+    SELECT
+      u.clerk_id,
+      CASE
+        WHEN EXISTS (
+          SELECT 1
+          FROM friendships f
+          WHERE
+            (f.user_id = ${userId} AND f.friend_id = u.clerk_id)
+            OR
+            (f.friend_id = ${userId} AND f.user_id = u.clerk_id)
+        ) THEN COALESCE(u.nickname, u.username)
+        ELSE u.username
+      END AS username,
+      u_self.nicknames as nicknames
+    FROM users u
+    LEFT JOIN users u_self ON u_self.clerk_id = ${userId}
+    WHERE u.clerk_id != ${userId}
+  `;
 
     // Transform to array of [clerk_id, nickname] pairs
     const response: UserNicknamePair[] = rawResponse.map((row) => {
@@ -36,12 +36,13 @@ export async function GET(request: Request) {
       const nickname = nicknames.find(
         ([clerkId]) => clerkId === row.clerk_id
       )?.[1];
+
       return [
         row.clerk_id,
-        nickname || row.username, // Use nickname if exists, otherwise use username
+        nickname ?? row.username, // Use nickname if exists, otherwise use username
       ];
     });
-    //console.log("Response: ", response)
+
 
     return new Response(JSON.stringify({ data: response }), {
       status: 200,

@@ -39,9 +39,8 @@ const ColorPickerSlider: React.FC<ColorPickerSliderProps> = ({
   useEffect(() => {
     // If the slider is being dragged, don't update position programmatically
     if (isDragging) return setDynamicHeight(height);
-
     // Check if selected color is valid
-    if (!selectedColor || !colors.includes(selectedColor)) {
+    if (!selectedColor || !colors.map((c) => c.id).includes(selectedColor.id)) {
       throw new Error(`Invalid selected color: ${selectedColor}`);
     }
 

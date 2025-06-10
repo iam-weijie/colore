@@ -704,6 +704,29 @@ const StarringContainer: React.FC<PostContainerProps> = ({
         </View>
 
       {header}
+      {currentPost?.prompt && !isPreview && (
+        <Animated.View
+          className="absolute w-full top-[25%] mx-auto flex-row items-center justify-center"
+          entering={FadeInUp.duration(200)}
+          exiting={FadeOutDown.duration(200)}
+        >
+             <TouchableOpacity
+                           className="w-[75%] max-w-[300px]"
+                           onPress={() => {
+                            router.push({
+                            pathname: "/root/new-post",
+                            params: {
+                              prompt: currentPost?.prompt,
+                              promptId: currentPost?.prompt_id,
+                            },
+                          });
+                           }}>
+                            <Text className="text-center text-[18px] font-JakartaSemiBold text-white shadow-md ">
+                              {currentPost?.prompt}
+                            </Text>
+                          </TouchableOpacity>
+        </Animated.View>
+      )}
 
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <GestureDetector gesture={swipeGesture}>
@@ -713,7 +736,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
               animatedStyle,
               {
                 minHeight:isIpad ? 250 : 200,
-                    maxHeight: isIpad ? "55%" : "40%",
+                maxHeight: isIpad ? "55%" : "40%",
                 backgroundColor: "white",
               },
             ]}
@@ -906,7 +929,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
           />
         </View>
       )}
-      {!!selectedBoard && (
+     
         <ModalSheet
           isVisible={!!selectedBoard}
           title={"Comments"}
@@ -920,7 +943,6 @@ const StarringContainer: React.FC<PostContainerProps> = ({
         >
           <View className="flex-1 h-full">{selectedBoard}</View>
         </ModalSheet>
-      )}
     </AnimatedView>
   );
 };

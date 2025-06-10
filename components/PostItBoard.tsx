@@ -1,8 +1,8 @@
 import { useGlobalContext } from "@/app/globalcontext";
 import DraggablePostIt from "./DraggablePostIt";
 import PostModal from "@/components/PostModal";
-import { Post, PostWithPosition, Stacks, PostItBoardProps } from "@/types/type";
-import { SignedIn } from "@clerk/clerk-expo";
+import { Post, PostWithPosition, Stacks, PostItBoardProps, UserNicknamePair } from "@/types/type";
+import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
 import {
@@ -23,6 +23,9 @@ import StackCircle from "./StackCircle";
 import ModalSheet from "./Modal";
 import RenameContainer from "./RenameContainer";
 import { updateStacks } from "@/lib/stack";
+import KeyboardOverlay from "./KeyboardOverlay";
+import { FindUser } from "./FindUsers";
+import { useAlert } from "@/notifications/AlertContext";
 
 const screenHeight = Dimensions.get("screen").height;
 const screenWidth = Dimensions.get("screen").width;
@@ -39,12 +42,16 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   isEditable = true,
   randomPostion = true,
 }) => {
+
+  const { user } = useUser()
   const [mapType, setMapType] = useState("satellite");
   const [postsWithPosition, setPostsWithPosition] = useState<Post[]>([]);
   const [standalonePosts, setStandalonePosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPosts, setSelectedPosts] = useState<Post[] | null>(null);
+  const [keyboardVisible, setKeyboardVisible] = useState<boolean>(false);
+  const [currentStack, setCurrentStack] = useState<Stacks>();
   const [excludeIds, setExcludeIds] = useState<string[]>([]);
   const [selectedModal, setSelectedModal] = useState<any>(null);
   const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
@@ -67,6 +74,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const offsetY = useSharedValue(0);
   const pendingStackSound = useRef(false);
   const stackUpdating = useRef(false);
+
+  const { showAlert } = useAlert()
 
   if (!userId) {
     return null;
@@ -169,28 +178,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   // --- HANDLER FUNCTIONS ---
 
   const handleRenameStack = (stack: Stacks) => {
-    setSelectedTitle("Rename Stack");
-    setSelectedModal(
-      <RenameContainer
-        initialValue={""}
-        onSave={(newName: string) => {
-          setStacks((prevStacks) =>
-            prevStacks.map((s) =>
-              s.center.x === stack.center.x && s.center.y === stack.center.y
-                ? { ...s, name: newName }
-                : s
-            )
-          );
-          setSelectedModal(null);
-          setSelectedTitle(null);
-        }}
-        onCancel={() => {
-          setSelectedModal(null);
-          setSelectedTitle(null);
-        }}
-        placeholder={stack.name}
-      />
-    );
+    setCurrentStack(stack)
+    setKeyboardVisible(true)
   };
 
   const updatePostPosition = async (
@@ -247,6 +236,84 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     stackUpdating.current = false;
     setIsPanningMode(true);
   };
+
+ const handleShareStack = async (friend: UserNicknamePair, localStack: Stacks) => {
+
+  try {
+    if (!localStack) return;
+    
+    // Wait for stack creation
+    const newlyCreatedStackResponse = await fetchAPI(`/api/stacks/newStack`, {
+      method: "POST",
+      body: JSON.stringify({
+        name: localStack.name,
+        centerX: localStack.center.x,
+        centerY: localStack.center.y,
+        ids: localStack.ids,
+        boardId: -1,
+        userId: user!.id
+      })
+    });
+    console.log("[handleShareStack]: ", newlyCreatedStackResponse.data)
+    // Ensure stack was created successfully
+    if (!newlyCreatedStackResponse?.data) {
+      throw new Error("Failed to create stack");
+    }
+
+    const newlyCreatedStack = newlyCreatedStackResponse.data;
+    const friendId = friend[0];
+
+
+    // Now share the stack (this will wait for the above to complete)
+    const response = await fetchAPI(`/api/shared/newSharedStack`, {
+      method: "POST",
+      body: JSON.stringify({
+        stackId: newlyCreatedStack.id, // Remove optional chaining since we validated above
+        sharedById: userId,
+        sharedToId: friendId,
+        boardId: -1,
+        message: ""
+      }),
+    });
+
+    // Ensure sharing was successful
+    if (!response?.data) {
+      throw new Error("Failed to share stack");
+    }
+
+    const { username } = response.data;
+    const status = response.success
+    const warning = response.warning
+
+    if (status) {
+    showAlert({
+      title: 'Shared!',
+      message: `This stack was shared to ${username}`,
+      type: 'SUCCESS',
+      status: 'success',
+    });}
+    else if (status && warning) {
+       showAlert({
+      title: 'Warning',
+      message: warning,
+      type: 'ERROR',
+      status: 'error',
+    });}
+    
+
+  } catch (err) {
+    console.error("Failed to share stack: ", err);
+    showAlert({
+      title: 'Error',
+      message: "Unable to share this stack.",
+      type: 'ERROR',
+      status: 'error',
+    });
+  } finally {
+    setSelectedModal(null);
+    setSelectedTitle("");
+  }
+}
 
   const handleIsPinned = (isPinned: boolean) => {
     setIsPinned(isPinned);
@@ -327,6 +394,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   useEffect(() => {
     fetchRandomPosts();
   }, [mode]);
+
 
 
 
@@ -416,7 +484,14 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                         isEditable={isEditable}
                         onViewPress={() => setSelectedPosts(stack.elements)}
                         onEditPress={() => isEditable && handleRenameStack(stack)}
-                        onSendPress={() => {}}
+                        onSendPress={() => {
+                          setSelectedModal(
+                            <View className="flex-1 mx-6">
+                            <FindUser selectedUserInfo={(user) => handleShareStack(user, stack)}                            />
+                              </View>
+                          )
+                          setSelectedTitle("Sharing with?")
+                        }}
                         enabledPan={() => setIsPanningMode((prev) => !prev)}
                         stackMoving={() => setIsStackMoving((prev) => !prev)}
                         updateStackPosition={handleStackPosition}
@@ -463,7 +538,31 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                   invertedColors={invertColors}
                 />
               )}
-              {selectedModal && (
+              {keyboardVisible && currentStack && 
+              <KeyboardOverlay> 
+                      <RenameContainer
+                          initialValue={""}
+                          onSave={(newName: string) => {
+                            setStacks((prevStacks) =>
+                              prevStacks.map((s) =>
+                                s.center.x === currentStack.center.x && s.center.y === currentStack.center.y
+                                  ? { ...s, name: newName }
+                                  : s
+                              )
+                            );
+                            setSelectedModal(null);
+                            setSelectedTitle(null);
+                            setKeyboardVisible(false);
+                          }}
+                          onCancel={() => {
+                            setSelectedModal(null);
+                            setSelectedTitle(null);
+                            setKeyboardVisible(false);
+                          }}
+                          placeholder={currentStack.name}
+                        />
+                </KeyboardOverlay>}
+              
                 <ModalSheet
                   isVisible={!!selectedModal}
                   title={selectedTitle}
@@ -474,7 +573,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                 >
                   {selectedModal}
                 </ModalSheet>
-              )}
+              
             </ScrollView>
           </ScrollView>
         )}
@@ -484,3 +583,4 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 };
 
 export default PostItBoard;
+

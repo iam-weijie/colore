@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import PinIcon from "./PinComponent";
+import CustomButton from "./CustomButton";
 
 type Stacks = {
   name: string;
@@ -122,8 +123,8 @@ const StackCircle = ({
   }, [stack?.center?.x, stack?.center?.y]);
 
   useEffect(() => {
-    const dx = Math.abs(scrollOffset.x + 120 - stack?.center?.x);
-    const dy = Math.abs(scrollOffset.y + 160 - stack?.center?.y);
+    const dx = Math.abs(scrollOffset.x + 180 - stack?.center?.x);
+    const dy = Math.abs(scrollOffset.y + 420 - stack?.center?.y);
     const distance = Math.sqrt(dx * dx + dy * dy);
     setIsFocused(distance <= SHOW_BUTTONS_THRESHOLD && isEditable);
   }, [scrollOffset.x, scrollOffset.y, isEditable, stack.center]);
@@ -179,12 +180,12 @@ const StackCircle = ({
         </View>
 
         {/* View Button */}
-        <TouchableOpacity
-          onPress={onViewPress}
-          className="absolute bottom-6 px-8 py-3 bg-black rounded-full shadow-lg"
-        >
-          <Text className="text-white font-JakartaBold text-lg">View</Text>
-        </TouchableOpacity>
+        <View className="absolute bottom-6 w-full flex-row items-center justify-center">
+        <CustomButton 
+        title={"View"}
+        onPress={onViewPress}
+        padding={4}        />
+        </View>
 
         {/* Orbit Buttons */}
         {isEditable && isFocused && (
@@ -193,7 +194,7 @@ const StackCircle = ({
               onPress={onEditPress}
               className="absolute right-6 top-6 w-12 h-12 bg-white rounded-full items-center justify-center shadow"
             >
-              <Image source={icons.pencil} className="w-6 h-6" tintColor="black" />
+              <Image source={icons.pencil} className="w-5 h-5" tintColor="black" />
             </TouchableOpacity>
 
             <TouchableOpacity

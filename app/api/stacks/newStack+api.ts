@@ -2,56 +2,82 @@ import { neon } from "@neondatabase/serverless";
 
 export async function POST(request: Request) {
   try {
-    const { name, center_x, center_y, ids, boardId, userId } = await request.json();
-
-    if (!name || !center_x || !center_y || !boardId || !userId) {
+    const { name, centerX, centerY, ids, boardId, userId } = await request.json();
+    
+    if (!name || !centerX || !centerY || !boardId || !userId) {
       return new Response(
-        JSON.stringify({ 
-          error: "Missing required fields (name, center, boardId, or userId)" 
+        JSON.stringify({
+          error: "Missing required fields (name, center, boardId, or userId)"
+        }),
+        { status: 400 }
+      );
+    }
+
+    // Validate ids is an array of integers
+    if (!Array.isArray(ids)) {
+      return new Response(
+        JSON.stringify({
+          error: "ids must be an array"
+        }),
+        { status: 400 }
+      );
+    }
+
+    if (!ids.every(id => Number.isInteger(id))) {
+      return new Response(
+        JSON.stringify({
+          error: "All ids must be integers"
         }),
         { status: 400 }
       );
     }
 
     const sql = neon(process.env.DATABASE_URL!);
-
-    const [response] = await sql`
-      INSERT INTO stacks (
-        name, 
-        center_x, 
-        center_y, 
-        ids, 
-        board_id, 
-        user_id
-      )
-       VALUES (
-        ${name}, 
-        ${JSON.stringify(center_x)}, 
-        ${JSON.stringify(center_y)}, 
-        ${JSON.stringify(ids)}, 
-        ${boardId}, 
-        ${userId}
-      )
-      RETURNING *
+    // Check if duplicate exists first
+    const [existing] = await sql`
+      SELECT * FROM stacks 
+      WHERE name = ${name} 
+        AND ids = ${ids} 
+        AND user_id = ${userId}
     `;
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        data: response 
-      }), 
-      { status: 201, headers: { 'Content-Type': 'application/json' } }
-    );
+    let response;
+    let wasExisting = false;
 
+    if (existing) {
+      response = existing;
+      wasExisting = true;
+    } else {
+      // Insert new stack
+      const [newStack] = await sql`
+        INSERT INTO stacks (
+          name, center_x, center_y, ids, board_id, user_id
+        )
+        VALUES (
+          ${name}, ${JSON.stringify(centerX)}, ${JSON.stringify(centerY)}, 
+          ${ids}, ${boardId}, ${userId}
+        )
+        RETURNING *
+      `;
+      response = newStack;
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        data: response,
+        wasExisting: wasExisting  // Optional: let client know if it was existing
+      }),
+      { status: wasExisting ? 200 : 201, headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (error: unknown) {
     console.error("Database error:", error);
-    
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: false,
         error: "Failed to create stack",
-        details: errorMessage 
+        details: errorMessage
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );

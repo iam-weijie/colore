@@ -633,31 +633,28 @@ const PostContainer: React.FC<PostContainerProps> = ({
 
       {header}
       {currentPost?.prompt && !isPreview && (
-        <Animated.View
-          className="absolute w-full top-[20%] mx-auto flex-row items-center justify-center"
-          entering={FadeInUp.duration(200)}
-          exiting={FadeOutDown.duration(200)}
-        >
-          <View className="w-[75%] max-w-[300px]">
-            <ItemContainer
-              label={currentPost?.prompt}
-              icon={icons.fire}
-              colors={[currentPost?.color, "#FFB512"]}
-              iconColor="#000"
-              isPrompt
-              onPress={() => {
-                router.push({
+              <Animated.View
+                className="absolute w-full top-[25%] mx-auto flex-row items-center justify-center"
+                entering={FadeInUp.duration(200)}
+                exiting={FadeOutDown.duration(200)}
+              >
+                <TouchableOpacity
+                 className="w-[75%] max-w-[300px]"
+                 onPress={() => {
+                  router.push({
                   pathname: "/root/new-post",
                   params: {
                     prompt: currentPost?.prompt,
                     promptId: currentPost?.prompt_id,
                   },
                 });
-              }}
-            />
-          </View>
-        </Animated.View>
-      )}
+                 }}>
+                  <Text className="text-center text-[18px] font-JakartaSemiBold text-white shadow-md ">
+                    {currentPost?.prompt}
+                  </Text>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
 
       <GestureHandlerRootView
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
@@ -759,7 +756,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
           />
         </View>
       )}
-      {!!selectedBoard && (
+      
         <ModalSheet
           isVisible={!!selectedBoard}
           title={"Comments"}
@@ -773,7 +770,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
         >
           <View className="flex-1 h-full">{selectedBoard}</View>
         </ModalSheet>
-      )}
     </AnimatedView>
   );
 };

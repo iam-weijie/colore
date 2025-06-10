@@ -505,11 +505,11 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       AsyncStorage.setItem("pushToken", pushToken);
 
       // Initial fetch and then polling every 5 seconds
-      fetchNotifications();
+      //fetchNotifications();
       updateLastConnection();
 
-      const interval = setInterval(fetchNotifications, 5000);
-      return () => clearInterval(interval);
+      //const interval = setInterval(fetchNotifications, 5000);
+      //return () => clearInterval(interval);
     }
   }, [user, pushToken])
 

@@ -290,7 +290,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
       : friend.friend_username.length > 0
   );
 
-  console.log("[ChatScreen] Friend List: ", filteredFriendList);
 
   // RENDER LISTS ------ START
   const renderConversationItem = ({
@@ -355,7 +354,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             : `${item.state}, ${item.country}`
         }
         colors={["#93c5fd", "#93c5fd"]}
-        icon={icons.addUser}
+        icon={icons.user}
         iconColor="#000"
         actionIcon={icons.chevron}
         onPress={() => {
@@ -692,8 +691,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               <View className="mb-2">
                 <View className="p-2">
                   <View className="flex-row items-center justify-start mx-4">
-                    <Text className="font-JakartaBold text-[16px]">
-                      Request{" "}
+                    <Text className="font-JakartaSemiBold text-[14px]">
+                      Request ({allFriendRequests?.received && allFriendRequests?.received.length })
                     </Text>
                     <View className="absolute top-[50%] right-3">
                       <NotificationBubble
@@ -731,7 +730,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               <View className=" flex-col mt-2">
                 <View className="p-2">
                   <View className="flex-row items-center justify-start mx-4">
-                    <Text className="font-JakartaBold text-[16px]">Sent </Text>
+                    <Text className="font-JakartaSemiBold text-[14px]">Sent ({allFriendRequests?.sent.length})</Text>
                     <View className="absolute top-[50%] right-3">
                       <NotificationBubble
                         unread={

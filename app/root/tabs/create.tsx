@@ -230,7 +230,7 @@ const handleTabChange = (tabKey: string) => {
           handleOptionSubmit={() => item.onPress()}
           />}/>
         </View>
-        {!skipIntro && <ModalSheet 
+         <ModalSheet 
         title={""} 
         isVisible={!skipIntro} 
         onClose={() => {
@@ -249,7 +249,7 @@ const handleTabChange = (tabKey: string) => {
           {pages[step].children}
         </CarouselPage>
         </View>
-        </ModalSheet>}
+        </ModalSheet>
     </View>
   );
 };

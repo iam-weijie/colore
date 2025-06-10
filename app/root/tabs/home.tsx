@@ -264,6 +264,7 @@ export default function Page() {
             </View>
           }
         />
+        <View className="absolute h-screen w-screen pt-3">
         <PostItBoard
           userId={user!.id}
           handlePostsRefresh={fetchPosts}
@@ -272,7 +273,8 @@ export default function Page() {
           mode={geographicalMode}
           randomPostion={true} 
           handleUpdatePin={() => {}}        />
-        {!!selectedModal && (
+        </View>
+        
           <ModalSheet
             children={selectedModal}
             title={activeModalTitle}
@@ -282,7 +284,7 @@ export default function Page() {
               setActiveModalTitle("");
             }}
           />
-        )}
+        
       </SignedIn>
     </View>
   );

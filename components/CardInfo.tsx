@@ -59,7 +59,6 @@ export const HeaderCard = ({ title, color, content, infoView }) => {
     <View className="px-4 py-4 rounded-[48px] overflow-hidden">
       {content}
     </View>
-      {isModalVisible && 
       <ModalSheet title={"Description"} isVisible={isModalVisible} onClose={() => {setIsModalVisible(false)}}>
         <View className="flex-1 px-2"
         style={{
@@ -67,7 +66,7 @@ export const HeaderCard = ({ title, color, content, infoView }) => {
         }}>
           {infoView}
         </View>
-      </ModalSheet>}
+      </ModalSheet>
     
   </View>
 )};

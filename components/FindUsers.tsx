@@ -41,7 +41,7 @@ export const FindUser: React.FC<FindUserProps> = ({
   const fetchFriendList = async () => {
     const data = await fetchFriends(user!.id);
 
-    const friend = data.map((f) => [f.friend_id, f.friend_nickname]);
+    const friend = data.map((f) => [f.friend_id, f.friend_nickname ?? f.friend_username]);
     setFriendList(friend);
   };
 
@@ -85,7 +85,7 @@ export const FindUser: React.FC<FindUserProps> = ({
     <ItemContainer
       label={item[1]}
       colors={["#FBB1F5", "#CFB1FB"]}
-      icon={icons.addUser}
+      icon={icons.user}
       actionIcon={icons.chevron}
       iconColor="#000"
       onPress={() => {
@@ -117,7 +117,7 @@ export const FindUser: React.FC<FindUserProps> = ({
           <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
             className="flex-1 pl-2 text-md "
-            placeholder="Search emojis..."
+            placeholder="Search for a friend..."
             placeholderTextColor="#9CA3AF"
             value={searchText}
             onChangeText={setSearchText}

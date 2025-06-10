@@ -613,7 +613,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
             }
         
        
-  {!skipIntro && <ModalSheet 
+  <ModalSheet 
         title={""} 
         isVisible={!skipIntro} 
         onClose={() => {
@@ -632,7 +632,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           {pages[step].children}
         </CarouselPage>
         </View>
-        </ModalSheet>}
+        </ModalSheet>
     </View>
   );
 };

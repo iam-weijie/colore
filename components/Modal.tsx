@@ -76,6 +76,8 @@ const ModalSheet = ({ children, title, isVisible, onClose }) => {
                 mass: 1,
             });
             modalOpacity.value = withTiming(0.2, { duration: 200 });
+        } else {
+            handleClose()
         }
     }, [isVisible]);
 

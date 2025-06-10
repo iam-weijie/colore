@@ -152,8 +152,8 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
             <View className="flex-row items-center">
               <View>
                 <Text className="text-md text-[#FAFAFA] font-JakartaBold">Colore</Text>
-                <Text className="text-2xl font-JakartaBold">{title}</Text>
-                <Text className="text-md text-black font-Jakarta-Medium">
+                <Text className="text-[22px] font-JakartaBold">{title}</Text>
+                <Text className="text-[14px] my-2 text-black font-JakartaMedium">
                   {message}
                 </Text>
               </View>
@@ -172,7 +172,7 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
                   onPress={onClose}
                   className="p-4 bg-[#FAFAFA] mx-2 rounded-[20px] flex-1"
                 >
-                  <Text className="text-black text-center text-md font-Jakarta-Medium">
+                  <Text className="text-black text-center text-[16px] font-JakartaMedium">
                     Cancel
                   </Text>
                 </TouchableOpacity>
@@ -180,7 +180,7 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
                   onPress={action}
                   className="p-4 bg-[#000000] mx-2 rounded-[20px] flex-1"
                 >
-                  <Text className="text-white text-center text-md font-Jakarta-Medium">
+                  <Text className="text-white text-center text-md font-JakartaMedium">
                     {actionText}
                   </Text>
                 </TouchableOpacity>
