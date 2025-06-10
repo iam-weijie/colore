@@ -1,6 +1,7 @@
 import {
   SafeAreaView,
   View,
+  Dimensions,
   TouchableOpacity,
   Text,
   Image,
@@ -20,9 +21,6 @@ import { useUser } from "@clerk/clerk-expo";
 import Header from "@/components/Header";
 import { CustomButtonBar } from "@/components/CustomTabBar";
 import Animated, {
-  SlideInDown,
-  SlideInUp,
-  FadeInDown,
   FadeIn,
 } from "react-native-reanimated";
 import ModalSheet from "@/components/Modal";
@@ -36,6 +34,8 @@ import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { Post } from "@/types/type";
 import PostModal from "@/components/PostModal";
 
+
+const SCREEN_HEIGHT = Dimensions.get("window").height
 const UserPersonalBoard = () => {
   const { user } = useUser();
   const { id, username, boardId, postId } = useLocalSearchParams();
@@ -307,7 +307,8 @@ const UserPersonalBoard = () => {
         isVisible={isBoardSettingsVisible}
         onClose={() => {}}
       >
-        <View className="flex-1 px-6 py-4">
+        <View 
+        className="flex-1 px-6 py-4">
           {!selectedSetting ? (
             <FlatList
               data={menuOptions}
@@ -326,11 +327,19 @@ const UserPersonalBoard = () => {
               showsVerticalScrollIndicator={false}
             />
           ) : selectedSetting == "Share" ? (
-            <View className="flex-1">
+            <View 
+            className="flex-1 my-2"
+             style={{
+              height: SCREEN_HEIGHT * 0.5
+            }}>
               <FindUser selectedUserInfo={() => {}} />
             </View>
           ) : selectedSetting == "Members" ? (
-            <View className="flex-1 max-h-[80%]">
+            <View 
+            className="flex-1"
+            style={{
+              height: SCREEN_HEIGHT * 0.5
+            }}>
               <FindUser
                 selectedUserInfo={() => {}}
                 inGivenList={boardInfo.members_id}
@@ -339,7 +348,7 @@ const UserPersonalBoard = () => {
           ) : selectedSetting == "Info" ? (
             <ScrollView
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 80 }}
+              contentContainerStyle={{  height: SCREEN_HEIGHT * 0.5 }}
               className="flex-1"
             >
               <HeaderCard
