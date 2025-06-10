@@ -26,6 +26,7 @@ type GlobalContextType = {
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
   profile: UserProfileType;
   setProfile: React.Dispatch<React.SetStateAction<UserProfileType>>;
+  refreshProfile: () => void;
   userColors: PostItColor[];
   setUserColors: React.Dispatch<React.SetStateAction<PostItColor[]>>;
   draftPost: Post;
@@ -341,93 +342,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [soundEffectsEnabled, setSoundEffectsEnabledState] =
     useState<boolean>(true); // Default to true
 
-  const hasUpdatedLastConnection = useRef(false);
-  const { user } = useUser();
-  const { pushToken } = useNotification();
-
-  function generateRandomUsername() {
-    const words1 = [
-      "blue",
-      "green",
-      "fast",
-      "silent",
-      "fuzzy",
-      "bright",
-      "dark",
-      "happy",
-      "wild",
-      "brave",
-    ];
-    const words2 = [
-      "tiger",
-      "eagle",
-      "lion",
-      "wolf",
-      "panther",
-      "dragon",
-      "falcon",
-      "shark",
-      "phoenix",
-      "rhino",
-    ];
-
-    const randomWord1 = words1[Math.floor(Math.random() * words1.length)];
-    const randomWord2 = words2[Math.floor(Math.random() * words2.length)];
-    const randomNumber = Math.floor(Math.random() * 1000);
-    return `${randomWord1}_${randomWord2}${randomNumber}`;
-  }
-
-  const resetDraftPost = () => {
-    setDraftPost({
-      id: 0,
-      clerk_id: "",
-      firstname: "",
-      username: "",
-      nickname: "",
-      incognito_name: "",
-      content: "",
-      created_at: new Date().toISOString(),
-      expires_at: "",
-      available_at: "",
-      static_emoji: false,
-      city: "",
-      state: "",
-      country: "",
-      like_count: 0,
-      report_count: 0,
-      unread_comments: 0,
-      recipient_user_id: "",
-      pinned: false,
-      color: "",
-      emoji: "",
-      notified: false,
-      prompt_id: 0,
-      prompt: "",
-      board_id: -1,
-      reply_to: 0,
-      unread: false,
-      formatting: [],
-    });
-  };
-
-  // In-app polling every 5 seconds
-  useEffect(() => {
-    if (user && pushToken) {
-      // When user signs in, persist the necessary info for background tasks.
-      AsyncStorage.setItem("userId", user.id);
-      AsyncStorage.setItem("pushToken", pushToken);
-
-      // Initial fetch and then polling every 5 seconds
-      fetchNotifications();
-      updateLastConnection();
-
-      const interval = setInterval(fetchNotifications, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [user, pushToken]);
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
+  const fetchUserProfile = async () => {
       if (user) {
         try {
           const response = await fetchAPI(
@@ -482,6 +397,97 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
     };
+
+  const hasUpdatedLastConnection = useRef(false);
+  const { user } = useUser();
+  const { pushToken } = useNotification();
+
+  const generateRandomUsername = () => {
+    const words1 = [
+      "Blue",
+      "Green",
+      "Fast",
+      "Silent",
+      "Fuzzy",
+      "Bright",
+      "Dark",
+      "Happy",
+      "Wild",
+      "Brave",
+    ];
+    const words2 = [
+      "Tiger",
+      "Eagle",
+      "Lion",
+      "Wolf",
+      "Panther",
+      "Dragon",
+      "Falcon",
+      "Shark",
+      "Phoenix",
+      "Rhino",
+    ];
+
+    const randomWord1 = words1[Math.floor(Math.random() * words1.length)];
+    const randomWord2 = words2[Math.floor(Math.random() * words2.length)];
+    const randomNumber = Math.floor(Math.random() * 1000);
+    return `${randomWord1}${randomWord2}${randomNumber}`;
+  }
+
+  const resetDraftPost = () => {
+    setDraftPost({
+      id: 0,
+      clerk_id: "",
+      firstname: "",
+      username: "",
+      nickname: "",
+      incognito_name: "",
+      content: "",
+      created_at: new Date().toISOString(),
+      expires_at: "",
+      available_at: "",
+      static_emoji: false,
+      city: "",
+      state: "",
+      country: "",
+      like_count: 0,
+      report_count: 0,
+      unread_comments: 0,
+      recipient_user_id: "",
+      pinned: false,
+      color: "",
+      emoji: "",
+      notified: false,
+      prompt_id: 0,
+      prompt: "",
+      board_id: -1,
+      reply_to: 0,
+      unread: false,
+      formatting: [],
+    });
+  };
+
+  const refreshProfile = async () => {
+    fetchUserProfile();
+  }
+
+  // In-app polling every 5 seconds
+  useEffect(() => {
+    if (user && pushToken) {
+      // When user signs in, persist the necessary info for background tasks.
+      AsyncStorage.setItem("userId", user.id);
+      AsyncStorage.setItem("pushToken", pushToken);
+
+      // Initial fetch and then polling every 5 seconds
+      fetchNotifications();
+      updateLastConnection();
+
+      const interval = setInterval(fetchNotifications, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [user, pushToken]);
+
+  useEffect(() => {
     fetchUserProfile();
   }, [user]);
 
@@ -629,6 +635,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         draftPost,
         profile,
         setProfile,
+        refreshProfile,
         userColors,
         setUserColors,
         setDraftPost,

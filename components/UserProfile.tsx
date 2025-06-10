@@ -436,7 +436,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                     {friendNickname
                       ? friendNickname
                       : profileUser?.username
-                        ? `${friendStatus === FriendStatus.RECEIVED || friendStatus === FriendStatus.FRIENDS ? profileUser?.nickname : profileUser?.username}`
+                        ? `${friendStatus === FriendStatus.RECEIVED || friendStatus === FriendStatus.FRIENDS ? profileUser?.nickname || profileUser?.username : profileUser?.username}`
                         : `${profileUser?.firstname?.charAt(0)}.`}{" "}
                     {emojiLoading ? "" : countryEmoji}
                   </Text>

@@ -102,7 +102,8 @@ const NewPost = () => {
   );
   const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
   const [formats, setFormats] = useState<Format[]>([]);
-  const [inputHeight, setInputHeight] = useState(40);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+
 
   // 😊 EMOJI HANDLING
   const [selectedStaticEmoji, setSelectedStaticEmoji] =
@@ -270,6 +271,10 @@ const NewPost = () => {
     }
   };
 
+
+  const handleChangeFocus = (state: boolean) => {
+    setIsFocused(state)
+  }
   const resetDraftPost = () => {
     setPostContent("");
     setFormats([]);
@@ -831,6 +836,8 @@ const NewPost = () => {
     setQuickEmojiSelectorVisible(false);
   }, [selectedEmoji]);
 
+
+  
   return (
     <Animated.View className="flex-1" style={[animatedBackgroundStyle]}>
       <TouchableWithoutFeedback
@@ -870,6 +877,7 @@ const NewPost = () => {
                         refresh={refreshingKey}
                         exportStyling={handleChangeFormat}
                         exportText={handleChangeText}
+                        onFocus={handleChangeFocus}
                       />
                     </View>
                   </View>
@@ -998,11 +1006,12 @@ const NewPost = () => {
             triggerPosition={triggerPosition}
             activeIndex={activeEmojiIndex}
           />
+          {isFocused && (<KeyboardOverlay onFocus={isFocused}>
+        <RichTextEditor handleApplyStyle={applyStyle} />
+      </KeyboardOverlay>)}
         </View>
       </TouchableWithoutFeedback>
-      <KeyboardOverlay>
-        <RichTextEditor handleApplyStyle={applyStyle} />
-      </KeyboardOverlay>
+      
     </Animated.View>
   );
 };

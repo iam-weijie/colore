@@ -90,7 +90,7 @@ const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({
   };
 
   return (
-    <Modal transparent visible={isVisible} onRequestClose={() => {console.log("[KeyboardOverlay]: Pressed!")}}>
+    <Modal backdropColor={"#FF0000"} visible={isVisible} onDismiss={() => {setIsVisible(false)}} onRequestClose={() => {console.log("[KeyboardOverlay]: Pressed~")}}>
       <Animated.View
         className="absolute left-0 right-0 bg-white h-[70px] shadow-md z-50 rounded-t-[32px]"
         style={{
