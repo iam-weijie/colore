@@ -116,6 +116,12 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
             >
               {truncateText(item.content, 120)}
             </Text>
+            {item.prompt && <Text
+              className="italic text-white/80 text-[13px] shadow leading-snug"
+              numberOfLines={2}
+            >
+              {truncateText(item.prompt, 80)}
+            </Text>}
 
             <View className="flex-row justify-between items-center mt-2.5">
               <Text className="font-Jakarta text-xs text-white/80">

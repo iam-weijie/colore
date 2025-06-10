@@ -45,6 +45,8 @@ import {
   getRelativeTime,
 } from "@/lib/utils";
 import { allColors } from "@/constants/colors";
+import PostGallery from "@/components/PostGallery";
+import { Ionicons } from "@expo/vector-icons";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -63,6 +65,7 @@ const CreateView = ({
     keyboardVerticalOffset={80}
     style={{ flex: 1 }}
   >
+    
     {loading ? (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <ColoreActivityIndicator text="Loading…" />
@@ -99,14 +102,13 @@ export default function Page() {
   const [promptContent, setPromptContent] = useState<string>("");
 
   const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [personalPrompts, setPersonalPrompts] = useState<Prompt[]>([]);
+  const [personalPrompts, setPersonalPrompts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [answerLoading, setAnswerLoading] = useState(false);
   const [hasSubmittedPrompt, setHasSubmittedPrompt] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const selectedPostRef = useRef<Post | null>(null);
-  const scrollX = useRef(new Animated.Value(0)).current;
   const inputRef = useRef<TextInput>(null);
+   const [query, setQuery] = useState<string>("");
 
   const [selectedModal, setSelectedModal] = useState<any>();
 
@@ -189,7 +191,7 @@ export default function Page() {
     } finally {
       setAnswerLoading(false);
     }
-  }, [hasFetchedPersonalPrompts, user?.id]);
+  }, [hasFetchedPersonalPrompts]);
 
   const fetchPrompts = async () => {
     setLoading(true);
@@ -271,41 +273,6 @@ export default function Page() {
     }
   }, [user, isIpad]);
 
-  // Ensure uniqueness of posts and ids in stack
-  useEffect(() => {
-    if (posts.length > 0) {
-      setStacks((prev) => {
-        // Ensure only the first stack is updated or created
-        const existingIds = prev.length > 0 ? prev[0].ids : [];
-        const existingElements = prev.length > 0 ? prev[0].elements : [];
-
-        // Filter out posts with duplicate IDs and elements
-        const newPosts = posts.filter((post) => !existingIds.includes(post.id));
-
-        // If there are new posts, add them to the stack
-        if (newPosts.length > 0) {
-          const newIds = [...existingIds, ...newPosts.map((post) => post.id)];
-          const newElements = [...existingElements, ...newPosts];
-
-          // Remove duplicates from newIds and newElements
-          const uniqueIds = Array.from(new Set(newIds));
-          const uniqueElements = newElements.filter(
-            (value, index, self) =>
-              index === self.findIndex((el) => el.id === value.id)
-          );
-
-          return [
-            {
-              ids: uniqueIds,
-              elements: uniqueElements,
-            },
-          ];
-        }
-        return prev; // If no new posts, return the previous state
-      });
-    }
-  }, [posts]);
-
   useEffect(() => {
     if (selectedTab === "Peek") {
       setPeekModalVisible(true);
@@ -316,13 +283,14 @@ export default function Page() {
     if (selectedTab === "Answer" && !hasFetchedPersonalPrompts) {
       fetchPersonalPrompts();
     }
-  }, [selectedTab, hasFetchedPersonalPrompts, fetchPersonalPrompts]);
+  }, [selectedTab, hasFetchedPersonalPrompts]);
 
-  const handleCloseModalPress = () => {
-    router.push("/root/tabs/home");
-    setIsModalVisible(false);
-    //setStacks([])
-  };
+
+  // Clear current search
+
+  const handleClearSearch = () => {
+  setQuery("");
+};
 
   const handleScrollToLoad = async () => {
     setLoading(true);
@@ -402,7 +370,6 @@ export default function Page() {
   const AnswerView = () => {
     // locally ensure posts is an array
     const personalPosts = Array.isArray(personalPrompts) ? personalPrompts : [];
-    // console.log("[AnswerView] personalPrompts:", personalPrompts);
 
     return (
       <View className="flex-1 px-4 py-2">
@@ -417,54 +384,37 @@ export default function Page() {
             <Text className="text-lg">You haven’t posted anything yet!</Text>
           </View>
         ) : (
-          // <CardCarrousel
-          //   items={personalPosts}
-          //   renderItem={(prompt: Prompt) => (
-          //     <RenderPromptAnswerCard item={prompt} />
-          //   )}
-          //   handleScrollBeginDrag={handleScrollBeginDrag}
-          // />
-          <FlatList
-            data={personalPosts}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={isIpad ? 3 : 1}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => {
-              const backgroundColor = "white"; // Default color
-              // allColors?.find((c) => c.id === item.color)?.hex || item.color;
-              return (
-                // ← YOU WERE MISSING THIS RETURN!
-                <View
-                  className="w-full mb-3 py-4 px-6 mx-auto"
-                  style={{
-                    borderRadius: 32,
-                    backgroundColor,
-                    borderColor: "#ffffff90",
-                    borderWidth: 2,
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.08,
-                    shadowRadius: 4,
-                  }}
-                >
-                  <Text className="font-JakartaSemiBold mb-1">
-                    {item.prompt ?? "Untitled Prompt"}
-                  </Text>
-                  <Text
-                    className="font text-black/90 text-[15px] shadow leading-snug"
-                    numberOfLines={3}
-                  >
-                    {item.content}
-                  </Text>
-
-                  <Text className="mt-1 text-sm text-gray-500">
-                    {formatDateTruncatedMonth(new Date(item.created_at))} •{" "}
-                    {getRelativeTime(item.created_at)}
-                  </Text>
-                </View>
-              );
-            }}
+          <>
+                      <View className="absolute  flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[90%] top-6 self-center z-[10] "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 pl-2 text-md "
+            placeholder="Looking for a Post..?"
+             placeholderTextColor="#9CA3AF"
+            value={query}
+            onChangeText={setQuery}
+            returnKeyType="search"
           />
+          {query.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
+         <PostGallery
+          posts={personalPosts ?? []} 
+          profileUserId={user!.id}  
+          query={query}
+          offsetY={70}       
+         />
+         </>
         )}
       </View>
     );
@@ -472,13 +422,7 @@ export default function Page() {
 
   return (
     <GestureHandlerRootView>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <SafeAreaView style={{ flex: 1 }}>
+      <View className="flex-1 bg-[#FAFAFA]">
             <Header
               title="Starring"
               tabs={tabs}
@@ -487,9 +431,11 @@ export default function Page() {
               tabCount={tabs.length}
               style={{ zIndex: 10 }}
             />
-            <EmojiBackground emoji="⭐️" color="#c3e3fd" />
+            
             {/* Render content based on selected tab */}
             {selectedTab === "Create" && (
+              <>
+              <EmojiBackground emoji="🤩" color="#ffe640" />
               <CreateView
                 userId={user!.id}
                 loading={loading}
@@ -501,6 +447,7 @@ export default function Page() {
                 inputRef={inputRef}
                 disableShadow={true}
               />
+              </>
             )}
             {selectedTab === "Answer" && <AnswerView />}
             <StarringModal
@@ -514,9 +461,7 @@ export default function Page() {
                 setLoading(false);
               }}
             />
-          </SafeAreaView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+            </View>
     </GestureHandlerRootView>
   );
 }
