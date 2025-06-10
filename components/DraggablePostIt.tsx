@@ -1,129 +1,127 @@
-
-  import { useGlobalContext } from "@/app/globalcontext";
-  import { icons } from "@/constants";
-  import { allColors } from "@/constants/colors";
-  import { Post, PostWithPosition, Position, Stacks } from "@/types/type";
-  import { useEffect, useRef, useState, useMemo } from "react";
-  import PostIt from "@/components/PostIt";
-  import {
-    Animated,
-    Dimensions,
-    Easing,
-    Image, 
-    PanResponder,
-    RefreshControl,
-    ScrollView,
-    Text,
-    TouchableWithoutFeedback,
-    View,
-  } from "react-native";
-  import { MappingPostitProps } from "@/types/type";
-  import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
-  import React from "react";
+import { useGlobalContext } from "@/app/globalcontext";
+import { icons } from "@/constants";
+import { allColors } from "@/constants/colors";
+import { Post, PostWithPosition, Position, Stacks } from "@/types/type";
+import { useEffect, useRef, useState, useMemo } from "react";
+import PostIt from "@/components/PostIt";
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  Image,
+  PanResponder,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import { MappingPostitProps } from "@/types/type";
+import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
+import React from "react";
 
 interface DraggablePostItProps {
-    post: PostWithPosition;
-    updateIndex: () => void;
-    position: {top: number, left: number},
-    updatePosition: (x: number, y: number, post: PostWithPosition) => void;
-    onPress: () => void;
-    showText?: boolean;
-    isViewed?: boolean;
-    enabledPan: () => void;
-    scrollOffset: { x: number; y: number }; 
-    zoomScale: number;
-    disabled: boolean;
-    visibility: number; 
-  };
-  
-  const DraggablePostIt: React.FC<DraggablePostItProps> = ({
-    post,
-    position,
-    updateIndex,
-    updatePosition,
-    onPress,
-    showText = false,
-    isViewed = false,
-    enabledPan,
-    scrollOffset,
-    zoomScale,
-    disabled = false,
-    visibility = 1,
-  }) => {
+  post: PostWithPosition;
+  updateIndex: () => void;
+  position: { top: number; left: number };
+  updatePosition: (x: number, y: number, post: PostWithPosition) => void;
+  onPress: () => void;
+  showText?: boolean;
+  isViewed?: boolean;
+  enabledPan: () => void;
+  scrollOffset: { x: number; y: number };
+  zoomScale: number;
+  disabled: boolean;
+  visibility: number;
+}
 
-    const { playSoundEffect } = useSoundEffects();
-    
-    const animatedPosition = useRef(
-      new Animated.ValueXY({
-        x: position.left,
-        y: position.top,
-      })
-    ).current;
+const DraggablePostIt: React.FC<DraggablePostItProps> = ({
+  post,
+  position,
+  updateIndex,
+  updatePosition,
+  onPress,
+  showText = false,
+  isViewed = false,
+  enabledPan,
+  scrollOffset,
+  zoomScale,
+  disabled = false,
+  visibility = 1,
+}) => {
+  const { playSoundEffect } = useSoundEffects();
 
-    const scale = useRef(new Animated.Value(1)).current;
-    const rotation = useRef(new Animated.Value(0)).current;
-    const shadowOpacity = useRef(new Animated.Value(0.2)).current;
-    const clickThreshold = 2;
-    const [isDragging, setIsDragging] = useState<boolean>(false);
-    const [fontColor, setFontColor] = useState<string>("#0000ff");
-    const { stacks, setStacks } = useGlobalContext();
-    const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(null);
-    const [isPinned, setIsPinned] = useState<boolean>(post.pinned);
+  const animatedPosition = useRef(
+    new Animated.ValueXY({
+      x: position.left,
+      y: position.top,
+    })
+  ).current;
 
-    const accumulatedPosition = useRef({ x: position.left, y: position.top });
+  const scale = useRef(new Animated.Value(1)).current;
+  const rotation = useRef(new Animated.Value(0)).current;
+  const shadowOpacity = useRef(new Animated.Value(0.2)).current;
+  const clickThreshold = 2;
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [fontColor, setFontColor] = useState<string>("#0000ff");
+  const { stacks, setStacks } = useGlobalContext();
+  const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(
+    null
+  );
+  const [isPinned, setIsPinned] = useState<boolean>(post.pinned);
 
-    const stackRef = useMemo<Stacks | undefined>(
-      () => stacks.find((p) => p.ids.includes(post.id)),
-      [stacks, post.id]
-    );
-  
-    const hasUpdatedPosition = useRef(false);
+  const accumulatedPosition = useRef({ x: position.left, y: position.top });
+
+  const stackRef = useMemo<Stacks | undefined>(
+    () => stacks.find((p) => p.ids.includes(post.id)),
+    [stacks, post.id]
+  );
+
+  const hasUpdatedPosition = useRef(false);
 
   const getFontColorHex = (colorName: string | undefined) => {
     const foundColor = allColors.find((c) => c.id === colorName);
     setFontColor(foundColor?.fontColor || "#ff0000");
   };
 
-
   useEffect(() => {
-    setIsPinned(post.pinned)
-  }, [post])
-
+    setIsPinned(post.pinned);
+  }, [post]);
 
   useEffect(() => {
     getFontColorHex(post.color);
   }, [post.color]);
   useEffect(() => {
     if (stackRef) {
-      const stackCenterX = stackRef.center.x;
-      const stackCenterY = stackRef.center.y;
-  
+      const stackCenterX = stackRef?.center?.x;
+      const stackCenterY = stackRef?.center?.y;
+
       const currentPostX = accumulatedPosition.current.x + post.position.left;
       const currentPostY = accumulatedPosition.current.y + post.position.top;
-  
+
       const dx = stackCenterX - currentPostX;
       const dy = stackCenterY - currentPostY;
-  
+
       const distance = Math.sqrt(dx * dx + dy * dy);
-  
+
       if (distance > 20) {
         console.log(">>> Forced move for post:", post.id);
         console.log("Before accumulated:", accumulatedPosition.current);
         console.log("Static post.position:", post.position);
         console.log("Stack center:", stackRef.center);
-  
+
         // 🔄 Animate by relative delta
         animatedPosition.setValue({ x: dx, y: dy });
-  
+
         // ✅ Update accumulated position RELATIVELY
         accumulatedPosition.current.x += dx;
         accumulatedPosition.current.y += dy;
-  
+
         const finalX = post.position.left + accumulatedPosition.current.x;
         const finalY = post.position.top + accumulatedPosition.current.y;
-  
+
         updatePosition(finalX, finalY, post);
-  
+
         console.log(">>> Drag End:", post.id, finalX, finalY);
         console.log("After accumulated:", {
           x: accumulatedPosition.current.x + post.position.left,
@@ -131,109 +129,105 @@ interface DraggablePostItProps {
         });
       }
     }
-  }, [stackRef?.center.x, stackRef?.center.y]);
-  
-  
+  }, [stackRef?.center?.x, stackRef?.center?.y]);
 
-  
-    // Start drag animation - ALL animations will use JS driver
-    const startDragAnimation = () => {
-      playSoundEffect(SoundType.Button);
-      Animated.parallel([
-        Animated.spring(scale, {
-          toValue: 1.1,
-          useNativeDriver: false, // Changed to false
-        }),
-        Animated.spring(rotation, {
-          toValue: 0.05,
-          useNativeDriver: false, // Changed to false
-        }),
-        Animated.timing(shadowOpacity, {
-          toValue: 0.3,
-          duration: 200,
-          useNativeDriver: false, // Changed to false
-        }),
-      ]).start();
-    };
-  
-    // End drag animation - ALL animations will use JS driver
-    const endDragAnimation = () => {
-      playSoundEffect(SoundType.Button);
-      Animated.parallel([
-        Animated.spring(scale, {
-          toValue: 1,
-          friction: 3,
-          tension: 40,
-          useNativeDriver: false, // Changed to false
-        }),
-        Animated.spring(rotation, {
-          toValue: 0,
-          friction: 3,
-          tension: 40,
-          useNativeDriver: false, // Changed to false
-        }),
-        Animated.timing(shadowOpacity, {
-          toValue: 0.2,
-          duration: 200,
-          useNativeDriver: false, // Changed to false
-        }),
-      ]).start();
-    };
- 
-    const panResponder = useRef(
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => !disabled,
-        onMoveShouldSetPanResponder: () => !disabled,
-    
-        onPanResponderGrant: () => {
-          updateIndex();
-          if (isPinned) {
-            onPress();
-            return;
-          }
-          setIsDragging(true);
-          enabledPan();
-          animatedPosition.extractOffset();
-          startDragAnimation();
-        },
-    
-        onPanResponderMove: (event, gestureState) => {
-          if (!isPinned) {
-            animatedPosition.setValue({
-              x: gestureState.dx,
-              y: gestureState.dy,
-            });
-    
-            const rotate = gestureState.vx * 0.02;
-            rotation.setValue(rotate);
-          }
-        },
-    
-        onPanResponderRelease: (event, gestureState) => {
-          if (isPinned) return;
-        
-          animatedPosition.extractOffset();
-        
-          // Compute displacement corrected for zoom
-          const correctedDx = (gestureState.dx) / zoomScale;
-          const correctedDy = (gestureState.dy) / zoomScale;
-        
-          // Compute final new absolute position
-          const dx = accumulatedPosition.current.x + correctedDx - scrollOffset.x;
-          const dy = accumulatedPosition.current.y + correctedDy - scrollOffset.y;
-          const finalX = dx + position.left;
-          const finalY = dy + position.top;
-          
-        
-          // Save new accumulated position locally
-          accumulatedPosition.current = {
-            x: dx,
-            y: dy,
-          };
+  // Start drag animation - ALL animations will use JS driver
+  const startDragAnimation = () => {
+    playSoundEffect(SoundType.Button);
+    Animated.parallel([
+      Animated.spring(scale, {
+        toValue: 1.1,
+        useNativeDriver: false, // Changed to false
+      }),
+      Animated.spring(rotation, {
+        toValue: 0.05,
+        useNativeDriver: false, // Changed to false
+      }),
+      Animated.timing(shadowOpacity, {
+        toValue: 0.3,
+        duration: 200,
+        useNativeDriver: false, // Changed to false
+      }),
+    ]).start();
+  };
 
-          //console.log("Final position:", finalX, finalY, "Displacement:", dx, dy);
-        
-          updatePosition(finalX, finalY, post); // (optional) update parent live if you want
+  // End drag animation - ALL animations will use JS driver
+  const endDragAnimation = () => {
+    playSoundEffect(SoundType.Button);
+    Animated.parallel([
+      Animated.spring(scale, {
+        toValue: 1,
+        friction: 3,
+        tension: 40,
+        useNativeDriver: false, // Changed to false
+      }),
+      Animated.spring(rotation, {
+        toValue: 0,
+        friction: 3,
+        tension: 40,
+        useNativeDriver: false, // Changed to false
+      }),
+      Animated.timing(shadowOpacity, {
+        toValue: 0.2,
+        duration: 200,
+        useNativeDriver: false, // Changed to false
+      }),
+    ]).start();
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => !disabled,
+      onMoveShouldSetPanResponder: () => !disabled,
+
+      onPanResponderGrant: () => {
+        updateIndex();
+        if (isPinned) {
+          onPress();
+          return;
+        }
+        setIsDragging(true);
+        enabledPan();
+        animatedPosition.extractOffset();
+        startDragAnimation();
+      },
+
+      onPanResponderMove: (event, gestureState) => {
+        if (!isPinned) {
+          animatedPosition.setValue({
+            x: gestureState.dx,
+            y: gestureState.dy,
+          });
+
+          const rotate = gestureState.vx * 0.02;
+          rotation.setValue(rotate);
+        }
+      },
+
+      onPanResponderRelease: (event, gestureState) => {
+        if (isPinned) return;
+
+        animatedPosition.extractOffset();
+
+        // Compute displacement corrected for zoom
+        const correctedDx = gestureState.dx / zoomScale;
+        const correctedDy = gestureState.dy / zoomScale;
+
+        // Compute final new absolute position
+        const dx = accumulatedPosition.current.x + correctedDx - scrollOffset.x;
+        const dy = accumulatedPosition.current.y + correctedDy - scrollOffset.y;
+        const finalX = dx + position.left;
+        const finalY = dy + position.top;
+
+        // Save new accumulated position locally
+        accumulatedPosition.current = {
+          x: dx,
+          y: dy,
+        };
+
+        //console.log("Final position:", finalX, finalY, "Displacement:", dx, dy);
+
+        updatePosition(finalX, finalY, post); // (optional) update parent live if you want
 
         
           if (Math.abs(gestureState.dx) < clickThreshold && Math.abs(gestureState.dy) < clickThreshold) {
@@ -326,4 +320,4 @@ interface DraggablePostItProps {
     );
   };
 
-  export default DraggablePostIt;
+export default DraggablePostIt;

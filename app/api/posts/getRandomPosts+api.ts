@@ -1,14 +1,17 @@
-import { Format } from "@/types/type";
 import { neon } from "@neondatabase/serverless";
+import { Format } from "@/types/type";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(process.env.DATABASE_URL!);
+    const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const limit = Number(url.searchParams.get("number")) || 10;
+    const limit = url.searchParams.get("number");
     const userId = url.searchParams.get("id");
-    const mode = url.searchParams.get("mode");
+    const mode = url.searchParams.get("mode") as
+      | keyof typeof locationFilter
+      | null;
 
+    // Define the base select fields that are common to all queries
     const baseSelectFields = `
       p.id, 
       p.content,
@@ -23,8 +26,6 @@ export async function GET(request: Request) {
       p.emoji,
       p.prompt_id,
       p.board_id,
-      p.formatting,
-      p.static_emoji,
       u.clerk_id,
       u.firstname, 
       u.lastname, 
@@ -54,13 +55,13 @@ export async function GET(request: Request) {
     // Directly interpolate values into the SQL string
     const query = `
       SELECT
-        ${baseSelectFields}
+        ${sql.unsafe(baseSelectFields)}
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
       WHERE p.user_id != $1
       AND p.post_type = 'public'
-      AND ${locationFilter}
+      AND ${sql.unsafe(locationFilter)}
       ORDER BY RANDOM()
       LIMIT $2;
     `;

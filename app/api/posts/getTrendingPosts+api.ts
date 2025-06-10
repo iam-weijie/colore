@@ -3,9 +3,9 @@ import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(process.env.DATABASE_URL!);
+    const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
-    const number = Number(url.searchParams.get("number")) || 10;
+    const number = url.searchParams.get("number");
     const id = url.searchParams.get("id");
     const mode = url.searchParams.get("mode") as
       | "city"
@@ -80,7 +80,7 @@ export async function GET(request: Request) {
       LIMIT $2;
     `;
 
-    const response = await sql(query, [id, number]);
+    const response = await sql.query(query, [id, number]);
 
     const mappedPosts = response.map((post) => ({
       id: post.id,
@@ -114,14 +114,16 @@ export async function GET(request: Request) {
       static_emoji: post.static_emoji,
     }));
 
-    return new Response(JSON.stringify({ data: mappedPosts }), {
+    return new Response(JSON.stringify({ data: response }), {
       status: 200,
     });
   } catch (error) {
     console.error(error);
     return new Response(
-      JSON.stringify({ error: "Failed to fetch trending posts" }),
-      { status: 500 }
+      JSON.stringify({ error: "Failed to fetch random posts" }),
+      {
+        status: 500,
+      }
     );
   }
 }

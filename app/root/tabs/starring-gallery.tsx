@@ -1,8 +1,9 @@
 import { fetchAPI } from "@/lib/fetch";
 import { Post, UserData } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
-import React, { useEffect, useState, useCallback, useRef } from "react";
-import { useFocusEffect } from "expo-router";
+import * as React from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { router, useFocusEffect } from "expo-router";
 import {
   Dimensions,
   Keyboard,
@@ -11,15 +12,36 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   View,
+  FlatList,
+  Platform,
 } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
+import CustomButton from "@/components/CustomButton";
+import ModalSheet from "@/components/Modal";
+import InfoScreen from "@/components/InfoScreen";
 import EmojiBackground from "@/components/EmojiBackground";
+import { icons } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from "@/notifications/AlertContext";
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  RenderPromptCard,
+  RenderPromptAnswerCard,
+} from "@/components/RenderCard";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
-import StarringModal from "@/components/StarringModal";
+import CardCarrousel from "@/components/CardCarroussel";
+import StarringContainer from "@/components/StarringContainer";
+import {
+  convertToLocal,
+  formatDateTruncatedMonth,
+  getRelativeTime,
+} from "@/lib/utils";
+import { allColors } from "@/constants/colors";
+import PostGallery from "@/components/PostGallery";
+import { Ionicons } from "@expo/vector-icons";
 import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
 import { starringTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
@@ -27,10 +49,51 @@ import ModalSheet from "@/components/Modal";
 
 const screenWidth = Dimensions.get("window").width;
 
+const CreateView = ({
+  loading,
+  prompts,
+  promptContent,
+  inputRef,
+  handleScrollBeginDrag,
+  updatePromptContent,
+  handlePromptSubmit,
+  userId,
+}: any) => (
+  <View className="flex-1 py-3 ">
+  <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={{ flex: 1 }}
+  >
+    
+    {loading ? (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ColoreActivityIndicator text="Loading…" />
+      </View>
+    ) : (
+      <CardCarrousel
+        items={prompts}
+        renderItem={(prompt: Prompt) => (
+          <RenderPromptCard
+            item={prompt}
+            userId={userId}
+            promptContent={promptContent}
+            updatePromptContent={updatePromptContent}
+            handlePromptSubmit={handlePromptSubmit}
+            inputRef={inputRef}
+          />
+        )}
+        handleScrollBeginDrag={handleScrollBeginDrag}
+        inputRef={inputRef}
+      />
+    )}
+  </KeyboardAvoidingView>
+  </View>
+);
+
 export default function Page() {
   const { user } = useUser();
   const { showAlert } = useAlert();
-  const { isIpad, profile } = useGlobalContext();
+  const { isIpad, stacks, setStacks, profile } = useGlobalContext();
 
   // Tutorial constants
   
@@ -70,23 +133,41 @@ export default function Page() {
   const [promptContent, setPromptContent] = useState<string>("");
 
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [personalPrompts, setPersonalPrompts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [answerLoading, setAnswerLoading] = useState(false);
   const [hasSubmittedPrompt, setHasSubmittedPrompt] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState<string>("Create");
-
-  const selectedPostRef = useRef<Post | null>(null);
   const inputRef = useRef<TextInput>(null);
+   const [query, setQuery] = useState<string>("");
 
-  const starringTabs = [
-    { name: "Create", key: "Create", color: "#CFB1FB", notifications: 0 },
-    {
-      name: "Answer",
-      key: "Answer",
-      color: "#CFB1FB",
-    },
-    { name: "Peek", key: "Peek", color: "#93c5fd", notifications: 0 },
-  ];
+  const [selectedModal, setSelectedModal] = useState<any>();
+
+  const [isPeekModalVisible, setPeekModalVisible] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<"Create" | "Answer" | "Peek">(
+    "Create"
+  );
+  const [hasFetchedPersonalPrompts, setHasFetchedPersonalPrompts] =
+    useState(false);
+
+  const tabs = [
+    { name: "Create", key: "Create", color: "#CFB1FB" },
+    { name: "Answer", key: "Answer", color: "#93C5FD" },
+    { name: "Peek", key: "Peek", color: "#FBD38D" },
+  ] as const;
+
+  const renderPrompt = useCallback(
+    ({ item }: { item: Prompt }) => (
+      <RenderPromptCard
+        item={item}
+        userId={user!.id}
+        promptContent={item.cue}
+        updatePromptContent={(text: string) => {}}
+        handlePromptSubmit={() => {}}
+      />
+    ),
+    [user!.id]
+  );
 
   // 1) request ATT permission
   const requestPermission = async () => {
@@ -106,26 +187,42 @@ export default function Page() {
   };
 
   // 3) fetch initial batch of posts
+
   const fetchPosts = async () => {
-   
     setLoading(true);
-   
     try {
-      const response = await fetchAPI(
-        //TODO Adjust this to get trending posts
+      const res = await fetchAPI(
         `/api/posts/getTrendingPosts?number=${isIpad ? 24 : 18}&id=${user?.id}`
       );
-
-      
-      setPosts(response.data);
-      selectedPostRef.current = response.data[0];
-      setExcludedIds(response.data.map((p: Post) => p.id));
-      setLoading(false);
-    } catch (e) {
-      console.error("Failed to fetch posts:", e);
+      //log
+      console.log("Fetched posts:", res.data[0]);
+      setPosts(res.data);
+      // prime for peek
+      setPeekModalVisible(true);
+    } catch {
       setError("Failed to load posts");
-    } 
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // 4) fetch personal posts
+  const fetchPersonalPrompts = useCallback(async () => {
+    if (hasFetchedPersonalPrompts) return; // ← bail out if already loaded
+    setAnswerLoading(true);
+    try {
+      const res = await fetchAPI(
+        `/api/prompts/getPromptAnswers?user_id=${user?.id}`,
+        { method: "GET" }
+      );
+      setPersonalPrompts(Array.isArray(res.posts) ? res.posts : []);
+      setHasFetchedPersonalPrompts(true); // ← mark as fetched
+    } catch {
+      setError("Failed to load personal prompts");
+    } finally {
+      setAnswerLoading(false);
+    }
+  }, [hasFetchedPersonalPrompts]);
 
   const fetchPrompts = async () => {
     setLoading(true);
@@ -175,21 +272,42 @@ export default function Page() {
     useCallback(() => {
      
         fetchPosts();
-      
-    }, [user])
+      } else if (user && stacks.length > 0) {
+        setPosts(stacks[0].elements);
+        setExcludedIds(stacks[0].ids);
+      }
+    }, [user, isIpad])
   );
 
-  // on-mount (and whenever user / isIpad changes) load everything
   useEffect(() => {
     requestPermission();
     fetchPrompts();
     if (user) {
       fetchUserData();
-      fetchPosts();
+      if (stacks.length == 0) {
+        fetchPosts();
+      }
     }
-  }, [user]);
+  }, [user, isIpad]);
+
+  useEffect(() => {
+    if (selectedTab === "Peek") {
+      setPeekModalVisible(true);
+    }
+  }, [selectedTab]);
+
+  useEffect(() => {
+    if (selectedTab === "Answer" && !hasFetchedPersonalPrompts) {
+      fetchPersonalPrompts();
+    }
+  }, [selectedTab, hasFetchedPersonalPrompts]);
 
 
+  // Clear current search
+
+  const handleClearSearch = () => {
+  setQuery("");
+};
 
   const handleScrollToLoad = async () => {
     setLoading(true);
@@ -220,12 +338,12 @@ export default function Page() {
     }
   };
 
-  const handlePromptSubmit = async (item: Prompt) => {
+  const handlePromptSubmit = async (item: Prompt, content: string) => {
     try {
       await fetchAPI("/api/prompts/newPrompt", {
         method: "POST",
         body: JSON.stringify({
-          content: `${item.cue} ${promptContent.toLocaleLowerCase()}`,
+          content: `${item.cue} ${content?.toLocaleLowerCase()}`,
           clerkId: user!.id,
           theme: item.theme,
           cue: item.cue,
@@ -237,8 +355,9 @@ export default function Page() {
         message: `Your prompt was submitted successfully.`,
         type: "POST",
         status: "success",
-        color: item.color,
+        color: "#ffe640",
       });
+
     } catch (error) {
       console.error("Couldn't submit prompt", error);
       showAlert({
@@ -248,6 +367,7 @@ export default function Page() {
         status: "error",
       });
     } finally {
+      setPromptContent("");
       const timeoutId = setTimeout(() => {
         setHasSubmittedPrompt(true);
       }, 2000);
@@ -256,98 +376,114 @@ export default function Page() {
     }
   };
 
-  const handleTabChange = (tabKey: string) => {
-    console.log("Tab changed to:", tabKey);
-    setSelectedTab(tabKey);
+  const handleTabChange = (key: (typeof tabs)[number]["key"]) => {
+    setSelectedTab(key);
+    // open peek modal whenever we switch to Peek
+    if (key === "Peek") setPeekModalVisible(true);
+  };
+
+  const handleCreateScrollBegin = () => {
+    inputRef.current?.blur();
+  };
+
+  const AnswerView = () => {
+    // locally ensure posts is an array
+    const personalPosts = Array.isArray(personalPrompts) ? personalPrompts : [];
+
+    return (
+      <View className="flex-1 px-4 py-2 bg-[#FAFAFA]">
+        {answerLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ColoreActivityIndicator text="Loading my prompts…" />
+          </View>
+        ) : //ts-ignore-next-line
+
+        personalPosts.length === 0 ? (
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-lg">You haven’t posted anything yet!</Text>
+          </View>
+        ) : (
+          <>
+                      <View className="absolute  flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[90%] top-6 self-center z-[10] "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 pl-2 text-md "
+            placeholder="Looking for a Post..?"
+             placeholderTextColor="#9CA3AF"
+            value={query}
+            onChangeText={setQuery}
+            returnKeyType="search"
+          />
+          {query.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
+         <PostGallery
+          posts={personalPosts ?? []} 
+          profileUserId={user!.id}  
+          query={query}
+          offsetY={70}       
+         />
+         </>
+        )}
+      </View>
+    );
   };
 
   return (
-    <View className="flex-1">
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <KeyboardAvoidingView behavior="height" className="flex-1">
-          <View className="flex-1">
+    <GestureHandlerRootView>
+      <View className="flex-1 bg-[#FAFAFA]">
             <Header
               title="Starring"
-              tabs={starringTabs}
+              tabs={tabs}
               selectedTab={selectedTab}
               onTabChange={handleTabChange}
-              tabCount={starringTabs.length}
+              tabCount={tabs.length}
+              style={{ zIndex: 10 }}
             />
-            <EmojiBackground emoji="" color="#ffe640" />
-             {loading ? (
-              <View className="flex-1 flex-col items-center justify-center">
-                <ColoreActivityIndicator colors={["#FFFFFF", "#FFFFFF", "#FFFFFF"]}/>
-              </View>
-            ) : posts.length > 0 ? (
-              <View className="flex-1 absolute top-[5%]">
-              <StarringModal
-                isVisible={true}
-                selectedPosts={posts}
-                handleCloseModal={() => {}}
-                infiniteScroll={true}
-                scrollToLoad={handleScrollToLoad}
+            
+            {/* Render content based on selected tab */}
+            {selectedTab === "Create" && (
+              <>
+              <EmojiBackground emoji="🤩" color="#ffe640" />
+              <CreateView
+                userId={user!.id}
+                loading={loading}
+                prompts={prompts}
+                promptContent={promptContent}
+                handleScrollBeginDrag={handleCreateScrollBegin}
+                updatePromptContent={updatePromptContent}
+                handlePromptSubmit={handlePromptSubmit}
+                inputRef={inputRef}
+                disableShadow={true}
               />
-              </View>
-              
-            ) : (
-              <View>
-                <Text>No posts available</Text>
-              </View>
-            )}
-            {hasSubmittedPrompt ? (
-              <>
-                {/*
-              //TODO Remake answer tab from scratch
-              */}
-                {/* <PostModal
-                  isVisible={isModalVisible}
-                  selectedPosts={posts}
-                  header={
-                    <Header
-                      title="Starring"
-                      tabs={starringTabs}
-                      selectedTab={selectedTab}
-                      onTabChange={handleTabChange}
-                      className="z-10"
-                    />
-                  }
-                  handleCloseModal={handleCloseModalPress}
-                  infiniteScroll={true}
-                  scrollToLoad={handleScrollToLoad}
-                /> */}
-              </>
-            ) : (
-              <>
-                {/* <View className="flex-1">
-              {loading ? (
-                <View className="flex-1 items-center justify-center">
-                  <ColoreActivityIndicator text="Summoning Bob..." />
-                </View>
-              ) : (
-                <View className="flex-[0.85]">
-                  <CardCarrousel
-                    items={prompts}
-                    renderItem={(item, index) => (
-                      <RenderPromptCard
-                        item={item}
-                        userId={user!.id}
-                        promptContent={promptContent}
-                        updatePromptContent={updatePromptContent}
-                        handlePromptSubmit={handlePromptSubmit}
-                      />
-                    )}
-                    handleScrollBeginDrag={handleScrollBeginDrag}
-                    inputRef={inputRef}
-                  />
-                </View>
-              )}
-            </View> */}
               </>
             )}
-          </View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-              {!skipIntro && <ModalSheet 
+            {selectedTab === "Answer" && <AnswerView />}
+            {selectedTab === "Peek" &&
+            
+            <StarringContainer
+              selectedPosts={posts}
+              handleCloseModal={() => {}}
+              infiniteScroll
+              scrollToLoad={async () => {
+                setLoading(true);
+                await fetchPosts();
+                setLoading(false);
+              }}
+            />
+            
+}
+ {!skipIntro && <ModalSheet 
         title={""} 
         isVisible={!skipIntro} 
         onClose={() => {
@@ -367,7 +503,7 @@ export default function Page() {
         </CarouselPage>
         </View>
         </ModalSheet>}
-      
-    </View>
+            </View>
+    </GestureHandlerRootView>
   );
 }

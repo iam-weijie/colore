@@ -392,6 +392,7 @@ type Prompt = {
   engagement: number;
   created_at: string;
   color?: string;
+  item?: object;
 };
 
 type GeographicalMode = "city" | "state" | "country" | "world";

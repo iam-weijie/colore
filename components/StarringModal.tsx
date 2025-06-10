@@ -37,6 +37,8 @@ const StarringModal: React.FC<PostModalProps> = ({
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    //log length of selectedPosts
+    console.log("Selected Posts Length:", selectedPosts.length);
     if (isVisible) {
       // Slide up animation
       Animated.timing(slideAnim, {
@@ -91,21 +93,33 @@ const StarringModal: React.FC<PostModalProps> = ({
           backgroundStyle,
           modalStyle,
         ]}
+        pointerEvents={isVisible ? "auto" : "none"}
+
       >
         {/* Pressable area to close modal when background is tapped */}
-        <Pressable style={{ flex: 1 }} onPress={handleCloseModal} />
+        <Pressable
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            zIndex: 1,
+          }}
+          onPress={handleCloseModal}
+        />
 
         {/* Animated Content */}
-        <StarringContainer
-          selectedPosts={selectedPosts}
-          handleCloseModal={handleCloseModal}
-          handleUpdate={handleUpdate}
-          invertedColors={invertedColors}
-          isPreview={isPreview}
-          header={header}
-          infiniteScroll={infiniteScroll}
-          scrollToLoad={scrollToLoad}
-        />
+        <View style={{ flex: 1, zIndex: 2 }}>
+          <StarringContainer
+            selectedPosts={selectedPosts}
+            handleCloseModal={handleCloseModal}
+            handleUpdate={handleUpdate}
+            invertedColors={invertedColors}
+            isPreview={isPreview}
+            header={header}
+            infiniteScroll={infiniteScroll}
+            scrollToLoad={scrollToLoad}
+          />
+        </View>
       </Animated.View>
     </>
   );
