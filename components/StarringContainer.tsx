@@ -137,17 +137,16 @@ const StarringContainer: React.FC<PostContainerProps> = ({
 
   useEffect(() => {
     fetchUserdata();
-    fetchLikeStatus();
   }, [isSaved, isLiked, user]);
 
   useEffect(() => {
-    console.log("[Starring Tab] Post Count: ", post.length);
-    if (post.length) {
-      setPosts(post);
-      setCurrentPost(post[currentPostIndex]);
+    console.log("[Starring Tab] Post Count: ", selectedPosts.length);
+    if (selectedPosts.length) {
+      setPosts(selectedPosts);
+      setCurrentPost(selectedPosts[currentPostIndex] || selectedPosts[0]);
       setIsLoading(false);
     }
-  }, []);
+  }, [selectedPosts, currentPostIndex]);
 
   const fetchLikeStatus = async () => {
     try {
@@ -165,23 +164,31 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   };
 
   useEffect(() => {
-    setCurrentPost(post[currentPostIndex]);
+    if (post.length === 0 || !user?.id) return;
 
-    if (
-      infiniteScroll &&
-      typeof scrollToLoad === "function" &&
-      currentPostIndex + 1 === posts.length - 1
-    ) {
-      // If last post and infiniteScroll is enabled
-      runOnJS(scrollToLoad)();
+    const newPost = post[currentPostIndex];
+    setCurrentPost(newPost);
+    setIsPinned(newPost?.pinned);
+
+    const fetchStatus = async () => {
+      try {
+        const response = await fetchAPI(
+          `/api/posts/updateLikeCount?postId=${newPost.id}&userId=${user.id}`,
+          { method: "GET" }
+        );
+        if (response.error) return;
+
+        setIsLiked(response.data.liked);
+        setLikeCount(response.data.likeCount);
+      } catch (error) {
+        console.error("Failed to fetch like status:", error);
+      }
+    };
+
+    if (newPost?.id) {
+      fetchStatus();
     }
-  }, [currentPostIndex]);
-  // Fetch like status only when post or user changes
-  useEffect(() => {
-    if (!user?.id || !currentPost?.id) return;
-    fetchLikeStatus();
-    setIsPinned(currentPost?.pinned);
-  }, [post, currentPostIndex, user?.id]);
+  }, [currentPostIndex, post, user?.id]);
 
   const dateCreated = convertToLocal(new Date(currentPost?.created_at || ""));
   const formattedDate = formatDateTruncatedMonth(dateCreated);
@@ -680,7 +687,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       ? JSON.parse(currentPost.formatting)
       : (currentPost?.formatting ?? []);
 
- return (
+  return (
     <AnimatedView
       ref={viewRef}
       className="flex-1 absolute w-screen h-screen justify-center"
@@ -694,9 +701,8 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       </TouchableWithoutFeedback>
 
       {header}
-      <GestureHandlerRootView
-        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-      >
+
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <GestureDetector gesture={swipeGesture}>
           <Animated.View
             style={[
@@ -787,7 +793,8 @@ const StarringContainer: React.FC<PostContainerProps> = ({
             )}
           </Animated.View>
         </GestureDetector>
-      </GestureHandlerRootView>
+      </View>
+
       {/* {infiniteScroll ? (
         <View className="absolute top-[75%] self-center flex flex-row items-center justify-center">
           {currentPost?.prompt_id && (

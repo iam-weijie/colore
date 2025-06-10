@@ -5,9 +5,14 @@ import { formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { Link, useFocusEffect } from "expo-router";
-import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
+import Animated, {
+  SlideInDown,
+  SlideInUp,
+  FadeInDown,
+  FadeIn,
+} from "react-native-reanimated";
 import { router } from "expo-router";
-import * as Haptics from 'expo-haptics';
+import * as Haptics from "expo-haptics";
 import { useHaptics } from "@/hooks/useHaptics";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -26,10 +31,10 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   disableModal = false,
   query = "",
   header,
-  offsetY
+  offsetY,
 }) => {
   const { user } = useUser();
-  const { isIpad } = useGlobalContext(); 
+  const { isIpad } = useGlobalContext();
   const isOwnProfile = user!.id === profileUserId;
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [sortedPosts, setSortedPosts] = useState<Post[]>([]);
@@ -47,14 +52,13 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     }
   };
 
-  const filteredPosts = sortedPosts.filter((post) => post.content.toLowerCase().includes(query.toLowerCase()));
+  const filteredPosts = sortedPosts.filter((post) =>
+    post.content.toLowerCase().includes(query.toLowerCase())
+  );
 
- 
   useEffect(() => {
-  
-      const sorted = [...posts].sort(sortByUnread);
-      setSortedPosts(sorted);
-
+    const sorted = [...posts].sort(sortByUnread);
+    setSortedPosts(sorted);
   }, [posts]);
 
   const screenWidth = Dimensions.get("window").width;
@@ -70,72 +74,78 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     return <Text>An error occurred.</Text>;
   }
 
-const renderItem = ({ item }: { item: Post }) => {
-  const backgroundColor = allColors?.find((c) => c.id === item.color)?.hex || item.color;
-  const isOwner = item.user_id === user?.id;
-  const hasNewComments = isOwner && item.unread_comments > 0;
-  
-  return (
-    <Animated.View
-      entering={FadeInDown.duration(400)}
-      style={{
-        marginHorizontal: isIpad ? 6 : 0,
-        transform: [{ rotate: `${(Math.random() * 1.5 - 0.75).toFixed(2)}deg` }], // Reduced rotation range
-      }}
-    >
-      <TouchableOpacity 
-        onPress={() => 
-          {
-            setSelectedPost(item)
-            disableModal && handleUpdate && handleUpdate(item.id);}}
-        activeOpacity={0.9}
-      >
-        <View
-          className="w-full mb-3 py-4 px-6 mx-auto"
-          style={{
-            borderRadius: 32,
-            backgroundColor,
-            borderColor: "#ffffff90",
-            borderWidth: 2, 
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 }, 
-            shadowOpacity: 0.08,
-            shadowRadius: 4,
-          }}
-        >
-          <Text 
-            className="font-JakartaSemiBold text-white/90 text-[15px] shadow leading-snug" 
-            numberOfLines={3}
-          >
-            {truncateText(item.content, 120)} 
-          </Text>
+  const renderItem = ({ item }: { item: Post }) => {
+    const backgroundColor =
+      allColors?.find((c) => c.id === item.color)?.hex || item.color;
+    const isOwner = item.user_id === user?.id;
+    const hasNewComments = isOwner && item.unread_comments > 0;
 
-          <View className="flex-row justify-between items-center mt-2.5">
-            <Text className="font-Jakarta text-xs text-white/80">
-              {item.created_at ? getRelativeTime(new Date(item.created_at)) : ""}
+    return (
+      <Animated.View
+        entering={FadeInDown.duration(400)}
+        style={{
+          marginHorizontal: isIpad ? 6 : 0,
+          transform: [
+            { rotate: `${(Math.random() * 1.5 - 0.75).toFixed(2)}deg` },
+          ], // Reduced rotation range
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => {
+            setSelectedPost(item);
+            disableModal && handleUpdate && handleUpdate(item.id);
+          }}
+          activeOpacity={0.9}
+        >
+          <View
+            className="w-full mb-3 py-4 px-6 mx-auto"
+            style={{
+              borderRadius: 32,
+              backgroundColor,
+              borderColor: "#ffffff90",
+              borderWidth: 2,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 4,
+            }}
+          >
+            <Text
+              className="font-JakartaSemiBold text-white/90 text-[15px] shadow leading-snug"
+              numberOfLines={3}
+            >
+              {truncateText(item.content, 120)}
             </Text>
 
-            {hasNewComments && (
-              <View className="px-3 py-2 bg-red-500/95 rounded-full">
-                <Text className="text-xs font-JakartaSemiBold text-white">
-                  {item.unread_comments} comment{item.unread_comments > 1 ? 's' : ''}
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
+            <View className="flex-row justify-between items-center mt-2.5">
+              <Text className="font-Jakarta text-xs text-white/80">
+                {item.created_at
+                  ? getRelativeTime(new Date(item.created_at))
+                  : ""}
+              </Text>
 
- const handleUnsave = () => {
-  setIsSaved((prevPost) => !isSaved);
-  if (handleUpdate) {
-    handleUpdate(selectedPost?.id || -1, isSaved);
-  }
-  handleCloseModal();
- }
+              {hasNewComments && (
+                <View className="px-3 py-2 bg-red-500/95 rounded-full">
+                  <Text className="text-xs font-JakartaSemiBold text-white">
+                    {item.unread_comments} comment
+                    {item.unread_comments > 1 ? "s" : ""}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
+  const handleUnsave = () => {
+    setIsSaved((prevPost) => !isSaved);
+    if (handleUpdate) {
+      handleUpdate(selectedPost?.id || -1, isSaved);
+    }
+    handleCloseModal();
+  };
   const handleCloseModal = () => {
     setSelectedPost(null);
   };
@@ -147,36 +157,44 @@ const renderItem = ({ item }: { item: Post }) => {
         handleUpdate(selectedPost?.id || -1, isSaved);
         setStateVars({ ...stateVars, queueRefresh: false });
       }
-    }, [stateVars.queueRefresh, handleUpdate, isOwnProfile, selectedPost, isSaved])
+    }, [
+      stateVars.queueRefresh,
+      handleUpdate,
+      isOwnProfile,
+      selectedPost,
+      isSaved,
+    ])
   );
-
 
   return (
     <View className="flex-1  w-full rounded-[24px] max-h-[100%]">
-      {filteredPosts.length > 0 ? 
-      (
+      {filteredPosts.length > 0 ? (
         header
-        
-      ) : 
-      (
-      <TouchableOpacity activeOpacity={0.7} onPress={() => {router.push("/root/new-post")}}>
-        <Animated.View 
-          entering={FadeIn.duration(800)}
-          className="w-full flex items-center justify-center p-6"
+      ) : (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => {
+            router.push("/root/new-post");
+          }}
         >
-          <Text className="font-Jakarta text-gray-500 text-center">
-            Click to make a post and see it here!
-          </Text>
-        </Animated.View>
-      </TouchableOpacity>)}
-       
+          <Animated.View
+            entering={FadeIn.duration(800)}
+            className="w-full flex items-center justify-center p-6"
+          >
+            <Text className="font-Jakarta text-gray-500 text-center">
+              Click to make a post and see it here!
+            </Text>
+          </Animated.View>
+        </TouchableOpacity>
+      )}
+
       {posts.length > 0 && (
         <FlatList
           className="flex-1 mt-4 h-full rounded-[24px]"
           data={filteredPosts}
           contentContainerStyle={{
             paddingTop: offsetY,
-            paddingBottom: offsetY
+            paddingBottom: offsetY,
           }}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}

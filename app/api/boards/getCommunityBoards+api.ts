@@ -28,13 +28,11 @@ export async function GET(request: Request) {
     const raw_boards = fetch_boards;
     const raw_boards_id: String[] = fetch_boards.map((b) => b.id);
 
-
     const ids = raw_boards_id
-    .map((id) => Number(id))
-    .filter((id) => Number.isInteger(id));
+      .map((id) => Number(id))
+      .filter((id) => Number.isInteger(id));
 
-    const fetch_count = await sql
-    `
+    const fetch_count = await sql`
     SELECT p.board_id, COUNT(*) AS post_count
     FROM posts p
     JOIN boards b ON p.board_id = b.id
@@ -48,41 +46,37 @@ export async function GET(request: Request) {
       });
     }
 
-  
+    const boards: Board[] = fetch_count.map((b) => {
+      const board = raw_boards.find((i) => i.id === b.board_id);
 
-       const boards: Board[] = fetch_count.map((b) => {
-          const board = raw_boards.find((i) => i.id === b.board_id )
-    
-      
-          const daysDifference = (Date.now() - new Date(board.created_at).getTime()) / (1000 * 60 * 60 * 24)
-    
-          return {
-            id: board.id,
-            title: board.title,
-            user_id: board.user_id,
-            description: board.description,
-            members_id: board.members_id,
-            board_type: board.board_type,
-            restrictions: board.restrictions,
-            created_at: board.created_at,
-            count: b.post_count,
-            isNew: daysDifference < 3,
-            isPrivate: board.restrictions.includes("Private"),
-            commentAllowed: board.restrictions.includes("commentsAllowed"),
-            imageUrl: "",
-          }
-    
-        })
+      const daysDifference =
+        (Date.now() - new Date(board.created_at).getTime()) /
+        (1000 * 60 * 60 * 24);
+
+      return {
+        id: board.id,
+        title: board.title,
+        user_id: board.user_id,
+        description: board.description,
+        members_id: board.members_id,
+        board_type: board.board_type,
+        restrictions: board.restrictions,
+        created_at: board.created_at,
+        count: b.post_count,
+        isNew: daysDifference < 3,
+        isPrivate: board.restrictions.includes("Private"),
+        commentAllowed: board.restrictions.includes("commentsAllowed"),
+        imageUrl: "",
+      };
+    });
 
     return new Response(JSON.stringify({ data: boards }), {
       status: 200,
     });
-  
   } catch (error) {
     console.error("Error fetching boards:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch boards" }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: "Failed to fetch boards" }), {
+      status: 500,
+    });
   }
 }

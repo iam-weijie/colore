@@ -93,6 +93,8 @@ const StarringModal: React.FC<PostModalProps> = ({
           backgroundStyle,
           modalStyle,
         ]}
+        pointerEvents={isVisible ? "auto" : "none"}
+
       >
         {/* Pressable area to close modal when background is tapped */}
         <Pressable

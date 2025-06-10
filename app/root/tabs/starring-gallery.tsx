@@ -16,7 +16,10 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   View,
+  FlatList,
+  Platform,
 } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 import CustomButton from "@/components/CustomButton";
@@ -27,14 +30,62 @@ import { icons } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from "@/notifications/AlertContext";
 import { LinearGradient } from "expo-linear-gradient";
-import { RenderPromptCard } from "@/components/RenderCard";
+import {
+  RenderPromptCard,
+  RenderPromptAnswerCard,
+} from "@/components/RenderCard";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import CardCarrousel from "@/components/CardCarroussel";
 // import StarringPeekTab from "@/components/StarringModal";
 import StarringModal from "@/components/StarringModal";
+import {
+  convertToLocal,
+  formatDateTruncatedMonth,
+  getRelativeTime,
+} from "@/lib/utils";
+import { allColors } from "@/constants/colors";
 
 const screenWidth = Dimensions.get("window").width;
+
+const CreateView = ({
+  loading,
+  prompts,
+  promptContent,
+  inputRef,
+  handleScrollBeginDrag,
+  updatePromptContent,
+  handlePromptSubmit,
+  userId,
+}: any) => (
+  <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    keyboardVerticalOffset={80}
+    style={{ flex: 1 }}
+  >
+    {loading ? (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ColoreActivityIndicator text="Loading…" />
+      </View>
+    ) : (
+      <CardCarrousel
+        items={prompts}
+        renderItem={(prompt: Prompt) => (
+          <RenderPromptCard
+            item={prompt}
+            userId={userId}
+            promptContent={promptContent}
+            updatePromptContent={updatePromptContent}
+            handlePromptSubmit={handlePromptSubmit}
+            inputRef={inputRef}
+          />
+        )}
+        handleScrollBeginDrag={handleScrollBeginDrag}
+        inputRef={inputRef}
+      />
+    )}
+  </KeyboardAvoidingView>
+);
 
 export default function Page() {
   const { user } = useUser();
@@ -48,26 +99,42 @@ export default function Page() {
   const [promptContent, setPromptContent] = useState<string>("");
 
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [personalPrompts, setPersonalPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
+  const [answerLoading, setAnswerLoading] = useState(false);
   const [hasSubmittedPrompt, setHasSubmittedPrompt] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState<string>("Starring");
-
   const selectedPostRef = useRef<Post | null>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const inputRef = useRef<TextInput>(null);
 
   const [selectedModal, setSelectedModal] = useState<any>();
 
-  const starringTabs = [
-    { name: "Create", key: "Create", color: "#CFB1FB", notifications: 0 },
-    {
-      name: "Answer",
-      key: "Answer",
-      color: "#CFB1FB",
-    },
-    { name: "Peek", key: "Peek", color: "#93c5fd", notifications: 0 },
-  ];
+  const [isPeekModalVisible, setPeekModalVisible] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<"Create" | "Answer" | "Peek">(
+    "Create"
+  );
+  const [hasFetchedPersonalPrompts, setHasFetchedPersonalPrompts] =
+    useState(false);
+
+  const tabs = [
+    { name: "Create", key: "Create", color: "#CFB1FB" },
+    { name: "Answer", key: "Answer", color: "#93C5FD" },
+    { name: "Peek", key: "Peek", color: "#FBD38D" },
+  ] as const;
+
+  const renderPrompt = useCallback(
+    ({ item }: { item: Prompt }) => (
+      <RenderPromptCard
+        item={item}
+        userId={user!.id}
+        promptContent={item.cue}
+        updatePromptContent={(text: string) => {}}
+        handlePromptSubmit={() => {}}
+      />
+    ),
+    [user!.id]
+  );
 
   // 1) request ATT permission
   const requestPermission = async () => {
@@ -87,27 +154,42 @@ export default function Page() {
   };
 
   // 3) fetch initial batch of posts
+
   const fetchPosts = async () => {
     setLoading(true);
     try {
       const res = await fetchAPI(
-        //TODO Adjust this to get trending posts
         `/api/posts/getTrendingPosts?number=${isIpad ? 24 : 18}&id=${user?.id}`
       );
-
+      //log
+      console.log("Fetched posts:", res.data[0]);
       setPosts(res.data);
-      selectedPostRef.current = res.data[0];
-      setExcludedIds(res.data.map((p: Post) => p.id));
-      // Log posts to console for debugging
-      console.log("Fetched posts:", res.data);
-      console.log("setPosts:", posts);
-    } catch (e) {
-      console.error("Failed to fetch posts:", e);
+      // prime for peek
+      setPeekModalVisible(true);
+    } catch {
       setError("Failed to load posts");
     } finally {
       setLoading(false);
     }
   };
+
+  // 4) fetch personal posts
+  const fetchPersonalPrompts = useCallback(async () => {
+    if (hasFetchedPersonalPrompts) return; // ← bail out if already loaded
+    setAnswerLoading(true);
+    try {
+      const res = await fetchAPI(
+        `/api/prompts/getPromptAnswers?user_id=${user?.id}`,
+        { method: "GET" }
+      );
+      setPersonalPrompts(Array.isArray(res.posts) ? res.posts : []);
+      setHasFetchedPersonalPrompts(true); // ← mark as fetched
+    } catch {
+      setError("Failed to load personal prompts");
+    } finally {
+      setAnswerLoading(false);
+    }
+  }, [hasFetchedPersonalPrompts, user?.id]);
 
   const fetchPrompts = async () => {
     setLoading(true);
@@ -178,7 +260,6 @@ export default function Page() {
     }, [user, isIpad])
   );
 
-  // on-mount (and whenever user / isIpad changes) load everything
   useEffect(() => {
     requestPermission();
     fetchPrompts();
@@ -207,7 +288,7 @@ export default function Page() {
           const newElements = [...existingElements, ...newPosts];
 
           // Remove duplicates from newIds and newElements
-          const uniqueIds = [...new Set(newIds)];
+          const uniqueIds = Array.from(new Set(newIds));
           const uniqueElements = newElements.filter(
             (value, index, self) =>
               index === self.findIndex((el) => el.id === value.id)
@@ -224,6 +305,18 @@ export default function Page() {
       });
     }
   }, [posts]);
+
+  useEffect(() => {
+    if (selectedTab === "Peek") {
+      setPeekModalVisible(true);
+    }
+  }, [selectedTab]);
+
+  useEffect(() => {
+    if (selectedTab === "Answer" && !hasFetchedPersonalPrompts) {
+      fetchPersonalPrompts();
+    }
+  }, [selectedTab, hasFetchedPersonalPrompts, fetchPersonalPrompts]);
 
   const handleCloseModalPress = () => {
     router.push("/root/tabs/home");
@@ -260,12 +353,12 @@ export default function Page() {
     }
   };
 
-  const handlePromptSubmit = async (item: Prompt) => {
+  const handlePromptSubmit = async (item: Prompt, content: string) => {
     try {
       await fetchAPI("/api/prompts/newPrompt", {
         method: "POST",
         body: JSON.stringify({
-          content: `${item.cue} ${promptContent.toLocaleLowerCase()}`,
+          content: `${item.cue} ${content?.toLocaleLowerCase()}`,
           clerkId: user!.id,
           theme: item.theme,
           cue: item.cue,
@@ -296,92 +389,134 @@ export default function Page() {
     }
   };
 
-  const handleTabChange = (tabKey: string) => {
-    console.log("Tab changed to:", tabKey);
-    setSelectedTab(tabKey);
+  const handleTabChange = (key: (typeof tabs)[number]["key"]) => {
+    setSelectedTab(key);
+    // open peek modal whenever we switch to Peek
+    if (key === "Peek") setPeekModalVisible(true);
+  };
+
+  const handleCreateScrollBegin = () => {
+    inputRef.current?.blur();
+  };
+
+  const AnswerView = () => {
+    // locally ensure posts is an array
+    const personalPosts = Array.isArray(personalPrompts) ? personalPrompts : [];
+    // console.log("[AnswerView] personalPrompts:", personalPrompts);
+
+    return (
+      <View className="flex-1 px-4 py-2">
+        {answerLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ColoreActivityIndicator text="Loading my prompts…" />
+          </View>
+        ) : //ts-ignore-next-line
+
+        personalPosts.length === 0 ? (
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-lg">You haven’t posted anything yet!</Text>
+          </View>
+        ) : (
+          // <CardCarrousel
+          //   items={personalPosts}
+          //   renderItem={(prompt: Prompt) => (
+          //     <RenderPromptAnswerCard item={prompt} />
+          //   )}
+          //   handleScrollBeginDrag={handleScrollBeginDrag}
+          // />
+          <FlatList
+            data={personalPosts}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={isIpad ? 3 : 1}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => {
+              const backgroundColor = "white"; // Default color
+              // allColors?.find((c) => c.id === item.color)?.hex || item.color;
+              return (
+                // ← YOU WERE MISSING THIS RETURN!
+                <View
+                  className="w-full mb-3 py-4 px-6 mx-auto"
+                  style={{
+                    borderRadius: 32,
+                    backgroundColor,
+                    borderColor: "#ffffff90",
+                    borderWidth: 2,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 4,
+                  }}
+                >
+                  <Text className="font-JakartaSemiBold mb-1">
+                    {item.prompt ?? "Untitled Prompt"}
+                  </Text>
+                  <Text
+                    className="font text-black/90 text-[15px] shadow leading-snug"
+                    numberOfLines={3}
+                  >
+                    {item.content}
+                  </Text>
+
+                  <Text className="mt-1 text-sm text-gray-500">
+                    {formatDateTruncatedMonth(new Date(item.created_at))} •{" "}
+                    {getRelativeTime(item.created_at)}
+                  </Text>
+                </View>
+              );
+            }}
+          />
+        )}
+      </View>
+    );
   };
 
   return (
-    <View className="flex-1">
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <KeyboardAvoidingView behavior="height" className="flex-1">
-          <View className="flex-1">
+    <GestureHandlerRootView>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <SafeAreaView style={{ flex: 1 }}>
             <Header
               title="Starring"
-              tabs={starringTabs}
+              tabs={tabs}
               selectedTab={selectedTab}
               onTabChange={handleTabChange}
-              tabCount={starringTabs.length}
-              className="z-10"
+              tabCount={tabs.length}
+              style={{ zIndex: 10 }}
             />
-            <EmojiBackground emoji="😳" color="#ffe640" />
-            <StarringModal
-              isVisible={isModalVisible}
-              selectedPosts={posts}
-              handleCloseModal={handleCloseModalPress}
-              infiniteScroll={true}
-              scrollToLoad={handleScrollToLoad}
-            />
-            {hasSubmittedPrompt ? (
-              <>
-                {/*
-              //TODO Remake answer tab from scratch
-              */}
-                {/* <PostModal
-                  isVisible={isModalVisible}
-                  selectedPosts={posts}
-                  header={
-                    <Header
-                      title="Starring"
-                      tabs={starringTabs}
-                      selectedTab={selectedTab}
-                      onTabChange={handleTabChange}
-                      className="z-10"
-                    />
-                  }
-                  handleCloseModal={handleCloseModalPress}
-                  infiniteScroll={true}
-                  scrollToLoad={handleScrollToLoad}
-                /> */}
-              </>
-            ) : (
-              <>
-                {/* <View className="flex-1">
-              {loading ? (
-                <View className="flex-1 items-center justify-center">
-                  <ColoreActivityIndicator text="Summoning Bob..." />
-                </View>
-              ) : (
-                <View className="flex-[0.85]">
-                  <CardCarrousel
-                    items={prompts}
-                    renderItem={(item, index) => (
-                      <RenderPromptCard
-                        item={item}
-                        userId={user!.id}
-                        promptContent={promptContent}
-                        updatePromptContent={updatePromptContent}
-                        handlePromptSubmit={handlePromptSubmit}
-                      />
-                    )}
-                    handleScrollBeginDrag={handleScrollBeginDrag}
-                    inputRef={inputRef}
-                  />
-                </View>
-              )}
-            </View> */}
-              </>
+            <EmojiBackground emoji="⭐️" color="#c3e3fd" />
+            {/* Render content based on selected tab */}
+            {selectedTab === "Create" && (
+              <CreateView
+                userId={user!.id}
+                loading={loading}
+                prompts={prompts}
+                promptContent={promptContent}
+                handleScrollBeginDrag={handleCreateScrollBegin}
+                updatePromptContent={updatePromptContent}
+                handlePromptSubmit={handlePromptSubmit}
+                inputRef={inputRef}
+                disableShadow={true}
+              />
             )}
-            {/* !!selectedModal && 
-  <ModalSheet
-  title=""
-  isVisible={!!selectedModal}
-  onClose={() => {setSelectedModal(null)}}>
-   {selectedModal}
-  </ModalSheet>*/}
-          </View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </View>
+            {selectedTab === "Answer" && <AnswerView />}
+            <StarringModal
+              isVisible={selectedTab === "Peek" && isPeekModalVisible}
+              selectedPosts={posts}
+              handleCloseModal={() => setPeekModalVisible(false)}
+              infiniteScroll
+              scrollToLoad={async () => {
+                setLoading(true);
+                await fetchPosts();
+                setLoading(false);
+              }}
+            />
+          </SafeAreaView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </GestureHandlerRootView>
   );
 }

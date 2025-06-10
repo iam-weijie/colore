@@ -40,8 +40,8 @@ export async function GET(request: Request) {
     `;
 
   
-    const raw_boards = await sql(fetch_boards);
-    const board_count = await sql(fetch_count);
+    const raw_boards = await sql`${fetch_boards}`;
+    const board_count = await sql`${fetch_count}`;
 
     console.log("raw my boards", raw_boards.map((b) => b.id), board_count)
 
