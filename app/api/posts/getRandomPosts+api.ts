@@ -65,7 +65,7 @@ export async function GET(request: Request) {
       LIMIT $2;
     `;
 
-    const response = await sql(query);
+    const response = await sql.query(query, [userId, limit]);
 
     const mappedPosts = response.map((post) => ({
       id: post.id,
@@ -90,13 +90,7 @@ export async function GET(request: Request) {
       prompt: post.prompt,
       board_id: post.board_id,
       reply_to: post.reply_to,
-      reply_to: post.reply_to,
       unread: post.unread,
-      position:
-        post.top !== null && post.left !== null
-          ? { top: Number(post.top), left: Number(post.left) }
-          : undefined,
-      formatting: (post.formatting as Format) || [],
       position:
         post.top !== null && post.left !== null
           ? { top: Number(post.top), left: Number(post.left) }

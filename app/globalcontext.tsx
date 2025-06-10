@@ -201,8 +201,9 @@ export async function fetchNotificationsExternal(
     return {
       notifs: allNotifications,
       history: allStoredNotifications,
-      counts: [unread_comments, unread_messages, unread_posts, unread_requests],
-    };
+      counts: [unread_comments, unread_messages, unread_posts, unread_requests]
+      }
+    }
   } catch (error) {
     console.error("Error fetching notifications externally", error);
     return;
@@ -462,7 +463,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const resetDraftPost = () => {
     setDraftPost({
       id: 0,
-      clerk_id: "",
+      user_id: "",
       firstname: "",
       username: "",
       nickname: "",
@@ -510,7 +511,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       const interval = setInterval(fetchNotifications, 5000);
       return () => clearInterval(interval);
     }
-  }, [user, pushToken]);*/
+  }, [user, pushToken])
 
   useEffect(() => {
     if (user && pushToken) {

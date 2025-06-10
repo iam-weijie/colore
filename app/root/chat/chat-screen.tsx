@@ -15,11 +15,6 @@ import {
   getRelativeTime,
 } from "@/lib/utils";
 import {
-  convertToLocal,
-  formatDateTruncatedMonth,
-  getRelativeTime,
-} from "@/lib/utils";
-import {
   ConversationItem,
   FriendRequest,
   Friendship,
@@ -197,15 +192,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         method: "GET",
       });
       if (response.error) {
-        //console.log("Error fetching user data");
-        //console.log("response data: ", response.data);
-        //console.log("response status: ", response.status);
-        // //console.log("response: ", response);
         throw new Error(response.error);
       }
-      //console.log("response: ", response.data);
       const nicknames = response.data;
-      //console.log("nicknames: ", nicknames);
       setUsers(nicknames);
       return;
     } catch (err) {

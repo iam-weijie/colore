@@ -56,11 +56,10 @@ const RenameContainer = ({
                 onSubmitEditing={handleSubmit}
                 returnKeyType="done"
               />
-              <View className=" ">
+              <View className="w-[25%] ">
                             <CustomButton
                   title={"Cancel"}
                   onPress={() => {}}
-                  className="ml-3 w-16 h-9 rounded-full shadow-none"
                   style={{ backgroundColor: "black" }}
                   fontSize="sm"
                   padding={2}
