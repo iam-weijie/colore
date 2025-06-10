@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const boardId = url.searchParams.get("id");
     const clerkId = url.searchParams.get("userId");
 
-    const response = await sql(
+    const response = await sql.query(
       `
       SELECT 
         p.id, 

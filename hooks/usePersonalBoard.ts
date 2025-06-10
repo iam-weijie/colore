@@ -63,6 +63,7 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
       fetchAPI(`/api/posts/getPostsByBoardId?id=${boardId}&userId=${userId}`),
     ]);
 
+    console.log("[usePersonalBoard]: ", boardResponse.length, postsResponse.length)
     return filterPostsByRestrictions(
       postsResponse.data,
       boardResponse.data,
