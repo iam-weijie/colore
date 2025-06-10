@@ -271,12 +271,27 @@ async function handleSendNotificationExternal(
     }
     if (type == "Likes") {
       // handling a post like
-      if (n.post_id) {
+      if (n.comment_id) {
+        const notificationContent = n.comment_content.slice(0, 120);
+
+        await sendPushNotification(
+          pushToken,
+          `${n.liker_username} liked your comment`,
+          notificationContent,
+          "comment",
+          {
+            route: `/root/posts/${n.post_id}`,
+            params: {
+              content: n.comment_content,
+            },
+          }
+        );
+      } else if (n.post_id) {
         const notificationContent = n.post_content.slice(0, 120);
 
         await sendPushNotification(
           pushToken,
-          `${n.liker_username} has liked your post`,
+          `${n.liker_username} liked your post`,
           notificationContent,
           "comment",
           {
@@ -287,7 +302,7 @@ async function handleSendNotificationExternal(
             },
           }
         );
-      } // else if (n.comment_id) {}
+      }
       return; // returning early for now, will need to update updateNotified api
     }
 
