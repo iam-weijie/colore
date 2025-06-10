@@ -164,7 +164,7 @@ const CustomButton = ({
       </>}
 
         <BlurView intensity={60} tint="light" 
-        className={`flex-1 ${isGradient ? "p-1" : `py-${padding}`} flex flex-row items-center justify-center`}
+        className={`flex-1 ${isGradient ? "" : `py-${padding}`} flex flex-row items-center justify-center`}
         style={{
            borderRadius: 70,
            overflow: 'hidden',

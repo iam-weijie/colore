@@ -40,7 +40,7 @@ const RenameContainer = ({
 
   return (
  
-      <View className="flex flex-row items-center bg-white rounded-[32px] px-4 py-2 min-h-[44px] mx-2 mb-2 "
+      <View className="flex flex-row items-center bg-white rounded-[32px] px-4 py-2 h-[48px] mx-2 mb-2 "
             style={{
               boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
             }}
@@ -56,15 +56,14 @@ const RenameContainer = ({
                 onSubmitEditing={handleSubmit}
                 returnKeyType="done"
               />
-              <View className="w-[25%] ">
-                            <CustomButton
-                  title={"Cancel"}
-                  onPress={() => {}}
-                  style={{ backgroundColor: "black" }}
-                  fontSize="sm"
-                  padding={2}
-                />
-              </View>
+                <View className="absolute right-1 w-[25%]">
+                        <CustomButton
+              title={"Cancel"}
+              onPress={() => {}}
+              fontSize="sm"
+              padding={3}
+            />
+          </View>
             </View>
 
  

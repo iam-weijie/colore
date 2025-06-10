@@ -519,7 +519,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       AsyncStorage.setItem("pushToken", pushToken);
 
       // initial fetching of all notifications while socket was off
-      fetchNotifications();
+      //fetchNotifications();
       updateLastConnection();
 
       const socket = io(
