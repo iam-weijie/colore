@@ -113,7 +113,7 @@ export const RenderPromptCard = ({
         </KeyboardAvoidingView>
 
         {/* Button */}
-        <View className="mt-5 px-2">
+        <View className="w-full flex-row items-center justify-center">
           <CustomButton
             fontSize="lg"
             title="Submit"
@@ -163,21 +163,11 @@ export const RenderCreateCard = ({
       style={[
         animatedCardStyle,
         { 
-          backgroundColor: "white",
-          opacity: 0.9,
-          width: screenWidth * 0.85,
+          backgroundColor: "rgba(255,255,255,1)",
+          width: screenWidth * 0.85
         }
       ]}
     >
-      {/* Background Image with Gradient Overlay 
-      <Image
-        source={{ uri: CARD_BACKGROUND }}
-        className="absolute w-full h-full"
-        resizeMode="cover"
-        blurRadius={2}
-      />
-      */}
-      
 
       {/* Card Content */}
       <View className="w-[80%] flex-col items-center justify-center z-10">
@@ -211,7 +201,6 @@ export const RenderCreateCard = ({
           fontSize="lg"
           title="Create"
           padding={4}
-          bgVariant="gradient5"
           onPress={() => {
             handleOptionSubmit();
           }}

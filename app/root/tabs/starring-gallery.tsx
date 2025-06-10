@@ -58,7 +58,7 @@ const CreateView = ({
   handlePromptSubmit,
   userId,
 }: any) => (
-  <View className="flex-1 py-3">
+  <View className="flex-1 mb-[90px]">
   <KeyboardAvoidingView
     behavior={Platform.OS === "ios" ? "padding" : "height"}
     style={{ flex: 1 }}

@@ -112,29 +112,16 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
   if (!visible) return null;
 
   return (
-    <GestureHandlerRootView className="absolute flex-1 top-0 w-full shadow-lg">
+    <GestureHandlerRootView className="absolute flex-1 top-0 w-full shadow-lg rounded-[44px]">
       <PanGestureHandler onGestureEvent={handlePanGesture}>
-        <BlurView
-        >
         <Animated.View
           style={[
             animatedStyle,
-            {
-              backgroundColor: color
-                ? color
-                : type === 'ERROR'
-                ? '#FAFAFA'
-                : type === 'POST'
-                ? '#93c5fd'
-                : type === 'UPDATE'
-                ? '#FBB1F5'
-                : type === 'DELETE'
-                ? '#ffe640'
-                : '#CFB1FB',
-              opacity: 1,
-            },
           ]}
           className="
+          flex-1"
+        >
+                  <BlurView className='  
             top-2
             w-[92%]
             mx-auto
@@ -144,8 +131,23 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
             rounded-[44px]
             min-h-[18%]
             shadow-lg
-            overflow-hidden"
-        >
+            overflow-hidden'
+            style={
+               {
+              backgroundColor: color
+                ? `${color}AA`
+                : type === 'ERROR'
+                ? '#FAFAFAAA'
+                : type === 'POST'
+                ? '#93c5fdAA'
+                : type === 'UPDATE'
+                ? '#FBB1F5AA'
+                : type === 'DELETE'
+                ? '#ffe640AA'
+                : '#CFB1FBAA',
+              opacity: 1,
+            }
+            }>
           <View className="flex-1 flex flex-col justify-around">
             <View className="flex-row items-center">
               <View>
@@ -185,8 +187,8 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
               </View>
             )}
           </View>
+          </BlurView>
         </Animated.View>
-        </BlurView>
       </PanGestureHandler>
     </GestureHandlerRootView>
   );

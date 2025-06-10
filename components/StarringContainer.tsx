@@ -696,9 +696,12 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     >
       <TouchableWithoutFeedback onPress={handleCloseModal}>
         <View className="absolute flex-1 ">
-          {currentPost?.static_emoji && <EmojiBackground emoji={currentPost?.emoji ?? ""} color="" />}
+         
         </View>
       </TouchableWithoutFeedback>
+         <View className="absolute flex-1 top-0 -left-3">
+         {currentPost?.static_emoji && <EmojiBackground emoji={currentPost?.emoji ?? ""} color="" />}
+        </View>
 
       {header}
 
@@ -887,7 +890,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
           />
         </Animated.View>
       )}
-      {!!selectedEmoji && (
+      {!!selectedEmoji && !currentPost?.static_emoji && (
         <View className="absolute -top-[150px] self-center inset-0">
           <EmojiExplosionModal
             isVisible={!!selectedEmoji}
