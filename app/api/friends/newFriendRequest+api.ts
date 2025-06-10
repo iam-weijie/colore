@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // i mean why would you do this
+    // i mean why would you do this 🥀🥀🥀
     if (clerkId === friendId) {
       return Response.json({ error: "Unauthorized action." }, { status: 403 });
     }
@@ -33,9 +33,44 @@ export async function POST(request: Request) {
     // if request is already pending (say, friend has already sent request)
     // should be handled by method that calls this api route
     const response = await sql`
-      INSERT INTO friend_requests (user_id1, user_id2, requestor)
-      VALUES (${smallerId}, ${largerId}, ${sending_id})
+      WITH inserted AS (
+        INSERT INTO friend_requests (user_id1, user_id2, requestor)
+        VALUES (${smallerId}, ${largerId}, ${sending_id})
+        RETURNING id, user_id1, user_id2, requestor, created_at, notified
+      )
+      SELECT 
+        inserted.*,
+        u1.username AS user1_username,
+        u2.username AS user2_username
+      FROM inserted
+      JOIN users u1 ON inserted.user_id1 = u1.clerk_id
+      JOIN users u2 ON inserted.user_id2 = u2.clerk_id;
     `;
+
+    const friend_req = response[0];
+    const notification = {
+      userId: friendId,
+      requests: [friend_req],
+    };
+
+    // Sending out friend request notification through websocket
+    const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: friendId,
+        type: "Requests",
+        notification,
+        content: friend_req,
+      }),
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      console.log(data.message!);
+    } else {
+      console.log("friend request notif shot!");
+    }
 
     return new Response(JSON.stringify({ data: response }), {
       status: 201,
