@@ -149,7 +149,7 @@ export const RenderPromptCard = ({
             <CustomButton
               className="w-[175px] h-16 rounded-full bg-black"
               fontSize="lg"
-              title={isSheetVisible ? "Close" : "Cancel"}
+              title={isSheetVisible ? "Open Sheet" : "Cancel"}
               padding="0"
               onPress={toggleSheet}
             />
