@@ -58,34 +58,59 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
     boardId: number,
     userId: string
   ): Promise<Post[]> => {
-    const [boardResponse, postsResponse] = await Promise.all([
-      fetchAPI(`/api/boards/getBoardById?id=${boardId}`),
-      fetchAPI(`/api/posts/getPostsByBoardId?id=${boardId}&userId=${userId}`),
-    ]);
+    console.log(`[usePersonalBoard]: Fetching board posts for boardId=${boardId}, userId=${userId}`);
+    try {
+      const [boardResponse, postsResponse] = await Promise.all([
+        fetchAPI(`/api/boards/getBoardById?id=${boardId}`),
+        fetchAPI(`/api/posts/getPostsByBoardId?id=${boardId}&userId=${userId}`),
+      ]);
+      
+      console.log(`[usePersonalBoard]: Board API response status:`, boardResponse.status);
+      console.log(`[usePersonalBoard]: Posts API response status:`, postsResponse.status);
 
-    return filterPostsByRestrictions(
-      postsResponse.data,
-      boardResponse.data,
-      userId
-    );
+      const filteredPosts = filterPostsByRestrictions(
+        postsResponse.data,
+        boardResponse.data,
+        userId
+      );
+      
+      console.log(`[usePersonalBoard]: Filtered posts count:`, filteredPosts.length);
+      return filteredPosts;
+    } catch (error) {
+      console.error("[usePersonalBoard]: Error in fetchBoardPosts:", error);
+      throw error;
+    }
   };
 
   const fetchPersonalPosts = async (
     userId: string,
     viewerId: string
   ): Promise<Post[]> => {
-    const response = await fetchAPI(
-      `/api/posts/getPersonalPosts?recipient_id=${userId}&user_id=${viewerId}`
-    );
+    console.log(`[usePersonalBoard]: Fetching personal posts for userId=${userId}, viewerId=${viewerId}`);
+    try {
+      const response = await fetchAPI(
+        `/api/posts/getPersonalPosts?recipient_id=${userId}&user_id=${viewerId}`
+      );
+      
+      console.log(`[usePersonalBoard]: Personal posts API response status:`, response.status);
+      console.log(`[usePersonalBoard]: Personal posts data count:`, response.data?.length || 0);
 
-    if (!response.data.length) {
-      return [];
+      if (!response.data.length) {
+        console.log("[usePersonalBoard]: No personal posts found");
+        return [];
+      }
+
+      const filteredPosts = filterPersonalPosts(response.data, isOwnBoard, viewerId);
+      console.log(`[usePersonalBoard]: Filtered personal posts count:`, filteredPosts.length);
+      return filteredPosts;
+    } catch (error) {
+      console.error("[usePersonalBoard]: Error in fetchPersonalPosts:", error);
+      throw error;
     }
-
-    return filterPersonalPosts(response.data, isOwnBoard, viewerId);
   };
 
   const fetchPosts = useCallback(async (): Promise<Post[]> => {
+    console.log("[usePersonalBoard]: fetchPosts called with boardId=", boardId);
     setIsLoading(true);
     setError(null);
 
@@ -93,12 +118,15 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
       let filteredPosts: Post[];
 
       if (boardId > 0) {
+        console.log("[usePersonalBoard]: Fetching board posts");
         filteredPosts = await fetchBoardPosts(boardId, userId);
       } else {
+        console.log("[usePersonalBoard]: Fetching personal posts");
         filteredPosts = await fetchPersonalPosts(userId, viewerId);
       }
 
       const finalPosts = filterPostsByBoard(filteredPosts, boardId);
+      console.log("[usePersonalBoard]: Final post count:", finalPosts.length);
 
       setBoardOnlyPosts(finalPosts);
       return finalPosts; // Return the fresh data
@@ -106,7 +134,7 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to fetch posts";
       setError(errorMessage);
-      console.error("Failed to fetch posts:", error);
+      console.error("[usePersonalBoard]: Failed to fetch posts:", error);
       return []; // Return empty array on error
     } finally {
       setIsLoading(false);

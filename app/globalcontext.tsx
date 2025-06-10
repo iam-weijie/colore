@@ -190,9 +190,6 @@ export async function fetchNotificationsExternal(
         if (n.recipient_user_id) {
           console.log("n", n);
           await handleSendNotificationExternal(n, n, "Posts", pushToken);
-        if (n.recipient_user_id) {
-          console.log("n", n);
-          await handleSendNotificationExternal(n, n, "Posts", pushToken);
         }
       }
     };
@@ -271,7 +268,6 @@ async function handleSendNotificationExternal(
         "posts",
         {
           route: `/root/tabs/personal-board`,
-          params: {},
           params: {},
         }
       );
@@ -510,7 +506,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       const interval = setInterval(fetchNotifications, 5000);
       return () => clearInterval(interval);
     }
-  }, [user, pushToken]);*/
+  }, [user, pushToken]);
 
   useEffect(() => {
     if (user && pushToken) {

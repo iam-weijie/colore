@@ -9,6 +9,15 @@ export async function GET(request: Request) {
     const userId = url.searchParams.get("id");
     const mode = url.searchParams.get("mode");
 
+    console.log(`getRandomPosts: userId=${userId}, limit=${limit}, mode=${mode}`);
+
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: "Missing required parameter: id" }),
+        { status: 400 }
+      );
+    }
+
     const baseSelectFields = `
       p.id, 
       p.content,
@@ -23,6 +32,8 @@ export async function GET(request: Request) {
       p.emoji,
       p.prompt_id,
       p.board_id,
+      p.top,
+      p.left,
       p.formatting,
       p.static_emoji,
       u.clerk_id,
@@ -65,7 +76,9 @@ export async function GET(request: Request) {
       LIMIT $2;
     `;
 
-    const response = await sql(query);
+    // Pass the parameters to the SQL query
+    const response = await sql(query, [userId, limit]);
+    console.log(`getRandomPosts: Retrieved ${response.length} posts`);
 
     const mappedPosts = response.map((post) => ({
       id: post.id,
@@ -74,7 +87,6 @@ export async function GET(request: Request) {
       username: post.username,
       content: post.content,
       created_at: post.created_at,
-      expires_at: post.expires_at, // Not available in query - set default
       city: post.city,
       state: post.state,
       country: post.country,
@@ -85,38 +97,36 @@ export async function GET(request: Request) {
       pinned: post.pinned,
       color: post.color,
       emoji: post.emoji,
-      notified: post.notified,
+      notified: false, // Default value since not in query
       prompt_id: post.prompt_id,
       prompt: post.prompt,
-      board_id: post.board_id,
-      reply_to: post.reply_to,
-      reply_to: post.reply_to,
-      unread: post.unread,
+      board_id: post.board_id || -1,
+      reply_to: -1, // Default value
+      unread: false, // Default value
       position:
         post.top !== null && post.left !== null
           ? { top: Number(post.top), left: Number(post.left) }
-          : undefined,
-      formatting: (post.formatting as Format) || [],
-      position:
-        post.top !== null && post.left !== null
-          ? { top: Number(post.top), left: Number(post.left) }
-          : undefined,
+          : { top: 0, left: 0 },  // Default position
       formatting: (post.formatting as Format) || [],
       static_emoji: post.static_emoji,
+      expires_at: "", // Default value
     }));
 
     return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
-    });
-    return new Response(JSON.stringify({ data: mappedPosts }), {
-      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in getRandomPosts:", error);
     return new Response(
       JSON.stringify({ error: "Failed to fetch random posts" }),
       {
         status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     );
   }

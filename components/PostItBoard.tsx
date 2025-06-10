@@ -4,7 +4,14 @@ import PostModal from "@/components/PostModal";
 import { Post, PostWithPosition, Stacks, PostItBoardProps } from "@/types/type";
 import { SignedIn } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
-import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
+import { 
+  EnhancedRandomPosition, 
+  cleanStoredPosition, 
+  calculateBoardDimensions,
+  optimizePostPositions,
+  POSTIT_WIDTH,
+  POSTIT_HEIGHT
+} from "@/lib/utils";
 import {
   Dimensions,
   NativeScrollEvent,
@@ -12,6 +19,7 @@ import {
   RefreshControl,
   ScrollView,
   View,
+  Text,
 } from "react-native";
 import { MappingPostitProps } from "@/types/type";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
@@ -27,6 +35,7 @@ import { updateStacks } from "@/lib/stack";
 const screenHeight = Dimensions.get("screen").height;
 const screenWidth = Dimensions.get("screen").width;
 const COLOR_HEIGHT_TRIGGER = 80;
+const LOADING_TIMEOUT = 10000; // 10 seconds timeout for loading
 
 const PostItBoard: React.FC<PostItBoardProps> = ({
   userId,
@@ -90,78 +99,80 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     setLoading(true);
     setEnableStacking(false);
     try {
+      console.log("Fetching posts...");
       const posts: Post[] = await handlePostsRefresh();
-      // set positions of posts
+      console.log("Posts fetched:", posts?.length || 0);
 
+      // Calculate board dimensions based on post count
+      const boardDimensions = calculateBoardDimensions(posts.length);
 
       let postsWithPositions: Array<Post> = [];
 
-    
+      // Only use manual positioning if randomPosition is false
+      if (!randomPostion && posts.some(post => post.position?.top !== 0 || post.position?.left !== 0)) {
+        // Use existing positions
         for (const post of posts) {
-          const position = AlgorithmRandomPosition(post.pinned, null, posts.length);
-          let newX = 0;
-          let newY = 0;
-
-          if (!randomPostion) {
-          if (post.position.top == 0 && post.position.left == 0) {
-            newX = position.left
-            newY = position.top
-
-            await fetchAPI(`/api/posts/updatePostPosition`, {
-              method: "PATCH",
-              body: JSON.stringify({
-                postId: post?.id,
-                top: newX, 
-                left: newY
-              }),
-            })
-          } else {
-            newX = Number(post.position.left)
-            newY = Number(post.position.top)
-          }
-        }
-
-
-          const iniX = !randomPostion ? (newX) : position?.left ?? 0 + scrollOffset.x;
-          const iniY = !randomPostion ? (newY) : position?.top ?? 0 + scrollOffset.y;
-
-
           const positionWithOffset = {
-            ...position,
+            top: Number(post.position?.top ?? 0) + scrollOffset.y,
+            left: Number(post.position?.left ?? 0) + scrollOffset.x,
+            rotate: `${Math.abs(Math.random() * 8)}deg`,
+          };
+          postsWithPositions.push({ ...post, position: positionWithOffset });
+        }
+      } else {
+        // Use optimized positioning algorithm for better layout
+        const optimizedPosts = optimizePostPositions(posts, boardDimensions);
+        
+        for (const post of optimizedPosts) {
+          const iniX = post.position.left ?? 0 + scrollOffset.x;
+          const iniY = post.position.top ?? 0 + scrollOffset.y;
+          
+          const positionWithOffset = {
+            ...post.position,
             left: iniX,
             top: iniY,
           };
-          if (position) {
-            postsWithPositions.push({ ...post, position: positionWithOffset });
-            
+          
+          postsWithPositions.push({ ...post, position: positionWithOffset });
+          
+          // Update position in backend if needed
+          if (!randomPostion && (post.position.top === 0 && post.position.left === 0)) {
+            await fetchAPI(`/api/posts/updatePostPosition`, {
+              method: "PATCH",
+              body: JSON.stringify({
+                postId: post.id,
+                top: post.position.top,
+                left: post.position.left
+              }),
+            });
           }
         }
-      
-      
+      }
 
       // Initialize each post as a stack
-      setStacks((prevStack) => prevStack.filter((stack) => stacks))
+      setStacks((prevStack) => prevStack.filter((stack) => stacks));
       setPostsWithPosition(postsWithPositions);
       setStandalonePosts(postsWithPositions);
+      
       // Initialize to add to map
       const initialMap = postsWithPositions.map((post: Post) =>
         mappingPostIt({
           id: post.id,
-          coordinates: {
+          coordinates: { 
             x_coordinate: post.position?.left ?? 0,
             y_coordinate: post.position?.top ?? 0,
           },
         })
       );
-      // console.log(initialMap);
+      
       setMap(initialMap);
       setEnableStacking(true);
-
+      console.log("Posts processed, count:", postsWithPositions.length);
     } catch (error) {
+      console.error("Failed to fetch posts with error:", error);
       setError("Failed to fetch new posts.");
     } finally {
       setLoading(false);
-
       cleanStoredPosition();
     }
   };
@@ -328,10 +339,28 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     fetchRandomPosts();
   }, [mode]);
 
+  // Add a useEffect for loading timeout
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    if (loading) {
+      console.log("Starting loading timeout");
+      timeoutId = setTimeout(() => {
+        console.log("Loading timeout reached, forcing state update");
+        setLoading(false);
+        if (postsWithPosition.length === 0) {
+          setError("Loading timed out. Please try refreshing.");
+        }
+      }, LOADING_TIMEOUT);
+    }
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [loading]);
 
-
-
-   if (postsWithPosition.length === 0) {
+  // Modify the rendering logic to prevent infinite loading
+  if (loading) {
     return (
       <View className="flex-1 items-center justify-center">
         <ColoreActivityIndicator text="Summoning Bob..." />
@@ -339,7 +368,21 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     );
   }
 
+  if (error) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Error: {error}</Text>
+      </View>
+    );
+  }
 
+  if (postsWithPosition.length === 0) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-lg text-gray-600">No posts available</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
@@ -371,8 +414,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             maximumZoomScale={1.2}
             minimumZoomScale={0.6}
             contentContainerStyle={{
-              width: screenWidth * 4,
-              height: screenHeight * 2,
+              width: calculateBoardDimensions(postsWithPosition.length).width,
+              height: calculateBoardDimensions(postsWithPosition.length).height,
             }}
             scrollEnabled={isPanningMode}
             showsHorizontalScrollIndicator={false}
@@ -396,8 +439,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
               nestedScrollEnabled
               scrollEnabled={isPanningMode}
               contentContainerStyle={{
-                width: screenWidth * 4,
-                height: screenHeight * 2,
+                width: calculateBoardDimensions(postsWithPosition.length).width,
+                height: calculateBoardDimensions(postsWithPosition.length).height,
               }}
             >
               <View className="flex-1 w-full h-full relative">

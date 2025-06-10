@@ -96,60 +96,160 @@ export function calculateAge(birthday: Date): number {
   return age;
 }
 
+// Constants for Post-It dimensions
+export const POSTIT_WIDTH = 160;
+export const POSTIT_HEIGHT = 160;
+export const MIN_DISTANCE = 40; // Minimum distance between Post-Its
+
+/**
+ * Calculates optimal board dimensions based on the number of Post-Its
+ * @param postItCount Number of Post-Its on the board
+ * @param postItSize Size of each Post-It
+ * @param screenDimensions Device screen dimensions
+ * @param minPadding Minimum padding between Post-Its
+ * @returns Optimal width and height for the board
+ */
+export const calculateBoardDimensions = (
+  postItCount: number,
+  postItSize = { width: POSTIT_WIDTH, height: POSTIT_HEIGHT },
+  screenDimensions = { 
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height 
+  },
+  minPadding = MIN_DISTANCE
+): { width: number; height: number } => {
+  // Base dimensions - minimum 2x screen size to allow scrolling
+  let baseWidth = screenDimensions.width * 2;
+  let baseHeight = screenDimensions.height * 2;
+  
+  // For very few Post-Its, use the base dimensions
+  if (postItCount <= 10) {
+    return { width: baseWidth, height: baseHeight };
+  }
+  
+  // Calculate area needed per Post-It (including padding)
+  const postItArea = (postItSize.width + minPadding) * (postItSize.height + minPadding);
+  
+  // Calculate total area needed
+  const totalAreaNeeded = postItArea * postItCount * 1.5; // 1.5x for extra space
+  
+  // Calculate side length of a square with this area
+  const sideLength = Math.sqrt(totalAreaNeeded);
+  
+  // Ensure the dimensions are at least the base dimensions
+  const width = Math.max(baseWidth, sideLength);
+  const height = Math.max(baseHeight, sideLength);
+  
+  // Cap dimensions at reasonable limits
+  const maxDimension = 10000; // Prevent extremely large boards
+  return {
+    width: Math.min(width, maxDimension),
+    height: Math.min(height, maxDimension)
+  };
+};
+
+/**
+ * Creates a grid-based distribution for Post-Its
+ * @param boardDimensions Width and height of the board
+ * @param postItSize Size of each Post-It
+ * @param minPadding Minimum padding between Post-Its
+ * @returns Grid dimensions and cell size
+ */
+const createPositioningGrid = (
+  boardDimensions: { width: number; height: number },
+  postItSize = { width: POSTIT_WIDTH, height: POSTIT_HEIGHT },
+  minPadding = MIN_DISTANCE
+) => {
+  const cellWidth = postItSize.width + minPadding;
+  const cellHeight = postItSize.height + minPadding;
+  
+  const gridColumns = Math.floor(boardDimensions.width / cellWidth);
+  const gridRows = Math.floor(boardDimensions.height / cellHeight);
+  
+  return {
+    columns: gridColumns,
+    rows: gridRows,
+    cellWidth,
+    cellHeight
+  };
+};
+
+// Storage for positions to maintain consistency
+let positionGrid: boolean[][] = [];
 let storedPosition: Position[] = [];
-const POSTIT_WIDTH = 160;
-const POSTIT_HEIGHT = 160;
-const POSTIT_AREA = POSTIT_WIDTH * POSTIT_HEIGHT;
-let accumulatedArea = 0;
 
 export const cleanStoredPosition = () => {
   storedPosition = [];
+  positionGrid = [];
 };
 
-const MIN_DISTANCE = 40; // Minimum distance (in px) to avoid overlap
-
-// Helper function to check for overlap
-const isOverlapping = (newPos: Position, positions: Position[]) => {
-  for (let pos of positions) {
-    const distance = Math.sqrt(
-      Math.pow(newPos.top - pos.top, 2) + Math.pow(newPos.left - pos.left, 2)
-    );
-    if (distance < MIN_DISTANCE) {
-      return true; // Overlap detected
-    }
-  }
-  return false; // No overlap
-};
-
-
-export const AlgorithmRandomPosition = (
+/**
+ * Enhanced algorithm for random Post-It positioning with better distribution
+ * @param isPinned Whether the Post-It is pinned
+ * @param existingPositions Existing positions to avoid
+ * @param postItCount Total number of Post-Its
+ * @param boardDimensions Dimensions of the board
+ * @returns Position for the Post-It
+ */
+export const EnhancedRandomPosition = (
   isPinned: boolean,
-  _: any,
-  postItCount: number
-) => {
-  const screenWidth = Dimensions.get("window").width * 2.25;
-  const screenHeight = Dimensions.get("window").height;
+  existingPositions: any = null,
+  postItCount: number,
+  boardDimensions?: { width: number; height: number }
+): Position => {
+  // Default board dimensions if not provided
+  const dimensions = boardDimensions || {
+    width: Dimensions.get("window").width * 4,
+    height: Dimensions.get("window").height * 2
+  };
 
-
+  // Handle pinned Post-Its (fixed at top left)
   if (isPinned) {
     return {
       top: 60 + Math.random() * 10,
       left: 40 + Math.random() * 10,
-      rotate: `${Math.abs(Math.random() * 4)}deg`, // Only positive rotation for pinned
+      rotate: `${Math.abs(Math.random() * 4)}deg`, // Small rotation for pinned
     };
   }
+  
+  // Initialize position grid if needed
+  if (positionGrid.length === 0) {
+    const grid = createPositioningGrid(dimensions);
+    positionGrid = [];
+    for (let i = 0; i < grid.rows; i++) {
+      positionGrid[i] = [];
+      for (let j = 0; j < grid.columns; j++) {
+        positionGrid[i][j] = false;
+      }
+    }
+  }
 
-  const MAX_RETRIES = 50; // Increased retries
+  const grid = createPositioningGrid(dimensions);
+  
+  // Find all available cells
+  const availableCells: { row: number; col: number }[] = [];
+  for (let row = 0; row < positionGrid.length; row++) {
+    for (let col = 0; col < positionGrid[row].length; col++) {
+      if (!positionGrid[row]?.[col]) {
+        availableCells.push({ row, col });
+      }
+    }
+  }
+  
+  // If no available cells or grid hasn't been initialized properly
+  if (availableCells.length === 0) {
+    // Fallback to old algorithm with spacing improvements
+    const MAX_RETRIES = 50;
   let bestPosition = {
-    top: Math.random() * (screenHeight - POSTIT_HEIGHT),
-    left: Math.random() * (screenWidth - POSTIT_WIDTH),
-    rotate: `${Math.abs(Math.random() * 8)}deg`, // Only positive rotation
+      top: Math.random() * (dimensions.height - POSTIT_HEIGHT),
+      left: Math.random() * (dimensions.width - POSTIT_WIDTH),
+      rotate: `${Math.abs(Math.random() * 8)}deg`,
   };
   let bestDistance = 0;
 
   for (let attempts = 0; attempts < MAX_RETRIES; attempts++) {
-    const top = Math.random() * (screenHeight - POSTIT_HEIGHT);
-    const left = Math.random() * (screenWidth - POSTIT_WIDTH);
+      const top = Math.random() * (dimensions.height - POSTIT_HEIGHT);
+      const left = Math.random() * (dimensions.width - POSTIT_WIDTH);
     
     // Find minimum distance to existing post-its
     let minDistance = Infinity;
@@ -177,11 +277,33 @@ export const AlgorithmRandomPosition = (
     }
   }
 
-  // After all retries, use the best position we found
   storedPosition.push({ top: bestPosition.top, left: bestPosition.left });
   return bestPosition;
+  }
+  
+  // Choose a random available cell
+  const randomIndex = Math.floor(Math.random() * availableCells.length);
+  const { row, col } = availableCells[randomIndex];
+  
+  // Mark as occupied
+  positionGrid[row][col] = true;
+  
+  // Calculate actual position with some randomness within the cell
+  const jitterX = Math.random() * (grid.cellWidth * 0.2);
+  const jitterY = Math.random() * (grid.cellHeight * 0.2);
+  
+  const left = col * grid.cellWidth + jitterX;
+  const top = row * grid.cellHeight + jitterY;
+  
+  // Store the position
+  storedPosition.push({ top, left });
+  
+  return {
+    top,
+    left,
+    rotate: `${Math.abs(Math.random() * 8)}deg`, // Random rotation
+  };
 };
-
 
 /**
  * Formats a date to a relative time string (e.g., "just now", "1m", "2h", "3d", "1w", "2mo", "1y")
@@ -237,5 +359,45 @@ export function getRelativeTime(date: Date | string): string {
   const years = Math.floor(days / 365);
   return `${years} years ago`;
 }
+
+/**
+ * Updates post positions when posts are added or removed.
+ * This ensures the board layout remains optimized.
+ * 
+ * @param posts Current posts array
+ * @param boardDimensions Board dimensions
+ * @returns Optimized positions
+ */
+export const optimizePostPositions = (
+  posts: Post[],
+  boardDimensions?: { width: number; height: number }
+): Post[] => {
+  // Reset positions when reorganizing
+  cleanStoredPosition();
+  
+  // Calculate board dimensions if not provided
+  const dimensions = boardDimensions || calculateBoardDimensions(posts.length);
+  
+  // First handle pinned posts - keep their positions at the top
+  const pinnedPosts = posts.filter(post => post.pinned);
+  const unpinnedPosts = posts.filter(post => !post.pinned);
+  
+  // Update positions for all posts
+  const updatedPosts = [
+    // Keep pinned posts at their pinned positions
+    ...pinnedPosts.map(post => ({
+      ...post,
+      position: EnhancedRandomPosition(true, null, posts.length, dimensions)
+    })),
+    
+    // Optimize positions for unpinned posts
+    ...unpinnedPosts.map(post => ({
+      ...post,
+      position: EnhancedRandomPosition(false, null, posts.length, dimensions)
+    }))
+  ];
+  
+  return updatedPosts;
+};
 
 
