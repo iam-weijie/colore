@@ -55,13 +55,13 @@ export async function GET(request: Request) {
     // Directly interpolate values into the SQL string
     const query = `
       SELECT
-        ${sql.unsafe(baseSelectFields)}
+        ${baseSelectFields}
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
       WHERE p.user_id != $1
       AND p.post_type = 'public'
-      AND ${sql.unsafe(locationFilter)}
+      AND ${locationFilter}
       ORDER BY RANDOM()
       LIMIT $2;
     `;

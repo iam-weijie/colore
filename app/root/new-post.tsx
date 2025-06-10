@@ -63,7 +63,7 @@ import { format, isAfter } from "date-fns";
 import { stripMarkdown } from "@/components/RichTextInput";
 import { FindUser } from "@/components/FindUsers";
 import CustomButton from "@/components/CustomButton";
-import { defaultColors } from "@/constants/colors";
+import { allColors, defaultColors } from "@/constants/colors";
 
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
@@ -82,7 +82,7 @@ const NewPost = () => {
     promptId,
     boardId,
   } = useLocalSearchParams();
-  const { profile, setDraftPost, draftPost } = useGlobalContext();
+  const { profile, userColors, setDraftPost, draftPost } = useGlobalContext();
   const { showAlert } = useAlert();
 
   // 🔒 USER & GLOBAL STATE
@@ -98,7 +98,7 @@ const NewPost = () => {
 
   // 🎨 STYLING & FORMATTING
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    defaultColors.find((c) => c.id === color) ?? defaultColors[Math.floor(Math.random() * 4)]
+    allColors.find((c) => c.id === color) || defaultColors[Math.floor(Math.random() * defaultColors.length)]
   );
   const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
   const [formats, setFormats] = useState<Format[]>([]);
@@ -340,6 +340,8 @@ const NewPost = () => {
       user_id: user?.id ?? "",
       firstname: "",
       username: userUsername ?? "",
+      nickname: "",
+      incognito_name: "",
       content: postContent ? stripMarkdown(postContent) : "",
       created_at: new Date().toISOString(),
       expires_at: selectedExpirationDate || "",
@@ -833,8 +835,6 @@ const NewPost = () => {
     setQuickEmojiSelectorVisible(false);
   }, [selectedEmoji]);
 
-
-  
   return (
     <Animated.View className="flex-1" style={[animatedBackgroundStyle]}>
       <TouchableWithoutFeedback
