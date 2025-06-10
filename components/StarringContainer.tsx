@@ -690,13 +690,13 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   return (
     <AnimatedView
       ref={viewRef}
-      className="flex-1 absolute w-screen h-screen justify-center"
+      className="flex-1 absolute w-screen h-screen justify-center top-[3%]"
       //entering={FadeInUp.duration(300)}
       style={[animatedBackgroundStyle]}
     >
       <TouchableWithoutFeedback onPress={handleCloseModal}>
         <View className="absolute flex-1 ">
-          {<EmojiBackground emoji="" color="" />}
+          {currentPost?.static_emoji && <EmojiBackground emoji={currentPost?.emoji ?? ""} color="" />}
         </View>
       </TouchableWithoutFeedback>
 
@@ -705,21 +705,18 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <GestureDetector gesture={swipeGesture}>
           <Animated.View
+          className="bg-white px-6 py-4 rounded-[24px] w-[80%] max-w-[500px] mx-auto"
             style={[
               animatedStyle,
               {
-                width: "80%",
-                maxWidth: 500,
-                height: contentHeight,
-                overflow: "hidden",
-                borderRadius: 24,
+                minHeight:isIpad ? 250 : 200,
+                    maxHeight: isIpad ? "55%" : "40%",
                 backgroundColor: "white",
-                padding: 24,
               },
             ]}
           >
             <TouchableOpacity
-              onPress={handleCloseModal}
+              onPress={() => {}}
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
               style={{ zIndex: 10 }}
             >
@@ -756,21 +753,19 @@ const StarringContainer: React.FC<PostContainerProps> = ({
                 showsVerticalScrollIndicator={true}
                 persistentScrollbar={true}
               >
-                <Text className="text-base p-1 my-4 font-Jakarta leading-6">
-                  {currentPost?.content}
-                </Text>
+               <RichText formatStyling={cleanFormatting} content={currentPost?.content ?? ""} />
               </ScrollView>
             </View>
             {!isPreview && (
               <View className="my-2 flex-row justify-between items-center">
                 <View className="flex flex-row items-center">
                   <TouchableOpacity onPress={handleCommentsPress}>
-                    <Image source={icons.comment} className="w-8 h-8" />
+                    <Image source={icons.comment} className="w-7 h-7" />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handleLikePress} className="ml-2">
                     <MaterialCommunityIcons
                       name={isLiked ? "heart" : "heart-outline"}
-                      size={32}
+                      size={31}
                       color={isLiked ? "red" : "black"}
                     />
                   </TouchableOpacity>

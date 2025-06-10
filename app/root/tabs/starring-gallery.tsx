@@ -37,8 +37,7 @@ import {
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import CardCarrousel from "@/components/CardCarroussel";
-// import StarringPeekTab from "@/components/StarringModal";
-import StarringModal from "@/components/StarringModal";
+import StarringContainer from "@/components/StarringContainer";
 import {
   convertToLocal,
   formatDateTruncatedMonth,
@@ -372,7 +371,7 @@ export default function Page() {
     const personalPosts = Array.isArray(personalPrompts) ? personalPrompts : [];
 
     return (
-      <View className="flex-1 px-4 py-2">
+      <View className="flex-1 px-4 py-2 bg-[#FAFAFA]">
         {answerLoading ? (
           <View className="flex-1 items-center justify-center">
             <ColoreActivityIndicator text="Loading my prompts…" />
@@ -450,10 +449,11 @@ export default function Page() {
               </>
             )}
             {selectedTab === "Answer" && <AnswerView />}
-            <StarringModal
-              isVisible={selectedTab === "Peek" && isPeekModalVisible}
+            {selectedTab === "Peek" &&
+            
+            <StarringContainer
               selectedPosts={posts}
-              handleCloseModal={() => setPeekModalVisible(false)}
+              handleCloseModal={() => {}}
               infiniteScroll
               scrollToLoad={async () => {
                 setLoading(true);
@@ -461,6 +461,8 @@ export default function Page() {
                 setLoading(false);
               }}
             />
+            
+}
             </View>
     </GestureHandlerRootView>
   );
