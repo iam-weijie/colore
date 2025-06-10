@@ -86,9 +86,61 @@ export async function PATCH(request: Request) {
         )
         SELECT 
           uc.like_count,
-          TRUE as is_liked
+          TRUE as is_liked,
+          il.id as like_id
         FROM update_count uc
+        LEFT JOIN insert_like il ON true
       `;
+
+      // Dispatching notification of liking comment to comment owner
+      // Refactor: turn 2 sql queries into 1
+
+      const commentInfo = await sql`
+        SELECT
+          id,
+          post_id,
+          user_id,
+          content
+        FROM comments 
+        WHERE id = ${commentIdNum}
+      `;
+
+      const likerUsername = await sql`
+        SELECT 
+          username
+        FROM users
+        WHERE clerk_id = ${userId}
+      `;
+
+      // don't send a notification if someone likes their own comment
+      if (commentInfo[0].user_id !== userId) {
+        const res = await fetch(
+          `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: commentInfo[0].user_id,
+              type: "Likes",
+              notification: {
+                id: result[0].like_id,
+                comment_id: commentInfo[0].id,
+                post_id: commentInfo[0].post_id,
+                comment_content: commentInfo[0].content,
+                liker_username: likerUsername[0].username,
+              },
+              content: {},
+            }),
+          }
+        );
+
+        const data = await res.json();
+        if (!data.success) {
+          console.log(data.message!);
+        } else {
+          console.log("successfully shot comment like notification!");
+        }
+      }
     } else {
       // Unlike the comment
       result = await sql`
