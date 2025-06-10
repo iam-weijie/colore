@@ -162,7 +162,7 @@ export const characters = {
 
 
 
-export const temporaryColors: PostItColor[] = [
+export const defaultColors: PostItColor[] = [
   {
     name: "yellow",
     id: 0,

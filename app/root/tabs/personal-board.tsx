@@ -248,18 +248,21 @@ const handleClearSearch = () => {
 
           <BoardGallery
             boards={myBoards}
+            offsetY={64}
             />
           </View>) :
           selectedTab === "Community" ?  (
         <View className="flex-1">
                   <BoardGallery
                   boards={communityBoards}
+                  offsetY={64}
                   />
                 </View>
           ) : (
         <View className="flex-1">
           <BoardGallery
           boards={discoverBoards}
+          offsetY={64}
           />
         </View>)}
         </View>) : (

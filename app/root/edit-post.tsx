@@ -20,7 +20,7 @@ import { useRecentEmojis } from "@/hooks/useRecentEmojis";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
-import { icons, temporaryColors } from "@/constants";
+import { icons, defaultColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
@@ -37,7 +37,7 @@ const EditPost = () => {
   const maxCharacters = 3000;
   const { showAlert } = useAlert();
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    temporaryColors.find(
+    defaultColors.find(
       (c) => c.id === color
     ) as PostItColor
   );
@@ -199,7 +199,7 @@ const EditPost = () => {
 
             <View className=" w-full flex flex-row justify-center items-center mb-12">
               <ColorPickerSlider
-                colors={temporaryColors}
+                colors={defaultColors}
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
               />

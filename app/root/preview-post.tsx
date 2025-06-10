@@ -1,6 +1,6 @@
 import CustomButton from "@/components/CustomButton";
 import PostModal from "@/components/PostModal";
-import { temporaryColors } from "@/constants";
+import { defaultColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { Post, PostItColor } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";

@@ -310,7 +310,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         const boardsWithColor = response.data.map(
           (board: any, index: number) => ({
             ...board,
-            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           })
         );
 
@@ -319,7 +319,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         const boardsWithColor = checkForPrivacy.map(
           (board: any, index: number) => ({
             ...board,
-            color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            color: defaultColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
           })
         );
 
@@ -350,7 +350,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       const boardsWithColor = response.data.map(
         (board: any, index: number) => ({
           ...board,
-          color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+          color: defaultColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
         })
       );
 
@@ -605,7 +605,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
       )}
 
             {selectedTab === "Communities" && <View className="flex-1 pt-4">
-            <BoardGallery boards={communityBoards} />
+            <BoardGallery 
+              boards={communityBoards}
+              offsetY={120} />
             </View>}
 
             {selectedTab === "Settings" && 

@@ -110,7 +110,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
     );
   };
 
-  const BoardGallery = ({ boards }) => {
+  const BoardGallery = ({ boards, offsetY }: {boards: Board[], offsetY?: number}) => {
     const [allBoards, setAllBoards] = useState<any | null>(null);
     const { isIpad } = useGlobalContext();
   
@@ -131,7 +131,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
   contentContainerStyle={{
     paddingHorizontal: isIpad ? 16 : 4, // More padding on iPad
     paddingBottom: 20,
-    paddingTop: 64
+    paddingTop: offsetY ?? 0
   }}
   columnWrapperStyle={isIpad ? {
     justifyContent: 'flex-start', // Align items from left

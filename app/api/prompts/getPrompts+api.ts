@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { Prompt } from "@/types/type";
-import { temporaryColors } from "@/constants";
+import { defaultColors } from "@/constants";
 
 // v1.0.0+ requires Node.js >= 19
 const sql = neon(process.env.DATABASE_URL!);
@@ -58,7 +58,7 @@ export async function GET(request: Request) {
       engagement: p.engagement,
       created_at: p.created_at,
       color:
-        temporaryColors[Math.floor(Math.random() * temporaryColors.length)].hex,
+        defaultColors[Math.floor(Math.random() * defaultColors.length)].hex,
     }));
 
     return new Response(JSON.stringify({ data: promptsData }), {
