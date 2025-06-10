@@ -303,7 +303,7 @@ async function handleSendNotificationExternal(
           }
         );
       }
-      return; // returning early for now, will need to update updateNotified api
+      return; // no need to updateNotified for likes
     }
 
     await fetchAPI(`/api/notifications/updateNotified${type}`, {
