@@ -74,12 +74,14 @@ export async function fetchNotificationsExternal(
       messagesResponse,
       postResponse,
       friendRequestResponse,
+      likesResponse,
     ] = await Promise.all([
       fetch(`/api/users/getUserInfo?id=${userId}`),
       fetch(`/api/notifications/getComments?id=${userId}`),
       fetch(`/api/notifications/getMessages?id=${userId}`),
       fetch(`/api/notifications/getUserPersonalPosts?id=${userId}`),
       fetch(`/api/friends/getFriendRequests?userId=${userId}`),
+      fetch(`/api/notifications/getLikes?id=${userId}`),
     ]);
 
     const commentsData = await commentsResponse.json();
@@ -117,6 +119,10 @@ export async function fetchNotificationsExternal(
         : [];
     const unread_requests = friendRequests?.length ?? 0;
 
+    const likesData = await likesResponse.json();
+    const likes = likesData.toStore;
+    const unread_likes = likesData.unread_likes;
+
     // Combine all notifications
     const allNotifications = [
       ...comments,
@@ -125,7 +131,11 @@ export async function fetchNotificationsExternal(
       ...friendRequests,
     ];
 
-    const allStoredNotifications = [...storedComments, ...storedPosts];
+    const allStoredNotifications = [
+      ...storedComments,
+      ...storedPosts,
+      ...likes,
+    ];
 
     // Process each notification and send push if needed.
     const processFetchedNotifications = async (notifications: any[]) => {
@@ -179,7 +189,13 @@ export async function fetchNotificationsExternal(
     return {
       notifs: allNotifications,
       history: allStoredNotifications,
-      counts: [unread_comments, unread_messages, unread_posts, unread_requests],
+      counts: [
+        unread_comments,
+        unread_messages,
+        unread_posts,
+        unread_requests,
+        unread_likes,
+      ],
     };
   } catch (error) {
     console.error("Error fetching notifications externally", error);
@@ -567,6 +583,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         setUnreadMessages(counts[1]);
         setUnreadPersonalPosts(counts[2]);
         setUnreadRequests(counts[3]);
+        setUnreadLikes(counts[4]);
       }
 
       // (Update other state as needed based on your API responses.)
