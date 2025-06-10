@@ -42,7 +42,7 @@ export const RenderPromptCard = ({
 }) => {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(30);
-  const scale = useSharedValue(0.8);
+  const scale = useSharedValue(0.9);
 
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 500 });
@@ -57,46 +57,56 @@ export const RenderPromptCard = ({
     opacity: opacity.value,
     transform: [
       { translateY: translateY.value },
-      { scale: scale.value }
+      { scale: scale.value },
     ],
   }));
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} onPressIn={Keyboard.dismiss}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <Animated.View
-        className="flex-1 flex-column items-center justify-center mt-4 mb-8 py-8 rounded-[48px] z-[9999]"
+        className="rounded-[48px] py-8 px-5 justify-between z-[9999]"
         style={[
           animatedCardStyle,
-          { backgroundColor: "white", 
+          {
+            backgroundColor: "white",
             width: screenWidth * 0.85,
-          minHeight: screenHeight * 0.5 }
+            minHeight: screenHeight * 0.52,
+          },
         ]}
       >
-        <View className="w-[85%] flex-1 mx-auto flex-col items-center justify-center">
-          <Text className="my-1 text-[14px] font-JakartaBold text-[#CCC]">
+
+        {/* Header */}
+        <View className="items-center justify-center mb-5 mt-2 px-4">
+          {item.emoji && (
+            <Text className="text-[32px] mb-1">{item.emoji}</Text>
+          )}
+          <Text className="text-tray-400 text-[14px] font-JakartaMedium">
             {item.theme}
           </Text>
-          <Text className="text-[24px] text-center font-JakartaBold text-[#000]">
+          <Text className="text-[22px] font-JakartaSemiBold text-center text-black mt-1">
             {item.cue}...
           </Text>
         </View>
 
-           <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      pointerEvents="box-none"
-    >
-          <View className="mt-2">
+        {/* Input */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={70}
+          style={{ flex: 1 }}
+          pointerEvents="box-none"
+        >
+          <View className="px-2">
             <TextInput
-              className="text-[16px] text-[#000] p-5 rounded-[24px] font-JakartaBold mx-10"
-              placeholder="Type something..."
+              className="font-Jakarta text-[14px] text-black px-4 py-3 rounded-[24px] bg-tray-50"
+              placeholder="Type something fun..."
+              placeholderTextColor="#999"
               value={promptContent}
               onChangeText={updatePromptContent}
               multiline
               scrollEnabled
               style={{
-                paddingTop: 10,
-                paddingBottom: 0,
+                paddingTop: 12,
+                paddingBottom: 12,
                 minHeight: 100,
                 maxHeight: 250,
                 textAlignVertical: "top",
@@ -105,19 +115,21 @@ export const RenderPromptCard = ({
           </View>
         </KeyboardAvoidingView>
 
-        <CustomButton
-          fontSize="lg"
-          title="submit"
-          padding={4}
-          disabled={promptContent.length === 0}
-          onPress={() => {
-            handlePromptSubmit(item);
-          }}
-        />
+        {/* Button */}
+        <View className="mt-5 px-2">
+          <CustomButton
+            fontSize="lg"
+            title="Submit"
+            padding={4}
+            disabled={promptContent.length === 0}
+            onPress={() => handlePromptSubmit(item)}
+          />
+        </View>
       </Animated.View>
     </TouchableWithoutFeedback>
   );
 };
+
 
 export const RenderCreateCard = ({
   item,
