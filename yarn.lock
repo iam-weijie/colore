@@ -1979,7 +1979,7 @@
     hey-listen "^1.0.8"
     tslib "^2.3.1"
 
-"@neondatabase/serverless@^1.0.0":
+"@neondatabase/serverless@^1.0.1":
   version "1.0.1"
   resolved "https://registry.npmjs.org/@neondatabase/serverless/-/serverless-1.0.1.tgz"
   integrity sha512-O6yC5TT0jbw86VZVkmnzCZJB0hfxBl0JJz6f+3KHoZabjb/X08r9eFA+vuY06z1/qaovykvdkrXYq3SPUuvogA==
@@ -4017,6 +4017,7 @@ color@^4.2.3:
     react "19.0.0"
     react-dom "19.0.0"
     react-native "0.79.2"
+    react-native-actions-sheet "^0.9.7"
     react-native-crypto "^2.2.0"
     react-native-emoji-selector "^0.2.0"
     react-native-gesture-handler "~2.24.0"
