@@ -11,14 +11,11 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Alert,
   FlatList,
   Image,
-  KeyboardAvoidingView,
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
-  Switch, // Import Switch
   Text,
   TouchableOpacity,
   View,
@@ -51,6 +48,7 @@ const Settings = () => {
     setSoundEffectsEnabled,
     profile,
     setProfile,
+    refreshProfile,
     userColors,
   } = useGlobalContext();
   const { playSoundEffect } = useSoundEffects(); // Use the sound hook
@@ -294,6 +292,7 @@ const Settings = () => {
       });
     } finally {
       setLoading(false);
+      
     }
   };
 
@@ -435,7 +434,6 @@ const Settings = () => {
   const handleUpdateValue = (type: string) => {
     setUpdateType(type);
     setOnFocus(true);
-    console.log("[Settings]: ", onFocus);
   };
 
   const currentLocation = profileUser
@@ -473,8 +471,6 @@ const Settings = () => {
 
   const maskedIncognito = "*".repeat(incognitoName.length);
 
-
-  console.log("[Settings] Masked Incognito: ", maskedIncognito)
   return (
     <ScrollView
       className="flex-1 pt-6 bg-gray-50"
