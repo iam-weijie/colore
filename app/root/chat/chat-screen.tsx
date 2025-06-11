@@ -821,7 +821,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
         caption={`${item.comment_content ?? item.content ?? item.post_content}`}
         colors={["#93c5fd", "#93c5fd"]}
         icon={
-          item.comment_content
+          item.commenter_username
             ? icons.comment
             : item.content
               ? icons.pencil
