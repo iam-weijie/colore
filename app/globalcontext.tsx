@@ -463,6 +463,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [user, pushToken]);*/
 
   useEffect(() => {
+    console.log("running notification sockets");
     if (user && pushToken) {
       AsyncStorage.setItem("userId", user.id);
       AsyncStorage.setItem("pushToken", pushToken);
@@ -477,6 +478,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           query: {
             id: user.id,
           },
+          transports: ["websocket"],
         }
       );
 
@@ -485,7 +487,22 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       socket.on("connect_error", (err) => {
-        console.error("❌ Socket connection error:", err.message);
+        if (!socket.active) {
+          console.error("❌ Socket connection error:", err.message);
+        }
+      });
+
+      socket.on("reconnect_attempt", () => {
+        console.log("🔁 Reconnecting socket with ID:", user.id);
+        socket.io.opts.query = { id: user.id }; // reset query param
+      });
+
+      socket.on("reconnect_failed", () => {
+        console.warn("❌ Socket failed to reconnect");
+      });
+
+      socket.on("disconnect", (reason) => {
+        console.log("🔌 Disconnected:", reason);
       });
 
       socket.on("notification", ({ type, notification, content }) => {
