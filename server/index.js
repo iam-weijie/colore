@@ -7,13 +7,24 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 const port = process.env.EXPO_PUBLIC_SERVER_PORT || 3000;
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.EXPO_PUBLIC_SERVER_URL || "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
 app.use(express.json());
 
 const connectedUsers = new Map();
 
 app.post("/dispatch", (req, res) => {
   const { userId, type, notification, content } = req.body;
+
+  if (!userId || !type || !notification) {
+  return res.status(400).json({ success: false, message: "Missing fields" });
+}
 
   const socket = connectedUsers.get(userId);
 

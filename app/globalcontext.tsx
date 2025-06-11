@@ -405,6 +405,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       const socket = io(
         `wss://${process.env.EXPO_PUBLIC_SERVER_URL?.substring(8)}`,
         {
+          transports: ["websocket"], 
           query: {
             id: user.id,
           },
