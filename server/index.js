@@ -2,9 +2,13 @@ const dotenv = require("dotenv");
 const express = require("express");
 const { createServer } = require("node:http");
 const { Server } = require("socket.io");
+const cors = require("cors");
 
 dotenv.config();
 const app = express();
+app.use(express.json());
+app.use(cors());
+
 const server = createServer(app);
 const port = process.env.EXPO_PUBLIC_SERVER_PORT || 3000;
 const io = new Server(server, {
@@ -12,7 +16,9 @@ const io = new Server(server, {
     origin: process.env.EXPO_PUBLIC_SERVER_URL || "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true
-  }
+  },
+  pingTimeout: 30000,
+  pingInterval: 10000,
 });
 
 app.use(express.json());
@@ -32,7 +38,9 @@ app.post("/dispatch", (req, res) => {
     socket.emit("notification", { type, notification, content });
     return res.status(200).json({ success: true });
   } else {
-    return res.status(202).json({ success: false, message: "User offline" });
+    return res
+      .status(202)
+      .json({ success: false, message: `User ${userId} is offline` });
   }
 });
 
@@ -43,8 +51,8 @@ io.on("connection", (socket) => {
   if (userId) {
     connectedUsers.set(userId, socket);
 
-    socket.on("disconnect", () => {
-      console.log(`${userId} connection being terminated`);
+    socket.on("disconnect", (reason) => {
+      console.log(`${userId} disconnected: ${reason}`);
       connectedUsers.delete(userId);
     });
   }
