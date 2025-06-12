@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { TextStyle, Format } from '@/types/type';
 import { useGlobalContext } from '@/app/globalcontext';
+import KeyboardOverlay from './KeyboardOverlay';
+import RichTextEditor from './RichTextEditor';
 
 const getMarkdownTags = (type: TextStyle) => {
   switch (type) {
@@ -67,18 +69,19 @@ export const stripMarkdown = (text: string) => {
     .replace(/^-\s?/gm, '');
 };
 
-const RichTextInput = ({ refresh, style, exportText, exportStyling, onFocus }: {
+const RichTextInput = ({ refresh, exportText, exportStyling, onFocus }: {
   refresh: number;
-  style: TextStyle;
   exportText: (value: string) => void;
   exportStyling: (styling: Format[]) => void;
   onFocus: (state: boolean) => void;
 }) => {
   const { draftPost } = useGlobalContext();
   const [value, setValue] = useState('');
+   const [style, setStyle] = useState<TextStyle | null>(null);
   const [formats, setFormats] = useState<Format[]>([]);
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [isFocused, setIsFocused] = useState(true);
+  const [isManuallyFocused, setIsManuallyFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const isOverlap = (aStart: number, aEnd: number, bStart: number, bEnd: number) => {
@@ -242,6 +245,8 @@ const toggleFormat = (type: TextStyle) => {
     return chunks;
   };
 
+  console.log("[RichTextInput]: ", isFocused)
+
   return (
     <View className="flex-1 mx-4 pr-12 py-8">
       <View className="relative min-h-[250px] mb-4">
@@ -255,6 +260,7 @@ const toggleFormat = (type: TextStyle) => {
               setFormats(cleanedFormats);
             }}
             multiline
+            autoFocus
             placeholder="Type here..."
             placeholderTextColor="#F1F1F1"
             onSelectionChange={({ nativeEvent }) => setSelection(nativeEvent.selection)}
@@ -262,13 +268,13 @@ const toggleFormat = (type: TextStyle) => {
               const corrected = correctMarkdownFromFormats(value, formats);
               setValue(corrected);
               setIsFocused(true);
-              onFocus(isFocused)
             }}
             onBlur={() => {
-              const plainText = stripMarkdown(value);
+                if (isManuallyFocused) {
+                  const plainText = stripMarkdown(value);
               setValue(plainText);
-              onFocus(!isFocused)
-              setIsFocused(false);
+              setIsManuallyFocused(false);
+    }
             }}
             className="font-JakartaSemiBold"
             style={{
@@ -299,6 +305,9 @@ const toggleFormat = (type: TextStyle) => {
           </TouchableOpacity>
         )}
       </View>
+        {isFocused && (
+              <RichTextEditor handleApplyStyle={(styling: TextStyle) => {setStyle(styling)}} />
+            )}
     </View>
   );
 };

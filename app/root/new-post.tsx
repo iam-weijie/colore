@@ -100,7 +100,6 @@ const NewPost = () => {
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
     allColors.find((c) => c.id === color) ?? defaultColors[Math.floor(Math.random() * defaultColors.length)]
   );
-  const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
   const [formats, setFormats] = useState<Format[]>([]);
   const [isFocused, setIsFocused] = useState<boolean>(false);
 
@@ -225,11 +224,6 @@ const NewPost = () => {
     setIsEmojiSelectorVisible(false);
   };
 
-  const applyStyle = (newStyle: TextStyle) => {
-    setTextStyling(newStyle);
-    setRefreshingKey((prev) => prev + 1);
-    Keyboard.dismiss();
-  };
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -278,7 +272,6 @@ const NewPost = () => {
   const resetDraftPost = () => {
     setPostContent("");
     setFormats([]);
-    setTextStyling(null);
     setSelectedRecipientId("");
     setSelectedUser(undefined);
     setSelectedEmoji("");
@@ -870,7 +863,6 @@ const NewPost = () => {
                   <View className="flex-1 flex-column justify-start items-center  ">
                     <View className="w-full">
                       <RichTextInput
-                        style={textStyling}
                         refresh={refreshingKey}
                         exportStyling={handleChangeFormat}
                         exportText={handleChangeText}
@@ -1000,9 +992,6 @@ const NewPost = () => {
             triggerPosition={triggerPosition}
             activeIndex={activeEmojiIndex}
           />
-          {isFocused && (<KeyboardOverlay onFocus={isFocused}>
-        <RichTextEditor handleApplyStyle={applyStyle} />
-      </KeyboardOverlay>)}
         </View>
       </TouchableWithoutFeedback>
       

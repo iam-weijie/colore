@@ -77,8 +77,8 @@ export const RenderPromptCard = ({
 
         {/* Header */}
         <View className="items-center justify-center mb-5 mt-2 px-4">
-          <Text className="text-tray-400 text-[14px] font-JakartaMedium">
-            {item.theme}
+          <Text className="text-tray-400 text-[12px] font-JakartaMedium">
+            {item.theme.toUpperCase()}
           </Text>
           <Text className="text-[28px] font-JakartaSemiBold text-center text-black mt-1">
             {item.cue}...
@@ -94,7 +94,7 @@ export const RenderPromptCard = ({
         >
           <View className="px-2">
             <TextInput
-              className="font-Jakarta text-[14px] text-black px-4 py-3 rounded-[24px] bg-tray-50"
+              className="font-Jakarta text-[16px] text-black px-4 py-3 rounded-[24px] bg-tray-50"
               placeholder="Type something fun..."
               placeholderTextColor="#999"
               value={promptContent}
@@ -189,7 +189,7 @@ export const RenderCreateCard = ({
            </LinearGradient>
 
         {/* Text Content */}
-        <Text className="text-black text-[14px]  font-JakartaMedium tracking-widest mb-1">
+        <Text className="text-black text-[12px]  font-JakartaMedium tracking-widest mb-1">
           {item.label.toUpperCase()}
         </Text>
         <Text className="text-black text-[28px] text-center font-JakartaSemiBold mt-2 mb-8 leading-tight">

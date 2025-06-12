@@ -297,7 +297,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 <TouchableOpacity
                 onPress={() => {setScrollTo(`${replyingTo.id}`)}}>
                 <View 
-                className="flex flex-row rounded-[32px] py-3 px-4"
+                className="flex flex-row rounded-[24px] py-3 px-4"
                 style={{
                   backgroundColor: replyingTo.sender_id == user_id
                       ? postColor
@@ -319,7 +319,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 </View>
                 }
             <View
-            className="py-3 px-4 rounded-[32px] max-w-[70%]"
+            className="py-3 px-4 rounded-[24px] max-w-[70%]"
             style={{
               backgroundColor:
               onlyEmoji ? "rgba(0,0,0,0)" : (user_id === user?.id
@@ -371,6 +371,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 );
               }
             }
+            
             }
               hitSlop={5}
             >

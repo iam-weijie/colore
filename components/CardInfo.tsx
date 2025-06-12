@@ -50,7 +50,7 @@ export const HeaderCard = ({ title, color, content, infoView }) => {
     <Image
     source={icons.info}
     className="w-5 h-5"
-    tintColor="#E1E1E1"
+    tintColor="#9ca3af"
     />
     </TouchableOpacity>
     </View>
@@ -71,23 +71,36 @@ export const HeaderCard = ({ title, color, content, infoView }) => {
   </View>
 )};
 
-export const DetailRow = ({ label, value, onPress, accentColor }) => (
-  <View className="px-6 py-2  last:border-b-0">
-    
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={onPress}
-        className="flex flex-row w-full"
-      >
-        <View className=" w-full flex flex-row items-center justify-start mb-1">
-      <Text className="text-[14px] font-JakartaSemiBold text-gray-800">{label}</Text>
-         <MaterialCommunityIcons name="chevron-right" size={20} color={accentColor} />
-          </View>
-      </TouchableOpacity>
-   
-    <Text className="text-gray-400 text-[14px] font-Jakarta">
-      {value || "Not specified"}
-    </Text>
+export const DetailRow = ({ 
+  label, 
+  value, 
+  onPress, 
+  accentColor = "#6b7280" 
+}) => (
+  <View className="px-6 py-4 ">
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      className="flex-row justify-between items-center w-full"
+      disabled={!onPress}
+    >
+      <Text className="text-sm font-JakartaSemiBold text-gray-800">
+        {label}
+      </Text>
+      
+      <View className="flex-row items-center">
+        <Text className="text-sm text-gray-400 font-Jakarta mr-2">
+          {value || "Not specified"}
+        </Text>
+        {onPress && (
+          <MaterialCommunityIcons 
+            name="chevron-right" 
+            size={20} 
+            color="#9ca3af"
+          />
+        )}
+      </View>
+    </TouchableOpacity>
   </View>
 );
 
