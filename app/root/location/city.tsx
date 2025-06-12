@@ -285,7 +285,7 @@ const City = () => {
               className="w-[50%] h-16 rounded-full shadow-none bg-black"
               fontSize="lg"
               title={"Done"}
-              padding="0"
+              padding={4}
               onPress={handleConfirmPress}
               disabled={!selectedCity}
             />

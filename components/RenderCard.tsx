@@ -64,13 +64,13 @@ export const RenderPromptCard = ({
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <Animated.View
-        className="rounded-[48px] py-8 px-5 justify-between z-[9999]"
+        className="rounded-[64px] py-12 px-8 justify-between"
         style={[
           animatedCardStyle,
           {
             backgroundColor: "white",
             width: screenWidth * 0.85,
-            minHeight: screenHeight * 0.52,
+            minHeight: screenHeight * 0.56,
           },
         ]}
       >
@@ -80,7 +80,7 @@ export const RenderPromptCard = ({
           <Text className="text-tray-400 text-[14px] font-JakartaMedium">
             {item.theme}
           </Text>
-          <Text className="text-[22px] font-JakartaSemiBold text-center text-black mt-1">
+          <Text className="text-[28px] font-JakartaSemiBold text-center text-black mt-1">
             {item.cue}...
           </Text>
         </View>
@@ -159,7 +159,7 @@ export const RenderCreateCard = ({
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <Animated.View
-      className="flex-1 items-center justify-center my-4 rounded-[64px] overflow-hidden"
+      className="flex-1 items-center justify-center my-4 rounded-[64px] max-w-[500px] overflow-hidden"
       style={[
         animatedCardStyle,
         { 
@@ -189,10 +189,10 @@ export const RenderCreateCard = ({
            </LinearGradient>
 
         {/* Text Content */}
-        <Text className="text-black text-sm font-JakartaSemiBold tracking-widest mb-1">
+        <Text className="text-black text-[14px]  font-JakartaMedium tracking-widest mb-1">
           {item.label.toUpperCase()}
         </Text>
-        <Text className="text-black text-3xl text-center font-JakartaBold mb-8 leading-tight">
+        <Text className="text-black text-[28px] text-center font-JakartaSemiBold mt-2 mb-8 leading-tight">
           {item.caption}
         </Text>
 
