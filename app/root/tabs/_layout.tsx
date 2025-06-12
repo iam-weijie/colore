@@ -20,52 +20,95 @@ interface HapticTabBarButtonProps {
   style?: any;
 }
 
-const HapticTabBarButton: React.FC<HapticTabBarButtonProps> = ({ children, onPress, style, ...rest }) => {
+const HapticTabBarButton: React.FC<HapticTabBarButtonProps> = ({ 
+  children, 
+  onPress, 
+  style,
+  isCenter = false,
+  ...rest 
+}) => {
   const { hapticsEnabled, soundEffectsEnabled } = useGlobalContext();
   const { triggerHaptic } = useHaptics();
   const { playSoundEffect } = useSoundEffects();
-  const scale = useRef(new Animated.Value(1)).current;
+  
+  // Animation values
+  const scale = useSharedValue(1);
+  const translateY = useSharedValue(0);
+  const rotate = useSharedValue(0);
+  const isCenterUp = useSharedValue(false);
 
-  const handlePress = async (e: GestureResponderEvent) => {
+  // Center button animation
+  const animateCenterButton = () => {
+    if (!isCenterUp.value) {
+      rotate.value = withTiming(1, {
+        duration: 400,
+        easing: Easing.inOut(Easing.ease)
+      });
+    }
+    
+    isCenterUp.value = !isCenterUp.value;
+    translateY.value = withSpring(
+      isCenterUp.value ? -10 : 0,
+      { damping: 10, stiffness: 300 }
+    );
+    
     if (hapticsEnabled) {
-      triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
+      runOnJS(triggerHaptic)(Haptics.ImpactFeedbackStyle.Heavy);
     }
-  
-    playSoundEffect(SoundType.Navigation)
-  
-    if (onPress) {
-      onPress(e);
+    runOnJS(playSoundEffect)(SoundType.Navigation);
+  };
+
+  // Regular button bounce animation
+  const bounceAnimation = () => {
+    scale.value = withSequence(
+      withTiming(0.9, { duration: 80 }),
+      withSpring(1, { damping: 12, stiffness: 250 })
+    );
+    
+    if (hapticsEnabled) {
+      runOnJS(triggerHaptic)(Haptics.ImpactFeedbackStyle.Light);
     }
-  };
-  
-
-  const handlePressIn = () => {
-    Animated.spring(scale, {
-      toValue: 0.9,
-      useNativeDriver: true,
-    }).start();
+    runOnJS(playSoundEffect)(SoundType.Navigation);
   };
 
-  const handlePressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
+  const handlePress = () => {
+    if (isCenter) {
+      animateCenterButton();
+    } else {
+      bounceAnimation();
+    }
+    onPress?.();
   };
 
-  const animatedStyle = {
-    transform: [{ scale }],
-  };
+  // Animated styles
+  const animatedStyle = useAnimatedStyle(() => {
+    if (isCenter) {
+      return {
+        transform: [
+          { rotate: `${rotate.value * 360}deg` },
+          { translateY: translateY.value },
+        ]
+      };
+    }
+    return {
+      transform: [
+        { scale: scale.value },
+        { translateY: withSpring(0) } // Default state for non-center buttons
+      ]
+    };
+  });
 
   return (
     <Pressable
       onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={style} // Apply only the passed style to Pressable
+      style={style}
       {...rest}
     >
-      <Animated.View style={[animatedStyle, {alignItems: 'center'}]}> 
+      <Animated.View style={[
+        animatedStyle,
+        { alignItems: 'center' },
+        isCenter && { marginTop: -15 } // Adjust for center button elevation
+      ]}>
         {children}
       </Animated.View>
     </Pressable>

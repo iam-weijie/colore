@@ -136,15 +136,26 @@ export const RenderCreateCard = ({
   handleOptionSubmit: () => void;
 }) => {
   const opacity = useSharedValue(0);
-  const translateY = useSharedValue(30);
-  const scale = useSharedValue(0.8);
+  const translateY = useSharedValue(20);
+  const scale = useSharedValue(0.95);
 
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 500 });
-    translateY.value = withSpring(0, { damping: 12 });
+    opacity.value = withTiming(1, { duration: 400 });
+    translateY.value = withSpring(0, { 
+      damping: 10,  // Balanced bounce
+      stiffness: 120,
+      mass: 0.8
+    });
     scale.value = withSequence(
-      withTiming(1.03, { duration: 300 }),
-      withSpring(1, { damping: 10 })
+      withTiming(0.98, { duration: 100 }), // Tiny initial squeeze
+      withSpring(1.02, { // Subtle overshoot
+        damping: 8,
+        stiffness: 150
+      }),
+      withSpring(1, { // Settle
+        damping: 10,
+        stiffness: 100
+      })
     );
   }, []);
 
@@ -158,62 +169,61 @@ export const RenderCreateCard = ({
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <Animated.View
-      className="flex-1 items-center justify-center my-4 rounded-[64px] max-w-[500px] overflow-hidden"
-      style={[
-        animatedCardStyle,
-        { 
-          backgroundColor: "rgba(255,255,255,1)",
-          width: screenWidth * 0.85
-        }
-      ]}
-    >
+      <Animated.View
+        className="flex-1 items-center justify-center my-4 rounded-[64px] max-w-[500px] overflow-hidden"
+        style={[
+          animatedCardStyle,
+          { 
+            backgroundColor: "rgba(255,255,255,1)",
+            width: screenWidth * 0.85
+          }
+        ]}
+      >
+        {/* Rest of your component remains unchanged */}
+        {/* Card Content */}
+        <View className="w-[80%] flex-col items-center justify-center z-10">
+          {/* Icon */}
+          <LinearGradient
+            colors={["#FBB1F5", "#93c5fd"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="rounded-full p-1 w-[96px] h-[96px] mr-4 justify-center items-center mb-6"
+          >
+            <View className="w-full h-full bg-white/10 rounded-full justify-center items-center">
+              <Image
+                source={item.icon}
+                className="w-12 h-12"
+                style={{ tintColor: "#FAFAFA" }}
+                resizeMode="contain"
+              />
+            </View>
+          </LinearGradient>
 
-      {/* Card Content */}
-      <View className="w-[80%] flex-col items-center justify-center z-10">
-        {/* Icon */}
-           <LinearGradient
-             colors={["#FBB1F5", "#93c5fd"]}
-             start={{ x: 0, y: 0 }}
-             end={{ x: 1, y: 1 }}
-             className="rounded-full p-1 w-[96px] h-[96px] mr-4 justify-center items-center mb-6"
-           >
-             <View className="w-full h-full bg-white/10 rounded-full justify-center items-center">
-               <Image
-                 source={item.icon}
-                 className="w-12 h-12"
-                 style={{ tintColor: "#FAFAFA" }}
-                 resizeMode="contain"
-               />
-             </View>
-           </LinearGradient>
+          {/* Text Content */}
+          <Text className="text-black text-[12px]  font-JakartaMedium tracking-widest mb-1">
+            {item.label.toUpperCase()}
+          </Text>
+          <Text className="text-black text-[28px] text-center font-JakartaSemiBold mt-2 mb-8 leading-tight">
+            {item.caption}
+          </Text>
 
-        {/* Text Content */}
-        <Text className="text-black text-[12px]  font-JakartaMedium tracking-widest mb-1">
-          {item.label.toUpperCase()}
-        </Text>
-        <Text className="text-black text-[28px] text-center font-JakartaSemiBold mt-2 mb-8 leading-tight">
-          {item.caption}
-        </Text>
+          {/* Button */}
+          <CustomButton
+            fontSize="lg"
+            title="Create"
+            padding={4}
+            onPress={() => {
+              handleOptionSubmit();
+            }}
+            disabled={false}
+          />
+        </View>
 
-        {/* Button */}
-        <CustomButton
-          fontSize="lg"
-          title="Create"
-          padding={4}
-          onPress={() => {
-            handleOptionSubmit();
-          }}
-          disabled={false}
-        />
-      </View>
-
-      {/* Floating Particles */}
-      <View className="absolute top-4 right-6 w-3 h-3 bg-white/40 rounded-full" />
-      <View className="absolute bottom-8 left-8 w-2 h-2 bg-white/30 rounded-full" />
-      <View className="absolute top-16 left-12 w-4 h-4 bg-white/20 rounded-full" />
-    </Animated.View>
-  </TouchableWithoutFeedback>
+        {/* Floating Particles */}
+        <View className="absolute top-4 right-6 w-3 h-3 bg-white/40 rounded-full" />
+        <View className="absolute bottom-8 left-8 w-2 h-2 bg-white/30 rounded-full" />
+        <View className="absolute top-16 left-12 w-4 h-4 bg-white/20 rounded-full" />
+      </Animated.View>
+    </TouchableWithoutFeedback>
   );
 };
-

@@ -56,6 +56,7 @@ export async function GET(request: Request) {
       LEFT JOIN posts p ON p.prompt_id = pr.prompt_id
       LEFT JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN boards b ON p.board_id = b.id
+      WHERE p.user_id != ${clerkId}
       ORDER BY pr.prompt_created_at DESC, p.created_at DESC;
     `;
 
