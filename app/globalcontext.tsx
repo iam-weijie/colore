@@ -216,7 +216,6 @@ async function handleSendNotificationExternal(
     if (type === "Comments") {
       const notificationContent = content.comment_content.slice(0, 120);
 
-      console.log("n", n);
       await sendPushNotification(
         pushToken,
         `${content.commenter_username} responded to your post`,
@@ -278,10 +277,13 @@ async function handleSendNotificationExternal(
         pushToken,
         `${n.username} has posted on your board`,
         `${n.content}`,
-        "posts",
+        "post",
         {
           route: `/root/tabs/personal-board`,
-          params: {},
+          params: {
+            boardId: n.boardId,
+            
+          },
         }
       );
     }
@@ -294,7 +296,7 @@ async function handleSendNotificationExternal(
           pushToken,
           `${n.liker_username} liked your comment`,
           notificationContent,
-          "comment",
+          "like",
           {
             route: `/root/posts/${n.post_id}`,
             params: {
@@ -309,7 +311,7 @@ async function handleSendNotificationExternal(
           pushToken,
           `${n.liker_username} liked your post`,
           notificationContent,
-          "comment",
+          "like",
           {
             route: `/root/posts/${n.post_id}`,
             params: {

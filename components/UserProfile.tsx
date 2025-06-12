@@ -34,6 +34,7 @@ import PostContainer from "./PostContainer";
 import { fetchCountryEmoji } from "@/lib/post";
 import Header from "./Header";
 import { Ionicons } from "@expo/vector-icons";
+import { defaultColors } from "@/constants";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View entering={FadeIn.duration(600)} className="w-full px-4 my-3">
@@ -123,10 +124,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
         fetchUserData();
       }
 
-      fetchUserPosts();
-      fetchPersonalBoards();
-      fetchCommunityBoards();
-      fetchPersonalPosts();
+      if (isEditable) {
+          fetchUserPosts();
+          fetchPersonalPosts();
+      } else {
+        fetchPersonalBoards();
+        fetchCommunityBoards();
+      }
+      
 
       return () => {
         // Cleanup if needed
@@ -283,7 +288,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       const boardsWithColor = response.data.map(
         (board: any, index: number) => ({
           ...board,
-          color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+          color: defaultColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
         })
       );
 
@@ -376,7 +381,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
   ];
 
   const handleTabChange = (tabKey: string) => {
-    console.log("Tab changed to:", tabKey);
     setSelectedTab(tabKey);
   };
 

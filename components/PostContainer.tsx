@@ -146,8 +146,10 @@ const PostContainer: React.FC<PostContainerProps> = ({
   }, [currentPostIndex]);
 
    useEffect(() => {
+    console.log("[PostContainer] See Comment: ", seeComments)
     if (seeComments) {
-      handleCommentsPress()
+      setTimeout(() => {
+      handleCommentsPress()}, 800)
     }
   }, [])
   // Fetch like status only when post or user changes
@@ -356,7 +358,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const handleCommentsPress = () => {
     const current = post[currentPostIndex];
     setSelectedBoard(() => (
-      <PostScreen id={current?.id.toString()} clerkId={current?.user_id} />
+      <PostScreen id={String(current.id)} clerkId={current.user_id} />
     ));
   };
 
@@ -759,7 +761,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
           />
         </View>
       )}
-      {!!selectedBoard && (
+
         <ModalSheet
           isVisible={!!selectedBoard}
           title={"Comments"}
@@ -773,7 +775,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
         >
           <View className="flex-1 h-full">{selectedBoard}</View>
         </ModalSheet>
-      )}
+    
     </AnimatedView>
   );
 };

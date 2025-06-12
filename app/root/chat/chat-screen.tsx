@@ -833,10 +833,27 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
           if (item.recipient_user_id) {
             router.push({
               pathname: "/root/user-board/[id]",
-              params: { id: `${user!.id}`, username: `Personal board` },
+              params: { 
+                id: `${user!.id}`, 
+                username: `Personal board`,
+                postId: post?.id,
+                commentId: item.id, },
             });
+          } else if (item.liker_username) {
+            router.push({
+              pathname: "/root/tabs/profile", 
+              params: {
+                postId: post?.id ?? item.post_id,
+                tab: "Posts"
+            }});
           } else {
-            router.push("/root/tabs/profile");
+             router.push({
+              pathname: "/root/tabs/profile", 
+              params: {
+                postId: post?.id ?? item.post_id,
+                commentId:  item.id,
+                tab: "Posts"
+            }});
           }
         }}
       />

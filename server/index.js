@@ -17,8 +17,8 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true
   },
-  pingTimeout: 30000,
-  pingInterval: 10000,
+  pingTimeout: 60000,
+  pingInterval: 25000,
 });
 
 app.use(express.json());

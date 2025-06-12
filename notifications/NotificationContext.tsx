@@ -44,6 +44,7 @@ export const NotificationProvider = ({
   const { user } = useUser();
 
   const [post, setPost] = useState<Post>();
+  const [seeComments, setSeeComments] = useState<boolean>(false)
 
 
   const fetchPost = async (id: string) => {
@@ -107,10 +108,31 @@ export const NotificationProvider = ({
         if (data) {
           if (data.type === "comment") {
 
-            console.log("Navigating to post", data.path.params)
 
             fetchPost(data.path.params!.id)
+            setSeeComments(true)
+          }
+          if (data.type === "post") {
+            fetchPost(data.path.params!.id)
             
+              router.push({
+                pathname: data.path.route,
+                            // send through params to avoid doing another API call for post
+                params: {
+                  id: data.path.params!.id,
+                  clerk_id: data.path.params!.clerk_id,
+                  content: data.path.params!.content,
+                  nickname: data.path.params!.nickname,
+                  firstname: data.path.params!.firstname,
+                  username: data.path.params!.username,
+                  like_count: data.path.params!.like_count,
+                  report_count: data.path.params!.report_count,
+                  created_at: data.path.params!.created_at,
+                  unread_comments: data.path.params!.unread_comments,
+                  color: data.path.params!.color,
+                },
+              });
+          }
            /* router.push({
               pathname: data.path.route,
               // send through params to avoid doing another API call for post
@@ -128,7 +150,7 @@ export const NotificationProvider = ({
                 color: data.path.params!.color,
               },
             });*/
-          }
+          
 
         
         }
@@ -178,11 +200,12 @@ catch(error) {
     <NotificationContext.Provider value={{ pushToken, scheduleNotification }}>
       <>
       {children}
-      {!!post && <PostModal
+      {!!post && 
+      <PostModal
        isVisible={!!post} 
        selectedPosts={post ? [post] : []}
        handleCloseModal={() => {setPost(undefined)}}
-       seeComments />}
+       seeComments={seeComments} />}
       </>
     </NotificationContext.Provider>
   );

@@ -38,7 +38,7 @@ import PostModal from "@/components/PostModal";
 
 const UserPersonalBoard = () => {
   const { user } = useUser();
-  const { id, username, boardId, postId } = useLocalSearchParams();
+  const { id, username, boardId, postId, commentId } = useLocalSearchParams();
   const { playSoundEffect } = useSoundEffects();
   const {
     hapticsEnabled,
@@ -517,13 +517,14 @@ const UserPersonalBoard = () => {
         <CustomButtonBar buttons={navigationControls} />
         {isBoardSettingsVisible && BoardSetting()}
       </View>
-      {isModalVisible && post && (
+      {post && (
         <PostModal
-          isVisible={!!isModalVisible}
+          isVisible={!!post}
           selectedPosts={[post]}
           handleCloseModal={() => {
             setIsModalVisible(false);
           }}
+          seeComments={!!commentId}
         />
       )}
     </>
