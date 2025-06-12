@@ -124,6 +124,7 @@ const AlertNotification: React.FC<AlertProps> = ({ title, message, type, status,
                   <BlurView className='  
             top-2
             w-[92%]
+            self-center
             mx-auto
             pt-8
             pb-4

@@ -217,7 +217,7 @@ const Profile = () => {
             caption={
               nickname ? `Change ${nickname}'s nickname` : "Nickname me!"
             }
-            icon={icons.addUser}
+            icon={icons.user}
             colors={["#93c5fd", "#b8e1ff"]}
             iconColor="#000"
             onPress={() => {
@@ -229,7 +229,7 @@ const Profile = () => {
             <ItemContainer
               label={"Unfriend"}
               caption={"Add recipient to this post"}
-              icon={icons.trash}
+              icon={icons.removeUser}
               colors={["#93c5fd", "#b8e1ff"]}
               iconColor="#000"
               onPress={() => handleUnfriend()}
@@ -239,7 +239,7 @@ const Profile = () => {
             <ItemContainer
               label={"Cancel friend request"}
               caption={"Cancel the friend request you sent to this user"}
-              icon={icons.trash}
+              icon={icons.close}
               colors={["#93c5fd", "#b8e1ff"]}
               iconColor="#000"
               onPress={() => handleCancelFriendRequest()}

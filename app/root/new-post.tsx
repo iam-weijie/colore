@@ -348,7 +348,7 @@ const NewPost = () => {
       unread_comments: 0,
       recipient_user_id: selectedRecipientId ?? "",
       pinned: false,
-      color: selectedColor.name,
+      color: selectedColor.id,
       emoji: selectedEmoji ?? "",
       notified: false,
       prompt_id: promptId ? Number(promptId) : 0,
@@ -716,6 +716,7 @@ const NewPost = () => {
           ) : ["Schedule", "Expiration"].includes(selectedSetting) ? (
             <View className="flex-1">
               <CalendarView
+              color={selectedColor?.hex}
                 onDateSelect={
                   selectedSetting === "Schedule"
                     ? (selected: Date) => {
@@ -846,7 +847,7 @@ const NewPost = () => {
                     : "New Post"
             }
           />
-
+{selectedTab == "create" && (
           <TouchableWithoutFeedback
             onPress={() => Keyboard.dismiss()}
             onPressIn={() => Keyboard.dismiss()}
@@ -922,7 +923,7 @@ const NewPost = () => {
                 </View>
               </View>
             </View>
-          </TouchableWithoutFeedback>
+          </TouchableWithoutFeedback>)}
           {selectedTab == "customize" && (
             <View key={refreshingKey} className="absolute top-8">
               <PostContainer
@@ -930,7 +931,7 @@ const NewPost = () => {
                 handleCloseModal={() => {}}
                 isPreview={true}
                 header={
-                  <View className="absolute z-[10] top-[15%] right-5 flex flex-row items-center justify-end gap-2">
+                  <View className="absolute z-[10] top-28 right-5 flex flex-col items-center justify-end">
                     {/* <TouchableOpacity
                     onPress={() => {setIsLinkHolderVisible(true)}}
                     className="w-8 h-8 rounded-full flex items-center justify-center"
@@ -941,26 +942,22 @@ const NewPost = () => {
                       tintColor={'#fff'}
                     />
                   </TouchableOpacity>*/}
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={() => {
+                    <InteractionButton 
+                    label={""} 
+                    icon={
+                          !selectedStaticEmoji
+                            ? icons.sparklesFill
+                            : icons.sparkles
+                        }
+                    size="sm"
+                    onPress= {() => {
                         if (selectedEmoji) {
                           setSelectedStaticEmoji((prev) => !prev);
                           setRefreshingKey((prev) => prev + 1);
                         }
                       }}
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
-                    >
-                      <Image
-                        source={
-                          !selectedStaticEmoji
-                            ? icons.sparklesFill
-                            : icons.sparkles
-                        }
-                        className="w-7 h-7"
-                        tintColor={"#fff"}
-                      />
-                    </TouchableOpacity>
+                      showLabel={false} 
+                      color={""} />
                   </View>
                 }
                 staticEmoji={selectedStaticEmoji}

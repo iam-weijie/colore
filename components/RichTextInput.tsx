@@ -270,11 +270,9 @@ const toggleFormat = (type: TextStyle) => {
               setIsFocused(true);
             }}
             onBlur={() => {
-                if (isManuallyFocused) {
                   const plainText = stripMarkdown(value);
               setValue(plainText);
-              setIsManuallyFocused(false);
-    }
+              setIsFocused(false)
             }}
             className="font-JakartaSemiBold"
             style={{
@@ -306,7 +304,9 @@ const toggleFormat = (type: TextStyle) => {
         )}
       </View>
         {isFocused && (
+          <KeyboardOverlay keyboardAlreadyVisible={true} onFocus={isFocused}>
               <RichTextEditor handleApplyStyle={(styling: TextStyle) => {setStyle(styling)}} />
+                </KeyboardOverlay>
             )}
     </View>
   );

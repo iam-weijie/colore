@@ -294,7 +294,7 @@ const Settings = () => {
   };
 
   const handleIncognitoNameUpdate = async (newName: string) => {
-
+    console.log("New Incognito Name: ", newName);
     if (!verifyValidName(newName)) {
       showAlert({
         title: "Invalid Incognito Name",
@@ -737,7 +737,7 @@ const Settings = () => {
       </View>
 
       {onFocus && (
-        <KeyboardOverlay  >
+        <KeyboardOverlay onFocus={onFocus} offsetY={scrollOffset.y}>
           <RenameContainer
             onSave={(newName: string) => {
               if (type === "username") {
@@ -757,7 +757,7 @@ const Settings = () => {
                 : type === "nickname"
                   ? nickname
                   : type === "incognito_name"
-                    ? maskedIncognito
+                    ? incognitoName
                     : email
             }
             onCancel={() => setOnFocus(false)}
