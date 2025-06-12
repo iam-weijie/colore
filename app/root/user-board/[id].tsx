@@ -33,6 +33,7 @@ import { useGlobalContext } from "@/app/globalcontext";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { Post } from "@/types/type";
 import PostModal from "@/components/PostModal";
+import { decryptText } from "@/lib/encryption";
 
 
 const SCREEN_HEIGHT = Dimensions.get("window").height
@@ -45,6 +46,7 @@ const UserPersonalBoard = () => {
     setHapticsEnabled,
     soundEffectsEnabled,
     setSoundEffectsEnabled,
+    encryptionKey,
   } = useGlobalContext();
   const [isBoardSettingsVisible, setIsBoardSettingsVisible] =
     useState<boolean>(false);
@@ -101,7 +103,19 @@ const UserPersonalBoard = () => {
       const response = await fetchAPI(`/api/boards/getBoardById?id=${boardId}`);
 
       const isPrivate = response.data.board_type == "personal";
-      setBoardInfo(response.data);
+
+      let boardData = response.data;
+      if (isPrivate && encryptionKey) {
+        try {
+          boardData = {
+            ...boardData,
+            title: decryptText(boardData.title, encryptionKey),
+            description: decryptText(boardData.description, encryptionKey),
+          };
+        } catch {}
+      }
+
+      setBoardInfo(boardData);
       setCanParticipate(!isPrivate);
       setPostCount(response.count);
 
@@ -377,6 +391,7 @@ const UserPersonalBoard = () => {
                                 />
                                                          </>
                             }
+                            infoView={null}
                           />
                           <View className="my-4"></View>
                       <HeaderCard 
@@ -393,6 +408,7 @@ const UserPersonalBoard = () => {
                                 />
                               </>
                             }
+                            infoView={null}
                           />
                            <View className="my-4"></View>
                     {selectedSetting &&  <View className="flex-1 flex items-center w-full mb-4">
@@ -504,7 +520,7 @@ const UserPersonalBoard = () => {
 
         <PersonalBoard
           userId={id as string}
-          boardId={boardId}
+          boardId={Number(boardId)}
           shuffleModeOn={shuffleMode}
           setShuffleModeOn={() => setShuffleMode(false)}
         />

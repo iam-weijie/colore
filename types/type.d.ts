@@ -162,6 +162,7 @@ declare interface UserProfileType {
   saved_posts: string[];
   shorthand_emojis?: string[];
   colors: PostItColor[];
+  customizations?: any[];
 }
 
 declare interface UserData {

@@ -21,7 +21,7 @@ const PreviewPost = () => {
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const { showAlert } = useAlert();
   const { triggerHaptic } = useHaptics();
-  const { setDraftPost, draftPost } = useGlobalContext();
+  const { setDraftPost, draftPost, encryptionKey } = useGlobalContext();
   const [isPosting, setIsPosting] = useState(false);
 
 
@@ -38,7 +38,7 @@ const PreviewPost = () => {
       <View className="flex-1">
         <PostModal
           isVisible={isVisible}
-          selectedPosts={[draftPost]} // Always a valid Post object
+          selectedPosts={draftPost ? [draftPost] : []}
           handleCloseModal={handleCloseModal}
           isPreview={true}
           header={
@@ -51,7 +51,9 @@ const PreviewPost = () => {
               padding={4}
               onPress={() => {
                 console.log("supposed to submit")
-                handleSubmitPost(user!.id, draftPost)}}
+                if (draftPost) {
+                  handleSubmitPost(user!.id, draftPost, encryptionKey);
+                }}}
 />
                <TouchableOpacity
                   onPress={handleCloseModal}

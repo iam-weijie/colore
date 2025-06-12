@@ -24,12 +24,12 @@ import { io } from "socket.io-client";
 type GlobalContextType = {
   stacks: Stacks[];
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
-  profile: UserProfileType;
-  setProfile: React.Dispatch<React.SetStateAction<UserProfileType>>;
+  profile?: UserProfileType;
+  setProfile: React.Dispatch<React.SetStateAction<UserProfileType | undefined>>;
   refreshProfile: () => void;
   userColors: PostItColor[];
   setUserColors: React.Dispatch<React.SetStateAction<PostItColor[]>>;
-  draftPost: Post;
+  draftPost: Post | null;
   setDraftPost: React.Dispatch<React.SetStateAction<Post | null>>;
   resetDraftPost: () => void;
   notifications: any[];
@@ -53,6 +53,8 @@ type GlobalContextType = {
   setSoundEffectsEnabled: (
     value: boolean | ((prevState: boolean) => boolean)
   ) => void; // Use custom setter type
+  encryptionKey: string | null;
+  setEncryptionKey: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -190,9 +192,6 @@ export async function fetchNotificationsExternal(
         if (n.recipient_user_id) {
           console.log("n", n);
           await handleSendNotificationExternal(n, n, "Posts", pushToken);
-        if (n.recipient_user_id) {
-          console.log("n", n);
-          await handleSendNotificationExternal(n, n, "Posts", pushToken);
         }
       }
     };
@@ -202,7 +201,6 @@ export async function fetchNotificationsExternal(
       notifs: allNotifications,
       history: allStoredNotifications,
       counts: [unread_comments, unread_messages, unread_posts, unread_requests]
-      }
     }
   } catch (error) {
     console.error("Error fetching notifications externally", error);
@@ -273,7 +271,6 @@ async function handleSendNotificationExternal(
         {
           route: `/root/tabs/personal-board`,
           params: {},
-          params: {},
         }
       );
     }
@@ -314,7 +311,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [stacks, setStacks] = useState<Stacks[]>([]);
   const [draftPost, setDraftPost] = useState<Post | null>({
     id: 0,
-    clerk_id: "",
+    user_id: "",
     firstname: "",
     username: "",
     nickname: "",
@@ -359,6 +356,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [hapticsEnabled, setHapticsEnabledState] = useState<boolean>(true); // Default to true
   const [soundEffectsEnabled, setSoundEffectsEnabledState] =
     useState<boolean>(true); // Default to true
+
+  const [encryptionKey, setEncryptionKey] = useState<string | null>(null);
 
   const fetchUserProfile = async () => {
       if (user) {
@@ -655,7 +654,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Register New Push Token
 
-  const sendTokenDB = async (token) => {
+  const sendTokenDB = async (token: string | null) => {
     // PushToken to Database
 
     console.log("sending it");
@@ -771,6 +770,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         setHapticsEnabled, // Use wrapped setter
         soundEffectsEnabled,
         setSoundEffectsEnabled, // Use wrapped setter
+        encryptionKey,
+        setEncryptionKey,
       }}
     >
       {children}

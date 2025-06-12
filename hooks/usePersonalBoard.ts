@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Dimensions } from "react-native";
 import { fetchAPI } from "@/lib/fetch";
 import { Board, Post, UsePersonalPostsParams } from "@/types/type";
+import { decryptText } from "@/lib/encryption";
+import { useGlobalContext } from "@/app/globalcontext";
 
 const POSTS_CONFIG = {
   IPAD_MAX: 48,
@@ -43,7 +45,7 @@ const filterPersonalPosts = (
 const filterPostsByBoard = (posts: Post[], boardId: number): Post[] => {
   return boardId === -1
     ? posts
-    : posts.filter((post: Post) => post.board_id == boardId);
+    : posts.filter((p: Post) => p.board_id == boardId);
 };
 
 export const usePersonalPosts = (params: UsePersonalPostsParams) => {
@@ -53,6 +55,8 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
   const [maxPosts, setMaxPosts] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { encryptionKey } = useGlobalContext();
 
   const fetchBoardPosts = async (
     boardId: number,
@@ -99,7 +103,22 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
         filteredPosts = await fetchPersonalPosts(userId, viewerId);
       }
 
-      const finalPosts = filterPostsByBoard(filteredPosts, boardId);
+      const finalPosts = filterPostsByBoard(filteredPosts, boardId)
+        .map((p: Post) => {
+          const isPrivate = Boolean(p.recipient_user_id);
+          if (isPrivate && encryptionKey) {
+            try {
+              const decryptedContent = decryptText(p.content, encryptionKey);
+              const decryptedFormatting = p.formatting && typeof p.formatting === "string"
+                ? JSON.parse(decryptText(p.formatting as unknown as string, encryptionKey))
+                : p.formatting;
+              return { ...p, content: decryptedContent, formatting: decryptedFormatting };
+            } catch (e) {
+              console.warn("Failed decryption for post", p.id);
+            }
+          }
+          return p;
+        });
 
       setBoardOnlyPosts(finalPosts);
       return finalPosts; // Return the fresh data
@@ -144,19 +163,26 @@ export const useFetchUserData = (userId: string, setError: any) => {
   return profileUser;
 };
 
+interface FetchNewPersonalPostParams {
+  excludeIds: number[];
+  boardId: number;
+  userId: string;
+  clerkId: string;
+}
+
 export const fetchNewPersonalPost = async ({
   excludeIds,
   boardId,
   userId,
   clerkId,
-}) => {
+}: FetchNewPersonalPostParams): Promise<Post | null> => {
   try {
     const excludeIdsParam = excludeIds.join(",");
     const res = await fetch(
       `/api/posts/getPersonalPostsExcluding?number=1&user_id=${clerkId}&recipient_id=${userId}&exclude_ids=${excludeIdsParam}`
     );
     const result = await res.json();
-    const filteredForBoard = result.data.filter((p) => p.board_id == boardId);
+    const filteredForBoard = result.data.filter((p: Post) => p.board_id == boardId);
     return filteredForBoard[0] || null;
   } catch (e) {
     console.error("Error fetching new post:", e);

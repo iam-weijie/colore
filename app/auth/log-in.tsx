@@ -10,12 +10,15 @@ import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
 import React from "react";
+import { fetchAPI } from "@/lib/fetch";
+import { deriveKey } from "@/lib/encryption";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { signOut } = useAuth();
   const router = useRouter();
-   const { isIpad } = useGlobalContext()
+  const { isIpad } = useGlobalContext();
+  const { setEncryptionKey } = useGlobalContext();
 
   const [form, setForm] = useState({
     email: "",
@@ -28,6 +31,14 @@ const LogIn = () => {
     }
 
     try {
+      // Fetch user's salt first using email
+      const saltResponse = await fetchAPI(`/api/users/getSalt?email=${encodeURIComponent(form.email)}`);
+      if (saltResponse.error || !saltResponse.salt) {
+        Alert.alert("Error", "Unable to retrieve security parameters.");
+        return;
+      }
+      const userSalt = saltResponse.salt as string;
+
       // First try to sign out of any existing session
       try {
         await signOut();
@@ -45,6 +56,11 @@ const LogIn = () => {
 
       if (logInAttempt.status === "complete") {
         await setActive({ session: logInAttempt.createdSessionId });
+
+        // Derive and store encryption key
+        const key = deriveKey(form.password, userSalt);
+        setEncryptionKey(key);
+
         router.replace("/root/user-info");
       } else {
         console.error(
@@ -53,7 +69,7 @@ const LogIn = () => {
         );
         Alert.alert("Error", "Log in failed. Please try again.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login error:", JSON.stringify(err, null, 2));
 
       if (err.errors?.[0]?.code === "session_exists") {
@@ -70,11 +86,11 @@ const LogIn = () => {
       } else {
         Alert.alert(
           "Error",
-          err.errors?.[0]?.longMessage || "An error occurred during login"
+          (err as any).errors?.[0]?.longMessage || "An error occurred during login"
         );
       }
     }
-  }, [isLoaded, form, signIn, setActive, router, signOut]);
+  }, [isLoaded, form, signIn, setActive, router, signOut, setEncryptionKey]);
 
   return (
     <View 

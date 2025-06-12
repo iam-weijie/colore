@@ -1,7 +1,7 @@
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import { Post } from "@/types/type";
-import { fetchAPI } from "./fetch";
+import { fetchAPI } from "@/lib/fetch";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import * as FileSystem from "expo-file-system";
 import {
@@ -20,6 +20,7 @@ import {
 import { useGlobalContext } from "@/app/globalcontext";
 import * as Haptics from "expo-haptics";
 import { addDays } from "date-fns";
+import { encryptText } from "@/lib/encryption";
 
 export const handleReportPress = () => {
   Linking.openURL("mailto:support@colore.ca");
@@ -181,7 +182,11 @@ export const isOnlyEmoji = (message: string) => {
   return emojiRegex.test(trimmed) && !numberOnlyRegex.test(trimmed);
 };
 
-export const handleSubmitPost = async (userId: string, draftPost: Post) => {
+export const handleSubmitPost = async (
+  userId: string,
+  draftPost: Post,
+  encryptionKey?: string | null
+) => {
   if (!draftPost || draftPost.content.trim() === "") {
     console.log("ended up in an error");
     const status = "error";
@@ -200,7 +205,13 @@ export const handleSubmitPost = async (userId: string, draftPost: Post) => {
       .replace(/^-\s?/gm, "");
   };
 
-  const cleanContent = stripMarkdown(draftPost.content);
+  let cleanContent = stripMarkdown(draftPost.content);
+
+  const shouldEncrypt = Boolean(draftPost.recipient_user_id);
+
+  if (shouldEncrypt && encryptionKey) {
+    cleanContent = encryptText(cleanContent, encryptionKey);
+  }
 
   const isUpdate = Boolean(draftPost.id);
   const isPersonal = Boolean(draftPost.recipient_user_id);
@@ -240,7 +251,9 @@ export const handleSubmitPost = async (userId: string, draftPost: Post) => {
           : new Date().toISOString(),
         static_emoji: draftPost.static_emoji,
         reply_to: draftPost.reply_to,
-        formatting: draftPost.formatting,
+        formatting: shouldEncrypt && encryptionKey
+          ? encryptText(JSON.stringify(draftPost.formatting), encryptionKey)
+          : draftPost.formatting,
       };
 
       const response = await fetchAPI("/api/posts/newPost", {

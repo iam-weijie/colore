@@ -70,19 +70,21 @@ const NewPost = () => {
 
   // ✅ Imports & Hooks
   const { user } = useUser();
-  const {
-    postId,
-    content,
-    color,
-    emoji,
-    recipientId,
-    username,
-    expiration,
-    prompt,
-    promptId,
-    boardId,
-  } = useLocalSearchParams();
-  const { profile, userColors, setDraftPost, draftPost } = useGlobalContext();
+  const rawParams = useLocalSearchParams();
+  const safeParam = (p: string | string[] | undefined): string =>
+    Array.isArray(p) ? p[0] : (p ?? "");
+
+  const postId = safeParam(rawParams.postId as any);
+  const content = safeParam(rawParams.content as any);
+  const color = safeParam(rawParams.color as any);
+  const emoji = safeParam(rawParams.emoji as any);
+  const recipientId = safeParam(rawParams.recipientId as any);
+  const username = safeParam(rawParams.username as any);
+  const expiration = safeParam(rawParams.expiration as any);
+  const prompt = safeParam(rawParams.prompt as any);
+  const promptId = safeParam(rawParams.promptId as any);
+  const boardId = safeParam(rawParams.boardId as any);
+  const { profile, userColors, setDraftPost, draftPost, encryptionKey } = useGlobalContext();
   const { showAlert } = useAlert();
 
   // 🔒 USER & GLOBAL STATE
@@ -108,7 +110,7 @@ const NewPost = () => {
   // 😊 EMOJI HANDLING
   const [selectedStaticEmoji, setSelectedStaticEmoji] =
     useState<boolean>(false);
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji || null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isQuickEmojiSelectorVisible, setQuickEmojiSelectorVisible] =
     useState(false);
@@ -289,9 +291,11 @@ const NewPost = () => {
 
     setDraftPost({
       id: 0,
-      clerk_id: user?.id,
+      user_id: user?.id ?? "",
       firstname: "",
       username: userUsername ?? "",
+      nickname: "",
+      incognito_name: "",
       content: "",
       created_at: new Date().toISOString(),
       expires_at: "",
@@ -460,7 +464,8 @@ const NewPost = () => {
         playSoundEffect(SoundType.Navigation);
         Haptics.selectionAsync();
         if (selectedTab == "customize") {
-          const status = await handleSubmitPost(user!.id, draftPost);
+          if (!draftPost) return;
+          const status = await handleSubmitPost(user!.id, draftPost as Post, encryptionKey);
           console.log("status: ", status);
           if (status == "success") {
             showAlert({
@@ -543,7 +548,7 @@ const NewPost = () => {
           <ItemContainer
             label={
               selectedUser
-                ? selectedUser[1] === profile.username
+                ? selectedUser[1] === profile?.username
                   ? "Youself"
                   : selectedUser[1]
                 : "Select recipient"
@@ -709,8 +714,9 @@ const NewPost = () => {
                 onPress={() => {
                   setSelectedRecipientId(user!.id);
 
-                  setUserUsername("Yourself");
-                  setSelectedUser([user!.id, profile.username]);
+                  if (profile?.username) {
+                    setSelectedUser([user!.id, profile.username]);
+                  }
                   setSelectedSetting("");
                 }}
                 className="w-full h-6 flex-row items-center justify-center"
@@ -934,7 +940,7 @@ const NewPost = () => {
           {selectedTab == "customize" && (
             <View key={refreshingKey} className="absolute top-8">
               <PostContainer
-                selectedPosts={[draftPost]}
+                selectedPosts={draftPost ? [draftPost] : []}
                 handleCloseModal={() => {}}
                 isPreview={true}
                 header={

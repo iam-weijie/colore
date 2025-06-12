@@ -34,13 +34,14 @@ import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useGlobalContext } from "../globalcontext";
+import { encryptText } from "@/lib/encryption";
 
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
 
 
   const { user } = useUser();
-  const { userColors } = useGlobalContext();
+  const { userColors, encryptionKey } = useGlobalContext();
   const { type } = useLocalSearchParams();
   const { showAlert } = useAlert();
 
@@ -363,12 +364,17 @@ Perfect for open discussions or quiet sharing.`,
 
   const handleBoardSubmit = async () => {
     try {
+      const isPrivate = selectedPrivacy === "Private" && encryptionKey;
+
+      const encryptedTitle = isPrivate ? encryptText(boardTitle, encryptionKey!) : boardTitle;
+      const encryptedDescription = isPrivate ? encryptText(boardDescription, encryptionKey!) : boardDescription;
+
       await fetchAPI("/api/boards/newBoard", {
         method: "POST",
         body: JSON.stringify({
           clerkId: user!.id,
-          title: boardTitle,
-          description: boardDescription,
+          title: encryptedTitle,
+          description: encryptedDescription,
           type: "personal",
           restrictions: boardRestriction,
         }),

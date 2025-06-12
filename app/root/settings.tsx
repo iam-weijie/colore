@@ -47,6 +47,7 @@ const Settings = () => {
     setProfile,
     refreshProfile,
     userColors,
+    setEncryptionKey,
   } = useGlobalContext();
   const { playSoundEffect } = useSoundEffects(); // Use the sound hook
   const { showAlert } = useAlert();
@@ -67,7 +68,7 @@ const Settings = () => {
   const [onFocus, setOnFocus] = useState<boolean>(false);
   const [selectedTitle, setSelectedTitle] = useState<string>("");
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(
-    profile
+    profile || null
   );
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
@@ -124,7 +125,7 @@ const Settings = () => {
           title: "Already Unlocked",
           message: `You already have ${matchedColor.name}.`,
           type: "UPDATE",
-          status: "info",
+          status: "warning",
         });
       }
     } else {
@@ -415,6 +416,7 @@ const Settings = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
+      setEncryptionKey(null);
       setLoading(true);
       router.replace("/auth/onboarding");
     } catch (error) {

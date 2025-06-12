@@ -5,16 +5,15 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
+    "build:node": "tsc lib/encryption.ts --outDir .tmp-node --module commonjs --target es2019 --esModuleInterop --skipLibCheck",
+    "pretest": "npm run build:node",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "jest --watchAll",
+    "test": "jest --config jest.config.js",
     "lint": "expo lint",
     "migrate:emoji": "node scripts/add-emoji-column.js",
     "migrate:friend-system": "node scripts/add-friend-system-columns.js"
-  },
-  "jest": {
-    "preset": "jest-expo"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.10.1",
@@ -36,6 +35,7 @@
     "axios": "^1.7.9",
     "buffer": "^6.0.3",
     "colore": "file:",
+    "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "expo": "^53.0.9",
@@ -91,8 +91,9 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@react-native-community/cli": "latest",
+    "@types/crypto-js": "^4.2.0",
     "@types/express": "^5.0.2",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.15.21",
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.0.7",
@@ -106,6 +107,7 @@
     "react-native-svg-transformer": "^1.5.1",
     "react-test-renderer": "18.2.0",
     "tailwindcss": "3.3.2",
+    "ts-jest": "^29.3.4",
     "ts-node": "^10.9.2",
     "tsx": "^4.7.0",
     "typescript": "~5.3.3"
