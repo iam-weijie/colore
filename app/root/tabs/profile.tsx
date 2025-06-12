@@ -10,54 +10,35 @@ import { SafeAreaView, Text, View } from "react-native";
 const Profile = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
-  const [post, setPost] = useState<Post>();
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const { postId, commentId, tab } = useLocalSearchParams();
+  const { post, commentId, tab } = useLocalSearchParams();
 
-    const fetchPosts = async (id: string) => {
-      try {
-        const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`);
-        const post = response.data[0];
-  
-        if (!post || post.length === 0) {
-          return null;
-        }
-        setPost(post);
-      } catch (error) {
-        return null;
-      }
-    };
+  const parsedPost = post && JSON.parse(post) as Post 
 
-
-  useEffect(() => {
-    if (postId) {
-      fetchPosts(String(postId))   
-    }
-  }, []);
   const handleSignOut = async () => {
     signOut();
     router.replace("/auth/log-in");
   };
 
   useEffect(() => {
-    console.log("[fetchPosts]: ", post)
-    setIsModalVisible(true)
+    if (post) {
+setTimeout(() => {setIsModalVisible(true)}, 500)
+    }
+    
   }, [post])
   
   return (
        <View className="flex-1 bg-[#FAFAFA]">
-      {/*user  && !!!post && <UserProfile userId={user.id} onSignOut={handleSignOut} tab={tab}/>*/}
-       {isModalVisible && post && (
-      <View className="absolute inset-0 z-[999]">
+      {user && <UserProfile userId={user.id} onSignOut={handleSignOut} tab={tab}/>}
+       {isModalVisible && (
+
         <PostModal
           isVisible={isModalVisible}
-          selectedPosts={[post]}
+          selectedPosts={[parsedPost]}
           handleCloseModal={() => {
-            setIsModalVisible(false)
-            setPost(undefined)}}
+            setIsModalVisible(false)}}
           seeComments={!!commentId} 
         />
-      </View>
     )}
   </View>
   );

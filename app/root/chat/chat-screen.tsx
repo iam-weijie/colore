@@ -798,7 +798,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
 
   const NotificationItem = ({ item, loading, setShowDeleteIcon }) => {
     // Find post info for comments
-    let post;
+    let post: { id: any; };
     if (item.commenter_username) {
       post = storedNotifications.find((n) =>
         n.comments?.some((comment) => comment.id === item.id)
@@ -814,6 +814,22 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
     } else if (item.liker_username) {
       label = `${item.liker_username} liked your ${item.comment_id ? "comment" : "post"}`;
     }
+
+        const fetchPosts = async (id: string) => {
+          try {
+            const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`);
+            const post = response.data[0];
+      
+            if (!post || post.length === 0) {
+              return null;
+            }
+
+            return post
+
+          } catch (error) {
+            return null;
+          }
+        };
 
     return (
       <ItemContainer
@@ -831,6 +847,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
         iconColor="#000"
         onPress={() => {
           if (item.recipient_user_id) {
+            
             router.push({
               pathname: "/root/user-board/[id]",
               params: { 
@@ -840,17 +857,21 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
                 commentId: item.id, },
             });
           } else if (item.liker_username) {
+          fetchPosts(item.post_id).then((post) => {
             router.push({
-              pathname: "/root/tabs/profile", 
+              pathname: "/root/tabs/profile",
               params: {
-                postId: post?.id ?? item.post_id,
+                post: JSON.stringify(post),
                 tab: "Posts"
-            }});
+              }
+            });
+          });
+          
           } else {
              router.push({
               pathname: "/root/tabs/profile", 
               params: {
-                postId: post?.id ?? item.post_id,
+                post: JSON.stringify(post),
                 commentId:  item.id,
                 tab: "Posts"
             }});
