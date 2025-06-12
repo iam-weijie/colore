@@ -124,15 +124,13 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
      
         <KeyboardAvoidingView className="" behavior="padding">
           <Animated.View 
-            className="flex-1 items-center justify-end h-full"
+          className="self-center"
             style={{
               opacity: fadeAnim,
               transform: [{ translateX: slideAnim }],
             }}
           >
             <CustomButton
-              className="w-[50%] h-14 rounded-full shadow-none bg-black"
-              fontSize="lg"
               title={progressPercent < 100 ? "continue" : "submit"}
               padding={4}
               onPress={onSubmit}

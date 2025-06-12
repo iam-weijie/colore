@@ -165,7 +165,8 @@ const UserInfo = () => {
         data.state &&
         data.country &&
         data.email &&
-        data.username
+        data.username &&
+        data.incognito_name
       ) {
         router.replace("/root/tabs/home");
       } else {

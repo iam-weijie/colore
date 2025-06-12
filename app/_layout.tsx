@@ -15,6 +15,15 @@ import Animated, { FadeIn } from "react-native-reanimated";
 import React from "react";
 import { preloadCommonSounds } from '@/hooks/useSoundEffects';
 
+// DEBUG: Log all imported components
+console.log({
+  NavigationProvider,
+  NotificationProvider,
+  SplashVideo,
+  GlobalProvider,
+  AlertProvider,
+});
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 

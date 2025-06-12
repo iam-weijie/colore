@@ -64,10 +64,10 @@ const SOUND_EFFECTS_ENABLED_KEY = "soundEffectsEnabled";
 // ===== External Notification Fetch Logic =====
 // This function is designed to run in both the in-app polling and background fetch.
 // It accepts the userId and pushToken as parameters so that it does not depend on hooks.
-export async function fetchNotificationsExternal(
+export const fetchNotificationsExternal = async (
   userId: string,
   pushToken: string
-) {
+) => {
   try {
     const [
       userResponse,
@@ -218,20 +218,19 @@ export async function fetchNotificationsExternal(
         unread_requests,
         unread_likes,
       ],
-    };
-  } catch (error) {
-    console.error("Error fetching notifications externally", error);
-    return;
-  }
+    } 
+}} catch (error) {
+  console.log("Failed to fetch external notification", error)
+}
 }
 
 // Helper function used by the external fetch
-async function handleSendNotificationExternal(
+const handleSendNotificationExternal = async (
   n: any,
   content: any,
   type: string,
   pushToken: string | null
-) {
+) => {
   if (!pushToken) return;
 
   try {
@@ -410,6 +409,7 @@ TaskManager.defineTask(NOTIFICATION_TASK, async () => {
     return BackgroundFetchResult.Failed; // Use BackgroundFetchResult enum
   }
 });
+  
 
 // ===== GlobalProvider Component =====
 export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -915,4 +915,3 @@ export const useGlobalContext = () => {
   return context;
 };
 
-export default GlobalProvider;

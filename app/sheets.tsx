@@ -1,4 +1,4 @@
-import React from "react";
+/*import React from "react";
 import ActionSheet, {
   SheetProps,
   registerSheet,
@@ -45,3 +45,4 @@ declare module "react-native-actions-sheet" {
 }
 
 export {};
+*/
