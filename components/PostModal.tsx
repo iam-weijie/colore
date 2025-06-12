@@ -20,6 +20,7 @@ const PostModal: React.FC<PostModalProps> = ({
   const slideAnim = useRef(new Animated.Value(height)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  console.log("[PostModal] See Comment: ", seeComments)
   useEffect(() => {
     if (isVisible) {
       // Slide up animation
@@ -98,6 +99,7 @@ const PostModal: React.FC<PostModalProps> = ({
             header={header}
             infiniteScroll={infiniteScroll}
             scrollToLoad={scrollToLoad} 
+            seeComments={seeComments}
           />
       </Animated.View>
     </Modal>

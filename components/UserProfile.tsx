@@ -180,10 +180,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
         fetchUserData();
       }
 
-      fetchUserPosts();
-      fetchPersonalBoards();
-      fetchCommunityBoards();
-      fetchPersonalPosts();
+      if (isEditable) {
+          fetchUserPosts();
+          fetchPersonalPosts();
+      } else {
+        fetchPersonalBoards();
+        fetchCommunityBoards();
+      }
+      
 
       return () => {
         // Cleanup if needed
@@ -443,7 +447,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
   ];
 
   const handleTabChange = (tabKey: string) => {
-    console.log("Tab changed to:", tabKey);
     setSelectedTab(tabKey);
   };
 

@@ -73,12 +73,12 @@ export default function RootLayout() {
     
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
         <ClerkLoaded>
+              <NavigationProvider>
          <GlobalProvider>
           <AlertProvider>
         <NotificationProvider>
           
             
-            <NavigationProvider>
               <Animated.View style={{ flex: 1 }} entering={FadeIn}>
                 <Stack>
                   <Stack.Screen name="index" options={{ headerShown: false, animation: 'fade' }} />
@@ -87,12 +87,11 @@ export default function RootLayout() {
                   <Stack.Screen name="+not-found" />
                 </Stack>
               </Animated.View>
-            </NavigationProvider>
             
-          
           </NotificationProvider>
           </AlertProvider>
           </GlobalProvider>
+          </NavigationProvider>
         </ClerkLoaded>
       </ClerkProvider>
    

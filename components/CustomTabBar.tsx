@@ -7,9 +7,11 @@ import TabIcon from './TabIcon'; // Adjust your import
 import { useHaptics } from '@/hooks/useHaptics';
 import * as Haptics from "expo-haptics"
 
-const { width } = Dimensions.get('window');
+let { width } = Dimensions.get('window');
+width = width > 500 ? 700 : width
 const height = 85; // Change this if you want
 
+console.log("width: ", width)
 // --- 1. Regular Custom Tab Bar (linked to Tabs state)
 export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
   const centerIndex = Math.floor(state.routes.length / 2);
@@ -17,6 +19,7 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
 
   return (
     <View 
+    className='self-center'
     style={{ 
       position: 'absolute', 
       bottom: 0, 
@@ -132,6 +135,7 @@ export const CustomButtonBar: React.FC<{ buttons: CustomButton[] }> = ({ buttons
 
   return (
     <View 
+    className='self-center'
     style={{ 
       position: 'absolute', 
       bottom: 0, 
@@ -268,19 +272,47 @@ const NavbarBackground = () => (
 <Path
   d={`
     M30 0
-    H${width * 0.34}
+    C${width * 0.335} 0, ${width * 0.335} 0, ${width * 0.34} 0
     C${width * 0.39} 0, ${width * 0.40} ${height * 0.22}, ${width * 0.465} ${height * 0.38}
     Q${width * 0.5} ${height * 0.45}, ${width * 0.535} ${height * 0.38}
     C${width * 0.60} ${height * 0.22}, ${width * 0.61} 0, ${width * 0.66} 0
-    H${width - 30}
+    C${width * 0.665} 0, ${width * 0.665} 0, ${width - 30} 0
     A30 30 0 0 1 ${width} 30
-    V${height}
-    H0
+    V${height - 30}
+    A30 30 0 0 1 ${width - 30} ${height}
+    H30
+    A30 30 0 0 1 0 ${height - 30}
     V30
     A30 30 0 0 1 30 0
     Z
   `}
   fill="white"
 />
+
+
   </Svg>
 );
+
+/* Save Copy
+
+<Path
+  d={`
+    M30 0
+    H${width * 0.34}
+    C${width * 0.39} 0, ${width * 0.40} ${height * 0.22}, ${width * 0.465} ${height * 0.38}
+    Q${width * 0.5} ${height * 0.45}, ${width * 0.535} ${height * 0.38}
+    C${width * 0.60} ${height * 0.22}, ${width * 0.61} 0, ${width * 0.66} 0
+    H${width - 30}
+    A30 30 0 0 1 ${width} 30
+    V${height - 30}
+    A30 30 0 0 1 ${width - 30} ${height}
+    H30
+    A30 30 0 0 1 0 ${height - 30}
+    V30
+    A30 30 0 0 1 30 0
+    Z
+  `}
+  fill="white"
+/>
+
+*/

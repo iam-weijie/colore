@@ -54,8 +54,6 @@ interface PostCommentGroup {
 
 const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const { user } = useUser();
-  const router = useRouter();
-  const navigation = useNavigation();
   const { showAlert } = useAlert();
   const {
     clerk_id = "",
@@ -195,7 +193,6 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
     p.comments.some(item => item.id.toString() == scrollTo)
   );
 
-  console.log("groupIndex:", groupIndex);
 
   // Scroll to the group's index if valid
   if (groupIndex !== -1 && flatListRef.current) {

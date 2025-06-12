@@ -23,6 +23,7 @@ import {
   UserNicknamePair,
   Post,
   PostComment,
+  PostLike,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from "@react-navigation/native";
@@ -779,6 +780,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   // Notifications
   const [commentsNotif, setCommentsNotif] = useState<PostComment[]>();
   const [postsNotif, setPostsNotif] = useState<Post[]>();
+  const [likesNotif, setLikesNotif] = useState<PostLike[]>();
 
   // User experience
   const [loading, setLoading] = useState<boolean>(false);
@@ -808,33 +810,83 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
 
   const NotificationItem = ({ item, loading, setShowDeleteIcon }) => {
     // Find post info for comments
-    let post;
-
-    if (!item.recipient_user_id) {
-      // 🔍 Find the post (notification) that contains the specific comment
-      const post = storedNotifications.find((n) =>
+    let post: { id: any; };
+    if (item.commenter_username) {
+      post = storedNotifications.find((n) =>
         n.comments?.some((comment) => comment.id === item.id)
       );
-
-      // post = storedNotifications.find((n) => n.comments.includes(item))
     }
+
+    let label = "";
+
+    if (item.commenter_username) {
+      label = `${item.commenter_username} commented a post`;
+    } else if (item.username) {
+      label = `${item.username} sent you a post`;
+    } else if (item.liker_username) {
+      label = `${item.liker_username} liked your ${item.comment_id ? "comment" : "post"}`;
+    }
+
+        const fetchPosts = async (id: string) => {
+          try {
+            const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`);
+            const post = response.data[0];
+      
+            if (!post || post.length === 0) {
+              return null;
+            }
+
+            return post
+
+          } catch (error) {
+            return null;
+          }
+        };
 
     return (
       <ItemContainer
         label={`${item.commenter_username ?? item.username} has ${item.commenter_username ? "has commented a post." : "sent you a post"}`}
-        caption={`${item.comment_content ?? item.content ?? ""}`}
+        caption={`${item.comment_content ?? item.content ?? item.post_content}`}
         colors={["#93c5fd", "#93c5fd"]}
-        icon={item.comment_content ? icons.comment : icons.pencil}
+        icon={
+          item.commenter_username
+            ? icons.comment
+            : item.content
+              ? icons.pencil
+              : icons.heart
+        }
         actionIcon={icons.chevron}
         iconColor="#000"
         onPress={() => {
           if (item.recipient_user_id) {
+            
             router.push({
               pathname: "/root/user-board/[id]",
-              params: { id: `${user!.id}`, username: `Personal board` },
+              params: { 
+                id: `${user!.id}`, 
+                username: `Personal board`,
+                postId: post?.id,
+                commentId: item.id, },
             });
+          } else if (item.liker_username) {
+          fetchPosts(item.post_id).then((post) => {
+            router.push({
+              pathname: "/root/tabs/profile",
+              params: {
+                post: JSON.stringify(post),
+                tab: "Posts"
+              }
+            });
+          });
+          
           } else {
-            router.push(`/root/tabs/profile`);
+             router.push({
+              pathname: "/root/tabs/profile", 
+              params: {
+                post: JSON.stringify(post),
+                commentId:  item.id,
+                tab: "Posts"
+            }});
           }
         }}
       />
@@ -856,20 +908,23 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   useEffect(() => {
     const commentsArray: PostComment[] = [];
     const postsArray: Post[] = [];
+    const likesArray: PostLike[] = [];
 
     storedNotifications.forEach((notif) => {
       if (notif.comments) {
         commentsArray.push(...notif.comments);
       }
-
       if (notif.recipient_user_id) {
-        console.log("here");
         postsArray.push(notif);
+      }
+      if (notif.liker_username) {
+        likesArray.push(notif);
       }
     });
 
     setCommentsNotif(commentsArray);
     setPostsNotif(postsArray);
+    setLikesNotif(likesArray);
   }, [storedNotifications]);
 
   return (
@@ -878,10 +933,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
         <TabNavigation
           name="Comments"
           focused={selectedTab === "Comments"}
-          onPress={() => {
-            setSelectedTab("Comments");
-            //setSearchText("");
-          }}
+          onPress={() => setSelectedTab("Comments")}
           notifications={commentsNotif?.length ?? 0}
         />
         <TabNavigation
@@ -893,11 +945,8 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
         <TabNavigation
           name="Likes"
           focused={selectedTab === "Likes"}
-          onPress={() => {
-            setSelectedTab("Likes");
-            //setSearchText("");
-          }}
-          notifications={0}
+          onPress={() => setSelectedTab("Likes")}
+          notifications={likesNotif?.length ?? 0}
         />
       </View>
 
@@ -940,7 +989,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
       {selectedTab === "Likes" && (
         <FlatList
           className="rounded-[16px] "
-          data={[]}
+          data={likesNotif}
           contentContainerStyle={{
             paddingBottom: 40,
             minHeight: screenHeight * 0.46,

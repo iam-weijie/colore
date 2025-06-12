@@ -75,12 +75,14 @@ export async function fetchNotificationsExternal(
       messagesResponse,
       postResponse,
       friendRequestResponse,
+      likesResponse,
     ] = await Promise.all([
       fetch(`/api/users/getUserInfo?id=${userId}`),
       fetch(`/api/notifications/getComments?id=${userId}`),
       fetch(`/api/notifications/getMessages?id=${userId}`),
       fetch(`/api/notifications/getUserPersonalPosts?id=${userId}`),
       fetch(`/api/friends/getFriendRequests?userId=${userId}`),
+      fetch(`/api/notifications/getLikes?id=${userId}`),
     ]);
 
     const commentsData = await commentsResponse.json();
@@ -118,6 +120,10 @@ export async function fetchNotificationsExternal(
         : [];
     const unread_requests = friendRequests?.length ?? 0;
 
+    const likesData = await likesResponse.json();
+    const likes = likesData.toStore;
+    const unread_likes = likesData.unread_likes;
+
     // Combine all notifications
     const allNotifications = [
       ...comments,
@@ -126,7 +132,11 @@ export async function fetchNotificationsExternal(
       ...friendRequests,
     ];
 
-    const allStoredNotifications = [...storedComments, ...storedPosts];
+    const allStoredNotifications = [
+      ...storedComments,
+      ...storedPosts,
+      ...likes,
+    ];
 
     // Process each notification and send push if needed.
     const processFetchedNotifications = async (notifications: any[]) => {
@@ -201,9 +211,14 @@ export async function fetchNotificationsExternal(
     return {
       notifs: allNotifications,
       history: allStoredNotifications,
-      counts: [unread_comments, unread_messages, unread_posts, unread_requests]
-      }
-    }
+      counts: [
+        unread_comments,
+        unread_messages,
+        unread_posts,
+        unread_requests,
+        unread_likes,
+      ],
+    };
   } catch (error) {
     console.error("Error fetching notifications externally", error);
     return;
@@ -223,7 +238,6 @@ async function handleSendNotificationExternal(
     if (type === "Comments") {
       const notificationContent = content.comment_content.slice(0, 120);
 
-      console.log("n", n);
       await sendPushNotification(
         pushToken,
         `${content.commenter_username} responded to your post`,
@@ -248,20 +262,36 @@ async function handleSendNotificationExternal(
       );
     }
     if (type === "Requests") {
-      const username =
-        content.requestor === "UID1"
-          ? content.user1_nickname
-          : content.user2_nickname;
-      await sendPushNotification(
-        pushToken,
-        `${username} wants to be your friend!`,
-        "Click here to accept their friend request",
-        "request",
-        {
-          route: `/root/chat`,
-          params: { tab: "Requests" },
-        }
-      );
+      // sending out notification for sending friend request
+      if (content.requestor) {
+        const username =
+          content.requestor === "UID1"
+            ? content.user1_username
+            : content.user2_username;
+        await sendPushNotification(
+          pushToken,
+          `${username} wants to be your friend!`,
+          "Click here to accept their friend request",
+          "request",
+          {
+            route: `/root/chat`,
+            params: { tab: "Requests" },
+          }
+        );
+
+        // sending out notification for accepting friend request
+      } else if (content.receiver_username) {
+        await sendPushNotification(
+          pushToken,
+          `${content.receiver_username} accepted your friend request!`,
+          "Say hello",
+          "request",
+          {
+            route: `/root/chat`,
+            params: { tab: "Requests" },
+          }
+        );
+      }
     }
     if (type === "Posts") {
       //const username = "Someone";
@@ -269,13 +299,87 @@ async function handleSendNotificationExternal(
         pushToken,
         `${n.username} has posted on your board`,
         `${n.content}`,
-        "posts",
+        "post",
         {
           route: `/root/tabs/personal-board`,
-          params: {},
-          params: {},
+          params: {
+            boardId: n.boardId,
+            
+          },
         }
       );
+    }
+    if (type == "Likes") {
+      // handling a post like
+      if (n.comment_id) {
+        const notificationContent = n.comment_content.slice(0, 120);
+
+        await sendPushNotification(
+          pushToken,
+          `${n.liker_username} liked your comment`,
+          notificationContent,
+          "like",
+          {
+            route: `/root/posts/${n.post_id}`,
+            params: {
+              content: n.comment_content,
+            },
+          }
+        );
+      } else if (n.post_id) {
+        const notificationContent = n.post_content.slice(0, 120);
+
+        await sendPushNotification(
+          pushToken,
+          `${n.liker_username} liked your post`,
+          notificationContent,
+          "like",
+          {
+            route: `/root/posts/${n.post_id}`,
+            params: {
+              content: n.post_content,
+              color: n.post_color,
+            },
+          }
+        );
+      }
+      return; // no need to updateNotified for likes
+    }
+    if (type == "Likes") {
+      // handling a post like
+      if (n.comment_id) {
+        const notificationContent = n.comment_content.slice(0, 120);
+
+        await sendPushNotification(
+          pushToken,
+          `${n.liker_username} liked your comment`,
+          notificationContent,
+          "like",
+          {
+            route: `/root/posts/${n.post_id}`,
+            params: {
+              content: n.comment_content,
+            },
+          }
+        );
+      } else if (n.post_id) {
+        const notificationContent = n.post_content.slice(0, 120);
+
+        await sendPushNotification(
+          pushToken,
+          `${n.liker_username} liked your post`,
+          notificationContent,
+          "like",
+          {
+            route: `/root/posts/${n.post_id}`,
+            params: {
+              content: n.post_content,
+              color: n.post_color,
+            },
+          }
+        );
+      }
+      return; // no need to updateNotified for likes
     }
 
     await fetchAPI(`/api/notifications/updateNotified${type}`, {
@@ -350,6 +454,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
   const [unreadPersonalPosts, setUnreadPersonalPosts] = useState<number>(0);
   const [unreadRequests, setUnreadRequests] = useState<number>(0);
+  const [unreadLikes, setUnreadLikes] = useState<number>(0);
   const [lastConnection, setLastConnection] = useState<Date>(new Date(0));
   const [isIpad, setIsIpad] = useState<boolean>(false);
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -514,6 +619,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [user, pushToken])
 
   useEffect(() => {
+    console.log("running notification sockets");
     if (user && pushToken) {
       AsyncStorage.setItem("userId", user.id);
       AsyncStorage.setItem("pushToken", pushToken);
@@ -525,9 +631,11 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       const socket = io(
         `wss://${process.env.EXPO_PUBLIC_SERVER_URL?.substring(8)}`,
         {
+          transports: ["websocket"], 
           query: {
             id: user.id,
           },
+          transports: ["websocket"],
         }
       );
 
@@ -536,7 +644,22 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       socket.on("connect_error", (err) => {
-        console.error("❌ Socket connection error:", err.message);
+        if (!socket.active) {
+          console.error("❌ Socket connection error:", err.message);
+        }
+      });
+
+      socket.on("reconnect_attempt", () => {
+        console.log("🔁 Reconnecting socket with ID:", user.id);
+        socket.io.opts.query = { id: user.id }; // reset query param
+      });
+
+      socket.on("reconnect_failed", () => {
+        console.warn("❌ Socket failed to reconnect");
+      });
+
+      socket.on("disconnect", (reason) => {
+        console.log("🔌 Disconnected:", reason);
       });
 
       socket.on("notification", ({ type, notification, content }) => {
@@ -556,7 +679,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           ]);
           incrementUnreadAmount(type);
         } else {
-          throw new Error("Missing information to send info");
+          throw new Error("Missing information to send notification");
         }
       });
 
@@ -588,6 +711,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     fetchUserProfile();
   }, [user]);
+
   const incrementUnreadAmount = (notificationType: string) => {
     switch (notificationType) {
       case "Comments":
@@ -601,6 +725,9 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         break;
       case "Posts":
         setUnreadPersonalPosts((prevCount) => prevCount + 1);
+        break;
+      case "Likes":
+        setUnreadLikes((prevCount) => prevCount + 1);
         break;
     }
   };
@@ -627,6 +754,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         setUnreadMessages(counts[1]);
         setUnreadPersonalPosts(counts[2]);
         setUnreadRequests(counts[3]);
+        setUnreadLikes(counts[4]);
       }
 
       // (Update other state as needed based on your API responses.)
@@ -760,6 +888,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         unreadMessages,
         unreadPersonalPosts,
         unreadRequests,
+        unreadLikes,
         lastConnection,
         isIpad,
         replyTo,
