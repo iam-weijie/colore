@@ -844,8 +844,12 @@ const NewPost = () => {
   return (
     <Animated.View className="flex-1" style={[animatedBackgroundStyle]}>
       <TouchableWithoutFeedback
-        onPress={() => Keyboard.dismiss()}
-        onPressIn={() => Keyboard.dismiss()}
+        accessible={false}
+        onPress={() => {
+          if (!isFocused) {
+            Keyboard.dismiss();
+          }
+        }}
       >
         <View className="flex-1">
           <Header
@@ -861,8 +865,12 @@ const NewPost = () => {
           />
 
           <TouchableWithoutFeedback
-            onPress={() => Keyboard.dismiss()}
-            onPressIn={() => Keyboard.dismiss()}
+            accessible={false}
+            onPress={() => {
+              if (!isFocused) {
+                Keyboard.dismiss();
+              }
+            }}
           >
             <View
               className="flex-1  mt-0 overflow-hidden "

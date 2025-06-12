@@ -84,23 +84,19 @@ const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextSt
       keyboardShouldPersistTaps="handled" 
       showsHorizontalScrollIndicator={false}>
         {!showOptions && stylingBar.map((style) => (
-            <View>
-          <TouchableOpacity
-            key={style}
-            onPress={() => applyStyle(style as TextStyle)}
-          >
-            {getShortHand(style)}
-          </TouchableOpacity>
-        
+          <View key={style}>
+            <TouchableOpacity
+              onPress={() => applyStyle(style as TextStyle)}
+            >
+              {getShortHand(style)}
+            </TouchableOpacity>
           </View>
         ))}
-        {showOptions && headerStyleOptions.map((style) =>
-         (
-          <View>
+        {showOptions && headerStyleOptions.map((style) => (
+          <View key={style}>
             {headerStyleContainer(false, style)}
-            </View>
-         )
-        )} 
+          </View>
+        ))} 
       </ScrollView>
     </View>
   );

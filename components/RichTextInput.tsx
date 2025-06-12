@@ -86,7 +86,7 @@ const RichTextInput = ({ refresh, style, exportText, exportStyling, onFocus }: {
   };
 
   const splitTextByLines = (text: string) => {
-    const lines = [];
+    const lines: { line: string; start: number; end: number }[] = [];
     let index = 0;
 
     text.split('\n').forEach((lineText) => {
@@ -145,8 +145,8 @@ const toggleFormat = (type: TextStyle) => {
 
 
   useEffect(() => {
-    setValue(draftPost.content ?? '');
-    setFormats(cleanInvalidFormats(draftPost.content ?? '', draftPost.formatting ?? []));
+    setValue(draftPost?.content ?? '');
+    setFormats(cleanInvalidFormats(draftPost?.content ?? '', draftPost?.formatting ?? []));
     setIsFocused(true);
   }, [refresh]);
 
@@ -262,12 +262,12 @@ const toggleFormat = (type: TextStyle) => {
               const corrected = correctMarkdownFromFormats(value, formats);
               setValue(corrected);
               setIsFocused(true);
-              onFocus(isFocused)
+              onFocus(true);
             }}
             onBlur={() => {
               const plainText = stripMarkdown(value);
               setValue(plainText);
-              onFocus(!isFocused)
+              onFocus(false);
               setIsFocused(false);
             }}
             className="font-JakartaSemiBold"
