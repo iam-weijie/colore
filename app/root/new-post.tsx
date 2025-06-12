@@ -610,7 +610,7 @@ const NewPost = () => {
           />
         ),
       },
-      {
+      {/*
         label: "Reply",
         component: (
           <ItemContainer
@@ -628,7 +628,7 @@ const NewPost = () => {
             actionIcon={replyToPostId && icons.check}
           />
         ),
-      },
+      */},
     ];
 
     const menuOptions = promptId
@@ -698,20 +698,6 @@ const NewPost = () => {
                   setSelectedSetting("");
                 }}
               />
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedRecipientId(user!.id);
-
-                  setUserUsername("Yourself");
-                  setSelectedUser([user!.id, profile.username]);
-                  setSelectedSetting("");
-                }}
-                className="w-full h-6 flex-row items-center justify-center"
-              >
-                <Text className="text-[14px] font-Jakarta font-regular text-gray-400">
-                  Keep it private
-                </Text>
-              </TouchableOpacity>
             </View>
           ) : ["Schedule", "Expiration"].includes(selectedSetting) ? (
             <View className="flex-1">
@@ -748,6 +734,24 @@ const NewPost = () => {
             <View></View>
           )}
         </View>
+
+        { selectedSetting == "Recipient" &&
+                       <View className="flex items-center w-full mb-4">
+                <CustomButton
+                    fontSize="lg"
+                    title="Keep it Private"
+                    padding={4}
+                    bgVariant="gradient5"
+                    onPress={() => {
+                        setSelectedRecipientId(user!.id);
+
+                        setUserUsername("Yourself");
+                        setSelectedUser([user!.id, profile.username]);
+                        setSelectedSetting("");
+                }}
+                  />
+                  </View>
+        }
       {selectedSetting && <View className="flex items-center w-full mb-4">
                      <CustomButton
           fontSize="lg"
