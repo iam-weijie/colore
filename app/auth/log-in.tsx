@@ -7,8 +7,8 @@ import { Platform } from "react-native";
 import { icons, images } from "@/constants";
 import { useAuth, useSignIn, useUser } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
-import { Alert, Image, ScrollView, Text, View } from "react-native";
+import { useCallback, useState, useEffect, useRef } from "react";
+import { Alert, Image, ScrollView, Text, View, ActivityIndicator } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
 import React from "react";
 import { fetchAPI } from "@/lib/fetch";
@@ -17,8 +17,8 @@ import { encryptionCache } from "@/cache/encryptionCache";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
-  const { signOut } = useAuth();
-  const { user } = useUser();
+  const { signOut, isSignedIn } = useAuth();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
   const { isIpad, setEncryptionKey } = useGlobalContext();
   const { showAlert } = useAlert()
@@ -28,10 +28,54 @@ const LogIn = () => {
     password: "",
   });
 
+  // Function to clear encryption key from storage
+  const clearEncryptionKey = async () => {
+    try {
+      await AsyncStorage.removeItem(ENCRYPTION_KEY_STORAGE);
+      console.log("[DEBUG] Login - Cleared encryption key from storage");
+    } catch (error) {
+      console.error("[DEBUG] Login - Error clearing encryption key:", error);
+    }
+  };
+
+  // Check for existing session on component mount
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      if (!isLoaded) return;
+      
+      try {
+        setLoginState(LOGIN_STATES.CHECKING_SESSION);
+        setIsLoading(true);
+        
+        // Clear any stored login state
+        await AsyncStorage.removeItem(LOGIN_STATE_KEY);
+        
+        if (isSignedIn) {
+          console.log("[DEBUG] Login - Found existing session, signing out");
+          await clearEncryptionKey();
+          await signOut();
+          console.log("[DEBUG] Login - Successfully signed out existing session");
+          // Wait for signout to complete
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+      } catch (error) {
+        console.log("[DEBUG] Login - Error during session check:", error);
+      } finally {
+        setIsLoading(false);
+        setLoginState(LOGIN_STATES.READY);
+      }
+    };
+
+    checkExistingSession();
+  }, [isLoaded, isSignedIn, signOut]);
+
   const onLogInPress = useCallback(async () => {
-    if (!isLoaded) {
+    if (!isLoaded || loginState !== LOGIN_STATES.READY) {
       return;
     }
+
+    setIsLoading(true);
+    setLoginState(LOGIN_STATES.LOGGING_IN);
 
     try {
 
@@ -90,13 +134,15 @@ const LogIn = () => {
             salt: userSalt
           })
         })
-
+           router.replace("/root/user-info");
       } catch (error) {
         console.error("Failed to create user's salt", error)
       }
     }
+   
+  }
 
-      router.replace("/root/user-info");
+      
     } catch (err: any) {
       console.error("Raw login error:", err);
 
@@ -168,6 +214,7 @@ const LogIn = () => {
             autoComplete="email"
             value={form.email}
             onChangeText={(value) => setForm({ ...form, email: value })}
+            editable={!isLoading}
           />
           <InputField
             label="Password"
@@ -177,19 +224,31 @@ const LogIn = () => {
             secureTextEntry={true}
             textContentType="password"
             onChangeText={(value) => setForm({ ...form, password: value })}
+            editable={!isLoading}
           />
           </View>
           <View className="flex items-center w-full">
-                      <CustomButton
-                        className="w-[50%] h-16 mt-8 rounded-full shadow-none"
-                        fontSize="lg"
-                        title="Log In"
-                        padding={4}
-                        onPress={onLogInPress}
-                        bgVariant='gradient'
-                      />
-                    </View>
-       
+            {isLoading ? (
+              <View className="w-[50%] h-16 mt-8 items-center justify-center">
+                <ActivityIndicator size="large" color="#6366f1" />
+                <Text className="mt-2 text-sm text-general-200">
+                  {loginState === LOGIN_STATES.LOGGING_IN ? "Logging in..." : 
+                   loginState === LOGIN_STATES.PROCESSING_SALT ? "Setting up encryption..." : 
+                   "Please wait..."}
+                </Text>
+              </View>
+            ) : (
+              <CustomButton
+                className="w-[50%] h-16 mt-8 rounded-full shadow-none"
+                fontSize="lg"
+                title="Log In"
+                padding={4}
+                onPress={onLogInPress}
+                bgVariant='gradient'
+                disabled={isLoading || loginState !== LOGIN_STATES.READY}
+              />
+            )}
+          </View>
 
           {/*Platform.OS === "android" && <OAuth />*/}
           {Platform.OS === "ios" && <AppleSignIn />}
@@ -211,3 +270,4 @@ const LogIn = () => {
 };
 
 export default LogIn;
+
