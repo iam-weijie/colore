@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "jsx": "react",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+} 

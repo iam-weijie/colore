@@ -89,7 +89,7 @@ const RichTextInput = ({ refresh, exportText, exportStyling, onFocus }: {
   };
 
   const splitTextByLines = (text: string) => {
-    const lines = [];
+    const lines: { line: string; start: number; end: number }[] = [];
     let index = 0;
 
     text.split('\n').forEach((lineText) => {
@@ -148,8 +148,8 @@ const toggleFormat = (type: TextStyle) => {
 
 
   useEffect(() => {
-    setValue(draftPost.content ?? '');
-    setFormats(cleanInvalidFormats(draftPost.content ?? '', draftPost.formatting ?? []));
+    setValue(draftPost?.content ?? '');
+    setFormats(cleanInvalidFormats(draftPost?.content ?? '', draftPost?.formatting ?? []));
     setIsFocused(true);
   }, [refresh]);
 

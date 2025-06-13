@@ -24,6 +24,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { useGlobalContext } from "@/app/globalcontext";
 import React from "react";
 import { LinearGradient } from 'expo-linear-gradient';
+import { generateSalt, deriveKey } from "@/lib/encryption";
 
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -31,6 +32,7 @@ const SignUp = () => {
   const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState("");
   const { isIpad } = useGlobalContext()
+  const { setEncryptionKey } = useGlobalContext();
 
   const [form, setForm] = useState({
     email: "",
@@ -79,13 +81,21 @@ const SignUp = () => {
       });
 
       if (completeSignUp.status === "complete") {
+        // Generate per-user salt and encryption key
+        const salt = generateSalt();
+
         await fetchAPI("/api/users/newUser", {
           method: "POST",
           body: JSON.stringify({
             email: form.email,
             clerkId: completeSignUp.createdUserId,
+            salt,
           }),
         });
+
+        // Derive encryption key client-side and keep in memory only
+        const key = deriveKey(form.password, salt);
+        setEncryptionKey(key);
 
         await setActive({ session: completeSignUp.createdSessionId });
         setShowSuccess(true);

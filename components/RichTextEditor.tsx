@@ -94,9 +94,8 @@ const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextSt
           key={style}
           >
             {headerStyleContainer(false, style)}
-            </View>
-         )
-        )} 
+          </View>
+        ))} 
       </ScrollView>
     </View>
   );

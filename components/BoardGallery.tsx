@@ -14,8 +14,17 @@ import { icons } from "@/constants";
 import { Board } from "@/types/type";
 import { useHaptics } from "@/hooks/useHaptics";
 import * as Haptics from 'expo-haptics';
+import { decryptText } from "@/lib/encryption";
   
 const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
+  const { encryptionKey } = useGlobalContext();
+  const isPrivate = item.restrictions?.includes("Private");
+  let displayTitle = item.title;
+  if (isPrivate && encryptionKey) {
+    try {
+      displayTitle = decryptText(item.title, encryptionKey);
+    } catch {}
+  }
   
   const router = useRouter();
   const { user } = useUser();
@@ -67,7 +76,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
               className="text-white text-center text-[16px] font-JakartaBold shadow-md"
               numberOfLines={2}
             >
-              {item.title}
+              {displayTitle}
             </Text>
             
             {/* Additional metadata - you can customize these */}

@@ -33,6 +33,7 @@ import { useGlobalContext } from "@/app/globalcontext";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { Post } from "@/types/type";
 import PostModal from "@/components/PostModal";
+import { decryptText } from "@/lib/encryption";
 
 
 const SCREEN_HEIGHT = Dimensions.get("window").height
@@ -45,6 +46,7 @@ const UserPersonalBoard = () => {
     setHapticsEnabled,
     soundEffectsEnabled,
     setSoundEffectsEnabled,
+    encryptionKey,
   } = useGlobalContext();
   const [isBoardSettingsVisible, setIsBoardSettingsVisible] =
     useState<boolean>(false);
@@ -111,10 +113,22 @@ const UserPersonalBoard = () => {
         return;
       }
 
-      const isPrivate = response.data.board_type == "personal"
-      setBoardInfo(response.data)
-      setCanParticipate(!isPrivate)
-      setPostCount(response.count || 0)
+      const isPrivate = response.data.board_type == "personal";
+
+      let boardData = response.data;
+      if (isPrivate && encryptionKey) {
+        try {
+          boardData = {
+            ...boardData,
+            title: decryptText(boardData.title, encryptionKey),
+            description: decryptText(boardData.description, encryptionKey),
+          };
+        } catch {}
+      }
+
+      setBoardInfo(boardData);
+      setCanParticipate(!isPrivate);
+      setPostCount(response.count || 0);
 
       const hasJoined = response.data.members_id && response.data.members_id.includes(user!.id)
       setJoinedCommunity(hasJoined)
@@ -396,6 +410,7 @@ const UserPersonalBoard = () => {
                                 />
                                                          </>
                             }
+                            infoView={null}
                           />
                           <View className="my-4"></View>
                       <HeaderCard 
@@ -412,6 +427,7 @@ const UserPersonalBoard = () => {
                                 />
                               </>
                             }
+                            infoView={null}
                           />
                            <View className="my-4"></View>
                     {selectedSetting &&  <View className="flex-1 flex items-center w-full mb-4">
@@ -523,7 +539,7 @@ const UserPersonalBoard = () => {
 
         <PersonalBoard
           userId={id as string}
-          boardId={boardId}
+          boardId={Number(boardId)}
           shuffleModeOn={shuffleMode}
           setShuffleModeOn={() => setShuffleMode(false)}
         />

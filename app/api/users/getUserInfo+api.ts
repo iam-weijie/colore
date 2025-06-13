@@ -50,6 +50,7 @@ export async function GET(request: Request) {
             return foundColor;
           }
         }),
+        salt: u.salt,
       } as unknown as UserProfileProps;
     });
 

@@ -184,6 +184,7 @@ declare interface UserProfileType {
   total_posts?: number;
   shorthand_emojis?: string[];
   colors: PostItColor[];
+  customizations?: any[];
 }
 
 declare interface UserData {
