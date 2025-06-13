@@ -96,7 +96,6 @@ const UserInfo = () => {
         }
       }
       const salt = response.data[0].salt
-      setEncryptionKey(deriveKey(user!.password, salt))
       return response.data[0];
     } catch (error) {
       console.error("Failed to fetch user data:", error);

@@ -79,7 +79,7 @@ const TabsContainer: React.FC<TabsContainerProps> = ({
       className="w-full m-2 mx-auto"
       style={{
         borderRadius: 32,
-        backgroundColor: '#ffffff30', // Semi-transparent background
+        backgroundColor: '#ffffff00', // Semi-transparent background
         borderColor: '#ffffff80',
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 3 },

@@ -9,6 +9,7 @@ import { TabItem } from "@/types/type";
 import TabsContainer from "./TabsContainer";
 import { AntDesign } from '@expo/vector-icons';
 import { router } from "expo-router";
+import { BlurView } from "expo-blur";
 
 
 type HeaderProps = {
@@ -55,8 +56,9 @@ const Header = ({
     const platformTopPadding = Platform.OS === 'android' ? 'pt-8' : 'pt-12';
 
   return (
-     <View 
-     className={`flex-column justify-end items-start ${platformTopPadding} bg-white z-10 rounded-[44px] overflow-hidden`}
+     <BlurView 
+     intensity={80}
+     className={`flex-column justify-end items-start ${platformTopPadding} bg-white/80 z-10 rounded-[44px] overflow-hidden`}
      style={{
         boxShadow: '0 8px 24px rgba(180, 180, 180, 0.1)', // Custom shadow
       }}
@@ -92,7 +94,7 @@ const Header = ({
           tabCount={tabCount}
         />
       }
-    </View>
+    </BlurView>
   );
 };
 
