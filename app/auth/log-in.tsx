@@ -1,3 +1,4 @@
+import { deriveKey, generateSalt } from "@/lib/encryption";
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
@@ -11,14 +12,14 @@ import { Alert, Image, ScrollView, Text, View } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
 import React from "react";
 import { fetchAPI } from "@/lib/fetch";
-import { deriveKey } from "@/lib/encryption";
+import { useAlert } from "@/notifications/AlertContext";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { signOut } = useAuth();
   const router = useRouter();
-  const { isIpad } = useGlobalContext();
-  const { setEncryptionKey } = useGlobalContext();
+  const { isIpad, setEncryptionKey } = useGlobalContext();
+  const { showAlert } = useAlert()
 
   const [form, setForm] = useState({
     email: "",
@@ -31,14 +32,30 @@ const LogIn = () => {
     }
 
     try {
+
+      let userSalt;
+      let userExist;
       // Fetch user's salt first using email
       const saltResponse = await fetchAPI(`/api/users/getSalt?email=${encodeURIComponent(form.email)}`);
-      if (saltResponse.error || !saltResponse.salt) {
-        Alert.alert("Error", "Unable to retrieve security parameters.");
-        return;
+      if (saltResponse.error) {
+        showAlert({
+        title: "Error",
+        message: "Unable to retrieve security parameters.",
+        type: "ERROR",
+        status: "error"
+      })
       }
-      const userSalt = saltResponse.salt as string;
 
+      console.log("[Log-in]: ", saltResponse)
+
+       userSalt = saltResponse.salt as string;
+       userExist = saltResponse.email as string;
+
+      if (!userSalt && userExist) {
+        userSalt = generateSalt()
+      }
+
+      /*
       // First try to sign out of any existing session
       try {
         await signOut();
@@ -48,11 +65,14 @@ const LogIn = () => {
 
       // Wait a brief moment for the signOut to complete
       await new Promise((resolve) => setTimeout(resolve, 500));
+      */
+      console.log("[Log-in]", userSalt)
 
       const logInAttempt = await signIn.create({
         identifier: form.email,
         password: form.password,
       });
+
 
       if (logInAttempt.status === "complete") {
         await setActive({ session: logInAttempt.createdSessionId });
@@ -60,6 +80,20 @@ const LogIn = () => {
         // Derive and store encryption key
         const key = deriveKey(form.password, userSalt);
         setEncryptionKey(key);
+
+
+        try {
+        const response = await fetchAPI('/api/users/updateUserInfo', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            salt: userSalt
+          })
+        })
+
+        console.log("[Log-in]", userSalt, response)
+      } catch (error) {
+        console.error("Failed to create user's salt", error)
+      }
 
         router.replace("/root/user-info");
       } else {
@@ -70,24 +104,22 @@ const LogIn = () => {
         Alert.alert("Error", "Log in failed. Please try again.");
       }
     } catch (err: any) {
-      console.error("Login error:", JSON.stringify(err, null, 2));
+      console.error("Raw login error:", err);
 
       if (err.errors?.[0]?.code === "session_exists") {
-        Alert.alert(
-          "Error",
-          "There seems to be an existing session. Please close the app completely and try again.",
-          [
-            {
-              text: "OK",
-              style: "default",
-            },
-          ]
-        );
+         showAlert({
+        title: "Error",
+        message:  "There seems to be an existing session. Please close the app completely and try again.",
+        type: "ERROR",
+        status: "error"
+      })
       } else {
-        Alert.alert(
-          "Error",
-          (err as any).errors?.[0]?.longMessage || "An error occurred during login"
-        );
+         showAlert({
+        title: "Error",
+        message:  (err as any).errors?.[0]?.longMessage || "An error occurred during login",
+        type: "ERROR",
+        status: "error"
+      })
       }
     }
   }, [isLoaded, form, signIn, setActive, router, signOut, setEncryptionKey]);

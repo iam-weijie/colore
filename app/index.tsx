@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Redirect } from "expo-router";

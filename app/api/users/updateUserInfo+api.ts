@@ -6,6 +6,8 @@ import { neon } from "@neondatabase/serverless";
 
 // For now, it will only take the location
 export async function PATCH(request: Request) {
+
+  console.log("came here 1")
   try {
     const sql = neon(process.env.DATABASE_URL!);
     const {
@@ -17,6 +19,7 @@ export async function PATCH(request: Request) {
       nickname,
       incognito_name,
       email,
+      salt
     } = await request.json();
 
     if (!clerkId) {
@@ -128,6 +131,13 @@ export async function PATCH(request: Request) {
           AND NOT EXISTS (
             SELECT 1 FROM users WHERE email = ${email}
           )
+          RETURNING *;
+        `;
+    } else if (salt !== undefined) {
+        response = await sql`
+         UPDATE users
+          SET salt = ${salt}
+          WHERE clerk_id = ${clerkId}
           RETURNING *;
         `;
     } else {

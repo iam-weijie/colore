@@ -166,7 +166,7 @@ const PwReset = () => {
           colors={["#ffd12b", "#ff9f45"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          className="w-full items-start justify-center rounded-b-[36px] pt-16 pl-11 min-h-[22%] mb-6"
+          className="w-full items-start justify-center rounded-b-[48px] pt-12 pl-8 pb-6 mb-6"
         >   
           <Animated.Text 
             entering={FadeInDown.delay(200).duration(600)}

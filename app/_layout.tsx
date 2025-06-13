@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import { NavigationProvider } from "@/components/NavigationContext";
 import { NotificationProvider } from '../notifications/NotificationContext';
 import SplashVideo from "@/components/SplashVideo";
@@ -14,6 +15,8 @@ import "react-native-reanimated";
 import Animated, { FadeIn } from "react-native-reanimated";
 import React from "react";
 import { preloadCommonSounds } from '@/hooks/useSoundEffects';
+
+
 
 // DEBUG: Log all imported components
 console.log({
