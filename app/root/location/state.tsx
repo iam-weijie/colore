@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback, memo } from "react";
 import { router, useLocalSearchParams, Href } from "expo-router";
-import { FlatList, Text, TouchableOpacity, View, Alert, StyleSheet, TextInput } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { FlatList, Text, TouchableOpacity, View, Alert, StyleSheet } from "react-native";
 import { getStatesFromCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
@@ -223,11 +222,11 @@ const State = () => {
   const displayData = getPlaceholderData();
   if (loading) {
     return (
-      <SafeAreaView className="flex-1">
+      <View className="flex-1">
         <View className="flex-1 items-center justify-center">
             <ColoreActivityIndicator text="Summoning Bob..." />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 

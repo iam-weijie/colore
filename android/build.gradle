@@ -18,7 +18,29 @@ def reactNativeAndroidDir = new File(
     commandLine("node", "--print", "require.resolve('react-native/package.json')")
   }.standardOutput.asText.get().trim(),
   "../android"
-)
+).absolutePath.replace("\\", "/")
+
+// Force all dependencies to use the same version of AndroidX libraries
+// This helps with the migration from Support Library to AndroidX
+subprojects {
+  afterEvaluate {project ->
+    if (project.hasProperty("android")) {
+      android {
+        compileSdkVersion rootProject.ext.compileSdkVersion
+        buildToolsVersion rootProject.ext.buildToolsVersion
+      }
+    }
+    
+    project.configurations.all {
+      resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'com.android.support'
+            && !details.requested.name.contains('multidex') ) {
+          details.useTarget "androidx.${details.requested.name}:${details.requested.name.replace('support-', '')}:1.0.0"
+        }
+      }
+    }
+  }
+}
 
 allprojects {
   repositories {
@@ -33,5 +55,8 @@ allprojects {
   }
 }
 
+// Only apply the expo plugin as it seems to work
 apply plugin: "expo-root-project"
-apply plugin: "com.facebook.react.rootproject"
+
+// Comment out the problematic plugin
+// apply plugin: "com.facebook.react.rootproject"

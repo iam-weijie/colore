@@ -64,23 +64,23 @@ export const RenderPromptCard = ({
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <Animated.View
-        className="rounded-[48px] py-8 px-5 justify-between z-[9999]"
+        className="rounded-[64px] py-12 px-8 justify-between"
         style={[
           animatedCardStyle,
           {
             backgroundColor: "white",
             width: screenWidth * 0.85,
-            minHeight: screenHeight * 0.52,
+            minHeight: screenHeight * 0.56,
           },
         ]}
       >
 
         {/* Header */}
         <View className="items-center justify-center mb-5 mt-2 px-4">
-          <Text className="text-tray-400 text-[14px] font-JakartaMedium">
-            {item.theme}
+          <Text className="text-tray-400 text-[12px] font-JakartaMedium">
+            {item.theme.toUpperCase()}
           </Text>
-          <Text className="text-[22px] font-JakartaSemiBold text-center text-black mt-1">
+          <Text className="text-[28px] font-JakartaSemiBold text-center text-black mt-1">
             {item.cue}...
           </Text>
         </View>
@@ -94,7 +94,7 @@ export const RenderPromptCard = ({
         >
           <View className="px-2">
             <TextInput
-              className="font-Jakarta text-[14px] text-black px-4 py-3 rounded-[24px] bg-tray-50"
+              className="font-Jakarta text-[16px] text-black px-4 py-3 rounded-[24px] bg-tray-50"
               placeholder="Type something fun..."
               placeholderTextColor="#999"
               value={promptContent}
@@ -136,15 +136,26 @@ export const RenderCreateCard = ({
   handleOptionSubmit: () => void;
 }) => {
   const opacity = useSharedValue(0);
-  const translateY = useSharedValue(30);
-  const scale = useSharedValue(0.8);
+  const translateY = useSharedValue(20);
+  const scale = useSharedValue(0.95);
 
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 500 });
-    translateY.value = withSpring(0, { damping: 12 });
+    opacity.value = withTiming(1, { duration: 400 });
+    translateY.value = withSpring(0, { 
+      damping: 10,  // Balanced bounce
+      stiffness: 120,
+      mass: 0.8
+    });
     scale.value = withSequence(
-      withTiming(1.03, { duration: 300 }),
-      withSpring(1, { damping: 10 })
+      withTiming(0.98, { duration: 100 }), // Tiny initial squeeze
+      withSpring(1.02, { // Subtle overshoot
+        damping: 8,
+        stiffness: 150
+      }),
+      withSpring(1, { // Settle
+        damping: 10,
+        stiffness: 100
+      })
     );
   }, []);
 
@@ -158,62 +169,61 @@ export const RenderCreateCard = ({
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <Animated.View
-      className="flex-1 items-center justify-center my-4 rounded-[64px] overflow-hidden"
-      style={[
-        animatedCardStyle,
-        { 
-          backgroundColor: "rgba(255,255,255,1)",
-          width: screenWidth * 0.85
-        }
-      ]}
-    >
+      <Animated.View
+        className="flex-1 items-center justify-center my-4 rounded-[64px] max-w-[500px] overflow-hidden"
+        style={[
+          animatedCardStyle,
+          { 
+            backgroundColor: "rgba(255,255,255,1)",
+            width: screenWidth * 0.85
+          }
+        ]}
+      >
+        {/* Rest of your component remains unchanged */}
+        {/* Card Content */}
+        <View className="w-[80%] flex-col items-center justify-center z-10">
+          {/* Icon */}
+          <LinearGradient
+            colors={["#FBB1F5", "#93c5fd"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="rounded-full p-1 w-[96px] h-[96px] mr-4 justify-center items-center mb-6"
+          >
+            <View className="w-full h-full bg-white/10 rounded-full justify-center items-center">
+              <Image
+                source={item.icon}
+                className="w-12 h-12"
+                style={{ tintColor: "#FAFAFA" }}
+                resizeMode="contain"
+              />
+            </View>
+          </LinearGradient>
 
-      {/* Card Content */}
-      <View className="w-[80%] flex-col items-center justify-center z-10">
-        {/* Icon */}
-           <LinearGradient
-             colors={["#FBB1F5", "#93c5fd"]}
-             start={{ x: 0, y: 0 }}
-             end={{ x: 1, y: 1 }}
-             className="rounded-full p-1 w-[96px] h-[96px] mr-4 justify-center items-center mb-6"
-           >
-             <View className="w-full h-full bg-white/10 rounded-full justify-center items-center">
-               <Image
-                 source={item.icon}
-                 className="w-12 h-12"
-                 style={{ tintColor: "#FAFAFA" }}
-                 resizeMode="contain"
-               />
-             </View>
-           </LinearGradient>
+          {/* Text Content */}
+          <Text className="text-black text-[12px]  font-JakartaMedium tracking-widest mb-1">
+            {item.label.toUpperCase()}
+          </Text>
+          <Text className="text-black text-[28px] text-center font-JakartaSemiBold mt-2 mb-8 leading-tight">
+            {item.caption}
+          </Text>
 
-        {/* Text Content */}
-        <Text className="text-black text-sm font-JakartaSemiBold tracking-widest mb-1">
-          {item.label.toUpperCase()}
-        </Text>
-        <Text className="text-black text-3xl text-center font-JakartaBold mb-8 leading-tight">
-          {item.caption}
-        </Text>
+          {/* Button */}
+          <CustomButton
+            fontSize="lg"
+            title="Create"
+            padding={4}
+            onPress={() => {
+              handleOptionSubmit();
+            }}
+            disabled={false}
+          />
+        </View>
 
-        {/* Button */}
-        <CustomButton
-          fontSize="lg"
-          title="Create"
-          padding={4}
-          onPress={() => {
-            handleOptionSubmit();
-          }}
-          disabled={false}
-        />
-      </View>
-
-      {/* Floating Particles */}
-      <View className="absolute top-4 right-6 w-3 h-3 bg-white/40 rounded-full" />
-      <View className="absolute bottom-8 left-8 w-2 h-2 bg-white/30 rounded-full" />
-      <View className="absolute top-16 left-12 w-4 h-4 bg-white/20 rounded-full" />
-    </Animated.View>
-  </TouchableWithoutFeedback>
+        {/* Floating Particles */}
+        <View className="absolute top-4 right-6 w-3 h-3 bg-white/40 rounded-full" />
+        <View className="absolute bottom-8 left-8 w-2 h-2 bg-white/30 rounded-full" />
+        <View className="absolute top-16 left-12 w-4 h-4 bg-white/20 rounded-full" />
+      </Animated.View>
+    </TouchableWithoutFeedback>
   );
 };
-

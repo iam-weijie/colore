@@ -15,7 +15,7 @@ import {
   useNavigation,
   useRouter,
 } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -37,6 +37,7 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 import { useNavigationContext } from "@/components/NavigationContext";
 
+import * as Linking from "expo-linking";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -54,8 +55,6 @@ interface PostCommentGroup {
 
 const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const { user } = useUser();
-  const router = useRouter();
-  const navigation = useNavigation();
   const { showAlert } = useAlert();
   const {
     clerk_id = "",
@@ -103,8 +102,10 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const inputRef = useRef(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-
-
+  // Add pagination states
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const fetchCommentById = async (id: string) => {
     try {
@@ -195,7 +196,6 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
     p.comments.some(item => item.id.toString() == scrollTo)
   );
 
-  console.log("groupIndex:", groupIndex);
 
   // Scroll to the group's index if valid
   if (groupIndex !== -1 && flatListRef.current) {
@@ -203,10 +203,15 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   }
   };
 
-  const fetchComments = async () => {
-    //setLoading(true);
+  const fetchComments = async (pageNum = 0, append = false) => {
+    if (pageNum === 0) {
+      setLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
     setError(null);
-console.log("happend", "id", id)
+    console.log("fetching comments for post", id, "page", pageNum);
+
     if (!id || !user?.id) {
       console.error("Missing required parameters:", {
         postId: id,
@@ -214,25 +219,30 @@ console.log("happend", "id", id)
       });
       setError("Missing required parameters");
       setLoading(false);
+      setIsLoadingMore(false);
       return;
     }
 
     try {
       const response = await fetchAPI(
-        `/api/comments/getComments?postId=${id}&userId=${user.id}`,
+        `/api/comments/getComments?postId=${id}&userId=${user.id}&page=${pageNum}&limit=25`,
         { method: "GET" }
       );
-  
+
       if (response.error) {
         console.error("API Error:", response.error);
         throw new Error(response.error);
       }
-  
+
       if (!Array.isArray(response.data)) {
         console.error("Invalid response format:", response);
         throw new Error("Invalid response format");
       }
-  
+
+      // Update pagination info
+      setHasMore(response.pagination?.hasMore || false);
+      setPage(pageNum);
+
       // Initialize like states from the response
       interface CommentResponse {
         id: number;
@@ -240,36 +250,84 @@ console.log("happend", "id", id)
         like_count: number;
         created_at: string; // Ensure your comments have a created_at field
       }
-  
+
       const likeStatuses: { [key: number]: boolean } = {};
       const likeCounts: { [key: number]: number } = {};
-  
+
       (response.data as CommentResponse[]).forEach((comment) => {
         likeStatuses[comment.id] = comment.is_liked || false;
         likeCounts[comment.id] = comment.like_count || 0;
       });
-  
+
       // Group comments by date
       const groupedComments = response.data.reduce((acc, comment) => {
         const commentDate = new Date(comment.created_at).toDateString(); // Convert to a readable date
+
+        // Find existing group or create a new one
         const existingGroup = acc.find(group => group.date === commentDate);
-  
+
         if (existingGroup) {
           existingGroup.comments.push(comment);
         } else {
-          acc.push({ date: commentDate, comments: [comment] });
+          acc.push({
+            date: commentDate,
+            comments: [comment]
+          });
         }
-  
+
         return acc;
-      }, [] as { date: string; comments: CommentResponse[] }[]);
-  
-      setPostComments(groupedComments);
-      setCommentLikes(likeStatuses);
-      setCommentLikeCounts(likeCounts);} catch (error) {
-      console.error("Failed to fetch comments:", error);
-      setError("Failed to fetch comments.");
+      }, [] as PostCommentGroup[]);
+
+      // Add fetched comments to state
+      if (append) {
+        // Append new comments to existing ones
+        setPostComments(prev => {
+          const combinedGroups = [...prev];
+
+          // Merge the new groups with existing ones
+          groupedComments.forEach(newGroup => {
+            const existingGroupIndex = combinedGroups.findIndex(g => g.date === newGroup.date);
+
+            if (existingGroupIndex >= 0) {
+              // Add new comments to existing date group
+              combinedGroups[existingGroupIndex].comments.push(...newGroup.comments);
+            } else {
+              // Add new date group
+              combinedGroups.push(newGroup);
+            }
+          });
+
+          return combinedGroups;
+        });
+      } else {
+        // Replace with new comments
+        setPostComments(groupedComments);
+      }
+
+      // Update like states
+      setCommentLikes(prev => ({ ...prev, ...likeStatuses }));
+      setCommentLikeCounts(prev => ({ ...prev, ...likeCounts }));
+
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      setError("Failed to load comments. Please try again.");
     } finally {
       setLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Load initial comments
+  useEffect(() => {
+    if (id && user?.id) {
+      fetchComments(0, false);
+    }
+  }, [id, user?.id]);
+
+  // Function to load more comments when user scrolls
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore) {
+      fetchComments(page + 1, true);
     }
   };
 
@@ -282,11 +340,11 @@ console.log("happend", "id", id)
     const trimmedComment = newComment.trim();
 
     if (!trimmedComment || !id || !user?.id || !clerkId) {
-      /*console.log("Missing required data:", { 
-          content: trimmedComment, 
-          postId: id, 
+      /*console.log("Missing required data:", {
+          content: trimmedComment,
+          postId: id,
           clerkId: user?.id,
-          postClerkId: clerk_id 
+          postClerkId: clerk_id
         });
         */
       showAlert({
@@ -303,9 +361,97 @@ console.log("happend", "id", id)
       playSoundEffect(SoundType.Comment);
     }
 
+    // Immediately clear the input and prevent further submissions
+    setNewComment('');
+    setIsSubmitting(true);
+
+    // Create temporary comment for optimistic update
+    const tempId = Date.now();
+
+    // Use the same date as the most recent comment group to ensure proper grouping
+    let optimisticTimestamp = new Date().toISOString();
+    if (postComments.length > 0) {
+      // Get the most recent comment from the last group
+      const lastGroup = postComments[postComments.length - 1];
+      if (lastGroup.comments.length > 0) {
+        const lastComment = lastGroup.comments[lastGroup.comments.length - 1];
+        // Use a timestamp that's just slightly after the last comment but same day
+        const lastCommentDate = new Date(lastComment.created_at);
+        const newTimestamp = new Date(lastCommentDate.getTime() + 1000); // Add 1 second
+        optimisticTimestamp = newTimestamp.toISOString();
+      }
+    }
+
+    // Find the username from existing comments by the same user to ensure consistency
+    let optimisticUsername = 'Anonymous';
+
+    // First try to find username from existing comments by the same user
+    for (const group of postComments) {
+      const userComment = group.comments.find(comment => comment.user_id === user.id);
+      if (userComment && userComment.username && userComment.username !== 'Anonymous') {
+        optimisticUsername = userComment.username;
+        break;
+      }
+    }
+
+    // If no existing comment found, try to get username from database
+    if (optimisticUsername === 'Anonymous') {
+      try {
+        const userResponse = await fetchAPI(`/api/users/getUsername?clerkId=${user.id}`, {
+          method: "GET",
+        });
+        if (userResponse.data && userResponse.data.username) {
+          optimisticUsername = userResponse.data.username;
+        }
+      } catch (error) {
+        console.log("Could not fetch username from database, using Anonymous");
+      }
+    }
+
+    const tempComment: PostComment = {
+      id: tempId, // Temporary ID that we'll keep stable
+      post_id: parseInt(id as string),
+      user_id: user.id,
+      sender_id: user.id,
+      content: trimmedComment,
+      username: optimisticUsername,
+      created_at: optimisticTimestamp,
+      like_count: 0,
+      report_count: 0,
+      is_liked: false,
+      index: 0, // Will be updated
+      postColor: postColor?.hex || '#000000',
+      reply_comment_id: replyView?.id || null
+    };
+
     try {
-      setIsSubmitting(true); // Start submission
-      setNewComment(""); // Clear input immediately to prevent double submission
+      // Optimistically add the comment to UI immediately
+      console.log("📝 Adding optimistic comment to main post view:", tempComment);
+      setPostComments(prev => {
+        // Always add to the last (most recent) group if it exists, or create a new one
+        if (prev.length > 0) {
+          // Add to the last group (most recent date group)
+          const updatedGroups = [...prev];
+          const lastGroup = updatedGroups[updatedGroups.length - 1];
+          lastGroup.comments.push(tempComment);
+          return updatedGroups;
+        } else {
+          // Create new group if no groups exist
+          const today = new Date().toDateString();
+          return [{ date: today, comments: [tempComment] }];
+        }
+      });
+
+      // Reset reply view
+      setReplyView(null);
+      setReplyTo("");
+
+      // Scroll to bottom to show the new comment
+      setTimeout(() => {
+        if (flatListRef.current) {
+          flatListRef.current.scrollToEnd({ animated: true });
+        }
+      }, 100);
 
       const response = await fetchAPI(`/api/comments/newComment`, {
         method: "POST",
@@ -323,12 +469,23 @@ console.log("happend", "id", id)
         throw new Error(response.error);
       }
 
-      setReplyTo("")
-      setReplyView(null)
-      // Fetch updated comments with like status
-      await fetchComments();
+      // Don't update the ID to keep the key stable and prevent double animation
+      // The temporary ID will work fine for the UI, and the real ID isn't needed for display
+      console.log("✅ Comment successfully saved to server with ID:", response.data.id);
     } catch (error) {
       console.error("Failed to submit comment:", error);
+
+      // Remove the optimistic comment on error
+      setPostComments(prev =>
+        prev.map(group => ({
+          ...group,
+          comments: group.comments.filter(comment => comment.id !== tempComment.id)
+        })).filter(group => group.comments.length > 0) // Remove empty groups
+      );
+
+      // Restore the comment text
+      setNewComment(trimmedComment);
+
       showAlert({
         title: 'Error',
         message: `Failed to submit comment. Please try again.`,
@@ -383,10 +540,6 @@ console.log("happend", "id", id)
 
 
   useEffect(() => {
-    fetchComments();
-  }, [id, scrollTo]);
-
-  useEffect(() => {
     if (replyView) {
     setTimeout(() => inputRef.current?.focus(), 100);
     }
@@ -404,9 +557,9 @@ console.log("happend", "id", id)
       <View style={{ marginBottom: 15 }}>
       {/* Show the date as the header */}
       <Text className="text-gray-500 text-center text-[12px]">{
-      
+
       getRelativeTime(item.date)
-      
+
       }</Text>
 
       {/* Render each comment in the group */}
@@ -453,16 +606,26 @@ console.log("happend", "id", id)
     height: height.value,
   }));
 
+  // Update the renderFooter to show loading indicator when loading more comments
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    return (
+      <View style={{ paddingVertical: 20 }}>
+        <ColoreActivityIndicator />
+      </View>
+    );
+  };
+
   return (
     <Animated.View style={[{ flex: 1, paddingHorizontal: 24, paddingVertical: 8 }, animatedHeightStyle]}>
 
-         <Pressable onPress={() => 
+         <Pressable onPress={() =>
                   {
                     Keyboard.dismiss()
                   }
                   } />
         <View className="flex-1">
-        
+
           <View className="flex-1">
             {/* Comment section */}
             <View className="h-full">
@@ -489,6 +652,9 @@ console.log("happend", "id", id)
                     flatListRef.current?.scrollToEnd({ animated: true });
                   }}
                   showsVerticalScrollIndicator={false}
+                  onEndReached={handleLoadMore}
+                  onEndReachedThreshold={0.5}
+                  ListFooterComponent={renderFooter}
                 />
               )}
             </View>
@@ -502,13 +668,13 @@ console.log("happend", "id", id)
     className="mr-4 h-4 w-4"
     tintColor={"#9e9e9e"}
     />
-    <Text 
+    <Text
       className="text-sm text-gray-500"
       numberOfLines={2}
     >
       {replyView.content}
     </Text>
-    <TouchableOpacity 
+    <TouchableOpacity
       onPress={() => setReplyView(null)}
       className="ml-2 p-1"
     >
@@ -561,3 +727,5 @@ console.log("happend", "id", id)
 
 export default PostScreen;
 
+
+ 

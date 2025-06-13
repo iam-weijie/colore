@@ -86,7 +86,7 @@ export const CommentItem: React.FC<PostComment> = ({
     }>({});
     const [isLoadingCommentLike, setIsLoadingCommentLike] =
       useState<boolean>(false);
-  
+
     // Report Logic
     const handleReportPress = () => {
       Alert.alert(
@@ -101,11 +101,11 @@ export const CommentItem: React.FC<PostComment> = ({
         ]
       );
     };
-  
+
     // Comment Like Logic
     const handleCommentLike = async (commentId: number) => {
       if (!user || isLoadingCommentLike) return;
-  
+
       try {
         // Play like sound if liking (not unliking) and enabled
         if (!commentLikes[commentId] && soundEffectsEnabled) {
@@ -113,14 +113,14 @@ export const CommentItem: React.FC<PostComment> = ({
         }
         setIsLoadingCommentLike(true);
         const isCurrentlyLiked = commentLikes[commentId];
-  
+
         // Optimistic update
         setCommentLikes((prev) => ({ ...prev, [commentId]: !isCurrentlyLiked }));
         setCommentLikeCounts((prev) => ({
           ...prev,
           [commentId]: prev[commentId] + (isCurrentlyLiked ? -1 : 1),
         }));
-  
+
         const response = await fetchAPI("/api/comments/updateCommentLike", {
           method: "PATCH",
           body: JSON.stringify({
@@ -129,7 +129,7 @@ export const CommentItem: React.FC<PostComment> = ({
             increment: !isCurrentlyLiked,
           }),
         });
-  
+
         if (response.error) {
           // Revert optimistic update
           setCommentLikes((prev) => ({ ...prev, [commentId]: isCurrentlyLiked }));
@@ -140,7 +140,7 @@ export const CommentItem: React.FC<PostComment> = ({
           Alert.alert("Error", "Unable to update like state");
           return;
         }
-  
+
         // Update with server values
         setCommentLikes((prev) => ({
           ...prev,
@@ -165,13 +165,13 @@ export const CommentItem: React.FC<PostComment> = ({
         setIsLoadingCommentLike(false);
       }
     };
-  
+
     const translateX = useSharedValue(0);
-  
+
     // Maximum swipe distance
     const maxSwipe = user_id != user!.id ? 30 : 0; // Adjust as needed
     const minSwipe = user_id == user!.id ?  -30 : 0; // Adjust as needed
-  
+
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
@@ -216,13 +216,13 @@ export const CommentItem: React.FC<PostComment> = ({
         translateX.value = withTiming(0, { duration: 300 }); // Use `withTiming` to reset smoothly
       },
     });
-  
-   
+
+
 
     const doubleTapHandler = () => {
       setTapCount((prevCount) => prevCount + 1);
     };
-  
+
     useEffect(() => {
       if (tapCount === 2) {
         // Handle double-tap
@@ -233,10 +233,10 @@ export const CommentItem: React.FC<PostComment> = ({
 
     useEffect(() => {
         if (reply_comment_id) {
-            fetchCommentById(reply_comment_id)
+            fetchCommentById(reply_comment_id.toString())
         }
     }, [])
-  
+
     const animatedStyle = useAnimatedStyle(() => ({
       transform: [
         {
@@ -297,7 +297,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 <TouchableOpacity
                 onPress={() => {setScrollTo(`${replyingTo.id}`)}}>
                 <View 
-                className="flex flex-row rounded-[32px] py-3 px-4"
+                className="flex flex-row rounded-[24px] py-3 px-4"
                 style={{
                   backgroundColor: replyingTo.sender_id == user_id
                       ? postColor
@@ -319,7 +319,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 </View>
                 }
             <View
-            className="py-3 px-4 rounded-[32px] max-w-[70%]"
+            className="py-3 px-4 rounded-[24px] max-w-[70%]"
             style={{
               backgroundColor:
               onlyEmoji ? "rgba(0,0,0,0)" : (user_id === user?.id
@@ -327,7 +327,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 : user_id == sender_id
                   ? postColor
                   : "#EEEEEE"),
-            
+
             marginTop:  onlyEmoji ? -6 : 6,
             }}>
             <TouchableOpacity
@@ -347,7 +347,7 @@ export const CommentItem: React.FC<PostComment> = ({
                         await fetchAPI(`/api/comments/deleteComment?id=${id}`, {
                           method: "DELETE",
                         });
-                        
+
                         Alert.alert("Comment deleted.");
                         setScrollTo(`${id - 1}`)
                       } catch (error) {
@@ -371,6 +371,7 @@ export const CommentItem: React.FC<PostComment> = ({
                 );
               }
             }
+            
             }
               hitSlop={5}
             >
@@ -414,8 +415,8 @@ export const CommentItem: React.FC<PostComment> = ({
               )}
             </View>
             </View>
-            
-  
+
+
             {showReplyIcon && (
               <View
                 style={{

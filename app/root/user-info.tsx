@@ -8,13 +8,13 @@ import {
   Image,
   KeyboardAvoidingView,
   Pressable,
+  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
@@ -165,7 +165,8 @@ const UserInfo = () => {
         data.state &&
         data.country &&
         data.email &&
-        data.username
+        data.username &&
+        data.incognito_name
       ) {
         router.replace("/root/tabs/home");
       } else {

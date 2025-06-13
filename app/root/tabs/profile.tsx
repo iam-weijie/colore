@@ -4,68 +4,46 @@ import { fetchAPI } from "@/lib/fetch";
 import { Post, FriendStatusType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect } from "react";
-import { SafeAreaView, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { SafeAreaView, Text, View } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
 
 const Profile = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
   const { setEncryptionKey } = useGlobalContext();
-  const [post, setPost] = React.useState<Post>();
-  const [isModalVisible, setIsModalVisible] = React.useState(false);
-  const params = useLocalSearchParams();
-  const notificationParam = params.notification as string | undefined;
-  const tabParam = params.tab as string | undefined;
-  const triggerActionParam = params.triggerAction as string | undefined;
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const { post, commentId, tab } = useLocalSearchParams();
 
-    const fetchPosts = async (id: string[]) => {
-      try {
-        const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`);
-        const post = response.data;
-  
-        if (!post || post.length === 0) {
-          return null;
-        }
-        setPost(post);
-        setIsModalVisible(true);
-      } catch (error) {
-        return null;
-      }
-    };
+  const parsedPost = post && JSON.parse(post) as Post 
 
-
-  useEffect(() => {
-    if (notificationParam) {
-      try {
-        const notifObj = JSON.parse(notificationParam);
-        const postId: number = notifObj.post_id;
-        fetchPosts([postId.toString()]);
-      } catch {
-        // invalid json
-      }
-    }
-  }, [notificationParam]);
   const handleSignOut = async () => {
     signOut();
     setEncryptionKey(null);
     router.replace("/auth/log-in");
   };
 
+  useEffect(() => {
+    if (post) {
+setTimeout(() => {setIsModalVisible(true)}, 500)
+    }
+    
+  }, [post])
+  
   return (
-    <View className="flex-1">
-      {user && (
-        <UserProfile
-          userId={user?.id}
-          tab={tabParam ?? ""}
-          friendStatus={{ name: "" } as FriendStatusType}
-          onSignOut={handleSignOut}
-        />
-      )}
-      {triggerActionParam && isModalVisible && post &&
-      <PostModal isVisible={triggerActionParam === "openModal"} selectedPosts={[post]} handleCloseModal={() => {setIsModalVisible(false)}} />}
+       <View className="flex-1 bg-[#FAFAFA]">
+      {user && <UserProfile userId={user.id} onSignOut={handleSignOut} tab={tab}/>}
+       {isModalVisible && (
 
-      </View>
+        <PostModal
+          isVisible={isModalVisible}
+          selectedPosts={[parsedPost]}
+          handleCloseModal={() => {
+            setIsModalVisible(false)}}
+          seeComments={!!commentId} 
+        />
+    )}
+  </View>
   );
 };
 

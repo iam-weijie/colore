@@ -8,8 +8,12 @@ import { View, TouchableOpacity, Image, Text } from "react-native";
 import DropdownMenu from "@/components/DropdownMenu";
 import { icons } from "@/constants";
 import { FriendStatus } from "@/lib/enum";
-import { FriendStatusType, UserNicknamePair } from "@/types/type";
-import { useAlert } from "@/notifications/AlertContext";
+import {
+  FriendStatusType,
+  Post,
+  UserNicknamePair,
+} from "@/types/type";
+import { useAlert } from '@/notifications/AlertContext';
 import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import * as Linking from "expo-linking";
@@ -19,11 +23,14 @@ import ModalSheet from "@/components/Modal";
 import { set } from "date-fns";
 import ItemContainer from "@/components/ItemContainer";
 import { useGlobalContext } from "@/app/globalcontext";
+import PostModal from "@/components/PostModal";
+
 
 const Profile = () => {
   const { user } = useUser();
-  const { resetDraftPost } = useGlobalContext();
-  const { userId, username } = useLocalSearchParams();
+  const [post, setPost] = useState<Post>();
+  const { resetDraftPost } = useGlobalContext()
+  const { userId, username, postId, commentId, tab } = useLocalSearchParams();
   const [isUserSettingsVisible, setIsUserSettingsVisible] = useState(false);
   const [nickname, setNickname] = useState("");
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
@@ -32,6 +39,21 @@ const Profile = () => {
   const { showAlert } = useAlert();
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
+
+  console.log("[Profile] arg: ", userId, username, postId, commentId, tab )
+
+    const fetchPost = async (id: string) => {
+          try {
+                const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`)
+  
+                const data = response.data[0]
+  
+                setPost(data)
+              } catch (error) {
+                console.log("[Notifications] Failed to fetch post: ", error)
+              }
+    }
+
 
   const getFriendStatus = async () => {
     let status;
@@ -217,7 +239,7 @@ const Profile = () => {
             caption={
               nickname ? `Change ${nickname}'s nickname` : "Nickname me!"
             }
-            icon={icons.addUser}
+            icon={icons.user}
             colors={["#93c5fd", "#b8e1ff"]}
             iconColor="#000"
             onPress={() => {
@@ -229,7 +251,7 @@ const Profile = () => {
             <ItemContainer
               label={"Unfriend"}
               caption={"Add recipient to this post"}
-              icon={icons.trash}
+              icon={icons.removeUser}
               colors={["#93c5fd", "#b8e1ff"]}
               iconColor="#000"
               onPress={() => handleUnfriend()}
@@ -239,7 +261,7 @@ const Profile = () => {
             <ItemContainer
               label={"Cancel friend request"}
               caption={"Cancel the friend request you sent to this user"}
-              icon={icons.trash}
+              icon={icons.close}
               colors={["#93c5fd", "#b8e1ff"]}
               iconColor="#000"
               onPress={() => handleCancelFriendRequest()}
@@ -270,15 +292,18 @@ const Profile = () => {
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
-      {userId && (
-        <UserProfile
-          userId={userId as string}
-          friendStatus={FriendStatus.UNKNOWN}
-          nickname={nickname}
-        />
-      )}
+      {userId && <UserProfile userId={userId as string} friendStatus={FriendStatus.UNKNOWN} nickname={nickname} tab={tab}/>}
       <UserSettings />
-      <CustomButtonBar buttons={navigationControls} />
+        <CustomButtonBar
+              buttons={navigationControls}
+              />
+
+      {!!post && 
+      <PostModal
+       isVisible={!!post} 
+       selectedPosts={post ? [post] : []}
+       handleCloseModal={() => {setPost(undefined)}}
+       seeComments={!!commentId} />}
     </View>
   );
 };

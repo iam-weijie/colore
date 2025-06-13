@@ -140,6 +140,23 @@ declare interface PostComment {
   report_count: number;
   is_liked: boolean;
   postColor: string;
+  reply_comment_id?: number | null;
+}
+
+declare interface PostLike {
+  id: number;
+  post_id: number;
+  post_content: string;
+  post_color: string;
+  liker_username: string;
+}
+
+declare interface PostLike {
+  id: number;
+  post_id: number;
+  post_content: string;
+  post_color: string;
+  liker_username: string;
 }
 
 declare interface UserProfileType {
@@ -160,6 +177,11 @@ declare interface UserProfileType {
   report_count: number;
   push_token: string;
   saved_posts: string[];
+  theme: string;
+  engagement: number;
+  created_at: string,
+  color?: string;
+  total_posts?: number;
   shorthand_emojis?: string[];
   colors: PostItColor[];
   customizations?: any[];
@@ -168,6 +190,12 @@ declare interface UserProfileType {
 declare interface UserData {
   userInfo: UserProfileType;
   posts: Post[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    hasMore: boolean;
+  };
 }
 
 declare interface PostWithPosition extends Post {
@@ -235,6 +263,9 @@ declare interface UserPostsGalleryProps {
   handleUpdate?: (id: number, isRemove?: boolean) => void;
   query?: string;
   header?: React.ReactElement;
+  onLoadMore?: () => void;
+  isLoading?: boolean;
+  hasMore?: boolean;
 }
 
 declare interface UserProfileProps {
@@ -277,10 +308,6 @@ declare interface PostContainerProps {
   scrollToLoad?: () => void;
   staticEmoji?: boolean;
   seeComments?: boolean;
-}
-
-declare interface UserPostsGalleryProps {
-  posts: Post[];
 }
 
 type MappingPostitProps = {

@@ -102,7 +102,6 @@ const NewPost = () => {
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
     allColors.find((c) => c.id === color) ?? defaultColors[Math.floor(Math.random() * defaultColors.length)]
   );
-  const [textStyling, setTextStyling] = useState<TextStyle | null>(null);
   const [formats, setFormats] = useState<Format[]>([]);
   const [isFocused, setIsFocused] = useState<boolean>(false);
 
@@ -227,11 +226,6 @@ const NewPost = () => {
     setIsEmojiSelectorVisible(false);
   };
 
-  const applyStyle = (newStyle: TextStyle) => {
-    setTextStyling(newStyle);
-    setRefreshingKey((prev) => prev + 1);
-    Keyboard.dismiss();
-  };
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -280,7 +274,6 @@ const NewPost = () => {
   const resetDraftPost = () => {
     setPostContent("");
     setFormats([]);
-    setTextStyling(null);
     setSelectedRecipientId("");
     setSelectedUser(undefined);
     setSelectedEmoji("");
@@ -359,7 +352,7 @@ const NewPost = () => {
       unread_comments: 0,
       recipient_user_id: selectedRecipientId ?? "",
       pinned: false,
-      color: selectedColor.name,
+      color: selectedColor.id,
       emoji: selectedEmoji ?? "",
       notified: false,
       prompt_id: promptId ? Number(promptId) : 0,
@@ -622,7 +615,7 @@ const NewPost = () => {
           />
         ),
       },
-      {
+      {/*
         label: "Reply",
         component: (
           <ItemContainer
@@ -640,7 +633,7 @@ const NewPost = () => {
             actionIcon={replyToPostId && icons.check}
           />
         ),
-      },
+      */},
     ];
 
     const menuOptions = promptId
@@ -710,25 +703,11 @@ const NewPost = () => {
                   setSelectedSetting("");
                 }}
               />
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedRecipientId(user!.id);
-
-                  if (profile?.username) {
-                    setSelectedUser([user!.id, profile.username]);
-                  }
-                  setSelectedSetting("");
-                }}
-                className="w-full h-6 flex-row items-center justify-center"
-              >
-                <Text className="text-[14px] font-Jakarta font-regular text-gray-400">
-                  Keep it private
-                </Text>
-              </TouchableOpacity>
             </View>
           ) : ["Schedule", "Expiration"].includes(selectedSetting) ? (
             <View className="flex-1">
               <CalendarView
+              color={selectedColor?.hex}
                 onDateSelect={
                   selectedSetting === "Schedule"
                     ? (selected: Date) => {
@@ -760,6 +739,24 @@ const NewPost = () => {
             <View></View>
           )}
         </View>
+
+        { selectedSetting == "Recipient" &&
+                       <View className="flex items-center w-full mb-4">
+                <CustomButton
+                    fontSize="lg"
+                    title="Keep it Private"
+                    padding={4}
+                    bgVariant="gradient5"
+                    onPress={() => {
+                        setSelectedRecipientId(user!.id);
+
+                        setUserUsername("Yourself");
+                        setSelectedUser([user!.id, profile.username]);
+                        setSelectedSetting("");
+                }}
+                  />
+                  </View>
+        }
       {selectedSetting && <View className="flex items-center w-full mb-4">
                      <CustomButton
           fontSize="lg"
@@ -863,7 +860,7 @@ const NewPost = () => {
                     : "New Post"
             }
           />
-
+{selectedTab == "create" && (
           <TouchableWithoutFeedback
             accessible={false}
             onPress={() => {
@@ -884,7 +881,6 @@ const NewPost = () => {
                   <View className="flex-1 flex-column justify-start items-center  ">
                     <View className="w-full">
                       <RichTextInput
-                        style={textStyling}
                         refresh={refreshingKey}
                         exportStyling={handleChangeFormat}
                         exportText={handleChangeText}
@@ -944,7 +940,7 @@ const NewPost = () => {
                 </View>
               </View>
             </View>
-          </TouchableWithoutFeedback>
+          </TouchableWithoutFeedback>)}
           {selectedTab == "customize" && (
             <View key={refreshingKey} className="absolute top-8">
               <PostContainer
@@ -952,7 +948,7 @@ const NewPost = () => {
                 handleCloseModal={() => {}}
                 isPreview={true}
                 header={
-                  <View className="absolute z-[10] top-[15%] right-5 flex flex-row items-center justify-end gap-2">
+                  <View className="absolute z-[10] top-28 right-5 flex flex-col items-center justify-end">
                     {/* <TouchableOpacity
                     onPress={() => {setIsLinkHolderVisible(true)}}
                     className="w-8 h-8 rounded-full flex items-center justify-center"
@@ -963,26 +959,22 @@ const NewPost = () => {
                       tintColor={'#fff'}
                     />
                   </TouchableOpacity>*/}
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={() => {
+                    <InteractionButton 
+                    label={""} 
+                    icon={
+                          !selectedStaticEmoji
+                            ? icons.sparklesFill
+                            : icons.sparkles
+                        }
+                    size="sm"
+                    onPress= {() => {
                         if (selectedEmoji) {
                           setSelectedStaticEmoji((prev) => !prev);
                           setRefreshingKey((prev) => prev + 1);
                         }
                       }}
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
-                    >
-                      <Image
-                        source={
-                          !selectedStaticEmoji
-                            ? icons.sparklesFill
-                            : icons.sparkles
-                        }
-                        className="w-7 h-7"
-                        tintColor={"#fff"}
-                      />
-                    </TouchableOpacity>
+                      showLabel={false} 
+                      color={""} />
                   </View>
                 }
                 staticEmoji={selectedStaticEmoji}
@@ -1014,9 +1006,6 @@ const NewPost = () => {
             triggerPosition={triggerPosition}
             activeIndex={activeEmojiIndex}
           />
-          {isFocused && (<KeyboardOverlay onFocus={isFocused}>
-        <RichTextEditor handleApplyStyle={applyStyle} />
-      </KeyboardOverlay>)}
         </View>
       </TouchableWithoutFeedback>
       

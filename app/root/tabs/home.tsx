@@ -5,28 +5,10 @@ import { SignedIn, useUser } from "@clerk/clerk-expo";
 import * as React from "react";
 import { useEffect, useState, useCallback } from "react";
 
-import { icons, countries } from "@/constants";
+import { icons } from "@/constants";
 import { router, useFocusEffect } from "expo-router";
-import {
-  Dimensions,
-  Image,
-  Modal,
-  ImageSourcePropType,
-  Pressable,
-  SafeAreaView,
-  TouchableOpacity,
-  View,
-  Text,
-} from "react-native";
-import Animated, {
-  useSharedValue,
-  withSpring,
-  useAnimatedStyle,
-  BounceIn,
-  FadeIn,
-  FadeOut,
-  withTiming,
-} from "react-native-reanimated";
+import { Dimensions, Image, Modal, ImageSourcePropType, Pressable, TouchableOpacity, View, Text } from "react-native";
+import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming } from "react-native-reanimated";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 import DropdownMenu from "@/components/DropdownMenu";

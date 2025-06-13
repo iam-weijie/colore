@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Image, ImageSourcePropType, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { icons } from '@/constants';
 import { TextStyle } from '@/types/type';
+import InteractionButton from './InteractionButton';
 
 
 
@@ -24,18 +25,16 @@ const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextSt
 
   };
 
-  const styleContainer = (focused: boolean, icon: ImageSourcePropType) => {
+  const styleContainer = (focused: boolean, icon: ImageSourcePropType, style: TextStyle) => {
     return (
-        <View 
-        className='p-3 rounded-[12px] mx-2'
-        pointerEvents="none"
-        style={{
-            backgroundColor: focused ? "#eee" : "#fafafa"
-        }}>
-        <Image
-        source={icon}
-        className='w-4 h-4'
-        resizeMode='contain'
+      <View style={{ transform: "scale(0.7)"}}>
+        <InteractionButton
+        icon={icon}
+        onPress={() => applyStyle(style as TextStyle)}
+        size={"sm"} 
+        label={''} 
+        showLabel={false} 
+        color={''}        
         />
         </View>
     )
@@ -48,7 +47,7 @@ const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextSt
           applyStyle(style as TextStyle)
           setShowOptions(false)
         }}
-        className=' mx-2 h-10 w-10 rounded-[12px] flex items-center justify-center'
+        className=' mx-2 h-10 w-10 rounded-full shadow-md flex items-center justify-center'
         style={{
             backgroundColor: focused ? "#eee" : "#fafafa"
         }}>
@@ -61,39 +60,39 @@ const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextSt
 
     switch (style) {
         case "bold":
-            return styleContainer(false, icons.bold);
+            return styleContainer(false, icons.bold, style);
         case "italic":
-            return styleContainer(false, icons.italics);
+            return styleContainer(false, icons.italics, style);
         case "underline":
-            return styleContainer(false, icons.underline);
+            return styleContainer(false, icons.underline, style);
         case "H":
-            return styleContainer(false, icons.H);
+            return styleContainer(false, icons.H, style);
         case "unordered":
-            return styleContainer(false, icons.uList);
+            return styleContainer(false, icons.uList, style);
         case "ordered":
-            return styleContainer(false, icons.oList);
+            return styleContainer(false, icons.oList, style);
     }
     
 
   }
 
   return (
-    <View className="flex items-center justify-center h-[50px] w-full">
+    <View className="flex items-center justify-center h-[50px] ">
       <ScrollView 
       horizontal 
       keyboardShouldPersistTaps="handled" 
       showsHorizontalScrollIndicator={false}>
         {!showOptions && stylingBar.map((style) => (
-          <View key={style}>
-            <TouchableOpacity
-              onPress={() => applyStyle(style as TextStyle)}
-            >
-              {getShortHand(style)}
-            </TouchableOpacity>
+            <View 
+            key={style}>
+            {getShortHand(style)}
           </View>
         ))}
-        {showOptions && headerStyleOptions.map((style) => (
-          <View key={style}>
+        {showOptions && headerStyleOptions.map((style) =>
+         (
+          <View
+          key={style}
+          >
             {headerStyleContainer(false, style)}
           </View>
         ))} 

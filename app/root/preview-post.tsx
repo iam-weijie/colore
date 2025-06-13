@@ -7,8 +7,7 @@ import { useUser } from "@clerk/clerk-expo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Alert, Platform, Text, TouchableOpacity, View } from "react-native";
 import { useAlert } from '@/notifications/AlertContext';
 import * as Haptics from 'expo-haptics';
 import { useHaptics } from "@/hooks/useHaptics";
@@ -27,14 +26,13 @@ const PreviewPost = () => {
 
   const handleCloseModal = () => {
     setIsVisible(false);
-    router.back(); // Single back; assumed this goes to NewPost
+    router.push("/root/new-post");
   };
 
 
 
 
   return (
-    <SafeAreaView className="flex-1">
       <View className="flex-1">
         <PostModal
           isVisible={isVisible}
@@ -57,22 +55,22 @@ const PreviewPost = () => {
 />
                <TouchableOpacity
                   onPress={handleCloseModal}
-                  className="mt-4"
+                  className="mt-4 p-3"
+                  activeOpacity={0.7}
                 >
                   <Text 
-                  className="text-white font-JakartaBold text-[16px]"
-                  style={{
-                    borderBottomWidth: 2,
-                    borderBottomColor: "#fff"
-                  }}>
+                    className="text-white font-JakartaBold text-[16px]"
+                    style={{
+                      borderBottomWidth: 2,
+                      borderBottomColor: "#fff"
+                    }}>
                     Go back
                   </Text>
                 </TouchableOpacity>
-            </View>
+              </View>
           }
         />
       </View>
-    </SafeAreaView>
   );
 };
 

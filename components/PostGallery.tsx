@@ -16,6 +16,7 @@ import * as Haptics from "expo-haptics";
 import { useHaptics } from "@/hooks/useHaptics";
 import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Text,
@@ -32,6 +33,9 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   query = "",
   header,
   offsetY,
+  onLoadMore,
+  isLoading,
+  hasMore
 }) => {
   const { user } = useUser();
   const { isIpad } = useGlobalContext();
@@ -73,6 +77,22 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   if (!posts) {
     return <Text>An error occurred.</Text>;
   }
+
+  const handleEndReached = () => {
+    if (!isLoading && hasMore && onLoadMore) {
+      console.log("Reached end, loading more posts");
+      onLoadMore();
+    }
+  };
+
+  const renderFooter = () => {
+    if (!isLoading) return null;
+    return (
+      <View className="py-5 flex items-center justify-center">
+        <ActivityIndicator size="large" color="#93c5fd" />
+      </View>
+    );
+  };
 
   const renderItem = ({ item }: { item: Post }) => {
     const backgroundColor =
@@ -206,6 +226,12 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
           renderItem={renderItem}
           numColumns={isIpad ? 3 : 1}
           showsVerticalScrollIndicator={false}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={renderFooter}
+          initialNumToRender={6}
+          maxToRenderPerBatch={10}
+          windowSize={10}
         />
       )}
       {selectedPost && !disableModal && (
