@@ -218,7 +218,7 @@ export const fetchNotificationsExternal = async (
         unread_likes,
       ],
     } 
-}} catch (error) {
+} catch (error) {
   console.log("Failed to fetch external notification", error)
 }
 }
