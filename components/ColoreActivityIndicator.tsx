@@ -1,41 +1,67 @@
-import React from 'react';
-import { View, Text, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import Animated, {
   useSharedValue,
   withTiming,
   withRepeat,
   useAnimatedStyle,
+  useAnimatedProps,
+  interpolateColor,
   Easing,
-  withSequence,
 } from 'react-native-reanimated';
-import { characters } from '@/constants';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const ColoreActivityIndicator = ({
   text = 'Loading...',
+  size = 40,
+  strokeWidth = 6,
+  colors = ['#ffe640', '#FBB1F5', '#93c5fd', '#CFB1FB'],
 }: {
   text?: string;
+  size?: number;
+  strokeWidth?: number;
+  colors?: string[];
 }) => {
   const rotation = useSharedValue(0);
-  const imageBounce = useSharedValue(0);
+  const colorProgress = useSharedValue(0);
 
-  // Start all animations
-  React.useEffect(() => {
+  useEffect(() => {
+    // Single smooth rotation
     rotation.value = withRepeat(
       withTiming(360, { duration: 2000, easing: Easing.linear }),
       -1
     );
 
-    // Subtle bounce animation for the image
-    imageBounce.value = withRepeat(
-      withSequence(
-        withTiming(-3, { duration: 1000, easing: Easing.out(Easing.quad) }),
-        withTiming(0, { duration: 1000, easing: Easing.bounce })
-      ),
+    // Simple color cycling
+    colorProgress.value = withRepeat(
+      withTiming(colors.length - 1, { duration: 3000, easing: Easing.linear }),
       -1
     );
-  }, []);
+  }, [colors.length]);
 
-  // Dot animation - vertical bounce only
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+
+  // Simplified arc props with just color animation
+  const getArcProps = (index: number) =>
+    useAnimatedProps(() => {
+      const colorIndex = (colorProgress.value + index) % colors.length;
+      const stroke = interpolateColor(
+        colorIndex,
+        colors.map((_, i) => i),
+        colors
+      );
+      
+      return { stroke };
+    });
+
+  const spinnerStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  // Simple dot animation - just vertical bounce
   const getDotStyle = (index: number) =>
     useAnimatedStyle(() => {
       const phase = (rotation.value + index * 90) * (Math.PI / 180);
@@ -43,45 +69,34 @@ const ColoreActivityIndicator = ({
       
       return {
         transform: [{ translateY }],
+        backgroundColor: colors[index % colors.length],
         opacity: 0.6 + 0.4 * Math.sin(phase),
       };
     });
 
-  // Image animation style
-  const imageStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: imageBounce.value }],
-  }));
-
   return (
     <View className="items-center justify-center space-y-3">
-      {/* Animated image with subtle bounce */}
-      <Animated.View style={imageStyle}>
-        <Image 
-          source={characters.bobChill} 
-          className="w-24 h-24 -mb-6" 
-          resizeMode="contain" 
-        />
+      {/* Simplified spinner - 3 arcs with staggered colors */}
+      <Animated.View style={[{ width: size, height: size }, spinnerStyle]}>
+        <Svg width={size} height={size}>
+          {[0, 120, 240].map((angle, i) => (
+            <AnimatedCircle
+              key={i}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              strokeWidth={strokeWidth}
+              strokeDasharray={`${circumference * 0.25} ${circumference}`}
+              strokeLinecap="round"
+              fill="none"
+              animatedProps={getArcProps(i)}
+              rotation={angle}
+              originX={size / 2}
+              originY={size / 2}
+            />
+          ))}
+        </Svg>
       </Animated.View>
-
-      <Text className="text-sm text-gray-700 font-JakartaMedium">{text}</Text>
-
-      {/* Bouncing dots indicator - all black */}
-      <View className="flex-row space-x-2 mt-1">
-        {[0, 1, 2].map((i) => (
-          <Animated.View
-            key={i}
-            style={[
-              {
-                width: 6,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: '#000000', // Black color
-              },
-              getDotStyle(i),
-            ]}
-          />
-        ))}
-      </View>
     </View>
   );
 };

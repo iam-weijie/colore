@@ -209,9 +209,12 @@ export const handleSubmitPost = async (
 
   const shouldEncrypt = Boolean(draftPost.recipient_user_id);
 
+  console.log("[handlePostSubmission]: ", shouldEncrypt, encryptionKey, encryptText(cleanContent, encryptionKey))
+
   if (shouldEncrypt && encryptionKey) {
     cleanContent = encryptText(cleanContent, encryptionKey);
   }
+
 
   const isUpdate = Boolean(draftPost.id);
   const isPersonal = Boolean(draftPost.recipient_user_id);
@@ -251,9 +254,7 @@ export const handleSubmitPost = async (
           : new Date().toISOString(),
         static_emoji: draftPost.static_emoji,
         reply_to: draftPost.reply_to,
-        formatting: shouldEncrypt && encryptionKey
-          ? encryptText(JSON.stringify(draftPost.formatting), encryptionKey)
-          : draftPost.formatting,
+        formatting: draftPost.formatting,
       };
 
       const response = await fetchAPI("/api/posts/newPost", {

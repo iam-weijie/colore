@@ -19,6 +19,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { set } from "date-fns";
 import { defaultColors } from "@/constants";
 import { io } from "socket.io-client";
+import { encryptionCache } from "@/cache/encryptionCache";
 
 // ===== Types & Constants =====
 type GlobalContextType = {
@@ -832,12 +833,17 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         const soundSetting = await AsyncStorage.getItem(
           SOUND_EFFECTS_ENABLED_KEY
         );
+        const key = await encryptionCache.getDerivedKey();
 
         if (hapticsSetting !== null) {
           setHapticsEnabledState(JSON.parse(hapticsSetting));
         }
         if (soundSetting !== null) {
           setSoundEffectsEnabledState(JSON.parse(soundSetting));
+        }
+
+        if (key !== null) {
+          setEncryptionKey(key)
         }
       } catch (e) {
         console.error("Failed to load settings.", e);

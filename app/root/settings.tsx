@@ -36,6 +36,7 @@ import {
 } from "@/components/CardInfo";
 import KeyboardOverlay from "@/components/KeyboardOverlay";
 import { SRBInfoPage, InformationInfoPage, YourActivityInfoPage, PreferencesInfoPage } from "@/components/InfoView";
+import { encryptionCache } from "@/cache/encryptionCache";
 
 const Settings = () => {
   const {
@@ -416,7 +417,7 @@ const Settings = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      setEncryptionKey(null);
+      await encryptionCache.clearDerivedKey();
       setLoading(true);
       router.replace("/auth/onboarding");
     } catch (error) {

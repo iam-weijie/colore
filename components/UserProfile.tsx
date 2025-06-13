@@ -610,7 +610,7 @@ const handlePostUpdate = (id: number, isRemove: boolean) => {
               />
             </View>
           ) : (
-            <View className={`absolute -top-[25%]`}>
+            <View className={`absolute -top-[20%]`}>
               <PostContainer
                 selectedPosts={[post]}
                 handleCloseModal={() => {}}

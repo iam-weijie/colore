@@ -13,6 +13,7 @@ import { useGlobalContext } from "@/app/globalcontext";
 import React from "react";
 import { fetchAPI } from "@/lib/fetch";
 import { useAlert } from "@/notifications/AlertContext";
+import { encryptionCache } from "@/cache/encryptionCache";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -33,8 +34,10 @@ const LogIn = () => {
 
     try {
 
+      let userId;
       let userSalt;
       let userExist;
+      let needToCreateSalt;
       // Fetch user's salt first using email
       const saltResponse = await fetchAPI(`/api/users/getSalt?email=${encodeURIComponent(form.email)}`);
       if (saltResponse.error) {
@@ -48,24 +51,15 @@ const LogIn = () => {
 
       console.log("[Log-in]: ", saltResponse)
 
+       userId = saltResponse.userId;
        userSalt = saltResponse.salt as string;
        userExist = saltResponse.email as string;
+       needToCreateSalt = !userSalt && userExist
 
-      if (!userSalt && userExist) {
+      if (needToCreateSalt) {
         userSalt = generateSalt()
       }
 
-      /*
-      // First try to sign out of any existing session
-      try {
-        await signOut();
-      } catch (signOutError) {
-        console.log("No active session to sign out from:", signOutError);
-      }
-
-      // Wait a brief moment for the signOut to complete
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      */
       console.log("[Log-in]", userSalt)
 
       const logInAttempt = await signIn.create({
@@ -80,20 +74,22 @@ const LogIn = () => {
         // Derive and store encryption key
         const key = deriveKey(form.password, userSalt);
         setEncryptionKey(key);
+        await encryptionCache.setDerivedKey(key);
 
-
+        if (needToCreateSalt) {
         try {
-        const response = await fetchAPI('/api/users/updateUserInfo', {
+         await fetchAPI('/api/users/updateUserInfo', {
           method: 'PATCH',
           body: JSON.stringify({
+            clerkId: userId,
             salt: userSalt
           })
         })
 
-        console.log("[Log-in]", userSalt, response)
       } catch (error) {
         console.error("Failed to create user's salt", error)
       }
+    }
 
         router.replace("/root/user-info");
       } else {

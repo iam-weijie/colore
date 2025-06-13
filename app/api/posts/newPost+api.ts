@@ -75,8 +75,6 @@ export async function POST(request: Request) {
         post_type
     `;
 
-    console.log("inserted Posts", insertedPost);
-
     if (
       postType === "personal" &&
       insertedPost.recipient_user_id !== clerkId &&
@@ -123,7 +121,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return Response.json({ data: insertedPost }, { status: 201 });
+    return Response.json({ data: insertedPost, status: 201 });
   } catch (error: unknown) {
     console.error("Database operation failed:", error);
 
