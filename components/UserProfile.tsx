@@ -159,6 +159,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [disableInteractions, setDisableInteractions] =
     useState<boolean>(false);
 
+  const Flag = countries[(profile?.country || "Canada") as keyof typeof countries];
   const fetchFriendCount = async () => {
     if (user!.id === userId) {
       const data = await fetchFriends(user!.id);

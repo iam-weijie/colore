@@ -5,7 +5,7 @@ import { SignedIn, useUser } from "@clerk/clerk-expo";
 import * as React from "react";
 import { useEffect, useState, useCallback } from "react";
 
-import { icons, countries } from "@/constants";
+import { icons } from "@/constants";
 import { router, useFocusEffect } from "expo-router";
 import { Dimensions, Image, Modal, ImageSourcePropType, Pressable, TouchableOpacity, View, Text } from "react-native";
 import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming } from "react-native-reanimated";

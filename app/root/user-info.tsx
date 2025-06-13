@@ -8,6 +8,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Pressable,
+  SafeAreaView,
   ScrollView,
   Text,
   TextInput,

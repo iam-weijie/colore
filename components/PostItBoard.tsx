@@ -15,16 +15,16 @@ import {
 } from "react-native";
 import { GeographicalMode, MappingPostitProps } from "@/types/type";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
-import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import React, { useEffect, useRef, useState } from "react";
 import { mappingPostIt, reorderPost } from '@/lib/postItBoard';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import StackCircle from "./StackCircle";
 import ModalSheet from "./Modal";
 import RenameContainer from "./RenameContainer";
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { updateStacks } from "@/lib/stack";
+import { distanceBetweenPosts } from "@/lib/post";
 import KeyboardOverlay from "./KeyboardOverlay";
 import { FindUser } from "./FindUsers";
 import { useAlert } from "@/notifications/AlertContext";
@@ -67,6 +67,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [allPostsInStack, setAllPostsInStack] = useState<Post[]>([]);
 
   const { stacks, setStacks } = useGlobalContext();
+  const stackUpdating = useRef(false)
   const { playSoundEffect } = useSoundEffects();
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -153,22 +154,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     pinchGesture
   );
 
-  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const x = event.nativeEvent.contentOffset.x;  
-    const y = event.nativeEvent.contentOffset.y;
-    setScrollOffset({
-      x:  x,
-      y: y,
-    });
-    offsetY.value = Math.min(y, 0); // Only track pull-down
-  };
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      height: withTiming(Math.abs(offsetY.value), { duration: 100 }),
-      opacity: withTiming(Math.min(Math.abs(offsetY.value) / COLOR_HEIGHT_TRIGGER, 1)),
-    };
-  });
 
   if (!userId) {
     return null;
@@ -690,7 +676,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     top: post.position.top,
     left: post.position.left,
   }}
-  updateIndex={() => reorderPost(post)}
+  updateIndex={() => handleReorderPost(post)}
   updatePosition={(dx, dy, post) => updatePostPosition(dx, dy, post)}
   onPress={() => handlePostPress(post)}
   showText={showPostItText}
