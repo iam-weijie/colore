@@ -207,25 +207,32 @@ export const handleSubmitPost = async (
 
   let cleanContent = stripMarkdown(draftPost.content);
 
-  const shouldEncrypt = Boolean(draftPost.recipient_user_id);
+  const isUpdate = Boolean(draftPost.id);
+  const isPersonal = Boolean(draftPost.recipient_user_id);
+  const isPrompt = Boolean(draftPost.prompt_id);
+  const shouldEncrypt = isPersonal;
 
   if (shouldEncrypt && encryptionKey) {
     cleanContent = encryptText(cleanContent, encryptionKey);
   }
 
-  const isUpdate = Boolean(draftPost.id);
-  const isPersonal = Boolean(draftPost.recipient_user_id);
-  const isPrompt = Boolean(draftPost.prompt_id);
-
   try {
     if (isUpdate) {
+      // For updates, we need to handle encryption differently based on whether it's a personal post
+      const updateContent = shouldEncrypt && encryptionKey 
+        ? encryptText(draftPost.content, encryptionKey) 
+        : draftPost.content;
+        
       await fetchAPI("/api/posts/updatePost", {
         method: "PATCH",
         body: JSON.stringify({
           postId: draftPost.id,
-          content: draftPost.content,
+          content: updateContent,
           color: draftPost.color,
           emoji: draftPost.emoji,
+          formatting: shouldEncrypt && encryptionKey && draftPost.formatting
+            ? encryptText(JSON.stringify(draftPost.formatting), encryptionKey)
+            : draftPost.formatting,
         }),
       });
       router.back();

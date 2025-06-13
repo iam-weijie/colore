@@ -22,20 +22,29 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "@/components/CustomButton";
 import { icons, defaultColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { PostItColor } from "@/types/type";
+import { PostItColor, Post } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
 import ColorPickerSlider from "@/components/ColorPickerSlider";
 import * as Haptics from "expo-haptics";
 import { useHaptics } from "@/hooks/useHaptics";
+import { useGlobalContext } from "../globalcontext";
+import { handleSubmitPost } from "@/lib/post";
 
 
 const EditPost = () => {
   const { user } = useUser();
-  const { postId, content, color, emoji} = useLocalSearchParams()
+  const params = useLocalSearchParams();
+  const postId = params.postId as string;
+  const content = params.content as string;
+  const color = params.color as string;
+  const emoji = params.emoji as string;
+  const recipientId = params.recipientId as string;
+  
   const [postContent, setPostContent] = useState<string>(`${content}`);
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const { showAlert } = useAlert();
+  const { encryptionKey } = useGlobalContext();
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
     defaultColors.find(
       (c) => c.id === color
@@ -63,17 +72,39 @@ const EditPost = () => {
   };
 
   const handlePostUpdate = () => {
-    router.push({
-      pathname: "/root/preview-post",
-      params: {
-        id: postId,
-        content: postContent,
-        color: selectedColor.name,
-        emoji: selectedEmoji,
-        username: ""
-      }
-    })
-
+    const draftPost: Post = {
+      id: Number(postId),
+      user_id: user?.id ?? "",
+      firstname: "",
+      username: "",
+      nickname: "",
+      incognito_name: "",
+      content: postContent,
+      created_at: new Date().toISOString(),
+      expires_at: "",
+      available_at: "",
+      static_emoji: false,
+      city: "",
+      state: "",
+      country: "",
+      like_count: 0,
+      report_count: 0,
+      unread_comments: 0,
+      recipient_user_id: recipientId || "",
+      pinned: false,
+      color: selectedColor.name,
+      emoji: selectedEmoji ?? "",
+      notified: false,
+      prompt_id: 0,
+      prompt: "",
+      board_id: -1,
+      reply_to: 0,
+      unread: false,
+      formatting: [],
+    };
+    
+    handleSubmitPost(user!.id, draftPost, encryptionKey);
+    router.back();
   };
 
 
