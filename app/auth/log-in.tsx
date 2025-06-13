@@ -4,18 +4,19 @@ import OAuth from "@/components/OAuth";
 import AppleSignIn from "@/components/AppleSignIn";
 import { Platform } from "react-native";
 import { icons, images } from "@/constants";
-import { useAuth, useSignIn } from "@clerk/clerk-expo";
+import { useAuth, useSignIn, useUser } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
 import { useGlobalContext } from "@/app/globalcontext";
 import React from "react";
 import { fetchAPI } from "@/lib/fetch";
-import { deriveKey } from "@/lib/encryption";
+import { deriveKey, generateSalt } from "@/lib/encryption";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { signOut } = useAuth();
+  const { user } = useUser();
   const router = useRouter();
   const { isIpad } = useGlobalContext();
   const { setEncryptionKey } = useGlobalContext();
@@ -31,51 +32,75 @@ const LogIn = () => {
     }
 
     try {
-      // Fetch user's salt first using email
-      console.log("[DEBUG] Login - Fetching salt for:", form.email);
-      const saltResponse = await fetchAPI(`/api/users/getSalt?email=${encodeURIComponent(form.email)}`);
-      if (saltResponse.error || !saltResponse.salt) {
-        console.error("[DEBUG] Login - Failed to get salt:", saltResponse);
-        Alert.alert("Error", "Unable to retrieve security parameters.");
-        return;
-      }
-      const userSalt = saltResponse.salt as string;
-      console.log("[DEBUG] Login - Retrieved salt:", Boolean(userSalt));
-
-      // First try to sign out of any existing session
-      try {
-        await signOut();
-      } catch (signOutError) {
-        console.log("No active session to sign out from:", signOutError);
-      }
-
-      // Wait a brief moment for the signOut to complete
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
+      // First try to sign in with Clerk to verify credentials
       const logInAttempt = await signIn.create({
         identifier: form.email,
         password: form.password,
       });
 
-      if (logInAttempt.status === "complete") {
-        await setActive({ session: logInAttempt.createdSessionId });
-
-        // Derive and store encryption key
-        const key = deriveKey(form.password, userSalt);
-        console.log("[DEBUG] Login - Derived key:", Boolean(key));
-        console.log("[DEBUG] Login - Key starts with:", key.substring(0, 5) + "...");
-        
-        setEncryptionKey(key);
-        console.log("[DEBUG] Login - Encryption key set in context");
-
-        router.replace("/root/user-info");
-      } else {
+      if (logInAttempt.status !== "complete") {
         console.error(
           "Incomplete login:",
           JSON.stringify(logInAttempt, null, 2)
         );
         Alert.alert("Error", "Log in failed. Please try again.");
+        return;
       }
+
+      await setActive({ session: logInAttempt.createdSessionId });
+      
+      // Wait briefly for the user object to be available
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (!user || !user.id) {
+        console.error("[DEBUG] Login - User object not available");
+        Alert.alert("Warning", "Login successful, but user data is not available. Some features may be limited.");
+      }
+      
+      const userId = user?.id;
+
+      // Now fetch user's salt
+      console.log("[DEBUG] Login - Fetching salt for:", form.email);
+      const saltResponse = await fetchAPI(`/api/users/getSalt?email=${encodeURIComponent(form.email)}`);
+      
+      let userSalt;
+      
+      // If salt doesn't exist, generate one and update the user record
+      if (!saltResponse.salt) {
+        console.log("[DEBUG] Login - No salt found, generating new salt");
+        userSalt = generateSalt();
+        
+        // Update the user with the new salt
+        const updateResponse = await fetchAPI("/api/users/updateSalt", {
+          method: "PATCH",
+          body: JSON.stringify({
+            email: form.email,
+            clerkId: userId,
+            salt: userSalt,
+          }),
+        });
+        
+        console.log("[DEBUG] Login - Salt update result:", updateResponse.success);
+        
+        if (!updateResponse.success) {
+          console.error("[DEBUG] Login - Failed to update salt:", updateResponse);
+          Alert.alert("Warning", "Login successful, but encryption setup failed. Some features may be limited.");
+        }
+      } else {
+        userSalt = saltResponse.salt;
+      }
+      
+      console.log("[DEBUG] Login - Using salt:", Boolean(userSalt));
+      
+      // Derive and store encryption key
+      const key = deriveKey(form.password, userSalt);
+      console.log("[DEBUG] Login - Derived key:", Boolean(key));
+      console.log("[DEBUG] Login - Key starts with:", key.substring(0, 5) + "...");
+      
+      setEncryptionKey(key);
+      console.log("[DEBUG] Login - Encryption key set in context");
+
+      router.replace("/root/user-info");
     } catch (err: any) {
       console.error("Login error:", JSON.stringify(err, null, 2));
 
@@ -97,7 +122,7 @@ const LogIn = () => {
         );
       }
     }
-  }, [isLoaded, form, signIn, setActive, router, signOut, setEncryptionKey]);
+  }, [isLoaded, form, signIn, setActive, router, signOut, setEncryptionKey, user]);
 
   return (
     <View 
