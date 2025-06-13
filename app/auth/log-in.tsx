@@ -5,7 +5,7 @@ import OAuth from "@/components/OAuth";
 import AppleSignIn from "@/components/AppleSignIn";
 import { Platform } from "react-native";
 import { icons, images } from "@/constants";
-import { useAuth, useSignIn } from "@clerk/clerk-expo";
+import { useAuth, useSignIn, useUser } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";
@@ -18,6 +18,7 @@ import { encryptionCache } from "@/cache/encryptionCache";
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { signOut } = useAuth();
+  const { user } = useUser();
   const router = useRouter();
   const { isIpad, setEncryptionKey } = useGlobalContext();
   const { showAlert } = useAlert()
@@ -95,14 +96,7 @@ const LogIn = () => {
       }
     }
 
-        router.replace("/root/user-info");
-      } else {
-        console.error(
-          "Incomplete login:",
-          JSON.stringify(logInAttempt, null, 2)
-        );
-        Alert.alert("Error", "Log in failed. Please try again.");
-      }
+      router.replace("/root/user-info");
     } catch (err: any) {
       console.error("Raw login error:", err);
 
@@ -122,7 +116,7 @@ const LogIn = () => {
       })
       }
     }
-  }, [isLoaded, form, signIn, setActive, router, signOut, setEncryptionKey]);
+  }, [isLoaded, form, signIn, setActive, router, signOut, setEncryptionKey, user]);
 
   return (
     <View 
