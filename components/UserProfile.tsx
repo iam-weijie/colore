@@ -159,7 +159,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [disableInteractions, setDisableInteractions] =
     useState<boolean>(false);
 
-  const Flag = countries[(profile?.country || "Canada") as keyof typeof countries];
+  const Flag = countries[(profileUser?.country || "Canada") as keyof typeof countries];
   const fetchFriendCount = async () => {
     if (user!.id === userId) {
       const data = await fetchFriends(user!.id);
@@ -539,7 +539,6 @@ const handlePostUpdate = (id: number, isRemove: boolean) => {
                       : profileUser?.username
                         ? `${friendStatus === FriendStatus.RECEIVED || friendStatus === FriendStatus.FRIENDS ? profileUser?.nickname || profileUser?.username : profileUser?.username}`
                         : `${profileUser?.firstname?.charAt(0)}.`}{" "}
-                    {emojiLoading ? "" : countryEmoji}
                   </Text>
                 ) : (
                   <Text

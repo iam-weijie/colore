@@ -668,6 +668,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 {/* Render all posts independently */}
 {postsWithPosition.map(post => {
 
+const isViewed = excludeIds.includes(String(post.id))
   return (
 <DraggablePostIt
   key={post.id}
@@ -679,6 +680,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   updateIndex={() => handleReorderPost(post)}
   updatePosition={(dx, dy, post) => updatePostPosition(dx, dy, post)}
   onPress={() => handlePostPress(post)}
+  isViewed={isViewed}
   showText={showPostItText}
   enabledPan={() => setIsPanningMode(prev => !prev)}
   zoomScale={zoomScale}
