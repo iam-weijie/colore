@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Dimensions } from "react-native";
+import { Dimensions, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as BackgroundFetch from "expo-background-fetch";
 import { BackgroundFetchResult } from "expo-background-fetch"; // Import the Result enum
@@ -15,10 +15,11 @@ import * as TaskManager from "expo-task-manager";
 import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
 import { Stacks, Post, UserProfileType, PostItColor } from "@/types/type";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import { set } from "date-fns";
 import { defaultColors } from "@/constants";
 import { io } from "socket.io-client";
+import { router } from "expo-router";
 
 // ===== Types & Constants =====
 type GlobalContextType = {
@@ -38,6 +39,7 @@ type GlobalContextType = {
   unreadMessages: number;
   unreadRequests: number;
   unreadPersonalPosts: number;
+  unreadLikes: number;
   lastConnection: Date;
   isIpad: boolean;
   replyTo: string | null;
@@ -62,6 +64,7 @@ const screenWidth = Dimensions.get("screen").width;
 const NOTIFICATION_TASK = "background-notification-fetch";
 const HAPTICS_ENABLED_KEY = "hapticsEnabled";
 const SOUND_EFFECTS_ENABLED_KEY = "soundEffectsEnabled";
+const ENCRYPTION_KEY_STORAGE = "encryptionKey";
 
 // ===== External Notification Fetch Logic =====
 // This function is designed to run in both the in-app polling and background fetch.
@@ -464,12 +467,65 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [soundEffectsEnabled, setSoundEffectsEnabledState] =
     useState<boolean>(true); // Default to true
 
-  const [encryptionKey, setEncryptionKey] = useState<string | null>(null);
+  const [encryptionKey, setEncryptionKeyState] = useState<string | null>(null);
+
+  const { signOut } = useAuth();
+  const { user } = useUser();
+  const hasCheckedEncryption = useRef(false);
 
   // Add debug log for encryption key
   useEffect(() => {
     console.log("[DEBUG] GlobalContext - encryptionKey status:", Boolean(encryptionKey));
+    
+    // Save encryption key to AsyncStorage whenever it changes
+    if (encryptionKey) {
+      AsyncStorage.setItem(ENCRYPTION_KEY_STORAGE, encryptionKey)
+        .then(() => console.log("[DEBUG] Encryption key saved to storage"))
+        .catch(err => console.error("[DEBUG] Failed to save encryption key:", err));
+      
+      // Reset the check flag when we have a key
+      hasCheckedEncryption.current = false;
+    } else if (encryptionKey === null) {
+      // Only clear if explicitly set to null (not on initial render)
+      AsyncStorage.removeItem(ENCRYPTION_KEY_STORAGE)
+        .then(() => console.log("[DEBUG] Encryption key removed from storage"))
+        .catch(err => console.error("[DEBUG] Failed to remove encryption key:", err));
+    }
   }, [encryptionKey]);
+
+  // Add effect to check for encryption key when user is logged in
+  useEffect(() => {
+    // Only run this check once per session and only if user is logged in
+    if (user && !hasCheckedEncryption.current) {
+      hasCheckedEncryption.current = true;
+      
+      // Give some time for the encryption key to be loaded from storage or set during login
+      const timer = setTimeout(async () => {
+        if (!encryptionKey) {
+          console.log("[DEBUG] No encryption key available after login, signing out user");
+          Alert.alert(
+            "Security Issue",
+            "Your encryption key could not be set up properly. For security reasons, you'll need to log in again.",
+            [
+              {
+                text: "OK",
+                onPress: async () => {
+                  try {
+                    await signOut();
+                    router.replace("/auth/log-in");
+                  } catch (error) {
+                    console.error("[DEBUG] Error signing out:", error);
+                  }
+                }
+              }
+            ]
+          );
+        }
+      }, 3000); // Wait 3 seconds after user is loaded
+      
+      return () => clearTimeout(timer);
+    }
+  }, [user, encryptionKey, signOut]);
 
   const fetchUserProfile = async () => {
       if (user) {
@@ -532,7 +588,6 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     return pushToken;
   };
   const hasUpdatedLastConnection = useRef(false);
-  const { user } = useUser();
   const [pushToken, setPushToken] = useState<string | null>(null);
 
   useEffect(() => {
@@ -640,8 +695,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           transports: ["websocket"], 
           query: {
             id: user.id,
-          },
-          transports: ["websocket"],
+          }
         }
       );
 
@@ -837,12 +891,17 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         const soundSetting = await AsyncStorage.getItem(
           SOUND_EFFECTS_ENABLED_KEY
         );
+        const savedEncryptionKey = await AsyncStorage.getItem(ENCRYPTION_KEY_STORAGE);
 
         if (hapticsSetting !== null) {
           setHapticsEnabledState(JSON.parse(hapticsSetting));
         }
         if (soundSetting !== null) {
           setSoundEffectsEnabledState(JSON.parse(soundSetting));
+        }
+        if (savedEncryptionKey !== null) {
+          console.log("[DEBUG] Loaded encryption key from storage");
+          setEncryptionKeyState(savedEncryptionKey);
         }
       } catch (e) {
         console.error("Failed to load settings.", e);
@@ -873,6 +932,13 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       SOUND_EFFECTS_ENABLED_KEY,
       JSON.stringify(newValue)
     ).catch((e) => console.error("Failed to save sound setting.", e));
+  };
+
+  // Custom setter for encryption key
+  const setEncryptionKey = (value: React.SetStateAction<string | null>) => {
+    const newValue = typeof value === 'function' ? value(encryptionKey) : value;
+    console.log("[DEBUG] Setting encryption key:", Boolean(newValue));
+    setEncryptionKeyState(newValue);
   };
 
   return (

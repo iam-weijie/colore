@@ -1,7 +1,7 @@
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { Alert, Image, Keyboard, KeyboardAvoidingView, ScrollView, Text, TouchableWithoutFeedback, View } from "react-native";
+import { Alert, Image, Keyboard, KeyboardAvoidingView, ScrollView, Text, TouchableWithoutFeedback, View, ActivityIndicator } from "react-native";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -25,6 +25,9 @@ import { useGlobalContext } from "@/app/globalcontext";
 import React from "react";
 import { LinearGradient } from 'expo-linear-gradient';
 import { generateSalt, deriveKey } from "@/lib/encryption";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const ENCRYPTION_KEY_STORAGE = "encryptionKey";
 
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -33,6 +36,7 @@ const SignUp = () => {
   const [error, setError] = useState("");
   const { isIpad } = useGlobalContext()
   const { setEncryptionKey } = useGlobalContext();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [form, setForm] = useState({
     email: "",
@@ -57,7 +61,10 @@ const SignUp = () => {
       return;
     }
 
+    setIsLoading(true);
+    
     try {
+      console.log("[DEBUG] SignUp - Creating account with email:", form.email);
       await signUp.create({
         emailAddress: form.email,
         password: form.password,
@@ -66,7 +73,10 @@ const SignUp = () => {
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setShowVerification(true);
     } catch (err: any) {
-      Alert.alert("Error", err.errors[0].longMessage);
+      console.error("[DEBUG] SignUp - Error creating account:", err);
+      Alert.alert("Error", err.errors?.[0]?.longMessage || "An error occurred during sign up");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,41 +85,132 @@ const SignUp = () => {
       return;
     }
 
+    setIsLoading(true);
+    
     try {
+      console.log("[DEBUG] SignUp - Attempting verification with code");
       const completeSignUp = await signUp.attemptEmailAddressVerification({
         code: verification.code,
       });
 
       if (completeSignUp.status === "complete") {
-        // Generate per-user salt and encryption key
-        const salt = generateSalt();
+        console.log("[DEBUG] SignUp - Verification complete, userId:", completeSignUp.createdUserId);
+        
+        // Generate per-user salt and encryption key with retries
+        let salt = null;
+        let saltGenerationAttempts = 0;
+        const maxAttempts = 3;
+        
+        while (saltGenerationAttempts < maxAttempts) {
+          try {
+            saltGenerationAttempts++;
+            console.log(`[DEBUG] SignUp - Salt generation attempt ${saltGenerationAttempts}`);
+            salt = generateSalt();
+            
+            if (salt) {
+              console.log("[DEBUG] SignUp - Salt generated successfully");
+              break;
+            }
+          } catch (saltError) {
+            console.error(`[DEBUG] SignUp - Salt generation attempt ${saltGenerationAttempts} failed:`, saltError);
+            
+            if (saltGenerationAttempts >= maxAttempts) {
+              throw new Error(`Failed to generate salt after ${maxAttempts} attempts`);
+            }
+            
+            // Wait a moment before retrying
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+        
+        if (!salt) {
+          throw new Error("Could not generate security key (salt)");
+        }
 
-        await fetchAPI("/api/users/newUser", {
-          method: "POST",
-          body: JSON.stringify({
-            email: form.email,
-            clerkId: completeSignUp.createdUserId,
-            salt,
-          }),
-        });
+        console.log("[DEBUG] SignUp - Creating user in database");
+        try {
+          const newUserResponse = await fetchAPI("/api/users/newUser", {
+            method: "POST",
+            body: JSON.stringify({
+              email: form.email,
+              clerkId: completeSignUp.createdUserId,
+              salt,
+            }),
+          });
+          
+          console.log("[DEBUG] SignUp - User created in database:", newUserResponse.success);
+          
+          if (!newUserResponse.success) {
+            console.error("[DEBUG] SignUp - Failed to create user in database:", newUserResponse);
+          }
+        } catch (dbError) {
+          console.error("[DEBUG] SignUp - Error creating user in database:", dbError);
+          // Continue despite database error - we can fix this later
+        }
 
         // Derive encryption key client-side and keep in memory only
-        const key = deriveKey(form.password, salt);
+        console.log("[DEBUG] SignUp - Deriving encryption key");
+        
+        let key = null;
+        let keyDerivationAttempts = 0;
+        const maxKeyAttempts = 3;
+        
+        while (keyDerivationAttempts < maxKeyAttempts) {
+          try {
+            keyDerivationAttempts++;
+            console.log(`[DEBUG] SignUp - Key derivation attempt ${keyDerivationAttempts}`);
+            key = deriveKey(form.password, salt);
+            
+            if (key) {
+              console.log("[DEBUG] SignUp - Key derived successfully");
+              break;
+            }
+          } catch (keyError) {
+            console.error(`[DEBUG] SignUp - Key derivation attempt ${keyDerivationAttempts} failed:`, keyError);
+            
+            if (keyDerivationAttempts >= maxKeyAttempts) {
+              throw new Error(`Failed to derive key after ${maxKeyAttempts} attempts`);
+            }
+            
+            // Wait a moment before retrying
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+        
+        if (!key) {
+          throw new Error("Failed to set up encryption");
+        }
+        
+        // Save encryption key to AsyncStorage
+        try {
+          await AsyncStorage.setItem(ENCRYPTION_KEY_STORAGE, key);
+          console.log("[DEBUG] SignUp - Encryption key saved to storage");
+        } catch (storageError) {
+          console.error("[DEBUG] SignUp - Failed to save encryption key to storage:", storageError);
+          // Continue despite storage error
+        }
+        
         setEncryptionKey(key);
+        console.log("[DEBUG] SignUp - Encryption key set in context");
 
+        console.log("[DEBUG] SignUp - Setting active session");
         await setActive({ session: completeSignUp.createdSessionId });
         setShowSuccess(true);
       } else {
+        console.log("[DEBUG] SignUp - Verification incomplete:", completeSignUp.status);
         setVerification({
           ...verification,
           error: "Verification failed. Please try again.",
         });
       }
     } catch (err: any) {
+      console.error("[DEBUG] SignUp - Error during verification:", err);
       setVerification({
         ...verification,
-        error: err.errors[0].longMessage,
+        error: err.errors?.[0]?.longMessage || "An error occurred during verification",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -185,6 +286,7 @@ const SignUp = () => {
             value={verification.code}
             keyboardType="numeric"
             onChangeText={(code) => setVerification({ ...verification, code })}
+            editable={!isLoading}
           />
         </Animated.View>
 
@@ -198,12 +300,19 @@ const SignUp = () => {
         )}
 
         <Animated.View entering={FadeInUp.duration(600).delay(300)}>
-          <CustomButton
-            title="Verify Email"
-            onPress={onPressVerify}
-            className="mt-5 bg-success-500 bg-indigo-500"
-            padding={4}
-          />
+          {isLoading ? (
+            <View className="mt-5 items-center justify-center h-14">
+              <ActivityIndicator size="large" color="#6366f1" />
+              <Text className="mt-2 text-sm text-general-200">Processing...</Text>
+            </View>
+          ) : (
+            <CustomButton
+              title="Verify Email"
+              onPress={onPressVerify}
+              className="mt-5 bg-success-500 bg-indigo-500"
+              padding={4}
+            />
+          )}
         </Animated.View>
 
         <Animated.View entering={FadeInUp.duration(600).delay(400)}>
@@ -212,6 +321,7 @@ const SignUp = () => {
             onPress={() => setShowVerification(false)}
             className="mt-5"
             padding={4}
+            disabled={isLoading}
           />
         </Animated.View>
       </Animated.View>
@@ -250,73 +360,82 @@ onPress={() => {
           <Animated.View entering={FadeInDown.duration(600).delay(400)}>
             <InputField
               label="Email"
-              placeholder="Enter your email"
-              autoComplete="email"
               icon={icons.email}
-              textContentType="emailAddress"
+              placeholder="Enter your email"
               keyboardType="email-address"
+              textContentType="emailAddress"
               value={form.email}
               onChangeText={(value) => setForm({ ...form, email: value })}
+              editable={!isLoading}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.duration(600).delay(500)}>
             <InputField
               label="Password"
-              placeholder="Enter your password"
               icon={icons.lock}
+              placeholder="Create password"
+              secureTextEntry
+              textContentType="newPassword"
               value={form.password}
-              secureTextEntry={true}
-              textContentType="password"
               onChangeText={(value) => setForm({ ...form, password: value })}
+              editable={!isLoading}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.duration(600).delay(600)}>
             <InputField
-              label=""
-              placeholder="Confirm your password"
+              label="Confirm Password"
               icon={icons.lock}
-              secureTextEntry={true}
-              textContentType="password"
+              placeholder="Confirm password"
+              secureTextEntry
+              textContentType="newPassword"
               onChangeText={handleConfirmPassword}
-              containerStyle="mt-[-30px]"
+              editable={!isLoading}
             />
           </Animated.View>
 
           {error && (
             <Animated.Text 
               entering={FadeIn.duration(300)}
-              className="text-red-500 text-sm mt-1"
+              className="text-red-500 text-sm ml-3 mt-1"
             >
               {error}
             </Animated.Text>
           )}
+
+          <Animated.View entering={FadeInUp.duration(600).delay(700)}>
+            {isLoading ? (
+              <View className="mt-8 items-center justify-center h-14">
+                <ActivityIndicator size="large" color="#6366f1" />
+                <Text className="mt-2 text-sm text-general-200">Creating account...</Text>
+              </View>
+            ) : (
+              <CustomButton
+                title="Sign Up"
+                onPress={onSignUpPress}
+                className="mt-8 bg-indigo-500"
+                padding={4}
+                disabled={!form.email || !form.password || !!error}
+              />
+            )}
+          </Animated.View>
         </View>
 
-        <Animated.View entering={FadeInUp.duration(600).delay(700)}>
-          <View className="flex items-center w-full">
-            <CustomButton
-              className="w-[50%] h-16 mt-8 rounded-full shadow-none"
-              fontSize="lg"
-              title="Complete"
-              padding={4}
-              onPress={onSignUpPress}
-              bgVariant='gradient'
-            />
-            {Platform.OS === "ios" && <AppleSignIn />}
-          </View>
-        </Animated.View>
+        <View className="mx-6">
+          {/*Platform.OS === "android" && <OAuth />*/}
+          {Platform.OS === "ios" && <AppleSignIn />}
 
-        <Animated.Text 
-          entering={FadeIn.duration(600).delay(800)}
-          className="text-base text-center text-general-200 "
-        >
-          Already have an account?{" "}
-          <Link href="/auth/log-in">
-            <Text className="text-primary-500">Log In</Text>
-          </Link>
-        </Animated.Text>
+          <Animated.Text
+            entering={FadeInUp.duration(600).delay(800)}
+            className="text-base text-center text-general-200 mt-6"
+          >
+            Already have an account?{" "}
+            <Link href="/auth/log-in">
+              <Text className="text-primary-500">Log In</Text>
+            </Link>
+          </Animated.Text>
+        </View>
       </View>
       </TouchableWithoutFeedback>
     </Animated.View>
