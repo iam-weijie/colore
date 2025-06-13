@@ -32,12 +32,15 @@ const LogIn = () => {
 
     try {
       // Fetch user's salt first using email
+      console.log("[DEBUG] Login - Fetching salt for:", form.email);
       const saltResponse = await fetchAPI(`/api/users/getSalt?email=${encodeURIComponent(form.email)}`);
       if (saltResponse.error || !saltResponse.salt) {
+        console.error("[DEBUG] Login - Failed to get salt:", saltResponse);
         Alert.alert("Error", "Unable to retrieve security parameters.");
         return;
       }
       const userSalt = saltResponse.salt as string;
+      console.log("[DEBUG] Login - Retrieved salt:", Boolean(userSalt));
 
       // First try to sign out of any existing session
       try {
@@ -59,7 +62,11 @@ const LogIn = () => {
 
         // Derive and store encryption key
         const key = deriveKey(form.password, userSalt);
+        console.log("[DEBUG] Login - Derived key:", Boolean(key));
+        console.log("[DEBUG] Login - Key starts with:", key.substring(0, 5) + "...");
+        
         setEncryptionKey(key);
+        console.log("[DEBUG] Login - Encryption key set in context");
 
         router.replace("/root/user-info");
       } else {

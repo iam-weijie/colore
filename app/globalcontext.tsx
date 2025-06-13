@@ -466,6 +466,11 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [encryptionKey, setEncryptionKey] = useState<string | null>(null);
 
+  // Add debug log for encryption key
+  useEffect(() => {
+    console.log("[DEBUG] GlobalContext - encryptionKey status:", Boolean(encryptionKey));
+  }, [encryptionKey]);
+
   const fetchUserProfile = async () => {
       if (user) {
         try {
