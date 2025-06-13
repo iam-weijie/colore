@@ -525,6 +525,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   };
 
 
+
 // Create a new function that matches the expected type for handleUpdate
 const handlePostUpdate = (id: number, isRemove: boolean) => {
   // Refresh user data after a post update

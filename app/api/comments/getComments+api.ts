@@ -55,8 +55,8 @@ export async function GET(request: Request) {
       FROM comments c
       JOIN users u ON c.user_id = u.clerk_id
       WHERE c.post_id = ${postId}
-      ORDER BY c.created_at ASC;
-       LIMIT ${limit} OFFSET ${offset};
+      ORDER BY c.created_at ASC
+      LIMIT ${limit} OFFSET ${offset};
     `;
 
     // Get total count for pagination

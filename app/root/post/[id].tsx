@@ -727,3 +727,5 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
 
 export default PostScreen;
 
+
+ 

@@ -57,6 +57,7 @@ export async function GET(request: Request) {
     // );
     // Check if posts were found
     if (response.length === 0 && page === 0) {
+    if (response.length === 0 && page === 0) {
       return new Response(JSON.stringify({ error: "No posts found" }), {
         status: 404,
       });

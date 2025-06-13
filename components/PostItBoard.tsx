@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { GeographicalMode, MappingPostitProps } from "@/types/type";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import React, { useEffect, useRef, useState } from "react";
 import { mappingPostIt, reorderPost } from '@/lib/postItBoard';
@@ -502,6 +503,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     setIsPanningMode(true);
   };
 
+  useEffect(() => {
+    fetchRandomPosts();
+  }, []);
   const handleOuterLayout = () => {
     scrollViewRef.current?.scrollTo({
       x: postsWithPosition[0].position.left ?? screenWidth / 2,
