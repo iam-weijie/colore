@@ -54,10 +54,10 @@ export async function GET(request: Request) {
         ) as is_liked
       FROM comments c
       JOIN users u ON c.user_id = u.clerk_id
-      WHERE c.post_id = ${postId}
+      WHERE c.post_id = $2
       ORDER BY c.created_at ASC
-      LIMIT ${limit} OFFSET ${offset};
-    `;
+      LIMIT $3 OFFSET $4;
+    `, [userId, postId, limit, page])
 
     // Get total count for pagination
     const countResult = await sql`

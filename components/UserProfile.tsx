@@ -167,24 +167,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
     }
   };
 
-  const getEmoji = async () => {
-    // Fetch country emoji
-    if (!profile || !profile.country || !profileUser) return;
-    setEmojiLoading(true);
-    const flagEmoji = await fetchCountryEmoji(profileUser.country);
-    console.log("country emoji", flagEmoji);
-    setCountryEmoji(() => flagEmoji);
-    setEmojiLoading(false);
-  };
-
   // Add useFocusEffect to reload data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       // Reload user data when screen is focused (e.g., after location change)
-      if (!profile) {
+      
         fetchUserData();
-      }
-
       if (isEditable) {
           fetchUserPosts();
           fetchPersonalPosts();
@@ -243,7 +231,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
     try {
       const currentPage = resetPagination ? 0 : page;
       
-      console.log(`Fetching posts for page ${currentPage}`);
       const response = await fetchAPI(
         `/api/posts/getUserPosts?id=${userId}&page=${currentPage}`,
         {
@@ -262,11 +249,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
         return;
       }
       
-      console.log(`Received ${posts.length} posts for page ${currentPage}`);
-      
-      const unread_comments = posts.reduce((acc, post) => acc + (post.unread_comments ?? 0), 0);
-      setUnreadComments(unread_comments);
       setProfileUser(userInfo);
+
+      setTotalPosts(posts.length)
       
       if (resetPagination) {
         setUserPosts(posts);
@@ -306,7 +291,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   const loadMorePosts = () => {
     if (!isLoadingMore && hasMore && userPosts.length < totalPosts) {
-      console.log(`Loading more posts: page ${page}, current posts: ${userPosts.length}, total: ${totalPosts}`);
       fetchUserData(false);
     }
   };
