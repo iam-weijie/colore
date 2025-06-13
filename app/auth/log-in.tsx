@@ -39,6 +39,7 @@ const LogIn = () => {
       let userExist;
       let needToCreateSalt;
       // Fetch user's salt first using email
+      console.log("[DEBUG] Login - Fetching salt for:", form.email);
       const saltResponse = await fetchAPI(`/api/users/getSalt?email=${encodeURIComponent(form.email)}`);
       if (saltResponse.error) {
         showAlert({
@@ -73,6 +74,9 @@ const LogIn = () => {
 
         // Derive and store encryption key
         const key = deriveKey(form.password, userSalt);
+        console.log("[DEBUG] Login - Derived key:", Boolean(key));
+        console.log("[DEBUG] Login - Key starts with:", key.substring(0, 5) + "...");
+        
         setEncryptionKey(key);
         await encryptionCache.setDerivedKey(key);
 

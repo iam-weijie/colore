@@ -200,6 +200,9 @@ export const handleSubmitPost = async (
   draftPost: Post,
   encryptionKey?: string | null
 ) => {
+  console.log("[DEBUG] Starting handleSubmitPost");
+  console.log("[DEBUG] Encryption key available:", Boolean(encryptionKey));
+  
   if (!draftPost || draftPost.content.trim() === "") {
     console.log("ended up in an error");
     const status = "error";
@@ -225,8 +228,22 @@ export const handleSubmitPost = async (
   const isPrompt = Boolean(draftPost.prompt_id);
   const shouldEncrypt = isPersonal;
 
+  console.log("[DEBUG] Post details:", {
+    isUpdate,
+    isPersonal,
+    shouldEncrypt,
+    recipientId: draftPost.recipient_user_id,
+    content: cleanContent.substring(0, 20) + (cleanContent.length > 20 ? "..." : "")
+  });
+
   if (shouldEncrypt && encryptionKey) {
+    console.log("[DEBUG] Encrypting content...");
+    const originalContent = cleanContent;
     cleanContent = encryptText(cleanContent, encryptionKey);
+    console.log("[DEBUG] Content before encryption:", originalContent.substring(0, 20) + (originalContent.length > 20 ? "..." : ""));
+    console.log("[DEBUG] Content after encryption:", cleanContent.substring(0, 20) + (cleanContent.length > 20 ? "..." : ""));
+  } else if (shouldEncrypt) {
+    console.warn("[DEBUG] Should encrypt but no encryption key available!");
   }
 
   try {
@@ -235,6 +252,8 @@ export const handleSubmitPost = async (
       const updateContent = shouldEncrypt && encryptionKey 
         ? encryptText(draftPost.content, encryptionKey) 
         : draftPost.content;
+      
+      console.log("[DEBUG] Update post - content encrypted:", shouldEncrypt && Boolean(encryptionKey));
         
       await fetchAPI("/api/posts/updatePost", {
         method: "PATCH",
@@ -250,6 +269,7 @@ export const handleSubmitPost = async (
       });
       router.back();
     } else {
+      console.log("[DEBUG] Creating new post - preparing body");
       const body = {
         content: cleanContent,
         clerkId: userId,
@@ -273,6 +293,9 @@ export const handleSubmitPost = async (
         reply_to: draftPost.reply_to,
         formatting: draftPost.formatting,
       };
+
+      console.log("[DEBUG] Sending post to API with content:", 
+        body.content.substring(0, 20) + (body.content.length > 20 ? "..." : ""));
 
       const response = await fetchAPI("/api/posts/newPost", {
         method: "POST",

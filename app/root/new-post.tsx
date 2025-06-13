@@ -332,6 +332,7 @@ const NewPost = () => {
     if (postId) {
       setPostContent(content as string);
     }
+    console.log("[DEBUG] encryptionKey available in new-post:", Boolean(encryptionKey));
     setDraftPost({
       id: Number(postId ?? 0),
       user_id: user?.id ?? "",
@@ -378,6 +379,7 @@ const NewPost = () => {
     boardId,
     formats,
     replyToPostId,
+    encryptionKey,
   ]);
 
   useEffect(() => {
