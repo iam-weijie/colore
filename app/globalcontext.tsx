@@ -237,20 +237,19 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const { signOut } = useAuth();
   const { user } = useUser();
-  const hasCheckedEncryption = useRef(false);
+  // Use a ref to hold the key to avoid stale closure issues in the timer.
+  const encryptionKeyRef = useRef(encryptionKey);
+  encryptionKeyRef.current = encryptionKey; // Keep it updated on every render
 
   // Add debug log for encryption key
   useEffect(() => {
     console.log("[DEBUG] GlobalContext - encryptionKey status:", Boolean(encryptionKey));
-    
+
     // Save encryption key to AsyncStorage whenever it changes
     if (encryptionKey) {
       AsyncStorage.setItem(ENCRYPTION_KEY_STORAGE, encryptionKey)
         .then(() => console.log("[DEBUG] Encryption key saved to storage"))
         .catch(err => console.error("[DEBUG] Failed to save encryption key:", err));
-      
-      // Reset the check flag when we have a key
-      hasCheckedEncryption.current = false;
     } else if (encryptionKey === null) {
       // Only clear if explicitly set to null (not on initial render)
       AsyncStorage.removeItem(ENCRYPTION_KEY_STORAGE)
@@ -259,39 +258,37 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [encryptionKey]);
 
-  // Add effect to check for encryption key when user is logged in
+  // Effect to check for encryption key after login. This prevents a state where the
+  // user is logged in but the app doesn't have the key to decrypt data.
   useEffect(() => {
-    // Only run this check once per session and only if user is logged in
-    if (user && !hasCheckedEncryption.current) {
-      hasCheckedEncryption.current = true;
-      
-      // Give some time for the encryption key to be loaded from storage or set during login
-      const timer = setTimeout(async () => {
-        if (!encryptionKey) {
+    if (user) {
+      // When the user object becomes available, start a timer.
+      const timer = setTimeout(() => {
+        // After a delay, check the *current* value of the key from the ref.
+        // If the key is still missing, the login process failed to set it.
+        if (!encryptionKeyRef.current) {
           console.log("[DEBUG] No encryption key available after login, signing out user");
-          Alert.alert(
-            "Security Issue",
-            "Your encryption key could not be set up properly. For security reasons, you'll need to log in again.",
-            [
-              {
-                text: "OK",
-                onPress: async () => {
-                  try {
-                    await signOut();
-                    router.replace("/auth/log-in");
-                  } catch (error) {
-                    console.error("[DEBUG] Error signing out:", error);
-                  }
-                }
+          Alert.alert("Security Issue", "Your encryption key could not be set up properly. For security reasons, you'll need to log in again.", [{
+            text: "OK",
+            onPress: async () => {
+              try {
+                await signOut();
+                router.replace("/auth/log-in");
+              } catch (error) {
+                console.error("[DEBUG] Error signing out:", error);
               }
-            ]
-          );
+            }
+          }]);
         }
-      }, 3000); // Wait 3 seconds after user is loaded
-      
-      return () => clearTimeout(timer);
+      }, 5000); // 5-second timeout, a reasonable balance
+
+      // Cleanup function to clear the timer if the component unmounts or the user logs out.
+      // This also clears the timer if the key arrives and the component re-renders.
+      return () => {
+        clearTimeout(timer);
+      };
     }
-  }, [user, encryptionKey, signOut]);
+  }, [user]); // This effect depends only on the user session.
 
   const fetchUserProfile = async () => {
     if (user) {

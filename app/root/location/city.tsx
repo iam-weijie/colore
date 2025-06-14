@@ -4,7 +4,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { useUser } from "@clerk/clerk-expo";
 import { Href, router, useLocalSearchParams } from "expo-router";
-import { FlatList, Image, Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { FlatList, Image, Text, TouchableOpacity, View, StyleSheet, TextInput } from "react-native";
 import ScrollingText from "./ScrollingText";
 import { generateAcronym, isNameTooLong } from "./cacheStore";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";

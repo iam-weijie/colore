@@ -80,17 +80,43 @@ const UserInfo = () => {
       });
       if (response.error) {
         if (response.error === "User not found") {
-          await fetchAPI("/api/users/newUser", {
-            method: "POST",
-            body: JSON.stringify({
-              email: user!.emailAddresses[0]?.emailAddress || "",
-              clerkId: user!.id,
-              appleId:
-                user!.externalAccounts.find(
-                  (account) => account.provider === "apple"
-                )?.id || "",
-            }),
-          });
+          // Check if user exists with this email address
+          const email = user!.emailAddresses[0]?.emailAddress || "";
+          try {
+            const emailCheckResponse = await fetchAPI(`/api/users/getUserByEmail?email=${encodeURIComponent(email)}`, {
+              method: "GET",
+            });
+            
+            if (emailCheckResponse.error) {
+              // User does not exist by email either, create a new user
+              console.log("Creating new user with email:", email);
+              await fetchAPI("/api/users/newUser", {
+                method: "POST",
+                body: JSON.stringify({
+                  email: email,
+                  clerkId: user!.id,
+                  appleId:
+                    user!.externalAccounts.find(
+                      (account) => account.provider === "apple"
+                    )?.id || "",
+                }),
+              });
+              // Fetch the newly created user
+              const newUserResponse = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
+                method: "GET",
+              });
+              if (!newUserResponse.error) {
+                return newUserResponse.data[0];
+              }
+            } else {
+              // User exists with this email but different clerk_id
+              // For security reasons, we'll just use their existing account data
+              console.log("Found user with matching email but different clerk_id");
+              return emailCheckResponse;
+            }
+          } catch (emailCheckErr) {
+            console.error("Error checking user by email:", emailCheckErr);
+          }
         } else {
           throw new Error(response.error);
         }
@@ -427,7 +453,7 @@ const UserInfo = () => {
     {
       label: "Join a community",
       caption:
-        "Choose at least one. Find your people! We’ll suggest communities you might like.",
+        "Choose at least one. Find your people! We'll suggest communities you might like.",
       color: "#CFB1FB",
       disabled: discoverBoards.length != 0 && joinedCommunities.length == 0,
       children: (

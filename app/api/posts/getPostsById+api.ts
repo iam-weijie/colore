@@ -43,25 +43,29 @@ export async function GET(request: Request) {
     
     // Execute the query with pagination
     const response = await sql`
-      SELECT *
+      SELECT 
+        p.*,
+        u.firstname,
+        u.username,
+        u.city,
+        u.state,
+        u.country
       FROM posts p
+      LEFT JOIN users u ON p.user_id = u.clerk_id
       WHERE p.id = ANY(${ids}::int[])
         AND p.expires_at > NOW() 
         AND p.available_at <= NOW()
       ORDER BY p.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
-
     `;
 
-
     // Check if posts were found
-    if (response.length === 0 && page === 0) {
     if (response.length === 0 && page === 0) {
       return new Response(JSON.stringify({ error: "No posts found" }), {
         status: 404,
       });
     }
-  }
+  
     
 
   
@@ -97,6 +101,7 @@ export async function GET(request: Request) {
           ? { top: Number(post.top), left: Number(post.left) }
           : undefined,
       formatting: (post.formatting as Format) || [],
+      formatting_encrypted: post.formatting_encrypted || null,
       static_emoji: post.static_emoji,
     }));
 

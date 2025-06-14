@@ -268,6 +268,7 @@ export const handleSubmitPost = async (
         }),
       });
       router.back();
+      return "success";
     } else {
       console.log("[DEBUG] Creating new post - preparing body");
       const body = {
@@ -302,11 +303,19 @@ export const handleSubmitPost = async (
         body: JSON.stringify(body),
       });
 
-      router.back(); // slight delay for safe stack unwinding
-      return response.status === 201 ? "success" : "error";
+      // Check if the post was created successfully
+      if (response && response.data) {
+        console.log("[DEBUG] Post created successfully:", response.data.id);
+        router.back(); // slight delay for safe stack unwinding
+        return "success";
+      } else {
+        console.error("[DEBUG] Failed to create post:", response);
+        return "error";
+      }
     }
   } catch (error) {
     console.error("Error submitting post:", error);
+    return "error";
   } finally {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
   }

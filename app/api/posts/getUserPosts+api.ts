@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import { Format } from "@/lib/types";
+import { Format } from "@/types/type";
 
 export async function GET(request: Request) {
   try {
@@ -34,6 +34,7 @@ export async function GET(request: Request) {
         p.prompt_id,
         p.board_id,
         p.formatting,
+        p.formatting_encrypted,
         p.static_emoji,
         p.reply_to,
         p.unread,
@@ -113,6 +114,7 @@ export async function GET(request: Request) {
           ? { top: Number(post.top), left: Number(post.left) }
           : undefined,
       formatting: (post.formatting as Format) || [],
+      formatting_encrypted: post.formatting_encrypted || null,
       static_emoji: post.static_emoji,
     }));
 
@@ -128,7 +130,7 @@ export async function GET(request: Request) {
     }), {
       status: 200,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Database operation failed:", error);
     return new Response(
       JSON.stringify({

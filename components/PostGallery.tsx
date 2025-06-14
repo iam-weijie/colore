@@ -4,7 +4,7 @@ import { allColors } from "@/constants/colors";
 import { formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
-import { Link, useFocusEffect } from "expo-router";
+import { Link, useFocusEffect, useRouter } from "expo-router";
 import Animated, {
   SlideInDown,
   SlideInUp,
@@ -48,6 +48,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   const { triggerHaptic } = useHaptics();
   const [isSaved, setIsSaved] = useState(true);
   const { stateVars, setStateVars } = useNavigationContext();
+  const router = useRouter();
 
   const sortByUnread = (a: Post, b: Post) => {
     if (a.unread_comments > 0 && b.unread_comments === 0) {
@@ -64,9 +65,62 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   );
 
   useEffect(() => {
-    const sorted = [...posts].sort(sortByUnread);
-    setSortedPosts(sorted);
-  }, [posts]);
+    // Decrypt posts if needed
+    if (posts.length > 0 && encryptionKey) {
+      const processedPosts = posts.map(post => {
+        if (post.recipient_user_id && 
+            typeof post.content === 'string' && 
+            post.content.startsWith('U2FsdGVkX1')) {
+          try {
+            console.log("[DEBUG] PostGallery - Attempting to decrypt post:", post.id);
+            const decryptedContent = decryptText(post.content, encryptionKey);
+            console.log("[DEBUG] PostGallery - Decrypted content:", decryptedContent.substring(0, 30));
+            
+            // Handle formatting - check both formatting and formatting_encrypted fields
+            let decryptedFormatting = post.formatting;
+            
+            // If formatting_encrypted exists, it takes precedence (newer format)
+            if (post.formatting_encrypted && typeof post.formatting_encrypted === "string") {
+              try {
+                const decryptedFormattingStr = decryptText(post.formatting_encrypted, encryptionKey);
+                decryptedFormatting = JSON.parse(decryptedFormattingStr);
+                console.log("[DEBUG] PostGallery - Successfully decrypted formatting_encrypted field");
+              } catch (formattingError) {
+                console.warn("[DEBUG] PostGallery - Failed to decrypt formatting_encrypted for post", post.id, formattingError);
+              }
+            } 
+            // Otherwise try the old way (formatting as encrypted string)
+            else if (post.formatting && typeof post.formatting === "string" && 
+                    ((post.formatting as string).startsWith('U2FsdGVkX1') || (post.formatting as string).startsWith('##FALLBACK##'))) {
+              try {
+                const decryptedFormattingStr = decryptText(post.formatting as unknown as string, encryptionKey);
+                decryptedFormatting = JSON.parse(decryptedFormattingStr);
+                console.log("[DEBUG] PostGallery - Successfully decrypted formatting string");
+              } catch (formattingError) {
+                console.warn("[DEBUG] PostGallery - Failed to decrypt formatting for post", post.id, formattingError);
+              }
+            }
+            
+            return { 
+              ...post, 
+              content: decryptedContent, 
+              formatting: decryptedFormatting 
+            };
+          } catch (e) {
+            console.warn("[DEBUG] PostGallery - Failed decryption for post", post.id, e);
+            return post;
+          }
+        }
+        return post;
+      });
+      
+      const sorted = [...processedPosts].sort(sortByUnread);
+      setSortedPosts(sorted);
+    } else {
+      const sorted = [...posts].sort(sortByUnread);
+      setSortedPosts(sorted);
+    }
+  }, [posts, encryptionKey]);
 
   const screenWidth = Dimensions.get("window").width;
 

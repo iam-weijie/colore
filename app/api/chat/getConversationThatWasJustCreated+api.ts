@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const sql = neon(`${process.env.DATABASE_URL}`, { fullResults: true });
     const url = new URL(request.url);
     const userId1 = url.searchParams.get("id1");
     const userId2 = url.searchParams.get("id2");
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     );
 
     // Transform the raw response to match the interface
-    const conversations: ConversationItem[] = rawResponse.map((row) => {
+    const conversations: ConversationItem[] = rows.map((row) => {
       // Find nickname for the other user if it exists
       const nicknames: string[][] = row.nicknames || [];
       const nickname = nicknames.find(
@@ -56,6 +56,8 @@ export async function GET(request: Request) {
           ? row.lastMessageTimestamp.toISOString()
           : null,
         nickname: row.nicknames,
+        active_participants: row.active_participants || 0,
+        unread_messages: row.unread_messages || 0,
       };
     });
 

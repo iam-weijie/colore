@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, memo } from "react";
 import { router, useLocalSearchParams, Href } from "expo-router";
-import { FlatList, Text, TouchableOpacity, View, Alert, StyleSheet } from "react-native";
+import { FlatList, Text, TouchableOpacity, View, Alert, StyleSheet, TextInput } from "react-native";
 import { getStatesFromCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";

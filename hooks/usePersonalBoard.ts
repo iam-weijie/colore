@@ -129,22 +129,59 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
         filteredPosts = await fetchPersonalPosts(userId, viewerId);
       }
 
+      
       const finalPosts = filterPostsByBoard(filteredPosts, boardId)
         .map((p: Post) => {
           const isPrivate = Boolean(p.recipient_user_id);
           if (isPrivate && encryptionKey) {
             try {
+              console.log("[DEBUG] usePersonalBoard - Attempting to decrypt post:", p.id);
+              // Decrypt the content
               const decryptedContent = decryptText(p.content, encryptionKey);
-              const decryptedFormatting = p.formatting && typeof p.formatting === "string"
-                ? JSON.parse(decryptText(p.formatting as unknown as string, encryptionKey))
-                : p.formatting;
-              return { ...p, content: decryptedContent, formatting: decryptedFormatting };
+              console.log("[DEBUG] usePersonalBoard - Decrypted content:", decryptedContent.substring(0, 30));
+              
+              // Handle formatting - check both formatting and formatting_encrypted fields
+              let decryptedFormatting = p.formatting;
+              
+              // If formatting_encrypted exists, it takes precedence (newer format)
+              if (p.formatting_encrypted && typeof p.formatting_encrypted === "string") {
+                try {
+                  const decryptedFormattingStr = decryptText(p.formatting_encrypted, encryptionKey);
+                  decryptedFormatting = JSON.parse(decryptedFormattingStr);
+                  console.log("[DEBUG] usePersonalBoard - Successfully decrypted formatting_encrypted field");
+                } catch (formattingError) {
+                  console.warn("[DEBUG] usePersonalBoard - Failed to decrypt formatting_encrypted for post", p.id, formattingError);
+                  // Fall back to regular formatting if available
+                }
+              } 
+              // Otherwise try the old way (formatting as encrypted string)
+              else if (p.formatting && typeof p.formatting === "string" && 
+                      ((p.formatting as string).startsWith('U2FsdGVkX1') || (p.formatting as string).startsWith('##FALLBACK##'))) {
+                try {
+                  const decryptedFormattingStr = decryptText(p.formatting as unknown as string, encryptionKey);
+                  decryptedFormatting = JSON.parse(decryptedFormattingStr);
+                  console.log("[DEBUG] usePersonalBoard - Successfully decrypted formatting string");
+                } catch (formattingError) {
+                  console.warn("[DEBUG] usePersonalBoard - Failed to decrypt formatting for post", p.id, formattingError);
+                }
+              }
+              
+              return { 
+                ...p, 
+                content: decryptedContent, 
+                formatting: decryptedFormatting 
+              };
             } catch (e) {
-              console.warn("Failed decryption for post", p.id);
+              console.warn("[DEBUG] usePersonalBoard - Failed decryption for post", p.id, e);
             }
           }
           return p;
         });
+
+      console.log("[DEBUG] usePersonalBoard - Final posts after decryption:", finalPosts.length);
+      if (finalPosts.length > 0) {
+        console.log("[DEBUG] usePersonalBoard - First final post content:", finalPosts[0].content.substring(0, 30));
+      }
 
       setBoardOnlyPosts(finalPosts);
       return finalPosts; // Return the fresh data

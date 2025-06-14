@@ -1,4 +1,5 @@
 import 'react-native-get-random-values';
+import '@/lib/cryptoPolyfill'; // Import crypto polyfill first
 import { NavigationProvider } from "@/components/NavigationContext";
 import { NotificationProvider } from '../notifications/NotificationContext';
 import SplashVideo from "@/components/SplashVideo";

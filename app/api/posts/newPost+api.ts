@@ -51,6 +51,7 @@ export async function POST(request: Request) {
     // Fix 1: Use a template literal for the interval
     // Fix 2: Handle null emoji properly
     // Fix 3: Ensure proper parenthesis placement
+    
 
     const unread = postType === "personal";
     const [insertedPost] = await sql`
@@ -101,11 +102,11 @@ export async function POST(request: Request) {
         WHERE clerk_id = ${insertedPost.recipient_user_id}
       `;
 
-      // building notification object
-      const notification = {
-        ...insertedPost,
-        ...posterUser,
-      };
+    // building notification object
+    const notification = {
+      ...insertedPost,
+      ...posterUser[0],
+    };
 
       sendNotification(
         insertedPost.recipient_user_id,

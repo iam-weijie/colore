@@ -2,6 +2,8 @@ import { PostModalProps } from "@/types/type";
 import { View, Modal, Animated, Easing, Dimensions, Pressable, Text, Platform } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import PostContainer from "./PostContainer";
+import { useGlobalContext } from "@/app/globalcontext";
+import { decryptText } from "@/lib/encryption";
 
 const { height } = Dimensions.get('window');
 
@@ -20,8 +22,69 @@ const PostModal: React.FC<PostModalProps> = ({
   const slideAnim = useRef(new Animated.Value(height)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+  const { encryptionKey } = useGlobalContext();
+  const [processedPosts, setProcessedPosts] = useState(selectedPosts);
 
-  console.log("[PostModal] See Comment: ", seeComments)
+  console.log("[PostModal] See Comment: ", seeComments);
+  
+  // Process posts for decryption if needed
+  useEffect(() => {
+    if (!selectedPosts || selectedPosts.length === 0 || !encryptionKey) {
+      setProcessedPosts(selectedPosts);
+      return;
+    }
+
+    // Try to decrypt posts if they appear to be encrypted
+    const decryptedPosts = selectedPosts.map(post => {
+      if (post.recipient_user_id && 
+          typeof post.content === 'string' && 
+          post.content.startsWith('U2FsdGVkX1')) {
+        try {
+          console.log("[DEBUG] PostModal - Attempting to decrypt post:", post.id);
+          const decryptedContent = decryptText(post.content, encryptionKey);
+          console.log("[DEBUG] PostModal - Decrypted content:", decryptedContent.substring(0, 30));
+          
+          // Handle formatting - check both formatting and formatting_encrypted fields
+          let decryptedFormatting = post.formatting;
+          
+          // If formatting_encrypted exists, it takes precedence (newer format)
+          if (post.formatting_encrypted && typeof post.formatting_encrypted === "string") {
+            try {
+              const decryptedFormattingStr = decryptText(post.formatting_encrypted, encryptionKey);
+              decryptedFormatting = JSON.parse(decryptedFormattingStr);
+              console.log("[DEBUG] PostModal - Successfully decrypted formatting_encrypted field");
+            } catch (formattingError) {
+              console.warn("[DEBUG] PostModal - Failed to decrypt formatting_encrypted for post", post.id, formattingError);
+            }
+          } 
+          // Otherwise try the old way (formatting as encrypted string)
+          else if (post.formatting && typeof post.formatting === "string" && 
+                  ((post.formatting as string).startsWith('U2FsdGVkX1') || (post.formatting as string).startsWith('##FALLBACK##'))) {
+            try {
+              const decryptedFormattingStr = decryptText(post.formatting as unknown as string, encryptionKey);
+              decryptedFormatting = JSON.parse(decryptedFormattingStr);
+              console.log("[DEBUG] PostModal - Successfully decrypted formatting string");
+            } catch (formattingError) {
+              console.warn("[DEBUG] PostModal - Failed to decrypt formatting for post", post.id, formattingError);
+            }
+          }
+          
+          return { 
+            ...post, 
+            content: decryptedContent, 
+            formatting: decryptedFormatting 
+          };
+        } catch (e) {
+          console.warn("[DEBUG] PostModal - Failed decryption for post", post.id, e);
+          return post;
+        }
+      }
+      return post;
+    });
+    
+    setProcessedPosts(decryptedPosts);
+  }, [selectedPosts, encryptionKey]);
+
   
   useEffect(() => {
     if (isVisible) {
@@ -114,7 +177,7 @@ const PostModal: React.FC<PostModalProps> = ({
         {/* Only render PostContainer after animation completes */}
         {isAnimationComplete && (
           <PostContainer 
-            selectedPosts={selectedPosts} 
+            selectedPosts={processedPosts} 
             handleCloseModal={handleCloseModal} 
             handleUpdate={handleUpdate} 
             invertedColors={invertedColors} 

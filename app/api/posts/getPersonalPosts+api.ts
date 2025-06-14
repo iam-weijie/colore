@@ -1,10 +1,10 @@
 import { neon } from "@neondatabase/serverless";
 import { AlgorithmRandomPosition } from "@/lib/utils";
-import { Format } from "@/lib/types";
+import { Format } from "@/types/type";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const sql = neon(`${process.env.DATABASE_URL}`, { fullResults: true });
     const url = new URL(request.url);
     const number = url.searchParams.get("number");
     const recipientId = url.searchParams.get("recipient_id");
@@ -38,6 +38,7 @@ export async function GET(request: Request) {
         p.left,
         p.expires_at,
         p.formatting,
+        p.formatting_encrypted,
         p.static_emoji,
         u.clerk_id,
         u.firstname, 
@@ -69,10 +70,10 @@ export async function GET(request: Request) {
       LIMIT $2;
     `;
 
-    const response = await sql.query(query, [recipientId, number]);
+    const { rows } = await sql.query(query, [recipientId, number]);
 
     // Transform the response to match the Post interface
-    const mappedPosts = response.map((post: any) => ({
+    const mappedPosts = rows.map((post: any) => ({
       id: post.id,
       user_id: post.user_id,
       firstname: post.firstname,
@@ -100,6 +101,7 @@ export async function GET(request: Request) {
       },
       expires_at: post.expires_at || "",
       formatting: (post.formatting as Format) || [],
+      formatting_encrypted: post.formatting_encrypted || null,
       static_emoji: post.static_emoji,
     }));
 
