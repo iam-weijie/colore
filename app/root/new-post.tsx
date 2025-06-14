@@ -460,21 +460,32 @@ const NewPost = () => {
         Haptics.selectionAsync();
         if (selectedTab == "customize") {
           if (!draftPost) return;
-          const status = await handleSubmitPost(user!.id, draftPost as Post, encryptionKey);
-          console.log("status: ", status);
-          if (status == "success") {
-            showAlert({
-              title: "Success",
-              message: "Post created successfully.",
-              type: "SUCCESS",
-              status: "success",
-            });
-            resetDraftPost();
-            router.back();
-          } else {
+          try {
+            const status = await handleSubmitPost(user!.id, draftPost as Post, encryptionKey);
+            console.log("[DEBUG] Post submission status:", status);
+            
+            if (status === "success") {
+              showAlert({
+                title: "Success",
+                message: "Post created successfully.",
+                type: "SUCCESS",
+                status: "success",
+              });
+              resetDraftPost();
+              router.back();
+            } else if (status === "error") {
+              showAlert({
+                title: "Error",
+                message: "Failed to create post.",
+                type: "ERROR",
+                status: "error",
+              });
+            }
+          } catch (error) {
+            console.error("[DEBUG] Error in post submission:", error);
             showAlert({
               title: "Error",
-              message: "Failed to create post.",
+              message: "An unexpected error occurred.",
               type: "ERROR",
               status: "error",
             });

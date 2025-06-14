@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const sql = neon(`${process.env.DATABASE_URL}`, { fullResults: true });
     const url = new URL(request.url);
     const number = url.searchParams.get("number");
     const recipientId = url.searchParams.get("recipient_id");
@@ -18,12 +18,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const excludeClause =
-      excludeIds.length > 0
-        ? `AND p.id NOT IN (${excludeIds.map((id) => `'${id}'`).join(",")})`
-        : "";
-
-    const query = `
+    const params: any[] = [recipientId, number];
+    let queryBase = `
       SELECT 
         p.id, 
         p.content, 
@@ -66,16 +62,20 @@ export async function GET(request: Request) {
       WHERE p.recipient_user_id = $1
         AND p.post_type = 'personal'
         AND p.expires_at > NOW()
-        AND p.available_at <= NOW()
-        $2
-      ORDER BY p.created_at DESC
-      LIMIT $3;
+        AND p.available_at <= NOW() 
     `;
 
-    const response = await sql(query, [recipientId, excludeClause, number]);
+    if (excludeIds.length > 0) {
+      queryBase += ` AND p.id <> ALL($3::text[])`;
+      params.push(excludeIds);
+    }
+    
+    const query = queryBase + ` ORDER BY p.created_at DESC LIMIT $2;`;
+
+    const { rows } = await sql.query(query, params);
 
     // Filter and transform the posts
-    const personalPosts = response.map((post) => ({
+    const personalPosts = rows.map((post) => ({
       id: post.id,
       clerk_id: post.clerk_id,
       user_id: post.user_id, // Temporary fix

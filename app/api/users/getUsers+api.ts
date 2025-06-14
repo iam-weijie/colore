@@ -4,7 +4,7 @@ export async function GET(request: Request) {
   //console.log("received GET request for user information");
   //console.log("Received GET request:", request.url);
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const sql = neon(`${process.env.DATABASE_URL}`, { fullResults: true });
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
     const max = url.searchParams.get("maxUsers");
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
         status: 400,
       });
     }
-    const response = await sql(
+    const { rows } = await sql.query(
       `
       SELECT
         id,
@@ -41,13 +41,13 @@ export async function GET(request: Request) {
     `,
       [clerkId, max]
     );
-    if (response.length === 0) {
+    if (rows.length === 0) {
       return new Response(JSON.stringify({ error: "Users not found" }), {
         status: 404,
       });
     }
 
-    return new Response(JSON.stringify({ data: response }), {
+    return new Response(JSON.stringify({ data: rows }), {
       status: 200,
     });
   } catch (error) {

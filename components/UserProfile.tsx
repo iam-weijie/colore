@@ -56,6 +56,7 @@ import { myProfileTutorialPages, userTutorialPages } from "@/constants/tutorials
 import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
 import CarouselPage from "./CarrousselPage";
 import ModalSheet from "./Modal";
+import { decryptText } from "@/lib/encryption";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View entering={FadeIn.duration(600)} className="w-full px-4 my-3">
@@ -82,8 +83,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   tab,
   onSignOut,
 }) => {
-  const { user } = useUser();
   const router = useRouter();
+  const { user } = useUser();
   const { isIpad, profile, unreadComments } = useGlobalContext();
   const { showAlert } = useAlert();
 
@@ -96,7 +97,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
      
      
      // Tutorial Logic
-     const [skipIntro, setSkipIntro] = useState<boolean>(false);
+     const [skipIntro, setSkipIntro] = useState<boolean>(true);
 
        
        const fetchTutorialStatus = async () => {
@@ -158,6 +159,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [personalPosts, setPersonalPosts] = useState<Post[]>([]);
   const [disableInteractions, setDisableInteractions] =
     useState<boolean>(false);
+
+  const { encryptionKey } = useGlobalContext();
 
   const Flag = countries[(profileUser?.country || "Canada") as keyof typeof countries];
   const fetchFriendCount = async () => {
@@ -422,18 +425,75 @@ const UserProfile: React.FC<UserProfileProps> = ({
   };
 
   const fetchPersonalPosts = async () => {
-    const response = await fetchAPI(
-      `/api/posts/getPersonalPosts?number=${8}&recipient_id=${userId}&user_id=${user!.id}`
-    );
+    try {
+      const response = await fetchAPI(
+        `/api/posts/getPersonalPosts?number=${8}&recipient_id=${userId}&user_id=${user!.id}`
+      );
 
-    const filteredPosts = response.data.filter((p) => p.pinned);
+      const filteredPosts = response.data.filter((p: Post) => p.pinned);
 
-    if (filteredPosts.length == 0 || response.length == 0) {
+      if (filteredPosts.length == 0 || response.length == 0) {
+        setDisableInteractions(true);
+        setPersonalPosts([post]);
+      } else {
+        // Decrypt personal posts if needed
+        if (encryptionKey) {
+          const decryptedPosts = filteredPosts.map((post: Post) => {
+            if (post.recipient_user_id && 
+                typeof post.content === 'string' && 
+                post.content.startsWith('U2FsdGVkX1')) {
+              try {
+                console.log("[DEBUG] UserProfile - Attempting to decrypt post:", post.id);
+                const decryptedContent = decryptText(post.content, encryptionKey);
+                console.log("[DEBUG] UserProfile - Decrypted content:", decryptedContent.substring(0, 30));
+                
+                // Handle formatting - check both formatting and formatting_encrypted fields
+                let decryptedFormatting = post.formatting;
+                
+                // If formatting_encrypted exists, it takes precedence (newer format)
+                if (post.formatting_encrypted && typeof post.formatting_encrypted === "string") {
+                  try {
+                    const decryptedFormattingStr = decryptText(post.formatting_encrypted, encryptionKey);
+                    decryptedFormatting = JSON.parse(decryptedFormattingStr);
+                    console.log("[DEBUG] UserProfile - Successfully decrypted formatting_encrypted field");
+                  } catch (formattingError) {
+                    console.warn("[DEBUG] UserProfile - Failed to decrypt formatting_encrypted for post", post.id, formattingError);
+                  }
+                } 
+                // Otherwise try the old way (formatting as encrypted string)
+                else if (post.formatting && typeof post.formatting === "string" && 
+                        ((post.formatting as string).startsWith('U2FsdGVkX1') || (post.formatting as string).startsWith('##FALLBACK##'))) {
+                  try {
+                    const decryptedFormattingStr = decryptText(post.formatting as unknown as string, encryptionKey);
+                    decryptedFormatting = JSON.parse(decryptedFormattingStr);
+                    console.log("[DEBUG] UserProfile - Successfully decrypted formatting string");
+                  } catch (formattingError) {
+                    console.warn("[DEBUG] UserProfile - Failed to decrypt formatting for post", post.id, formattingError);
+                  }
+                }
+                
+                return { 
+                  ...post, 
+                  content: decryptedContent, 
+                  formatting: decryptedFormatting 
+                };
+              } catch (e) {
+                console.warn("[DEBUG] UserProfile - Failed decryption for post", post.id, e);
+                return post;
+              }
+            }
+            return post;
+          });
+          
+          setPersonalPosts(decryptedPosts);
+        } else {
+          setPersonalPosts(filteredPosts);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch personal posts:", error);
       setDisableInteractions(true);
-
       setPersonalPosts([post]);
-    } else {
-      setPersonalPosts(filteredPosts);
     }
   };
 

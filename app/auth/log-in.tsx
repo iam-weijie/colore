@@ -39,7 +39,7 @@ const LogIn = () => {
   const [loginState, setLoginState] = useState(LOGIN_STATES.INITIAL);
   const [errorMessage, setErrorMessage] = useState("");
   const processingSalt = useRef(false);
-  
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -57,23 +57,18 @@ const LogIn = () => {
 
   // Check for existing session on component mount
   useEffect(() => {
-    const checkExistingSession = async () => {
+    const checkAndClearExistingSession = async () => {
+      // This should only run once when the component is ready.
       if (!isLoaded) return;
       
       try {
         setLoginState(LOGIN_STATES.CHECKING_SESSION);
         setIsLoading(true);
         
-        // Clear any stored login state
-        await AsyncStorage.removeItem(LOGIN_STATE_KEY);
-        
         if (isSignedIn) {
-          console.log("[DEBUG] Login - Found existing session, signing out");
+          console.log("[DEBUG] Login - Found existing session on mount, signing out for a clean slate.");
           await clearEncryptionKey();
           await signOut();
-          console.log("[DEBUG] Login - Successfully signed out existing session");
-          // Wait for signout to complete
-          await new Promise(resolve => setTimeout(resolve, 1500));
         }
       } catch (error) {
         console.log("[DEBUG] Login - Error during session check:", error);
@@ -83,8 +78,10 @@ const LogIn = () => {
       }
     };
 
-    checkExistingSession();
-  }, [isLoaded, isSignedIn, signOut]);
+    checkAndClearExistingSession();
+    // We want this to run only once when the component mounts and clerk is ready.
+    // Removing `isSignedIn` from the dependency array prevents it from re-running after a successful login.
+  }, [isLoaded, signOut]);
 
   const onLogInPress = useCallback(async () => {
     if (!isLoaded || loginState !== LOGIN_STATES.READY) {
@@ -442,17 +439,17 @@ const LogIn = () => {
                 </Text>
               </View>
             ) : (
-              <CustomButton
-                className="w-[50%] h-16 mt-8 rounded-full shadow-none"
-                fontSize="lg"
-                title="Log In"
-                padding={4}
-                onPress={onLogInPress}
-                bgVariant='gradient'
+                      <CustomButton
+                        className="w-[50%] h-16 mt-8 rounded-full shadow-none"
+                        fontSize="lg"
+                        title="Log In"
+                        padding={4}
+                        onPress={onLogInPress}
+                        bgVariant='gradient'
                 disabled={isLoading || loginState !== LOGIN_STATES.READY}
-              />
+                      />
             )}
-          </View>
+                    </View>
 
           {/*Platform.OS === "android" && <OAuth />*/}
           {Platform.OS === "ios" && <AppleSignIn />}

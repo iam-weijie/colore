@@ -38,6 +38,7 @@ declare interface Post {
     left: number;
   };
   formatting: Format[];
+  formatting_encrypted?: string;
 }
 
 declare interface PostItBoardProps {

@@ -46,6 +46,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  Keyboard,
 } from "react-native";
 import {
   Gesture,
@@ -58,6 +59,7 @@ import ModalSheet from "@/components/Modal";
 import Animated, {
   BounceIn,
   Easing,
+  FadeIn,
   FadeInUp,
   FadeOutDown,
   runOnJS,
@@ -79,6 +81,7 @@ import PostScreen from "@/app/root/post/[id]";
 import ItemContainer from "./ItemContainer";
 import EmojiBackground from "./EmojiBackground";
 import { RichText } from "./RichTextInput";
+import { decryptText } from "@/lib/encryption"; // Import decryptText
 
 const { width, height } = Dimensions.get("window");
 
@@ -97,7 +100,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
   scrollToLoad,
   seeComments = false,
 }) => {
-  const { stacks, isIpad, soundEffectsEnabled, draftPost } = useGlobalContext(); // Add soundEffectsEnabled
+  const { stacks, isIpad, soundEffectsEnabled, draftPost, encryptionKey } = useGlobalContext(); // Add encryptionKey
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");
@@ -129,11 +132,42 @@ const PostContainer: React.FC<PostContainerProps> = ({
       setPosts(post);
       setCurrentPost(post[currentPostIndex]);
       setIsEmojiStatic(post[currentPostIndex]?.static_emoji ?? false);
+      
+      // Debug logging
+      console.log("[DEBUG] PostContainer - Received posts:", post.length);
+      if (post.length > 0) {
+        console.log("[DEBUG] PostContainer - First post content:", post[0].content.substring(0, 30));
+        console.log("[DEBUG] PostContainer - First post is personal:", Boolean(post[0].recipient_user_id));
+      }
     }
   }, [post]);
 
   useEffect(() => {
     setCurrentPost(post[currentPostIndex]);
+    console.log("[DEBUG] PostContainer - Current post updated:", currentPostIndex);
+    if (post[currentPostIndex]) {
+      console.log("[DEBUG] PostContainer - Current post content:", post[currentPostIndex].content.substring(0, 30));
+      
+      // Try to decrypt the content directly if it's a personal post
+      const currentPostData = post[currentPostIndex];
+      if (currentPostData && 
+          currentPostData.recipient_user_id && 
+          encryptionKey && 
+          currentPostData.content.startsWith('U2FsdGVkX1')) {
+        try {
+          const decryptedContent = decryptText(currentPostData.content, encryptionKey);
+          console.log("[DEBUG] PostContainer - Directly decrypted content:", decryptedContent);
+          
+          // Update the current post with decrypted content
+          setCurrentPost({
+            ...currentPostData,
+            content: decryptedContent
+          });
+        } catch (error) {
+          console.error("[DEBUG] PostContainer - Direct decryption failed:", error);
+        }
+      }
+    }
 
     if (
       infiniteScroll &&
@@ -143,7 +177,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
       // If last post and infiniteScroll is enabled
       runOnJS(scrollToLoad)();
     }
-  }, [currentPostIndex]);
+  }, [currentPostIndex, encryptionKey]);
 
    useEffect(() => {
     console.log("[PostContainer] See Comment: ", seeComments)

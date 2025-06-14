@@ -18,28 +18,34 @@ export async function PATCH(request: Request) {
       });
     }
 
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const sql = neon(`${process.env.DATABASE_URL}`, { fullResults: true });
     let userExists = false;
     
     // First check if the user exists
     if (email) {
       console.log("[DEBUG] updateSalt API - Checking if user exists by email");
-      const checkUser = await sql`SELECT clerk_id FROM users WHERE email = ${email}`;
-      userExists = checkUser.length > 0;
+      const { rows: checkUserByEmail } = await sql.query(
+        "SELECT clerk_id FROM users WHERE email = $1",
+        [email]
+      );
+      userExists = checkUserByEmail.length > 0;
       
-      if (userExists && !clerkId && checkUser[0].clerk_id) {
+      if (userExists && !clerkId && checkUserByEmail[0].clerk_id) {
         // If clerkId wasn't provided but we found it in the database, use it
-        clerkId = checkUser[0].clerk_id;
+        clerkId = checkUserByEmail[0].clerk_id;
         console.log("[DEBUG] updateSalt API - Found clerkId from email lookup:", clerkId);
       }
     } else if (clerkId) {
       console.log("[DEBUG] updateSalt API - Checking if user exists by clerk_id");
-      const checkUser = await sql`SELECT email FROM users WHERE clerk_id = ${clerkId}`;
-      userExists = checkUser.length > 0;
+      const { rows: checkUserById } = await sql.query(
+        "SELECT email FROM users WHERE clerk_id = $1",
+        [clerkId]
+      );
+      userExists = checkUserById.length > 0;
       
-      if (userExists && !email && checkUser[0].email) {
+      if (userExists && !email && checkUserById[0].email) {
         // If email wasn't provided but we found it in the database, use it
-        email = checkUser[0].email;
+        email = checkUserById[0].email;
         console.log("[DEBUG] updateSalt API - Found email from clerkId lookup:", email);
       }
     }
@@ -52,27 +58,27 @@ export async function PATCH(request: Request) {
     }
     
     // Now update the salt
-    let response;
+    let rows;
     
     if (email) {
       console.log("[DEBUG] updateSalt API - Updating by email:", email);
-      response = await sql`
-        UPDATE users 
-        SET salt = ${salt} 
-        WHERE email = ${email} 
-        RETURNING clerk_id, email, salt`;
+      const { rows: updateRows } = await sql.query(
+        "UPDATE users SET salt = $1 WHERE email = $2 RETURNING clerk_id, email, salt",
+        [salt, email]
+      );
+      rows = updateRows;
     } else {
       console.log("[DEBUG] updateSalt API - Updating by clerk_id:", clerkId);
-      response = await sql`
-        UPDATE users 
-        SET salt = ${salt} 
-        WHERE clerk_id = ${clerkId} 
-        RETURNING clerk_id, email, salt`;
+      const { rows: updateRows } = await sql.query(
+        "UPDATE users SET salt = $1 WHERE clerk_id = $2 RETURNING clerk_id, email, salt",
+        [salt, clerkId]
+      );
+      rows = updateRows;
     }
 
-    console.log("[DEBUG] updateSalt API - Update response:", response.length > 0);
+    console.log("[DEBUG] updateSalt API - Update response:", rows.length > 0);
     
-    if (response.length === 0) {
+    if (rows.length === 0) {
       console.log("[DEBUG] updateSalt API - Update failed, no rows affected");
       return new Response(JSON.stringify({ error: "Update failed" }), {
         status: 500,
@@ -83,9 +89,9 @@ export async function PATCH(request: Request) {
       success: true, 
       message: "Salt updated successfully",
       user: {
-        clerk_id: response[0].clerk_id,
-        email: response[0].email,
-        saltUpdated: Boolean(response[0].salt)
+        clerk_id: rows[0].clerk_id,
+        email: rows[0].email,
+        saltUpdated: Boolean(rows[0].salt)
       }
     }), {
       status: 200,

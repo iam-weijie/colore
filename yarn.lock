@@ -1063,11 +1063,6 @@
   resolved "https://registry.npmjs.org/@emotion/weak-memoize/-/weak-memoize-0.3.1.tgz"
   integrity sha512-EsBwpc7hBUJWAsNPBmJy4hxWx12v6bshQsldrVmjxJoc3isbxhOrF2IcCpaXxfvq03NwkI7sbsOLXbYuqF/8Ww==
 
-"@esbuild/aix-ppc64@0.25.5":
-  version "0.25.5"
-  resolved "https://registry.npmjs.org/@esbuild/aix-ppc64/-/aix-ppc64-0.25.5.tgz"
-  integrity sha512-9o3TMmpmftaCMepOdA5k/yDw8SfInyzWWTjYTFCX3kPSDJMROQTb8jg+h9Cnwnmm1vOzvxN7gIfB5V2ewpjtGA==
-
 "@esbuild/android-arm@0.25.5":
   version "0.25.5"
   resolved "https://registry.npmjs.org/@esbuild/android-arm/-/android-arm-0.25.5.tgz"
@@ -1188,10 +1183,10 @@
   resolved "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.5.tgz"
   integrity sha512-TXv6YnJ8ZMVdX+SXWVBo/0p8LTcrUYngpWjvm91TMjjBQii7Oz11Lw5lbDV5Y0TzuhSJHwiH4hEtC1I42mMS0g==
 
-"@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.4.0":
-  version "4.6.1"
-  resolved "https://registry.npmjs.org/@eslint-community/eslint-utils/-/eslint-utils-4.6.1.tgz"
-  integrity sha512-KTsJMmobmbrFLe3LDh0PC2FXpcSYJt/MLjlkh/9LEnmKYLSYmT/0EW9JWANjeoemiuZrmogti0tW5Ch+qNUYDw==
+"@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.7.0":
+  version "4.7.0"
+  resolved "https://registry.npmjs.org/@eslint-community/eslint-utils/-/eslint-utils-4.7.0.tgz"
+  integrity sha512-dyybb3AcajC7uha6CvhdVRJqaKyn7w2YKqKyAN37NKYgZT36w+iRb0Dymmc5qEJ549c/S31cMMSFd75bteCpCw==
   dependencies:
     eslint-visitor-keys "^3.4.3"
 
@@ -4066,14 +4061,7 @@ browserslist@^4.24.0, browserslist@^4.25.0:
     caniuse-lite "^1.0.30001718"
     electron-to-chromium "^1.5.160"
     node-releases "^2.0.19"
-    update-browserslist-db "^1.1.3" 
-
-bs-logger@^0.2.6:
-  version "0.2.6"
-  resolved "https://registry.npmjs.org/bs-logger/-/bs-logger-0.2.6.tgz"
-  integrity sha512-pd8DCoxmbgc7hyPKOvxtqNcjYoOsABPQdcCUjGp3d42VR2CX1ORhk2A87oqqu5R1kk+76nsxZupkmyd+MVtCog==
-  dependencies:
-    fast-json-stable-stringify "2.x"
+    update-browserslist-db "^1.1.3"
 
 bs-logger@^0.2.6:
   version "0.2.6"
@@ -4437,6 +4425,7 @@ color@^4.2.3:
     axios "^1.7.9"
     buffer "^6.0.3"
     colore "file:"
+    cors "^2.8.5"
     crypto-js "^4.2.0"
     date-fns "^4.1.0"
     dotenv "^16.5.0"
@@ -5212,10 +5201,10 @@ ejs@^3.1.10:
   dependencies:
     jake "^10.8.5"
 
-electron-to-chromium@^1.5.73:
-  version "1.5.148"
-  resolved "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.5.148.tgz"
-  integrity sha512-8uc1QXwwqayD4mblcsQYZqoi+cOc97A2XmKSBOIRbEAvbp6vrqmSYs4dHD2qVygUgn7Mi0qdKgPaJ9WC8cv63A==
+electron-to-chromium@^1.5.160:
+  version "1.5.166"
+  resolved "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.5.166.tgz"
+  integrity sha512-QPWqHL0BglzPYyJJ1zSSmwFFL6MFXhbACOCcsCdUMCkzPdS9/OIBVxg516X/Ado2qwAq8k0nJJ7phQPCqiaFAw==
 
 elliptic@^6.5.3, elliptic@^6.5.5:
   version "6.6.1"
@@ -6994,7 +6983,7 @@ inflight@^1.0.4:
     once "^1.3.0"
     wrappy "1"
 
-inherits@^2.0.1, inherits@^2.0.3, inherits@^2.0.4, inherits@~2.0.3, inherits@2, inherits@2.0.4:
+inherits@^2.0.1, inherits@^2.0.3, inherits@^2.0.4, inherits@~2.0.3, inherits@~2.0.4, inherits@2, inherits@2.0.4:
   version "2.0.4"
   resolved "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
@@ -9992,7 +9981,7 @@ readable-stream@^2.3.8:
     string_decoder "~1.1.1"
     util-deprecate "~1.0.1"
 
-readable-stream@^3.4.0:
+readable-stream@^3.4.0, readable-stream@^3.5.0:
   version "3.6.2"
   resolved "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz"
   integrity sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==
@@ -10801,6 +10790,14 @@ std-env@^3.7.0, std-env@^3.9.0:
   version "3.9.0"
   resolved "https://registry.npmjs.org/std-env/-/std-env-3.9.0.tgz"
   integrity sha512-UGvjygr6F6tpH7o2qyqR6QYpwraIjKSdtzyBdyytFOHmPZY917kwdwLG0RbOjWOnKmnm3PeHjaoLLMie7kPLQw==
+
+stream-browserify@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/stream-browserify/-/stream-browserify-3.0.0.tgz"
+  integrity sha512-H73RAHsVBapbim0tU2JwwOiXUj+fikfiaoYAKHF3VJfA0pe2BCzkhAHBlLG6REzE+2WNZcxOXjK7lkso+9euLA==
+  dependencies:
+    inherits "~2.0.4"
+    readable-stream "^3.5.0"
 
 stream-buffers@2.2.x:
   version "2.2.0"

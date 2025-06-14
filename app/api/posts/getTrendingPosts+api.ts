@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const sql = neon(`${process.env.DATABASE_URL}`, { fullResults: true });
     const url = new URL(request.url);
     const number = url.searchParams.get("number");
     const id = url.searchParams.get("id");
@@ -80,9 +80,9 @@ export async function GET(request: Request) {
       LIMIT $2;
     `;
 
-    const response = await sql.query(query, [id, number]);
+    const { rows } = await sql.query(query, [id, number]);
 
-    const mappedPosts = response.map((post) => ({
+    const mappedPosts = rows.map((post: any) => ({
       id: post.id,
       user_id: post.user_id,
       firstname: post.firstname,
@@ -114,7 +114,7 @@ export async function GET(request: Request) {
       static_emoji: post.static_emoji,
     }));
 
-    return new Response(JSON.stringify({ data: response }), {
+    return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
     });
   } catch (error) {

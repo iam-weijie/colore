@@ -3,12 +3,12 @@ import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const sql = neon(`${process.env.DATABASE_URL}`, { fullResults: true });
     const url = new URL(request.url);
     const boardId = url.searchParams.get("id");
     const clerkId = url.searchParams.get("userId");
 
-    const response = await sql.query(
+    const { rows } = await sql.query(
       `
       SELECT 
         p.id, 
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
     );
 
     // Transform the response to match the Post interface
-    const mappedPosts = response.map((post) => ({
+    const mappedPosts = rows.map((post: any) => ({
       id: post.id,
       user_id: post.user_id,
       firstname: post.firstname,

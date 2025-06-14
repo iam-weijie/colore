@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 export async function GET(request: Request) {
   //console.log("Received GET request for user posts and information");
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const sql = neon(`${process.env.DATABASE_URL}`, { fullResults: true });
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
 
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const response = await sql(
+    const { rows } = await sql.query(
       `
       SELECT 
         p.id, 
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
       [clerkId]
     );
 
-    if (response.length === 0) {
+    if (rows.length === 0) {
       return new Response(
         JSON.stringify({ toNotify: [], toStore: [], unread_count: 0 }),
         {
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const userPosts = response.map((post) => ({
+    const userPosts = rows.map((post) => ({
       id: post.id,
       clerk_id: post.clerk_id,
       username: post.username,

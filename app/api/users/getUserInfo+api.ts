@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   //console.log("received GET request for user information");
   //console.log("Received GET request:", request.url);
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const sql = neon(`${process.env.DATABASE_URL}`, { fullResults: true });
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
 
@@ -15,16 +15,17 @@ export async function GET(request: Request) {
         status: 400,
       });
     }
-    const response = await sql`
-      SELECT * from users WHERE clerk_id = ${clerkId}
-    `;
-    if (response.length === 0) {
+    const { rows } = await sql.query(`
+      SELECT * from users WHERE clerk_id = $1
+    `, [clerkId]);
+    
+    if (rows.length === 0) {
       return new Response(JSON.stringify({ error: "User not found" }), {
         status: 404,
       });
     }
 
-    const user = response.map((u) => {
+    const user = rows.map((u) => {
       return {
         id: u.id,
         created_at: u.created_at,
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
           }
         }),
         salt: u.salt,
+        last_connection: u.last_connection,
       } as unknown as UserProfileProps;
     });
 
