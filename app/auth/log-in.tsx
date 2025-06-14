@@ -13,6 +13,8 @@ import React from "react";
 import { fetchAPI } from "@/lib/fetch";
 import { deriveKey, generateSalt } from "@/lib/encryption";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAlert } from "@/notifications/AlertContext";
+import { encryptionCache } from "@/cache/encryptionCache";
 
 const ENCRYPTION_KEY_STORAGE = "encryptionKey";
 const LOGIN_STATE_KEY = "login_state";
@@ -33,11 +35,10 @@ const LogIn = () => {
   const { signOut, isSignedIn } = useAuth();
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
-  const { isIpad } = useGlobalContext();
-  const { setEncryptionKey } = useGlobalContext();
+  const { isIpad, setEncryptionKey } = useGlobalContext();
+  const { showAlert } = useAlert();
   const [isLoading, setIsLoading] = useState(false);
   const [loginState, setLoginState] = useState(LOGIN_STATES.INITIAL);
-  const [errorMessage, setErrorMessage] = useState("");
   const processingSalt = useRef(false);
 
   const [form, setForm] = useState({
@@ -92,6 +93,32 @@ const LogIn = () => {
     setLoginState(LOGIN_STATES.LOGGING_IN);
 
     try {
+      // Fetch user's salt first using email
+      let saltResponse = await fetchAPI(`/api/users/getSalt?email=${encodeURIComponent(form.email)}`);
+      if (saltResponse.error) {
+        showAlert({
+          title: "Error",
+          message: "Unable to retrieve security parameters.",
+          type: "ERROR",
+          status: "error"
+        });
+        setIsLoading(false);
+        setLoginState(LOGIN_STATES.ERROR);
+        return;
+      }
+
+      console.log("[Log-in]: ", saltResponse);
+
+      let userId = saltResponse.userId;
+      let userSalt = saltResponse.salt as string;
+      let userExist = saltResponse.email as string;
+      let needToCreateSalt = !userSalt && userExist;
+
+      if (needToCreateSalt) {
+        userSalt = generateSalt();
+        console.log("[Log-in] Generated new salt");
+      }
+
       // Now try to sign in with Clerk
       console.log("[DEBUG] Login - Attempting to sign in with:", form.email);
       const logInAttempt = await signIn.create({
@@ -99,261 +126,78 @@ const LogIn = () => {
         password: form.password,
       });
 
-      if (logInAttempt.status !== "complete") {
+      if (logInAttempt.status === "complete") {
+        await setActive({ session: logInAttempt.createdSessionId });
+
+        // Derive and store encryption key
+        const key = deriveKey(form.password, userSalt);
+        setEncryptionKey(key);
+        await encryptionCache.setDerivedKey(key);
+
+        // Store login state to resume if needed
+        await AsyncStorage.setItem(LOGIN_STATE_KEY, JSON.stringify({
+          email: form.email,
+          password: form.password
+        }));
+
+        if (needToCreateSalt) {
+          try {
+            await fetchAPI('/api/users/updateUserInfo', {
+              method: 'PATCH',
+              body: JSON.stringify({
+                clerkId: userId,
+                salt: userSalt
+              })
+            });
+            console.log("[DEBUG] Login - Updated user with new salt");
+          } catch (error) {
+            console.error("Failed to create user's salt", error);
+            showAlert({
+              title: "Warning",
+              message: "Login successful, but encryption setup may be incomplete.",
+              type: "WARNING",
+              status: "warning"
+            });
+          }
+        }
+
+        router.replace("/root/user-info");
+      } else {
         console.error(
           "Incomplete login:",
           JSON.stringify(logInAttempt, null, 2)
         );
-        setErrorMessage("Login failed. Please try again.");
+        showAlert({
+          title: "Error",
+          message: "Login failed. Please try again.",
+          type: "ERROR",
+          status: "error"
+        });
         setLoginState(LOGIN_STATES.ERROR);
-        setIsLoading(false);
-        return;
       }
-
-      console.log("[DEBUG] Login - Sign in successful, activating session");
-      await setActive({ session: logInAttempt.createdSessionId });
-      
-      // Store login state to resume if needed
-      await AsyncStorage.setItem(LOGIN_STATE_KEY, JSON.stringify({
-        email: form.email,
-        password: form.password
-      }));
-
-      // Wait a bit for user to be available after sign in
-      let attempts = 0;
-      while (!isUserLoaded && attempts < 10) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        attempts++;
-      }
-      
-      // Process salt and encryption after successful login
-      await processSaltAndEncryption();
-      
     } catch (err: any) {
-      console.error("Login error:", JSON.stringify(err, null, 2));
+      console.error("Raw login error:", err);
 
       if (err.errors?.[0]?.code === "session_exists") {
-        setErrorMessage("There seems to be an existing session. Please try again after we reset it.");
-        
-        try {
-          await signOut();
-          console.log("[DEBUG] Login - Signed out after session_exists error");
-          // Wait a moment before allowing another login attempt
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          setLoginState(LOGIN_STATES.READY);
-        } catch (signOutErr) {
-          console.error("[DEBUG] Login - Error signing out after session_exists:", signOutErr);
-          setLoginState(LOGIN_STATES.ERROR);
-        }
+        showAlert({
+          title: "Error",
+          message: "There seems to be an existing session. Please close the app completely and try again.",
+          type: "ERROR",
+          status: "error"
+        });
       } else {
-        setErrorMessage((err as any).errors?.[0]?.longMessage || "An error occurred during login");
-        setLoginState(LOGIN_STATES.ERROR);
+        showAlert({
+          title: "Error",
+          message: (err as any).errors?.[0]?.longMessage || "An error occurred during login",
+          type: "ERROR",
+          status: "error"
+        });
       }
-      
-      setIsLoading(false);
-    }
-  }, [isLoaded, form, signIn, setActive, loginState, isUserLoaded]);
-
-  const processSaltAndEncryption = async () => {
-    if (processingSalt.current) return;
-    processingSalt.current = true;
-    
-    try {
-      setLoginState(LOGIN_STATES.PROCESSING_SALT);
-      
-      // Now fetch user's salt
-      console.log("[DEBUG] Login - Fetching salt for:", form.email);
-      
-      // Try several times to fetch the salt, as there might be race conditions
-      let saltResponse = null;
-      let saltFetchAttempts = 0;
-      const maxSaltFetchAttempts = 5;
-      
-      while (saltFetchAttempts < maxSaltFetchAttempts) {
-        try {
-          saltFetchAttempts++;
-          console.log(`[DEBUG] Login - Salt fetch attempt ${saltFetchAttempts}`);
-          saltResponse = await fetchAPI(`/api/users/getSalt?email=${encodeURIComponent(form.email)}`);
-          
-          if (saltResponse) {
-            console.log("[DEBUG] Login - Salt fetch successful");
-            break;
-          }
-        } catch (saltFetchError) {
-          console.error(`[DEBUG] Login - Salt fetch attempt ${saltFetchAttempts} failed:`, saltFetchError);
-          
-          if (saltFetchAttempts >= maxSaltFetchAttempts) {
-            throw new Error(`Failed to fetch salt after ${maxSaltFetchAttempts} attempts`);
-          }
-          
-          // Wait a moment before retrying
-          await new Promise(resolve => setTimeout(resolve, 800));
-        }
-      }
-      
-      if (!saltResponse) {
-        throw new Error("Failed to fetch salt from server");
-      }
-      
-      let userSalt = saltResponse.salt;
-      
-      // If salt doesn't exist, generate one and update the user record
-      if (!userSalt) {
-        console.log("[DEBUG] Login - No salt found, generating new salt");
-        
-        // Try to generate salt with retry logic
-        let saltGenerationAttempts = 0;
-        const maxAttempts = 3;
-        
-        while (saltGenerationAttempts < maxAttempts) {
-          try {
-            saltGenerationAttempts++;
-            console.log(`[DEBUG] Login - Salt generation attempt ${saltGenerationAttempts}`);
-            userSalt = generateSalt();
-            
-            if (userSalt) {
-              console.log("[DEBUG] Login - Salt generated successfully");
-              break;
-            }
-          } catch (saltError) {
-            console.error(`[DEBUG] Login - Salt generation attempt ${saltGenerationAttempts} failed:`, saltError);
-            
-            if (saltGenerationAttempts >= maxAttempts) {
-              throw new Error(`Failed to generate salt after ${maxAttempts} attempts`);
-            }
-            
-            // Wait a moment before retrying
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
-        }
-        
-        // Use either the user object from the API response or wait for the user context
-        let userId = saltResponse.clerk_id || user?.id;
-        let userApiResponse = null;
-        
-        if (!userId) {
-          // Try to get user info via API if context isn't available
-          try {
-            userApiResponse = await fetchAPI(`/api/users/getUserByEmail?email=${encodeURIComponent(form.email)}`);
-            if (userApiResponse && userApiResponse.clerk_id) {
-              console.log("[DEBUG] Login - Retrieved user via API:", userApiResponse.clerk_id);
-              userId = userApiResponse.clerk_id;
-            }
-          } catch (userApiError) {
-            console.error("[DEBUG] Login - Failed to get user via API:", userApiError);
-          }
-          
-          if (!userId) {
-            console.warn("[DEBUG] Login - User ID not available, proceeding without updating salt");
-            setErrorMessage("Login successful, but encryption setup failed. Please try logging out and back in.");
-            setLoginState(LOGIN_STATES.ERROR);
-            setIsLoading(false);
-            processingSalt.current = false;
-            return;
-          }
-        }
-        
-        // Update the user with the new salt
-        try {
-          const updateResponse = await fetchAPI("/api/users/updateSalt", {
-            method: "PATCH",
-            body: JSON.stringify({
-              email: form.email,
-              clerkId: userId,
-              salt: userSalt,
-            }),
-          });
-          
-          console.log("[DEBUG] Login - Salt update result:", updateResponse.success);
-          
-          if (!updateResponse.success) {
-            console.error("[DEBUG] Login - Failed to update salt:", updateResponse);
-            setErrorMessage("Login successful, but encryption setup failed. Some features may be limited.");
-            setLoginState(LOGIN_STATES.ERROR);
-            setIsLoading(false);
-            processingSalt.current = false;
-            return;
-          }
-        } catch (saltError) {
-          console.error("[DEBUG] Login - Error updating salt:", saltError);
-          setErrorMessage("Login successful, but encryption setup failed. Some features may be limited.");
-          setLoginState(LOGIN_STATES.ERROR);
-          setIsLoading(false);
-          processingSalt.current = false;
-          return;
-        }
-      }
-      
-      console.log("[DEBUG] Login - Using salt:", Boolean(userSalt));
-      
-      // Derive and store encryption key with retry logic
-      let key = null;
-      let keyDerivationAttempts = 0;
-      const maxKeyAttempts = 3;
-      
-      while (keyDerivationAttempts < maxKeyAttempts) {
-        try {
-          keyDerivationAttempts++;
-          console.log(`[DEBUG] Login - Key derivation attempt ${keyDerivationAttempts}`);
-          key = deriveKey(form.password, userSalt);
-          
-          if (key) {
-            console.log("[DEBUG] Login - Key derived successfully");
-            break;
-          }
-        } catch (keyError) {
-          console.error(`[DEBUG] Login - Key derivation attempt ${keyDerivationAttempts} failed:`, keyError);
-          
-          if (keyDerivationAttempts >= maxKeyAttempts) {
-            throw new Error(`Failed to derive key after ${maxKeyAttempts} attempts`);
-          }
-          
-          // Wait a moment before retrying
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      }
-      
-      if (!key) {
-        throw new Error("Failed to derive encryption key");
-      }
-      
-      console.log("[DEBUG] Login - Derived key:", Boolean(key));
-      console.log("[DEBUG] Login - Key starts with:", key.substring(0, 5) + "...");
-      
-      setEncryptionKey(key);
-      console.log("[DEBUG] Login - Encryption key set in context");
-
-      // Clear login state since we're done
-      await AsyncStorage.removeItem(LOGIN_STATE_KEY);
-      
-      setLoginState(LOGIN_STATES.COMPLETE);
-      router.replace("/root/user-info");
-      
-    } catch (error) {
-      console.error("[DEBUG] Login - Error in processSaltAndEncryption:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      setErrorMessage(`Login successful, but there was an error setting up encryption: ${errorMessage}. Please try logging out and back in.`);
-      setLoginState(LOGIN_STATES.ERROR);
-      setIsLoading(false);
     } finally {
-      processingSalt.current = false;
+      setIsLoading(false);
+      setLoginState(LOGIN_STATES.READY);
     }
-  };
-
-  // Handle error state
-  useEffect(() => {
-    if (loginState === LOGIN_STATES.ERROR && errorMessage) {
-      Alert.alert("Error", errorMessage, [
-        { 
-          text: "OK", 
-          onPress: () => {
-            setErrorMessage("");
-            setLoginState(LOGIN_STATES.READY);
-          }
-        }
-      ]);
-    }
-  }, [loginState, errorMessage]);
+  }, [isLoaded, form, signIn, setActive, loginState, isUserLoaded, showAlert]);
 
   // Show loading screen during initial check
   if (loginState === LOGIN_STATES.INITIAL || loginState === LOGIN_STATES.CHECKING_SESSION) {
@@ -439,17 +283,17 @@ const LogIn = () => {
                 </Text>
               </View>
             ) : (
-                      <CustomButton
-                        className="w-[50%] h-16 mt-8 rounded-full shadow-none"
-                        fontSize="lg"
-                        title="Log In"
-                        padding={4}
-                        onPress={onLogInPress}
-                        bgVariant='gradient'
+              <CustomButton
+                className="w-[50%] h-16 mt-8 rounded-full shadow-none"
+                fontSize="lg"
+                title="Log In"
+                padding={4}
+                onPress={onLogInPress}
+                bgVariant="gradient"
                 disabled={isLoading || loginState !== LOGIN_STATES.READY}
-                      />
+              />
             )}
-                    </View>
+          </View>
 
           {/*Platform.OS === "android" && <OAuth />*/}
           {Platform.OS === "ios" && <AppleSignIn />}
