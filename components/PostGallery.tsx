@@ -24,6 +24,7 @@ import {
   View,
 } from "react-native";
 import { useNavigationContext } from "./NavigationContext";
+import { decryptText, encryptText } from "@/lib/encryption";
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   posts,
@@ -38,7 +39,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   hasMore
 }) => {
   const { user } = useUser();
-  const { isIpad } = useGlobalContext();
+  const { isIpad, encryptionKey } = useGlobalContext();
   const isOwnProfile = user!.id === profileUserId;
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [sortedPosts, setSortedPosts] = useState<Post[]>([]);
@@ -100,6 +101,9 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     const isOwner = item.user_id === user?.id;
     const hasNewComments = isOwner && item.unread_comments > 0;
 
+    const isEncrypted = encryptionKey && item.recipient_user_id 
+    const cleanContent = isEncrypted ? decryptText(item.content, encryptionKey) : item.content
+
     return (
       <Animated.View
         entering={FadeInDown.duration(400)}
@@ -134,7 +138,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
               className="font-JakartaSemiBold text-white/90 text-[15px] shadow leading-snug"
               numberOfLines={3}
             >
-              {truncateText(item.content, 120)}
+              {truncateText(cleanContent, 120)}
             </Text>
             {item.prompt && <Text
               className="italic text-white/80 text-[13px] shadow leading-snug"
