@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const response = await sql(
+    const response = await sql.query(
       `
       SELECT 
         c.id, 

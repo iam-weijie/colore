@@ -21,7 +21,7 @@ async function addColumn(name) {
     }
 
     // Add the column (interpolate identifier directly)
-    await sql(`ALTER TABLE users ADD COLUMN ${name} VARCHAR(255) DEFAULT NULL`);
+    await sql.query`ALTER TABLE users ADD COLUMN ${name} VARCHAR(255) DEFAULT NULL`);
 
     console.log(`✅ Successfully added ${name} column to users table.`);
 

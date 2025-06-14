@@ -9,7 +9,7 @@ export async function GET(request: Request) {
 
     //console.log("Received GET request for users from user:", userId);
 
-    const rawResponse = await sql(
+    const rawResponse = await sql.query(
       `
       SELECT 
         u.clerk_id,

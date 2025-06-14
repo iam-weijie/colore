@@ -72,7 +72,7 @@ export async function GET(request: Request) {
       LIMIT $3;
     `;
 
-    const response = await sql(query, [recipientId, excludeClause, number]);
+    const response = await sql.query(query, [recipientId, excludeClause, number]);
 
     // Filter and transform the posts
     const personalPosts = response.map((post) => ({

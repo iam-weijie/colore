@@ -69,7 +69,7 @@ export async function GET(request: Request) {
       LIMIT $2;
     `;
 
-    const response = await sql(query, [recipientId, number]);
+    const response = await sql.query(query, [recipientId, number]);
 
     // Transform the response to match the Post interface
     const mappedPosts = response.map((post: any) => ({

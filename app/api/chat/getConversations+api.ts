@@ -9,7 +9,7 @@ export async function GET(request: Request) {
 
     ////console.log("Received GET request for conversations for user with ID: ", userId);
 
-    const rawResponse = await sql(
+    const rawResponse = await sql.query(
       `
       SELECT 
         c.id::text,

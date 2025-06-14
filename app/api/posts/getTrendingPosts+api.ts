@@ -80,7 +80,7 @@ export async function GET(request: Request) {
       LIMIT $2;
     `;
 
-    const response = await sql(query, [id, number]);
+    const response = await sql.query(query, [id, number]);
 
     const mappedPosts = response.map((post) => ({
       id: post.id,

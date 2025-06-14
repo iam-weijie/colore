@@ -55,7 +55,7 @@ export async function GET(request: Request) {
         ORDER BY RANDOM()
         LIMIT $2;
       `;
-      const response = await sql(query, [id, number]);
+      const response = await sql.query(query, [id, number]);
 
       if (response.length === 0) {
         return new Response(JSON.stringify({ data: [] }), {
@@ -94,7 +94,7 @@ export async function GET(request: Request) {
         ORDER BY RANDOM()
         LIMIT ${number};
       `;
-      const response = await sql(query);
+      const response = await sql.query(query);
       if (response.length === 0) {
         return new Response(JSON.stringify({ data: [] }), {
           status: 200,
@@ -132,7 +132,7 @@ export async function GET(request: Request) {
         ORDER BY RANDOM()
         LIMIT ${number};
       `;
-      const response = await sql(query);
+      const response = await sql.query(query);
       if (response.length === 0) {
         return new Response(JSON.stringify({ data: [] }), {
           status: 200,
@@ -175,7 +175,7 @@ export async function GET(request: Request) {
    LIMIT ${number};
  `;
 
-      const response = await sql(query);
+      const response = await sql.query(query);
 
       return new Response(JSON.stringify({ data: response }), {
         status: 200,

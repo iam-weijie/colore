@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       RETURNING *
     `;
 
-    const [response] = await sql(queryString);
+    const [response] = await sql.query(queryString);
 
     return new Response(
       JSON.stringify({ 

@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
     //console.log("Received GET request for conversation between ", userId1, " and ", userId2);
 
-    const rawResponse = await sql(
+    const rawResponse = await sql.query(
       `
       SELECT 
         c.id::text, 

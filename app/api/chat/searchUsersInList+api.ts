@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
     const cleanIds = ids.trim().split(",");
 
-    const rawResponse = await sql(
+    const rawResponse = await sql.query(
       `
       SELECT 
         u.clerk_id,
