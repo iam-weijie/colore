@@ -201,7 +201,7 @@ const LogIn = () => {
                 disabled={isLoading}
                       />
             )}
-                    </View>
+          </View>
 
           {/*Platform.OS === "android" && <OAuth />*/}
           {Platform.OS === "ios" && <AppleSignIn />}
