@@ -223,6 +223,8 @@ export const handleSubmitPost = async (
     content: cleanContent.substring(0, 20) + (cleanContent.length > 20 ? "..." : "")
   });
 
+  console.log("[handlePostSubmission]: ", shouldEncrypt, encryptionKey, encryptText(cleanContent, encryptionKey))
+
   if (shouldEncrypt && encryptionKey) {
     console.log("[DEBUG] Encrypting content...");
     const originalContent = cleanContent;
@@ -232,6 +234,10 @@ export const handleSubmitPost = async (
   } else if (shouldEncrypt) {
     console.warn("[DEBUG] Should encrypt but no encryption key available!");
   }
+
+  const isUpdate = Boolean(draftPost.id);
+  const isPersonal = Boolean(draftPost.recipient_user_id);
+  const isPrompt = Boolean(draftPost.prompt_id);
 
   try {
     if (isUpdate) {
@@ -279,9 +285,7 @@ export const handleSubmitPost = async (
           : new Date().toISOString(),
         static_emoji: draftPost.static_emoji,
         reply_to: draftPost.reply_to,
-        formatting: shouldEncrypt && encryptionKey
-          ? encryptText(JSON.stringify(draftPost.formatting), encryptionKey)
-          : draftPost.formatting,
+        formatting: draftPost.formatting,
       };
 
       console.log("[DEBUG] Sending post to API with content:", 

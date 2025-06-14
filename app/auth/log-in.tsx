@@ -1,3 +1,4 @@
+import { deriveKey, generateSalt } from "@/lib/encryption";
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
@@ -93,6 +94,11 @@ const LogIn = () => {
     setLoginState(LOGIN_STATES.LOGGING_IN);
 
     try {
+
+      let userId;
+      let userSalt;
+      let userExist;
+      let needToCreateSalt;
       // Fetch user's salt first using email
       let saltResponse = await fetchAPI(`/api/users/getSalt?email=${encodeURIComponent(form.email)}`);
       if (saltResponse.error) {
@@ -125,6 +131,7 @@ const LogIn = () => {
         identifier: form.email,
         password: form.password,
       });
+
 
       if (logInAttempt.status === "complete") {
         await setActive({ session: logInAttempt.createdSessionId });

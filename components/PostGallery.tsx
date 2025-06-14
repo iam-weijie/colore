@@ -155,6 +155,9 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     const isOwner = item.user_id === user?.id;
     const hasNewComments = isOwner && item.unread_comments > 0;
 
+    const isEncrypted = encryptionKey && item.recipient_user_id 
+    const cleanContent = isEncrypted ? decryptText(item.content, encryptionKey) : item.content
+
     return (
       <Animated.View
         entering={FadeInDown.duration(400)}
@@ -189,7 +192,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
               className="font-JakartaSemiBold text-white/90 text-[15px] shadow leading-snug"
               numberOfLines={3}
             >
-              {truncateText(item.content, 120)}
+              {truncateText(cleanContent, 120)}
             </Text>
             {item.prompt && <Text
               className="italic text-white/80 text-[13px] shadow leading-snug"

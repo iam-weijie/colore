@@ -32,10 +32,11 @@ import React from "react";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useGlobalContext } from "../globalcontext";
 import * as Haptics from "expo-haptics";
+import { deriveKey } from "@/lib/encryption";
 
 const UserInfo = () => {
   const { playSoundEffect } = useSoundEffects();
-  const { soundEffectsEnabled } = useGlobalContext();
+  const { soundEffectsEnabled, setEncryptionKey } = useGlobalContext();
 
   const { user } = useUser();
   const { showAlert } = useAlert();
@@ -120,6 +121,7 @@ const UserInfo = () => {
           throw new Error(response.error);
         }
       }
+      const salt = response.data[0].salt
       return response.data[0];
     } catch (error) {
       console.error("Failed to fetch user data:", error);
@@ -170,6 +172,7 @@ const UserInfo = () => {
       const data = response.data.filter((u) => u.username);
 
       setUsers(data);
+      
     } catch (error) {
       console.error("Failed to fetch users", error);
     }
@@ -242,7 +245,6 @@ const UserInfo = () => {
   };
 
   useEffect(() => {
-    console.log("Update location");
     setForm((prevForm) => ({
       ...prevForm, // Spread previous form state
       userLocation: stateVars.userLocation, // Update only the userLocation

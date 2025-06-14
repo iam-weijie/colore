@@ -1,14 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Text, Image, TouchableOpacity, ScrollView, View } from 'react-native';
 import Animated, { 
   FadeIn, 
   FadeInDown, 
-  FadeInUp 
+  FadeInUp,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  interpolate,
+  Easing, 
 } from 'react-native-reanimated';
 import LottieView from 'lottie-react-native';
 import { InfoScreenProps } from '@/types/type';
 import CustomButton from './CustomButton';
 import ColoreActivityIndicator from './ColoreActivityIndicator';
+
+
 
 const InfoScreen: React.FC<InfoScreenProps> = ({
   title,
@@ -18,30 +26,111 @@ const InfoScreen: React.FC<InfoScreenProps> = ({
   hasAction = true,
   onAgree,
 }) => {
+  // Animation values
+  const waveAnim = useSharedValue(0);
+  const floatAnim = useSharedValue(0);
+
+  useEffect(() => {
+    // Start both animations
+    waveAnim.value = withRepeat(
+      withTiming(1, {
+        duration: 2000,
+        easing: Easing.linear,
+      }),
+      -1,
+      true
+    );
+    
+    floatAnim.value = withRepeat(
+      withTiming(1, {
+        duration: 3000,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      -1,
+      true
+    );
+  }, []);
+
+  // Wavy text component (unchanged)
+  const WavyCharacter = ({ char, index }: { char: string; index: number }) => {
+    const animatedStyle = useAnimatedStyle(() => {
+      const offset = interpolate(
+        waveAnim.value,
+        [0, 1],
+        [0, Math.sin((index + waveAnim.value) * 0.5) * 8]
+      );
+      return {
+        transform: [{ translateY: offset }],
+      };
+    });
+
+    return (
+      <Animated.Text
+        style={[
+          {
+            fontSize: 36,
+            fontWeight: 'bold',
+          },
+          animatedStyle,
+        ]}
+      >
+        {char === ' ' ? '\u00A0' : char}
+      </Animated.Text>
+    );
+  };
+
+  // Floating image animation
+const floatingStyle = useAnimatedStyle(() => {
+  const translateY = interpolate(
+    floatAnim.value,
+    [0, 1],
+    [-15, 15]
+  );
+  const translateX = interpolate(
+    floatAnim.value,
+    [0, 1],
+    [-5, 5] // Slight horizontal movement
+  );
+  const rotate = interpolate(
+    floatAnim.value,
+    [0, 1],
+    [-3, 3] // Slight rotation in degrees
+  );
+  return {
+    transform: [
+      { translateY },
+      { translateX },
+      { rotate: `${rotate}deg` },
+    ],
+  };
+});
+
   return (
     <View className={`flex-1 ${hasAction ? 'bg-[#FAFAFA]' : 'bg-[#FFFFFF]'} p-6 items-center justify-center`}>
       {image ? (
-        <Animated.View entering={FadeIn.duration(1000)}>
-          <Image source={image} className="w-60 h-60 mb-6" resizeMode="contain" />
+        <Animated.View 
+          entering={FadeIn.duration(1000)}
+          style={floatingStyle}
+        >
+          <Image source={image} className="w-60 h-60 -mb-2" resizeMode="contain" />
         </Animated.View>
       ) : (
         <ColoreActivityIndicator
-        text='Loading...'
+          text='Loading...'
           size={40}
-          />
+        />
       )}
 
+      {/* Rest of your component remains unchanged */}
       <Animated.View entering={FadeInDown.duration(800)}>
-        <Text className="text-center text-[20px] font-bold mb-2">{title}</Text>
+        <View className="mb-4" style={{ flexDirection: 'row', justifyContent: 'center' }}>
+          {title.split('').map((char, index) => (
+            <WavyCharacter key={index} char={char} index={index} />
+          ))}
+        </View>
       </Animated.View>
 
-      {subtitle && (
-        <Animated.View entering={FadeInDown.delay(100).duration(800)}>
-          <Text className="text-center text-[18px] font-semibold mb-4">{subtitle}</Text>
-        </Animated.View>
-      )}
-
-      <Animated.View entering={FadeInDown.delay(200).duration(800)}>
+            <Animated.View entering={FadeInDown.delay(200).duration(800)}>
         <Text className="text-center text-[16px] text-tray-700 leading-relaxed mb-10 mx-4">
           {content}
         </Text>
@@ -55,7 +144,6 @@ const InfoScreen: React.FC<InfoScreenProps> = ({
             title="Explore"
             padding={4}
             onPress={() => {
-              // Optional: Add button press animation
               onAgree();
             }}
           />

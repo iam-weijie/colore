@@ -774,7 +774,6 @@ const StarringContainer: React.FC<PostContainerProps> = ({
               {/* Scrollable content */}
               <ScrollView
                 ref={scrollViewRef}
-                style={{ flex: 1 }}
                 onContentSizeChange={handleContentSizeChange}
                 showsVerticalScrollIndicator={true}
                 persistentScrollbar={true}
@@ -904,7 +903,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
             size={64}
             color={"white" || postColor?.hex}
             style={{
-              shadowColor: "#000",
+              shadowColor: "#FFFFFF88",
               shadowOffset: { width: 0, height: 2 },
               shadowRadius: 8,
               shadowOpacity: 0.5,
