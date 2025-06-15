@@ -7,13 +7,16 @@ import Animated, {
   useAnimatedStyle,
   Easing,
   withSequence,
+  useDerivedValue,
 } from 'react-native-reanimated';
 import { characters } from '@/constants';
 
 const ColoreActivityIndicator = ({
   text = 'Loading...',
+  size = 24,
 }: {
   text?: string;
+  size?: number;
 }) => {
   const rotation = useSharedValue(0);
   const imageBounce = useSharedValue(0);
@@ -38,6 +41,7 @@ const ColoreActivityIndicator = ({
   // Dot animation - vertical bounce only
   const getDotStyle = (index: number) =>
     useAnimatedStyle(() => {
+      // Calculate phase inside useAnimatedStyle to avoid direct access to .value during render
       const phase = (rotation.value + index * 90) * (Math.PI / 180);
       const translateY = Math.sin(phase) * 4;
       
@@ -58,7 +62,7 @@ const ColoreActivityIndicator = ({
       <Animated.View style={imageStyle}>
         <Image 
           source={characters.bobChill} 
-          className="w-24 h-24 -mb-6" 
+          style={{ width: size, height: size, marginBottom: -6 }}
           resizeMode="contain" 
         />
       </Animated.View>
