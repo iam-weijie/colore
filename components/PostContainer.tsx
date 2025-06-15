@@ -8,7 +8,7 @@ import {
   handleEditing,
   handlePin,
   handleShare,
-  handleSavePost,
+  handleSavePost as libHandleSavePost,
   fetchLikeStatus,
 } from "@/lib/post";
 import { fetchAPI } from "@/lib/fetch";
@@ -92,7 +92,7 @@ const { width, height } = Dimensions.get("window");
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
-const PostContainer: React.FC<PostContainerProps> = ({
+const PostContainer: React.FC<PostContainerProps> = React.memo(({
   selectedPosts,
   handleCloseModal,
   handleUpdate,
@@ -139,7 +139,14 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   // Memoize the posts array to prevent unnecessary re-renders
-  const post = selectedPosts;
+  const post = useMemo(() => selectedPosts, [selectedPosts]);
+
+  // Check if post is saved
+  useEffect(() => {
+    if (currentPost && savedPosts) {
+      setIsSaved(savedPosts.includes(currentPost.id.toString()));
+    }
+  }, [currentPost, savedPosts]);
 
   useEffect(() => {
     if (post.length) {
@@ -154,7 +161,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
         console.log("[DEBUG] PostContainer - First post is personal:", Boolean(post[0].recipient_user_id));
       }
     }
-  }, [post]);
+  }, [post, currentPostIndex]);
 
   useEffect(() => {
     setCurrentPost(post[currentPostIndex]);
@@ -189,42 +196,295 @@ const PostContainer: React.FC<PostContainerProps> = ({
       currentPostIndex + 1 === posts.length - 1
     ) {
       // If last post and infiniteScroll is enabled
-      runOnJS(scrollToLoad)();
+      scrollToLoad();
     }
-  }, [currentPostIndex, encryptionKey]);
+  }, [currentPostIndex, encryptionKey, post, infiniteScroll, scrollToLoad, posts.length]);
 
-   useEffect(() => {
+  useEffect(() => {
     console.log("[PostContainer] See Comment: ", seeComments)
     if (seeComments) {
       setTimeout(() => {
-      handleCommentsPress()}, 800)
+        handleCommentsPress();
+      }, 800);
     }
-  }, [])
-  // Fetch like status only when post or user changes
-  const getLikeStatus = async () => {
-    if (!currentPost || !user?.id) return;
-    
-    const { isLiked, likeCount } = await fetchLikeStatus(currentPost, user.id);
-    setIsLiked(isLiked);
-    setLikeCount(likeCount);
-  };
-  useEffect(() => {
-    if (!user?.id || !currentPost?.id) return;
-    getLikeStatus();
-    setIsPinned(currentPost?.pinned);
-  }, [post, currentPostIndex, user?.id]);
+  }, [seeComments]);
 
+  // Fetch like status when current post changes
   useEffect(() => {
     if (currentPost && user) {
-      const isSaved = savedPosts.includes(String(currentPost.id));
-      setIsSaved(isSaved);
+      getLikeStatus();
+    }
+  }, [currentPost, user]);
+
+  const getLikeStatus = useCallback(async () => {
+    if (!currentPost || !user) return;
+    
+    try {
+      const status = await fetchLikeStatus(currentPost.id, user.id);
+      setIsLiked(status.isLiked);
+      setLikeCount(status.likeCount);
+    } catch (error) {
+      console.error("Error fetching like status:", error);
+    }
+  }, [currentPost, user]);
+
+  const handleLikePress = useCallback(async () => {
+    if (!currentPost || isLoadingLike || !user) return;
+    
+    setIsLoadingLike(true);
+    
+    try {
+      const endpoint = isLiked ? "unlikePost" : "likePost";
       
-      if (currentPost.user_id) {
-        const userNickname = getNicknameFor(currentPost.user_id);
-        setNickname(userNickname);
+      // Play sound effect
+      if (soundEffectsEnabled) {
+        playSoundEffect(SoundType.Like);
+      }
+      
+      // Optimistic update
+      setIsLiked(!isLiked);
+      setLikeCount(prevCount => isLiked ? prevCount - 1 : prevCount + 1);
+      
+      const response = await fetchAPI(`/api/posts/${endpoint}`, {
+        method: "POST",
+        body: JSON.stringify({
+          postId: currentPost.id,
+          userId: user.id,
+        }),
+      });
+      
+      if (response.error) {
+        // Revert optimistic update on error
+        setIsLiked(isLiked);
+        setLikeCount(prevCount => isLiked ? prevCount : prevCount - 1);
+        throw new Error(response.error);
+      }
+      
+    } catch (error) {
+      console.error("Error liking/unliking post:", error);
+    } finally {
+      setIsLoadingLike(false);
+    }
+  }, [currentPost, isLoadingLike, user, isLiked, soundEffectsEnabled, playSoundEffect]);
+
+  const findUserNickname = useCallback((
+    userArray: UserNicknamePair[],
+    userId: string
+  ): number => {
+    return userArray.findIndex(([id]) => id === userId);
+  }, []);
+
+  const handleDeletePress = useCallback(async () => {
+    if (!currentPost || !user) return;
+    
+    try {
+      const response = await fetchAPI(`/api/posts/deletePost`, {
+        method: "POST",
+        body: JSON.stringify({
+          postId: currentPost.id,
+          userId: user.id,
+        }),
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      showAlert({
+        title: "Post Deleted",
+        message: "Your post has been deleted.",
+        type: "SUCCESS",
+        status: "success",
+      });
+      
+      if (handleUpdate) {
+        handleUpdate(currentPost.id, true);
+      }
+      
+      if (handleCloseModal) {
+        handleCloseModal();
+      }
+      
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      showAlert({
+        title: "Error",
+        message: "Failed to delete post. Please try again.",
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  }, [currentPost, user, showAlert, handleUpdate, handleCloseModal]);
+
+  const handleCommentsPress = useCallback(() => {
+    if (!currentPost) return;
+    
+    router.push({
+      pathname: "/root/post/[id]",
+      params: { id: currentPost.id },
+    });
+  }, [currentPost, router]);
+
+  const handleInteractionPress = useCallback(async (emoji: string) => {
+    if (!currentPost || !user) return;
+    
+    try {
+      // Play sound effect
+      if (soundEffectsEnabled) {
+        playSoundEffect(SoundType.Button);
+      }
+      
+      setSelectedEmoji(emoji);
+      setShowEmojiModal(true);
+      
+      const response = await fetchAPI(`/api/posts/interactWithPost`, {
+        method: "POST",
+        body: JSON.stringify({
+          postId: currentPost.id,
+          userId: user.id,
+          emoji: emoji,
+        }),
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      // Hide emoji modal after a delay
+      setTimeout(() => {
+        setShowEmojiModal(false);
+      }, 2000);
+      
+    } catch (error) {
+      console.error("Error interacting with post:", error);
+      setShowEmojiModal(false);
+    }
+  }, [currentPost, user, soundEffectsEnabled, playSoundEffect]);
+
+  const handleCapture = useCallback(async () => {
+    if (!viewRef.current) return;
+    
+    try {
+      const uri = await captureRef(viewRef, {
+        format: "png",
+        quality: 0.8,
+      });
+      
+      setImageUri(uri);
+      
+      // Handle sharing
+      await Share.share({
+        url: uri,
+        title: "Check out this post from Colore!",
+      });
+      
+    } catch (error) {
+      console.error("Error capturing view:", error);
+      showAlert({
+        title: "Error",
+        message: "Failed to share post. Please try again.",
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  }, [viewRef, showAlert]);
+
+  const getMenuItems = useCallback((
+    isOwner: boolean,
+    invertedColors: boolean,
+    isPreview: boolean
+  ) => {
+    const menuItems = [];
+    
+    if (!isPreview) {
+      if (isOwner) {
+        menuItems.push({
+          icon: icons.trash,
+          label: "Delete",
+          onPress: handleDeletePress,
+        });
+      }
+      
+      menuItems.push({
+        icon: isSaved ? icons.bookmarkFilled : icons.bookmark,
+        label: isSaved ? "Unsave" : "Save",
+        onPress: () => handleSavePostPress(currentPost?.id),
+      });
+      
+      menuItems.push({
+        icon: icons.share,
+        label: "Share",
+        onPress: handleCapture,
+      });
+      
+      if (!isOwner) {
+        menuItems.push({
+          icon: icons.flag,
+          label: "Report",
+          onPress: () => {
+            Linking.openURL("mailto:support@colore.ca");
+          },
+        });
       }
     }
-  }, [currentPost, user, savedPosts, getNicknameFor]);
+    
+    return menuItems;
+  }, [isSaved, handleDeletePress, handleCapture, currentPost]);
+
+  const handleSavePostPress = useCallback(async (postId: number | undefined) => {
+    if (!postId || !user) return;
+    
+    try {
+      // Play sound effect
+      if (soundEffectsEnabled) {
+        playSoundEffect(SoundType.Button);
+      }
+      
+      // Optimistic update
+      if (isSaved) {
+        removeSavedPost(postId);
+      } else {
+        addSavedPost(postId);
+      }
+      
+      setIsSaved(!isSaved);
+      
+      const response = await fetchAPI(`/api/posts/${isSaved ? "unsavePost" : "savePost"}`, {
+        method: "POST",
+        body: JSON.stringify({
+          postId: postId,
+          userId: user.id,
+        }),
+      });
+      
+      if (response.error) {
+        // Revert optimistic update on error
+        if (isSaved) {
+          addSavedPost(postId);
+        } else {
+          removeSavedPost(postId);
+        }
+        setIsSaved(isSaved);
+        throw new Error(response.error);
+      }
+      
+      showAlert({
+        title: isSaved ? "Post Unsaved" : "Post Saved",
+        message: isSaved ? "Post removed from your saved items." : "Post added to your saved items.",
+        type: "SUCCESS",
+        status: "success",
+      });
+      
+    } catch (error) {
+      console.error("Error saving/unsaving post:", error);
+      showAlert({
+        title: "Error",
+        message: `Failed to ${isSaved ? "unsave" : "save"} post. Please try again.`,
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  }, [isSaved, user, soundEffectsEnabled, playSoundEffect, removeSavedPost, addSavedPost, showAlert]);
 
   const dateCreated = convertToLocal(new Date(currentPost?.created_at || ""));
   const formattedDate = formatDateTruncatedMonth(dateCreated);
@@ -279,331 +539,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
     opacity: withTiming(opacity.value),
   }));
 
-  const handleLikePress = async () => {
-    if (isLoadingLike || !currentPost?.id || !user?.id) return;
-    setIsLoadingLike(true);
-    try {
-      // Play like sound if liking (not unliking) and enabled
-      if (!isLiked && soundEffectsEnabled) {
-        playSoundEffect(SoundType.Like);
-      }
-      const increment = !isLiked;
-      setIsLiked(increment);
-      setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
-
-      console.log("[handleLikePress] Sending request with payload:", {
-        postId: currentPost.id,
-        userId: user.id,
-        increment,
-      });
-
-      const response = await fetchAPI(`/api/posts/updateLikeCount`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          postId: currentPost.id,
-          userId: user.id,
-          increment,
-        }),
-      });
-
-      console.log("[handleLikePress] Received response:", response);
-
-      if (response.error) {
-        console.error("[handleLikePress] Error in response:", response.error, response.details);
-        setIsLiked(!increment);
-        setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
-        showAlert({
-          title: "Error",
-          message: "Unable to update like status.",
-          type: "ERROR",
-          status: "error",
-        });
-        return;
-      }
-
-      setIsLiked(response.data.liked);
-      setLikeCount(response.data.likeCount);
-    } catch (error) {
-      console.error("Failed to update like status:", error);
-    } finally {
-      setIsLoadingLike(false);
-    }
-  };
-
-  const findUserNickname = (
-    userArray: UserNicknamePair[],
-    userId: string
-  ): number => {
-    const index = userArray.findIndex((pair) => pair[0] === userId);
-    return index;
-  }
-
-  const handleDeletePress = async () => {
-    handleCloseModal();
-
-    showAlert({
-      title: "Delete Post",
-      message: "Are you sure you want to delete this post?",
-      type: "DELETE",
-      status: "success",
-      action: async () => {
-        try {
-          const response = await fetchAPI(
-            `/api/posts/deletePost?id=${currentPost?.id}`,
-            {
-              method: "DELETE",
-            }
-          );
-
-          if (response.error) {
-            throw new Error(response.error);
-          }
-        } catch (error) {
-          console.error("Failed to delete post:", error);
-          showAlert({
-            title: "Error",
-            message: "Failed to delete post. Please try again.",
-            type: "ERROR",
-            status: "error",
-          });
-        } finally {
-          showAlert({
-            title: "Post deleted",
-            message: "Your post has been deleted successfully.",
-            type: "DELETE",
-            status: "success",
-          });
-        }
-      },
-      actionText: "Delete",
-      duration: 5000,
-    });
-  };
-
- 
-
-  const handleCommentsPress = () => {
-    const current = post[currentPostIndex];
-    setSelectedBoard(() => (
-      <PostScreen id={String(current.id)} clerkId={current.user_id} />
-    ));
-  };
-
-  const handleInteractionPress = async (emoji: string) => {
-    try {
-      console.log("Patching prompts");
-
-      await fetchAPI(`/api/prompts/updateEngagement`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          clerkId: user?.id,
-          promptId: currentPost?.prompt_id,
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to update unread comments:", error);
-    } finally {
-      setSelectedEmoji(emoji);
-      const timeoutId = setTimeout(() => {
-        setCurrentPostIndex((prevIndex) => {
-          const newIndex = prevIndex + 1;
-          if (newIndex < 0) {
-            return posts.length - 1; // Loop back to the last post
-          } else if (newIndex >= posts.length) {
-            return 0; // Loop back to the first post
-          }
-          return newIndex;
-        });
-        translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-        opacity.value = withTiming(0, {}, () => {
-          runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-          opacity.value = withTiming(1);
-        });
-        if (soundEffectsEnabled) {
-          //playSoundEffect(SoundType.Dislike);
-        }
-      }, 2000);
-      return () => clearTimeout(timeoutId);
-    }
-  };
-
-  // Capture the content as soon as the component mounts (first render)
-  useEffect(() => {
-    if (selectedPosts) {
-      setTimeout(() => {
-        handleCapture(); // Capture content on first render when modal is visible
-      }, 800);
-    }
-  }, [selectedPosts]);
-  useEffect(() => {
-    setTimeout(() => {
-      if (viewRef.current) {
-        viewRef.current.measure((x, y, width, height) => {
-          // console.log(x, y, width, height);
-        });
-      }
-    }, 500); // Small delay to ensure the view is ready
-  }, []);
-
-  const handleCapture = async () => {
-    if (!selectedPosts) {
-      console.warn("Modal is not visible, skipping capture.");
-      return;
-    }
-
-    if (viewRef.current) {
-      try {
-        const uri = await captureRef(viewRef.current, {
-          format: "png",
-          quality: 0.8,
-        });
-
-        setImageUri(uri); // Save the captured URI for later sharing
-      } catch (error) {
-        console.error("Error capturing view:", error);
-      }
-    }
-  };
-
-  const getMenuItems = (
-    isOwner: boolean,
-    invertedColors: boolean,
-    isPreview: boolean
-  ) => {
-    if (isPreview) {
-      return []; // Return empty array when in preview mode to disable menu
-    }
-
-    if (invertedColors) {
-      return currentPost?.recipient_user_id == user!.id
-        ? [
-            {
-              label: isPinned ? "Unpin" : "Pin",
-              source: icons.pin,
-              color: "#000000",
-              onPress: () => {
-                if (currentPost && user) {
-                  handlePin(currentPost, isPinned, user.id);
-                  handleUpdate && handleUpdate(!isPinned);
-                  setIsPinned((prevIsPinned) => !prevIsPinned);
-                  handleCloseModal && handleCloseModal();
-                }
-              },
-            },
-            {
-              label: "Share",
-              source: icons.send,
-              color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-              onPress: () => {
-                if (currentPost) {
-                  handleShare(imageUri, currentPost);
-                }
-              },
-            },
-            {
-              label: "Delete",
-              source: icons.trash,
-              color: "#DA0808",
-              onPress: handleDeletePress,
-            },
-          ]
-        : [
-            {
-              label: "Share",
-              source: icons.send,
-              color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-              onPress: () => {
-                if (currentPost) {
-                  handleShare(imageUri, currentPost);
-                }
-              },
-            },
-            {
-              label: isSaved ? "Remove" : "Save",
-              color: "#000000",
-              source: isSaved ? icons.close : icons.bookmark,
-              onPress: () => {
-                handleSavePost(currentPost?.id);
-              },
-            },
-            {
-              label: "Report",
-              source: icons.email,
-              color: "#DA0808",
-              onPress: handleReportPress,
-            },
-          ];
-    }
-
-    return isOwner
-      ? [
-          {
-            label: "Share",
-            source: icons.send,
-            color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-            onPress: () => {
-              if (currentPost) {
-                handleShare(imageUri, currentPost);
-              }
-            },
-          },
-          {
-            label: "Edit",
-            source: icons.pencil,
-            color: "#0851DA",
-            onPress: () => {
-              setTimeout(() => {
-                handleCloseModal && handleCloseModal();
-              }, 250);
-              
-              if (currentPost) {
-                handleEditing(currentPost);
-              }
-            },
-          },
-          {
-            label: isSaved ? "Remove" : "Save",
-            color: "#000000",
-            source: isSaved ? icons.close : icons.bookmark,
-            onPress: () => {
-              handleSavePost(currentPost?.id);
-            },
-          },
-          {
-            label: "Delete",
-            source: icons.trash,
-            color: "#DA0808",
-            onPress: handleDeletePress,
-          },
-        ]
-      : [
-          {
-            label: "Share",
-            source: icons.send,
-            color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-            onPress: () => {
-              if (currentPost) {
-                handleShare(imageUri, currentPost);
-              }
-            },
-          },
-          {
-            label: isSaved ? "Remove" : "Save",
-            color: "#000000",
-            source: isSaved ? icons.close : icons.bookmark,
-            onPress: () => {
-              handleSavePost(currentPost?.id);
-            },
-          },
-          {
-            label: "Report",
-            source: icons.email,
-            color: "#DA0808",
-            onPress: handleReportPress,
-          },
-        ];
-  };
-
   const backgroundColor = useSharedValue(
     postColor?.hex || "rgba(0, 0, 0, 0.5)"
   );
@@ -651,38 +586,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
     : typeof currentPost?.formatting === "string"
       ? JSON.parse(currentPost.formatting)
       : (currentPost?.formatting ?? []);
-
-  // Add the updated handleSavePost implementation
-  const handleSavePost = async (postId: number | undefined) => {
-    if (!user?.id || !postId) return;
-    
-    try {
-      // Update the UI immediately
-      const newIsSavedStatus = !isSaved;
-      setIsSaved(newIsSavedStatus);
-      
-      // Update the context
-      if (newIsSavedStatus) {
-        addSavedPost(postId);
-      } else {
-        removeSavedPost(postId);
-      }
-      
-      // Still make the API call to persist changes on the server
-      await fetchAPI(`/api/users/updateUserSavedPosts`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          clerkId: user.id,
-          postId: postId,
-          isSaved: newIsSavedStatus,
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to update saved post status:", error);
-      // Revert UI on error
-      setIsSaved(!isSaved);
-    }
-  };
 
   return (
     <AnimatedView
@@ -843,6 +746,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
         </ModalSheet>
     </AnimatedView>
   );
-};
+});
 
 export default PostContainer;
