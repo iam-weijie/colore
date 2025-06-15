@@ -202,4 +202,6 @@ export const useFriendsContext = () => {
   if (!ctx)
     throw new Error("useFriendsContext must be used within a FriendsProvider");
   return ctx;
-}; 
+};
+
+export default FriendsProvider; 

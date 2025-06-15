@@ -65,4 +65,6 @@ export const useDraftPost = () => {
   if (!ctx)
     throw new Error("useDraftPost must be used within a DraftPostProvider");
   return ctx;
-}; 
+};
+
+export default DraftPostProvider; 

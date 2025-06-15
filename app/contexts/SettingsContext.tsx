@@ -92,4 +92,6 @@ export const useSettingsContext = () => {
   if (!ctx)
     throw new Error("useSettingsContext must be used within a SettingsProvider");
   return ctx;
-}; 
+};
+
+export default SettingsProvider; 

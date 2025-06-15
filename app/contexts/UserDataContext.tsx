@@ -121,4 +121,6 @@ export const useUserDataContext = () => {
   if (!ctx)
     throw new Error("useUserDataContext must be used within a UserDataProvider");
   return ctx;
-}; 
+};
+
+export default UserDataProvider; 

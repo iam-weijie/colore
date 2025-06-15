@@ -26,4 +26,6 @@ export const useStacks = () => {
     throw new Error("useStacks must be used within a StacksProvider");
   }
   return ctx;
-}; 
+};
+
+export default StacksProvider; 

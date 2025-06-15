@@ -29,4 +29,6 @@ export const useDevice = () => {
   const ctx = useContext(DeviceContext);
   if (!ctx) throw new Error("useDevice must be used within a DeviceProvider");
   return ctx;
-}; 
+};
+
+export default DeviceProvider; 

@@ -205,4 +205,7 @@ export const useBoardsContext = () => {
   if (!ctx)
     throw new Error("useBoardsContext must be used within a BoardsProvider");
   return ctx;
-}; 
+};
+
+// Add default export for the BoardsProvider component
+export default BoardsProvider; 

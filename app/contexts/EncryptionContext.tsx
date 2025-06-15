@@ -98,4 +98,6 @@ export const useEncryptionContext = () => {
       "useEncryptionContext must be used within an EncryptionProvider"
     );
   return ctx;
-}; 
+};
+
+export default EncryptionProvider; 
