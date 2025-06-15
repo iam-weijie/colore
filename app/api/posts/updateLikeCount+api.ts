@@ -1,3 +1,4 @@
+import { sendNotification } from "@/lib/notification";
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
@@ -114,7 +115,17 @@ export async function PATCH(request: Request) {
 
       // don't send a notification if someone likes their own post
       if (postInfo[0].user_id !== userId) {
-        const res = await fetch(
+        const notification = {
+          id: result[0].like_id,
+          post_id: postInfo[0].id,
+          post_content: postInfo[0].content,
+          post_color: postInfo[0].color,
+          liker_username: likerUsername[0].username,
+        };
+
+        await sendNotification(postInfo[0].user_id, "Likes", notification, {});
+
+        /*const res = await fetch(
           `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
           {
             method: "POST",
@@ -139,7 +150,7 @@ export async function PATCH(request: Request) {
           console.log(data.message!);
         } else {
           console.log("successfully shot post like notification!");
-        }
+        }*/
       }
     } else {
       // Unlike the post
