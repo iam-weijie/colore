@@ -29,7 +29,8 @@ import ItemContainer from "@/components/ItemContainer";
 import CustomButton from "@/components/CustomButton";
 import { FindUser } from "@/components/FindUsers";
 import { DetailRow, HeaderCard, ToggleRow } from "@/components/CardInfo";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { Post } from "@/types/type";
 import PostModal from "@/components/PostModal";
@@ -47,8 +48,8 @@ const UserPersonalBoard = () => {
     setHapticsEnabled,
     soundEffectsEnabled,
     setSoundEffectsEnabled,
-    encryptionKey,
-  } = useGlobalContext();
+  } = useSettingsContext();
+  const { encryptionKey } = useEncryptionContext();
   const [isBoardSettingsVisible, setIsBoardSettingsVisible] =
     useState<boolean>(false);
   const [selectedSetting, setSelectedSetting] = useState<string>("");

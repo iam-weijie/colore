@@ -1,4 +1,4 @@
-import { useGlobalContext } from "@/app/globalcontext";
+import { useStacks } from "@/app/contexts/StacksContext";
 import DraggablePostIt from "./DraggablePostIt";
 import PostModal from "@/components/PostModal";
 import { Post, PostWithPosition, Stacks, PostItBoardProps, UserNicknamePair } from "@/types/type";

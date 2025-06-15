@@ -9,11 +9,11 @@ import { icons } from "@/constants";
 import React from "react";
 import Animated, { FadeIn, FadeInDown, FadeInUp, SlideInUp } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useDevice } from "@/app/contexts/DeviceContext";
 
 const PwReset = () => {
   const { signIn } = useSignIn();
-  const { isIpad } = useGlobalContext()
+  const { isIpad } = useDevice();
   const [showVerification, setShowVerification] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");

@@ -19,7 +19,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
+import { useProfileContext } from "@/app/contexts/ProfileContext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
@@ -46,13 +48,15 @@ const Settings = () => {
     setHapticsEnabled,
     soundEffectsEnabled,
     setSoundEffectsEnabled,
+  } = useSettingsContext();
+
+  const {
     profile,
     setProfile,
     refreshProfile,
     userColors,
-    setUserColors,
-    setEncryptionKey,
-  } = useGlobalContext();
+  } = useProfileContext();
+  const { setEncryptionKey } = useEncryptionContext();
   const { playSoundEffect } = useSoundEffects(); // Use the sound hook
   const { showAlert } = useAlert();
 

@@ -1,5 +1,5 @@
 import PostModal from "@/components/PostModal";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { allColors } from "@/constants/colors";
 import { formatDateTruncatedMonth, getRelativeTime, formatNumber } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
@@ -25,6 +25,7 @@ import {
 } from "react-native";
 import { useNavigationContext } from "./NavigationContext";
 import { decryptText, encryptText } from "@/lib/encryption";
+import { useDevice } from "@/app/contexts/DeviceContext";
 import EmptyListView from "./EmptyList";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 
@@ -41,7 +42,8 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   hasMore
 }) => {
   const { user } = useUser();
-  const { isIpad, encryptionKey } = useGlobalContext();
+  const { isIpad } = useDevice();
+  const { encryptionKey } = useEncryptionContext();
   const isOwnProfile = user!.id === profileUserId;
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [sortedPosts, setSortedPosts] = useState<Post[]>([]);

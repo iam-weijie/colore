@@ -1,5 +1,5 @@
 import { useNavigationContext } from "@/components/NavigationContext";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import PostGallery from "@/components/PostGallery";
 import { countries } from "@/constants/countries";
 import { allColors, defaultColors } from "@/constants/colors";
@@ -57,6 +57,9 @@ import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial"
 import CarouselPage from "./CarrousselPage";
 import ModalSheet from "./Modal";
 import { decryptText } from "@/lib/encryption";
+import { useDevice } from "@/app/contexts/DeviceContext";
+import { useProfileContext } from "@/app/contexts/ProfileContext";
+import { useNotificationsContext } from "@/app/contexts/NotificationsContext";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View entering={FadeIn.duration(600)} className="w-full px-4 my-3">
@@ -85,8 +88,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
 }) => {
   const router = useRouter();
   const { user } = useUser();
-  const { isIpad, profile, unreadComments } = useGlobalContext();
+  const { isIpad } = useDevice();
+  const { profile } = useProfileContext();
+  const { unreadComments } = useNotificationsContext();
   const { showAlert } = useAlert();
+  const { encryptionKey } = useEncryptionContext();
 
   const isEditable = user!.id === userId;
 
@@ -128,7 +134,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [profileLoading, setProfileLoading] = useState(true);
   const [emojiLoading, setEmojiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [profileUser, setProfileUser] = useState<UserProfileType | null>(
+  const [profileUser, setProfileUser] = useState<UserProfileType | null | undefined>(
     isEditable ? profile : null
   );
   const [countryEmoji, setCountryEmoji] = useState<string>("");
@@ -159,8 +165,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [personalPosts, setPersonalPosts] = useState<Post[]>([]);
   const [disableInteractions, setDisableInteractions] =
     useState<boolean>(false);
-
-  const { encryptionKey } = useGlobalContext();
 
   const Flag = countries[(profileUser?.country || "Canada") as keyof typeof countries];
   const fetchFriendCount = async () => {
@@ -364,7 +368,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         color: "#93c5fd",
       };
 
-      const checkForPrivacy = response.data.filter((b) =>
+      const checkForPrivacy = response.data.filter((b: any) =>
         b.restrictions.includes("Everyone")
       );
 

@@ -9,7 +9,8 @@ import { useAuth, useSignIn, useUser } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { useCallback, useState, useEffect, useRef } from "react";
 import { Alert, Image, ScrollView, Text, View, ActivityIndicator } from "react-native";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useDevice } from "@/app/contexts/DeviceContext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import React from "react";
 import { fetchAPI } from "@/lib/fetch";
 import { useAlert } from "@/notifications/AlertContext";
@@ -20,9 +21,11 @@ const LogIn = () => {
   const { signOut, isSignedIn } = useAuth();
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
-  const { isIpad, setEncryptionKey } = useGlobalContext();
-  const { showAlert } = useAlert()
+  const { isIpad } = useDevice();
+  const { setEncryptionKey } = useEncryptionContext();
+  const { showAlert } = useAlert();
+  const [isLoading, setIsLoading] = useState(false);
+  const processingSalt = useRef(false);
 
   const [form, setForm] = useState({
     email: "",

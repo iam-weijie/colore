@@ -61,7 +61,6 @@ import Animated, {
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from "@/notifications/AlertContext";
 import TabNavigation from "@/components/TabNavigation";
-import { useGlobalContext } from "@/app/globalcontext";
 import ItemContainer from "@/components/ItemContainer";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import TabsContainer from "@/components/TabsContainer";
@@ -70,6 +69,8 @@ import { useSoundGesture } from "@/hooks/useSoundGesture";
 //import { ScrollView } from "react-native-gesture-handler";
 import { useHaptics } from "@/hooks/useHaptics";
 import EmptyListView from "@/components/EmptyList";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
+import { useNotificationsContext } from "@/app/contexts/NotificationsContext";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -85,7 +86,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   const { user } = useUser();
   const { showAlert } = useAlert();
   const { stateVars, setStateVars } = useNavigationContext();
-  const { soundEffectsEnabled } = useGlobalContext();
+  const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects();
   const { handlePanGestureStateChange } = useSoundGesture(SoundType.Swipe);
 
@@ -780,7 +781,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
   const { user } = useUser();
   const { showAlert } = useAlert();
   const { storedNotifications, unreadComments, unreadPersonalPosts } =
-    useGlobalContext();
+    useNotificationsContext();
 
   // Notifications
   const [commentsNotif, setCommentsNotif] = useState<PostComment[]>();

@@ -1,8 +1,8 @@
 import * as Haptics from 'expo-haptics';
-import { useGlobalContext } from '../app/globalcontext'; // Corrected relative import path
+import { useSettingsContext } from '@/app/contexts/SettingsContext';
 
 export const useHaptics = () => {
-  const { hapticsEnabled } = useGlobalContext();
+  const { hapticsEnabled } = useSettingsContext();
 
   const triggerHaptic = (
     type: Haptics.ImpactFeedbackStyle | Haptics.NotificationFeedbackType = Haptics.ImpactFeedbackStyle.Light

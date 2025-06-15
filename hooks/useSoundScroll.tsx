@@ -1,7 +1,7 @@
 import { useRef, useCallback } from 'react';
 import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { useSoundEffects, SoundType } from './useSoundEffects';
-import { useGlobalContext } from '@/app/globalcontext';
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
 
 /**
  * Hook to add sound effects to scroll interactions
@@ -11,7 +11,7 @@ import { useGlobalContext } from '@/app/globalcontext';
  * @returns Object with onScroll handler to attach to scrollable component
  */
 export const useSoundScroll = (throttleTime = 500, soundType = SoundType.Scroll) => {
-  const { soundEffectsEnabled } = useGlobalContext();
+  const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects();
   
   const lastScrollTime = useRef<number>(0);

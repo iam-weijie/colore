@@ -1,6 +1,7 @@
 import React, { useEffect, useState  } from "react";
 import { useUser } from "@clerk/clerk-expo";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
+import { useDevice } from "@/app/contexts/DeviceContext";
 import {
   FlatList,
   TouchableOpacity,
@@ -18,7 +19,7 @@ import { decryptText } from "@/lib/encryption";
 import EmptyListView from "./EmptyList";
   
 const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
-  const { encryptionKey } = useGlobalContext();
+  const { encryptionKey } = useEncryptionContext();
   const isPrivate = item.restrictions?.includes("Private");
   let displayTitle = item.title;
   if (isPrivate && encryptionKey) {
@@ -121,7 +122,7 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
 
   const BoardGallery = ({ boards, offsetY }: {boards: Board[], offsetY?: number}) => {
     const [allBoards, setAllBoards] = useState<any | null>(null);
-    const { isIpad } = useGlobalContext();
+    const { isIpad } = useDevice();
   
     useEffect(() => {
       if (allBoards) {

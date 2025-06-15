@@ -22,14 +22,14 @@ import { CustomButtonBar } from "@/components/CustomTabBar";
 import ModalSheet from "@/components/Modal";
 import { set } from "date-fns";
 import ItemContainer from "@/components/ItemContainer";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useDraftPost } from "@/app/contexts/DraftPostContext";
 import PostModal from "@/components/PostModal";
 
 
 const Profile = () => {
   const { user } = useUser();
   const [post, setPost] = useState<Post>();
-  const { resetDraftPost } = useGlobalContext()
+  const { resetDraftPost } = useDraftPost();
   const { userId, username, postId, commentId, tab } = useLocalSearchParams();
   const [isUserSettingsVisible, setIsUserSettingsVisible] = useState(false);
   const [nickname, setNickname] = useState("");

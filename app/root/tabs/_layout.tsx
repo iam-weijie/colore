@@ -4,7 +4,9 @@ import { Animated, Image, View, Text, StyleSheet, Pressable, GestureResponderEve
 import * as Haptics from 'expo-haptics';
 import NotificationBubble from '@/components/NotificationBubble';
 import { icons, images } from '@/constants';
-import { useGlobalContext } from '@/app/globalcontext';
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
+import { useDevice } from "@/app/contexts/DeviceContext";
+import { useNotificationsContext } from "@/app/contexts/NotificationsContext";
 import { useNavigationState } from '@react-navigation/native';
 import { CustomTabBar } from '@/components/CustomTabBar';
 import TabIcon from '@/components/TabIcon';
@@ -27,7 +29,7 @@ const HapticTabBarButton: React.FC<HapticTabBarButtonProps> = ({
   isCenter = false,
   ...rest 
 }) => {
-  const { hapticsEnabled, soundEffectsEnabled } = useGlobalContext();
+  const { hapticsEnabled, soundEffectsEnabled } = useSettingsContext();
   const { triggerHaptic } = useHaptics();
   const { playSoundEffect } = useSoundEffects();
   
@@ -128,7 +130,9 @@ const getFocusedTabRouteName = (state: any): string | undefined => {
 
 
 const Layout: React.FC = () => {
-  const { isIpad, unreadComments, unreadMessages, unreadRequests, unreadPersonalPosts } = useGlobalContext();
+  const { hapticsEnabled, soundEffectsEnabled } = useSettingsContext();
+  const { isIpad } = useDevice();
+  const { unreadComments, unreadMessages, unreadRequests, unreadPersonalPosts } = useNotificationsContext();
   const navigationState = useNavigationState((state) => state);
   const currentTab = getFocusedTabRouteName(navigationState);
 

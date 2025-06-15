@@ -7,7 +7,9 @@ import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { useAlert } from '@/notifications/AlertContext';
 import { CommentItem } from "@/components/Comment";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useReplyScroll } from "@/app/contexts/ReplyScrollContext";
+import { useDevice } from "@/app/contexts/DeviceContext";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import {
   useFocusEffect,
@@ -97,7 +99,9 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
     (c) => c.id === color
   ) as PostItColor;
   const { stateVars, setStateVars } = useNavigationContext();
-  const { replyTo, setReplyTo, scrollTo, setScrollTo, isIpad, soundEffectsEnabled } = useGlobalContext(); // Add soundEffectsEnabled
+  const { replyTo, setReplyTo, scrollTo, setScrollTo } = useReplyScroll();
+  const { isIpad } = useDevice();
+  const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const [replyView, setReplyView] = useState<PostComment | null>(null);
   const inputRef = useRef(null);

@@ -1,5 +1,5 @@
 import { Audio } from 'expo-av';
-import { useGlobalContext } from '../app/globalcontext';
+import { useSettingsContext } from '@/app/contexts/SettingsContext';
 import { useState, useEffect, useRef } from 'react';
 
 export enum SoundType {
@@ -84,7 +84,7 @@ export const preloadCommonSounds = async () => {
 };
 
 export const useSoundEffects = () => {
-  const { soundEffectsEnabled } = useGlobalContext();
+  const { soundEffectsEnabled } = useSettingsContext();
   const [lastPlayed, setLastPlayed] = useState<{ [key in SoundType]?: number }>({});
   const soundQueue = useRef<SoundType[]>([]);
   const isProcessingQueue = useRef<boolean>(false);

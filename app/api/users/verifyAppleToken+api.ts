@@ -1,7 +1,6 @@
 import { fetchAPI } from "@/lib/fetch";
 import { neon } from "@neondatabase/serverless";
 import * as jose from "jose"; // Import jose for JWT handling
-import { useGlobalContext } from "@/app/globalcontext";
 
 export async function POST(request: Request) {
   try {

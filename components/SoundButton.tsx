@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
-import { useGlobalContext } from '@/app/globalcontext';
+import { useSettingsContext } from '@/app/contexts/SettingsContext';
 import { useSoundEffects, SoundType } from '@/hooks/useSoundEffects';
 
 interface SoundButtonProps extends TouchableOpacityProps {
@@ -22,7 +22,7 @@ const SoundButton: React.FC<SoundButtonProps> = ({
   children, 
   ...rest 
 }) => {
-  const { soundEffectsEnabled } = useGlobalContext();
+  const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects();
 
   const handlePress = (e: any) => {

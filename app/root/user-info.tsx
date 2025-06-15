@@ -30,16 +30,19 @@ import { allColors, defaultColors } from "@/constants/colors";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
-import { useGlobalContext } from "../globalcontext";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
+import { useProfileContext } from "@/app/contexts/ProfileContext";
 import * as Haptics from "expo-haptics";
 import { deriveKey } from "@/lib/encryption";
 
 const UserInfo = () => {
   const { playSoundEffect } = useSoundEffects();
-  const { soundEffectsEnabled, setEncryptionKey } = useGlobalContext();
+  const { soundEffectsEnabled } = useSettingsContext();
+
   const { user } = useUser();
   const { showAlert } = useAlert();
-  const { userColors } = useGlobalContext();
+
+  const { userColors } = useProfileContext();
 
   console.log(
     "[user-info]: ",

@@ -17,7 +17,6 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useGlobalContext } from "@/app/globalcontext";
 import * as Haptics from "expo-haptics";
 import { addDays } from "date-fns";
 import { encryptText } from "@/lib/encryption";

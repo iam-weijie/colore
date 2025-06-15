@@ -1,9 +1,12 @@
 import 'react-native-get-random-values';
 import '@/lib/cryptoPolyfill'; // Import crypto polyfill first
 import { NavigationProvider } from "@/components/NavigationContext";
-import { NotificationProvider } from '../notifications/NotificationContext';
+import { NotificationProvider as ExpoNotificationProvider } from '../notifications/NotificationContext';
+import { ProfileProvider } from "@/app/contexts/ProfileContext";
+import { SettingsProvider } from "@/app/contexts/SettingsContext";
+import { NotificationsProvider } from "@/app/contexts/NotificationsContext";
+import { EncryptionProvider } from "@/app/contexts/EncryptionContext";
 import SplashVideo from "@/components/SplashVideo";
-import { GlobalProvider } from "@/app/globalcontext";
 import { AlertProvider } from "@/notifications/AlertContext";
 import { tokenCache } from "@/lib/auth";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
@@ -16,16 +19,27 @@ import "react-native-reanimated";
 import Animated, { FadeIn } from "react-native-reanimated";
 import React from "react";
 import { preloadCommonSounds } from '@/hooks/useSoundEffects';
+import { StacksProvider } from "@/app/contexts/StacksContext";
+import { DraftPostProvider } from "@/app/contexts/DraftPostContext";
+import { DeviceProvider } from "@/app/contexts/DeviceContext";
+import { ReplyScrollProvider } from "@/app/contexts/ReplyScrollContext";
 
 
 
 // DEBUG: Log all imported components
 console.log({
   NavigationProvider,
-  NotificationProvider,
+  ExpoNotificationProvider,
   SplashVideo,
-  GlobalProvider,
   AlertProvider,
+  ProfileProvider,
+  SettingsProvider,
+  NotificationsProvider,
+  EncryptionProvider,
+  StacksProvider,
+  DraftPostProvider,
+  DeviceProvider,
+  ReplyScrollProvider,
 });
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -87,9 +101,16 @@ export default function RootLayout() {
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
         <ClerkLoaded>
               <NavigationProvider>
-         <GlobalProvider>
+         <EncryptionProvider>
+          <SettingsProvider>
+           <ProfileProvider>
+            <NotificationsProvider>
+             <StacksProvider>
+              <DraftPostProvider>
+               <DeviceProvider>
+                <ReplyScrollProvider>
           <AlertProvider>
-        <NotificationProvider>
+        <ExpoNotificationProvider>
           
             
               <Animated.View style={{ flex: 1 }} entering={FadeIn}>
@@ -101,9 +122,16 @@ export default function RootLayout() {
                 </Stack>
               </Animated.View>
             
-          </NotificationProvider>
+          </ExpoNotificationProvider>
           </AlertProvider>
-          </GlobalProvider>
+          </ReplyScrollProvider>
+          </DeviceProvider>
+          </DraftPostProvider>
+          </StacksProvider>
+          </NotificationsProvider>
+          </ProfileProvider>
+          </SettingsProvider>
+         </EncryptionProvider>
           </NavigationProvider>
         </ClerkLoaded>
       </ClerkProvider>

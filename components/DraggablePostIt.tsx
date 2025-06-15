@@ -1,6 +1,5 @@
 
-  import { useGlobalContext } from "@/app/globalcontext";
-  import { icons } from "@/constants";
+    import { icons } from "@/constants";
   import { allColors } from "@/constants/colors";
   import { Post, PostWithPosition, Position, Stacks } from "@/types/type";
   import { useEffect, useRef, useState, useMemo } from "react";
@@ -21,6 +20,7 @@
   import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
   import React from "react";
 import { fetchAPI } from "@/lib/fetch";
+import { useStacks } from "@/app/contexts/StacksContext";
 
 interface DraggablePostItProps {
   post: PostWithPosition;
@@ -66,7 +66,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   const clickThreshold = 2;
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [fontColor, setFontColor] = useState<string>("#0000ff");
-  const { stacks, setStacks } = useGlobalContext();
+  const { stacks, setStacks } = useStacks();
   const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(
     null
   );

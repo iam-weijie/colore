@@ -11,7 +11,8 @@ import { Alert, Platform, Text, TouchableOpacity, View } from "react-native";
 import { useAlert } from '@/notifications/AlertContext';
 import * as Haptics from 'expo-haptics';
 import { useHaptics } from "@/hooks/useHaptics";
-import { useGlobalContext } from "../globalcontext";
+import { useDraftPost } from "@/app/contexts/DraftPostContext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { handleSubmitPost } from "@/lib/post";
  
 
@@ -20,7 +21,8 @@ const PreviewPost = () => {
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const { showAlert } = useAlert();
   const { triggerHaptic } = useHaptics();
-  const { setDraftPost, draftPost, encryptionKey } = useGlobalContext();
+  const { setDraftPost, draftPost } = useDraftPost();
+  const { encryptionKey } = useEncryptionContext();
   const [isPosting, setIsPosting] = useState(false);
 
 
