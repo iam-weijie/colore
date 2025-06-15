@@ -61,4 +61,6 @@ export const useProfileContext = () => {
   if (!ctx)
     throw new Error("useProfileContext must be used within a ProfileProvider");
   return ctx;
-}; 
+};
+
+export default ProfileProvider; 

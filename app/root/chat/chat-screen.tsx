@@ -941,3 +941,5 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
     </View>
   );
 };
+
+export default ChatScreen;

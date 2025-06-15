@@ -31,4 +31,6 @@ export const useReplyScroll = () => {
   if (!ctx)
     throw new Error("useReplyScroll must be used within a ReplyScrollProvider");
   return ctx;
-}; 
+};
+
+export default ReplyScrollProvider; 

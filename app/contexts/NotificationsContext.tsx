@@ -344,4 +344,6 @@ export const useNotificationsContext = () => {
       "useNotificationsContext must be used within a NotificationsProvider"
     );
   return ctx;
-}; 
+};
+
+export default NotificationsProvider; 
