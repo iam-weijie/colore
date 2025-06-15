@@ -393,7 +393,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       AsyncStorage.setItem("pushToken", pushToken);
 
       // initial fetching of all notifications while socket was off
-      //fetchNotifications();
+      fetchNotifications();
       updateLastConnection();
 
       const socket = io(`ws://${process.env.EXPO_PUBLIC_DEVICE_IP}:3000`, {
@@ -403,7 +403,6 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       });
 
-      // TEMPPPPP
       /*const socket = io(
         `wss://${process.env.EXPO_PUBLIC_SERVER_URL?.substring(8)}`,
         {

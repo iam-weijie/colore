@@ -290,7 +290,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
       : friend.friend_username.length > 0
   );
 
-
   // RENDER LISTS ------ START
   const renderConversationItem = ({
     item,
@@ -692,7 +691,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                 <View className="p-2">
                   <View className="flex-row items-center justify-start mx-4">
                     <Text className="font-JakartaSemiBold text-[14px]">
-                      Request ({allFriendRequests?.received && allFriendRequests?.received.length })
+                      Request (
+                      {allFriendRequests?.received &&
+                        allFriendRequests?.received.length}
+                      )
                     </Text>
                     <View className="absolute top-[50%] right-3">
                       <NotificationBubble
@@ -730,7 +732,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               <View className=" flex-col mt-2">
                 <View className="p-2">
                   <View className="flex-row items-center justify-start mx-4">
-                    <Text className="font-JakartaSemiBold text-[14px]">Sent ({allFriendRequests?.sent.length})</Text>
+                    <Text className="font-JakartaSemiBold text-[14px]">
+                      Sent ({allFriendRequests?.sent.length})
+                    </Text>
                     <View className="absolute top-[50%] right-3">
                       <NotificationBubble
                         unread={
@@ -809,7 +813,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
 
   const NotificationItem = ({ item, loading, setShowDeleteIcon }) => {
     // Find post info for comments
-    let post: { id: any; };
+    let post: { id: any };
     if (item.commenter_username) {
       post = storedNotifications.find((n) =>
         n.comments?.some((comment) => comment.id === item.id)
@@ -826,25 +830,24 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
       label = `${item.liker_username} liked your ${item.comment_id ? "comment" : "post"}`;
     }
 
-        const fetchPosts = async (id: string) => {
-          try {
-            const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`);
-            const post = response.data[0];
-      
-            if (!post || post.length === 0) {
-              return null;
-            }
+    const fetchPosts = async (id: string) => {
+      try {
+        const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`);
+        const post = response.data[0];
 
-            return post
+        if (!post || post.length === 0) {
+          return null;
+        }
 
-          } catch (error) {
-            return null;
-          }
-        };
+        return post;
+      } catch (error) {
+        return null;
+      }
+    };
 
     return (
       <ItemContainer
-        label={`${item.commenter_username ?? item.username} has ${item.commenter_username ? "has commented a post." : "sent you a post"}`}
+        label={label}
         caption={`${item.comment_content ?? item.content ?? item.post_content}`}
         colors={["#93c5fd", "#93c5fd"]}
         icon={
@@ -858,34 +861,34 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
         iconColor="#000"
         onPress={() => {
           if (item.recipient_user_id) {
-            
             router.push({
               pathname: "/root/user-board/[id]",
-              params: { 
-                id: `${user!.id}`, 
+              params: {
+                id: `${user!.id}`,
                 username: `Personal board`,
                 postId: post?.id,
-                commentId: item.id, },
+                commentId: item.id,
+              },
             });
           } else if (item.liker_username) {
-          fetchPosts(item.post_id).then((post) => {
+            fetchPosts(item.post_id).then((post) => {
+              router.push({
+                pathname: "/root/tabs/profile",
+                params: {
+                  post: JSON.stringify(post),
+                  tab: "Posts",
+                },
+              });
+            });
+          } else {
             router.push({
               pathname: "/root/tabs/profile",
               params: {
                 post: JSON.stringify(post),
-                tab: "Posts"
-              }
+                commentId: item.id,
+                tab: "Posts",
+              },
             });
-          });
-          
-          } else {
-             router.push({
-              pathname: "/root/tabs/profile", 
-              params: {
-                post: JSON.stringify(post),
-                commentId:  item.id,
-                tab: "Posts"
-            }});
           }
         }}
       />
