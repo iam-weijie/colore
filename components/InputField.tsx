@@ -21,6 +21,8 @@ const InputField = ({
   inputStyle,
   iconStyle,
   className,
+  textContentType,
+  autoComplete,
   // variant,
   ...props
 }: InputFieldProps) => {
@@ -46,6 +48,8 @@ const InputField = ({
               placeholderTextColor={"silver"}
               className={`rounded-full p-4 font-JakartaSemiBold text-[17px] flex-1 ${inputStyle} text-left`}
               secureTextEntry={secureTextEntry}
+              textContentType={textContentType}
+              autoComplete={autoComplete}
               {...props}
             />
           </View>

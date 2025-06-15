@@ -423,43 +423,12 @@ export function formatNumber(num: number): string {
 }
 
 /**
- * Updates post positions when posts are added or removed.
- * This ensures the board layout remains optimized.
- * 
- * @param posts Current posts array
- * @param boardDimensions Board dimensions
- * @returns Optimized positions
+ * Checks if the provided value is a valid Date object that can be used for calculations
+ * @param date The value to check
+ * @returns boolean indicating if the value is a valid date
  */
-export const optimizePostPositions = (
-  posts: Post[],
-  boardDimensions?: { width: number; height: number }
-): Post[] => {
-  // Reset positions when reorganizing
-  cleanStoredPosition();
-  
-  // Calculate board dimensions if not provided
-  const dimensions = boardDimensions || calculateBoardDimensions(posts.length);
-  
-  // First handle pinned posts - keep their positions at the top
-  const pinnedPosts = posts.filter(post => post.pinned);
-  const unpinnedPosts = posts.filter(post => !post.pinned);
-  
-  // Update positions for all posts
-  const updatedPosts = [
-    // Keep pinned posts at their pinned positions
-    ...pinnedPosts.map(post => ({
-      ...post,
-      position: EnhancedRandomPosition(true, null, posts.length, dimensions)
-    })),
-    
-    // Optimize positions for unpinned posts
-    ...unpinnedPosts.map(post => ({
-      ...post,
-      position: EnhancedRandomPosition(false, null, posts.length, dimensions)
-    }))
-  ];
-  
-  return updatedPosts;
-};
+export function isValidDate(date: any): boolean {
+  return date instanceof Date && !isNaN(date.getTime());
+}
 
 

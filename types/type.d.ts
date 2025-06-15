@@ -267,6 +267,7 @@ declare interface UserPostsGalleryProps {
   onLoadMore?: () => void;
   isLoading?: boolean;
   hasMore?: boolean;
+  skipAnimations?: boolean;
 }
 
 declare interface UserProfileProps {
@@ -329,6 +330,8 @@ declare interface InputFieldProps extends TextInputProps {
   iconStyle?: string;
   className?: string;
   variant?: string;
+  textContentType?: 'none' | 'URL' | 'addressCity' | 'addressCityAndState' | 'addressState' | 'countryName' | 'creditCardNumber' | 'emailAddress' | 'familyName' | 'fullStreetAddress' | 'givenName' | 'jobTitle' | 'location' | 'middleName' | 'name' | 'namePrefix' | 'nameSuffix' | 'nickname' | 'organizationName' | 'postalCode' | 'streetAddressLine1' | 'streetAddressLine2' | 'sublocality' | 'telephoneNumber' | 'username' | 'password' | 'newPassword' | 'oneTimeCode';
+  autoComplete?: 'off' | 'username' | 'password' | 'email' | 'name' | 'tel' | 'street-address' | 'postal-code' | 'cc-number' | 'cc-csc' | 'cc-exp' | 'cc-exp-month' | 'cc-exp-year';
 }
 
 declare interface NotificationBubbleProps {

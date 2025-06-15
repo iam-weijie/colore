@@ -320,15 +320,15 @@ export const handleSubmitPost = async (
   }
 };
 
-export const fetchLikeStatus = async (post: Post, userId: string) => {
+export const fetchLikeStatus = async (postId: number, userId: string) => {
   try {
-    if (!post || !post.id) {
-      console.error("Invalid post object:", post);
+    if (!postId) {
+      console.warn("Invalid post ID:", postId);
       return { isLiked: false, likeCount: 0 };
     }
     
     const response = await fetchAPI(
-      `/api/posts/updateLikeCount?postId=${post.id}&userId=${userId}`,
+      `/api/posts/updateLikeCount?postId=${postId}&userId=${userId}`,
       { method: "GET" }
     );
     

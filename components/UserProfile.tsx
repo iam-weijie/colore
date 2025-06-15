@@ -5,6 +5,7 @@ import { countries } from "@/constants/countries";
 import { allColors, defaultColors } from "@/constants/colors";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
+import { decryptText } from "@/lib/encryption";
 
 import axios from "axios";
 import {
@@ -27,7 +28,7 @@ import {
 import { useUser } from "@clerk/clerk-expo";
 import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   Alert,
   Image,
@@ -35,6 +36,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import Animated, {
   SlideInDown,
@@ -57,7 +59,6 @@ import { myProfileTutorialPages, userTutorialPages } from "@/constants/tutorials
 import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
 import CarouselPage from "./CarrousselPage";
 import ModalSheet from "./Modal";
-import { decryptText } from "@/lib/encryption";
 import { useDevice } from "@/app/contexts/DeviceContext";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
 import { useNotificationsContext } from "@/app/contexts/NotificationsContext";
@@ -235,6 +236,189 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     fetchFriendCount();
   }, [userId, user, fetchFriendCount]);
 
+  const [postsPreloaded, setPostsPreloaded] = useState<boolean>(false);
+  const [postsDecrypted, setPostsDecrypted] = useState<boolean>(false);
+  const [firstLoadComplete, setFirstLoadComplete] = useState<boolean>(false);
+  const postsLastLoadedTimestamp = useRef<number>(0);
+  const decryptedPostsCache = useRef<Map<number, Post>>(new Map());
+  
+  // Clear decrypted posts cache on component unmount or when user changes
+  useEffect(() => {
+    return () => {
+      // Clear cache when component unmounts
+      decryptedPostsCache.current.clear();
+    };
+  }, [userId]); // Re-initialize cache when user changes
+  
+  // Define a complete Post object matching all required properties with all the required fields
+  const defaultPost = {
+    id: 0, // Use 0 instead of negative ID
+    clerk_id: userId,
+    user_id: userId,
+    firstname: "",
+    username: "",
+    content: "Hi, I am a new Colore User!",
+    created_at: new Date().toISOString(), // Valid date string
+    expires_at: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+    city: "",
+    state: "",
+    country: "",
+    like_count: 0,
+    report_count: 0,
+    unread_comments: 0,
+    recipient_user_id: "",
+    pinned: true,
+    color: "yellow",
+    emoji: "",
+    notified: true,
+    prompt_id: 0, // Use 0 instead of negative ID
+    prompt: "",
+    board_id: 0,
+    reply_to: 0, // Use 0 instead of negative ID
+    // Adding missing required properties
+    nickname: "",
+    incognito_name: "",
+    available_at: new Date().toISOString(), // Valid date string
+    static_emoji: false,
+    formatting: [],
+    formatting_encrypted: "",
+    unread: false 
+  } as unknown as Post;
+
+  // Function to decrypt posts and cache the results
+  const decryptPosts = useCallback((postsToDecrypt: Post[]) => {
+    if (!encryptionKey || postsToDecrypt.length === 0) {
+      return postsToDecrypt;
+    }
+    
+    // First filter out posts that need decryption (optimization)
+    const postsNeedingDecryption = postsToDecrypt.filter(post => {
+      // Skip posts that don't need decryption
+      if (!post.recipient_user_id || !post.content || typeof post.content !== 'string' || !post.content.startsWith('U2FsdGVkX1')) {
+        return false;
+      }
+      // Skip posts already in cache
+      if (decryptedPostsCache.current.has(post.id)) {
+        return false;
+      }
+      return true;
+    });
+
+    // If nothing needs decryption, return original posts with cached items replaced
+    if (postsNeedingDecryption.length === 0) {
+      console.log(`[DEBUG] UserProfile - All ${postsToDecrypt.length} posts already cached, no decryption needed`);
+      // Replace posts with cached versions where available
+      return postsToDecrypt.map(post => decryptedPostsCache.current.get(post.id) || post);
+    }
+    
+    console.log(`[DEBUG] UserProfile - Decrypting ${postsNeedingDecryption.length} out of ${postsToDecrypt.length} posts`);
+    
+    // Process each post, using cache when possible
+    return postsToDecrypt.map(post => {
+      // Check if this post is already in cache
+      const cachedPost = decryptedPostsCache.current.get(post.id);
+      if (cachedPost) {
+        return cachedPost;
+      }
+      
+      // Post needs decryption
+      if (post.recipient_user_id && 
+          typeof post.content === 'string' && 
+          post.content.startsWith('U2FsdGVkX1')) {
+        try {
+          const decryptedContent = decryptText(post.content, encryptionKey);
+          
+          // Handle formatting - check both formatting and formatting_encrypted fields
+          let decryptedFormatting = post.formatting;
+          
+          // If formatting_encrypted exists, it takes precedence (newer format)
+          if (post.formatting_encrypted && typeof post.formatting_encrypted === "string") {
+            try {
+              const decryptedFormattingStr = decryptText(post.formatting_encrypted, encryptionKey);
+              decryptedFormatting = JSON.parse(decryptedFormattingStr);
+            } catch (formattingError) {
+              console.warn(`[DEBUG] UserProfile - Failed to decrypt formatting_encrypted for post ${post.id}`, formattingError);
+            }
+          } 
+          // Otherwise try the old way (formatting as encrypted string)
+          else if (post.formatting && typeof post.formatting === "string" && 
+                  ((post.formatting as string).startsWith('U2FsdGVkX1') || (post.formatting as string).startsWith('##FALLBACK##'))) {
+            try {
+              const decryptedFormattingStr = decryptText(post.formatting as unknown as string, encryptionKey);
+              decryptedFormatting = JSON.parse(decryptedFormattingStr);
+            } catch (formattingError) {
+              console.warn(`[DEBUG] UserProfile - Failed to decrypt formatting for post ${post.id}`, formattingError);
+            }
+          }
+          
+          // Create decrypted post object
+          const decryptedPost = { 
+            ...post, 
+            content: decryptedContent, 
+            formatting: decryptedFormatting 
+          };
+          
+          // Cache the decrypted post
+          decryptedPostsCache.current.set(post.id, decryptedPost);
+          
+          return decryptedPost;
+        } catch (e) {
+          console.warn(`[DEBUG] UserProfile - Failed decryption for post ${post.id}`, e);
+          return post;
+        }
+      }
+      return post;
+    });
+  }, [encryptionKey]);
+
+  // Preload posts when the profile is first loaded
+  const preloadPosts = useCallback(async () => {
+    if (postsPreloaded && postsDecrypted) return;
+    
+    try {
+      console.log("[DEBUG] UserProfile - Preloading posts for user:", userId);
+      const response = await fetchAPI(
+        `/api/posts/getUserPosts?id=${userId}&page=0`,
+        { method: "GET" }
+      );
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      const { userInfo, posts, pagination } = response as UserData;
+      
+      // Process and decrypt posts
+      setProfileUser(userInfo);
+      
+      // Decrypt posts if encryption key is available
+      const processedPosts = encryptionKey ? decryptPosts(posts) : posts;
+      
+      setUserPosts(processedPosts);
+      setTotalPosts(pagination?.total || userInfo.total_posts || posts.length);
+      setHasMore(pagination?.hasMore || false);
+      setPage(1);
+      
+      // Preload country emoji too
+      setEmojiLoading(true);
+      const flagEmoji = await fetchCountryEmoji(userInfo.country);
+      setCountryEmoji(flagEmoji);
+      setEmojiLoading(false);
+      
+      // Mark posts as preloaded and record timestamp
+      setPostsPreloaded(true);
+      setPostsDecrypted(true);
+      postsLastLoadedTimestamp.current = Date.now();
+      setLoading(false);
+      
+      console.log("[DEBUG] UserProfile - Posts preloaded successfully");
+    } catch (error) {
+      console.error("[DEBUG] UserProfile - Failed to preload posts:", error);
+      setError("Failed to preload user data.");
+    }
+  }, [userId, postsPreloaded, postsDecrypted, encryptionKey, decryptPosts]);
+
+  // Modify fetchUserData to check if a refresh is actually needed
   const fetchUserData = useCallback(async (resetPagination = true) => {
     // Don't fetch if we already have all posts
     if (!resetPagination && userPosts.length >= totalPosts) {
@@ -242,9 +426,31 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
       return;
     }
     
+    // Check if we need to refresh posts
+    const now = Date.now();
+    const needsRefresh = 
+      // Always fetch if forced reset (typically for new posts)
+      resetPagination || 
+      // Or if posts haven't been loaded yet
+      !postsPreloaded ||
+      // Or if there are unread comments/notifications
+      (unreadComments > 0) ||
+      // Ensure we don't refresh too frequently (at least 3 minutes between refreshes)
+      (now - postsLastLoadedTimestamp.current > 180000);
+    
+    // Skip refresh if we already have the data and it's been decrypted
+    if (!needsRefresh && userPosts.length > 0 && postsDecrypted) {
+      console.log("[DEBUG] UserProfile - Skipping posts refresh, using cached and decrypted data");
+      setLoading(false);
+      return;
+    }
+    
     if (resetPagination) {
       setPage(0);
-      setLoading(true);
+      // Only show loading state if we don't have any posts yet or it's the first load
+      if (!postsPreloaded || userPosts.length === 0 || !firstLoadComplete) {
+        setLoading(true);
+      }
     } else {
       // Prevent multiple simultaneous loading calls
       if (isLoadingMore) return;
@@ -274,32 +480,41 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
       }
       
       setProfileUser(userInfo);
-
-      setTotalPosts(posts.length)
+      setTotalPosts(pagination?.total || userInfo.total_posts || posts.length);
+      
+      // Decrypt new posts and merge them with existing posts
+      const processedPosts = encryptionKey ? decryptPosts(posts) : posts;
       
       if (resetPagination) {
-        setUserPosts(posts);
+        setUserPosts(processedPosts);
       } else {
         // Avoid duplicates
-        const newPostIds = new Set(posts.map(post => post.id));
+        const newPostIds = new Set(processedPosts.map(post => post.id));
         const filteredCurrentPosts = userPosts.filter(post => !newPostIds.has(post.id));
-        setUserPosts([...filteredCurrentPosts, ...posts]);
+        setUserPosts([...filteredCurrentPosts, ...processedPosts]);
       }
       
       // Update pagination state
       setHasMore(pagination?.hasMore || false);
       setPage(currentPage + 1);
       
-      // Use total_posts from userInfo if pagination is not available
-      const totalPostCount = pagination?.total || userInfo.total_posts || posts.length;
-      setTotalPosts(totalPostCount);
-      
       // Fetch country emoji only on initial load
-      if (resetPagination) {
-        setEmojiLoading(true)
+      if (resetPagination && !postsPreloaded) {
+        setEmojiLoading(true);
         const flagEmoji = await fetchCountryEmoji(userInfo.country);
-        setCountryEmoji(() => flagEmoji)
-        setEmojiLoading(false)
+        setCountryEmoji(() => flagEmoji);
+        setEmojiLoading(false);
+      }
+
+      // Update timestamp after successful load
+      postsLastLoadedTimestamp.current = Date.now();
+      setPostsPreloaded(true);
+      setPostsDecrypted(true);
+      
+      // After first successful load, mark first load as complete
+      // This will enable skipping animations on subsequent views
+      if (!firstLoadComplete) {
+        setFirstLoadComplete(true);
       }
     } catch (error) {
       setError("Failed to fetch user data.");
@@ -311,7 +526,16 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         setIsLoadingMore(false);
       }
     }
-  }, [userId, page, isLoadingMore, userPosts.length, totalPosts]);
+  }, [userId, page, isLoadingMore, userPosts.length, totalPosts, postsPreloaded, postsDecrypted, firstLoadComplete, unreadComments, encryptionKey, decryptPosts]);
+
+  // Monitor the encryption status of posts
+  useEffect(() => {
+    // When posts are loaded and encryption key is available, mark posts as decrypted
+    if (userPosts.length > 0 && encryptionKey && !postsDecrypted) {
+      console.log("[DEBUG] UserProfile - Posts are loaded and encryption key is available, marking as decrypted");
+      setPostsDecrypted(true);
+    }
+  }, [userPosts, encryptionKey, postsDecrypted]);
 
   const loadMorePosts = useCallback(() => {
     if (!isLoadingMore && hasMore) {
@@ -335,41 +559,56 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     }
   }, [userId]);
 
-  const post = {
-    id: -1,
-    clerk_id: userId,
-    user_id: userId, // this is supposed to be a temporary fix to prevent weird type mismatch errors
-    firstname: "",
-    username: "",
-    content: "Hi, I am a new Colore User!",
-    created_at: "",
-    expires_at: "",
-    city: "",
-    state: "",
-    country: "",
-    like_count: 0,
-    report_count: 0,
-    unread_comments: 0,
-    recipient_user_id: "",
-    pinned: true,
-    color: "yellow", //String for now. Should be changed to PostItColor
-    emoji: "",
-    notified: true,
-    prompt_id: -1,
-    prompt: "",
-    board_id: 0,
-    reply_to: -1,
-  };
+  const fetchPersonalPosts = useCallback(async () => {
+    try {
+      const response = await fetchAPI(
+        `/api/posts/getPersonalPosts?number=${8}&recipient_id=${userId}&user_id=${user!.id}`
+      );
+
+      // Handle invalid or empty response data more carefully
+      if (!response || !response.data || !Array.isArray(response.data)) {
+        console.log("[DEBUG] UserProfile - No valid personal posts data received");
+        setDisableInteractions(true);
+        setPersonalPosts([]);
+        return;
+      }
+
+      const filteredPosts = response.data.filter((p: Post) => p && p.pinned);
+
+      if (filteredPosts.length === 0) {
+        console.log("[DEBUG] UserProfile - No pinned posts found");
+        setDisableInteractions(true);
+        setPersonalPosts([]);
+      } else {
+        console.log(`[DEBUG] UserProfile - Found ${filteredPosts.length} pinned posts`);
+        // Decrypt personal posts using our caching logic
+        if (encryptionKey) {
+          const decryptedPosts = decryptPosts(filteredPosts);
+          setPersonalPosts(decryptedPosts);
+        } else {
+          setPersonalPosts(filteredPosts);
+        }
+      }
+    } catch (error) {
+      console.error("[DEBUG] UserProfile - Failed to fetch personal posts:", error);
+      setDisableInteractions(true);
+      setPersonalPosts([]);
+    }
+  }, [userId, user, encryptionKey, decryptPosts]);
 
   const fetchPersonalBoards = useCallback(async () => {
     // Use data from context instead of direct API call
     if (personalBoards) {
       // Convert ContextBoard[] to UserBoard[] by adding required properties
+      // The Board from context is different from the Board in types.d.ts
       const convertedBoards = personalBoards.map(board => ({
         ...board,
-        commentAllowed: true, // Default value
-        // Add other required properties if needed
+        commentAllowed: true, // Required by UserBoard type
+        isNew: false,
+        isPrivate: board.board_type === 'private',
+        // Properly convert the board to match the expected UserBoard type
       }));
+      // Use type assertion to avoid TypeScript errors when adding the missing property
       setMyBoards(convertedBoards as unknown as UserBoard[]);
     }
   }, [personalBoards]);
@@ -378,79 +617,6 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     // Use data from context instead of direct API call
     // No need to set communityBoards as we're using it from context
   }, []);
-
-  const fetchPersonalPosts = useCallback(async () => {
-    try {
-      const response = await fetchAPI(
-        `/api/posts/getPersonalPosts?number=${8}&recipient_id=${userId}&user_id=${user!.id}`
-      );
-
-      const filteredPosts = response.data.filter((p: Post) => p.pinned);
-
-      if (filteredPosts.length == 0 || response.length == 0) {
-        setDisableInteractions(true);
-        setPersonalPosts([post]);
-      } else {
-        // Decrypt personal posts if needed
-        if (encryptionKey) {
-          const decryptedPosts = filteredPosts.map((post: Post) => {
-            if (post.recipient_user_id && 
-                typeof post.content === 'string' && 
-                post.content.startsWith('U2FsdGVkX1')) {
-              try {
-                console.log("[DEBUG] UserProfile - Attempting to decrypt post:", post.id);
-                const decryptedContent = decryptText(post.content, encryptionKey);
-                console.log("[DEBUG] UserProfile - Decrypted content:", decryptedContent.substring(0, 30));
-                
-                // Handle formatting - check both formatting and formatting_encrypted fields
-                let decryptedFormatting = post.formatting;
-                
-                // If formatting_encrypted exists, it takes precedence (newer format)
-                if (post.formatting_encrypted && typeof post.formatting_encrypted === "string") {
-                  try {
-                    const decryptedFormattingStr = decryptText(post.formatting_encrypted, encryptionKey);
-                    decryptedFormatting = JSON.parse(decryptedFormattingStr);
-                    console.log("[DEBUG] UserProfile - Successfully decrypted formatting_encrypted field");
-                  } catch (formattingError) {
-                    console.warn("[DEBUG] UserProfile - Failed to decrypt formatting_encrypted for post", post.id, formattingError);
-                  }
-                } 
-                // Otherwise try the old way (formatting as encrypted string)
-                else if (post.formatting && typeof post.formatting === "string" && 
-                        ((post.formatting as string).startsWith('U2FsdGVkX1') || (post.formatting as string).startsWith('##FALLBACK##'))) {
-                  try {
-                    const decryptedFormattingStr = decryptText(post.formatting as unknown as string, encryptionKey);
-                    decryptedFormatting = JSON.parse(decryptedFormattingStr);
-                    console.log("[DEBUG] UserProfile - Successfully decrypted formatting string");
-                  } catch (formattingError) {
-                    console.warn("[DEBUG] UserProfile - Failed to decrypt formatting for post", post.id, formattingError);
-                  }
-                }
-                
-                return { 
-                  ...post, 
-                  content: decryptedContent, 
-                  formatting: decryptedFormatting 
-                };
-              } catch (e) {
-                console.warn("[DEBUG] UserProfile - Failed decryption for post", post.id, e);
-                return post;
-              }
-            }
-            return post;
-          });
-          
-          setPersonalPosts(decryptedPosts);
-        } else {
-          setPersonalPosts(filteredPosts);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch personal posts:", error);
-      setDisableInteractions(true);
-      setPersonalPosts([post]);
-    }
-  }, [userId, encryptionKey]);
 
   useEffect(() => {
     fetchUserData();
@@ -517,6 +683,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   ];
 
   const handleTabChange = useCallback((tabKey: string) => {
+    console.log("[DEBUG] UserProfile - Tab changed to:", tabKey);
     setSelectedTab(tabKey);
   }, []);
 
@@ -524,11 +691,38 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     setQuery("");
   }, []);
 
-  // Fix the handlePostUpdate function to match the expected type
+  // Fix the handlePostUpdate function to properly call fetchUserData
   const handlePostUpdate = useCallback((id: number, isRemove: boolean = false) => {
-    // Refresh user data after a post update
+    console.log(`[DEBUG] UserProfile - Updating post ${id}, isRemove: ${isRemove}`);
+    // Force refresh posts by calling fetchUserData with true
     fetchUserData(true);
+    // Note: We're ignoring the id and isRemove parameters as fetchUserData 
+    // will refresh all posts regardless
   }, [fetchUserData]);
+
+  // Add this effect to preload posts when component mounts
+  useEffect(() => {
+    preloadPosts();
+  }, [preloadPosts]);
+
+  useEffect(() => {
+    if (selectedTab === "Settings") {
+      console.log("[DEBUG] UserProfile - Settings tab selected");
+    }
+  }, [selectedTab]);
+
+  // Fix the empty posts view with better guidance
+  const EmptyPostsView = () => (
+    <View className="flex items-center justify-center p-10 bg-white/80 rounded-3xl">
+      <Text className="font-JakartaSemiBold text-gray-700 text-center mb-2">
+        No pinned posts yet
+      </Text>
+      <Text className="font-Jakarta text-gray-500 text-center">
+        Pin your favorite posts to your profile by tapping the three dots (⋯) 
+        at the bottom right of any post and selecting "Pin to profile".
+      </Text>
+    </View>
+  );
 
   return (
     <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
@@ -616,11 +810,15 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         <View className="flex-1">
           {!profileLoading ? (
             <View className={`absolute -top-[20%]`}>
-              <PostContainer
-                selectedPosts={personalPosts}
-                handleCloseModal={() => {}}
-                isPreview={disableInteractions}
-              />
+              {personalPosts.length > 0 ? (
+                <PostContainer
+                  selectedPosts={personalPosts}
+                  handleCloseModal={() => {}}
+                  isPreview={disableInteractions}
+                />
+              ) : (
+                <EmptyPostsView />
+              )}
             </View>
           ) : (
             <View className={`absolute -top-[20%]`}>
@@ -637,7 +835,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
       {selectedTab === "Posts" && (
         <View className="relative flex-1 w-full h-full bg-[#FAFAFA] ">
           <View
-            className="absolute  flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[85%] top-6 self-center z-[10] "
+            className="absolute flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[85%] top-6 self-center z-[10] "
             style={{
               boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
             }}
@@ -660,14 +858,14 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
               </TouchableOpacity>
             )}
           </View>
-          {loading ? (
+          {loading && !postsDecrypted ? (
             <PostGallerySkeleton />
           ) : (
             <View className="flex-1 h-full w-full px-4 -mt-12">
               <PostGallery
                 posts={userPosts}
                 profileUserId={user!.id}
-                handleUpdate={fetchUserData}
+                handleUpdate={handlePostUpdate}
                 query={query}
                 offsetY={120}
                 onLoadMore={loadMorePosts}
@@ -691,11 +889,12 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
               offsetY={120} />
             </View>}
 
-            {selectedTab === "Settings" && 
-            <Settings />
-            }
+            {selectedTab === "Settings" && (
+              <>
+                <Settings />
+              </>
+            )}
         
-       
   <ModalSheet 
         title={""} 
         isVisible={!skipIntro} 
