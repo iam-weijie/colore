@@ -29,12 +29,10 @@ app.post("/dispatch", (req, res) => {
   const { recipientId, type, notification, content } = req.body;
 
   if (!recipientId || !type || !notification) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Missing fields to dispatch notification",
-      });
+    return res.status(400).json({
+      success: false,
+      message: "Missing fields to dispatch notification",
+    });
   }
 
   const socket = connectedUsers.get(recipientId);
@@ -46,8 +44,6 @@ app.post("/dispatch", (req, res) => {
       message: `"${type}" notification sent successfully`,
     });
   } else {
-    // emit push notification here...
-
     return res
       .status(202)
       .json({ success: false, message: `User ${recipientId} is offline` });
