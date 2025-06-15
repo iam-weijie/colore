@@ -3,7 +3,8 @@ import { neon } from "@neondatabase/serverless";
 export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
-    const { userId } = await request.json();
+    const url = new URL(request.url);
+    const userId = url.searchParams.get("userId");
 
     if (!userId) {
       return Response.json({ error: "Missing User ID" }, { status: 400 });

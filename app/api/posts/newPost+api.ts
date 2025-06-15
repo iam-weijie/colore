@@ -1,3 +1,4 @@
+import { sendNotification } from "@/lib/notification";
 import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -93,32 +94,26 @@ export async function POST(request: Request) {
           WHERE clerk_id = ${insertedPost.user_id}
         `;
 
+      const recipientPushToken = await sql`
+        SELECT
+          push_token
+        FROM users
+        WHERE clerk_id = ${insertedPost.recipient_user_id}
+      `;
+
       // building notification object
       const notification = {
         ...insertedPost,
         ...posterUser,
       };
 
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: insertedPost.recipient_user_id,
-            type: "Posts",
-            notification,
-            content: notification,
-          }),
-        }
+      sendNotification(
+        insertedPost.recipient_user_id,
+        "Posts",
+        notification,
+        {},
+        recipientPushToken[0]?.push_token
       );
-
-      const data = await res.json();
-      if (!data.success) {
-        console.log(data.message!);
-      } else {
-        console.log("Successfully shot a message");
-      }
     }
 
     return Response.json({ data: insertedPost, status: 201 });

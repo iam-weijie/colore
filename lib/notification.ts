@@ -5,7 +5,8 @@ export const sendNotification = async (
   recipientId: string,
   type: string,
   notification: any,
-  content: any
+  content: any,
+  recipientPushToken: string
 ) => {
   try {
     const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`, {
@@ -22,32 +23,14 @@ export const sendNotification = async (
     const data = await res.json();
 
     console.log(data.message!);
+    console.log("Dispatching push notification...");
 
-    // attempting to send push notif
-    // failed to send notification through sockets as notif recipient was offline
-    if (!data.success) {
-      console.log("Dispatching push notification...");
-
-      const res = await fetchAPI(`/api/notifications/getPushToken`, {
-        method: "GET",
-        body: JSON.stringify({
-          userId: recipientId,
-        }),
-      });
-
-      if (res.error) {
-        throw new Error(res.error);
-      }
-
-      const recipientPushToken = res.data.push_token;
-
-      await handleSendNotificationExternal(
-        notification,
-        content,
-        type,
-        recipientPushToken
-      );
-    }
+    await handleSendNotificationExternal(
+      notification,
+      content,
+      type,
+      recipientPushToken
+    );
   } catch (error) {
     console.log("Failed to send notification: ", error);
   }
@@ -59,7 +42,10 @@ export const handleSendNotificationExternal = async (
   type: string,
   pushToken: string | null
 ) => {
-  if (!pushToken) return;
+  if (!pushToken) {
+    console.log("Unable to send push notification: no push token");
+    return;
+  }
 
   try {
     if (type === "Comments") {
@@ -90,11 +76,11 @@ export const handleSendNotificationExternal = async (
     }
     if (type === "Requests") {
       // sending out notification for sending friend request
-      if (content.requestor) {
+      if (notification.requestor) {
         const username =
-          content.requestor === "UID1"
-            ? content.user1_username
-            : content.user2_username;
+          notification.requestor === "UID1"
+            ? notification.user1_username
+            : notification.user2_username;
         await sendPushNotification(
           pushToken,
           `${username} wants to be your friend!`,
@@ -107,10 +93,10 @@ export const handleSendNotificationExternal = async (
         );
 
         // sending out notification for accepting friend request
-      } else if (content.receiver_username) {
+      } else if (notification.receiver_username) {
         await sendPushNotification(
           pushToken,
-          `${content.receiver_username} accepted your friend request!`,
+          `${notification.receiver_username} accepted your friend request!`,
           "Say hello",
           "request",
           {
@@ -121,7 +107,6 @@ export const handleSendNotificationExternal = async (
       }
     }
     if (type === "Posts") {
-      //const username = "Someone";
       await sendPushNotification(
         pushToken,
         `${notification.username} has posted on your board`,
@@ -205,14 +190,14 @@ export const handleSendNotificationExternal = async (
           }
         );
       }
-      return; // no need to use updateNotified for likes
+      // return; // no need to use updateNotified for likes
     }
 
-    await fetchAPI(`/api/notifications/updateNotified${type}`, {
-      method: "PATCH",
-      body: JSON.stringify({ id: content.id }),
-    });
-    console.log("Tried to patch");
+    // await fetchAPI(`/api/notifications/updateNotified${type}`, {
+    //   method: "PATCH",
+    //   body: JSON.stringify({ id: content.id }),
+    // });
+    // console.log("Tried to patch");
   } catch (error) {
     console.error("Failed to send notification externally:", error);
   }
