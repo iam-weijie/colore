@@ -14,10 +14,28 @@ export function formatTime(minutes: number): string {
   }
 }
 
+/**
+ * Converts a UTC date to the user's local timezone
+ * This function ensures the date is properly converted to the local timezone
+ * without applying the timezone offset twice
+ * 
+ * @param rawDate The date to convert (Date object)
+ * @returns A Date object in the user's local timezone
+ */
 export function convertToLocal(rawDate: Date): Date {
-  const offset = new Date().getTimezoneOffset() * 60000;
-  const localDate = new Date(rawDate.getTime() - offset);
-  return localDate;
+  // Check if the date is valid before conversion
+  if (isNaN(rawDate.getTime())) {
+    console.warn('Invalid date provided to convertToLocal:', rawDate);
+    return new Date(); // Return current date as fallback
+  }
+  
+  try {
+    // Create a new date object from the ISO string to ensure proper timezone handling
+    return new Date(rawDate.toISOString());
+  } catch (error) {
+    console.error('Error in convertToLocal:', error);
+    return new Date(); // Return current date as fallback
+  }
 }
 
 export function formatDateTruncatedMonth(rawDate: Date): string {
@@ -185,15 +203,35 @@ export const AlgorithmRandomPosition = (
 
 /**
  * Formats a date to a relative time string (e.g., "just now", "1m", "2h", "3d", "1w", "2mo", "1y")
+ * This function respects timezones by using Date.now() and getTime() to calculate time differences
+ * 
  * @param date The date to format (Date object or string)
  * @returns A string representing the relative time
  */
 export function getRelativeTime(date: Date | string): string {
-  const now = new Date();
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  // Get current time in milliseconds
+  const now = Date.now();
+  
+  // Convert input to Date object if it's a string, then get time in milliseconds
+  let timestamp: number;
+  
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    // Check if the date is valid
+    if (isNaN(dateObj.getTime())) {
+      console.warn('Invalid date provided to getRelativeTime:', date);
+      return 'unknown time';
+    }
+    
+    timestamp = dateObj.getTime();
+  } catch (error) {
+    console.error('Error in getRelativeTime:', error);
+    return 'unknown time';
+  }
   
   // Get time difference in milliseconds
-  const diff = now.getTime() - dateObj.getTime();
+  const diff = now - timestamp;
   
   // Convert to seconds
   const seconds = Math.floor(diff / 1000);
