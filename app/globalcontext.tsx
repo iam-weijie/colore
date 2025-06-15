@@ -20,6 +20,7 @@ import { set } from "date-fns";
 import { defaultColors } from "@/constants";
 import { io } from "socket.io-client";
 import { encryptionCache } from "@/cache/encryptionCache";
+import { handleSendNotificationExternal } from "@/lib/notification";
 
 // ===== Types & Constants =====
 type GlobalContextType = {
@@ -218,178 +219,11 @@ export const fetchNotificationsExternal = async (
         unread_requests,
         unread_likes,
       ],
-    } 
-} catch (error) {
-  console.log("Failed to fetch external notification", error)
-}
-}
-
-// Helper function used by the external fetch
-const handleSendNotificationExternal = async (
-  n: any,
-  content: any,
-  type: string,
-  pushToken: string | null
-) => {
-  if (!pushToken) return;
-
-  try {
-    if (type === "Comments") {
-      const notificationContent = content.comment_content.slice(0, 120);
-
-      await sendPushNotification(
-        pushToken,
-        `${content.commenter_username} responded to your post`,
-        notificationContent,
-        "comment",
-        {
-          route: `/root/post/${n.post_id}`,
-          params: {
-            id: n.post_id,
-            clerk_id: n.user_id,
-            content: n.content,
-            nickname: n.nickname,
-            firstname: n.firstname,
-            username: n.username,
-            like_count: n.like_count,
-            report_count: n.report_count,
-            created_at: n.created_at,
-            unread_comments: n.unread_comments,
-            color: n.color,
-          },
-        }
-      );
-    }
-    if (type === "Requests") {
-      // sending out notification for sending friend request
-      if (content.requestor) {
-        const username =
-          content.requestor === "UID1"
-            ? content.user1_username
-            : content.user2_username;
-        await sendPushNotification(
-          pushToken,
-          `${username} wants to be your friend!`,
-          "Click here to accept their friend request",
-          "request",
-          {
-            route: `/root/chat`,
-            params: { tab: "Requests" },
-          }
-        );
-
-        // sending out notification for accepting friend request
-      } else if (content.receiver_username) {
-        await sendPushNotification(
-          pushToken,
-          `${content.receiver_username} accepted your friend request!`,
-          "Say hello",
-          "request",
-          {
-            route: `/root/chat`,
-            params: { tab: "Requests" },
-          }
-        );
-      }
-    }
-    if (type === "Posts") {
-      //const username = "Someone";
-      await sendPushNotification(
-        pushToken,
-        `${n.username} has posted on your board`,
-        `${n.content}`,
-        "post",
-        {
-          route: `/root/tabs/personal-board`,
-          params: {
-            boardId: n.boardId,
-            
-          },
-        }
-      );
-    }
-    if (type == "Likes") {
-      // handling a post like
-      if (n.comment_id) {
-        const notificationContent = n.comment_content.slice(0, 120);
-
-        await sendPushNotification(
-          pushToken,
-          `${n.liker_username} liked your comment`,
-          notificationContent,
-          "like",
-          {
-            route: `/root/posts/${n.post_id}`,
-            params: {
-              content: n.comment_content,
-            },
-          }
-        );
-      } else if (n.post_id) {
-        const notificationContent = n.post_content.slice(0, 120);
-
-        await sendPushNotification(
-          pushToken,
-          `${n.liker_username} liked your post`,
-          notificationContent,
-          "like",
-          {
-            route: `/root/posts/${n.post_id}`,
-            params: {
-              content: n.post_content,
-              color: n.post_color,
-            },
-          }
-        );
-      }
-      return; // no need to updateNotified for likes
-    }
-    if (type == "Likes") {
-      // handling a post like
-      if (n.comment_id) {
-        const notificationContent = n.comment_content.slice(0, 120);
-
-        await sendPushNotification(
-          pushToken,
-          `${n.liker_username} liked your comment`,
-          notificationContent,
-          "like",
-          {
-            route: `/root/posts/${n.post_id}`,
-            params: {
-              content: n.comment_content,
-            },
-          }
-        );
-      } else if (n.post_id) {
-        const notificationContent = n.post_content.slice(0, 120);
-
-        await sendPushNotification(
-          pushToken,
-          `${n.liker_username} liked your post`,
-          notificationContent,
-          "like",
-          {
-            route: `/root/posts/${n.post_id}`,
-            params: {
-              content: n.post_content,
-              color: n.post_color,
-            },
-          }
-        );
-      }
-      return; // no need to updateNotified for likes
-    }
-
-    await fetchAPI(`/api/notifications/updateNotified${type}`, {
-      method: "PATCH",
-      body: JSON.stringify({ id: content.id }),
-    });
-    console.log("Tried to patch");
+    };
   } catch (error) {
-    console.error("Failed to send notification externally:", error);
+    console.log("Failed to fetch external notification", error);
   }
-}
+};
 
 // ===== Background Fetch Task Definition =====
 // Since the background task runs outside of React hooks, we retrieve the persisted user info.
@@ -409,7 +243,6 @@ TaskManager.defineTask(NOTIFICATION_TASK, async () => {
     return BackgroundFetchResult.Failed; // Use BackgroundFetchResult enum
   }
 });
-  
 
 // ===== GlobalProvider Component =====
 export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -468,60 +301,60 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   const [encryptionKey, setEncryptionKey] = useState<string | null>(null);
 
   const fetchUserProfile = async () => {
-      if (user) {
-        try {
-          const response = await fetchAPI(
-            `/api/users/getUserInfo?id=${user.id}`,
-            {
-              method: "GET",
-            }
-          );
-          if (response.error) {
-            throw new Error(response.error);
+    if (user) {
+      try {
+        const response = await fetchAPI(
+          `/api/users/getUserInfo?id=${user.id}`,
+          {
+            method: "GET",
           }
-          const userData = response.data[0];
-          if (!userData.nickname || !userData.incognito_name) {
-            try {
-              const response = await fetchAPI("/api/users/patchUserInfo", {
-                method: "PATCH",
-                body: JSON.stringify(
-                  !userData.nickname && !userData.incognito_name
+        );
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        const userData = response.data[0];
+        if (!userData.nickname || !userData.incognito_name) {
+          try {
+            const response = await fetchAPI("/api/users/patchUserInfo", {
+              method: "PATCH",
+              body: JSON.stringify(
+                !userData.nickname && !userData.incognito_name
+                  ? {
+                      clerkId: user!.id,
+                      incognito_name: generateRandomUsername(),
+                      nickname: userData.username,
+                    }
+                  : !userData.nickname
                     ? {
                         clerkId: user!.id,
-                        incognito_name: generateRandomUsername(),
-                        nickname: userData.username,
+                        nickname: userData.nickname,
                       }
-                    : !userData.nickname
-                      ? {
-                          clerkId: user!.id,
-                          nickname: userData.nickname,
-                        }
-                      : {
-                          clerkId: user!.id,
-                          incognito_name: generateRandomUsername(),
-                        }
-                ),
-              });
+                    : {
+                        clerkId: user!.id,
+                        incognito_name: generateRandomUsername(),
+                      }
+              ),
+            });
 
-              if (response.error) {
-                throw new Error(response.error);
-              }
-              console.log("updated placeholder names on start successfully");
-            } catch (error) {
-              console.error(
-                "Failed to update placeholder names on start:",
-                error
-              );
+            if (response.error) {
+              throw new Error(response.error);
             }
+            console.log("updated placeholder names on start successfully");
+          } catch (error) {
+            console.error(
+              "Failed to update placeholder names on start:",
+              error
+            );
           }
-          setProfile(userData);
-          setUserColors(userData.colors || defaultColors);
-          setLastConnection(new Date(userData.last_connection));
-        } catch (error) {
-          console.error("Failed to fetch user profile:", error);
         }
+        setProfile(userData);
+        setUserColors(userData.colors || defaultColors);
+        setLastConnection(new Date(userData.last_connection));
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
       }
-    };
+    }
+  };
 
   const getPushToken = async () => {
     const pushToken = await AsyncStorage.getItem("pushToken");
@@ -565,7 +398,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     const randomWord2 = words2[Math.floor(Math.random() * words2.length)];
     const randomNumber = Math.floor(Math.random() * 1000);
     return `${randomWord1}${randomWord2}${randomNumber}`;
-  }
+  };
 
   const resetDraftPost = () => {
     setDraftPost({
@@ -602,7 +435,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const refreshProfile = async () => {
     fetchUserProfile();
-  }
+  };
 
   // In-app polling every 5 seconds
   useEffect(() => {
@@ -618,7 +451,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       //const interval = setInterval(fetchNotifications, 5000);
       //return () => clearInterval(interval);
     }
-  }, [user, pushToken])
+  }, [user, pushToken]);
 
   useEffect(() => {
     console.log("running notification sockets");
@@ -630,16 +463,23 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       //fetchNotifications();
       updateLastConnection();
 
-      const socket = io(
+      const socket = io(`ws://${process.env.EXPO_PUBLIC_DEVICE_IP}:3000`, {
+        transports: ["websocket"],
+        query: {
+          id: user.id,
+        },
+      });
+
+      // TEMPPPPP
+      /*const socket = io(
         `wss://${process.env.EXPO_PUBLIC_SERVER_URL?.substring(8)}`,
         {
-          transports: ["websocket"], 
+          //transports: ["websocket"],
           query: {
             id: user.id,
           },
-          transports: ["websocket"],
         }
-      );
+      );*/
 
       socket.on("connect", () => {
         console.log("✅ Socket connected!");
@@ -696,9 +536,12 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
     const fetchUserProfile = async () => {
       if (user) {
         try {
-          const response = await fetchAPI(`/api/users/getUserInfo?id=${user.id}`, {
-            method: "GET",
-          });
+          const response = await fetchAPI(
+            `/api/users/getUserInfo?id=${user.id}`,
+            {
+              method: "GET",
+            }
+          );
           if (response.error) {
             throw new Error(response.error);
           }
@@ -710,7 +553,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
           console.error("Failed to fetch user profile:", error);
         }
       }
-    }
+    };
     fetchUserProfile();
   }, [user]);
 
@@ -843,7 +686,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         if (key !== null) {
-          setEncryptionKey(key)
+          setEncryptionKey(key);
         }
       } catch (e) {
         console.error("Failed to load settings.", e);
@@ -923,4 +766,3 @@ export const useGlobalContext = () => {
   }
   return context;
 };
-

@@ -1,3 +1,4 @@
+import { sendNotification } from "@/lib/notification";
 import { neon } from "@neondatabase/serverless";
 
 export async function POST(request: Request) {
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
         WHERE id = ${postId};
       `;
 
-      // Dispatching notification to user
+      // Dispatching notification to post owner
       const [post, comment, commenter, postOwner] = await Promise.all([
         sql`
           SELECT id, content, created_at, user_id, like_count, report_count, unread_comments, color, post_type, board_id
@@ -80,24 +81,12 @@ export async function POST(request: Request) {
         comments: [new_comment],
       };
 
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: postClerkId,
-            type: "Comments",
-            notification,
-            content: new_comment,
-          }),
-        }
+      await sendNotification(
+        postClerkId,
+        "Comments",
+        notification,
+        new_comment
       );
-
-      const data = await res.json();
-      if (!data.success) {
-        console.log(data.message!);
-      }
 
       return new Response(JSON.stringify({ data: insertedComment[0] }), {
         status: 201,
