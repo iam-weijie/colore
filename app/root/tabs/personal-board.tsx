@@ -162,7 +162,7 @@ const UserPersonalBoard = () => {
   const fetchDiscoverBoards = async () => {
     try {
       setLoading(true)
-      const response = await fetchAPI(`/api/boards/getDiscoverBoards`,
+      const response = await fetchAPI(`/api/boards/getDiscoverBoards?userId=${user!.id}`,
           {
             method: "GET",
           }

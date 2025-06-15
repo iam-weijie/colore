@@ -438,134 +438,77 @@ const PostContainer: React.FC<PostContainerProps> = ({
     }
   };
 
-  const getMenuItems = (
-    isOwner: boolean,
-    invertedColors: boolean,
-    isPreview: boolean
-  ) => {
-    if (isPreview) {
-      return []; // Return empty array when in preview mode to disable menu
-    }
+const getMenuItems = (
+  isOwner: boolean,
+  invertedColors: boolean,
+  isPreview: boolean
+) => {
+  if (isPreview) return [];
 
-    if (invertedColors) {
-      return currentPost?.recipient_user_id == user!.id
-        ? [
-            {
-              label: isPinned ? "Unpin" : "Pin",
-              source: icons.pin,
-              color: "#000000",
-              onPress: () => {
-                handlePin(currentPost, isPinned, user!.id);
-                handleUpdate(!isPinned);
-                setIsPinned((prevIsPinned) => !prevIsPinned);
-                handleCloseModal;
-              },
-            },
-            {
-              label: "Share",
-              source: icons.send,
-              color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-              onPress: () => {
-                handleShare(imageUri, currentPost);
-              },
-            },
-            {
-              label: "Delete",
-              source: icons.trash,
-              color: "#DA0808",
-              onPress: handleDeletePress,
-            },
-          ]
-        : [
-            {
-              label: "Share",
-              source: icons.send,
-              color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-              onPress: () => {
-                handleShare(imageUri, currentPost);
-              },
-            },
-            {
-              label: isSaved ? "Remove" : "Save",
-              color: "#000000",
-              source: isSaved ? icons.close : icons.bookmark,
-              onPress: () => {
-                handleSavePost(currentPost?.id, isSaved, user!.id);
-                setIsSaved((prevIsSaved) => !prevIsSaved);
-              },
-            },
-            {
-              label: "Report",
-              source: icons.email,
-              color: "#DA0808",
-              onPress: handleReportPress,
-            },
-          ];
-    }
-
-    return isOwner
-      ? [
-          {
-            label: "Share",
-            source: icons.send,
-            color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-            onPress: () => {
-              handleShare(imageUri, currentPost);
-            },
-          },
-          {
-            label: "Edit",
-            source: icons.pencil,
-            color: "#0851DA",
-            onPress: () => {
-              setTimeout(() => {
-                handleCloseModal();
-              }, 250);
-              handleEditing(currentPost);
-            },
-          },
-          {
-            label: isSaved ? "Remove" : "Save",
-            color: "#000000",
-            source: isSaved ? icons.close : icons.bookmark,
-            onPress: () => {
-              handleSavePost(currentPost?.id, isSaved, user!.id);
-              setIsSaved((prevIsSaved) => !prevIsSaved);
-            },
-          },
-          {
-            label: "Delete",
-            source: icons.trash,
-            color: "#DA0808",
-            onPress: handleDeletePress,
-          },
-        ]
-      : [
-          {
-            label: "Share",
-            source: icons.send,
-            color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-            onPress: () => {
-              handleShare(imageUri, currentPost);
-            },
-          },
-          {
-            label: isSaved ? "Remove" : "Save",
-            color: "#000000",
-            source: isSaved ? icons.close : icons.bookmark,
-            onPress: () => {
-              handleSavePost(currentPost?.id, isSaved, user!.id);
-              setIsSaved((prevIsSaved) => !prevIsSaved);
-            },
-          },
-          {
-            label: "Report",
-            source: icons.email,
-            color: "#DA0808",
-            onPress: handleReportPress,
-          },
-        ];
+  const shareItem = {
+    label: "Share",
+    source: icons.send,
+    color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
+    onPress: () => handleShare(imageUri, currentPost),
   };
+
+  const saveOrRemoveItem = {
+    label: isSaved ? "Remove" : "Save",
+    source: isSaved ? icons.close : icons.bookmark,
+    color: "#000000",
+    onPress: () => {
+      handleSavePost(currentPost?.id, isSaved, user!.id);
+      setIsSaved(prev => !prev);
+    },
+  };
+
+  const pinItem = {
+    label: isPinned ? "Unpin" : "Pin",
+    source: icons.pin,
+    color: "#000000",
+    onPress: () => {
+      handlePin(currentPost, isPinned, user!.id);
+      handleUpdate(!isPinned);
+      setIsPinned(prev => !prev);
+      handleCloseModal();
+    },
+  };
+
+  const deleteItem = {
+    label: "Delete",
+    source: icons.trash,
+    color: "#DA0808",
+    onPress: handleDeletePress,
+  };
+
+  const reportItem = {
+    label: "Report",
+    source: icons.email,
+    color: "#DA0808",
+    onPress: handleReportPress,
+  };
+
+  const editItem = {
+    label: "Edit",
+    source: icons.pencil,
+    color: "#0851DA",
+    onPress: () => {
+      setTimeout(() => handleCloseModal(), 250);
+      handleEditing(currentPost);
+    },
+  };
+
+  if (invertedColors) {
+    return currentPost?.recipient_user_id === user!.id
+      ? [pinItem, shareItem, deleteItem]
+      : [shareItem, saveOrRemoveItem, reportItem];
+  }
+
+  return isOwner
+    ? [shareItem, editItem, saveOrRemoveItem, deleteItem]
+    : [shareItem, saveOrRemoveItem, reportItem];
+};
+
 
   const backgroundColor = useSharedValue(
     postColor?.hex || "rgba(0, 0, 0, 0.5)"

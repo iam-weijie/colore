@@ -1,5 +1,7 @@
 import { Animated, Image, ImageSourcePropType, Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
+import { BlurView } from "expo-blur";
+import ItemContainer from "./ItemContainer";
 
 type MenuItem = {
   label: string;
@@ -94,32 +96,29 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ icon, menuItems, customMenu
         {/* Dropdown Menu */}
         <Animated.View
           style={{ transform: [{ translateY: slideAnim }] }}
-          className="absolute w-[90%] bottom-0 left-[50%] -ml-[45%] right-0 bg-white rounded-[48px] shadow-lg py-4 px-6 mb-7"
+          className="absolute w-[90%] bottom-0 left-[50%] -ml-[45%] right-0 bg-white rounded-[48px] shadow-lg py-4 px-2  mb-7 overflow-hidden"
         >
+
           {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => {
+          <View 
+          className="-my-2"
+          style={{
+            transform: "scale(0.9)"
+          }}>
+            <ItemContainer 
+            label={item.label} 
+            icon={item.source} 
+            colors={[item.color , item.color]} 
+            onPress={() => {
                 if (item.label !== "Share") {
                     handleClose();
                   }
                  
                 
                 item.onPress();
-              }}
-              className={`flex-row items-center px-6 py-5 `}
-            >
-              <View className="flex-row items-center">
-                <Image
-                  source={item.source}
-                  tintColor={item.color}
-                  resizeMode="contain"
-                  className="w-6 h-6 mr-2"
-                  style={{ opacity: 0.8 }}
-                />
-                <Text className="font-JakartaSemiBold text-[16px]" style={{ color: item.color }}>{item.label}</Text>
+              }}            />
               </View>
-            </TouchableOpacity>
+            
           ))}
         </Animated.View>
       </Modal>

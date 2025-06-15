@@ -5,6 +5,7 @@ export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
+    const userId = url.searchParams.get("userId");
 
     const fetch_boards = await sql`
       SELECT 
@@ -19,6 +20,7 @@ export async function GET(request: Request) {
       FROM boards b
       JOIN users u ON b.user_id = u.clerk_id
       WHERE b.restrictions @> '{"Everyone"}'::text[]
+        AND b.user_id = ${userId}
       ORDER BY b.created_at ASC
       LIMIT 20;
     `;
