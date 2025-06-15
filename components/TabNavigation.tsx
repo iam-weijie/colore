@@ -3,6 +3,7 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { useHaptics } from "@/hooks/useHaptics";
+import { formatNumber } from "@/lib/utils";
 //import { ScrollView } from "react-native-gesture-handler";
 
 type TabNavigationProps = {

@@ -12,6 +12,7 @@ export async function GET(request: Request) {
     if (!postIdNum || !userId) {
       return new Response(JSON.stringify({ error: "Invalid input" }), {
         status: 400,
+        headers: { "Content-Type": "application/json" }
       });
     }
 
@@ -31,6 +32,7 @@ export async function GET(request: Request) {
     if (result.length === 0) {
       return new Response(JSON.stringify({ error: "Post not found" }), {
         status: 404,
+        headers: { "Content-Type": "application/json" }
       });
     }
 
@@ -41,7 +43,7 @@ export async function GET(request: Request) {
           liked: result[0].is_liked,
         },
       }),
-      { status: 200 }
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Like status check error:", error);
@@ -50,7 +52,7 @@ export async function GET(request: Request) {
         error: "Failed to check like status",
         details: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500 }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
@@ -58,12 +60,43 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   const sql = neon(`${process.env.DATABASE_URL}`);
   try {
-    const { postId, userId, increment } = await request.json();
+    console.log("[updateLikeCount] PATCH request received");
+    
+    // Log request body as text before parsing
+    const requestText = await request.text();
+    console.log("[updateLikeCount] Request body (text):", requestText);
+    
+    // Now parse the text as JSON
+    let requestData;
+    try {
+      requestData = JSON.parse(requestText);
+      console.log("[updateLikeCount] Parsed request data:", requestData);
+    } catch (parseError) {
+      console.error("[updateLikeCount] Failed to parse request JSON:", parseError);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid request body", 
+          details: "Could not parse request body as JSON" 
+        }), 
+        { 
+          status: 400, 
+          headers: { "Content-Type": "application/json" } 
+        }
+      );
+    }
+    
+    const { postId, userId, increment } = requestData;
+    
+    console.log("[updateLikeCount] Extracted values:", { postId, userId, increment });
+    
     const postIdNum = parseInt(postId, 10);
+    console.log("[updateLikeCount] Parsed postIdNum:", postIdNum);
 
     if (!postIdNum || !userId) {
+      console.error("[updateLikeCount] Invalid input:", { postIdNum, userId });
       return new Response(JSON.stringify({ error: "Invalid input" }), {
         status: 400,
+        headers: { "Content-Type": "application/json" }
       });
     }
 
@@ -171,7 +204,7 @@ export async function PATCH(request: Request) {
           liked: result[0].is_liked,
         },
       }),
-      { status: 200 }
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Like update error:", error);
@@ -180,7 +213,7 @@ export async function PATCH(request: Request) {
         error: "Failed to update like status",
         details: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500 }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

@@ -189,7 +189,9 @@ const PostContainer: React.FC<PostContainerProps> = ({
   }, [])
   // Fetch like status only when post or user changes
   const getLikeStatus = async () => {
-    const { isLiked, likeCount } = await fetchLikeStatus(currentPost, user!.id);
+    if (!currentPost || !user?.id) return;
+    
+    const { isLiked, likeCount } = await fetchLikeStatus(currentPost, user.id);
     setIsLiked(isLiked);
     setLikeCount(likeCount);
   };
@@ -271,6 +273,12 @@ const PostContainer: React.FC<PostContainerProps> = ({
       setIsLiked(increment);
       setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
 
+      console.log("[handleLikePress] Sending request with payload:", {
+        postId: currentPost.id,
+        userId: user.id,
+        increment,
+      });
+
       const response = await fetchAPI(`/api/posts/updateLikeCount`, {
         method: "PATCH",
         body: JSON.stringify({
@@ -280,7 +288,10 @@ const PostContainer: React.FC<PostContainerProps> = ({
         }),
       });
 
+      console.log("[handleLikePress] Received response:", response);
+
       if (response.error) {
+        console.error("[handleLikePress] Error in response:", response.error, response.details);
         setIsLiked(!increment);
         setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
         showAlert({
@@ -311,18 +322,23 @@ const PostContainer: React.FC<PostContainerProps> = ({
 
   const fetchCurrentNickname = async () => {
     try {
-      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
+      const response = await fetchAPI(`/api/users/getUserInfo?id=${user?.id}`, {
         method: "GET",
       });
       if (response.error) {
         throw new Error(response.error);
       }
       const nicknames = response.data[0].nicknames || [];
-      return findUserNickname(nicknames, post!.user_id) === -1
+      // Fix accessing user_id on post array
+      const postUserId = currentPost?.user_id;
+      if (!postUserId) return "";
+      
+      return findUserNickname(nicknames, postUserId) === -1
         ? ""
-        : nicknames[findUserNickname(nicknames, post!.user_id)][1];
+        : nicknames[findUserNickname(nicknames, postUserId)][1];
     } catch (error) {
       console.error("Failed to fetch user data:", error);
+      return "";
     }
   };
   useEffect(() => {
@@ -693,8 +709,8 @@ const getMenuItems = (
                 {
                   <DropdownMenu
                     menuItems={getMenuItems(
-                      currentPost?.clerk_id === user!.id ||
-                        currentPost?.recipient_user_id === user!.id,
+                      (currentPost?.user_id === user?.id) ||
+                        (currentPost?.recipient_user_id === user?.id),
                       invertedColors,
                       isPreview
                     )}

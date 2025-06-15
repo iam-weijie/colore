@@ -8,6 +8,7 @@ import * as Linking from "expo-linking";
 import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useSoundGesture } from "@/hooks/useSoundGesture";
+import { formatNumber } from "@/lib/utils";
 import {
     useRouter,
   } from "expo-router";
@@ -395,7 +396,7 @@ export const CommentItem: React.FC<PostComment> = ({
               <Text
                 className={`${user_id === user?.id ? "text-gray-600" : "text-transparent"} text-center`}
               >
-                {(user_id === user?.id ? likeCount : "0") != "0" ? likeCount : ""}
+                {(user_id === user?.id ? likeCount : "0") != "0" ? formatNumber(likeCount) : ""}
               </Text>
               {user_id !== user!.id && (
                 <TouchableOpacity

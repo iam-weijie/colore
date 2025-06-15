@@ -362,6 +362,29 @@ export function getRelativeTime(date: Date | string): string {
 }
 
 /**
+ * Formats numbers with K (thousands), M (millions), and B (billions) abbreviations
+ * @param num The number to format
+ * @returns A string with the formatted number
+ */
+export function formatNumber(num: number): string {
+  if (num === undefined || num === null) return '0';
+  
+  if (num >= 1000000000) {
+    return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+  }
+  
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  
+  return num.toString();
+}
+
+/**
  * Updates post positions when posts are added or removed.
  * This ensures the board layout remains optimized.
  * 
