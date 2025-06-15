@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { router } from "expo-router";
 import UserProfile from "@/components/UserProfile";
 import { useUser } from "@clerk/clerk-expo";
@@ -24,15 +24,21 @@ import { set } from "date-fns";
 import ItemContainer from "@/components/ItemContainer";
 import { useDraftPost } from "@/app/contexts/DraftPostContext";
 import PostModal from "@/components/PostModal";
+import { useUserDataContext } from "@/app/contexts/UserDataContext";
 
-
-const Profile = () => {
+const Profile = React.memo(() => {
   const { user } = useUser();
   const [post, setPost] = useState<Post>();
   const { resetDraftPost } = useDraftPost();
-  const { userId, username, postId, commentId, tab } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const userId = typeof params.userId === 'string' ? params.userId : '';
+  const username = typeof params.username === 'string' ? params.username : '';
+  const postId = typeof params.postId === 'string' ? params.postId : '';
+  const commentId = typeof params.commentId === 'string' ? params.commentId : '';
+  const tab = typeof params.tab === 'string' ? params.tab : '';
+  
   const [isUserSettingsVisible, setIsUserSettingsVisible] = useState(false);
-  const [nickname, setNickname] = useState("");
+  const { getNicknameFor, refreshUserData } = useUserDataContext();
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
     FriendStatus.UNKNOWN
   );
@@ -42,102 +48,97 @@ const Profile = () => {
 
   console.log("[Profile] arg: ", userId, username, postId, commentId, tab )
 
-    const fetchPost = async (id: string) => {
-          try {
-                const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`)
-  
-                const data = response.data[0]
-  
-                setPost(data)
-              } catch (error) {
-                console.log("[Notifications] Failed to fetch post: ", error)
-              }
+  const fetchPost = useCallback(async (id: string) => {
+    try {
+      const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`);
+      const data = response.data[0];
+      setPost(data);
+    } catch (error) {
+      console.log("[Notifications] Failed to fetch post: ", error);
     }
+  }, []);
 
+  const getFriendStatus = useCallback(async () => {
+    if (!user?.id || !userId || user.id === userId) return;
+    
+    const status = await fetchFriendStatus(userId, user);
+    setFriendStatus(status);
+  }, [user, userId]);
 
-  const getFriendStatus = async () => {
-    let status;
-    if (user!.id !== userId) {
-      status = await fetchFriendStatus(userId as string, user!);
-      //console.log("Friend status:", status.name);
-      setFriendStatus(status);
-    }
-  };
-
-  const handleAddNickname = () => {
+  const handleAddNickname = useCallback(() => {
     setStateVars({
       ...stateVars,
       previousScreen: "profile",
-      userId: userId as string,
+      userId: userId,
     });
     router.push("/root/profile/nickname");
-  };
+  }, [stateVars, userId, setStateVars]);
 
-  const findUserNickname = (userArray: UserNicknamePair[], userId: string) => {
-    const index = userArray.findIndex((pair) => pair[0] === userId);
-    return index;
-  };
-  const fetchCurrentNickname = async () => {
-    try {
-      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
-        //Fetch User Color Collected
-        method: "GET",
-      });
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      const nicknames = response.data[0].nicknames || [];
-      return findUserNickname(nicknames, userId) === -1
-        ? ""
-        : nicknames[findUserNickname(nicknames, userId)][1];
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-    }
-  };
+  const nickname = useMemo(() => {
+    if (!userId) return "";
+    return getNicknameFor(userId);
+  }, [getNicknameFor, userId]);
 
-  const handleUnfriend = async () => {
+  const handleUnfriend = useCallback(async () => {
+    if (!user?.id || !userId) return;
+    
     setIsHandlingFriendRequest(true);
-    const response: FriendStatusType = await unfriend(
-      user!.id,
-      userId as string
-    );
-    if (response === FriendStatus.NONE) {
-      showAlert({
-        title: "Unfriended",
-        message: "You have unfriended this user.",
-        type: "FRIEND_REQUEST",
-        status: "success",
-      });
-    } else {
+    
+    try {
+      const response = await unfriend(user.id, userId);
+      
+      if (response === FriendStatus.NONE) {
+        showAlert({
+          title: "Unfriended",
+          message: "You have unfriended this user.",
+          type: "FRIEND_REQUEST",
+          status: "success",
+        });
+      } else {
+        showAlert({
+          title: "Error",
+          message: `Error unfriending this user.`,
+          type: "ERROR",
+          status: "error",
+        });
+      }
+      
+      setFriendStatus(response);
+    } catch (error) {
+      console.error("Error unfriending user:", error);
       showAlert({
         title: "Error",
-        message: `Error unfriending this user.`,
+        message: `An unexpected error occurred.`,
         type: "ERROR",
         status: "error",
       });
+    } finally {
+      setIsHandlingFriendRequest(false);
     }
-    setFriendStatus(response);
-    setIsHandlingFriendRequest(false);
-  };
+  }, [user, userId, showAlert]);
 
-  const handleSendFriendRequest = async () => {
+  const handleSendFriendRequest = useCallback(async () => {
+    if (!user?.id || !userId) return;
+    
     try {
       setIsHandlingFriendRequest(true);
+      
       await fetchAPI(`/api/friends/newFriendRequest`, {
         method: "POST",
         body: JSON.stringify({
-          clerkId: user!.id,
+          clerkId: user.id,
           friendId: userId,
         }),
       });
+      
       showAlert({
         title: "Friend request sent!",
         message: "You have sent a friend request to this user.",
         type: "FRIEND_REQUEST",
         status: "success",
       });
+      
       setFriendStatus(FriendStatus.SENT);
-      setIsHandlingFriendRequest(false);
     } catch (error) {
       console.error("Failed to send friend request:", error);
       showAlert({
@@ -146,166 +147,218 @@ const Profile = () => {
         type: "ERROR",
         status: "error",
       });
+    } finally {
+      setIsHandlingFriendRequest(false);
     }
-  };
+  }, [user, userId, showAlert]);
 
-  const handleCancelFriendRequest = async () => {
+  const handleCancelFriendRequest = useCallback(async () => {
+    if (!user?.id || !userId) return;
+    
     setIsHandlingFriendRequest(true);
-    const response: FriendStatusType = await cancelFriendRequest(
-      user!.id,
-      userId
-    );
-    if (response === FriendStatus.NONE) {
-      showAlert({
-        title: "Cancelled",
-        message: "Friend request cancelled.",
-        type: "UPDATE",
-        status: "success",
-      });
-    } else {
+    
+    try {
+      const response = await cancelFriendRequest(user.id, userId);
+      
+      if (response === FriendStatus.NONE) {
+        showAlert({
+          title: "Cancelled",
+          message: "Friend request cancelled.",
+          type: "UPDATE",
+          status: "success",
+        });
+      } else {
+        showAlert({
+          title: "Error",
+          message: `Error cancelling this friend request.`,
+          type: "ERROR",
+          status: "error",
+        });
+      }
+      
+      const status = response.name === "none" ? FriendStatus.NONE : response;
+      setFriendStatus(status);
+    } catch (error) {
+      console.error("Error cancelling friend request:", error);
       showAlert({
         title: "Error",
-        message: `Error cancelling this friend request.`,
+        message: `An unexpected error occurred.`,
         type: "ERROR",
         status: "error",
       });
+    } finally {
+      setIsHandlingFriendRequest(false);
     }
-    console.log("Friend status after cancel:", response);
-    const status = response.name == "none" ? FriendStatus.NONE : response;
-    setFriendStatus(status);
-    setIsHandlingFriendRequest(false);
-  };
+  }, [user, userId, showAlert]);
 
-  const handleReportPress = () => {
+  const handleReportPress = useCallback(() => {
     Linking.openURL("mailto:support@colore.ca");
-  };
-
-  useEffect(() => {
-    const getNickname = async () => {
-      const nickname = await fetchCurrentNickname();
-      if (nickname) {
-        setNickname(nickname);
-      }
-    };
-    getNickname();
-    getFriendStatus();
   }, []);
 
-  const navigationControls =
-    userId !== user?.id
-      ? [
-          {
-            icon: icons.back,
-            label: "Back",
-            onPress: () => router.back(),
-          },
-          {
-            icon: icons.pencil,
-            label: "New Post",
-            onPress: () => {
-              resetDraftPost();
-              router.push({
-                pathname: "root/new-post",
-                params: {
-                  recipientId: userId,
-                  username: username,
-                },
-              });
-            },
-            isCenter: true,
-          },
-          {
-            icon: icons.settings,
-            label: "More",
-            onPress: () => setIsUserSettingsVisible(true),
-            isCenter: true,
-          },
-        ]
-      : [];
+  const handleCloseUserSettings = useCallback(() => {
+    setIsUserSettingsVisible(false);
+  }, []);
 
-  const [userSettingTab, setUserSettingTab] = useState<string>("");
-  const UserSettings = () => {
+  const handleOpenUserSettings = useCallback(() => {
+    setIsUserSettingsVisible(true);
+  }, []);
+
+  const handleGoBack = useCallback(() => {
+    router.back();
+  }, []);
+
+  const handleGoToChat = useCallback(() => {
+    router.push({
+      pathname: "/root/chat/conversation",
+      params: {
+        clerkId: userId,
+        username: username,
+      },
+    });
+  }, [userId, username]);
+
+  useEffect(() => {
+    refreshUserData();
+    getFriendStatus();
+    
+    if (postId) {
+      fetchPost(postId);
+    }
+  }, [getFriendStatus, fetchPost, postId, refreshUserData]);
+
+  const navigationControls = useMemo(() => {
+    if (userId !== user?.id) {
+      return [
+        {
+          icon: icons.back,
+          label: "Back",
+          onPress: handleGoBack,
+        },
+        {
+          icon: icons.user,
+          label: "Friend",
+          onPress: handleOpenUserSettings,
+          isCenter: true,
+        },
+        {
+          icon: icons.chat,
+          label: "Message",
+          onPress: handleGoToChat,
+        },
+      ];
+    } else {
+      return [
+        {
+          icon: icons.back,
+          label: "Back",
+          onPress: handleGoBack,
+        },
+        {
+          icon: icons.user,
+          label: "User",
+          onPress: handleOpenUserSettings,
+          isCenter: true,
+        },
+        {
+          icon: icons.chat,
+          label: "Message",
+          onPress: handleGoToChat,
+        },
+      ];
+    }
+  }, [userId, user, handleGoBack, handleOpenUserSettings, handleGoToChat]);
+
+  const UserSettings = useMemo(() => {
+    const options = [];
+
+    if (userId !== user?.id) {
+      if (friendStatus === FriendStatus.NONE) {
+        options.push({
+          label: "Add Friend",
+          onPress: handleSendFriendRequest,
+          disabled: isHandlingFriendRequest,
+        });
+      } else if (friendStatus === FriendStatus.SENT) {
+        options.push({
+          label: "Cancel Friend Request",
+          onPress: handleCancelFriendRequest,
+          disabled: isHandlingFriendRequest,
+        });
+      } else if (friendStatus === FriendStatus.FRIENDS) {
+        options.push({
+          label: "Unfriend",
+          onPress: handleUnfriend,
+          disabled: isHandlingFriendRequest,
+        });
+        options.push({
+          label: "Add Nickname",
+          onPress: handleAddNickname,
+        });
+      }
+
+      options.push({
+        label: "Report",
+        onPress: handleReportPress,
+      });
+    }
+
     return (
       <ModalSheet
-        title={"Settings"}
         isVisible={isUserSettingsVisible}
-        onClose={() => {
-          setIsUserSettingsVisible(false);
-        }}
+        onClose={handleCloseUserSettings}
+        title={`${username || "User"} ${nickname ? `(${nickname})` : ""}`}
       >
-        <View className="flex-1 items-center justify-center px-6">
-          <ItemContainer
-            label={nickname ? nickname : "Set a nickname"}
-            caption={
-              nickname ? `Change ${nickname}'s nickname` : "Nickname me!"
-            }
-            icon={icons.user}
-            colors={["#93c5fd", "#b8e1ff"]}
-            iconColor="#000"
-            onPress={() => {
-              handleAddNickname();
-            }}
-            actionIcon={nickname && icons.check}
-          />
-          {friendStatus == FriendStatus.FRIENDS && (
+        <View className="flex flex-col w-full items-center justify-center p-4 gap-y-3">
+          {options.map((option, index) => (
             <ItemContainer
-              label={"Unfriend"}
-              caption={"Add recipient to this post"}
-              icon={icons.removeUser}
+              key={index}
+              label={option.label}
+              caption={option.disabled ? "Processing..." : ""}
+              icon={icons.user}
               colors={["#93c5fd", "#b8e1ff"]}
               iconColor="#000"
-              onPress={() => handleUnfriend()}
+              onPress={option.onPress}
             />
-          )}
-          {friendStatus == FriendStatus.SENT && (
-            <ItemContainer
-              label={"Cancel friend request"}
-              caption={"Cancel the friend request you sent to this user"}
-              icon={icons.close}
-              colors={["#93c5fd", "#b8e1ff"]}
-              iconColor="#000"
-              onPress={() => handleCancelFriendRequest()}
-            />
-          )}
-          {friendStatus == FriendStatus.NONE && (
-            <ItemContainer
-              label={"Send a friend request"}
-              caption={"Begin a legendary friendship with this user"}
-              icon={icons.addUser}
-              colors={["#93c5fd", "#b8e1ff"]}
-              iconColor="#000"
-              onPress={() => handleSendFriendRequest()}
-            />
-          )}
-          <ItemContainer
-            label={"Report user"}
-            caption={"Report this user to the support team"}
-            icon={icons.email}
-            colors={["#93c5fd", "#b8e1ff"]}
-            iconColor="#000"
-            onPress={() => handleReportPress()}
-          />
+          ))}
         </View>
       </ModalSheet>
     );
-  };
+  }, [
+    userId, 
+    user, 
+    friendStatus, 
+    isHandlingFriendRequest, 
+    isUserSettingsVisible, 
+    username, 
+    nickname, 
+    handleSendFriendRequest, 
+    handleCancelFriendRequest, 
+    handleUnfriend, 
+    handleAddNickname, 
+    handleReportPress, 
+    handleCloseUserSettings
+  ]);
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
-      {userId && <UserProfile userId={userId as string} friendStatus={FriendStatus.UNKNOWN} nickname={nickname} tab={tab}/>}
-      <UserSettings />
-        <CustomButtonBar
-              buttons={navigationControls}
-              />
-
-      {!!post && 
-      <PostModal
-       isVisible={!!post} 
-       selectedPosts={post ? [post] : []}
-       handleCloseModal={() => {setPost(undefined)}}
-       seeComments={!!commentId} />}
+      <CustomButtonBar buttons={navigationControls} />
+      <UserProfile
+        userId={userId}
+        friendStatus={friendStatus}
+        nickname={nickname}
+        tab={tab}
+      />
+      {UserSettings}
+      {post && (
+        <PostModal
+          isVisible={!!post}
+          selectedPosts={[post]}
+          handleCloseModal={() => setPost(undefined)}
+          seeComments={!!commentId}
+        />
+      )}
     </View>
   );
-};
+});
 
 export default Profile;

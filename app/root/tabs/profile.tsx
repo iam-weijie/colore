@@ -4,7 +4,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { Post, FriendStatusType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { SafeAreaView, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FriendStatus } from "@/lib/enum";
@@ -12,7 +12,7 @@ import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 
 const ENCRYPTION_KEY_STORAGE = "encryptionKey";
 
-const Profile = () => {
+const Profile = React.memo(() => {
   const { signOut } = useAuth();
   const { user } = useUser();
   const { setEncryptionKey } = useEncryptionContext();
@@ -22,9 +22,11 @@ const Profile = () => {
   const commentId = params.commentId ? String(params.commentId) : undefined;
   const tab = params.tab ? String(params.tab) : "posts";
 
-  const parsedPost = post ? JSON.parse(post) as Post : null;
+  const parsedPost = useMemo(() => 
+    post ? JSON.parse(post) as Post : null
+  , [post]);
   
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       // Clear encryption key from AsyncStorage
       await AsyncStorage.removeItem(ENCRYPTION_KEY_STORAGE);
@@ -42,7 +44,11 @@ const Profile = () => {
       await signOut();
       router.replace("/auth/log-in");
     }
-  };
+  }, [signOut, setEncryptionKey]);
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalVisible(false);
+  }, []);
 
   useEffect(() => {
     if (post) {
@@ -62,14 +68,12 @@ const Profile = () => {
         <PostModal
           isVisible={isModalVisible}
           selectedPosts={[parsedPost]}
-          handleCloseModal={() => {
-            setIsModalVisible(false);
-          }}
+          handleCloseModal={handleCloseModal}
           seeComments={!!commentId} 
         />
       )}
     </View>
   );
-};
+});
 
 export default Profile;
