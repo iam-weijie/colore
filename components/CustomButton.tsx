@@ -1,7 +1,7 @@
 import { ButtonProps } from "@/types/type";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet, ColorValue } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,6 +10,7 @@ import Animated, {
   interpolate,
   runOnJS,
   Easing,
+  SharedValue,
 } from "react-native-reanimated";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { BlurView } from "expo-blur";
@@ -17,7 +18,9 @@ import { BlurView } from "expo-blur";
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
-const getBgVariantStyle = (variant, disabled) => {
+type BgVariantStyle = string | readonly [ColorValue, ColorValue, ...ColorValue[]];
+
+const getBgVariantStyle = (variant: string, disabled: boolean): BgVariantStyle => {
   if (disabled) return "bg-gray-400";
 
   switch (variant) {
@@ -26,16 +29,16 @@ const getBgVariantStyle = (variant, disabled) => {
     case "danger": return "bg-red-500";
     case "success": return "bg-green-500";
     case "outline": return "bg-transparent border-neutral-300 border-[0.5px]";
-    case "gradient": return ["#ffd12b", "#ff9f45"];
-    case "gradient2": return ["#54C1EE", "#91C5FC", "#54C1EE"];
-    case "gradient3": return ["#FFB85A", "#FF8864", "#FFB85A"];
-    case "gradient4": return ["#FF99CC", "#FFCCF2", "#FF99CC"];
-     case "gradient5": return ["#FBB1F5", "#93c5fd"];
+    case "gradient": return ["#ffd12b", "#ff9f45"] as const;
+    case "gradient2": return ["#54C1EE", "#91C5FC", "#54C1EE"] as const;
+    case "gradient3": return ["#FFB85A", "#FF8864", "#FFB85A"] as const;
+    case "gradient4": return ["#FF99CC", "#FFCCF2", "#FF99CC"] as const;
+    case "gradient5": return ["#FBB1F5", "#93c5fd"] as const;
     default: return "bg-[#333333]";
   }
 };
 
-const getTextVariantStyle = (variant, disabled) => {
+const getTextVariantStyle = (variant: string, disabled: boolean): string => {
   if (disabled) return "text-gray-300";
 
   switch (variant) {
@@ -55,6 +58,34 @@ const fontSizeMap = {
   "2xl": "text-[20px]",
 };
 
+// Create styles using StyleSheet
+const styles = StyleSheet.create({
+  touchableContainer: {
+    backgroundColor: '#ffffff30', // Semi-transparent background
+    borderColor: '#ffffff80',
+    shadowColor: "rgba(90,90,90,1)",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  blurView: {
+    borderRadius: 70,
+    overflow: 'hidden',
+  },
+  innerView: {
+    position: "absolute",
+    backgroundColor: "#ffffffAA",
+    borderColor: "#ffffff60",
+    borderWidth: 3,
+    borderRadius: 24,
+    shadowColor: "#00000044",
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    shadowOpacity: 0.1,
+    elevation: 2,
+    backdropFilter: 'blur(10px)',
+  }
+});
 
 const CustomButton = ({
   onPress,
@@ -78,13 +109,20 @@ const CustomButton = ({
   const bgStyle = getBgVariantStyle(bgVariant, disabled);
   const isGradient = Array.isArray(bgStyle);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: disabled ? 0.7 : interpolate(brightness.value, [0.9, 1], [0.9, 1]),
-    shadowOpacity: shadowOpacity.value,
-    shadowRadius: shadowRadius.value,
-    shadowOffset: { width: 0, height: interpolate(scale.value, [0.92, 1], [1, 3]) },
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+    const dynamicShadowOffset = { 
+      width: 0, 
+      height: interpolate(scale.value, [0.92, 1], [1, 3]) 
+    };
+    
+    return {
+      transform: [{ scale: scale.value }],
+      opacity: disabled ? 0.7 : interpolate(brightness.value, [0.9, 1], [0.9, 1]),
+      shadowOpacity: shadowOpacity.value,
+      shadowRadius: shadowRadius.value,
+      shadowOffset: dynamicShadowOffset,
+    };
+  });
 
   const textAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: textScale.value }],
@@ -127,21 +165,11 @@ const CustomButton = ({
       disabled={disabled}
       activeOpacity={1}
       style={[
-        {
-        width: fontSize == "sm" ? "100%" : "50%",
-        backgroundColor: '#ffffff30', // Semi-transparent background
-        borderColor: '#ffffff80',
-        shadowColor: "rgba(90,90,90,1)",
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        },
+        styles.touchableContainer,
+        { width: fontSize == "sm" ? "100%" : "50%" }
       ]}
       className={`relative w-full rounded-full ${isGradient ? "" : bgStyle} flex flex-row justify-center items-center`}
-      
     >
-
-      
       {!isGradient && !disabled && <>
       <View className={`absolute top-[60%] left-[18%] rounded-full`}
       style={{
@@ -163,16 +191,13 @@ const CustomButton = ({
       }}/>
       </>}
 
-        <BlurView intensity={60} tint="light" 
+      <BlurView intensity={60} tint="light" 
         className={`flex-1 ${isGradient ? "" : `py-${padding}`} flex flex-row items-center justify-center`}
-        style={{
-           borderRadius: 70,
-           overflow: 'hidden',
-        }}>
+        style={styles.blurView}>
        
       {isGradient && Array.isArray(bgStyle) ? (
         <AnimatedLinearGradient
-          colors={bgStyle}
+          colors={bgStyle as readonly [ColorValue, ColorValue, ...ColorValue[]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={gradientAnimatedStyle}
@@ -189,23 +214,10 @@ const CustomButton = ({
         </AnimatedLinearGradient>
       ) : (
         <>
-
-                <Animated.View
+          <Animated.View
             className={`flex-1 w-full h-full rounded-full py-6`}
             style={[
-              {
-                position: "absolute",
-                backgroundColor: "#ffffffAA",
-                borderColor: "#ffffff60",
-                borderWidth: 3,
-                borderRadius: 24,
-                shadowColor: "#00000044",
-                shadowOffset: { width: 0, height: 2 },
-                shadowRadius: 4,
-                shadowOpacity: 0.1,
-                elevation: 2,
-                backdropFilter: 'blur(10px)',
-              },
+              styles.innerView,
               animatedStyle,
             ]}
           />
@@ -222,7 +234,7 @@ const CustomButton = ({
           {IconRight && <Animated.View style={textAnimatedStyle}><IconRight /></Animated.View>}
         </>
       )}
-            </BlurView>
+      </BlurView>
     </AnimatedTouchable>
   );
 };
