@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from 'react';
 import { useSoundEffects, SoundType } from './useSoundEffects';
-import { useGlobalContext } from '@/app/globalcontext';
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { GestureStateChangeEvent, GestureUpdateEvent, PanGestureHandler, PanGestureHandlerEventPayload } from 'react-native-gesture-handler';
 
 /**
@@ -10,7 +10,7 @@ import { GestureStateChangeEvent, GestureUpdateEvent, PanGestureHandler, PanGest
  * @returns Gesture handler functions to be applied to Gesture.Gesture objects
  */
 export const useSoundGesture = (soundType = SoundType.Swipe) => {
-  const { soundEffectsEnabled } = useGlobalContext();
+  const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects();
   const lastGestureTime = useRef<number>(0);
   const hasPlayedStart = useRef<boolean>(false);

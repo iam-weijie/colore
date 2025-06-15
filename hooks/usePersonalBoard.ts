@@ -3,7 +3,7 @@ import { Dimensions } from "react-native";
 import { fetchAPI } from "@/lib/fetch";
 import { Board, Post, UsePersonalPostsParams } from "@/types/type";
 import { decryptText } from "@/lib/encryption";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 
 const POSTS_CONFIG = {
   IPAD_MAX: 48,
@@ -56,7 +56,7 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { encryptionKey } = useGlobalContext();
+  const { encryptionKey } = useEncryptionContext();
 
   const fetchBoardPosts = async (
     boardId: number,

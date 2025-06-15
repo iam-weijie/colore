@@ -6,13 +6,13 @@ import {
   Animated,
   Easing,
 } from "react-native";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useDevice } from "@/app/contexts/DeviceContext";
 import { EmojiBackgroundProps } from "@/types/type";
 
 const { width, height } = Dimensions.get("window");
 
 const EmojiBackground: React.FC<EmojiBackgroundProps> = ({ emoji, color }) => {
-  const { isIpad } = useGlobalContext();
+  const { isIpad } = useDevice();
   
   const GRID_SIZE = isIpad ? 150 : 100;
   const OFFSET_X = 20;

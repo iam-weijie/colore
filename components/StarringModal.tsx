@@ -1,4 +1,3 @@
-import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useSoundGesture } from "@/hooks/useSoundGesture"; // Import swipe sound hook
 import { fetchAPI } from "@/lib/fetch";

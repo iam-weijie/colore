@@ -11,7 +11,7 @@ import BoardGallery from "@/components/BoardGallery"
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import { Ionicons } from "@expo/vector-icons";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useProfileContext } from "@/app/contexts/ProfileContext";
 import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
 import { boardTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
@@ -21,7 +21,7 @@ import { defaultColors } from "@/constants/colors";
 const UserPersonalBoard = () => {
   const router = useRouter();
   const { user } = useUser();
-  const { userColors } = useGlobalContext();
+  const { userColors } = useProfileContext();
   
   // Tutorial constants
   

@@ -10,7 +10,9 @@ import { router, useFocusEffect } from "expo-router";
 import { Dimensions, Image, Modal, ImageSourcePropType, Pressable, TouchableOpacity, View, Text } from "react-native";
 import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming } from "react-native-reanimated";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useDevice } from "@/app/contexts/DeviceContext";
+import { useNotificationsContext } from "@/app/contexts/NotificationsContext";
+import { useProfileContext } from "@/app/contexts/ProfileContext";
 import DropdownMenu from "@/components/DropdownMenu";
 
 import Action from "@/components/InfoScreen";
@@ -36,7 +38,9 @@ export default function Page() {
 
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
-  const { isIpad, unreadComments, unreadPersonalPosts, profile } = useGlobalContext();
+  const { isIpad } = useDevice();
+  const { unreadComments, unreadPersonalPosts } = useNotificationsContext();
+  const { profile } = useProfileContext();
   const [geographicalMode, setGeographicalMode] =
     useState<GeographicalMode>("world");
   const userInfo = profile;

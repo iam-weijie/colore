@@ -1,4 +1,3 @@
-import { useGlobalContext } from "@/app/globalcontext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { icons } from "@/constants/index";
 import { allColors } from "@/constants/colors";
@@ -84,6 +83,9 @@ import ItemContainer from "./ItemContainer";
 import EmojiBackground from "./EmojiBackground";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import { RichText } from "./RichTextInput";
+import { useStacks } from "@/app/contexts/StacksContext";
+import { useDevice } from "@/app/contexts/DeviceContext";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -99,7 +101,9 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   header,
   scrollToLoad,
 }) => {
-  const { stacks, isIpad, soundEffectsEnabled } = useGlobalContext(); // Add soundEffectsEnabled
+  const { stacks } = useStacks();
+  const { isIpad } = useDevice();
+  const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");

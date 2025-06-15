@@ -27,7 +27,7 @@ import { useAlert } from '@/notifications/AlertContext';
 import ColorPickerSlider from "@/components/ColorPickerSlider";
 import * as Haptics from "expo-haptics";
 import { useHaptics } from "@/hooks/useHaptics";
-import { useGlobalContext } from "../globalcontext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { handleSubmitPost } from "@/lib/post";
 
 
@@ -44,7 +44,7 @@ const EditPost = () => {
   const [inputHeight, setInputHeight] = useState(40);
   const maxCharacters = 3000;
   const { showAlert } = useAlert();
-  const { encryptionKey } = useGlobalContext();
+  const { encryptionKey } = useEncryptionContext();
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
     defaultColors.find(
       (c) => c.id === color

@@ -4,7 +4,8 @@ import { Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-rout
 import { fetchAPI } from '@/lib/fetch';
 import { useUser } from '@clerk/clerk-expo';
 import { useAlert } from '@/notifications/AlertContext';
-import { useGlobalContext } from '@/app/globalcontext';
+import { useReplyScroll } from '@/app/contexts/ReplyScrollContext';
+import { useSettingsContext } from '@/app/contexts/SettingsContext';
 import { useSoundEffects, SoundType } from '@/hooks/useSoundEffects';
 import { temporaryColors, icons } from '@/constants';
 import { getRelativeTime } from '@/lib/utils';
@@ -25,7 +26,8 @@ const PostCommentsModal = () => {
   const navigation = useNavigation();
   const router = useRouter();
   const { showAlert } = useAlert();
-  const { replyTo, setReplyTo, soundEffectsEnabled } = useGlobalContext();
+  const { replyTo, setReplyTo } = useReplyScroll();
+  const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects();
 
   // States

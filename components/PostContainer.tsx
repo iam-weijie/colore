@@ -1,4 +1,4 @@
-import { useGlobalContext } from "@/app/globalcontext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { icons } from "@/constants/index";
 import { allColors } from "@/constants/colors";
@@ -82,6 +82,10 @@ import ItemContainer from "./ItemContainer";
 import EmojiBackground from "./EmojiBackground";
 import { RichText } from "./RichTextInput";
 import { decryptText } from "@/lib/encryption"; // Import decryptText
+import { useStacks } from "@/app/contexts/StacksContext";
+import { useDraftPost } from "@/app/contexts/DraftPostContext";
+import { useDevice } from "@/app/contexts/DeviceContext";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -100,7 +104,11 @@ const PostContainer: React.FC<PostContainerProps> = ({
   scrollToLoad,
   seeComments = false,
 }) => {
-  const { stacks, isIpad, soundEffectsEnabled, draftPost, encryptionKey } = useGlobalContext(); // Add encryptionKey
+  const { stacks, setStacks } = useStacks();
+  const { draftPost } = useDraftPost();
+  const { isIpad } = useDevice();
+  const { soundEffectsEnabled } = useSettingsContext();
+  const { encryptionKey } = useEncryptionContext();
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const { user } = useUser();
   const [nickname, setNickname] = useState<string>("");

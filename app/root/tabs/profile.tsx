@@ -6,16 +6,16 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, Text, View } from "react-native";
-import { useGlobalContext } from "@/app/globalcontext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FriendStatus } from "@/lib/enum";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 
 const ENCRYPTION_KEY_STORAGE = "encryptionKey";
 
 const Profile = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
-  const { setEncryptionKey } = useGlobalContext();
+  const { setEncryptionKey } = useEncryptionContext();
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const params = useLocalSearchParams();
   const post = params.post ? String(params.post) : undefined;

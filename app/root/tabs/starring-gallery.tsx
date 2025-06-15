@@ -18,7 +18,9 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useDevice } from "@/app/contexts/DeviceContext";
+import { useStacks } from "@/app/contexts/StacksContext";
+import { useProfileContext } from "@/app/contexts/ProfileContext";
 import CustomButton from "@/components/CustomButton";
 import InfoScreen from "@/components/InfoScreen";
 import EmojiBackground from "@/components/EmojiBackground";
@@ -93,7 +95,9 @@ const CreateView = ({
 export default function Page() {
   const { user } = useUser();
   const { showAlert } = useAlert();
-  const { isIpad, stacks, setStacks, profile } = useGlobalContext();
+  const { isIpad } = useDevice();
+  const { stacks, setStacks } = useStacks();
+  const { profile } = useProfileContext();
 
   // Tutorial constants
   
@@ -396,7 +400,7 @@ export default function Page() {
 
         personalPosts.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <Text className="text-lg">You haven’t posted anything yet!</Text>
+            <Text className="text-lg">You haven't posted anything yet!</Text>
           </View>
         ) : (
           <>

@@ -14,7 +14,7 @@ import Animated, {
   withSequence,
   runOnJS,
 } from "react-native-reanimated";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -62,7 +62,7 @@ const InteractionButton = React.memo(({
   soundType,
   styling = "",
 }: InteractionButtonProps) => {
-  const { soundEffectsEnabled } = useGlobalContext();
+  const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects();
 
   // Memoized size config

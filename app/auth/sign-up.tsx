@@ -21,11 +21,12 @@ import AppleSignIn from "@/components/AppleSignIn";
 import { Platform } from "react-native";
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useDevice } from "@/app/contexts/DeviceContext";
 import React from "react";
 import { LinearGradient } from 'expo-linear-gradient';
 import { generateSalt, deriveKey } from "@/lib/encryption";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 
 const ENCRYPTION_KEY_STORAGE = "encryptionKey";
 
@@ -34,8 +35,8 @@ const SignUp = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState("");
-  const { isIpad } = useGlobalContext()
-  const { setEncryptionKey } = useGlobalContext();
+  const { isIpad } = useDevice();
+  const { setEncryptionKey } = useEncryptionContext();
   const [isLoading, setIsLoading] = useState(false);
 
   const [form, setForm] = useState({

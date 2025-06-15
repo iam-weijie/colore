@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { TextStyle, Format } from '@/types/type';
-import { useGlobalContext } from '@/app/globalcontext';
+import { useDraftPost } from "@/app/contexts/DraftPostContext";
 import KeyboardOverlay from './KeyboardOverlay';
 import RichTextEditor from './RichTextEditor';
 
@@ -75,7 +75,7 @@ const RichTextInput = ({ refresh, exportText, exportStyling, onFocus }: {
   exportStyling: (styling: Format[]) => void;
   onFocus: (state: boolean) => void;
 }) => {
-  const { draftPost } = useGlobalContext();
+  const { draftPost } = useDraftPost();
   const [value, setValue] = useState('');
    const [style, setStyle] = useState<TextStyle | null>(null);
   const [formats, setFormats] = useState<Format[]>([]);

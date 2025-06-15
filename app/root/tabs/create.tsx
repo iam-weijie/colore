@@ -16,7 +16,7 @@ import { icons } from "@/constants";
 import { 
   addDays
 } from 'date-fns';
-import { useGlobalContext } from "@/app/globalcontext";
+import { useDraftPost } from "@/app/contexts/DraftPostContext";
 import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
 import { createTutorialPages } from "@/constants/tutorials";
 import ModalSheet from "@/components/Modal";
@@ -61,7 +61,7 @@ const [step, setStep] = useState(0);
     }
   };
 
-const { draftPost, resetDraftPost } = useGlobalContext()
+const { draftPost, resetDraftPost } = useDraftPost()
 const [selectedTab, setSelectedTab] = useState<string>("notes");
 
 const tabs = [

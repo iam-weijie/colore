@@ -33,15 +33,17 @@ import { CustomButtonBar } from "@/components/CustomTabBar";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
-import { useGlobalContext } from "../globalcontext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { encryptText } from "@/lib/encryption";
+import { useProfileContext } from "@/app/contexts/ProfileContext";
 
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
 
 
   const { user } = useUser();
-  const { userColors, encryptionKey } = useGlobalContext();
+  const { userColors } = useProfileContext();
+  const { encryptionKey } = useEncryptionContext();
   const { type } = useLocalSearchParams();
   const { showAlert } = useAlert();
 
@@ -364,7 +366,7 @@ Perfect for open discussions or quiet sharing.`,
 
   const handleBoardSubmit = async () => {
     try {
-      const isPrivate = selectedPrivacy === "Private" && encryptionKey;
+      const isPrivate = selectedPrivacy === "Private" && Boolean(encryptionKey);
 
       const encryptedTitle = isPrivate ? encryptText(boardTitle, encryptionKey!) : boardTitle;
       const encryptedDescription = isPrivate ? encryptText(boardDescription, encryptionKey!) : boardDescription;

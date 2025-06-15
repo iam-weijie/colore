@@ -1,4 +1,4 @@
-import { useGlobalContext } from "@/app/globalcontext";
+import { useDevice } from "@/app/contexts/DeviceContext";
 import PostItBoard from "@/components/PostItBoard";
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -41,7 +41,7 @@ type PersonalBoardProps = {
 
 const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleModeOn, setShuffleModeOn }) => {
   const { user } = useUser();
-  const { isIpad } = useGlobalContext();
+  const { isIpad } = useDevice();
   const [loading, setLoading] = useState(true);
 
   const [postRefIDs, setPostRefIDS] = useState<number[]>([]);
@@ -89,7 +89,7 @@ const handleFetchPosts = async () => {
       if (!response.ok) throw new Error("Network response was not ok 1");
       const result = await response.json();
       if (result.length == 0) {return}
-      const filteredForBoard = result.data.filter((p) => p.board_id == boardId);
+      const filteredForBoard = result.data.filter((p: Post) => p.board_id == boardId);
       const newPostWithPosition = filteredForBoard;
       if (newPostWithPosition.length > 0) return newPostWithPosition[0];
     } catch (error) {

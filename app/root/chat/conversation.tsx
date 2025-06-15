@@ -28,7 +28,7 @@ import {
 } from "react-native";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
-import { useGlobalContext } from "@/app/globalcontext";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import { useSoundGesture } from "@/hooks/useSoundGesture";
 
@@ -55,7 +55,7 @@ const MessageItem: React.FC<Message> = ({
   const maxSwipe = 55; // Adjust as needed
   const minSwipe = -55; // Adjust as needed
 
-  const { soundEffectsEnabled } = useGlobalContext();
+  const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects();
   const { handlePanGestureStateChange } = useSoundGesture(SoundType.Swipe);
 

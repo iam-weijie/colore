@@ -2,7 +2,7 @@ import { PostModalProps } from "@/types/type";
 import { View, Modal, Animated, Easing, Dimensions, Pressable, Text, Platform } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import PostContainer from "./PostContainer";
-import { useGlobalContext } from "@/app/globalcontext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { decryptText } from "@/lib/encryption";
 
 const { height } = Dimensions.get('window');
@@ -21,7 +21,7 @@ const PostModal: React.FC<PostModalProps> = ({
 }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const { encryptionKey } = useGlobalContext();
+  const { encryptionKey } = useEncryptionContext();
   const [processedPosts, setProcessedPosts] = useState(selectedPosts);
 
   console.log("[PostModal] See Comment: ", seeComments);

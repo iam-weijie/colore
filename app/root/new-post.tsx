@@ -35,7 +35,7 @@ import { fetchFriendStatus } from "@/lib/friend";
 import { fetchFriends } from "@/lib/friend";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import ItemContainer from "@/components/ItemContainer";
-import { useGlobalContext } from "../globalcontext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 
 import { CustomButtonBar } from "@/components/CustomTabBar";
 import Header from "@/components/Header";
@@ -64,6 +64,8 @@ import { stripMarkdown } from "@/components/RichTextInput";
 import { FindUser } from "@/components/FindUsers";
 import CustomButton from "@/components/CustomButton";
 import { allColors, defaultColors } from "@/constants/colors";
+import { useDraftPost } from "@/app/contexts/DraftPostContext";
+import { useProfileContext } from "@/app/contexts/ProfileContext";
 
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
@@ -84,7 +86,9 @@ const NewPost = () => {
   const prompt = safeParam(rawParams.prompt as any);
   const promptId = safeParam(rawParams.promptId as any);
   const boardId = safeParam(rawParams.boardId as any);
-  const { profile, userColors, setDraftPost, draftPost, encryptionKey } = useGlobalContext();
+  const { profile, userColors } = useProfileContext();
+  const { setDraftPost, draftPost } = useDraftPost();
+  const { encryptionKey } = useEncryptionContext();
   const { showAlert } = useAlert();
 
   // 🔒 USER & GLOBAL STATE
