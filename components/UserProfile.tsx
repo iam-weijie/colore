@@ -22,11 +22,12 @@ import {
   UserNicknamePair,
   UserProfileProps,
   UserProfileType,
+  Board as UserBoard,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Alert,
   Image,
@@ -60,15 +61,19 @@ import { decryptText } from "@/lib/encryption";
 import { useDevice } from "@/app/contexts/DeviceContext";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
 import { useNotificationsContext } from "@/app/contexts/NotificationsContext";
+import { useBoardsContext, Board as ContextBoard } from "@/app/contexts/BoardsContext";
+import { useFriendsContext } from "@/app/contexts/FriendsContext";
+import { useUserDataContext } from "@/app/contexts/UserDataContext";
+
 // Skeleton component for post loading states
-const PostSkeleton = () => (
+const PostSkeleton = React.memo(() => (
   <Animated.View entering={FadeIn.duration(600)} className="w-full px-4 my-3">
     <View className="bg-gray-200 rounded-2xl w-full h-32 opacity-70" />
   </Animated.View>
-);
+));
 
 // Skeleton UI for posts section during loading
-const PostGallerySkeleton = () => (
+const PostGallerySkeleton = React.memo(() => (
   <Animated.View entering={FadeIn.duration(400)} className="w-full">
     <View className="w-full mx-8 flex flex-row items-center justify-between mb-4">
       <View className="w-32 h-6 bg-gray-200 rounded opacity-70" />
@@ -78,9 +83,9 @@ const PostGallerySkeleton = () => (
     <PostSkeleton />
     <PostSkeleton />
   </Animated.View>
-);
+));
 
-const UserProfile: React.FC<UserProfileProps> = ({
+const UserProfile: React.FC<UserProfileProps> = React.memo(({
   userId,
   nickname,
   tab,
@@ -93,41 +98,45 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const { unreadComments } = useNotificationsContext();
   const { showAlert } = useAlert();
   const { encryptionKey } = useEncryptionContext();
+  const { personalBoards, communityBoards } = useBoardsContext();
+  const { friendList, refreshFriends } = useFriendsContext();
+  const { savedPosts, refreshUserData } = useUserDataContext();
 
-  const isEditable = user!.id === userId;
+  const isEditable = useMemo(() => user!.id === userId, [user, userId]);
 
-     // Tutorial constants
+  // Tutorial constants
+  const pages = useMemo(() => isEditable ? myProfileTutorialPages : userTutorialPages, [isEditable]);
+  const totalSteps = useMemo(() => pages.length, [pages]);
      
-     const pages = isEditable ? myProfileTutorialPages : userTutorialPages;
-     const totalSteps = pages.length;
-     
-     
-     // Tutorial Logic
-     const [skipIntro, setSkipIntro] = useState<boolean>(true);
-
+  // Tutorial Logic
+  const [skipIntro, setSkipIntro] = useState<boolean>(true);
        
-       const fetchTutorialStatus = async () => {
-       const isTutorialcompleted = isEditable ? await checkTutorialStatus("my-profile-1") : await checkTutorialStatus("user-profile-1")
-       setSkipIntro(isTutorialcompleted)
-     }
+  const fetchTutorialStatus = useCallback(async () => {
+    const isTutorialcompleted = isEditable ? 
+      await checkTutorialStatus("my-profile-1") : 
+      await checkTutorialStatus("user-profile-1");
+    setSkipIntro(isTutorialcompleted);
+  }, [isEditable]);
 
-         const handleCompleteTutorial = async () => {
-           const isCompleted = isEditable ?  await completedTutorialStep("my-profile-1") : await completedTutorialStep("user-profile-1");
-           return isCompleted
-         }
+  const handleCompleteTutorial = useCallback(async () => {
+    const isCompleted = isEditable ? 
+      await completedTutorialStep("my-profile-1") : 
+      await completedTutorialStep("user-profile-1");
+    return isCompleted;
+  }, [isEditable]);
      
-     useEffect(() => {
-     fetchTutorialStatus()
-     }, [])
-     const [step, setStep] = useState(0);
-       const handleNext = () => {
-     
-         if (step < totalSteps - 1) setStep((prev) => prev + 1);
-         else {
-          handleCompleteTutorial()
-           setSkipIntro(true)
-         }
-       };
+  useEffect(() => {
+    fetchTutorialStatus();
+  }, [fetchTutorialStatus]);
+
+  const [step, setStep] = useState(0);
+  const handleNext = useCallback(() => {
+    if (step < totalSteps - 1) setStep((prev) => prev + 1);
+    else {
+      handleCompleteTutorial();
+      setSkipIntro(true);
+    }
+  }, [step, totalSteps, handleCompleteTutorial]);
 
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -147,9 +156,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
 
-  const [myBoards, setMyBoards] = useState<any>();
-  const [communityBoards, setCommunityBoards] = useState<any>();
-
+  const [myBoards, setMyBoards] = useState<UserBoard[]>([]);
+  
+  // Remove duplicate communityBoards declaration
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
 
@@ -163,36 +172,45 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [selectedTab, setSelectedTab] = useState<string>(tab || "Profile");
 
   const [personalPosts, setPersonalPosts] = useState<Post[]>([]);
-  const [disableInteractions, setDisableInteractions] =
-    useState<boolean>(false);
+  const [disableInteractions, setDisableInteractions] = useState<boolean>(false);
 
-  const Flag = countries[(profileUser?.country || "Canada") as keyof typeof countries];
-  const fetchFriendCount = async () => {
+  const Flag = useMemo(() => 
+    countries[(profileUser?.country || "Canada") as keyof typeof countries]
+  , [profileUser?.country]);
+
+  const fetchFriendCount = useCallback(async () => {
     if (user!.id === userId) {
       const data = await fetchFriends(user!.id);
       setFriendCount(data.length);
     }
-  };
+  }, [user, userId]);
 
   // Add useFocusEffect to reload data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       // Reload user data when screen is focused (e.g., after location change)
+      fetchUserData();
       
-        fetchUserData();
       if (isEditable) {
-          fetchUserPosts();
-          fetchPersonalPosts();
+        fetchUserPosts();
+        fetchPersonalPosts();
       } else {
-        fetchPersonalBoards();
-        fetchCommunityBoards();
+        // Use context data instead of direct API calls
+        if (personalBoards) {
+          // Convert ContextBoard[] to UserBoard[] by adding required properties
+          const convertedBoards = personalBoards.map(board => ({
+            ...board,
+            commentAllowed: true, // Default value
+            // Add other required properties if needed
+          }));
+          setMyBoards(convertedBoards as unknown as UserBoard[]);
+        }
       }
-      
 
       return () => {
         // Cleanup if needed
       };
-    }, [userId, stateVars])
+    }, [userId, stateVars, personalBoards, communityBoards])
   );
 
   useEffect(() => {
@@ -200,7 +218,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
       let status;
       if (user!.id !== userId) {
         status = await fetchFriendStatus(userId, user!);
-        //console.log("Friend status:", status.name);
         setFriendStatus(status);
       }
     };
@@ -216,9 +233,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
     getFriendStatus();
     getFriendNickname();
     fetchFriendCount();
-  }, []);
+  }, [userId, user, fetchFriendCount]);
 
-  const fetchUserData = async (resetPagination = true) => {
+  const fetchUserData = useCallback(async (resetPagination = true) => {
     // Don't fetch if we already have all posts
     if (!resetPagination && userPosts.length >= totalPosts) {
       setHasMore(false);
@@ -294,15 +311,16 @@ const UserProfile: React.FC<UserProfileProps> = ({
         setIsLoadingMore(false);
       }
     }
-  };
+  }, [userId, page, isLoadingMore, userPosts.length, totalPosts]);
 
-  const loadMorePosts = () => {
-    if (!isLoadingMore && hasMore && userPosts.length < totalPosts) {
+  const loadMorePosts = useCallback(() => {
+    if (!isLoadingMore && hasMore) {
+      setPage(prevPage => prevPage + 1);
       fetchUserData(false);
     }
-  };
+  }, [isLoadingMore, hasMore, fetchUserData]);
 
-  const fetchUserPosts = async () => {
+  const fetchUserPosts = useCallback(async () => {
     try {
       const response = await fetchAPI(`/api/posts/getUserPosts?id=${userId}`, {
         method: "GET",
@@ -315,7 +333,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     } catch (error) {
       console.error("Failed to fetch user posts:", error);
     }
-  };
+  }, [userId]);
 
   const post = {
     id: -1,
@@ -343,92 +361,25 @@ const UserProfile: React.FC<UserProfileProps> = ({
     reply_to: -1,
   };
 
-  const fetchPersonalBoards = async () => {
-    setProfileLoading(true);
-    try {
-      const response = await fetchAPI(
-        `/api/boards/getBoards?user_id=${userId}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      const personalBoard = {
-        id: -1,
-        title: "Personal Board",
-        user_id: userId,
-        description: "Your window to the world!",
-        members_id: [userId],
-        board_type: "personal",
-        restrictions: ["personal", "commentsAllowed", "5"],
-        created_at: Date.now(),
-        color: "#93c5fd",
-      };
-
-      const checkForPrivacy = response.data.filter((b: any) =>
-        b.restrictions.includes("Everyone")
-      );
-
-      if (isEditable && response.data) {
-        const boardsWithColor = response.data.map(
-          (board: any, index: number) => ({
-            ...board,
-            color: defaultColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
-          })
-        );
-
-        setMyBoards([...boardsWithColor, personalBoard]);
-      } else if (!isEditable && response.data) {
-        const boardsWithColor = checkForPrivacy.map(
-          (board: any, index: number) => ({
-            ...board,
-            color: defaultColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
-          })
-        );
-
-        setMyBoards([...boardsWithColor, personalBoard]);
-      } else {
-        setMyBoards(personalBoard);
-      }
-    } catch (error) {
-      console.error("Failed to fetch board data:", error);
-    } finally {
-      setProfileLoading(false);
+  const fetchPersonalBoards = useCallback(async () => {
+    // Use data from context instead of direct API call
+    if (personalBoards) {
+      // Convert ContextBoard[] to UserBoard[] by adding required properties
+      const convertedBoards = personalBoards.map(board => ({
+        ...board,
+        commentAllowed: true, // Default value
+        // Add other required properties if needed
+      }));
+      setMyBoards(convertedBoards as unknown as UserBoard[]);
     }
-  };
+  }, [personalBoards]);
 
-  const fetchCommunityBoards = async () => {
-    try {
-      setLoading(true);
-      const response = await fetchAPI(
-        `/api/boards/getCommunityBoards?userId=${userId}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.error) {
-        throw new Error(response.error);
-      }
+  const fetchCommunityBoards = useCallback(async () => {
+    // Use data from context instead of direct API call
+    // No need to set communityBoards as we're using it from context
+  }, []);
 
-      const boardsWithColor = response.data.map(
-        (board: any, index: number) => ({
-          ...board,
-          color: defaultColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
-        })
-      );
-
-      setCommunityBoards(boardsWithColor);
-    } catch (error) {
-      console.error("Failed to fetch board data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPersonalPosts = async () => {
+  const fetchPersonalPosts = useCallback(async () => {
     try {
       const response = await fetchAPI(
         `/api/posts/getPersonalPosts?number=${8}&recipient_id=${userId}&user_id=${user!.id}`
@@ -499,22 +450,22 @@ const UserProfile: React.FC<UserProfileProps> = ({
       setDisableInteractions(true);
       setPersonalPosts([post]);
     }
-  };
+  }, [userId, encryptionKey]);
 
   useEffect(() => {
     fetchUserData();
   }, [isFocusedOnProfile]);
 
-  const handleAddNickname = () => {
+  const handleAddNickname = useCallback(() => {
     setStateVars({
       ...stateVars,
       previousScreen: "profile",
-      userId,
+      userId: userId,
     });
     router.push("/root/profile/nickname");
-  };
+  }, [stateVars, userId, setStateVars, router]);
 
-  const handleSendFriendRequest = async () => {
+  const handleSendFriendRequest = useCallback(async () => {
     try {
       setIsHandlingFriendRequest(true);
       await fetchAPI(`/api/friends/newFriendRequest`, {
@@ -541,7 +492,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         status: "error",
       });
     }
-  };
+  }, [user, userId, showAlert]);
 
   const myTabs = [
     { name: "Profile", key: "Profile", color: "#CFB1FB", notifications: 0 },
@@ -565,21 +516,19 @@ const UserProfile: React.FC<UserProfileProps> = ({
     },
   ];
 
-  const handleTabChange = (tabKey: string) => {
+  const handleTabChange = useCallback((tabKey: string) => {
     setSelectedTab(tabKey);
-  };
+  }, []);
 
-  const handleClearSearch = () => {
+  const handleClearSearch = useCallback(() => {
     setQuery("");
-  };
+  }, []);
 
-
-
-// Create a new function that matches the expected type for handleUpdate
-const handlePostUpdate = (id: number, isRemove: boolean) => {
-  // Refresh user data after a post update
-  fetchUserData(true);
-};
+  // Fix the handlePostUpdate function to match the expected type
+  const handlePostUpdate = useCallback((id: number, isRemove: boolean = false) => {
+    // Refresh user data after a post update
+    fetchUserData(true);
+  }, [fetchUserData]);
 
   return (
     <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
@@ -769,6 +718,6 @@ const handlePostUpdate = (id: number, isRemove: boolean) => {
         </ModalSheet>
     </View>
   );
-};
+});
 
 export default UserProfile;
