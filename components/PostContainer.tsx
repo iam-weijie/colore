@@ -87,6 +87,7 @@ import { useStacks } from "@/app/contexts/StacksContext";
 import { useDraftPost } from "@/app/contexts/DraftPostContext";
 import { useDevice } from "@/app/contexts/DeviceContext";
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
+import { useUserDataContext } from "@/app/contexts/UserDataContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -112,6 +113,12 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const { encryptionKey } = useEncryptionContext();
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const { user } = useUser();
+  const { 
+    savedPosts, 
+    getNicknameFor, 
+    addSavedPost, 
+    removeSavedPost 
+  } = useUserDataContext();
   const [nickname, setNickname] = useState<string>("");
   const [currentPost, setCurrentPost] = useState<Post>();
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
@@ -127,7 +134,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const router = useRouter();
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
-  const [savedPosts, setSavedPosts] = useState<string[]>([]);
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [isPinned, setIsPinned] = useState<boolean>(false);
   const viewRef = useRef<View>(null);
@@ -210,11 +216,16 @@ const PostContainer: React.FC<PostContainerProps> = ({
   }, [post, currentPostIndex, user?.id]);
 
   useEffect(() => {
-    if (currentPost) {
-      fetchUserdata();
-      getLikeStatus();
+    if (currentPost && user) {
+      const isSaved = savedPosts.includes(String(currentPost.id));
+      setIsSaved(isSaved);
+      
+      if (currentPost.user_id) {
+        const userNickname = getNicknameFor(currentPost.user_id);
+        setNickname(userNickname);
+      }
     }
-  }, [isSaved, isLiked, user]);
+  }, [currentPost, user, savedPosts, getNicknameFor]);
 
   const dateCreated = convertToLocal(new Date(currentPost?.created_at || ""));
   const formattedDate = formatDateTruncatedMonth(dateCreated);
@@ -327,48 +338,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
     const index = userArray.findIndex((pair) => pair[0] === userId);
     return index;
   }
-
-  const fetchCurrentNickname = async () => {
-    try {
-      const response = await fetchAPI(`/api/users/getUserInfo?id=${user?.id}`, {
-        method: "GET",
-      });
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      const nicknames = response.data[0].nicknames || [];
-      // Fix accessing user_id on post array
-      const postUserId = currentPost?.user_id;
-      if (!postUserId) return "";
-      
-      return findUserNickname(nicknames, postUserId) === -1
-        ? ""
-        : nicknames[findUserNickname(nicknames, postUserId)][1];
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-      return "";
-    }
-  };
-  useEffect(() => {
-    const getData = async () => {
-      const nickname = await fetchCurrentNickname();
-      setNickname(nickname);
-    };
-    getData();
-  }, [user]);
-
-  const fetchUserdata = async () => {
-    try {
-      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
-      const savePostsList = response.data[0].saved_posts;
-      const savedStatus =
-        savePostsList?.includes(`${currentPost?.id}`) ?? false;
-      setSavedPosts(savePostsList);
-      setIsSaved(savedStatus);
-    } catch (error) {
-      console.error("Failed to fetch user data", error);
-    }
-  };
 
   const handleDeletePress = async () => {
     handleCloseModal();
@@ -616,6 +585,38 @@ const getMenuItems = (
     : typeof currentPost?.formatting === "string"
       ? JSON.parse(currentPost.formatting)
       : (currentPost?.formatting ?? []);
+
+  // Add the updated handleSavePost implementation
+  const handleSavePost = async (postId: number | undefined) => {
+    if (!user?.id || !postId) return;
+    
+    try {
+      // Update the UI immediately
+      const newIsSavedStatus = !isSaved;
+      setIsSaved(newIsSavedStatus);
+      
+      // Update the context
+      if (newIsSavedStatus) {
+        addSavedPost(postId);
+      } else {
+        removeSavedPost(postId);
+      }
+      
+      // Still make the API call to persist changes on the server
+      await fetchAPI(`/api/users/updateUserSavedPosts`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          clerkId: user.id,
+          postId: postId,
+          isSaved: newIsSavedStatus,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to update saved post status:", error);
+      // Revert UI on error
+      setIsSaved(!isSaved);
+    }
+  };
 
   return (
     <AnimatedView

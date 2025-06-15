@@ -71,6 +71,7 @@ import { useHaptics } from "@/hooks/useHaptics";
 import EmptyListView from "@/components/EmptyList";
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useNotificationsContext } from "@/app/contexts/NotificationsContext";
+import { useFriendsContext } from "@/app/contexts/FriendsContext";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -105,10 +106,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   const [toRead, setToRead] = useState<[]>([]);
 
   // Friend List & Request constants
-  const [friendList, setFriendList] = useState<Friendship[]>([]);
-  const [allFriendRequests, setAllFriendRequests] =
-    useState<FriendRequestList>();
-  const [nicknames, setNicknames] = useState<Record<string, string>>();
+  const {
+    friendList,
+    friendRequests: allFriendRequests,
+    nicknames,
+    loading: friendsLoading,
+    refreshFriends,
+    refreshFriendRequests,
+    refreshNicknames
+  } = useFriendsContext();
   const [handlingFriendRequest, setHandlingFriendRequest] =
     useState<boolean>(false);
 
@@ -215,69 +221,25 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         )
       : users;
 
-  const fetchNicknames = async () => {
-    try {
-      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`, {
-        method: "GET",
-      });
-      // Ensure response data exists and contains nicknames
-      const nicknames: UserNicknamePair[] = response.data?.[0]?.nicknames || [];
-      const filteredNicknames = nicknames.filter((n) => n[1]);
-      const nicknameMap: Record<string, string> =
-        convertNicknameDictionary(filteredNicknames);
-
-      setNicknames(nicknameMap);
-    } catch (error) {
-      console.error("Failed to fetch nicknames: ", error);
-      setError("Failed to fetch nicknames.");
-    }
-  };
-
-  const convertNicknameDictionary = (userNicknameArray: UserNicknamePair[]) => {
-    const map = Object.fromEntries(userNicknameArray.map((e) => [e[0], e[1]]));
-    return map;
-  };
-
-  const fetchFriendRequests = async () => {
-    try {
-      const response = await fetchAPI(
-        `/api/friends/getFriendRequests?userId=${user!.id}`,
-        {
-          method: "GET",
-        }
-      );
-
-      const processedFriendRequests: FriendRequest[] = processFriendRequests(
-        response.data
-      );
-      const sentFriendRequests = processedFriendRequests.filter(
-        (friendRequest) => friendRequest.senderId === user!.id
-      );
-      const receivedFriendRequests = processedFriendRequests.filter(
-        (friendRequest) => friendRequest.receiverId === user!.id
-      );
-      const allFriendRequests = {
-        sent: sentFriendRequests,
-        received: receivedFriendRequests,
-      };
-      setAllFriendRequests(allFriendRequests);
-    } catch (error) {
-      console.error("Failed to fetch friend requests: ", error);
-      setError("Failed to fetch friend requests.");
-    }
-  };
-
-  const fetchFriendList = async () => {
-    const data = await fetchFriends(user!.id);
-    setFriendList(data);
-  };
-
   const fetchFriendData = async () => {
     setLoading(true);
-    await fetchFriendList();
-    await fetchFriendRequests();
-    await fetchNicknames();
-    setLoading(false);
+    
+    try {
+      // Use the refresh functions from the context
+      await Promise.all([
+        refreshFriends(),
+        refreshFriendRequests(),
+        refreshNicknames()
+      ]);
+      
+      // Fetch conversations separately as before
+      await fetchConversations();
+    } catch (err) {
+      console.error("Error fetching friend data:", err);
+      setError("Failed to load friend data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filteredFriendList = friendList.filter((friend) =>
@@ -413,8 +375,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                 } else {
                   alert("Error when trying to accept friend request.");
                 }
-                fetchFriendRequests();
-                fetchFriendList();
+                fetchFriendData();
                 setHandlingFriendRequest(false);
               },
             },
@@ -434,7 +395,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   alert("Error when trying to reject friend request.");
                 }
 
-                fetchFriendRequests();
+                fetchFriendData();
                 setHandlingFriendRequest(false);
               },
             },
@@ -494,32 +455,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   // RENDER LIST ------ END
 
   // HANDLE REQUESTS ------ START
-  const processFriendRequests = (friendRequestData: RawFriendRequest[]) => {
-    const friendRequests = friendRequestData.map((friendRequest) => {
-      const isRequestorUID1 = friendRequest.requestor === "UID1";
-      return {
-        id: friendRequest.id,
-        senderId: isRequestorUID1
-          ? friendRequest.user_id1
-          : friendRequest.user_id2,
-        receiverId: isRequestorUID1
-          ? friendRequest.user_id2
-          : friendRequest.user_id1,
-        createdAt: friendRequest.createdAt || friendRequest.created_at,
-        senderUsername: isRequestorUID1
-          ? friendRequest.user1_username
-          : friendRequest.user2_username,
-        senderNickname: isRequestorUID1
-          ? friendRequest.user1_nickname
-          : friendRequest.user2_nickname,
-        receiverUsername: isRequestorUID1
-          ? friendRequest.user2_username
-          : friendRequest.user1_username,
-      } as FriendRequest;
-    });
-    return friendRequests;
-  };
-
   const handleOpenChat = (conversation: ConversationItem): void => {
     router.push(
       `/root/chat/conversation?conversationId=${conversation.id}&otherClerkId=${conversation.clerk_id}&otherName=${conversation.name}`

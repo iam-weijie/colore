@@ -6,28 +6,43 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
-import { fetchAPI } from "@/lib/fetch";
 import BoardGallery from "@/components/BoardGallery"
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import { Ionicons } from "@expo/vector-icons";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
+import { useBoardsContext } from "@/app/contexts/BoardsContext";
 import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
 import { boardTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
 import ModalSheet from "@/components/Modal";
-import { defaultColors } from "@/constants/colors";
+import { Board } from "@/types/type";
 
 const UserPersonalBoard = () => {
   const router = useRouter();
   const { user } = useUser();
   const { userColors } = useProfileContext();
+  const { 
+    personalBoards: rawPersonalBoards, 
+    communityBoards: rawCommunityBoards,
+    discoverBoards: rawDiscoverBoards,
+    loading,
+    refreshAllBoards 
+  } = useBoardsContext();
+  
+  // Convert the boards to match the expected type with commentAllowed property
+  const convertToTypedBoard = (board: any): Board => ({
+    ...board,
+    commentAllowed: board.restrictions?.includes("commentsAllowed") || true,
+  });
+  
+  const personalBoards = rawPersonalBoards.map(convertToTypedBoard);
+  const communityBoards = rawCommunityBoards.map(convertToTypedBoard);
+  const discoverBoards = rawDiscoverBoards.map(convertToTypedBoard);
   
   // Tutorial constants
-  
   const pages = boardTutorialPages;
   const totalSteps = pages.length;
-  
   
   // Tutorial Logic
   const [skipIntro, setSkipIntro] = useState<boolean>(false);
@@ -42,25 +57,21 @@ const UserPersonalBoard = () => {
   }
   
   useEffect(() => {
-  fetchTutorialStatus()
+    fetchTutorialStatus()
   }, [])
-  const [step, setStep] = useState(0);
-    const handleNext = () => {
   
-      if (step < totalSteps - 1) setStep((prev) => prev + 1);
-      else {
-        handleCompleteTutorial()
-        setSkipIntro(true)
-      }
-    };
-
-  const [loading, setLoading] = useState<boolean>(false);
+  const [step, setStep] = useState(0);
+  
+  const handleNext = () => {
+    if (step < totalSteps - 1) setStep((prev) => prev + 1);
+    else {
+      handleCompleteTutorial()
+      setSkipIntro(true)
+    }
+  };
 
   const [selectedTab, setSelectedTab] = useState<string>("MyBoards");
   const [searchText, setSearchText] = useState<string>("");
-  const [myBoards, setMyBoards] = useState<any>();
-  const [discoverBoards, setDiscoverBoards] = useState<any>();
-  const [communityBoards, setCommunityBoards] = useState<any>();
 
   const tabs = [
     { name: "Mine", key: "MyBoards", color: "#CFB1FB", notifications: 0 },
@@ -71,230 +82,127 @@ const UserPersonalBoard = () => {
   const handleTabChange = (tabKey: string) => {
     console.log("Tab changed to:", tabKey);
     setSelectedTab(tabKey);
-    // You can add additional logic here when tabs change
   };
 
-  const fetchPersonalBoards = async () => {
-    try {
-      setLoading(true)
-      const response = await fetchAPI(`/api/boards/getBoards?user_id=${user!.id}`,
-          {
-            method: "GET",
-          }
-      )
-      if (response.error) {
-        throw new Error(response.error);
-      }
+  // Refresh boards when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      refreshAllBoards();
+    }, [refreshAllBoards])
+  );
 
-      const personalBoard =  {
-        id: -1,
-        title: "Personal Board",
-        user_id: user!.id,
-        description: "Your window to the world!",
-        members_id: [user!.id],
-        board_type: 'personal',
-        restrictions: ['personal', 'commentsAllowed', '5'],
-        created_at: Date.now(),
-        color: "#93c5fd"
-      }
+  const handleClearSearch = () => {
+    setSearchText("");
+  };
 
-      const shareWithMeBoard =  {
-        id: -2,
-        title: "Shared with Me",
-        user_id: user!.id,
-        description: "Everything that was share with you!",
-        members_id: [user!.id],
-        board_type: 'personal',
-        restrictions: ['personal', 'commentsAllowed', '5'],
-        created_at: Date.now(),
-        color: "#CFB1FB"
-      }
+  // Filter boards based on search text
+  const filteredPersonalBoards = personalBoards.filter(
+    (board) =>
+      board.title.toLowerCase().includes(searchText.toLowerCase()) ||
+      board.description.toLowerCase().includes(searchText.toLowerCase())
+  );
 
-        if (response.data) {
-          const boardsWithColor = response.data.map((board: any, index: number) => ({
-            ...board,
-            color: defaultColors[Math.floor(Math.random() * 3)].hex, // only assign if not already set
-          }));
-        
-          setMyBoards([personalBoard, shareWithMeBoard, ...boardsWithColor]);
-        } else {
-         
-          setMyBoards(personalBoard)
-        }
+  const filteredCommunityBoards = communityBoards.filter(
+    (board) =>
+      board.title.toLowerCase().includes(searchText.toLowerCase()) ||
+      board.description.toLowerCase().includes(searchText.toLowerCase())
+  );
 
-    } catch (error) {
-      console.error("Failed to fetch board data:", error);
-    } finally {
-      setLoading(false)
-    }
-  }
+  const filteredDiscoverBoards = discoverBoards.filter(
+    (board) =>
+      board.title.toLowerCase().includes(searchText.toLowerCase()) ||
+      board.description.toLowerCase().includes(searchText.toLowerCase())
+  );
 
-  const fetchCommunityBoards = async () => {
-    try {
-      setLoading(true)
-      const response = await fetchAPI(`/api/boards/getCommunityBoards?userId=${user!.id}`,
-          {
-            method: "GET",
-          }
-      )
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-
-      
-          const boardsWithColor = response.data.map((board: any, index: number) => ({
-            ...board,
-            color: defaultColors[Math.floor(Math.random() * 3)].hex, // only assign if not already set
-          }));
-        
-          setCommunityBoards(boardsWithColor);
-
-        
-
-    } catch (error) {
-      console.error("Failed to fetch board data:", error);
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchDiscoverBoards = async () => {
-    try {
-      setLoading(true)
-      const response = await fetchAPI(`/api/boards/getDiscoverBoards?userId=${user!.id}`,
-          {
-            method: "GET",
-          }
-      )
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-        if (response.data) {
-          const boardsWithColor = response.data.map((board: any, index: number) => ({
-            ...board,
-            color: defaultColors[Math.floor(Math.random() * 3)].hex, // only assign if not already set
-          }));
-        
-          setDiscoverBoards([...boardsWithColor]);
-        }
-
-    } catch (error) {
-      console.error("Failed to fetch board data:", error);
-    } finally {
-      setLoading(false)
-    }
-  }
-
-
-    useFocusEffect(
-      useCallback(() => {
-        fetchPersonalBoards()
-        fetchDiscoverBoards()
-        fetchCommunityBoards()
-        //setShouldRefresh((prev) => prev + 1); // Increment refresh counter
-      }, [])
-    );
-  
-
-
-
-
-const handleClearSearch = () => {
-  setSearchText("")
-}
   return (
-<View className="flex-1 bg-[#FAFAFA]">
-      
-    
-        <View className="flex-1 relative">
-        <Header 
-        title="Boards"
-        tabs={tabs}
-        selectedTab={selectedTab}
-        onTabChange={handleTabChange} 
-        tabCount={0}    />
-
-            <View className=" absolute z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 mx-6"
-        style={{
-          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
-          width: '90%',
-          marginTop: 170
-        }}
-        >
-          <Ionicons name="search" size={20} color="#9ca3af" />
-          <TextInput
-            className="flex-1 pl-2 text-md "
-            placeholder="Looking for a specific board..?"
-             placeholderTextColor="#9CA3AF"
-            value={searchText}
-            onChangeText={setSearchText}
-            returnKeyType="search"
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearSearch}
-              className="w-6 h-6 items-center justify-center"
-            >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
-        </View>
-      
-            {!loading ? (<View className="flex-1 overflow-hidden ">
-        {selectedTab === "MyBoards" ? (
-        <View className="flex-1">
-
-          <BoardGallery
-            boards={myBoards}
-            offsetY={64}
+    <View className="flex-1 bg-white">
+      <Header title="Boards" showBackButton={false} />
+      <View className="px-4 pb-3">
+        <View className="flex-row items-center gap-2 mt-2">
+          <View className="flex-1 flex-row items-center border rounded-lg border-gray-300 bg-gray-50 px-3 py-1">
+            <Ionicons name="search-outline" size={24} color="gray" />
+            <TextInput
+              placeholder="Search"
+              className="flex-1 ml-1 py-1 text-black"
+              value={searchText}
+              onChangeText={setSearchText}
+              autoCapitalize={"none"}
             />
-          </View>) :
-          selectedTab === "Community" ?  (
-        <View className="flex-1">
-                  <BoardGallery
-                  boards={communityBoards}
-                  offsetY={64}
-                  />
-                </View>
-          ) : (
-        <View className="flex-1">
-          <BoardGallery
-          boards={discoverBoards}
-          offsetY={64}
-          />
-        </View>)}
-        </View>) : (
-          <View className="flex-1 items-center justify-center">
-          <ColoreActivityIndicator text="Summoning Bob..." />
+            {searchText ? (
+              <TouchableOpacity onPress={handleClearSearch}>
+                <Ionicons
+                  name="close-outline"
+                  size={24}
+                  color="gray"
+                />
+              </TouchableOpacity>
+            ) : null}
           </View>
-        )}
-       
+          <TouchableOpacity
+            onPress={() => router.push("/root/new-board")}
+          >
+            <Ionicons name="add-circle" size={35} color={"#000"} />
+          </TouchableOpacity>
         </View>
-        {!skipIntro && <ModalSheet 
-        title={""} 
-        isVisible={!skipIntro} 
-        onClose={() => {
-          setSkipIntro(true)
-          }} >
-            <View className="flex-1 px-4">
-            <CarouselPage
-          label={pages[step].label}
-          caption={pages[step].caption}
-          color={pages[step].color}
-          onSubmit={handleNext}
-          progress={step + 1}
-          total={totalSteps}
-          disabled={pages[step].disabled}
+      </View>
+
+      {/* Tab navigation */}
+      <View className="flex-row px-4 py-1">
+        {tabs.map((tab) => (
+          <TouchableOpacity
+            key={tab.key}
+            onPress={() => handleTabChange(tab.key)}
+            className={`flex items-center justify-center p-2 ${
+              selectedTab === tab.key ? "border-b-2 border-black" : ""
+            }`}
+            style={{ flex: 1 }}
+          >
+            <View className="flex-row items-center">
+              <View className="w-3 h-3 rounded-full mr-1" style={{ backgroundColor: tab.color }} />
+              <View>
+                <View className="flex flex-row">
+                  <View className="text-black font-semibold">{tab.name}</View>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+      
+      {loading ? (
+        <ColoreActivityIndicator />
+      ) : (
+        selectedTab === "MyBoards" ? (
+          <BoardGallery boards={filteredPersonalBoards} />
+        ) : selectedTab === "Community" ? (
+          <BoardGallery boards={filteredCommunityBoards} />
+        ) : (
+          <BoardGallery boards={filteredDiscoverBoards} />
+        )
+      )}
+      
+      {!skipIntro && !loading && (
+        <ModalSheet
+          title=""
+          isVisible={!skipIntro}
+          onClose={() => {}}
         >
-          {pages[step].children}
-        </CarouselPage>
-        </View>
-        </ModalSheet>}
-       
- 
-</View>
+          <View className="flex-1 px-4">
+            <CarouselPage
+              label={pages[step].label}
+              caption={pages[step].caption}
+              color={pages[step].color}
+              onSubmit={handleNext}
+              progress={step + 1}
+              total={totalSteps}
+              disabled={pages[step].disabled}
+            >
+              {pages[step].children}
+            </CarouselPage>
+          </View>
+        </ModalSheet>
+      )}
+    </View>
   );
 };
 
