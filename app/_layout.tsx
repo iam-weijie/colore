@@ -5,6 +5,9 @@ import { ProfileProvider } from "@/app/contexts/ProfileContext";
 import { SettingsProvider } from "@/app/contexts/SettingsContext";
 import { NotificationsProvider } from "@/app/contexts/NotificationsContext";
 import { EncryptionProvider } from "@/app/contexts/EncryptionContext";
+import { BoardsProvider } from "@/app/contexts/BoardsContext";
+import { FriendsProvider } from "@/app/contexts/FriendsContext";
+import { UserDataProvider } from "@/app/contexts/UserDataContext";
 import SplashVideo from "@/components/SplashVideo";
 import { AlertProvider } from "@/notifications/AlertContext";
 import { tokenCache } from "@/lib/auth";
@@ -37,6 +40,9 @@ console.log({
   DraftPostProvider,
   DeviceProvider,
   ReplyScrollProvider,
+  BoardsProvider,
+  FriendsProvider,
+  UserDataProvider,
 });
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -102,35 +108,41 @@ export default function RootLayout() {
           <SettingsProvider>
            <ProfileProvider>
             <NotificationsProvider>
-             <StacksProvider>
-              <DraftPostProvider>
-               <DeviceProvider>
-                <ReplyScrollProvider>
-          <AlertProvider>
-        <ExpoNotificationProvider>
+             <BoardsProvider>
+              <FriendsProvider>
+               <UserDataProvider>
+                <StacksProvider>
+                 <DraftPostProvider>
+                  <DeviceProvider>
+                   <ReplyScrollProvider>
+                    <AlertProvider>
+                     <ExpoNotificationProvider>
           
             
-              <Animated.View style={{ flex: 1 }} entering={FadeIn}>
-                <Stack>
-                  <Stack.Screen name="index" options={{ headerShown: false, animation: 'fade' }} />
-                  <Stack.Screen name="auth" options={{ headerShown: false, animation: 'none' }} />
-                  <Stack.Screen name="root" options={{ headerShown: false, animation: 'none' }} />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-              </Animated.View>
+                      <Animated.View style={{ flex: 1 }} entering={FadeIn}>
+                        <Stack>
+                          <Stack.Screen name="index" options={{ headerShown: false, animation: 'fade' }} />
+                          <Stack.Screen name="auth" options={{ headerShown: false, animation: 'none' }} />
+                          <Stack.Screen name="root" options={{ headerShown: false, animation: 'none' }} />
+                          <Stack.Screen name="+not-found" />
+                        </Stack>
+                      </Animated.View>
             
-          </ExpoNotificationProvider>
-          </AlertProvider>
-          </ReplyScrollProvider>
-          </DeviceProvider>
-          </DraftPostProvider>
-          </StacksProvider>
-          </NotificationsProvider>
-          </ProfileProvider>
+                     </ExpoNotificationProvider>
+                    </AlertProvider>
+                   </ReplyScrollProvider>
+                  </DeviceProvider>
+                 </DraftPostProvider>
+                </StacksProvider>
+               </UserDataProvider>
+              </FriendsProvider>
+             </BoardsProvider>
+            </NotificationsProvider>
+           </ProfileProvider>
           </SettingsProvider>
          </EncryptionProvider>
-          </NavigationProvider>
-        </ClerkLoaded>
+        </NavigationProvider>
+       </ClerkLoaded>
       </ClerkProvider>
    
   );
