@@ -8,7 +8,7 @@ import {
   handleEditing,
   handlePin,
   handleShare,
-  handleSavePost,
+  handleSavePost as libHandleSavePost,
   fetchLikeStatus,
 } from "@/lib/post";
 import { fetchAPI } from "@/lib/fetch";
@@ -93,7 +93,7 @@ const { width, height } = Dimensions.get("window");
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
-const PostContainer: React.FC<PostContainerProps> = ({
+const PostContainer: React.FC<PostContainerProps> = React.memo(({
   selectedPosts,
   handleCloseModal,
   handleUpdate,
@@ -140,7 +140,14 @@ const PostContainer: React.FC<PostContainerProps> = ({
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   // Memoize the posts array to prevent unnecessary re-renders
-  const post = selectedPosts;
+  const post = useMemo(() => selectedPosts, [selectedPosts]);
+
+  // Check if post is saved
+  useEffect(() => {
+    if (currentPost && savedPosts) {
+      setIsSaved(savedPosts.includes(currentPost.id.toString()));
+    }
+  }, [currentPost, savedPosts]);
 
   useEffect(() => {
     if (post.length) {
@@ -155,7 +162,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
         console.log("[DEBUG] PostContainer - First post is personal:", Boolean(post[0].recipient_user_id));
       }
     }
-  }, [post]);
+  }, [post, currentPostIndex]);
 
   useEffect(() => {
     setCurrentPost(post[currentPostIndex]);
@@ -190,42 +197,172 @@ const PostContainer: React.FC<PostContainerProps> = ({
       currentPostIndex + 1 === posts.length - 1
     ) {
       // If last post and infiniteScroll is enabled
-      runOnJS(scrollToLoad)();
+      scrollToLoad();
     }
-  }, [currentPostIndex, encryptionKey]);
+  }, [currentPostIndex, encryptionKey, post, infiniteScroll, scrollToLoad, posts.length]);
 
-   useEffect(() => {
+  useEffect(() => {
     console.log("[PostContainer] See Comment: ", seeComments)
     if (seeComments) {
       setTimeout(() => {
-      handleCommentsPress()}, 800)
+        handleCommentsPress();
+      }, 800);
     }
-  }, [])
-  // Fetch like status only when post or user changes
-  const getLikeStatus = async () => {
-    if (!currentPost || !user?.id) return;
-    
-    const { isLiked, likeCount } = await fetchLikeStatus(currentPost, user.id);
-    setIsLiked(isLiked);
-    setLikeCount(likeCount);
-  };
-  useEffect(() => {
-    if (!user?.id || !currentPost?.id) return;
-    getLikeStatus();
-    setIsPinned(currentPost?.pinned);
-  }, [post, currentPostIndex, user?.id]);
+  }, [seeComments]);
 
+
+  // Fetch like status when current post changes
   useEffect(() => {
     if (currentPost && user) {
       const isSaved = savedPosts.includes(String(currentPost.id));
       setIsSaved(isSaved);
       
-      if (currentPost.user_id) {
-        const userNickname = getNicknameFor(currentPost.user_id);
-        setNickname(userNickname);
+      if (handleUpdate) {
+        handleUpdate(currentPost.id, true);
+      }
+      
+      if (handleCloseModal) {
+        handleCloseModal();
+      }
+      
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      showAlert({
+        title: "Error",
+        message: "Failed to delete post. Please try again.",
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  }, [currentPost, user, showAlert, handleUpdate, handleCloseModal]);
+
+      
+
+
+  const handleCapture = useCallback(async () => {
+    if (!viewRef.current) return;
+    
+    try {
+      const uri = await captureRef(viewRef, {
+        format: "png",
+        quality: 0.8,
+      });
+      
+      setImageUri(uri);
+      
+      // Handle sharing
+      await Share.share({
+        url: uri,
+        title: "Check out this post from Colore!",
+      });
+      
+    } catch (error) {
+      console.error("Error capturing view:", error);
+      showAlert({
+        title: "Error",
+        message: "Failed to share post. Please try again.",
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  }, [viewRef, showAlert]);
+
+  const getMenuItems = useCallback((
+    isOwner: boolean,
+    invertedColors: boolean,
+    isPreview: boolean
+  ) => {
+    const menuItems = [];
+    
+    if (!isPreview) {
+      if (isOwner) {
+        menuItems.push({
+          icon: icons.trash,
+          label: "Delete",
+          onPress: handleDeletePress,
+        });
+      }
+      
+      menuItems.push({
+        icon: isSaved ? icons.bookmarkFilled : icons.bookmark,
+        label: isSaved ? "Unsave" : "Save",
+        onPress: () => handleSavePostPress(currentPost?.id),
+      });
+      
+      menuItems.push({
+        icon: icons.share,
+        label: "Share",
+        onPress: handleCapture,
+      });
+      
+      if (!isOwner) {
+        menuItems.push({
+          icon: icons.flag,
+          label: "Report",
+          onPress: () => {
+            Linking.openURL("mailto:support@colore.ca");
+          },
+        });
       }
     }
-  }, [currentPost, user, savedPosts, getNicknameFor]);
+    
+    return menuItems;
+  }, [isSaved, handleDeletePress, handleCapture, currentPost]);
+
+  const handleSavePostPress = useCallback(async (postId: number | undefined) => {
+    if (!postId || !user) return;
+    
+    try {
+      // Play sound effect
+      if (soundEffectsEnabled) {
+        playSoundEffect(SoundType.Button);
+      }
+      
+      // Optimistic update
+      if (isSaved) {
+        removeSavedPost(postId);
+      } else {
+        addSavedPost(postId);
+      }
+      
+      setIsSaved(!isSaved);
+      
+      const response = await fetchAPI(`/api/posts/${isSaved ? "unsavePost" : "savePost"}`, {
+        method: "POST",
+        body: JSON.stringify({
+          postId: postId,
+          userId: user.id,
+        }),
+      });
+      
+      if (response.error) {
+        // Revert optimistic update on error
+        if (isSaved) {
+          addSavedPost(postId);
+        } else {
+          removeSavedPost(postId);
+        }
+        setIsSaved(isSaved);
+        throw new Error(response.error);
+      }
+      
+      showAlert({
+        title: isSaved ? "Post Unsaved" : "Post Saved",
+        message: isSaved ? "Post removed from your saved items." : "Post added to your saved items.",
+        type: "SUCCESS",
+        status: "success",
+      });
+      
+    } catch (error) {
+      console.error("Error saving/unsaving post:", error);
+      showAlert({
+        title: "Error",
+        message: `Failed to ${isSaved ? "unsave" : "save"} post. Please try again.`,
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  }, [isSaved, user, soundEffectsEnabled, playSoundEffect, removeSavedPost, addSavedPost, showAlert]);
 
   const dateCreated = convertToLocal(new Date(currentPost?.created_at || ""));
   const formattedDate = formatDateTruncatedMonth(dateCreated);
@@ -390,43 +527,7 @@ const PostContainer: React.FC<PostContainerProps> = ({
     ));
   };
 
-  const handleInteractionPress = async (emoji: string) => {
-    try {
-      console.log("Patching prompts");
 
-      await fetchAPI(`/api/prompts/updateEngagement`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          clerkId: user?.id,
-          promptId: currentPost?.prompt_id,
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to update unread comments:", error);
-    } finally {
-      setSelectedEmoji(emoji);
-      const timeoutId = setTimeout(() => {
-        setCurrentPostIndex((prevIndex) => {
-          const newIndex = prevIndex + 1;
-          if (newIndex < 0) {
-            return posts.length - 1; // Loop back to the last post
-          } else if (newIndex >= posts.length) {
-            return 0; // Loop back to the first post
-          }
-          return newIndex;
-        });
-        translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
-        opacity.value = withTiming(0, {}, () => {
-          runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-          opacity.value = withTiming(1);
-        });
-        if (soundEffectsEnabled) {
-          //playSoundEffect(SoundType.Dislike);
-        }
-      }, 2000);
-      return () => clearTimeout(timeoutId);
-    }
-  };
 
   // Capture the content as soon as the component mounts (first render)
   useEffect(() => {
@@ -445,97 +546,6 @@ const PostContainer: React.FC<PostContainerProps> = ({
       }
     }, 500); // Small delay to ensure the view is ready
   }, []);
-
-  const handleCapture = async () => {
-    if (!selectedPosts) {
-      console.warn("Modal is not visible, skipping capture.");
-      return;
-    }
-
-    if (viewRef.current) {
-      try {
-        const uri = await captureRef(viewRef.current, {
-          format: "png",
-          quality: 0.8,
-        });
-
-        setImageUri(uri); // Save the captured URI for later sharing
-      } catch (error) {
-        console.error("Error capturing view:", error);
-      }
-    }
-  };
-
-const getMenuItems = (
-  isOwner: boolean,
-  invertedColors: boolean,
-  isPreview: boolean
-) => {
-  if (isPreview) return [];
-
-  const shareItem = {
-    label: "Share",
-    source: icons.send,
-    color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
-    onPress: () => handleShare(imageUri, currentPost),
-  };
-
-  const saveOrRemoveItem = {
-    label: isSaved ? "Remove" : "Save",
-    source: isSaved ? icons.close : icons.bookmark,
-    color: "#000000",
-    onPress: () => {
-      handleSavePost(currentPost?.id, isSaved, user!.id);
-      setIsSaved(prev => !prev);
-    },
-  };
-
-  const pinItem = {
-    label: isPinned ? "Unpin" : "Pin",
-    source: icons.pin,
-    color: "#000000",
-    onPress: () => {
-      handlePin(currentPost, isPinned, user!.id);
-      handleUpdate(!isPinned);
-      setIsPinned(prev => !prev);
-      handleCloseModal();
-    },
-  };
-
-  const deleteItem = {
-    label: "Delete",
-    source: icons.trash,
-    color: "#DA0808",
-    onPress: handleDeletePress,
-  };
-
-  const reportItem = {
-    label: "Report",
-    source: icons.email,
-    color: "#DA0808",
-    onPress: handleReportPress,
-  };
-
-  const editItem = {
-    label: "Edit",
-    source: icons.pencil,
-    color: "#0851DA",
-    onPress: () => {
-      setTimeout(() => handleCloseModal(), 250);
-      handleEditing(currentPost);
-    },
-  };
-
-  if (invertedColors) {
-    return currentPost?.recipient_user_id === user!.id
-      ? [pinItem, shareItem, deleteItem]
-      : [shareItem, saveOrRemoveItem, reportItem];
-  }
-
-  return isOwner
-    ? [shareItem, editItem, saveOrRemoveItem, deleteItem]
-    : [shareItem, saveOrRemoveItem, reportItem];
-};
 
 
   const backgroundColor = useSharedValue(
@@ -585,38 +595,6 @@ const getMenuItems = (
     : typeof currentPost?.formatting === "string"
       ? JSON.parse(currentPost.formatting)
       : (currentPost?.formatting ?? []);
-
-  // Add the updated handleSavePost implementation
-  const handleSavePost = async (postId: number | undefined) => {
-    if (!user?.id || !postId) return;
-    
-    try {
-      // Update the UI immediately
-      const newIsSavedStatus = !isSaved;
-      setIsSaved(newIsSavedStatus);
-      
-      // Update the context
-      if (newIsSavedStatus) {
-        addSavedPost(postId);
-      } else {
-        removeSavedPost(postId);
-      }
-      
-      // Still make the API call to persist changes on the server
-      await fetchAPI(`/api/users/updateUserSavedPosts`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          clerkId: user.id,
-          postId: postId,
-          isSaved: newIsSavedStatus,
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to update saved post status:", error);
-      // Revert UI on error
-      setIsSaved(!isSaved);
-    }
-  };
 
   return (
     <AnimatedView
@@ -777,6 +755,6 @@ const getMenuItems = (
         </ModalSheet>
     </AnimatedView>
   );
-};
+});
 
 export default PostContainer;
