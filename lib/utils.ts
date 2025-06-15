@@ -299,4 +299,13 @@ export function formatNumber(num: number): string {
   return num.toString();
 }
 
+/**
+ * Checks if the provided value is a valid Date object that can be used for calculations
+ * @param date The value to check
+ * @returns boolean indicating if the value is a valid date
+ */
+export function isValidDate(date: any): boolean {
+  return date instanceof Date && !isNaN(date.getTime());
+}
+
 

@@ -12,7 +12,7 @@ import {
   fetchLikeStatus,
 } from "@/lib/post";
 import { fetchAPI } from "@/lib/fetch";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { convertToLocal, formatDateTruncatedMonth, isValidDate } from "@/lib/utils";
 import {
   Post,
   PostItColor,
@@ -141,64 +141,95 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
   // Memoize the posts array to prevent unnecessary re-renders
   const post = useMemo(() => selectedPosts, [selectedPosts]);
 
-  // Check if post is saved
+  // Check if post is saved and pinned
   useEffect(() => {
-    if (currentPost && savedPosts) {
-      setIsSaved(savedPosts.includes(currentPost.id.toString()));
+    if (currentPost) {
+      // Check if post is saved
+      if (savedPosts) {
+        setIsSaved(savedPosts.includes(currentPost.id.toString()));
+      }
+      
+      // Check if post is pinned
+      setIsPinned(currentPost.pinned || false);
     }
   }, [currentPost, savedPosts]);
 
   useEffect(() => {
     if (post.length) {
-      setPosts(post);
-      setCurrentPost(post[currentPostIndex]);
-      setIsEmojiStatic(post[currentPostIndex]?.static_emoji ?? false);
+      // Filter out any invalid posts
+      const validPosts = post.filter(p => p && typeof p === 'object' && p.id);
+      
+      if (validPosts.length !== post.length) {
+        console.warn("[DEBUG] PostContainer - Filtered out invalid posts:", post.length - validPosts.length);
+      }
+      
+      setPosts(validPosts);
+      
+      // Make sure we have a valid current post index
+      const safeIndex = Math.min(currentPostIndex, validPosts.length - 1);
+      if (safeIndex >= 0 && validPosts[safeIndex]) {
+        setCurrentPost(validPosts[safeIndex]);
+        setIsEmojiStatic(validPosts[safeIndex]?.static_emoji ?? false);
+      }
       
       // Debug logging
-      console.log("[DEBUG] PostContainer - Received posts:", post.length);
-      if (post.length > 0) {
-        console.log("[DEBUG] PostContainer - First post content:", post[0].content.substring(0, 30));
-        console.log("[DEBUG] PostContainer - First post is personal:", Boolean(post[0].recipient_user_id));
+      console.log("[DEBUG] PostContainer - Received valid posts:", validPosts.length);
+      if (validPosts.length > 0) {
+        console.log("[DEBUG] PostContainer - First post ID:", validPosts[0].id);
+        console.log("[DEBUG] PostContainer - First post content:", validPosts[0].content?.substring(0, 30) || "No content");
       }
     }
   }, [post, currentPostIndex]);
 
   useEffect(() => {
-    setCurrentPost(post[currentPostIndex]);
-    console.log("[DEBUG] PostContainer - Current post updated:", currentPostIndex);
-    if (post[currentPostIndex]) {
-      console.log("[DEBUG] PostContainer - Current post content:", post[currentPostIndex].content.substring(0, 30));
+    // Only update current post if we have valid posts and a valid index
+    if (posts.length > 0 && currentPostIndex >= 0 && currentPostIndex < posts.length) {
+      const newCurrentPost = posts[currentPostIndex];
       
-      // Try to decrypt the content directly if it's a personal post
-      const currentPostData = post[currentPostIndex];
-      if (currentPostData && 
-          currentPostData.recipient_user_id && 
-          encryptionKey && 
-          currentPostData.content.startsWith('U2FsdGVkX1')) {
-        try {
-          const decryptedContent = decryptText(currentPostData.content, encryptionKey);
-          console.log("[DEBUG] PostContainer - Directly decrypted content:", decryptedContent);
-          
-          // Update the current post with decrypted content
-          setCurrentPost({
-            ...currentPostData,
-            content: decryptedContent
-          });
-        } catch (error) {
-          console.error("[DEBUG] PostContainer - Direct decryption failed:", error);
+      if (!newCurrentPost || !newCurrentPost.id) {
+        console.error("[DEBUG] PostContainer - Invalid post at index:", currentPostIndex);
+        return;
+      }
+      
+      setCurrentPost(newCurrentPost);
+      console.log("[DEBUG] PostContainer - Current post updated:", currentPostIndex);
+      console.log("[DEBUG] PostContainer - Current post ID:", newCurrentPost.id);
+      
+      if (newCurrentPost.content) {
+        console.log("[DEBUG] PostContainer - Current post content:", newCurrentPost.content.substring(0, 30));
+        
+        // Try to decrypt the content directly if it's a personal post
+        if (newCurrentPost.recipient_user_id && 
+            encryptionKey && 
+            typeof newCurrentPost.content === 'string' &&
+            newCurrentPost.content.startsWith('U2FsdGVkX1')) {
+          try {
+            const decryptedContent = decryptText(newCurrentPost.content, encryptionKey);
+            console.log("[DEBUG] PostContainer - Directly decrypted content:", decryptedContent.substring(0, 30));
+            
+            // Update the current post with decrypted content
+            setCurrentPost({
+              ...newCurrentPost,
+              content: decryptedContent
+            });
+          } catch (error) {
+            console.error("[DEBUG] PostContainer - Direct decryption failed:", error);
+          }
         }
+      } else {
+        console.warn("[DEBUG] PostContainer - Post has no content:", newCurrentPost.id);
+      }
+
+      if (
+        infiniteScroll &&
+        typeof scrollToLoad === "function" &&
+        currentPostIndex + 1 === posts.length - 1
+      ) {
+        // If last post and infiniteScroll is enabled
+        scrollToLoad();
       }
     }
-
-    if (
-      infiniteScroll &&
-      typeof scrollToLoad === "function" &&
-      currentPostIndex + 1 === posts.length - 1
-    ) {
-      // If last post and infiniteScroll is enabled
-      scrollToLoad();
-    }
-  }, [currentPostIndex, encryptionKey, post, infiniteScroll, scrollToLoad, posts.length]);
+  }, [currentPostIndex, encryptionKey, infiniteScroll, scrollToLoad, posts]);
 
   useEffect(() => {
     console.log("[PostContainer] See Comment: ", seeComments)
@@ -297,8 +328,9 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
         status: "success",
       });
       
+      // Call handleUpdate with isPinned=false since the post is being deleted
       if (handleUpdate) {
-        handleUpdate(currentPost.id, true);
+        handleUpdate(false);
       }
       
       if (handleCloseModal) {
@@ -397,30 +429,53 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
     const menuItems = [];
     
     if (!isPreview) {
+      // Add Pin/Unpin option for personal posts (when the current user is the recipient)
+      if (currentPost?.recipient_user_id === user?.id) {
+        menuItems.push({
+          source: icons.pin,
+          label: isPinned ? "Unpin" : "Pin",
+          color: "#000000",
+          onPress: () => {
+            if (currentPost && user) {
+              handlePin(currentPost, isPinned, user.id);
+              if (handleUpdate) {
+                handleUpdate(isPinned);
+              }
+              setIsPinned(!isPinned);
+              handleCloseModal && handleCloseModal();
+            }
+          },
+        });
+      }
+      
       if (isOwner) {
         menuItems.push({
-          icon: icons.trash,
+          source: icons.trash,
           label: "Delete",
+          color: "#DA0808",
           onPress: handleDeletePress,
         });
       }
       
       menuItems.push({
-        icon: isSaved ? icons.bookmarkFilled : icons.bookmark,
+        source: icons.bookmark,
         label: isSaved ? "Unsave" : "Save",
+        color: "#000000",
         onPress: () => handleSavePostPress(currentPost?.id),
       });
       
       menuItems.push({
-        icon: icons.share,
+        source: icons.send,
         label: "Share",
+        color: "#000000",
         onPress: handleCapture,
       });
       
       if (!isOwner) {
         menuItems.push({
-          icon: icons.flag,
+          source: icons.info,
           label: "Report",
+          color: "#DA0808",
           onPress: () => {
             Linking.openURL("mailto:support@colore.ca");
           },
@@ -486,8 +541,32 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
     }
   }, [isSaved, user, soundEffectsEnabled, playSoundEffect, removeSavedPost, addSavedPost, showAlert]);
 
-  const dateCreated = convertToLocal(new Date(currentPost?.created_at || ""));
-  const formattedDate = formatDateTruncatedMonth(dateCreated);
+  // Helper function to safely handle dates
+  const safeConvertToLocal = useCallback((dateString: string | undefined | null) => {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      if (!isValidDate(date)) {
+        console.warn(`[DEBUG] PostContainer - Invalid date: ${dateString}`);
+        return '';
+      }
+      return convertToLocal(date);
+    } catch (error) {
+      console.warn(`[DEBUG] PostContainer - Error converting date: ${error}`);
+      return '';
+    }
+  }, []);
+
+  const getPostDate = useCallback(() => {
+    if (!currentPost || !currentPost.created_at) return '';
+    
+    return safeConvertToLocal(currentPost.created_at);
+  }, [currentPost, safeConvertToLocal]);
+
+  const dateCreated = getPostDate();
+  // Only format the date if it's a valid Date object
+  const formattedDate = dateCreated ? formatDateTruncatedMonth(dateCreated) : '';
   const postColor = allColors.find(
     (color) => color.id === currentPost?.color
   ) as PostItColor;
@@ -661,10 +740,16 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
             </TouchableOpacity>
 
             <ScrollView>
-              <RichText
-                formatStyling={cleanFormatting}
-                content={currentPost?.content ?? ""}
-              />
+              {(currentPost && currentPost.content) || (isPreview && draftPost?.content) ? (
+                <RichText
+                  formatStyling={cleanFormatting}
+                  content={isPreview && draftPost ? draftPost.content : (currentPost?.content || '')}
+                />
+              ) : (
+                <Text className="text-gray-700 py-2 text-center">
+                  No content to display
+                </Text>
+              )}
             </ScrollView>
             {!isPreview && (
               <View className="my-2 flex-row justify-between items-center">

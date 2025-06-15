@@ -259,6 +259,7 @@ const LogIn = () => {
             textContentType="emailAddress"
             keyboardType="email-address"
             autoComplete="email"
+            autoCapitalize="none"
             value={form.email}
             onChangeText={(value) => setForm({ ...form, email: value })}
             editable={!isLoading}
@@ -270,6 +271,7 @@ const LogIn = () => {
             value={form.password}
             secureTextEntry={true}
             textContentType="password"
+            autoComplete="password"
             onChangeText={(value) => setForm({ ...form, password: value })}
             editable={!isLoading}
           />

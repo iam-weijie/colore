@@ -10,7 +10,8 @@ import {
   handleEditing,
   handlePin,
   handleShare,
-  handleSavePost,
+  handleSavePost as libHandleSavePost,
+  fetchLikeStatus as fetchPostLikeStatus,
 } from "@/lib/post";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
@@ -154,14 +155,11 @@ const StarringContainer: React.FC<PostContainerProps> = ({
 
   const fetchLikeStatus = async () => {
     try {
-      const response = await fetchAPI(
-        `/api/posts/updateLikeCount?postId=${post[currentPostIndex].id}&userId=${user!.id}`,
-        { method: "GET" }
-      );
-      if (response.error) return;
-
-      setIsLiked(response.data.liked);
-      setLikeCount(response.data.likeCount);
+      if (!post[currentPostIndex]?.id || !user?.id) return;
+      
+      const status = await fetchPostLikeStatus(post[currentPostIndex].id, user.id);
+      setIsLiked(status.isLiked);
+      setLikeCount(status.likeCount);
     } catch (error) {
       console.error("Failed to fetch like status:", error);
     }
@@ -175,15 +173,11 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     setIsPinned(newPost?.pinned);
 
     const fetchStatus = async () => {
+      if (!newPost?.id) return;
       try {
-        const response = await fetchAPI(
-          `/api/posts/updateLikeCount?postId=${newPost.id}&userId=${user.id}`,
-          { method: "GET" }
-        );
-        if (response.error) return;
-
-        setIsLiked(response.data.liked);
-        setLikeCount(response.data.likeCount);
+        const status = await fetchPostLikeStatus(newPost.id, user.id);
+        setIsLiked(status.isLiked);
+        setLikeCount(status.likeCount);
       } catch (error) {
         console.error("Failed to fetch like status:", error);
       }
@@ -561,7 +555,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
               source: isSaved ? icons.close : icons.bookmark,
               onPress: () => {
                 if (currentPost?.id && user) {
-                  handleSavePost(currentPost.id, isSaved, user.id);
+                  libHandleSavePost(currentPost.id, isSaved, user.id);
                   setIsSaved((prevIsSaved) => !prevIsSaved);
                 }
               },
@@ -606,7 +600,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
             source: isSaved ? icons.close : icons.bookmark,
             onPress: () => {
               if (currentPost?.id && user) {
-                handleSavePost(currentPost.id, isSaved, user.id);
+                libHandleSavePost(currentPost.id, isSaved, user.id);
                 setIsSaved((prevIsSaved) => !prevIsSaved);
               }
             },
@@ -635,7 +629,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
             source: isSaved ? icons.close : icons.bookmark,
             onPress: () => {
               if (currentPost?.id && user) {
-                handleSavePost(currentPost.id, isSaved, user.id);
+                libHandleSavePost(currentPost.id, isSaved, user.id);
                 setIsSaved((prevIsSaved) => !prevIsSaved);
               }
             },

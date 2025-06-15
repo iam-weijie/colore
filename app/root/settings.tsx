@@ -420,18 +420,31 @@ const Settings = () => {
 
   const handleSignOut = async () => {
     try {
+      console.log("[DEBUG] Settings - Sign out button pressed");
+      
+      // Loading state is now set by the button press
+      // No need to show alert here as it's shown by the button press
+      
+      // Clear encryption key
+      console.log("[DEBUG] Settings - Clearing encryption key");
+      await setEncryptionKey(null);
+      
+      // Sign out the user
+      console.log("[DEBUG] Settings - Calling signOut()");
       await signOut();
-      setEncryptionKey(null);
-      setLoading(true);
+      
+      // Navigate to onboarding
+      console.log("[DEBUG] Settings - Navigating to onboarding");
       router.replace("/auth/onboarding");
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error("[DEBUG] Settings - Error signing out:", error);
       showAlert({
         title: "Error",
-        message: `Failed to sign out.`,
+        message: `Failed to sign out. Please try again.`,
         type: "ERROR",
         status: "error",
       });
+      setLoading(false);
     }
   };
 
@@ -727,18 +740,36 @@ const Settings = () => {
       {/* Sign Out Button */}
       <View className="mx-6 mb-10">
         <TouchableOpacity
-          onPress={handleSignOut}
-          activeOpacity={0.7}
-          className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center border-2 border-gray-100"
+          onPress={() => {
+            console.log("[DEBUG] Settings - Sign out button pressed directly");
+            // Add delay to prevent multiple presses
+            if (loading) return;
+            setLoading(true);
+            // Show visual feedback immediately
+            showAlert({
+              title: "Signing Out",
+              message: "Please wait while we sign you out...",
+              type: "UPDATE",
+              status: "success",
+            });
+            // Execute sign out after a short delay to allow UI to update
+            setTimeout(() => {
+              handleSignOut();
+            }, 100);
+          }}
+          disabled={loading}
+          activeOpacity={0.5}
+          className={`${loading ? 'bg-gray-200' : 'bg-white'} rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center border-2 border-gray-100`}
           style={{
             shadowColor: "#636363",
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.1,
             shadowRadius: 4,
+            elevation: 3, // Add elevation for Android shadow
           }}
         >
-          <Text className="font-JakartaBold text-lg text-red-500">
-            Sign Out
+          <Text className={`font-JakartaBold text-lg ${loading ? 'text-gray-500' : 'text-red-500'}`}>
+            {loading ? "Signing Out..." : "Sign Out"}
           </Text>
         </TouchableOpacity>
       </View>

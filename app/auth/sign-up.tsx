@@ -361,26 +361,25 @@ onPress={() => {
           <Animated.View entering={FadeInDown.duration(600).delay(400)}>
             <InputField
               label="Email"
-              icon={icons.email}
               placeholder="Enter your email"
-              keyboardType="email-address"
-              textContentType="emailAddress"
               value={form.email}
-              onChangeText={(value) => setForm({ ...form, email: value })}
-              editable={!isLoading}
+              onChangeText={(text) => setForm({ ...form, email: text })}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              textContentType="emailAddress"
+              autoComplete="email"
             />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.duration(600).delay(500)}>
             <InputField
               label="Password"
-              icon={icons.lock}
-              placeholder="Create password"
+              placeholder="Enter your password"
               secureTextEntry
-              textContentType="newPassword"
               value={form.password}
-              onChangeText={(value) => setForm({ ...form, password: value })}
-              editable={!isLoading}
+              onChangeText={(text) => setForm({ ...form, password: text })}
+              textContentType="newPassword"
+              autoComplete="password"
             />
           </Animated.View>
 

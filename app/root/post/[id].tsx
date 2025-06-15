@@ -42,6 +42,9 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import * as Linking from "expo-linking";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  fetchLikeStatus,
+} from "@/lib/post";
 
 interface GestureContext {
   startX: number;
@@ -129,28 +132,19 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
     }
   }, [replyTo])
   useEffect(() => {
-    const fetchLikeStatus = async () => {
+    const fetchLikesForPost = async () => {
       if (!id || !user?.id) return;
 
       try {
-        const response = await fetchAPI(
-          `/api/posts/updateLikeCount?postId=${id}&userId=${user.id}`,
-          { method: "GET" }
-        );
-
-        if (response.error) {
-          console.error("Error fetching like status:", response.error);
-          return;
-        }
-
-        setIsLiked(response.data.liked);
-        setLikeCount(response.data.likeCount);
+        const status = await fetchLikeStatus(parseInt(id), user.id);
+        setIsLiked(status.isLiked);
+        setLikeCount(status.likeCount);
       } catch (error) {
         console.error("Failed to fetch like status:", error);
       }
     };
 
-    fetchLikeStatus();
+    fetchLikesForPost();
   }, [id, user?.id]);
 
   useFocusEffect(
