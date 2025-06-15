@@ -412,10 +412,12 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   };
 
   const handleCommentsPress = () => {
+    if (!currentPost?.id) return;
+    
     setSelectedBoard(() => (
       <PostScreen
-        id={currentPost?.id?.toString() || ""}
-        clerkId={currentPost?.clerk_id || ""}
+        id={currentPost.id.toString()}
+        clerkId={currentPost.user_id || ""}
       />
     ));
   };
@@ -513,10 +515,12 @@ const StarringContainer: React.FC<PostContainerProps> = ({
               source: icons.pin,
               color: "#000000",
               onPress: () => {
-                handlePin(currentPost, isPinned, user!.id);
-                handleUpdate(!isPinned);
-                setIsPinned((prevIsPinned) => !prevIsPinned);
-                handleCloseModal;
+                if (currentPost && user) {
+                  handlePin(currentPost, isPinned, user.id);
+                  handleUpdate && handleUpdate(!isPinned);
+                  setIsPinned((prevIsPinned) => !prevIsPinned);
+                  handleCloseModal && handleCloseModal();
+                }
               },
             },
             {
@@ -524,7 +528,9 @@ const StarringContainer: React.FC<PostContainerProps> = ({
               source: icons.send,
               color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
               onPress: () => {
-                handleShare(imageUri, currentPost);
+                if (currentPost) {
+                  handleShare(imageUri, currentPost);
+                }
               },
             },
             {
@@ -540,7 +546,9 @@ const StarringContainer: React.FC<PostContainerProps> = ({
               source: icons.send,
               color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
               onPress: () => {
-                handleShare(imageUri, currentPost);
+                if (currentPost) {
+                  handleShare(imageUri, currentPost);
+                }
               },
             },
             {
@@ -548,8 +556,10 @@ const StarringContainer: React.FC<PostContainerProps> = ({
               color: "#000000",
               source: isSaved ? icons.close : icons.bookmark,
               onPress: () => {
-                handleSavePost(currentPost?.id, isSaved, user!.id);
-                setIsSaved((prevIsSaved) => !prevIsSaved);
+                if (currentPost?.id && user) {
+                  handleSavePost(currentPost.id, isSaved, user.id);
+                  setIsSaved((prevIsSaved) => !prevIsSaved);
+                }
               },
             },
             {
@@ -568,7 +578,9 @@ const StarringContainer: React.FC<PostContainerProps> = ({
             source: icons.send,
             color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
             onPress: () => {
-              handleShare(imageUri, currentPost);
+              if (currentPost) {
+                handleShare(imageUri, currentPost);
+              }
             },
           },
           {
@@ -577,9 +589,11 @@ const StarringContainer: React.FC<PostContainerProps> = ({
             color: "#0851DA",
             onPress: () => {
               setTimeout(() => {
-                handleCloseModal();
+                handleCloseModal && handleCloseModal();
               }, 250);
-              handleEditing(currentPost);
+              if (currentPost) {
+                handleEditing(currentPost);
+              }
             },
           },
           {
@@ -587,8 +601,10 @@ const StarringContainer: React.FC<PostContainerProps> = ({
             color: "#000000",
             source: isSaved ? icons.close : icons.bookmark,
             onPress: () => {
-              handleSavePost(currentPost?.id, isSaved, user!.id);
-              setIsSaved((prevIsSaved) => !prevIsSaved);
+              if (currentPost?.id && user) {
+                handleSavePost(currentPost.id, isSaved, user.id);
+                setIsSaved((prevIsSaved) => !prevIsSaved);
+              }
             },
           },
           {
@@ -604,7 +620,9 @@ const StarringContainer: React.FC<PostContainerProps> = ({
             source: icons.send,
             color: postColor?.fontColor || "rgba(0, 0, 0, 0.5)",
             onPress: () => {
-              handleShare(imageUri, currentPost);
+              if (currentPost) {
+                handleShare(imageUri, currentPost);
+              }
             },
           },
           {
@@ -612,8 +630,10 @@ const StarringContainer: React.FC<PostContainerProps> = ({
             color: "#000000",
             source: isSaved ? icons.close : icons.bookmark,
             onPress: () => {
-              handleSavePost(currentPost?.id, isSaved, user!.id);
-              setIsSaved((prevIsSaved) => !prevIsSaved);
+              if (currentPost?.id && user) {
+                handleSavePost(currentPost.id, isSaved, user.id);
+                setIsSaved((prevIsSaved) => !prevIsSaved);
+              }
             },
           },
           {
@@ -803,8 +823,8 @@ const StarringContainer: React.FC<PostContainerProps> = ({
                 {
                   <DropdownMenu
                     menuItems={getMenuItems(
-                      currentPost?.clerk_id === user!.id ||
-                        currentPost?.recipient_user_id === user!.id,
+                      (currentPost?.user_id === user?.id) ||
+                        (currentPost?.recipient_user_id === user?.id),
                       invertedColors,
                       isPreview
                     )}
@@ -902,7 +922,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
           <MaterialCommunityIcons
             name="star"
             size={64}
-            color={"white" || postColor?.hex}
+            color={postColor?.hex || "white"}
             style={{
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 2 },

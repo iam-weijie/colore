@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Alert, Text, View } from "react-native";
 import Animated, { BounceIn, FadeOut } from "react-native-reanimated";
+import { formatNumber } from "@/lib/utils";
 
 interface NotificationBubbleProps {
   unread: number;
@@ -19,6 +20,7 @@ const NotificationBubble: React.FC<NotificationBubbleProps> = ({ unread, color }
       className="absolute items-center font-JakartaBold justify-center p-[3] rounded-full"
       style={[{ backgroundColor: color }]}
     >
+      <Text className="text-white text-[10px] px-[3px]">{formatNumber(unread)}</Text>
     </Animated.View>
   );
 };

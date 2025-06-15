@@ -1,7 +1,7 @@
 import PostModal from "@/components/PostModal";
 import { useGlobalContext } from "@/app/globalcontext";
 import { allColors } from "@/constants/colors";
-import { formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
+import { formatDateTruncatedMonth, getRelativeTime, formatNumber } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { Link, useFocusEffect, useRouter } from "expo-router";
@@ -208,7 +208,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
               {hasNewComments && (
                 <View className="px-3 py-2 bg-red-500/95 rounded-full">
                   <Text className="text-xs font-JakartaSemiBold text-white">
-                    {item.unread_comments} comment
+                    {formatNumber(item.unread_comments)} comment
                     {item.unread_comments > 1 ? "s" : ""}
                   </Text>
                 </View>

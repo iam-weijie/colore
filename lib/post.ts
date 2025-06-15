@@ -312,11 +312,20 @@ export const handleSubmitPost = async (
 
 export const fetchLikeStatus = async (post: Post, userId: string) => {
   try {
+    if (!post || !post.id) {
+      console.error("Invalid post object:", post);
+      return { isLiked: false, likeCount: 0 };
+    }
+    
     const response = await fetchAPI(
-      `/api/posts/updateLikeCount?postId=${post}&userId=${userId}`,
+      `/api/posts/updateLikeCount?postId=${post.id}&userId=${userId}`,
       { method: "GET" }
     );
-    if (response.error) return;
+    
+    if (response.error) {
+      console.error("Error fetching like status:", response.error);
+      return { isLiked: false, likeCount: 0 };
+    }
 
     const isLiked: boolean = response.data?.liked;
     const likeCount: number = response.data?.likeCount;
@@ -324,5 +333,6 @@ export const fetchLikeStatus = async (post: Post, userId: string) => {
     return { isLiked: isLiked ?? false, likeCount: likeCount ?? 0 };
   } catch (error) {
     console.error("Failed to fetch like status:", error);
+    return { isLiked: false, likeCount: 0 };
   }
 };
