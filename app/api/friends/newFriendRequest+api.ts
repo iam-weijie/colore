@@ -1,3 +1,4 @@
+import { sendNotification } from "@/lib/notification";
 import { neon } from "@neondatabase/serverless";
 
 export async function POST(request: Request) {
@@ -47,30 +48,28 @@ export async function POST(request: Request) {
       JOIN users u2 ON inserted.user_id2 = u2.clerk_id;
     `;
 
+    // Sending out friend request notification through websocket
+    const friendPushToken = await sql`
+      SELECT
+        push_token
+      FROM users
+      WHERE clerk_id = ${friendId}
+    `;
+
     const friend_req = response[0];
+
     const notification = {
       userId: friendId,
       requests: [friend_req],
     };
 
-    // Sending out friend request notification through websocket
-    const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: friendId,
-        type: "Requests",
-        notification,
-        content: friend_req,
-      }),
-    });
-
-    const data = await res.json();
-    if (!data.success) {
-      console.log(data.message!);
-    } else {
-      console.log("friend request notif shot!");
-    }
+    sendNotification(
+      friendId,
+      "Requests",
+      notification,
+      friend_req,
+      friendPushToken[0]?.push_token
+    );
 
     return new Response(JSON.stringify({ data: response }), {
       status: 201,

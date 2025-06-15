@@ -49,7 +49,7 @@ export async function POST(request: Request) {
           WHERE clerk_id = ${clerkId};
         `,
         sql`
-          SELECT firstname, username
+          SELECT firstname, username, push_token
           FROM users
           WHERE clerk_id = ${postClerkId};
         `,
@@ -85,7 +85,8 @@ export async function POST(request: Request) {
         postClerkId,
         "Comments",
         notification,
-        new_comment
+        new_comment,
+        postOwner[0]?.push_token
       );
 
       return new Response(JSON.stringify({ data: insertedComment[0] }), {

@@ -142,6 +142,7 @@ export const fetchNotificationsExternal = async (
       ...likes,
     ];
 
+    /* processFetchedNotifications not needed anymore? 
     // Process each notification and send push if needed.
     const processFetchedNotifications = async (notifications: any[]) => {
       //console.log("notifications", notifications);
@@ -208,7 +209,8 @@ export const fetchNotificationsExternal = async (
       }
     };
 
-    processFetchedNotifications(allNotifications);
+    processFetchedNotifications(allNotifications);*/
+
     return {
       notifs: allNotifications,
       history: allStoredNotifications,
@@ -506,13 +508,6 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
 
       socket.on("notification", ({ type, notification, content }) => {
         if (notification && type && content) {
-          handleSendNotificationExternal(
-            notification,
-            content,
-            type,
-            pushToken
-          );
-
           // updating notif state
           setNotifications((prevNotfis) => [notification, ...prevNotfis]);
           setStoredNotifications((prevStoredNotifs) => [

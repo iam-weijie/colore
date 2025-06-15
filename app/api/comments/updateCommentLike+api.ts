@@ -1,3 +1,4 @@
+import { sendNotification } from "@/lib/notification";
 import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
@@ -105,6 +106,13 @@ export async function PATCH(request: Request) {
         WHERE id = ${commentIdNum}
       `;
 
+      const commenterInfo = await sql`
+        SELECT
+          push_token
+        FROM users
+        WHERE clerk_id = ${commentInfo[0].user_id}
+      `;
+
       const likerUsername = await sql`
         SELECT 
           username
@@ -114,32 +122,21 @@ export async function PATCH(request: Request) {
 
       // don't send a notification if someone likes their own comment
       if (commentInfo[0].user_id !== userId) {
-        const res = await fetch(
-          `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId: commentInfo[0].user_id,
-              type: "Likes",
-              notification: {
-                id: result[0].like_id,
-                comment_id: commentInfo[0].id,
-                post_id: commentInfo[0].post_id,
-                comment_content: commentInfo[0].content,
-                liker_username: likerUsername[0].username,
-              },
-              content: {},
-            }),
-          }
-        );
+        const notification = {
+          id: result[0].like_id,
+          comment_id: commentInfo[0].id,
+          post_id: commentInfo[0].post_id,
+          comment_content: commentInfo[0].content,
+          liker_username: likerUsername[0].username,
+        };
 
-        const data = await res.json();
-        if (!data.success) {
-          console.log(data.message!);
-        } else {
-          console.log("successfully shot comment like notification!");
-        }
+        sendNotification(
+          commentInfo[0].user_id,
+          "Likes",
+          notification,
+          {},
+          commenterInfo[0]?.push_token
+        );
       }
     } else {
       // Unlike the comment

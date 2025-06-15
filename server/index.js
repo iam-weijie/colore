@@ -29,7 +29,12 @@ app.post("/dispatch", (req, res) => {
   const { recipientId, type, notification, content } = req.body;
 
   if (!recipientId || !type || !notification) {
-    return res.status(400).json({ success: false, message: "Missing fields" });
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: "Missing fields to dispatch notification",
+      });
   }
 
   const socket = connectedUsers.get(recipientId);

@@ -106,6 +106,13 @@ export async function PATCH(request: Request) {
         WHERE id = ${postIdNum}
       `;
 
+      const postOwnerInfo = await sql`
+        SELECT
+          push_token
+        FROM users
+        WHERE clerk_id = ${postInfo[0].user_id}
+      `;
+
       const likerUsername = await sql`
         SELECT 
           username
@@ -123,34 +130,13 @@ export async function PATCH(request: Request) {
           liker_username: likerUsername[0].username,
         };
 
-        await sendNotification(postInfo[0].user_id, "Likes", notification, {});
-
-        /*const res = await fetch(
-          `${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId: postInfo[0].user_id,
-              type: "Likes",
-              notification: {
-                id: result[0].like_id,
-                post_id: postInfo[0].id,
-                post_content: postInfo[0].content,
-                post_color: postInfo[0].color,
-                liker_username: likerUsername[0].username,
-              },
-              content: {},
-            }),
-          }
+        await sendNotification(
+          postInfo[0].user_id,
+          "Likes",
+          notification,
+          {},
+          postOwnerInfo[0].push_token
         );
-
-        const data = await res.json();
-        if (!data.success) {
-          console.log(data.message!);
-        } else {
-          console.log("successfully shot post like notification!");
-        }*/
       }
     } else {
       // Unlike the post

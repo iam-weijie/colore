@@ -1,3 +1,4 @@
+import { sendNotification } from "@/lib/notification";
 import { neon } from "@neondatabase/serverless";
 
 export async function POST(request: Request) {
@@ -40,32 +41,27 @@ export async function POST(request: Request) {
     console.log("Added to friendship");
 
     // Sending out notification to sender that receiver accepted friend request
-    const receiver_username = await sql`
+    const receiverUsername = await sql`
       SELECT 
-        username as receiver_username
+        username as receiverUsername
       FROM users
       WHERE clerk_id = ${receiver_id}
     `;
 
-    console.log(receiver_username[0]);
+    const senderPushToken = await sql`
+      SELECT
+        push_token
+      FROM users
+      WHERE clerk_id = ${sender_id}
+    `;
 
-    const res = await fetch(`${process.env.EXPO_PUBLIC_SERVER_URL}/dispatch`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: sender_id,
-        type: "Requests",
-        notification: {},
-        content: receiver_username[0],
-      }),
-    });
-
-    const data = await res.json();
-    if (!data.success) {
-      console.log(data.message!);
-    } else {
-      console.log("friend request acceptance notif shot!");
-    }
+    sendNotification(
+      sender_id,
+      "Requests",
+      receiverUsername[0],
+      {},
+      senderPushToken[0]?.push_token
+    );
 
     return new Response(
       JSON.stringify({ message: "Friend request accepted" }),
