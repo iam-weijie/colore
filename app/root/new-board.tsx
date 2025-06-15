@@ -36,6 +36,7 @@ import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { encryptText } from "@/lib/encryption";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
+import { defaultColors } from "@/constants/colors";
 
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
@@ -63,8 +64,12 @@ const NewPost = () => {
   const [navigationIndex, setNavigationIndex] = useState<number>(0);
   const maxTitleCharacters = 20;
   const maxDescriptionCharacters = 300;
+  
+  // Ensure we have valid colors to select from
+  const availableColors = userColors && userColors.length > 0 ? userColors : defaultColors;
+  
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    userColors[Math.floor(Math.random() * 4)]
+    availableColors[Math.floor(Math.random() * Math.min(availableColors.length, 3))]
   );
   const [isPosting, setIsPosting] = useState(false);
 
@@ -398,7 +403,7 @@ Perfect for open discussions or quiet sharing.`,
         message: `Your prompt was submitted successfully.`,
         type: "POST",
         status: "success",
-        color: selectedColor.hex,
+        color: selectedColor?.hex || "#93c5fd",
       });
 
       console.log("submitted");
@@ -415,8 +420,10 @@ Perfect for open discussions or quiet sharing.`,
   };
 
   useEffect(() => {
-    setSelectedColor(userColors[Math.floor(Math.random() * 4)]);
-  }, [navigationIndex]);
+    // Ensure we have valid colors to select from
+    const availableColors = userColors && userColors.length > 0 ? userColors : defaultColors;
+    setSelectedColor(availableColors[Math.floor(Math.random() * Math.min(availableColors.length, 3))]);
+  }, [navigationIndex, userColors]);
 
   return (
     <View
@@ -486,8 +493,9 @@ Perfect for open discussions or quiet sharing.`,
             ) : (
               <View className="flex-1">
                 <ScrollView className="flex-1 mt-4 mx-6 py-6">
-                  {restrictionsPersonalBoard.map((item) => (
+                  {restrictionsPersonalBoard.map((item, index) => (
                     <ItemContainer
+                      key={`restriction-${item.label}-${index}`}
                       label={item.label}
                       caption={item.caption}
                       icon={item.icon}

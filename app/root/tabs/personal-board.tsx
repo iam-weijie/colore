@@ -4,6 +4,7 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  Text,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import BoardGallery from "@/components/BoardGallery"
@@ -161,7 +162,7 @@ const UserPersonalBoard = () => {
               <View className="w-3 h-3 rounded-full mr-1" style={{ backgroundColor: tab.color }} />
               <View>
                 <View className="flex flex-row">
-                  <View className="text-black font-semibold">{tab.name}</View>
+                  <Text className="text-black font-semibold">{tab.name}</Text>
                 </View>
               </View>
             </View>

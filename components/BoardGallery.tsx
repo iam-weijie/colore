@@ -9,6 +9,7 @@ import {
   Image,
   Text,
   ViewStyle,
+  StyleSheet,
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useRouter } from "expo-router";
@@ -57,23 +58,28 @@ const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElemen
     FadeIn.duration(400).springify().delay(item.id % 10 * 100)
   , [item.id]);
 
-  // Memoize the container style
-  const containerStyle = useMemo(() => ({
-    backgroundColor: item.color,
-    borderColor: "#ffffff80",
-    height: 225,
-    width: 170,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+  // Create styles using StyleSheet to avoid inline styles
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      backgroundColor: item.color,
+      borderColor: "#ffffff80",
+      height: 225,
+      width: 170,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.1,
+      shadowRadius: 5,
+      borderWidth: 2,
+      borderRadius: 36,
+      overflow: 'hidden',
+      margin: 8,
+    }
   }), [item.color]);
 
   return (
     <Animated.View
       entering={animationStyle}
-      className="relative rounded-[36px] h-[225px] w-[170px] overflow-hidden m-2 shadow-sm border-2"
-      style={containerStyle}
+      style={styles.container}
     >
       <TouchableOpacity
         activeOpacity={0.9}
@@ -134,25 +140,40 @@ const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElemen
 const BoardGallery = React.memo(({ boards, offsetY }: {boards: Board[], offsetY?: number}) => {
   const { isIpad } = useDevice();
 
-  // Memoize the content container style
-  const contentContainerStyle = useMemo(() => ({
-    paddingHorizontal: isIpad ? 16 : 4,
-    paddingBottom: 20,
-    paddingTop: offsetY ?? 0
-  }), [isIpad, offsetY]);
-
-  // Memoize the column wrapper style with proper types
-  const columnWrapperStyle = useMemo((): ViewStyle => 
-    isIpad ? {
-      justifyContent: 'flex-start' as const, // Use const assertion for literal type
+  // Create styles using StyleSheet
+  const styles = useMemo(() => StyleSheet.create({
+    contentContainer: {
+      paddingHorizontal: isIpad ? 16 : 4,
+      paddingBottom: 20,
+      paddingTop: offsetY ?? 0
+    },
+    columnWrapperIpad: {
+      justifyContent: 'flex-start',
       gap: 12,
       marginBottom: 16,
-    } : {
-      justifyContent: 'space-between' as const, // Use const assertion for literal type
+    },
+    columnWrapperMobile: {
+      justifyContent: 'space-between',
       paddingHorizontal: 8,
       marginBottom: 16,
+    },
+    emptyContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 32,
+    },
+    emptyText: {
+      color: '#6b7280',
+    },
+    footer: {
+      height: 80
+    },
+    list: {
+      flex: 1,
+      paddingTop: 16
     }
-  , [isIpad]);
+  }), [isIpad, offsetY]);
 
   // Memoize the performance settings
   const performanceSettings = useMemo(() => ({
@@ -172,25 +193,25 @@ const BoardGallery = React.memo(({ boards, offsetY }: {boards: Board[], offsetY?
 
   // Memoize the empty component
   const ListEmptyComponent = useMemo(() => (
-    <View className="flex-1 items-center justify-center p-8">
-      <Text className="text-gray-500">
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>
         No Boards Yet.
       </Text>
     </View>
-  ), []);
+  ), [styles.emptyContainer, styles.emptyText]);
 
   // Memoize the footer component
-  const ListFooterComponent = useMemo(() => <View className="h-20" />, []);
+  const ListFooterComponent = useMemo(() => <View style={styles.footer} />, [styles.footer]);
 
   return (
     <FlatList
-      className="flex-1 pt-4"
+      style={styles.list}
       data={boards}
       keyExtractor={keyExtractor}
       numColumns={isIpad ? 6 : 2}
       renderItem={renderItem}
-      contentContainerStyle={contentContainerStyle}
-      columnWrapperStyle={columnWrapperStyle}
+      contentContainerStyle={styles.contentContainer}
+      columnWrapperStyle={isIpad ? styles.columnWrapperIpad : styles.columnWrapperMobile}
       showsVerticalScrollIndicator={false}
       ListEmptyComponent={ListEmptyComponent}
       ListFooterComponent={ListFooterComponent}

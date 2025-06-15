@@ -1,4 +1,4 @@
-/*import React from "react";
+import React from "react";
 import ActionSheet, {
   SheetProps,
   registerSheet,
@@ -15,7 +15,7 @@ const CreatePromptSheet = (props: SheetProps) => {
       id={props.sheetId}
       safeAreaInsets={insets}
       isModal={true}
-      snapPoints={[0, "80%"]}
+      snapPoints={[0, 80]}
       initialSnapIndex={1}
       backgroundInteractionEnabled={true}
       containerStyle={{
@@ -44,5 +44,6 @@ declare module "react-native-actions-sheet" {
   }
 }
 
-export {};
-*/
+// Empty component as default export to satisfy the router requirement
+const Sheets = () => null;
+export default Sheets;
