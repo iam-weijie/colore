@@ -2,34 +2,49 @@ import { useCallback, useEffect, useState } from "react";
 
 export const fetchAPI = async (url: string, options?: RequestInit) => {
   try {
-    // console.log(`[fetchAPI] Requesting: ${url}`, options);
+    console.log(`[fetchAPI] Requesting: ${url}`, options?.method || 'GET');
     
     const response = await fetch(url, options);
-    // console.log(`[fetchAPI] Response status: ${response.status}, statusText: ${response.statusText}`);
-    // console.log(`[fetchAPI] Response headers:`, Object.fromEntries([...response.headers.entries()]));
-
+    console.log(`[fetchAPI] Response status: ${response.status}, statusText: ${response.statusText}`);
+    
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.error(`[fetchAPI] HTTP error! status: ${response.status}, statusText: ${response.statusText}`);
+      
+      // Try to get error details from response
+      try {
+        const errorText = await response.text();
+        console.error(`[fetchAPI] Error response body:`, errorText.substring(0, 200));
+        return {
+          error: `HTTP error! status: ${response.status}`,
+          details: errorText.substring(0, 200)
+        };
+      } catch (e) {
+        console.error(`[fetchAPI] Failed to read error response:`, e);
+        return {
+          error: `HTTP error! status: ${response.status}`,
+          details: response.statusText
+        };
+      }
     }
     
     // Check if the content type is JSON
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       const jsonData = await response.json();
-      // console.log(`[fetchAPI] Parsed JSON data:`, jsonData);
+      console.log(`[fetchAPI] Parsed JSON data:`, jsonData ? 'Success' : 'Empty');
       return jsonData;
     } else {
       // Handle non-JSON responses
       const text = await response.text();
-      // console.log(`[fetchAPI] Response text (not JSON):`, text.substring(0, 200));
+      console.log(`[fetchAPI] Response text (not JSON):`, text.substring(0, 100));
       try {
         // Try to parse as JSON anyway
         const parsedData = JSON.parse(text);
-        // console.log(`[fetchAPI] Successfully parsed text as JSON:`, parsedData);
+        console.log(`[fetchAPI] Successfully parsed text as JSON:`, parsedData ? 'Success' : 'Empty');
         return parsedData;
       } catch (e) {
         // If parsing fails, return a structured error
-        // console.error("[fetchAPI] Response is not valid JSON:", text);
+        console.error("[fetchAPI] Response is not valid JSON:", text.substring(0, 100));
         return {
           error: "Invalid JSON response",
           details: text.substring(0, 100) // Include the start of the response for debugging
@@ -37,7 +52,7 @@ export const fetchAPI = async (url: string, options?: RequestInit) => {
       }
     }
   } catch (error) {
-    // console.error("[fetchAPI] Fetch error:", error);
+    console.error("[fetchAPI] Fetch error:", error);
     // Return a structured error instead of throwing
     return {
       error: "Request failed",

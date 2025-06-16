@@ -10,6 +10,7 @@ import {
   handleShare,
   handleSavePost as libHandleSavePost,
   fetchLikeStatus,
+  deletePost,
 } from "@/lib/post";
 import { fetchAPI } from "@/lib/fetch";
 import { convertToLocal, formatDateTruncatedMonth, isValidDate } from "@/lib/utils";
@@ -245,27 +246,120 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
   // Fetch like status when current post changes
   useEffect(() => {
     if (currentPost && user) {
-      const isSaved = savedPosts.includes(String(currentPost.id));
-      setIsSaved(isSaved);
+      getLikeStatus();
+    }
+  }, [currentPost, user]);
+
+  const getLikeStatus = useCallback(async () => {
+    if (!currentPost || !user) return;
+    
+    try {
+      const status = await fetchLikeStatus(currentPost.id, user.id);
+      setIsLiked(status.isLiked);
+      setLikeCount(status.likeCount);
+    } catch (error) {
+      console.error("Error fetching like status:", error);
+    }
+  }, [currentPost, user]);
+
+  const handleLikePress = useCallback(async () => {
+    if (!currentPost || isLoadingLike || !user) return;
+    
+    setIsLoadingLike(true);
+    
+    try {
+      const endpoint = isLiked ? "unlikePost" : "likePost";
       
-      // Call handleUpdate with isPinned=false since the post is being deleted
-      if (handleUpdate) {
-        handleUpdate(false);
+      // Play sound effect
+      if (soundEffectsEnabled) {
+        playSoundEffect(SoundType.Like);
       }
       
-      if (handleCloseModal) {
-        handleCloseModal();
+      // Optimistic update
+      setIsLiked(!isLiked);
+      setLikeCount(prevCount => isLiked ? prevCount - 1 : prevCount + 1);
+      
+      const response = await fetchAPI(`/api/posts/${endpoint}`, {
+        method: "POST",
+        body: JSON.stringify({
+          postId: currentPost.id,
+          userId: user.id,
+        }),
+      });
+      
+      if (response.error) {
+        // Revert optimistic update on error
+        setIsLiked(isLiked);
+        setLikeCount(prevCount => isLiked ? prevCount : prevCount - 1);
+        throw new Error(response.error);
       }
       
     } catch (error) {
-      console.error("Error deleting post:", error);
-      showAlert({
-        title: "Error",
-        message: "Failed to delete post. Please try again.",
-        type: "ERROR",
-        status: "error",
-      });
+      console.error("Error liking/unliking post:", error);
+    } finally {
+      setIsLoadingLike(false);
     }
+  }, [currentPost, isLoadingLike, user, isLiked, soundEffectsEnabled, playSoundEffect]);
+
+  const findUserNickname = useCallback((
+    userArray: UserNicknamePair[],
+    userId: string
+  ): number => {
+    return userArray.findIndex(([id]) => id === userId);
+  }, []);
+
+  const handleDeletePress = useCallback(async () => {
+    if (!currentPost || !user) return;
+    
+    // Add confirmation dialog
+    Alert.alert(
+      "Delete Post", 
+      "Are you sure you want to delete this post? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              console.log("Deleting post using the exported function:", currentPost.id);
+              
+              // Use our improved deletePost function
+              const result = await deletePost(currentPost.id, user.id);
+              
+              if (!result.success) {
+                throw new Error(result.error || "Failed to delete post");
+              }
+              
+              showAlert({
+                title: "Post Deleted",
+                message: "Your post has been deleted.",
+                type: "SUCCESS",
+                status: "success",
+              });
+              
+              // Call handleUpdate with isPinned=false since the post is being deleted
+              if (handleUpdate) {
+                handleUpdate(false);
+              }
+              
+              // Close modal without state updates
+              if (handleCloseModal) {
+                handleCloseModal();
+              }
+            } catch (error) {
+              console.error("Error deleting post:", error);
+              showAlert({
+                title: "Error",
+                message: "Failed to delete post. Please try again.",
+                type: "ERROR",
+                status: "error",
+              });
+            }
+          }
+        }
+      ]
+    );
   }, [currentPost, user, showAlert, handleUpdate, handleCloseModal]);
 
       
@@ -309,18 +403,120 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
     if (!isPreview) {
       // Add Pin/Unpin option for personal posts (when the current user is the recipient)
       if (currentPost?.recipient_user_id === user?.id) {
+        // Only show pin option for personal posts
         menuItems.push({
           source: icons.pin,
-          label: isPinned ? "Unpin" : "Pin",
+          label: Boolean(currentPost?.pinned) ? "Unpin" : "Pin",
           color: "#000000",
-          onPress: () => {
+          onPress: async () => {
             if (currentPost && user) {
-              handlePin(currentPost, isPinned, user.id);
-              if (handleUpdate) {
-                handleUpdate(isPinned);
+              console.log(`Attempting to ${Boolean(currentPost?.pinned) ? "unpin" : "pin"} post:`, currentPost.id);
+              
+              // First close the menu if in profile view to prevent UI issues
+              if (currentPost?.recipient_user_id === user?.id) {
+                console.log("Pin action in profile view - handling specially");
+                // Close menu and modal immediately to prevent UI conflicts
+                if (handleCloseModal) {
+                  handleCloseModal();
+                }
+                
+                // Short delay before making the API call
+                setTimeout(async () => {
+                  try {
+                    // Pass the current pinned status to the API
+                    const isPinned = Boolean(currentPost.pinned);
+                    
+                    // Call API directly to update pin status
+                    const newPinnedStatus = await handlePin(currentPost, isPinned, user.id);
+                    console.log("Profile pin operation result:", newPinnedStatus);
+                    
+                    // Force a refresh of the profile to show updated pins
+                    router.setParams({ refresh: Date.now().toString() });
+                    
+                    // Show success alert
+                    showAlert({
+                      title: isPinned ? "Post Unpinned" : "Post Pinned",
+                      message: isPinned ? "Post removed from pinned items." : "Post pinned to your profile.",
+                      type: "SUCCESS",
+                      status: "success",
+                    });
+                  } catch (error) {
+                    console.error("Failed to update pin status:", error);
+                    showAlert({
+                      title: "Error",
+                      message: `Failed to ${currentPost.pinned ? "unpin" : "pin"} post. Please try again.`,
+                      type: "ERROR",
+                      status: "error",
+                    });
+                  }
+                }, 300);
+                return;
               }
-              setIsPinned(!isPinned);
-              handleCloseModal && handleCloseModal();
+              
+              // Standard handling for post gallery view
+              // Pass the current pinned status to the API
+              const isPinned = Boolean(currentPost.pinned);
+              
+              try {
+                // Update the post's pinned status locally first (optimistic update)
+                setCurrentPost({
+                  ...currentPost,
+                  pinned: !isPinned
+                });
+                
+                // Set isPinned state for UI update
+                setIsPinned(!isPinned);
+                
+                // Call API to update pinned status
+                const newPinnedStatus = await handlePin(currentPost, isPinned, user.id);
+                console.log("Pin operation result:", newPinnedStatus);
+                
+                // Need to close the modal first so the parent component can update
+                if (handleCloseModal) {
+                  handleCloseModal();
+                }
+                
+                // Signal to parent component about pin change if needed
+                if (handleUpdate) {
+                  console.log("Calling handleUpdate with pin status:", newPinnedStatus);
+                  // This component's handleUpdate expects just a boolean
+                  handleUpdate(newPinnedStatus);
+                  
+                  // Force a full refresh of personal posts when a pin status changes
+                  if (currentPost?.recipient_user_id === user?.id || currentPost?.user_id === user?.id) {
+                    // Trigger a refresh via the router navigation 
+                    // This will force the profile to fetch new data
+                    setTimeout(() => {
+                      console.log("Refreshing profile after pin status change");
+                      router.setParams({ refresh: Date.now().toString() });
+                    }, 300);
+                  }
+                }
+                
+                // Show success alert
+                showAlert({
+                  title: isPinned ? "Post Unpinned" : "Post Pinned",
+                  message: isPinned ? "Post removed from pinned items." : "Post pinned to your profile.",
+                  type: "SUCCESS",
+                  status: "success",
+                });
+              } catch (error) {
+                console.error("Failed to update pin status:", error);
+                // Revert the optimistic update on error
+                setCurrentPost({
+                  ...currentPost,
+                  pinned: isPinned
+                });
+                setIsPinned(isPinned);
+                
+                // Show error alert
+                showAlert({
+                  title: "Error",
+                  message: `Failed to ${isPinned ? "unpin" : "pin"} post. Please try again.`,
+                  type: "ERROR",
+                  status: "error",
+                });
+              }
             }
           },
         });
@@ -362,12 +558,14 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
     }
     
     return menuItems;
-  }, [isSaved, handleDeletePress, handleCapture, currentPost]);
+  }, [isSaved, handleDeletePress, handleCapture, currentPost, user, handleUpdate, setCurrentPost]);
 
   const handleSavePostPress = useCallback(async (postId: number | undefined) => {
     if (!postId || !user) return;
     
     try {
+      console.log(`${isSaved ? "Unsaving" : "Saving"} post:`, postId);
+      
       // Play sound effect
       if (soundEffectsEnabled) {
         playSoundEffect(SoundType.Button);
@@ -382,25 +580,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
       
       setIsSaved(!isSaved);
       
-      const response = await fetchAPI(`/api/posts/${isSaved ? "unsavePost" : "savePost"}`, {
-        method: "POST",
-        body: JSON.stringify({
-          postId: postId,
-          userId: user.id,
-        }),
-      });
-      
-      if (response.error) {
-        // Revert optimistic update on error
-        if (isSaved) {
-          addSavedPost(postId);
-        } else {
-          removeSavedPost(postId);
-        }
-        setIsSaved(isSaved);
-        throw new Error(response.error);
-      }
-      
+      // Show immediate feedback
       showAlert({
         title: isSaved ? "Post Unsaved" : "Post Saved",
         message: isSaved ? "Post removed from your saved items." : "Post added to your saved items.",
@@ -408,16 +588,35 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
         status: "success",
       });
       
+      // Use the lib function that might handle the API call differently
+      try {
+        await libHandleSavePost(postId, !isSaved, user.id);
+        console.log(`Successfully ${isSaved ? "unsaved" : "saved"} post ${postId} via lib function`);
+      } catch (apiError) {
+        console.error(`Error in API call to ${isSaved ? "unsave" : "save"} post:`, apiError);
+        // No need to show another error or revert UI state since we've already
+        // updated the local state optimistically
+      }
+      
     } catch (error) {
-      console.error("Error saving/unsaving post:", error);
+      console.error("Error in handleSavePostPress:", error);
+      
+      // Revert optimistic update on error
+      if (!isSaved) { // We already toggled isSaved, so check the opposite
+        removeSavedPost(postId);
+      } else {
+        addSavedPost(postId);
+      }
+      setIsSaved(!isSaved); // Revert back
+      
       showAlert({
         title: "Error",
-        message: `Failed to ${isSaved ? "unsave" : "save"} post. Please try again.`,
+        message: `Failed to ${isSaved ? "save" : "unsave"} post. Please try again.`,
         type: "ERROR",
         status: "error",
       });
     }
-  }, [isSaved, user, soundEffectsEnabled, playSoundEffect, removeSavedPost, addSavedPost, showAlert]);
+  }, [isSaved, user, soundEffectsEnabled, playSoundEffect, addSavedPost, removeSavedPost, showAlert, libHandleSavePost]);
 
   // Helper function to safely handle dates
   const safeConvertToLocal = useCallback((dateString: string | undefined | null) => {
@@ -460,25 +659,41 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
       const threshold = 15;
       const isLastPost = currentPostIndex === posts.length - 1;
 
+      // Improved navigation between posts with better animation timing
       if (translateX.value > threshold && currentPostIndex > 0) {
+        // Swiping right - go to previous post
         translateX.value = withTiming(0);
-        opacity.value = withTiming(0, {}, () => {
+        opacity.value = withTiming(0, { duration: 150 }, () => {
           runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
-          opacity.value = withTiming(1);
+          opacity.value = withTiming(1, { duration: 200 });
+          
+          // Provide haptic feedback for navigation
+          if (soundEffectsEnabled) {
+            runOnJS(playSoundEffect)(SoundType.Button);
+          }
         });
       } else if (translateX.value < -threshold) {
         if (!isLastPost) {
           // Swipe left: go to next post
           translateX.value = withTiming(0);
-          opacity.value = withTiming(0, {}, () => {
+          opacity.value = withTiming(0, { duration: 150 }, () => {
             runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-            opacity.value = withTiming(1);
+            opacity.value = withTiming(1, { duration: 200 });
+            
+            // Provide haptic feedback for navigation
+            if (soundEffectsEnabled) {
+              runOnJS(playSoundEffect)(SoundType.Button);
+            }
           });
         } else {
-          // Bounce back
-          translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+          // Bounce back with more pronounced animation for better feedback
+          translateX.value = withSequence(
+            withTiming(-5, { duration: 100 }),
+            withSpring(0, { damping: 20, stiffness: 300 })
+          );
         }
       } else {
+        // Small movement - bounce back
         translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
       }
     });
@@ -496,108 +711,6 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
     opacity: withTiming(opacity.value),
   }));
 
-  const handleLikePress = async () => {
-    if (isLoadingLike || !currentPost?.id || !user?.id) return;
-    setIsLoadingLike(true);
-    try {
-      // Play like sound if liking (not unliking) and enabled
-      if (!isLiked && soundEffectsEnabled) {
-        playSoundEffect(SoundType.Like);
-      }
-      const increment = !isLiked;
-      setIsLiked(increment);
-      setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
-
-      console.log("[handleLikePress] Sending request with payload:", {
-        postId: currentPost.id,
-        userId: user.id,
-        increment,
-      });
-
-      const response = await fetchAPI(`/api/posts/updateLikeCount`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          postId: currentPost.id,
-          userId: user.id,
-          increment,
-        }),
-      });
-
-      console.log("[handleLikePress] Received response:", response);
-
-      if (response.error) {
-        console.error("[handleLikePress] Error in response:", response.error, response.details);
-        setIsLiked(!increment);
-        setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
-        showAlert({
-          title: "Error",
-          message: "Unable to update like status.",
-          type: "ERROR",
-          status: "error",
-        });
-        return;
-      }
-
-      setIsLiked(response.data.liked);
-      setLikeCount(response.data.likeCount);
-    } catch (error) {
-      console.error("Failed to update like status:", error);
-    } finally {
-      setIsLoadingLike(false);
-    }
-  };
-
-  const findUserNickname = (
-    userArray: UserNicknamePair[],
-    userId: string
-  ): number => {
-    const index = userArray.findIndex((pair) => pair[0] === userId);
-    return index;
-  }
-
-  const handleDeletePress = async () => {
-    handleCloseModal();
-
-    showAlert({
-      title: "Delete Post",
-      message: "Are you sure you want to delete this post?",
-      type: "DELETE",
-      status: "success",
-      action: async () => {
-        try {
-          const response = await fetchAPI(
-            `/api/posts/deletePost?id=${currentPost?.id}`,
-            {
-              method: "DELETE",
-            }
-          );
-
-          if (response.error) {
-            throw new Error(response.error);
-          }
-        } catch (error) {
-          console.error("Failed to delete post:", error);
-          showAlert({
-            title: "Error",
-            message: "Failed to delete post. Please try again.",
-            type: "ERROR",
-            status: "error",
-          });
-        } finally {
-          showAlert({
-            title: "Post deleted",
-            message: "Your post has been deleted successfully.",
-            type: "DELETE",
-            status: "success",
-          });
-        }
-      },
-      actionText: "Delete",
-      duration: 5000,
-    });
-  };
-
- 
 
   const handleCommentsPress = () => {
     const current = post[currentPostIndex];

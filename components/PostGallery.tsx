@@ -14,6 +14,7 @@ import Animated, {
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useHaptics } from "@/hooks/useHaptics";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import {
   ActivityIndicator,
@@ -188,16 +189,30 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     });
   }, [encryptionKey, needsDecryption]);
 
+  // New function to sort posts with pinned posts at the top
+  const sortByPinnedAndUnread = useCallback((a: Post, b: Post) => {
+    // First, sort by pin status (pinned posts first)
+    if (a.pinned && !b.pinned) {
+      return -1;
+    } else if (!a.pinned && b.pinned) {
+      return 1;
+    }
+    
+    // Then sort by unread comments
+    return sortByUnread(a, b);
+  }, [sortByUnread]);
+
   useEffect(() => {
     // Use our enhanced decrypt function instead of the original logic
     if (posts.length > 0) {
       const processedPosts = decryptPosts(posts);
-      const sorted = [...processedPosts].sort(sortByUnread);
+      // Sort first by pinned status, then by unread comments
+      const sorted = [...processedPosts].sort(sortByPinnedAndUnread);
       setSortedPosts(sorted);
     } else {
       setSortedPosts([]);
     }
-  }, [posts, encryptionKey, decryptPosts, sortByUnread]);
+  }, [posts, encryptionKey, decryptPosts, sortByPinnedAndUnread]);
 
   const screenWidth = Dimensions.get("window").width;
 
@@ -245,6 +260,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       allColors?.find((c) => c.id === item.color)?.hex || item.color;
     const isOwner = item.user_id === user?.id;
     const hasNewComments = isOwner && item.unread_comments > 0;
+    const isPinned = Boolean(item.pinned);
 
     /*const isEncrypted = encryptionKey && item.recipient_user_id 
     const cleanContent = isEncrypted ? decryptText(item.content, encryptionKey) : item.content */
@@ -252,46 +268,65 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     return (
       // Use a wrapper component for the entering animation
       <Animated.View
-        entering={FadeInDown.duration(400)}
-        style={{
-          marginHorizontal: isIpad ? 6 : 0,
-          transform: [
-            { rotate: `${(Math.random() * 1.5 - 0.75).toFixed(2)}deg` },
-          ], // Reduced rotation range
-        }}
+        entering={FadeInDown.duration(200)}
+        className="w-full mb-3"
       >
-        <TouchableOpacity
-          onPress={() => {
-            setSelectedPost(item);
-            disableModal && handleUpdate && handleUpdate(item.id);
+        {/* Use a nested view for the transform to avoid conflict with FadeInDown */}
+        <View
+          style={{
+            marginHorizontal: isIpad ? 6 : 0,
+            transform: [{ rotate: rotationAngle }],
           }}
-          activeOpacity={0.9}
         >
-          <View
-            className="w-full mb-3 py-4 px-6 mx-auto"
-            style={{
-              borderRadius: 32,
-              backgroundColor,
-              borderColor: "#ffffff90",
-              borderWidth: 2,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.08,
-              shadowRadius: 4,
+          <TouchableOpacity
+            onPress={() => {
+              setSelectedPost(item);
+              disableModal && handleUpdate && handleUpdate(item.id);
             }}
+            activeOpacity={0.9}
           >
-            <Text
-              className="font-JakartaSemiBold text-white/90 text-[15px] shadow leading-snug"
-              numberOfLines={3}
+            <View
+              className="w-full py-4 px-6 mx-auto"
+              style={{
+                borderRadius: 32,
+                backgroundColor,
+                borderColor: isPinned ? "#ffffff" : "#ffffff90",
+                borderWidth: isPinned ? 3 : 2,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isPinned ? 0.15 : 0.08,
+                shadowRadius: isPinned ? 6 : 4,
+                position: "relative", // For the pin icon positioning
+              }}
             >
-              {truncateText(item.content, 120)}
-            </Text>
-            {item.prompt && <Text
-              className="italic text-white/80 text-[13px] shadow leading-snug"
-              numberOfLines={2}
-            >
-              {truncateText(item.prompt, 80)}
-            </Text>}
+              {/* Pin Icon */}
+              {isPinned && (
+                <View 
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    backgroundColor: "rgba(255,255,255,0.9)",
+                    borderRadius: 50,
+                    padding: 4,
+                    zIndex: 10,
+                  }}
+                >
+                  <MaterialCommunityIcons name="pin" size={16} color="#000000" />
+                </View>
+              )}
+              <Text
+                className="font-JakartaSemiBold text-white/90 text-[15px] shadow leading-snug"
+                numberOfLines={3}
+              >
+                {truncateText(item.content, 120)}
+              </Text>
+              {item.prompt && <Text
+                className="italic text-white/80 text-[13px] shadow leading-snug"
+                numberOfLines={2}
+              >
+                {truncateText(item.prompt, 80)}
+              </Text>}
 
               <View className="flex-row justify-between items-center mt-2.5">
                 <Text className="font-Jakarta text-xs text-white/80">

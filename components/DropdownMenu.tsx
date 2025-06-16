@@ -21,15 +21,24 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ icon, menuItems, customMenu
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<View>(null);
   const menuWidth = customMenuWidth ? customMenuWidth : 100;
+  const isMounted = useRef(true);
 
   const slideAnim = useRef(new Animated.Value(300)).current; // Slide down animation
   const opacityAnim = useRef(new Animated.Value(0)).current; // Background fade animation
 
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   const handlePress = () => {
     if (triggerRef.current) {
       triggerRef.current.measure((fx, fy, width, height, pageX, pageY) => {
-        setMenuPosition({ top: pageY + height, left: pageX + width - menuWidth });
-        setVisible(true);
+        if (isMounted.current) {
+          setMenuPosition({ top: pageY + height, left: pageX + width - menuWidth });
+          setVisible(true);
+        }
       });
     }
   };
@@ -46,7 +55,11 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ icon, menuItems, customMenu
         duration: 150,
         useNativeDriver: true,
       }),
-    ]).start(() => setVisible(false)); // Hide modal after animation
+    ]).start(() => {
+      if (isMounted.current) {
+        setVisible(false);
+      }
+    }); // Hide modal after animation
   };
 
   useEffect(() => {
