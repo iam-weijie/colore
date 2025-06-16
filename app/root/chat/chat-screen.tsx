@@ -69,6 +69,7 @@ import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import { useSoundGesture } from "@/hooks/useSoundGesture";
 //import { ScrollView } from "react-native-gesture-handler";
 import { useHaptics } from "@/hooks/useHaptics";
+import EmptyListView from "@/components/EmptyList";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -633,6 +634,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   marginTop: 64,
                   paddingBottom: 120,
                 }}
+                ListEmptyComponent={
+                  <EmptyListView message={"Weird... is no one around here?"} character="steve" mood={1} />
+                }
                 renderItem={renderUser}
                 keyExtractor={(item): string => String(item[0])}
                 showsVerticalScrollIndicator={false}
@@ -677,8 +681,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               renderItem={renderFriend}
               keyExtractor={(item) => item.id.toString()}
               ListEmptyComponent={
-                <Text className="text-center text-gray-500">No friends</Text>
-              }
+                  <EmptyListView message={"Pfffft... friendless?"} character="bob" mood={1} />
+                }
               showsVerticalScrollIndicator={false}
             />
           </View>
@@ -715,9 +719,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   renderItem={renderIncomingRequest}
                   keyExtractor={(item) => item.id.toString()}
                   ListEmptyComponent={
-                    <Text className="text-left text-gray-500 py-2 text-[12px] mx-4">
-                      No friend requests
-                    </Text>
+                  <EmptyListView message={"No rizz uh??"} character="rosie" mood={0} />
                   }
                   showsVerticalScrollIndicator={false}
                   scrollEnabled={
@@ -752,10 +754,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   renderItem={renderOutgoingRequest}
                   keyExtractor={(item) => item.id.toString()}
                   ListEmptyComponent={
-                    <Text className="text-left text-gray-500 py-2 text-[12px] mx-4">
-                      No outgoing friend requests
-                    </Text>
-                  }
+                  <EmptyListView message={"No interested in making friends?"} character="steve" mood={2} />
+                }
                   showsVerticalScrollIndicator={false}
                   scrollEnabled={
                     allFriendRequests && allFriendRequests?.sent.length > 0
@@ -960,10 +960,8 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
           renderItem={renderNotif}
           keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
-            <Text className="text-center text-gray-500">
-              No new notification
-            </Text>
-          }
+                  <EmptyListView message={"Damn, it's dead around here? Wanna make a post?"} character="rosie" mood={2} />
+                }
           showsVerticalScrollIndicator={false}
         />
       )}
@@ -978,10 +976,8 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
           renderItem={renderNotif}
           keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
-            <Text className="text-center text-gray-500">
-              No new notification
-            </Text>
-          }
+                  <EmptyListView message={"Drier than the Sahara... Try making a post."} character="rosie" mood={1} />
+                }
           showsVerticalScrollIndicator={false}
         />
       )}
@@ -996,10 +992,8 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
           renderItem={renderNotif}
           keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
-            <Text className="text-center text-gray-500">
-              No new notification
-            </Text>
-          }
+                  <EmptyListView message={"No likes. Ouch."} character="bob" mood={0} />
+                }
           showsVerticalScrollIndicator={false}
         />
       )}

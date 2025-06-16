@@ -170,7 +170,7 @@ export const RenderCreateCard = ({
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <Animated.View
-        className="flex-1 items-center justify-center my-4 rounded-[64px] max-w-[500px] overflow-hidden"
+        className="flex-1 items-center justify-center my-4 rounded-[64px] overflow-hidden"
         style={[
           animatedCardStyle,
           { 

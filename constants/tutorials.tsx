@@ -35,14 +35,14 @@ import InfoScreen, { TutorialScreen } from "@/components/InfoScreen";
 
 export const starringTutorialPages = [
   {
-    label: "Welcome to the Starring",
-    caption: "But, what is a starring?",
+    label: "Welcome to Starring",
+    caption: "Explore prompts. Spark ideas. Reflect out loud.",
     color: "#93c5fd",
     disabled: false,
     children: (
       <TutorialScreen
         title="Your Turn!"
-        content="Dive into creative exploration. Pick a cue, write your thoughts, and see how others responded to similar prompts. Every post is a chance to express and discover."
+        content="Starring is where curiosity meets creativity. Answer thought-provoking prompts made from cues like 'school' or 'life.' Your response stays anonymous—freeing you to be real."
         image={icons.star}
         onAgree={() => {}}
         hasAction={false}
@@ -50,14 +50,14 @@ export const starringTutorialPages = [
     ),
   },
   {
-    label: "What happens after I create a prompt?",
-    caption: "Your prompt joins the global cue-pool!",
+    label: "Creating a Prompt",
+    caption: "Choose a cue. Ignite the thread.",
     color: "#93c5fd",
     disabled: false,
     children: (
       <TutorialScreen
         title="Cue the Chain Reaction!"
-        content="Once you create a prompt, others can answer it. It might even end up in the trending list. Be the spark!"
+        content="When you create a prompt, others anonymously respond. The more interaction your prompt gets, the more it rises through the trending charts. Set off the spark!"
         image={icons.star}
         onAgree={() => {}}
         hasAction={false}
@@ -65,14 +65,14 @@ export const starringTutorialPages = [
     ),
   },
   {
-    label: "Answer your friend’s prompt?",
-    caption: "Absolutely!",
+    label: "Answer a Friend’s Prompt?",
+    caption: "No names. Just truth.",
     color: "#93c5fd",
     disabled: false,
     children: (
       <TutorialScreen
-        title="Friendly Fire (of Inspiration)"
-        content="See what your friends are wondering about and drop your take. It’s like passing notes but more existential."
+        title="Drop Your Take"
+        content="You can answer prompts from friends, too—but responses stay anonymous. It’s like whispering into the void and hearing how others echo back."
         image={icons.star}
         onAgree={() => {}}
         hasAction={false}
@@ -80,14 +80,14 @@ export const starringTutorialPages = [
     ),
   },
   {
-    label: "Peek at trending prompts!",
-    caption: "They’re hot!",
+    label: "Peek at What’s Trending",
+    caption: "See what the world is thinking.",
     color: "#93c5fd",
     disabled: false,
     children: (
       <TutorialScreen
         title="What's Poppin'?"
-        content="Explore what the world is thinking. Peek into trending cues and find ones that tickle your brain."
+        content="Discover the hottest prompts, filled with raw, creative, and hilarious anonymous responses. These are chosen based on engagement—likes, replies, and shares."
         image={icons.star}
         onAgree={() => {}}
         hasAction={false}
@@ -96,209 +96,3 @@ export const starringTutorialPages = [
   },
 ];
 
-export const boardTutorialPages = [
-  {
-    label: "Welcome to the Boards",
-    caption: "But, what is a board?",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Boards = Organized Chaos"
-        content="Boards are your canvas. Stick posts, move stuff around, or create wild collages. It’s controlled creativity."
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-  {
-    label: "Personal Board",
-    caption: "Your secret stash",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Private Playground"
-        content="Your personal board is just for you. Think of it as a diary, but with colors and stickers."
-        image={icons.lock}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-  {
-    label: "Shared With Me Board",
-    caption: "Other people’s thoughts in your space",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Shared Spaces"
-        content="These boards were made by others but include you. It's like being tagged in a group thought."
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-  {
-    label: "Public Boards",
-    caption: "Welcome to the jungle",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Anything Goes"
-        content="Everyone can post here. Expect wisdom, chaos, and maybe a little meme magic."
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-  {
-    label: "Community Boards",
-    caption: "Event-based or themed madness",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Curated by Coloré"
-        content="These boards are special: hosted for holidays, challenges, or collective experiments. Join in!"
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-];
-
-export const createTutorialPages = [
-  {
-    label: "Welcome to create",
-    caption: "Your toolbox of self-expression",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Unleash the Chaos (creatively)"
-        content="The Create tab is where ideas take shape. Choose to make a post, start a board, or launch a prompt."
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-  {
-    label: "Posts",
-    caption: "It all starts with a note",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Sticky Note, but Make it Art"
-        content="Drop your thoughts in a post. Pick a color, throw an emoji, and let it live out loud."
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-  {
-    label: "Boards",
-    caption: "Where your posts hang out",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Boards Galore!"
-        content="Group your posts on a board. Design your space with stickers, themes, and a bit of flair."
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-  {
-    label: "Prompts",
-    caption: "Fuel for thought",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Ask the World"
-        content="Craft questions that spark reflection. Prompts can go viral or stay close to home."
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-];
-
-export const myProfileTutorialPages = [
-  {
-    label: "Welcome to profile",
-    caption: "But, what is a profile?",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="It’s You!"
-        content="Your profile is your personal vibe page. It shows your nickname, unlocked colors, and favorite styles."
-        image={icons.profile}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-  {
-    label: "Introduce yourself",
-    caption: "Make a statement, or a meme",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Add Some Flavor"
-        content="Upload a pfp, drop a name, and maybe throw in your favorite emoji. Your friends want to know you!"
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-];
-
-export const userTutorialPages = [
-  {
-    label: "Welcome to their profile",
-    caption: "Who’s this colorful being?",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Peep the Profile"
-        content="This is someone else’s space. Check out their colors, posts, and style."
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-  {
-    label: "Thinking of interacting with them?",
-    caption: "Be nice. Or mysterious.",
-    color: "#93c5fd",
-    disabled: false,
-    children: (
-      <TutorialScreen
-        title="Make a Move"
-        content="Send a friend request, leave a reaction, or post to their board if allowed. Who knows what could bloom."
-        image={icons.star}
-        onAgree={() => {}}
-        hasAction={false}
-      />
-    ),
-  },
-];

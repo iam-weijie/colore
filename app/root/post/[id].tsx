@@ -40,6 +40,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import * as Linking from "expo-linking";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
+import EmptyListView from "@/components/EmptyList";
 
 interface GestureContext {
   startX: number;
@@ -648,6 +649,9 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
                   contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
                   style={{ flexGrow: 1 }}
                   extraData={postComments}
+                  ListEmptyComponent={
+                  <EmptyListView message={"Be the first to comment."} character="bob" mood={0} />
+                }
                   onContentSizeChange={() => {
                     flatListRef.current?.scrollToEnd({ animated: true });
                   }}

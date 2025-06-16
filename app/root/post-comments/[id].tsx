@@ -12,6 +12,7 @@ import CustomButton from '@/components/CustomButton';
 import ColoreActivityIndicator from '@/components/ColoreActivityIndicator';
 import { CommentItem } from '@/components/Comment';
 import { PostComment } from '@/types/type';
+import EmptyListView from '@/components/EmptyList';
 
 // Define the PostCommentGroup interface
 interface PostCommentGroup {
@@ -399,6 +400,9 @@ const PostCommentsModal = () => {
                   onEndReached={handleLoadMore}
                   onEndReachedThreshold={0.2}
                   ListFooterComponent={renderFooter}
+                  ListEmptyComponent={
+                  <EmptyListView message={"Be the first to comment."} character="bob" mood={0} />
+                }
                   initialNumToRender={10}
                   maxToRenderPerBatch={10}
                   windowSize={10}

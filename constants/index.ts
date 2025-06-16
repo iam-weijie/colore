@@ -72,12 +72,26 @@ import { PostItColor } from "@/types/type";
 
 
 /* CHARACTER IMAGES */
-import steveAmazed from "@/assets/characters/steve-amazed-1.png";
-import steveAnnoyed from "@/assets/characters/steve-annoyed-1.png";
-
-import rosieMoney from "@/assets/characters/rosie-money-1.png";
+import alexelliotSad from "@/assets/characters/alexelliot-sad-1.png";
+import alexelliotScared from "@/assets/characters/alexelliot-scared.png";
+import alexelliotSleepy2 from "@/assets/characters/alexelliot-sleepy-2.png";
 
 import bobChill from "@/assets/characters/bob-chill-1.png";
+import bobChill2 from "@/assets/characters/bob-chill-2.png";
+import bobChill3 from "@/assets/characters/bob-chill-3.png";
+import bobLol from "@/assets/characters/bob-lol-1.png";
+
+import rosieChill from "@/assets/characters/rosie-chill-1.png";
+import rosieDisgusted from "@/assets/characters/rosie-disgusted-1.png";
+import rosieMad from "@/assets/characters/rosie-mad-1.png";
+import rosieMoney from "@/assets/characters/rosie-money-1.png";
+
+import steveAmazed from "@/assets/characters/steve-amazed-1.png";
+import steveAnnoyed from "@/assets/characters/steve-annoyed-1.png";
+import steveAnnoyed2 from "@/assets/characters/steve-annoyed-2.png";
+import steveNerd from "@/assets/characters/steve-nerd-1.png";
+import steveSurprised from "@/assets/characters/steve-surprised-1.png";
+
 
 export const icons = {
   email,
@@ -153,47 +167,53 @@ export const images = {
 };
 
 export const characters = {
+  alexelliotSad,
+  alexelliotScared,
+  alexelliotSleepy2,
+
+  bobChill,
+  bobChill2,
+  bobChill3,
+  bobLol,
+
+  rosieChill,
+  rosieDisgusted,
+  rosieMad,
+  rosieMoney,
+
   steveAmazed,
   steveAnnoyed,
-  rosieMoney,
-  bobChill
-  
-}
+  steveAnnoyed2,
+  steveNerd,
+  steveSurprised,
+};
 
 
+export const characterMood = {
+  alexelliot: [
+    alexelliotSad,
+    alexelliotScared,
+    alexelliotSleepy2,
+  ],
+  bob: [
+    bobChill,
+    bobChill2,
+    bobChill3,
+    bobLol,
+  ],
+  rosie: [
+    rosieChill,
+    rosieDisgusted,
+    rosieMad,
+    rosieMoney,
+  ],
+  steve: [
+    steveAmazed,
+    steveAnnoyed,
+    steveAnnoyed2,
+    steveNerd,
+    steveSurprised,
+  ],
+};
 
-export const defaultColors: PostItColor[] = [
-  {
-    name: "yellow",
-    id: 0,
-    hex: "#ffe640",
-    rarity: "default",
-    foldcolorhex: "#fef08a",
-    fontColor: "#B29B00",
-  },
-  {
-    name: "pink",
-    id: 1,
-    hex: "#FBB1F5",
-    rarity: "default",
-    foldcolorhex: "#FFC8FB",
-    fontColor: "#D82C82",
-  },
-  {
-    name: "light-blue",
-    id: 2,
-    hex: "#93c5fd",
-    rarity: "default",
-    foldcolorhex: "#b8e1ff",
-    fontColor: "#2775CC",
-  },
-  {
-    name: "baby-purple",
-    id: 3,
-    hex: "#CFB1FB",
-    rarity: "default",
-    foldcolorhex: "#E2C7FF",
-    fontColor: "#8654CF",
-  },
-];
 

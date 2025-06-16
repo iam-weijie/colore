@@ -14,6 +14,7 @@ import { fetchFriends } from "@/lib/friend";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import ItemContainer from "@/components/ItemContainer";
 import { Ionicons } from "@expo/vector-icons";
+import EmptyListView from "./EmptyList";
 
 interface FindUserProps {
   selectedUserInfo: (user: UserNicknamePair) => void;
@@ -151,6 +152,9 @@ export const FindUser: React.FC<FindUserProps> = ({
                 : friendList
           }
           renderItem={renderUser}
+          ListEmptyComponent={
+                  <EmptyListView message={"why has everyone now disappeared!"} character="alexelliot" mood={2} />
+              }
           keyExtractor={(item): string => String(item[0])}
           showsVerticalScrollIndicator={false}
         />

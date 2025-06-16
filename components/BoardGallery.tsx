@@ -15,6 +15,7 @@ import { Board } from "@/types/type";
 import { useHaptics } from "@/hooks/useHaptics";
 import * as Haptics from 'expo-haptics';
 import { decryptText } from "@/lib/encryption";
+import EmptyListView from "./EmptyList";
   
 const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
   const { encryptionKey } = useGlobalContext();
@@ -152,12 +153,8 @@ const BoardContainer = ({ item }: { item: Board }): React.ReactElement => {
   }}
   showsVerticalScrollIndicator={false}
   ListEmptyComponent={
-    <View className="flex-1 items-center justify-center p-8">
-      <Text className="text-gray-500">
-        No Boards Yet.
-      </Text>
-    </View>
-  }
+                  <EmptyListView message={"Almost done fet... zzzzzz"} character="alexelliot" mood={0} />
+              }
   ListFooterComponent={<View className="h-20" />}
   // Performance optimizations
   initialNumToRender={isIpad ? 16 : 4} // Render 2 full rows initially on iPad

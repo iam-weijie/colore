@@ -34,6 +34,7 @@ import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { Post } from "@/types/type";
 import PostModal from "@/components/PostModal";
 import { decryptText } from "@/lib/encryption";
+import EmptyListView from "@/components/EmptyList";
 
 
 const SCREEN_HEIGHT = Dimensions.get("window").height
@@ -346,6 +347,9 @@ const UserPersonalBoard = () => {
             <FlatList
               data={menuOptions}
               keyExtractor={(item, index) => item.label ?? `option-${index}`}
+              ListEmptyComponent={
+                  <EmptyListView message={"No options? Weird..."} character="steve" mood={0} />
+                }
               renderItem={({ item, index }) => {
                 return (
                    <View>
