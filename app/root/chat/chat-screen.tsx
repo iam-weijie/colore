@@ -692,7 +692,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             {/* Container for both lists, flex-1 to take all available space */}
             <View className="flex-1 flex-col">
               {/* Top half: Incoming Requests */}
-              <View className="mb-2">
+              <View className="mb-2 flex-1">
                 <View className="p-2">
                   <View className="flex-row items-center justify-start mx-4">
                     <Text className="font-JakartaSemiBold text-[14px]">
@@ -711,7 +711,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   </View>
                 </View>
                 <FlatList
-                  className="px-2 rounded-[24px]"
+                  className="px-2 rounded-[24px] flex-1"
                   data={allFriendRequests?.received}
                   contentContainerStyle={{
                     paddingBottom: 80,
@@ -729,7 +729,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               </View>
 
               {/* Bottom half: Outgoing Requests */}
-              <View className=" flex-col mt-2">
+              <View className="flex-1 flex-col mt-2">
                 <View className="p-2">
                   <View className="flex-row items-center justify-start mx-4">
                     <Text className="font-JakartaSemiBold text-[14px]">Sent ({allFriendRequests?.sent.length})</Text>
@@ -746,10 +746,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   </View>
                 </View>
                 <FlatList
-                  className="rounded-[24px]"
+                  className="flex-1 rounded-[24px]"
                   data={allFriendRequests?.sent}
                   contentContainerStyle={{
-                    paddingBottom: 200,
+                    paddingBottom: 80,
                   }}
                   renderItem={renderOutgoingRequest}
                   keyExtractor={(item) => item.id.toString()}
@@ -992,7 +992,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
           renderItem={renderNotif}
           keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
-                  <EmptyListView message={"No likes. Ouch."} character="bob" mood={0} />
+                  <EmptyListView message={"No likes. Ouch."} character="bob" mood={2} />
                 }
           showsVerticalScrollIndicator={false}
         />

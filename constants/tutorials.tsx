@@ -1,37 +1,8 @@
-import { useUser } from "@clerk/clerk-expo";
-import { router, usePathname } from "expo-router";
-import { useEffect, useState } from "react";
-import {
-  Alert,
-  Dimensions,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-import CustomButton from "@/components/CustomButton";
-import InputField from "@/components/InputField";
-import { useNavigationContext } from "@/components/NavigationContext";
-import { fetchAPI } from "@/lib/fetch";
-import { useAlert } from "@/notifications/AlertContext";
-import CarouselPage from "@/components/CarrousselPage";
-import { PostItColor } from "@/types/type";
-import BoardGallery from "@/components/BoardGallery";
-import ItemContainer from "@/components/ItemContainer";
 import { icons } from "@/constants";
-import { allColors } from "@/constants/colors";
-import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import * as Haptics from "expo-haptics";
-import InfoScreen, { TutorialScreen } from "@/components/InfoScreen";
+import { TutorialScreen } from "@/components/InfoScreen";
 
 export const starringTutorialPages = [
   {
@@ -95,4 +66,179 @@ export const starringTutorialPages = [
     ),
   },
 ];
+
+export const boardTutorialPages = [
+  {
+    label: "Welcome to Boards",
+    caption: "Your space. Your layout.",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Boards = Organized Chaos"
+        content="Boards are your creative playground. Pin and place posts however you like—each move is saved. Craft wild, chaotic layouts or keep it neat—it’s your vibe."
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+  {
+    label: "Personal Board",
+    caption: "Private thoughts, curated by you",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Your Secret Space"
+        content="Only you can see this board. Use it to track moods, save favorite posts, or build a colorful diary of your inner world."
+        image={icons.lock}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+  {
+    label: "Shared With Me",
+    caption: "A gentle blend of others and you",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Shared Spaces"
+        content="These boards were created by others but include you. They’re not editable yet—but they’re windows into conversations you’re part of."
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+  {
+    label: "Public Boards",
+    caption: "A shared world of randomness",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Enter the Wild West"
+        content="Public boards are open canvases for everyone—but only the creator can organize or star posts. Expect insight, noise, and a dash of chaos. Light moderation included."
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+  {
+    label: "Community Boards",
+    caption: "Themed chaos with a cause",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Coloré Curates"
+        content="These boards are event-based or seasonal. Think: holidays, challenges, collective rituals. Join the madness while it’s live!"
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+];
+
+export const createTutorialPages = [
+  {
+    label: "Create Anything",
+    caption: "Where creativity takes off",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Unleash the Chaos (creatively)"
+        content="In the Create tab, you can write posts, launch prompts, or build boards. It’s your toolbox for storytelling, thinking out loud, or making weirdly aesthetic art."
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+  {
+    label: "Posts",
+    caption: "Mini statements with major feels",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Sticky Note, but Make it Art"
+        content="Write your thoughts with styled text—bold, lists, headers, italics—and add emoji that float or fall. Choose a color, and let the mood shine through."
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+  {
+    label: "Boards",
+    caption: "Home for your post-it thoughts",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Boards Galore!"
+        content="Arrange your posts however you want. There are no templates yet—but that’s the point. Style it freely, go wild, or stay minimal. You decide."
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+  {
+    label: "Prompts",
+    caption: "Fuel your curiosity",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Ask the World"
+        content="Start meaningful conversations by selecting a cue and writing a prompt. Be funny, philosophical, or real—your prompt might just go viral."
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+];
+
+export const myProfileTutorialPages = [
+  {
+    label: "Welcome to You",
+    caption: "Where your identity lives (or hides)",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Your Vibe Page"
+        content="This is your colorful identity space. See your pinned posts, earned colors, and display name. Customize your look—or keep it low-key."
+        image={icons.profile}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+  {
+    label: "Introduce Yourself",
+    caption: "Your way, your layers",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Pin. Post. Persona."
+        content="Set a public name, a secret incognito name, and a nickname for friend requests. Pin posts to act as a bio—or leave a little mystery."
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+];
+
 
