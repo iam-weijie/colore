@@ -14,6 +14,7 @@ import Animated, {
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useHaptics } from "@/hooks/useHaptics";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import {
   ActivityIndicator,
@@ -186,16 +187,30 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     });
   }, [encryptionKey, needsDecryption]);
 
+  // New function to sort posts with pinned posts at the top
+  const sortByPinnedAndUnread = useCallback((a: Post, b: Post) => {
+    // First, sort by pin status (pinned posts first)
+    if (a.pinned && !b.pinned) {
+      return -1;
+    } else if (!a.pinned && b.pinned) {
+      return 1;
+    }
+    
+    // Then sort by unread comments
+    return sortByUnread(a, b);
+  }, [sortByUnread]);
+
   useEffect(() => {
     // Use our enhanced decrypt function instead of the original logic
     if (posts.length > 0) {
       const processedPosts = decryptPosts(posts);
-      const sorted = [...processedPosts].sort(sortByUnread);
+      // Sort first by pinned status, then by unread comments
+      const sorted = [...processedPosts].sort(sortByPinnedAndUnread);
       setSortedPosts(sorted);
     } else {
       setSortedPosts([]);
     }
-  }, [posts, encryptionKey, decryptPosts, sortByUnread]);
+  }, [posts, encryptionKey, decryptPosts, sortByPinnedAndUnread]);
 
   const screenWidth = Dimensions.get("window").width;
 
@@ -243,6 +258,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       allColors?.find((c) => c.id === item.color)?.hex || item.color;
     const isOwner = item.user_id === user?.id;
     const hasNewComments = isOwner && item.unread_comments > 0;
+    const isPinned = Boolean(item.pinned);
 
     // Get consistent rotation angle for this post
     const rotationAngle = getRotationAngle(item.id);
@@ -272,14 +288,31 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
               style={{
                 borderRadius: 32,
                 backgroundColor,
-                borderColor: "#ffffff90",
-                borderWidth: 2,
+                borderColor: isPinned ? "#ffffff" : "#ffffff90",
+                borderWidth: isPinned ? 3 : 2,
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 4,
+                shadowOpacity: isPinned ? 0.15 : 0.08,
+                shadowRadius: isPinned ? 6 : 4,
+                position: "relative", // For the pin icon positioning
               }}
             >
+              {/* Pin Icon */}
+              {isPinned && (
+                <View 
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    backgroundColor: "rgba(255,255,255,0.9)",
+                    borderRadius: 50,
+                    padding: 4,
+                    zIndex: 10,
+                  }}
+                >
+                  <MaterialCommunityIcons name="pin" size={16} color="#000000" />
+                </View>
+              )}
               <Text
                 className="font-JakartaSemiBold text-white/90 text-[15px] shadow leading-snug"
                 numberOfLines={3}

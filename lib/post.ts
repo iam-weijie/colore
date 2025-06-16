@@ -65,16 +65,31 @@ export const handlePin = async (
   userId: string
 ) => {
   try {
-    await fetchAPI(`/api/posts/updatePinnedPost`, {
+    // The API expects the desired pinned status (not toggled)
+    console.log(`Updating pin status for post ${post?.id} - Current: ${isPinned}, Setting to: ${!isPinned}`);
+    
+    const response = await fetchAPI(`/api/posts/updatePinnedPost`, {
       method: "PATCH",
       body: JSON.stringify({
         userId: userId,
         postId: post?.id,
-        pinnedStatus: !isPinned,
+        pinnedStatus: !isPinned, // The desired new status
       }),
     });
+    
+    // Log the response and verify it was successful
+    console.log("Pin response:", response);
+    
+    if (response && response.error) {
+      console.error("Pin API error:", response.error, response.details);
+      throw new Error(response.error);
+    }
+    
+    // Return the new pinned status for any component that needs it
+    return !isPinned;
   } catch (error) {
-    console.error("Failed to update handlepin message:", error);
+    console.error("Failed to update pin status:", error);
+    return isPinned; // Return original status on error
   }
 };
 
@@ -124,6 +139,27 @@ export const handleSavePost = async (
     });
   } catch (error) {
     console.error("Failed to update unread message:", error);
+  }
+};
+
+export const deletePost = async (postId: number, userId: string) => {
+  try {
+    console.log("Attempting to delete post:", postId);
+    // The DELETE endpoint expects query parameters, not a request body
+    const response = await fetchAPI(`/api/posts/deletePost?id=${postId}`, {
+      method: "DELETE",
+      // No body needed as we're using query params
+    });
+    
+    if (response && response.error) {
+      console.error("Delete post API error:", response.error, response.details);
+      return { success: false, error: response.error };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete post:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 };
 

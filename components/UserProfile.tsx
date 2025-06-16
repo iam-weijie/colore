@@ -561,8 +561,9 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
 
   const fetchPersonalPosts = useCallback(async () => {
     try {
+      // Get all personal posts including pinned ones
       const response = await fetchAPI(
-        `/api/posts/getPersonalPosts?number=${8}&recipient_id=${userId}&user_id=${user!.id}`
+        `/api/posts/getPersonalPosts?number=${12}&recipient_id=${userId}&user_id=${user!.id}`
       );
 
       // Handle invalid or empty response data more carefully
@@ -573,6 +574,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         return;
       }
 
+      // Filter only pinned posts
       const filteredPosts = response.data.filter((p: Post) => p && p.pinned);
 
       if (filteredPosts.length === 0) {
@@ -581,13 +583,25 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         setPersonalPosts([]);
       } else {
         console.log(`[DEBUG] UserProfile - Found ${filteredPosts.length} pinned posts`);
+        
+        // Display pinned posts with higher priority
+        const sortedPosts = [...filteredPosts].sort((a, b) => {
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        
         // Decrypt personal posts using our caching logic
         if (encryptionKey) {
-          const decryptedPosts = decryptPosts(filteredPosts);
+          const decryptedPosts = decryptPosts(sortedPosts);
           setPersonalPosts(decryptedPosts);
         } else {
-          setPersonalPosts(filteredPosts);
+          setPersonalPosts(sortedPosts);
         }
+        
+        // Enable interactions since we found pinned posts
+        setDisableInteractions(false);
+        setProfileLoading(false);
       }
     } catch (error) {
       console.error("[DEBUG] UserProfile - Failed to fetch personal posts:", error);
@@ -711,18 +725,72 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     }
   }, [selectedTab]);
 
-  // Fix the empty posts view with better guidance
-  const EmptyPostsView = () => (
-    <View className="flex items-center justify-center p-10 bg-white/80 rounded-3xl">
-      <Text className="font-JakartaSemiBold text-gray-700 text-center mb-2">
-        No pinned posts yet
-      </Text>
-      <Text className="font-Jakarta text-gray-500 text-center">
-        Pin your favorite posts to your profile by tapping the three dots (⋯) 
-        at the bottom right of any post and selecting "Pin to profile".
-      </Text>
-    </View>
-  );
+  // Updated empty posts view with different messages for self vs other profiles
+  const EmptyPostsView = () => {
+    // Check if viewing own profile or someone else's
+    const isOwnProfile = user!.id === userId;
+    
+    if (isOwnProfile) {
+      // For user's own profile
+      return (
+        <View className="flex items-center justify-center p-10 pt-14 bg-white/80 rounded-3xl">
+          <Text className="font-JakartaSemiBold text-gray-700 text-center mb-2">
+            No pinned posts yet
+          </Text>
+          <Text className="font-Jakarta text-gray-500 text-center mb-4">
+            Pinned posts will appear here. Create a personal post and pin it with 
+            the three dots (⋯) at the bottom right of the post view!
+            
+            Share things about yourself with your friends!
+          </Text>
+          <TouchableOpacity 
+            onPress={() => {
+              // Navigate to create a personal post
+              // Using the same pattern as in create.tsx for personal notes
+              router.push({
+                pathname: '/root/new-post',
+                params: { 
+                  recipientId: user!.id,
+                  username: 'Yourself',  // This is what create.tsx uses
+                  postType: 'personal'   // This parameter is used in handleSubmitPost
+                }
+              });
+            }}
+            className="bg-purple-400 py-3 px-6 rounded-full mt-2"
+          >
+            <Text className="font-JakartaSemiBold text-white text-center">
+              Create a Personal Post
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    } else {
+      // For viewing other user's profile
+      return (
+        <View className="flex items-center justify-center p-10 pt-14 bg-white/80 rounded-3xl">
+          <Text className="font-JakartaSemiBold text-gray-700 text-center mb-2">
+            Hi, I'm a new Coloré user!
+          </Text>
+          <Text className="font-Jakarta text-gray-500 text-center mb-4">
+            I haven't pinned any posts to my profile yet.
+          </Text>
+          {friendNickname ? (
+            <View className="bg-gray-200 py-3 px-6 rounded-full mt-2">
+              <Text className="font-Jakarta text-gray-600 text-center">
+                {friendNickname}'s pinned posts will appear here
+              </Text>
+            </View>
+          ) : profileUser?.username ? (
+            <View className="bg-gray-200 py-3 px-6 rounded-full mt-2">
+              <Text className="font-Jakarta text-gray-600 text-center">
+                {profileUser.username}'s pinned posts will appear here
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      );
+    }
+  };
 
   return (
     <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
@@ -809,7 +877,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
       {selectedTab === "Profile" && (
         <View className="flex-1">
           {!profileLoading ? (
-            <View className={`absolute -top-[20%]`}>
+            <View className={`absolute ${personalPosts.length > 0 ? "-top-[20%]" : "top-[5%]"}`}>
               {personalPosts.length > 0 ? (
                 <PostContainer
                   selectedPosts={personalPosts}
