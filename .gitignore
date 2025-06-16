@@ -10,6 +10,10 @@ npm-debug.*
 *.orig.*
 web-build/
 env.DEVELPMENT/
+.cursor/
+.github/
+.tmp-node_modules
+.vscode/
 
 # macOS
 .DS_Store
