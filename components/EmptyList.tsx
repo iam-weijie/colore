@@ -1,6 +1,6 @@
 import React from "react";
 import { Image, View, Text } from "react-native";
-import Animated, { BounceIn } from "react-native-reanimated";
+import Animated, { BounceIn, FadeInDown } from "react-native-reanimated";
 import { characters, characterMood } from "@/constants";
 
 interface EmptyListViewProps {
@@ -24,18 +24,18 @@ const EmptyListView: React.FC<EmptyListViewProps> = ({
     <View className="flex-1 flex-col items-center justify-center gap-6 px-8">
       {selectedCharacter && (
         <Animated.Image
-          entering={BounceIn.duration(900)}
+          entering={FadeInDown.duration(500)}
           source={selectedCharacter}
           style={{
-            width: 64 * scale,
-            height: 64 * scale,
+            width: 81 * scale,
+            height: 81 * scale,
             resizeMode: "contain",
           }}
         />
       )}
-      <Text className="text-center text-[14px] font-Jakarta text-gray-700">
+      <Animated.Text entering={FadeInDown.duration(800)} className="text-center text-[14px] font-Jakarta text-gray-700">
         {message}
-      </Text>
+      </Animated.Text>
       {subMessage && (
         <Text className="text-center text-[12px] font-Jakarta text-gray-400 mt-[-8px]">
           {subMessage}

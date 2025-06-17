@@ -692,9 +692,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             {/* Container for both lists, flex-1 to take all available space */}
             <View className="flex-1 flex-col">
               {/* Top half: Incoming Requests */}
-              <View className="mb-2 flex-1">
-                <View className="p-2">
-                  <View className="flex-row items-center justify-start mx-4">
+              <View className="">
+                  <View className=" p-2 flex-row items-center justify-start mx-4">
                     <Text className="font-JakartaSemiBold text-[14px]">
                       Request ({allFriendRequests?.received && allFriendRequests?.received.length })
                     </Text>
@@ -709,7 +708,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                       />
                     </View>
                   </View>
-                </View>
                 <FlatList
                   className="px-2 rounded-[24px] flex-1"
                   data={allFriendRequests?.received}
@@ -719,7 +717,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   renderItem={renderIncomingRequest}
                   keyExtractor={(item) => item.id.toString()}
                   ListEmptyComponent={
-                  <EmptyListView message={"No rizz uh??"} character="rosie" mood={0} />
+                    <View className="flex-1 pt-6">
+                  <EmptyListView message={"No rizz uh??"} character="rosie" mood={0} scale={0.6}/>
+                  </View>
                   }
                   showsVerticalScrollIndicator={false}
                   scrollEnabled={
@@ -729,9 +729,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               </View>
 
               {/* Bottom half: Outgoing Requests */}
-              <View className="flex-1 flex-col mt-2">
-                <View className="p-2">
-                  <View className="flex-row items-center justify-start mx-4">
+              <View className="flex-1 flex-col">
+                  <View className="p-2 flex-row items-center justify-start mx-4">
                     <Text className="font-JakartaSemiBold text-[14px]">Sent ({allFriendRequests?.sent.length})</Text>
                     <View className="absolute top-[50%] right-3">
                       <NotificationBubble
@@ -744,7 +743,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                       />
                     </View>
                   </View>
-                </View>
                 <FlatList
                   className="flex-1 rounded-[24px]"
                   data={allFriendRequests?.sent}
@@ -754,7 +752,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   renderItem={renderOutgoingRequest}
                   keyExtractor={(item) => item.id.toString()}
                   ListEmptyComponent={
-                  <EmptyListView message={"No interested in making friends?"} character="steve" mood={2} />
+                  <View className="flex-1 pt-6">
+                  <EmptyListView message={"Not interested in making friends?"} character="steve" mood={2} scale={0.6}/>
+                  </View>
                 }
                   showsVerticalScrollIndicator={false}
                   scrollEnabled={
@@ -960,7 +960,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
           renderItem={renderNotif}
           keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
-                  <EmptyListView message={"Damn, it's dead around here? Wanna make a post?"} character="rosie" mood={2} />
+                  <EmptyListView message={"Damn, it's dead around here? Wanna make a post?"} character="bob" mood={2} />
                 }
           showsVerticalScrollIndicator={false}
         />
@@ -976,7 +976,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
           renderItem={renderNotif}
           keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
-                  <EmptyListView message={"Drier than the Sahara... Try making a post."} character="rosie" mood={1} />
+                  <EmptyListView message={"It's drier than the Sahara here... Try making a post, gosh."} character="rosie" mood={1} />
                 }
           showsVerticalScrollIndicator={false}
         />
@@ -992,7 +992,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
           renderItem={renderNotif}
           keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
-                  <EmptyListView message={"No likes. Ouch."} character="bob" mood={2} />
+                  <EmptyListView message={"No likes? There must be something wrong. Maybe you?"} character="steve" mood={2} scale={1.15} />
                 }
           showsVerticalScrollIndicator={false}
         />
