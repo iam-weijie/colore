@@ -350,6 +350,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
               </View>
             </View>
           </TouchableOpacity>
+          </View>
       </Animated.View>
     );
   };

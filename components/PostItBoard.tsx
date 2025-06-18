@@ -83,6 +83,7 @@ const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is curr
   const pendingStackSound = useRef(false);
 
   const { stacks, setStacks } = useStacks();
+  const { showAlert } = useAlert()
   const stackUpdating = useRef(false)
   const { playSoundEffect } = useSoundEffects();
 
@@ -500,7 +501,7 @@ useEffect(() => {
   }, [mode]);
 
   // Add a useEffect for loading timeout
-  useEffect(() => {
+  /* useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     
     if (loading) {
@@ -534,7 +535,7 @@ useEffect(() => {
         <Text>Error: {error}</Text>
       </View>
     );
-  }
+  } */
 
   if (postsWithPosition.length === 0) {
     return (

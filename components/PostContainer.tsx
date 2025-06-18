@@ -257,11 +257,10 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
 
   // Fetch like status when current post changes
   useEffect(() => {
-    if (currentPost && user) {
+
     if (currentPost && user) {
       getLikeStatus();
     }
-  }, [currentPost, user]);
   }, [currentPost, user]);
 
   const getLikeStatus = useCallback(async () => {
@@ -275,17 +274,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
       console.error("Error fetching like status:", error);
     }
   }, [currentPost, user]);
-  const getLikeStatus = useCallback(async () => {
-    if (!currentPost || !user) return;
-    
-    try {
-      const status = await fetchLikeStatus(currentPost.id, user.id);
-      setIsLiked(status.isLiked);
-      setLikeCount(status.likeCount);
-    } catch (error) {
-      console.error("Error fetching like status:", error);
-    }
-  }, [currentPost, user]);
+
 
   const handleLikePress = useCallback(async () => {
     if (!currentPost || isLoadingLike || !user) return;
