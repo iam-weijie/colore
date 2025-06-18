@@ -16,7 +16,7 @@ export async function GET(request: Request) {
         status: 400,
       });
     }
-    const response = await sql(
+    const response = await sql.query(
       `
       SELECT
         id,

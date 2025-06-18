@@ -68,9 +68,15 @@ const { boardOnlyPosts, fetchPosts, maxPosts, isLoading, error } = usePersonalPo
 })
 
 const handleFetchPosts = async () => {
-  await fetchPosts();
-  console.log("[PersonalBoard]: ", boardOnlyPosts)
-  return boardOnlyPosts
+  console.log("[PersonalBoard]: Starting fetchPosts...");
+  try {
+    const posts = await fetchPosts();
+    console.log("[PersonalBoard]: Fetch completed, posts count:", posts?.length || 0);
+    return posts;
+  } catch (error) {
+    console.error("[PersonalBoard]: Error fetching posts:", error);
+    return [];
+  }
 }
   const handleShuffle = () => {
     if (shuffleModeOn) {

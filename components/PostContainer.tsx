@@ -57,6 +57,7 @@ import ReactNativeModal from "react-native-modal";
 import ModalSheet from "@/components/Modal";
 import Animated, {
   BounceIn,
+  BounceInDown,
   Easing,
   FadeInUp,
   FadeOutDown,

@@ -44,16 +44,28 @@ export const fetchCountryByName = async (
   countryName: string
 ): Promise<Country | undefined> => {
   try {
+    if (!countryName) {
+      console.warn("fetchCountryByName called with empty countryName");
+      return undefined;
+    }
+    
     const response = await axios.get(
       `https://restcountries.com/v3.1/name/${encodeURIComponent(countryName)}?fullText=true`
     );
-    if (response.data.length === 0) return
-    return response.data[0].cca2.toLowerCase(); // Returns a single country object
+    
+    if (!response.data || response.data.length === 0) {
+      console.log(`No country found with name: ${countryName}`);
+      return undefined;
+    }
+    
+    // Return the full country object
+    return response.data[0];
   } catch (error) {
     console.error(`Error fetching country with name ${countryName}:`, error);
-    throw error;
+    return undefined; // Return undefined instead of throwing error to prevent app crashes
   }
 };
+
 // Fetch states (subdivisions) for a specific country
 // Note: Not all countries have states or provinces listed in the API
 export const fetchStatesForCountry = async (

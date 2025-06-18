@@ -39,6 +39,8 @@ export async function GET(request: Request) {
       GROUP BY p.board_id;
     `;
 
+  
+
     if (raw_boards.length === 0) {
       return new Response(JSON.stringify({ data: [] }), {
         status: 200,

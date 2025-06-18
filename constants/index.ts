@@ -42,7 +42,7 @@ import timer from "@/assets/icons/timer.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import placeholder from "@/assets/icons/placeholder.png";
-import back from "@/assets/icons/back.png";
+import back from "@/assets/icons/back.png"
 import bold from "@/assets/icons/bold.png"
 import italics from "@/assets/icons/italics.png"
 import at from "@/assets/icons/at.png"
@@ -69,6 +69,7 @@ import highlight4 from "@/assets/images/highlight-4.png";
 import highlightLg1 from "@/assets/images/highlight-large-1.png";
 
 import { PostItColor } from "@/types/type";
+import { allColors, defaultColors } from "@/constants/colors";
 
 
 /* CHARACTER IMAGES */
@@ -187,6 +188,10 @@ export const characters = {
   steveNerd,
   steveSurprised,
 };
+
+// Export colors for use in components
+export const temporaryColors = allColors.slice(0, 5);
+export { defaultColors, allColors };
 
 
 export const characterMood = {

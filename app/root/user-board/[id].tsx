@@ -478,6 +478,41 @@ const UserPersonalBoard = () => {
     }
   }, [postId]);
 
+const handleLongUsername = (username: string): string => {
+  // Trim and normalize spacing
+  let cleanUsername = username.trim().replace(/\s+/g, " ");
+
+  // If the username has spaces and is too long
+  if (cleanUsername.includes(" ") && cleanUsername.length > 14) {
+    // Replace "and" and "to" with "&" and "2" respectively (only whole words)
+    cleanUsername = cleanUsername
+      .split(" ")
+      .map(word => {
+        if (/^and$/i.test(word)) return "&";
+        if (/^to$/i.test(word)) return "2";
+        return word;
+      })
+      .join(" ");
+
+    // Take first character of each word, preserve special symbols like & or 2
+    return cleanUsername
+      .split(" ")
+      .filter(Boolean)
+      .map(word => (word.length === 1 ? word : word[0].toUpperCase()))
+      .join("");
+  }
+
+  // If it's a long single word, extract all capital letters
+  if (!cleanUsername.includes(" ") && cleanUsername.length > 14) {
+    const caps = cleanUsername.match(/[A-Z]/g);
+    return caps ? caps.join("") : cleanUsername.slice(0, 8);
+  }
+
+  // Otherwise return as-is
+  return cleanUsername;
+};
+
+
   return (
     <>
       <View className="flex-1 bg-[#FAFAFA]">
@@ -490,12 +525,12 @@ const UserPersonalBoard = () => {
 
         <Header
           item={
-            <View className="m-6 flex-row justify-between items-center w-full px-4">
+            <View className="mx-6 mt-2 mb-6 flex-row justify-between items-center w-full px-4">
               <Animated.View entering={FadeIn.duration(800)}>
                 {username ? (
                   <View className="max-w-[200px]">
                     <Text className={`text-xl font-JakartaBold`}>
-                      {username}
+                      {handleLongUsername(username)}
                     </Text>
                   </View>
                 ) : (

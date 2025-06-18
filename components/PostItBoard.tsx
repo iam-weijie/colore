@@ -4,7 +4,10 @@ import PostModal from "@/components/PostModal";
 import { Post, PostWithPosition, Stacks, PostItBoardProps, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
-import { AlgorithmRandomPosition, cleanStoredPosition } from "@/lib/utils";
+import { 
+  calculateBoardDimensions,
+  getAllPositions
+} from "@/lib/algorithms/position";
 import {
   Dimensions,
   NativeScrollEvent,
@@ -12,18 +15,21 @@ import {
   RefreshControl,
   ScrollView,
   View,
+  Text,
 } from "react-native";
 import { GeographicalMode, MappingPostitProps } from "@/types/type";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import React, { useEffect, useRef, useState } from "react";
 import { mappingPostIt, reorderPost } from '@/lib/postItBoard';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, FadeOut, FadeIn, Easing } from 'react-native-reanimated';
 import StackCircle from "./StackCircle";
 import ModalSheet from "./Modal";
 import RenameContainer from "./RenameContainer";
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { updateStacks } from "@/lib/stack";
+import ScrollMap from "./ScrollMap";
+import { allColors } from "@/constants";
 import { distanceBetweenPosts } from "@/lib/post";
 import KeyboardOverlay from "./KeyboardOverlay";
 import { FindUser } from "./FindUsers";
@@ -31,7 +37,9 @@ import { useAlert } from "@/notifications/AlertContext";
 
 const screenHeight = Dimensions.get("screen").height;
 const screenWidth = Dimensions.get("screen").width;
+const screenDimensions = {width: screenWidth, height: screenHeight };
 const COLOR_HEIGHT_TRIGGER = 80;
+const LOADING_TIMEOUT = 10000; // 10 seconds timeout for loading
 
 const PostItBoard: React.FC<PostItBoardProps> = ({
   userId,
@@ -44,115 +52,49 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   isEditable = true,
   randomPostion = true,
 }) => {
+// 🗺️ Map and Zoom State
+const [mapType, setMapType] = useState("satellite"); // Map display type (e.g., satellite, standard)
+const [zoomScale, setZoomScale] = useState(1); // Current zoom scale level
+const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 }); // Scroll offset to track map movement
+const offsetY = useSharedValue(0); // Shared vertical scroll offset (Reanimated)
+const [showMap, setShowMap] = useState<boolean>(false); // Shows the map with the markers
+const scrollTimeout = useRef<NodeJS.Timeout | null>(null); // Time it takes for map to disappear after end of scrolling behaviour
+const previousOffset = useRef({ x: 0, y: 0 }); // Store previous scrollOffset
 
-  const { user } = useUser()
-  const [mapType, setMapType] = useState("satellite");
-  const [postsWithPosition, setPostsWithPosition] = useState<Post[]>([]);
-  const [standalonePosts, setStandalonePosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedPosts, setSelectedPosts] = useState<Post[] | null>(null);
+// 📍 Post Data and Selection
+const [postsWithPosition, setPostsWithPosition] = useState<Post[]>([]); // All posts with a board position
+const [standalonePosts, setStandalonePosts] = useState<Post[]>([]); // Posts that aren't in a stack
+const [selectedPosts, setSelectedPosts] = useState<Post[] | null>(null); // Posts currently selected by user
+const [excludeIds, setExcludeIds] = useState<string[]>([]); // Post IDs to exclude from render or logic
+const [selectedModal, setSelectedModal] = useState<any>(null); // Currently open modal (e.g., post preview)
+const [selectedTitle, setSelectedTitle] = useState<string | null>(null); // Optional selected post title
+const [allPostsInStack, setAllPostsInStack] = useState<Post[]>([]); // All posts currently grouped in a stack
+
+// 🗃️ Stack and Mapping State
+const [enableStacking, setEnableStacking] = useState(false); // Toggle to allow posts to stack together
+const [isPinned, setIsPinned] = useState(false); // Whether current board view is pinned in place
+const [forceMoveMap, setForceMoveMap] = useState<{ [postId: number]: { dx: number, dy: number } }>({}); // Forces position offset for individual posts
+const [maps, setMap] = useState<MappingPostitProps[]>([]); // Rendered postit mapping information
+const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is currently being dragged
   const [keyboardVisible, setKeyboardVisible] = useState<boolean>(false);
   const [currentStack, setCurrentStack] = useState<Stacks>();
-  const [excludeIds, setExcludeIds] = useState<string[]>([]);
-  const [selectedModal, setSelectedModal] = useState<any>(null);
-  const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
-  const [enableStacking, setEnableStacking] = useState(false);
-  const [forceMoveMap, setForceMoveMap] = useState<{ [postId: number]: { dx: number, dy: number } }>({});
-  const [isPinned, setIsPinned] = useState(false);
-  const [maps, setMap] = useState<MappingPostitProps[]>([]);
-  const [isPanningMode, setIsPanningMode] = useState(true);
-  const [isStackMoving, setIsStackMoving] = useState(false);
-  const pendingStackSound = useRef(false);
-  const [allPostsInStack, setAllPostsInStack] = useState<Post[]>([]);
 
-  const { stacks, setStacks } = useGlobalContext();
-  const stackUpdating = useRef(false)
-  const { playSoundEffect } = useSoundEffects();
+// 🧭 Navigation & Scroll Behavior
+const [isPanningMode, setIsPanningMode] = useState(true); // Whether user can pan the board
+const scrollViewRef = useRef<ScrollView>(null); // Reference to outer scroll view
+const innerScrollViewRef = useRef<ScrollView>(null); // Reference to inner scroll view
 
-  const scrollViewRef = useRef<ScrollView>(null);
-  const innerScrollViewRef = useRef<ScrollView>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 });
-  const [zoomScale, setZoomScale] = useState(1);
-  const offsetY = useSharedValue(0);
+// 🔄 State for Refreshing and Lifecycle
+const [loading, setLoading] = useState(true); // Whether the initial data is still loading
+const [error, setError] = useState<string | null>(null); // Error state for fetching or rendering
+const [refreshing, setRefreshing] = useState(false); // Whether pull-to-refresh is active
+const { showAlert } = useAlert(); // Show alert to user
 
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const scale = useSharedValue(1);
-  const lastScale = useSharedValue(1); // Track last scale value
-
-  // First, declare a shared value for initial position
-  const initialPositionX = useSharedValue(screenWidth);
-  const initialPositionY = useSharedValue(screenHeight/2);
-
-  // Update the pan gesture
-  const panGesture = Gesture.Pan()
-    .runOnJS(true)
-    .onBegin(() => {
-      // Ensure we start from current position
-      translateX.value = 0;
-      translateY.value = 0;
-    })
-    .onUpdate((event) => {
-      if (!isPanningMode) return;
-      translateX.value = event.translationX;
-      translateY.value = event.translationY;
-    })
-    .onEnd((event) => {
-      if (!isPanningMode) return;
-      
-      // Update final position immediately to avoid rubber band
-      initialPositionX.value += event.translationX / scale.value;
-      initialPositionY.value += event.translationY / scale.value;
-      
-      // Update scroll offset for other components to use
-      setScrollOffset({
-        x: initialPositionX.value,
-        y: initialPositionY.value
-      });
-      
-      // Reset translation immediately without animation to prevent rubber band
-      translateX.value = 0;
-      translateY.value = 0;
-    });
-
-  const pinchGesture = Gesture.Pinch()
-    .runOnJS(true)
-    .onBegin(() => {
-      if (!isPanningMode) return;
-      // Save the current scale as our reference
-      lastScale.value = scale.value;
-    })
-    .onUpdate((event) => {
-      if (!isPanningMode) return;
-      // Calculate new scale based on lastScale and current gesture
-      const newScale = Math.max(0.6, Math.min(lastScale.value * event.scale, 1.2));
-      scale.value = newScale;
-      setZoomScale(newScale);
-    })
-    .onEnd(() => {
-      if (!isPanningMode) return;
-      // Store the final scale for the next gesture
-      lastScale.value = scale.value;
-    });
-
-  // Add double tap to reset zoom
-  const doubleTapGesture = Gesture.Tap()
-    .numberOfTaps(2)
-    .runOnJS(true)
-    .onEnd(() => {
-      if (!isPanningMode) return;
-      // Reset zoom to 1 with smooth animation
-      scale.value = withTiming(1, { duration: 250, easing: Easing.ease });
-      lastScale.value = 1;
-      setZoomScale(1);
-    });
-
-  const combinedGestures = Gesture.Simultaneous(
-    Gesture.Exclusive(doubleTapGesture, panGesture),
-    pinchGesture
-  );
+// 🔊 Sound and Stack Management
+const { stacks, setStacks } = useGlobalContext(); // Stack data shared globally
+const { playSoundEffect } = useSoundEffects(); // Play UI or feedback sounds
+const pendingStackSound = useRef(false); // Flag to prevent playing stack sound too frequently
+const stackUpdating = useRef(false); // Whether a stack update operation is in progress
 
 
 
@@ -178,167 +120,92 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     setLoading(true);
     setEnableStacking(false);
     try {
+      console.log("Fetching posts...");
       const posts: Post[] = await handlePostsRefresh();
-      // set positions of posts
+      console.log("Posts fetched:", posts?.length || 0);
 
+      // Calculate board dimensions based on post count
+      const boardDimensions = calculateBoardDimensions(posts.length, screenDimensions);
+
+      console.log("Board Dimension: ", boardDimensions, posts.map((p) => p.position))
 
       let postsWithPositions: Array<Post> = [];
 
-    
+      // Only use manual positioning if randomPosition is false
+      if (!randomPostion && posts.some(post => post.position?.top !== 0 || post.position?.left !== 0)) {
+        // Use existing positions
         for (const post of posts) {
-          const position = AlgorithmRandomPosition(post.pinned, null, posts.length);
-          let newX = 0;
-          let newY = 0;
-
-          if (!randomPostion) {
-          if (post.position.top == 0 && post.position.left == 0) {
-            newX = position.left
-            newY = position.top
-
-            await fetchAPI(`/api/posts/updatePostPosition`, {
-              method: "PATCH",
-              body: JSON.stringify({
-                postId: post?.id,
-                top: newX, 
-                left: newY
-              }),
-            })
-          } else {
-            newX = Number(post.position.left)
-            newY = Number(post.position.top)
-          }
-        }
-
-
-          const iniX = !randomPostion ? (newX) : position?.left ?? 0 + scrollOffset.x;
-          const iniY = !randomPostion ? (newY) : position?.top ?? 0 + scrollOffset.y;
-
-
           const positionWithOffset = {
-            ...position,
+            top: Number(post.position?.top ?? 0) - scrollOffset.y,
+            left: Number(post.position?.left ?? 0) - scrollOffset.x,
+            rotate: `${Math.abs(Math.random() * 8)}deg`,
+          };
+          postsWithPositions.push({ ...post, position: positionWithOffset });
+        }
+      } else {
+        // Use optimized positioning algorithm for better layout
+        const optimizedPosition = getAllPositions(posts.length, boardDimensions);
+        console.log("board dimension: ", boardDimensions, "optimized position: ", optimizedPosition.length)
+
+        for (const pos of optimizedPosition) {
+          const index = optimizedPosition.indexOf(pos)
+          const post = posts[index]
+          const iniX = pos.left ?? 0;
+          const iniY = pos.top ?? 0;
+
+          
+          const positionWithOffset = {
+            ...post.position,
             left: iniX,
             top: iniY,
           };
-          if (position) {
-            postsWithPositions.push({ ...post, position: positionWithOffset });
-            
+          
+          postsWithPositions.push({ ...posts[index], position: positionWithOffset });
+          
+
+          // Update position in backend if needed
+        if (!randomPostion && (post.position.top === 0 && post.position.left === 0)) {
+            await fetchAPI(`/api/posts/updatePostPosition`, {
+              method: "PATCH",
+              body: JSON.stringify({
+                postId: post.id,
+                top: post.position.top,
+                left: post.position.left
+              }),
+            });
           }
         }
-      
-      
+      }
 
       // Initialize each post as a stack
-      setStacks((prevStack) => prevStack.filter((stack) => stacks))
+      setStacks((prevStack) => prevStack.filter((stack) => stacks));
       setPostsWithPosition(postsWithPositions);
       setStandalonePosts(postsWithPositions);
+      
       // Initialize to add to map
       const initialMap = postsWithPositions.map((post: Post) =>
         mappingPostIt({
           id: post.id,
-          coordinates: {
+          coordinates: { 
             x_coordinate: post.position?.left ?? 0,
             y_coordinate: post.position?.top ?? 0,
           },
         })
       );
-      // console.log(initialMap);
+      
       setMap(initialMap);
       setEnableStacking(true);
-
+      console.log("Posts processed, count:", postsWithPositions.length);
     } catch (error) {
+      console.error("Failed to fetch posts with error:", error);
       setError("Failed to fetch new posts.");
     } finally {
       setLoading(false);
 
-      cleanStoredPosition();
     }
   };
 
-  const updateStacks = (
-    postId: number,
-    newCoordinates: { x_coordinate: number; y_coordinate: number }
-  ) => {
-    let updatedStacks = [...stacks];
-  
-    const post = postsWithPosition.find(p => p.id === postId);
-    if (!post) return;
-  
-    // 1. Remove the post from any stack it was previously in
-    updatedStacks = updatedStacks.map(stack => {
-      if (stack.ids.includes(postId)) {
-        return {
-          ...stack,
-          ids: stack.ids.filter(id => id !== postId),
-          elements: stack.elements.filter(el => el.id !== postId),
-        };
-      }
-      return stack;
-    }).filter(stack => stack.ids.length > 0); // Remove empty stacks
-  
-    // 2. Check if the post should be added to an existing stack
-    const insideStackIndex = updatedStacks.findIndex(stack => {
-      const dist = distanceBetweenPosts(
-        stack.center.x,
-        stack.center.y,
-        newCoordinates.x_coordinate,
-        newCoordinates.y_coordinate
-      );
-      return dist <= 40;
-    });
-  
-    if (insideStackIndex !== -1) {
-      const stack = updatedStacks[insideStackIndex];
-  
-      // Only add if not already in
-      if (!stack.ids.includes(postId)) {
-        const updatedStack = {
-          ...stack,
-          ids: [...stack.ids, postId],
-          elements: [...stack.elements, post],
-        };
-        updatedStacks[insideStackIndex] = updatedStack;
-      }
-  
-      setStacks(updatedStacks);
-      return;
-    }
-  
-    // 3. If no existing stack nearby, check if it should form a new stack with nearby posts
-    const nearby = maps.filter(m => {
-      if (m.id === postId) return false;
-      const dist = distanceBetweenPosts(
-        newCoordinates.x_coordinate,
-        newCoordinates.y_coordinate,
-        m.coordinates.x_coordinate,
-        m.coordinates.y_coordinate
-      );
-      return dist <= 40;
-    });
-  
-    if (nearby.length > 0) {
-      const nearbyFullPosts = nearby
-        .map(m => postsWithPosition.find(p => p.id === m.id))
-        .filter((p): p is PostWithPosition => p !== undefined);
-  
-      const newStack = {
-        name: `New Stack ${updatedStacks.length + 1}`,
-        ids: [postId, ...nearby.map(m => m.id)],
-        elements: [post, ...nearbyFullPosts],
-        center: {
-          x: newCoordinates.x_coordinate,
-          y: newCoordinates.y_coordinate,
-        },
-      };
-  
-      updatedStacks.push(newStack);
-      setStacks(updatedStacks);
-      return;
-    }
-  
-    // 4. Otherwise, the post is alone, not stacked. (You may handle solo-post case here if needed.)
-    setStacks(updatedStacks);
-  };
-  
+  // --- HANDLER FUNCTIONS ---
 
   const handleRenameStack = (stack: Stacks) => {
     setCurrentStack(stack)
@@ -360,22 +227,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       ...prevMap.filter((p) => p.id !== id),
       postItCoordinates,
     ]);
-
-    if (!randomPostion) {
-      pendingStackSound.current = true;
-      try {
-        await fetchAPI(`/api/posts/updatePostPosition`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            postId: post.id,
-            top: dy + scrollOffset.y,
-            left: dx + scrollOffset.x,
-          }),
-        });
-      } catch (err) {
-        console.error("Failed to update post position: ", err);
-      }
-    }
   };
 
   const handleReorderPost = (post: Post) => {
@@ -485,8 +336,10 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   };
 
   const handleCloseModal = () => {
-    setSelectedPosts(null);
-    setIsPanningMode(true);
+    setTimeout(() => {
+          setSelectedPosts(null);
+    }, 500)
+        setIsPanningMode(true);
   };
 
   useEffect(() => {
@@ -538,9 +391,26 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   // --- EFFECTS ---
 
-  useEffect(() => {
-    fetchRandomPosts();
-  }, []);
+useEffect(() => {
+  // If the offset has changed, show the map
+  if (
+    scrollOffset.x !== previousOffset.current.x ||
+    scrollOffset.y !== previousOffset.current.y
+  ) {
+    setShowMap(true);
+    previousOffset.current = scrollOffset;
+
+    // Clear any previous timeout
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current);
+    }
+
+    // Set a timeout to hide map after 2.5s of no movement
+    scrollTimeout.current = setTimeout(() => {
+      setShowMap(false);
+    }, 1500);
+  }
+}, [scrollOffset]);
 
   useEffect(() => {
     if (maps.length > 1 && enableStacking && !stackUpdating.current) {
@@ -561,11 +431,28 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     fetchRandomPosts();
   }, [mode]);
 
+  // Add a useEffect for loading timeout
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    if (loading) {
+      console.log("Starting loading timeout");
+      timeoutId = setTimeout(() => {
+        console.log("Loading timeout reached, forcing state update");
+        setLoading(false);
+        if (postsWithPosition.length === 0) {
+          setError("Loading timed out. Please try refreshing.");
+        }
+      }, LOADING_TIMEOUT);
+    }
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [loading]);
 
-
-
-
-   if (postsWithPosition.length === 0) {
+  // Modify the rendering logic to prevent infinite loading
+  if (loading) {
     return (
       <View className="flex-1 items-center justify-center">
         <ColoreActivityIndicator text="Summoning Bob..." />
@@ -573,6 +460,21 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     );
   }
 
+  if (error) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Error: {error}</Text>
+      </View>
+    );
+  }
+
+  if (postsWithPosition.length === 0) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-lg text-gray-600">No posts available</Text>
+      </View>
+    );
+  }
 
 
   return (
@@ -592,6 +494,22 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       />
 
       <SignedIn>
+      {showMap && <Animated.View className="z-[9999]" entering={FadeIn.duration(300)} exiting={FadeOut.duration(400)}><ScrollMap 
+          scrollOffset={{
+            x: scrollOffset.x,
+            y: scrollOffset.y
+          }}
+          
+          scrollableDimensions={{
+            width: calculateBoardDimensions(postsWithPosition.length, screenDimensions).width,
+            height: calculateBoardDimensions(postsWithPosition.length, screenDimensions).height
+          }} 
+          posts={postsWithPosition}
+          indicator={{
+            color: '#FFC757',
+            size: 12
+          }}
+          /></Animated.View>}
         {error ? (
           <View className="flex-1 items-center justify-center">
             <ColoreActivityIndicator text="There seems to be an error..." />
@@ -605,8 +523,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             maximumZoomScale={1.2}
             minimumZoomScale={0.6}
             contentContainerStyle={{
-              width: screenWidth * 4,
-              height: screenHeight * 2,
+              width: calculateBoardDimensions(postsWithPosition.length, screenDimensions).width + screenDimensions.width + 150,
+              height: calculateBoardDimensions(postsWithPosition.length, screenDimensions).height + screenDimensions.height
             }}
             scrollEnabled={isPanningMode}
             showsHorizontalScrollIndicator={false}
@@ -630,12 +548,13 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
               nestedScrollEnabled
               scrollEnabled={isPanningMode}
               contentContainerStyle={{
-                width: screenWidth * 4,
-                height: screenHeight * 2,
+              width: calculateBoardDimensions(postsWithPosition.length, screenDimensions).width + screenDimensions.width + 150,
+              height: calculateBoardDimensions(postsWithPosition.length, screenDimensions).height + screenDimensions.height
               }}
             >
               <View className="flex-1 w-full h-full relative">
-                <View className="relative flex-1">
+              
+
                   {/* Render stack circles */}
                   {stacks.map((stack) => {
                     const hasPosts = postsWithPosition.some((p) =>
@@ -665,229 +584,33 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                     );
                   })}
 
-{/* Render all posts independently */}
-{postsWithPosition.map(post => {
-
-const isViewed = excludeIds.includes(String(post.id))
-  return (
-<DraggablePostIt
-  key={post.id}
-  post={post}
-  position={{
-    top: post.position.top,
-    left: post.position.left,
-  }}
-  updateIndex={() => handleReorderPost(post)}
-  updatePosition={(dx, dy, post) => updatePostPosition(dx, dy, post)}
-  onPress={() => handlePostPress(post)}
-  isViewed={isViewed}
-  showText={showPostItText}
-  enabledPan={() => setIsPanningMode(prev => !prev)}
-  zoomScale={zoomScale}
-  scrollOffset={scrollOffset}
-  disabled={isStackMoving}
-  visibility={isStackMoving ? 0.5 : 1}
-/>
-
-)})}
-
-</View>
-
-            </View>
-
-            {selectedPosts && (
-              <PostModal
-                isVisible={!!selectedPosts}
-                selectedPosts={selectedPosts}
-                handleCloseModal={handleCloseModal}
-                handleUpdate={(isPinned: boolean) => handleIsPinned(isPinned)}
-                invertedColors={invertColors}
-              />
-            )}
-            {selectedModal && 
-              <ModalSheet
-                    isVisible={!!selectedModal}
-                    title={selectedTitle}
-                     onClose={() => {
-                      setSelectedModal(null);
-                      setSelectedTitle(null);
-                     }}                
-                     >
-                  {selectedModal}
-                  </ModalSheet>
-            }
-          </ScrollView>
-        </ScrollView>
-      )}
-      {/*</Pressable>*/}
-  </SignedIn>
-</View>
-
-  );
-};
-
-export default PostItBoard;
-
-
-
-
-/*
-
-  const handleReloadPosts = () => {
-    setLoading(true);
-    fetchRandomPosts();
-  };
-
-  const handleGatherPosts = () => {
-    //console.log("handleGatherPosts");
-    if (maps.length > 0) {
-      const ref = maps[maps.length - 1].coordinates;
-      const newPostsPostions = postsWithPosition.map((post) => ({
-        id: post.id,
-        coordinates: {
-          x_coordinate: ref.x_coordinate,
-          y_coordinate: ref.y_coordinate,
-        },
-      }));
-      setMap(newPostsPostions);
-      //console.log("new posts", newPostsPostions)
-    }
-  };
-
-  */
-
-
-  // CLOSING MODAL
-
-     /* if (selectedPost && !isPinned) {
-      const postId = selectedPost.id;
-      
-     
-      
-    //console.log("Post to remove", selectedPost.id, "tria;l", i)
-      setPostsWithPosition((prevPosts) => {
-        const updatePosts = prevPosts.filter((post) => post.id !== postId);
-       console.log(
-          "post id list", "\n\n", 
-          "Prev", prevPosts.map((p) => p.id), "\n\n",
-          "Post",  postsWithPosition.map((p) => p.id), "\n\n", 
-           "update", updatePosts.map((p) => p.id), "\n\n") 
-        return updatePosts;
-      });
-
-      setStacks((prevStacks) => {
-        const updatedStacks = prevStacks.map((stack) => ({
-          ...stack,
-          ids: stack.ids.filter((id: number) => id !== postId),
-        }));
-        return updatedStacks.filter((stack) => stack.ids.length > 1);
-      });
-
-      setMap((prevMap) => {
-        const updateMap = prevMap.filter((c) => c.id != postId);
-
-        return updateMap;
-      });
-
-      const existingPostIds = postsWithPosition.map((post) => post.id);
-
-      const newPost = await handleNewPostFetch(existingPostIds);
-
-      console.log("new post id", newPost.id)
-
-  
-        const newPostWithPosition: PostWithPosition = newPost;
-        setPostsWithPosition((prevPosts) => [
-          ...prevPosts,
-          newPostWithPosition,
-        ]);
-        updatePostPosition(0, 0, newPostWithPosition);
-      
-       
-      
-    }*/
-
-        /* ALTERNATIVE VERSION FOR SCROLLING
-        
-        <SignedIn>
-
-      {error ? (
-        <View className="flex-1 items-center justify-center">
-        <ColoreActivityIndicator text="There seems to be an error..." />
-        </View>
-      ) : (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <GestureDetector gesture={combinedGestures}>
-            <Animated.View 
-              style={[
-                { 
-                  flex: 1,
-                  width: '100%',
-                  height: '100%'
-                },
-                animatedStyle
-              ]}
-            >
-              <View style={{ 
-                width: screenWidth * 3, 
-                height: screenHeight * 3,
-                position: 'absolute',
-                left: -screenWidth, 
-                top: -screenHeight,
-                overflow: 'hidden'
-              }}>
-                {stacks.map(stack => {
-                  const hasPostsOnCurrentBoard = postsWithPosition.some((p) => 
-                    stack.ids.includes(p.id)
-                  );
-
-if (!hasPostsOnCurrentBoard) {
-  return null;
-}
-  return (
-  <StackCircle
-    key={stack.name}
-    stack={stack}
-    scrollOffset={scrollOffset}
-    isEditable={isEditable}
-    onViewPress={() => {
-       setSelectedPosts(stack.elements);
-    }
-    }
-    onEditPress={() => {
-      if (isEditable) {handleRenameStack(stack)}
-    
-
-    }}
-    onSendPress={() => {}}
-    enabledPan={() => setIsPanningMode(prev => !prev)}
-    stackMoving={() => setIsStackMoving(prev => !prev)}
-    updateStackPosition={(newX, newY, stack) => handleStackPosition(newX, newY, stack)}
-    />
-  )})}
-
-                {postsWithPosition.map(post => (
-                  <DraggablePostIt
-                    key={post.id}
-                    post={post}
-                    position={{
-                      top: post.position?.top ?? 0,
-                      left: post.position?.left ?? 0,
-                    }}
-                    updateIndex={() => reorderPost(post)}
-                    updatePosition={(dx, dy, post) => updatePostPosition(dx, dy, post)}
-                    onPress={() => handlePostPress(post)}
-                    showText={showPostItText}
-                    enabledPan={() => setIsPanningMode(prev => !prev)}
-                    zoomScale={zoomScale}
-                    scrollOffset={scrollOffset}
-                    disabled={isStackMoving}
-                    visibility={isStackMoving ? 0.5 : 1}
-                  />
-                ))}
+                  {/* Render standalone posts */}
+                  {postsWithPosition.map((post) => {
+                    if (allPostsInStack.includes(post)) return null;
+                    return (
+                      <DraggablePostIt
+                        key={post.id}
+                        post={post}
+                        position={{
+                          top: post.position.top,
+                          left: post.position.left,
+                        }}
+                        updateIndex={() => handleReorderPost(post)}
+                        updatePosition={(dx, dy) =>
+                          updatePostPosition(dx, dy, post)
+                        }
+                        onPress={() => handlePostPress(post)}
+                        showText={showPostItText}
+                        isViewed={excludeIds.includes(String(post.id))}
+                        enabledPan={() => setIsPanningMode((prev) => !prev)}
+                        zoomScale={zoomScale}
+                        scrollOffset={scrollOffset}
+                        disabled={isStackMoving}
+                        visibility={isStackMoving ? 0.5 : 1}
+                      />
+                    );
+                  })}
               </View>
-            </Animated.View>
-          </GestureDetector>
           
           {selectedPosts && (
             <PostModal
@@ -911,9 +634,13 @@ if (!hasPostsOnCurrentBoard) {
               {selectedModal}
             </ModalSheet>
           )}
-        </GestureHandlerRootView>
       )}
-    </SignedIn>
+        </ScrollView>
+        </ScrollView>
+  </SignedIn>
+  </Animated.View>
+</View>)
+    }
         
         
-        */
+      

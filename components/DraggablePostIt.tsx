@@ -1,24 +1,26 @@
-import { useGlobalContext } from "@/app/globalcontext";
-import { icons } from "@/constants";
-import { allColors } from "@/constants/colors";
-import { Post, PostWithPosition, Position, Stacks } from "@/types/type";
-import { useEffect, useRef, useState, useMemo } from "react";
-import PostIt from "@/components/PostIt";
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  Image,
-  PanResponder,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
-import { MappingPostitProps } from "@/types/type";
-import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
-import React from "react";
+
+  import { useGlobalContext } from "@/app/globalcontext";
+  import { icons } from "@/constants";
+  import { allColors } from "@/constants/colors";
+  import { Post, PostWithPosition, Position, Stacks } from "@/types/type";
+  import { useEffect, useRef, useState, useMemo } from "react";
+  import PostIt from "@/components/PostIt";
+  import {
+    Animated,
+    Dimensions,
+    Easing,
+    Image, 
+    PanResponder,
+    RefreshControl,
+    ScrollView,
+    Text,
+    TouchableWithoutFeedback,
+    View,
+  } from "react-native";
+  import { MappingPostitProps } from "@/types/type";
+  import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
+  import React from "react";
+import { fetchAPI } from "@/lib/fetch";
 
 interface DraggablePostItProps {
   post: PostWithPosition;
@@ -129,107 +131,125 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
         });
       }
     }
-  }, [stackRef?.center?.x, stackRef?.center?.y]);
+  }, [stackRef?.center.x, stackRef?.center.y]);
+  
+  
+  const handleSyncPosition = async (x: number, y: number) => {
+          try {
+            await fetchAPI(`/api/posts/updatePostPosition`, {
+              method: "PATCH",
+              body: JSON.stringify({
+                postId: post.id,
+                top: y,
+                left: x,
+              }),
+            });
+          } catch (err) {
+            console.error("Failed to update post position: ", err);
+          }
+  }
 
-  // Start drag animation - ALL animations will use JS driver
-  const startDragAnimation = () => {
-    playSoundEffect(SoundType.Button);
-    Animated.parallel([
-      Animated.spring(scale, {
-        toValue: 1.1,
-        useNativeDriver: false, // Changed to false
-      }),
-      Animated.spring(rotation, {
-        toValue: 0.05,
-        useNativeDriver: false, // Changed to false
-      }),
-      Animated.timing(shadowOpacity, {
-        toValue: 0.3,
-        duration: 200,
-        useNativeDriver: false, // Changed to false
-      }),
-    ]).start();
-  };
-
-  // End drag animation - ALL animations will use JS driver
-  const endDragAnimation = () => {
-    playSoundEffect(SoundType.Button);
-    Animated.parallel([
-      Animated.spring(scale, {
-        toValue: 1,
-        friction: 3,
-        tension: 40,
-        useNativeDriver: false, // Changed to false
-      }),
-      Animated.spring(rotation, {
-        toValue: 0,
-        friction: 3,
-        tension: 40,
-        useNativeDriver: false, // Changed to false
-      }),
-      Animated.timing(shadowOpacity, {
-        toValue: 0.2,
-        duration: 200,
-        useNativeDriver: false, // Changed to false
-      }),
-    ]).start();
-  };
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => !disabled,
-      onMoveShouldSetPanResponder: () => !disabled,
-
-      onPanResponderGrant: () => {
-        updateIndex();
-        if (isPinned) {
-          onPress();
-          return;
-        }
-        setIsDragging(true);
-        enabledPan();
-        animatedPosition.extractOffset();
-        startDragAnimation();
-      },
-
-      onPanResponderMove: (event, gestureState) => {
-        if (!isPinned) {
-          animatedPosition.setValue({
-            x: gestureState.dx,
-            y: gestureState.dy,
-          });
-
-          const rotate = gestureState.vx * 0.02;
-          rotation.setValue(rotate);
-        }
-      },
-
-      onPanResponderRelease: (event, gestureState) => {
-        if (isPinned) return;
-
-        animatedPosition.extractOffset();
-
-        // Compute displacement corrected for zoom
-        const correctedDx = gestureState.dx / zoomScale;
-        const correctedDy = gestureState.dy / zoomScale;
-
-        // Compute final new absolute position
-        const dx = accumulatedPosition.current.x + correctedDx - scrollOffset.x;
-        const dy = accumulatedPosition.current.y + correctedDy - scrollOffset.y;
-        const finalX = dx + position.left;
-        const finalY = dy + position.top;
-
-        // Save new accumulated position locally
-        accumulatedPosition.current = {
-          x: dx,
-          y: dy,
-        };
-
-        //console.log("Final position:", finalX, finalY, "Displacement:", dx, dy);
-
-        updatePosition(finalX, finalY, post); // (optional) update parent live if you want
+  
+    // Start drag animation - ALL animations will use JS driver
+    const startDragAnimation = () => {
+      playSoundEffect(SoundType.Button);
+      Animated.parallel([
+        Animated.spring(scale, {
+          toValue: 1.1,
+          useNativeDriver: false, // Changed to false
+        }),
+        Animated.spring(rotation, {
+          toValue: 0.05,
+          useNativeDriver: false, // Changed to false
+        }),
+        Animated.timing(shadowOpacity, {
+          toValue: 0.3,
+          duration: 200,
+          useNativeDriver: false, // Changed to false
+        }),
+      ]).start();
+    };
+  
+    // End drag animation - ALL animations will use JS driver
+    const endDragAnimation = () => {
+      playSoundEffect(SoundType.Button);
+      Animated.parallel([
+        Animated.spring(scale, {
+          toValue: 1,
+          friction: 3,
+          tension: 40,
+          useNativeDriver: false, // Changed to false
+        }),
+        Animated.spring(rotation, {
+          toValue: 0,
+          friction: 3,
+          tension: 40,
+          useNativeDriver: false, // Changed to false
+        }),
+        Animated.timing(shadowOpacity, {
+          toValue: 0.2,
+          duration: 200,
+          useNativeDriver: false, // Changed to false
+        }),
+      ]).start();
+    };
+ 
+    const panResponder = useRef(
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => !disabled,
+        onMoveShouldSetPanResponder: () => !disabled,
+    
+        onPanResponderGrant: () => {
+          updateIndex();
+          if (isPinned) {
+            onPress();
+            return;
+          }
+          setIsDragging(true);
+          enabledPan();
+          animatedPosition.extractOffset();
+          startDragAnimation();
+        },
+    
+        onPanResponderMove: (event, gestureState) => {
+          if (!isPinned) {
+            animatedPosition.setValue({
+              x: gestureState.dx,
+              y: gestureState.dy,
+            });
+    
+            const rotate = gestureState.vx * 0.02;
+            rotation.setValue(rotate);
+          }
+        },
+    
+        onPanResponderRelease: (event, gestureState) => {
+          if (isPinned) return;
+        
+          animatedPosition.extractOffset();
+        
+          // Compute displacement corrected for zoom
+          const correctedDx = (gestureState.dx) / zoomScale;
+          const correctedDy = (gestureState.dy) / zoomScale;
+        
+          // Compute final new absolute position
+          const dx = accumulatedPosition.current.x + correctedDx - scrollOffset.x;
+          const dy = accumulatedPosition.current.y + correctedDy - scrollOffset.y;
+          const finalX = dx + position.left;
+          const finalY = dy + position.top;
+          
+        
+          // Save new accumulated position locally
+          accumulatedPosition.current = {
+            x: dx,
+            y: dy,
+          };
 
         
+          updatePosition(finalX, finalY, post); 
+          handleSyncPosition(finalX, finalY)
+
+
           if (Math.abs(gestureState.dx) < clickThreshold && Math.abs(gestureState.dy) < clickThreshold) {
             onPress();
           }
@@ -241,7 +261,6 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       })
     ).current;
     
-  
   
     return (
       <Animated.View
@@ -262,7 +281,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
           position: "absolute",
           top: post.position.top,
           left: post.position.left,
-          shadowColor: fontColor,
+          shadowColor: post.pinned ? "#FFF" : fontColor,
           shadowOffset: {
             width: 0,
             height: isDragging ? 8 : 2,
@@ -271,6 +290,9 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
           shadowRadius: isDragging ? 12 : 4,
           elevation: isDragging ? 12 : 4,
           zIndex: disabled ? -1 : 999,
+          borderWidth: post.pinned ? 3 : 0,
+          borderColor: "#fff",
+          borderRadius: 20
         }}
       >
         {/* Rest of your component remains exactly the same */}
@@ -281,7 +303,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
         </TouchableWithoutFeedback>
         {isPinned && (
           <View className="absolute text-black h-full -top-2 -left-2">
-            <View className="p-3 rounded-full bg-[#fafafa] flex-row items-center justify-start">
+            <View className="p-3 rounded-full bg-[#fff] flex-row items-center justify-start">
               <Image 
                 source={icons.pin}
                 tintColor="black"
@@ -301,15 +323,14 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
           </View>
         )}
         {showText && (
-          <View className="absolute text-black w-full h-full items-center justify-center">
+          <View className="absolute w-full h-full items-center justify-center">
             <Text
-              className="text-base font-[500] text-black"
+              className="text-[18px] p-5 text-center font-JakartaSemiBold"
               style={{
                 color: fontColor,
-                padding: 18,
                 fontStyle: "italic",
               }}
-              numberOfLines={3}
+              numberOfLines={5}
               ellipsizeMode="tail"
             >
               {post.content}

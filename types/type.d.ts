@@ -437,7 +437,11 @@ type AlertProps = {
   color?: string;
 };
 
-type Position = { top: number; left: number };
+declare interface Position {
+  top: number;
+  left: number;
+  rotate?: string;
+}
 
 type RadioButtonProps = {
   label: string;
