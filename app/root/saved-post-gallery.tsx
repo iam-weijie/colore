@@ -32,7 +32,7 @@ const SavedPostGallery = () => {
       const savePostsResponse = await fetchAPI(`/api/posts/getUserSavedPosts?userId=${user!.id}`);
       const savedPosts = savePostsResponse.data;
 
-      if (savedPosts.length === 0) return []
+      if (name == "Saved Posts" && savedPosts.length === 0) return []
 
       const savedPostIds = savedPosts.map((p) => String(p.post_id))
 

@@ -15,6 +15,8 @@ export const colorMatch = (
   userSRB: [number, number, number],
   attempts: number
 ): { color: PostItColor | null; attempts: number; context?: string } => {
+
+  if (attempts === 0) return { color: null, attempts: 0, context: "You can no longer attempt to create a new color today. Come back tomorrow." }
   let closestColor: PostItColor | null = null;
   let bestDistance = Infinity;
   let bestContext: string | undefined;
@@ -49,11 +51,11 @@ export const colorMatch = (
       const advice: string[] = [];
 
       if (Math.abs(deltaS) > 2)
-        advice.push(deltaS > 0 ? "contribute more" : "reflect more");
+        advice.push(deltaS > 0 ? "contribute more" : "");
       if (Math.abs(deltaR) > 2)
-        advice.push(deltaR > 0 ? "customize more" : "simplify your posts");
+        advice.push(deltaR > 0 ? "customize more" : "");
       if (Math.abs(deltaB) > 2)
-        advice.push(deltaB > 0 ? "interact more" : "let others engage");
+        advice.push(deltaB > 0 ? "get more engagement on your posts" : "");
 
       const roundedDistance = Math.round(distance * 10) / 10;
 
@@ -65,7 +67,7 @@ export const colorMatch = (
 
   return {
     color: closestColor,
-    attempts: attempts - 1,
+    attempts: Math.max(0, attempts - 1),
     context: bestContext || "No close match found. Try again!"
   };
 };
