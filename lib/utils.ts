@@ -329,36 +329,36 @@ export function getRelativeTime(date: Date | string): string {
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) {
 
-    return `${minutes} minute${minutes > 1 && "s"} ago`;
+    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
   }
   
   // Hours (less than a day)
   const hours = Math.floor(minutes / 60);
   if (hours < 24) {
-    return `${hours} hour${hours > 1 && "s"} ago`;
+    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
   }
   
   // Days (less than a week)
   const days = Math.floor(hours / 24);
   if (days < 7) {
-    return `${days} day${days > 1 && "s"} ago`;
+    return `${days} day${days > 1 ? "s" : ""} ago`;
   }
   
   // Weeks (less than a month)
   const weeks = Math.floor(days / 7);
   if (weeks < 4) {
-    return `${weeks} week${weeks > 1 && "s"} ago`;
+    return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
   }
   
   // Months (less than a year)
   const months = Math.floor(days / 30);
   if (months < 12) {
-    return `${months} month${months > 1 && "s"} ago`;
+    return `${months} month${months > 1 ? "s" : ""} ago`;
   }
   
   // Years
   const years = Math.floor(days / 365);
-  return `${years} year${years > 1 && "s"} ago`;
+  return `${years} year${years > 1 ? "s" : ""} ago`;
 }
 
 /**

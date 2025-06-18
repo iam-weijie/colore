@@ -26,6 +26,7 @@ import {
 import { useNavigationContext } from "./NavigationContext";
 import { decryptText, encryptText } from "@/lib/encryption";
 import EmptyListView from "./EmptyList";
+import ColoreActivityIndicator from "./ColoreActivityIndicator";
 
 const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   posts,
@@ -91,7 +92,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
     if (!isLoading) return null;
     return (
       <View className="py-5 flex items-center justify-center">
-        <ActivityIndicator size="large" color="#93c5fd" />
+        <ColoreActivityIndicator />
       </View>
     );
   };
