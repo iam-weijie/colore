@@ -23,10 +23,12 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from "react-native";
 import { useNavigationContext } from "./NavigationContext";
 import { decryptText } from "@/lib/encryption";
 import { useDevice } from "@/app/contexts/DeviceContext";
+import { icons } from "@/constants";
 
 // Skeleton component for post loading states with faster animations
 const PostSkeleton = React.memo(() => (
@@ -258,7 +260,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
       allColors?.find((c) => c.id === item.color)?.hex || item.color;
     const isOwner = item.user_id === user?.id;
     const hasNewComments = isOwner && item.unread_comments > 0;
-    const isPinned = Boolean(item.pinned);
+    const isPinned = Boolean(item.pinned) && isOwnProfile;
 
     // Get consistent rotation angle for this post
     const rotationAngle = getRotationAngle(item.id);
@@ -288,7 +290,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
               style={{
                 borderRadius: 32,
                 backgroundColor,
-                borderColor: isPinned ? "#ffffff" : "#ffffff90",
+                borderColor: isPinned  ? "#ffffff" : "#ffffff90",
                 borderWidth: isPinned ? 3 : 2,
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
@@ -300,17 +302,13 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
               {/* Pin Icon */}
               {isPinned && (
                 <View 
-                  style={{
-                    position: "absolute",
-                    top: 10,
-                    right: 10,
-                    backgroundColor: "rgba(255,255,255,0.9)",
-                    borderRadius: 50,
-                    padding: 4,
-                    zIndex: 10,
-                  }}
+                className="absolute top-3 right-3 rounded-full bg-white p-2"
                 >
-                  <MaterialCommunityIcons name="pin" size={16} color="#000000" />
+                  <Image
+                  source={icons.pin}
+                  className="w-3 h-3"
+
+                  />
                 </View>
               )}
               <Text

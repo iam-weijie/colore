@@ -117,58 +117,38 @@ const UserPersonalBoard = () => {
 
   return (
     <View className="flex-1 bg-white">
-      <Header title="Boards" showBackButton={false} />
-      <View className="px-4 pb-3">
-        <View className="flex-row items-center gap-2 mt-2">
-          <View className="flex-1 flex-row items-center border rounded-lg border-gray-300 bg-gray-50 px-3 py-1">
-            <Ionicons name="search-outline" size={24} color="gray" />
-            <TextInput
-              placeholder="Search"
-              className="flex-1 ml-1 py-1 text-black"
-              value={searchText}
-              onChangeText={setSearchText}
-              autoCapitalize={"none"}
-            />
-            {searchText ? (
-              <TouchableOpacity onPress={handleClearSearch}>
-                <Ionicons
-                  name="close-outline"
-                  size={24}
-                  color="gray"
-                />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-          <TouchableOpacity
-            onPress={() => router.push("/root/new-board")}
-          >
-            <Ionicons name="add-circle" size={35} color={"#000"} />
-          </TouchableOpacity>
-        </View>
-      </View>
+  <Header 
+        title="Boards"
+        tabs={tabs}
+        selectedTab={selectedTab}
+        onTabChange={handleTabChange} 
+        tabCount={0}    />
 
-      {/* Tab navigation */}
-      <View className="flex-row px-4 py-1">
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab.key}
-            onPress={() => handleTabChange(tab.key)}
-            className={`flex items-center justify-center p-2 ${
-              selectedTab === tab.key ? "border-b-2 border-black" : ""
-            }`}
-            style={{ flex: 1 }}
-          >
-            <View className="flex-row items-center">
-              <View className="w-3 h-3 rounded-full mr-1" style={{ backgroundColor: tab.color }} />
-              <View>
-                <View className="flex flex-row">
-                  <Text className="text-black font-semibold">{tab.name}</Text>
-                </View>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
+            <View className=" z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 mx-6"
+        style={{
+          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
+          width: '90%',
+          marginTop: 24
+        }}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 pl-2 text-md "
+            placeholder="Looking for a specific board..?"
+             placeholderTextColor="#9CA3AF"
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
       
       {loading ? (
         <ColoreActivityIndicator />
