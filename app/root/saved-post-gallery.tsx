@@ -23,23 +23,15 @@ const SavedPostGallery = () => {
   const { posts, name } = useLocalSearchParams();
   const [savedPostsList, setSavedPostsList] = useState<Post[]>([]);
   const [update, setUpdate] = useState<boolean>(false);
-  const [savedPostsID, setSavedPostsID] = useState<string[]>(
-    typeof posts === "string" ? JSON.parse(posts) : posts
-  );
-  const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [refreshingKey, setRefreshingKey] = useState<number>(0);
 
-  const fetchPosts = async (ids: string[], currentPage: number = 0) => {
+  const fetchSavedPosts = async () => {
     try {
-      setIsLoading(true);
-      const response = await fetchAPI(`/api/posts/getPostsById?ids=${ids}&page=${currentPage}&limit=25`);
-      const postsData = response.data;
-      const pagination = response.pagination;
-      
-      setHasMore(pagination.hasMore);
-      
-      const sortedPosts = postsData.sort((a, b) => a.color.localeCompare(b.color));
+      const response = await fetchAPI(`/api/posts/getUserSavedPosts?userId=${user!.id}`);
+      const posts = response.data;
+
+      const sortedPosts = posts.sort((a, b) => a.color.localeCompare(b.color));
       return sortedPosts;
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -50,14 +42,9 @@ const SavedPostGallery = () => {
   };
 
   useEffect(() => {
-    const fetchSavedPosts = async () => {
-      // Reset when posts changes
-      setSavedPostsList([]);
-      setPage(0);
-      setHasMore(true);
-      
-      // Fetch first page of posts
-      const response = await fetchPosts(savedPostsID, 0);
+    const fetchPosts = async () => {
+      // Fetch all posts asynchronously
+      const response = await fetchSavedPosts();
 
       // Filter out null values (failed fetches)
       setSavedPostsList(
@@ -68,11 +55,11 @@ const SavedPostGallery = () => {
     };
 
     if (posts) {
-      fetchSavedPosts();
+      fetchPosts();
     }
   }, [posts, update]);
 
-  const handleLoadMore = async () => {
+  /*const handleLoadMore = async () => {
     if (isLoading || !hasMore) return;
     
     const nextPage = page + 1;
@@ -85,21 +72,18 @@ const SavedPostGallery = () => {
       ]);
       setPage(nextPage);
     }
-  };
+  };*/
 
-  const handleUpdate = (postId: number, isRemoved: boolean) => {
-    if (isRemoved) {
-      setSavedPostsID((prevPost) => prevPost.filter((id) => id != `${postId}`));
-    }
+  const handleUpdate = () => {
+    setRefreshingKey((prev) => prev + 1)
+  }; 
 
-    setUpdate(true);
-  };
 
   const handleClearSearch = () => {
     setQuery("");
   };
   return (
-    <View className="flex-1 bg-[#FAFAFA]">
+    <View className="flex-1 bg-[#FAFAFA]" key={refreshingKey}>
      <Header 
      title={Array.isArray(name) ? name.join(", ") : name}
      />
@@ -137,12 +121,12 @@ const SavedPostGallery = () => {
               posts={savedPostsList}
               profileUserId={user!.id}
               handleUpdate={(id, isRemoved) => {
-                handleUpdate(id, isRemoved);
+                handleUpdate();
               }}
               query={query}
-              onLoadMore={handleLoadMore}
+              //onLoadMore={handleLoadMore}
               isLoading={isLoading}
-              hasMore={hasMore}
+              //hasMore={hasMore}
               header={
                 <View className="w-screen px-8 flex flex-row items-center justify-between">
                   <View>

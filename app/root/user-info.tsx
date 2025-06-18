@@ -20,7 +20,7 @@ import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
-import { useAlert } from "@/notifications/AlertContext";
+import { useAlert } from '@/notifications/AlertContext';
 import CarouselPage from "@/components/CarrousselPage";
 import { PostItColor } from "@/types/type";
 import BoardGallery from "@/components/BoardGallery";
@@ -37,10 +37,8 @@ import { deriveKey } from "@/lib/encryption";
 const UserInfo = () => {
   const { playSoundEffect } = useSoundEffects();
   const { soundEffectsEnabled, setEncryptionKey } = useGlobalContext();
-
   const { user } = useUser();
   const { showAlert } = useAlert();
-
   const { userColors } = useGlobalContext();
 
   console.log(
@@ -53,7 +51,6 @@ const UserInfo = () => {
   );
 
   const [inputHeight, setInputHeight] = useState(40);
-
   const [discoverBoards, setDiscoverBoards] = useState<any>([]);
   const [joinedCommunities, setJoinedCommunities] = useState<string[]>([]);
 

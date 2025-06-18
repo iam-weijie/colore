@@ -821,6 +821,7 @@ const Settings = () => {
         </ModalSheet>
       )}
     </ScrollView>
+  
   );
 };
 
