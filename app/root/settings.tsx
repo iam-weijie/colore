@@ -38,7 +38,6 @@ import { Modal } from "react-native";
 const Settings = () => {
   const [infoVisible, setInfoVisible] = useState(false);
 
-
   const { signOut } = useAuth();
   const { user } = useUser();
   const [username, setUsername] = useState("");
@@ -612,81 +611,6 @@ const Settings = () => {
               <Text className="text-black text-sm font-JakartaSemiBold">ℹ️ What is SRB?</Text>
             </TouchableOpacity>
           </View>
-
-          {/* SRB Info Modal */}
-          <Modal visible={infoVisible} animationType="slide">
-            <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", padding: 24 }}>
-              <ScrollView showsVerticalScrollIndicator={false}>
-                <Text style={{ fontSize: 26, fontWeight: "700", marginBottom: 16 }}>
-                  🎨 SRB & Color Progress System
-                </Text>
-
-                <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>
-                  What is SRB?
-                </Text>
-                <Text style={{ fontSize: 15, marginBottom: 12 }}>
-                  SRB stands for:
-                  {"\n"}- S: Saved Posts
-                  {"\n"}- R: Reacted/Liked Posts
-                  {"\n"}- B: Beautification Actions (like profile customization)
-                </Text>
-
-                <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>
-                  How Do You Earn SRB Points?
-                </Text>
-                <Text style={{ fontSize: 15, marginBottom: 12 }}>
-                  - Every 3 saved posts ➜ +1 S
-                  {"\n"}- Every 10 liked posts ➜ +1 R
-                  {"\n"}- Every 5 customizations ➜ +1 B
-                </Text>
-
-                <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>
-                  How Are Colors Unlocked?
-                </Text>
-                <Text style={{ fontSize: 15, marginBottom: 12 }}>
-                  Each color in our system has a unique SRB combination (e.g., [2, 1, 1]).
-                  If your current SRB distribution matches any of them, you unlock that color!
-                </Text>
-
-                <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>
-                  Example:
-                </Text>
-                <Text style={{ fontSize: 15, marginBottom: 12 }}>
-                  If you have:
-                  {"\n"}- 6 saved posts ➜ S = 2
-                  {"\n"}- 11 likes ➜ R = 1
-                  {"\n"}- 5 customizations ➜ B = 1
-                  {"\n"}→ SRB = [2,1,1]
-                  {"\n"}If a color like "Ocean Breeze" matches this, it's added to your library!
-                </Text>
-
-                <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 6 }}>
-                  Why Unlock Colors?
-                </Text>
-                <Text style={{ fontSize: 15, marginBottom: 12 }}>
-                  Unlocking colors allows you to:
-                  {"\n"}- Use them in your profile, app themes, and badges
-                  {"\n"}- Track progress and achievements
-                  {"\n"}- Stand out with your unique palette!
-                </Text>
-
-                <TouchableOpacity
-                  onPress={() => setInfoVisible(false)}
-                  style={{
-                    backgroundColor: "#000",
-                    padding: 14,
-                    borderRadius: 12,
-                    alignItems: "center",
-                    marginTop: 16,
-                  }}
-                >
-                  <Text style={{ color: "#fff", fontWeight: "600" }}>Close</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </SafeAreaView>
-          </Modal>
-
-
 
 
           <View className="px-5 py-4">

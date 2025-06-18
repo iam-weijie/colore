@@ -110,19 +110,36 @@ export const handlePin = async (post: Post, isPinned: boolean, userId: string) =
   };
 
 export const handleSavePost = async (postId: number, isSaved: boolean, userId: string) => {
-      try {
-        await fetchAPI(`/api/users/updateUserSavedPosts`, {
+
+  if (isSaved) {
+     try {
+        await fetchAPI(`/api/posts/deleteSavedPost`, {
           method: "PATCH",
           body: JSON.stringify({
-            clerkId: userId,
+            userId: userId,
             postId: postId,
-            isSaved: isSaved,
           }),
         });
       } catch (error) {
         console.error("Failed to update unread message:", error);
       } 
-    };
+    }
+  else {
+    try {
+        await fetchAPI(`/api/posts/newSavedPost`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            userId: userId,
+            postId: postId,
+          }),
+        });
+      } catch (error) {
+        console.error("Failed to update unread message:", error);
+      } 
+  }
+
+  }
+
 
 export   const distanceBetweenPosts = (
         x_ref: number,
