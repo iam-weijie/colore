@@ -309,7 +309,7 @@ const stackUpdating = useRef(false); // Whether a stack update operation is in p
     else if (status && warning) {
        showAlert({
       title: 'Warning',
-      message: warning,
+      message: "warning",
       type: 'ERROR',
       status: 'error',
     });}
@@ -455,7 +455,7 @@ useEffect(() => {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center">
-        <ColoreActivityIndicator text="Summoning Bob..." />
+        <ColoreActivityIndicator />
       </View>
     );
   }
@@ -472,6 +472,7 @@ useEffect(() => {
     return (
       <View className="flex-1 items-center justify-center">
         <Text className="text-lg text-gray-600">No posts available</Text>
+        <ColoreActivityIndicator />
       </View>
     );
   }
@@ -482,7 +483,7 @@ useEffect(() => {
       <Animated.View
         style={[
           {
-            position: 'absolute',
+            position: 'relative',
             top: 0,
             left: 0,
             right: 0,
@@ -494,7 +495,8 @@ useEffect(() => {
       />
 
       <SignedIn>
-      {showMap && <Animated.View className="z-[9999]" entering={FadeIn.duration(300)} exiting={FadeOut.duration(400)}><ScrollMap 
+      {showMap && 
+        <ScrollMap 
           scrollOffset={{
             x: scrollOffset.x,
             y: scrollOffset.y
@@ -509,10 +511,10 @@ useEffect(() => {
             color: '#FFC757',
             size: 12
           }}
-          /></Animated.View>}
+          />}
         {error ? (
           <View className="flex-1 items-center justify-center">
-            <ColoreActivityIndicator text="There seems to be an error..." />
+            <ColoreActivityIndicator />
           </View>
         ) : (
           <ScrollView
@@ -636,11 +638,12 @@ useEffect(() => {
           )}
       )}
         </ScrollView>
-        </ScrollView>
+        </ScrollView>)}
   </SignedIn>
-  </Animated.View>
 </View>)
     }
+
+    export default PostItBoard;
         
         
       

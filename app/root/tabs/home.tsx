@@ -29,7 +29,7 @@ import * as Haptics from "expo-haptics";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useHaptics } from "@/hooks/useHaptics";
 
-export default function Page() {
+const Home = () => {
  const { playSoundEffect } = useSoundEffects()
  const { triggerHaptic } = useHaptics();
 
@@ -246,7 +246,7 @@ export default function Page() {
             </View>
           }
         />
-        <View className="absolute h-screen w-screen pt-3">
+        <View className=" h-screen w-screen ">
         <PostItBoard
           userId={user!.id}
           handlePostsRefresh={fetchPosts}
@@ -271,3 +271,5 @@ export default function Page() {
     </View>
   );
 }
+
+export default Home;

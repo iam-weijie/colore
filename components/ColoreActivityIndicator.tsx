@@ -1,102 +1,70 @@
-import React, { useEffect } from 'react';
-import { View, Text } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import React, { useEffect } from "react";
+import { View } from "react-native";
+import Svg, { Circle } from "react-native-svg";
 import Animated, {
   useSharedValue,
-  withTiming,
-  withRepeat,
-  useAnimatedStyle,
   useAnimatedProps,
-  interpolateColor,
+  withRepeat,
+  withTiming,
+  useDerivedValue,
   Easing,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const ColoreActivityIndicator = ({
-  text = 'Loading...',
-  size = 40,
-  strokeWidth = 6,
-  colors = ['#ffe640', '#FBB1F5', '#93c5fd', '#CFB1FB'],
+  size = 60,
+  dotSize = 5,
+  colors = ["#ffe640", "#FBB1F5", "#93c5fd"],
+  orbitRadius = 14,
 }: {
-  text?: string;
   size?: number;
-  strokeWidth?: number;
+  dotSize?: number;
   colors?: string[];
+  orbitRadius?: number;
 }) => {
-  const rotation = useSharedValue(0);
-  const colorProgress = useSharedValue(0);
+  const progress = useSharedValue(0); // Common time base
 
   useEffect(() => {
-    // Single smooth rotation
-    rotation.value = withRepeat(
-      withTiming(360, { duration: 2000, easing: Easing.linear }),
+    progress.value = withRepeat(
+      withTiming(1, { duration: 1500, easing: Easing.linear }),
       -1
     );
+  }, []);
 
-    // Simple color cycling
-    colorProgress.value = withRepeat(
-      withTiming(colors.length - 1, { duration: 3000, easing: Easing.linear }),
-      -1
-    );
-  }, [colors.length]);
+  const getDynamicAngle = (index: number) =>
+    useDerivedValue(() => {
+      const phaseOffset = index / 3;
+      const t = (progress.value + phaseOffset) % 1;
 
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
+      // Modulate spacing using sin wave
+      const spacingWave = Math.sin(progress.value * 2 * Math.PI); // -1 to 1
+      const dynamicOffset = (index * 0.25 + 0.05 * spacingWave * index) % 1; // vary angular gap
 
-  // Simplified arc props with just color animation
-  const getArcProps = (index: number) =>
-    useAnimatedProps(() => {
-      const colorIndex = (colorProgress.value + index) % colors.length;
-      const stroke = interpolateColor(
-        colorIndex,
-        colors.map((_, i) => i),
-        colors
-      );
-      
-      return { stroke };
+      const angle = 2 * Math.PI * ((progress.value + dynamicOffset) % 1);
+      return angle;
     });
 
-  const spinnerStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
-  // Simple dot animation - just vertical bounce
-  const getDotStyle = (index: number) =>
-    useAnimatedStyle(() => {
-      const phase = (rotation.value + index * 90) * (Math.PI / 180);
-      const translateY = Math.sin(phase) * 4;
-      
+  const getDotProps = (angleValue: Animated.SharedValue<number>, color: string) =>
+    useAnimatedProps(() => {
       return {
-        transform: [{ translateY }],
-        backgroundColor: colors[index % colors.length],
-        opacity: 0.6 + 0.4 * Math.sin(phase),
+        fill: color,
+        cx: size / 2 + orbitRadius * Math.cos(angleValue.value),
+        cy: size / 2 + orbitRadius * Math.sin(angleValue.value),
+        r: dotSize,
       };
     });
 
   return (
-    <View className="items-center justify-center space-y-3">
-      {/* Simplified spinner - 3 arcs with staggered colors */}
-      <Animated.View style={[{ width: size, height: size }, spinnerStyle]}>
-        <Svg width={size} height={size}>
-          {[0, 120, 240].map((angle, i) => (
-            <AnimatedCircle
-              key={i}
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              strokeWidth={strokeWidth}
-              strokeDasharray={`${circumference * 0.25} ${circumference}`}
-              strokeLinecap="round"
-              fill="none"
-              animatedProps={getArcProps(i)}
-              rotation={angle}
-              originX={size / 2}
-              originY={size / 2}
-            />
-          ))}
-        </Svg>
-      </Animated.View>
+    <View className="items-center justify-center">
+      <Svg width={size} height={size}>
+        {colors.map((color, index) => (
+          <AnimatedCircle
+            key={index}
+            animatedProps={getDotProps(getDynamicAngle(index), color)}
+          />
+        ))}
+      </Svg>
     </View>
   );
 };

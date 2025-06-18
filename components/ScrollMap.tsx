@@ -2,6 +2,7 @@ import { allColors } from '@/constants';
 import { PostWithPosition } from '@/types/type';
 import React, { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 interface PositionMarker {
   top: number;  // Absolute position in the scrollable content
@@ -61,7 +62,7 @@ const ScrollMap: React.FC<ScrollMapProps> = ({
   const showMarkers = posts.length < 25;
 
   return (
-    <View className="absolute self-center top-5 z-[9999]">
+    <Animated.View entering={FadeIn.duration(300)} exiting={FadeOut.duration(400)} className="absolute self-center z-[9999]" style={{ top: 20 }}>
       <View 
         className="rounded-full shadow-md"
         style={{
@@ -106,7 +107,7 @@ const ScrollMap: React.FC<ScrollMapProps> = ({
       </View>
 
 
-    </View>
+    </Animated.View>
   );
 };
 
