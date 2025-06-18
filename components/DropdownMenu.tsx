@@ -22,9 +22,16 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ icon, menuItems, customMenu
   const triggerRef = useRef<View>(null);
   const menuWidth = customMenuWidth ? customMenuWidth : 100;
   const isMounted = useRef(true);
+  const isMounted = useRef(true);
 
   const slideAnim = useRef(new Animated.Value(300)).current; // Slide down animation
   const opacityAnim = useRef(new Animated.Value(0)).current; // Background fade animation
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -122,13 +129,17 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ icon, menuItems, customMenu
             label={item.label} 
             icon={item.source} 
             colors={[item.color , item.color]} 
-            onPress={() => {
-                if (item.label !== "Share") {
-                    handleClose();
-                  }
-                 
-                
-                item.onPress();
+            onPress={() => {if (item.label === "Share" || item.label === "Pin" || item.label === "Unpin") {
+                  item.onPress();
+                  handleClose();
+                } else {
+                  // For other items, close the menu first
+                  handleClose();
+                  // Use setTimeout to ensure the menu is closed before executing onPress
+                  setTimeout(() => {
+                    item.onPress();
+                  }, 200);
+                }
               }}            />
               </View>
             

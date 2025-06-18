@@ -1,9 +1,12 @@
 import PostModal from "@/components/PostModal";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { allColors } from "@/constants/colors";
+import { formatDateTruncatedMonth, getRelativeTime, formatNumber } from "@/lib/utils";
 import { formatDateTruncatedMonth, getRelativeTime, formatNumber } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
+import { Link, useFocusEffect, useRouter } from "expo-router";
 import { Link, useFocusEffect, useRouter } from "expo-router";
 import Animated, {
   SlideInDown,
@@ -16,6 +19,8 @@ import * as Haptics from "expo-haptics";
 import { useHaptics } from "@/hooks/useHaptics";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -23,6 +28,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
   Image,
 } from "react-native";
 import { useNavigationContext } from "./NavigationContext";

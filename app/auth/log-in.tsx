@@ -6,7 +6,12 @@ import AppleSignIn from "@/components/AppleSignIn";
 import { Platform } from "react-native";
 import { icons, images } from "@/constants";
 import { useAuth, useSignIn, useUser } from "@clerk/clerk-expo";
+import { useAuth, useSignIn, useUser } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
+import { useCallback, useState, useEffect, useRef } from "react";
+import { Alert, Image, ScrollView, Text, View, ActivityIndicator } from "react-native";
+import { useDevice } from "@/app/contexts/DeviceContext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useCallback, useState, useEffect, useRef } from "react";
 import { Alert, Image, ScrollView, Text, View, ActivityIndicator } from "react-native";
 import { useDevice } from "@/app/contexts/DeviceContext";
@@ -18,6 +23,8 @@ import { encryptionCache } from "@/cache/encryptionCache";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { signOut, isSignedIn } = useAuth();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const { signOut, isSignedIn } = useAuth();
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
@@ -106,6 +113,7 @@ const LogIn = () => {
       
     } catch (err: any) {
       console.error("Raw login error:", err);
+      console.error("Raw login error:", err);
 
       if (err.errors?.[0]?.code === "session_exists") {
          showAlert({
@@ -122,6 +130,9 @@ const LogIn = () => {
         status: "error"
       })
       }
+    } finally {
+      setIsLoading(false);
+      setLoginState(LOGIN_STATES.READY);
     }
   }, [isLoaded, form, signIn, setActive, router, signOut, setEncryptionKey, user]);
 

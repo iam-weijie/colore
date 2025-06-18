@@ -1,4 +1,5 @@
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { icons } from "@/constants/index";
 import { allColors } from "@/constants/colors";
@@ -9,10 +10,13 @@ import {
   handlePin,
   handleShare,
   handleSavePost as libHandleSavePost,
+  handleSavePost as libHandleSavePost,
   fetchLikeStatus,
+  deletePost,
   deletePost,
 } from "@/lib/post";
 import { fetchAPI } from "@/lib/fetch";
+import { convertToLocal, formatDateTruncatedMonth, isValidDate } from "@/lib/utils";
 import { convertToLocal, formatDateTruncatedMonth, isValidDate } from "@/lib/utils";
 import {
   Post,
@@ -48,6 +52,7 @@ import {
   TouchableWithoutFeedback,
   View,
   Keyboard,
+  Keyboard,
 } from "react-native";
 import {
   Gesture,
@@ -61,6 +66,7 @@ import Animated, {
   BounceIn,
   BounceInDown,
   Easing,
+  FadeIn,
   FadeIn,
   FadeInUp,
   FadeOutDown,
@@ -83,6 +89,12 @@ import PostScreen from "@/app/root/post/[id]";
 import ItemContainer from "./ItemContainer";
 import EmojiBackground from "./EmojiBackground";
 import { RichText } from "./RichTextInput";
+import { decryptText } from "@/lib/encryption"; // Import decryptText
+import { useStacks } from "@/app/contexts/StacksContext";
+import { useDraftPost } from "@/app/contexts/DraftPostContext";
+import { useDevice } from "@/app/contexts/DeviceContext";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
+import { useUserDataContext } from "@/app/contexts/UserDataContext";
 import { decryptText } from "@/lib/encryption"; // Import decryptText
 import { useStacks } from "@/app/contexts/StacksContext";
 import { useDraftPost } from "@/app/contexts/DraftPostContext";
@@ -246,10 +258,23 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
   // Fetch like status when current post changes
   useEffect(() => {
     if (currentPost && user) {
+    if (currentPost && user) {
       getLikeStatus();
     }
   }, [currentPost, user]);
+  }, [currentPost, user]);
 
+  const getLikeStatus = useCallback(async () => {
+    if (!currentPost || !user) return;
+    
+    try {
+      const status = await fetchLikeStatus(currentPost.id, user.id);
+      setIsLiked(status.isLiked);
+      setLikeCount(status.likeCount);
+    } catch (error) {
+      console.error("Error fetching like status:", error);
+    }
+  }, [currentPost, user]);
   const getLikeStatus = useCallback(async () => {
     if (!currentPost || !user) return;
     
@@ -725,20 +750,16 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
   useEffect(() => {
     if (selectedPosts) {
       setTimeout(() => {
-        handleCapture(); // Capture content on first render when modal is visible
-      }, 800);
+        setShowEmojiModal(false);
+      }, 2000);
+      
+    } catch (error) {
+      console.error("Error interacting with post:", error);
+      setShowEmojiModal(false);
     }
-  }, [selectedPosts]);
-  useEffect(() => {
-    setTimeout(() => {
-      if (viewRef.current) {
-        viewRef.current.measure((x, y, width, height) => {
-          // console.log(x, y, width, height);
-        });
-      }
-    }, 500); // Small delay to ensure the view is ready
-  }, []);
+  }, [currentPost, user, soundEffectsEnabled, playSoundEffect]);
 
+  
 
   const backgroundColor = useSharedValue(
     postColor?.hex || "rgba(0, 0, 0, 0)"

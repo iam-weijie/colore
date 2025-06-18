@@ -22,6 +22,9 @@ import {
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
+import { useProfileContext } from "@/app/contexts/ProfileContext";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";

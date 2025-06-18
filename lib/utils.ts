@@ -22,7 +22,28 @@ export function formatTime(minutes: number): string {
  * @param rawDate The date to convert (Date object)
  * @returns A Date object in the user's local timezone
  */
+/**
+ * Converts a UTC date to the user's local timezone
+ * This function ensures the date is properly converted to the local timezone
+ * without applying the timezone offset twice
+ * 
+ * @param rawDate The date to convert (Date object)
+ * @returns A Date object in the user's local timezone
+ */
 export function convertToLocal(rawDate: Date): Date {
+  // Check if the date is valid before conversion
+  if (isNaN(rawDate.getTime())) {
+    console.warn('Invalid date provided to convertToLocal:', rawDate);
+    return new Date(); // Return current date as fallback
+  }
+  
+  try {
+    // Create a new date object from the ISO string to ensure proper timezone handling
+    return new Date(rawDate.toISOString());
+  } catch (error) {
+    console.error('Error in convertToLocal:', error);
+    return new Date(); // Return current date as fallback
+  }
   // Check if the date is valid before conversion
   if (isNaN(rawDate.getTime())) {
     console.warn('Invalid date provided to convertToLocal:', rawDate);

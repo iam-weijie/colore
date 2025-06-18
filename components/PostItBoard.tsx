@@ -1,4 +1,5 @@
 import { useStacks } from "@/app/contexts/StacksContext";
+import { useStacks } from "@/app/contexts/StacksContext";
 import DraggablePostIt from "./DraggablePostIt";
 import PostModal from "@/components/PostModal";
 import { Post, PostWithPosition, Stacks, PostItBoardProps, UserNicknamePair } from "@/types/type";
@@ -78,23 +79,94 @@ const [maps, setMap] = useState<MappingPostitProps[]>([]); // Rendered postit ma
 const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is currently being dragged
   const [keyboardVisible, setKeyboardVisible] = useState<boolean>(false);
   const [currentStack, setCurrentStack] = useState<Stacks>();
+  const [isPanningMode, setIsPanningMode] = useState(true);
+  const pendingStackSound = useRef(false);
 
-// 🧭 Navigation & Scroll Behavior
-const [isPanningMode, setIsPanningMode] = useState(true); // Whether user can pan the board
-const scrollViewRef = useRef<ScrollView>(null); // Reference to outer scroll view
-const innerScrollViewRef = useRef<ScrollView>(null); // Reference to inner scroll view
+  const { stacks, setStacks } = useStacks();
+  const stackUpdating = useRef(false)
+  const { playSoundEffect } = useSoundEffects();
 
-// 🔄 State for Refreshing and Lifecycle
-const [loading, setLoading] = useState(true); // Whether the initial data is still loading
-const [error, setError] = useState<string | null>(null); // Error state for fetching or rendering
-const [refreshing, setRefreshing] = useState(false); // Whether pull-to-refresh is active
-const { showAlert } = useAlert(); // Show alert to user
+  const scrollViewRef = useRef<ScrollView>(null);
+  const innerScrollViewRef = useRef<ScrollView>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-// 🔊 Sound and Stack Management
-const { stacks, setStacks } = useGlobalContext(); // Stack data shared globally
-const { playSoundEffect } = useSoundEffects(); // Play UI or feedback sounds
-const pendingStackSound = useRef(false); // Flag to prevent playing stack sound too frequently
-const stackUpdating = useRef(false); // Whether a stack update operation is in progress
+
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const lastScale = useSharedValue(1); // Track last scale value
+
+  // First, declare a shared value for initial position
+  const initialPositionX = useSharedValue(screenWidth);
+  const initialPositionY = useSharedValue(screenHeight/2);
+
+  // Update the pan gesture
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .onBegin(() => {
+      // Ensure we start from current position
+      translateX.value = 0;
+      translateY.value = 0;
+    })
+    .onUpdate((event) => {
+      if (!isPanningMode) return;
+      translateX.value = event.translationX;
+      translateY.value = event.translationY;
+    })
+    .onEnd((event) => {
+      if (!isPanningMode) return;
+      
+      // Update final position immediately to avoid rubber band
+      initialPositionX.value += event.translationX / scale.value;
+      initialPositionY.value += event.translationY / scale.value;
+      
+      // Update scroll offset for other components to use
+      setScrollOffset({
+        x: initialPositionX.value,
+        y: initialPositionY.value
+      });
+      
+      // Reset translation immediately without animation to prevent rubber band
+      translateX.value = 0;
+      translateY.value = 0;
+    });
+
+  const pinchGesture = Gesture.Pinch()
+    .runOnJS(true)
+    .onBegin(() => {
+      if (!isPanningMode) return;
+      // Save the current scale as our reference
+      lastScale.value = scale.value;
+    })
+    .onUpdate((event) => {
+      if (!isPanningMode) return;
+      // Calculate new scale based on lastScale and current gesture
+      const newScale = Math.max(0.6, Math.min(lastScale.value * event.scale, 1.2));
+      scale.value = newScale;
+      setZoomScale(newScale);
+    })
+    .onEnd(() => {
+      if (!isPanningMode) return;
+      // Store the final scale for the next gesture
+      lastScale.value = scale.value;
+    });
+
+  // Add double tap to reset zoom
+  const doubleTapGesture = Gesture.Tap()
+    .numberOfTaps(2)
+    .runOnJS(true)
+    .onEnd(() => {
+      if (!isPanningMode) return;
+      // Reset zoom to 1 with smooth animation
+      scale.value = withTiming(1, { duration: 250, easing: Easing.ease });
+      lastScale.value = 1;
+      setZoomScale(1);
+    });
+
+  const combinedGestures = Gesture.Simultaneous(
+    Gesture.Exclusive(doubleTapGesture, panGesture),
+    pinchGesture
+  );
 
 
 
