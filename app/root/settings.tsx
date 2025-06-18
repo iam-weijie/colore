@@ -1,7 +1,7 @@
 // Need to configure Email Verification & Update
 import { useNavigationContext } from "@/components/NavigationContext";
 import { icons } from "@/constants";
-import { allColors } from "@/constants/colors";
+import { allColors, defaultColors } from "@/constants/colors";
 import { fetchAPI } from "@/lib/fetch";
 import { PostItColor, UserProfileType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -37,6 +37,8 @@ import {
 import KeyboardOverlay from "@/components/KeyboardOverlay";
 import { SRBInfoPage, InformationInfoPage, YourActivityInfoPage, PreferencesInfoPage } from "@/components/InfoView";
 import { encryptionCache } from "@/cache/encryptionCache";
+import { calculateSRB, handleNewColor } from "@/hooks/useColors";
+import { colorMatch } from "@/lib/colorsystem";
 
 const Settings = () => {
   const {
@@ -48,6 +50,7 @@ const Settings = () => {
     setProfile,
     refreshProfile,
     userColors,
+    setUserColors,
     setEncryptionKey,
   } = useGlobalContext();
   const { playSoundEffect } = useSoundEffects(); // Use the sound hook
@@ -75,64 +78,59 @@ const Settings = () => {
   const [likedPosts, setLikedPosts] = useState<string[]>();
   const [libraryVisible, setLibraryVisible] = useState(false);
   const [colorLibrary, setColorLibrary] = useState<PostItColor[]>(
-    userColors || allColors
+    userColors || defaultColors
   );
-  const blueProgress = useMemo(
-    () => Math.min(100, Math.floor((savedPosts?.length || 0) / 3) * 20),
-    [savedPosts]
-  );
-  const yellowProgress = useMemo(
-    () => Math.min(100, Math.floor((likedPosts?.length || 0) / 10) * 20),
-    []
-  );
-  const pinkProgress = useMemo(
-    () =>
-      Math.min(
-        100,
-        Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
-      ),
-    []
-  );
-  const [unlockedColors, setUnlockedColors] = useState<PostItColor[]>([]);
-  const handleAttemptColorCreation = () => {
-    const S = Math.floor((savedPosts?.length || 0) / 3);
-    const R = Math.floor((likedPosts?.length || 0) / 10);
-    const B = Math.floor((profileUser?.customizations?.length || 0) / 5);
-    const userSRB = [S, R, B];
 
-    const matchedColor = colorLibrary.find(
-      (c) =>
-        c.SRB[0] === userSRB[0] &&
-        c.SRB[1] === userSRB[1] &&
-        c.SRB[2] === userSRB[2]
-    );
+  const [blueProgress, setBlueProgress] = useState<number>(0);
+  const [yellowProgress, setYellowProgress] = useState<number>(0);
+  const [pinkProgress, setPinkProgress] = useState<number>(0); 
+
+  const [remainingAttempts, setRemainingAttempts] = useState<number>(4);
+
+  const handleAttemptColorCreation = async () => {
+   
+    let matchedColor;
+    const { color, attempts, context } = colorMatch([blueProgress, pinkProgress, yellowProgress], remainingAttempts)
+
+    setRemainingAttempts(attempts)
+
+    if (color) { matchedColor = color }
+
 
     if (matchedColor) {
-      const alreadyUnlocked = unlockedColors.some(
-        (uc) => uc.id === matchedColor.name
+      const alreadyUnlocked = colorLibrary.some(
+        (uc) => uc.id === matchedColor.id
       );
 
       if (!alreadyUnlocked) {
-        setUnlockedColors((prev) => [...prev, matchedColor]);
-
+        setColorLibrary((prev) => [...prev, matchedColor]);
+      setUserColors((prev) => [...prev, matchedColor]);
+      
+      const { status } = await handleNewColor(user!.id, matchedColor);
+      
+        if (status == 200) {
         showAlert({
           title: "🎉 Color Unlocked!",
           message: `${matchedColor.name} has been added to your collection.`,
           type: "UPDATE",
-          status: "success"
+          status: "success",
+          color: matchedColor.hex
         });
+      }
+      
       } else {
         showAlert({
           title: "Already Unlocked",
           message: `You already have ${matchedColor.name}.`,
           type: "UPDATE",
           status: "warning",
+          color: matchedColor.hex
         });
       }
     } else {
       showAlert({
         title: "No Match",
-        message: "Your current SRB doesn't match any color. Try again later!",
+        message: context || "Your current SRB doesn't match any color. Try again later!",
         type: "ERROR",
         status: "error",
       });
@@ -153,13 +151,27 @@ const Settings = () => {
 
   const fetchSavedPosts = async () => {
     try {
-      const response = await fetchAPI(`/api/users/getUserInfo?id=${user!.id}`);
-      const data = response.data[0];
-      setSavedPosts(data.saved_posts);
+      const response = await fetchAPI(`/api/posts/getUserSavedPosts?userId=${user!.id}`);
+      const data = response.data;
+      if (data.length == 0 ) setSavedPosts([])
+        console.log("[]settings", response, data)
+      setSavedPosts(data.map((post: { post_id: string }) => post.post_id));
     } catch (error) {
       console.error("Failed to fetch saved post data:", error);
     }
   };
+
+  const getSRB = async () => {
+    try {
+    const result = await calculateSRB(user!.id, colorLibrary)
+   setBlueProgress(result.S);
+   setYellowProgress(result.B);
+   setPinkProgress(result.R);
+    } catch (error) {
+      console.error("failed to compute SRB", error)
+    }
+  }
+
 
   const fetchLikedPosts = async () => {
     try {
@@ -175,6 +187,7 @@ const Settings = () => {
 
   useEffect(() => {
     fetchLikedPosts();
+    getSRB()
   }, []);
 
   useEffect(() => {
@@ -489,7 +502,7 @@ const Settings = () => {
               {/* Blue Progress */}
               <View className="px-5 py-2">
                 <Text className="text-[14px] font-JakartaSemiBold text-gray-800 my-2">
-                  🔵 Blue Level
+                  Author Score (S)
                 </Text>
 
                 <ProgressBar
@@ -500,10 +513,24 @@ const Settings = () => {
                 />
               </View>
 
+              {/* Pink Progress */}
+              <View className="px-5 py-2">
+                <Text className="text-[14px] font-JakartaSemiBold text-gray-800 my-2">
+                  Creative Score (R)
+                </Text>
+
+                <ProgressBar
+                  progress={pinkProgress}
+                  height={12}
+                  progressColor="#FBB1F5"
+                  backgroundColor="#fafafa"
+                />
+              </View>
+
               {/* Yellow Progress */}
               <View className="px-5 py-2">
                 <Text className="text-[14px] font-JakartaSemiBold text-gray-800 my-2">
-                  🟡 Yellow Level
+                  Engagement Score (B)
                 </Text>
 
                 <ProgressBar
@@ -514,19 +541,7 @@ const Settings = () => {
                 />
               </View>
 
-              {/* Pink Progress */}
-              <View className="px-5 py-2">
-                <Text className="text-[14px] font-JakartaSemiBold text-gray-800 my-2">
-                  🩷 Pink Level
-                </Text>
-
-                <ProgressBar
-                  progress={pinkProgress}
-                  height={12}
-                  progressColor="#FBB1F5"
-                  backgroundColor="#fafafa"
-                />
-              </View>
+              <View className="mt-4">
               <ActionRow
                 icon={
                   <Image
@@ -551,10 +566,11 @@ const Settings = () => {
                   />
                 }
                 label="Attempt Create Color"
-                count={3}
+                count={remainingAttempts}
                 onPress={handleAttemptColorCreation}
                 accentColor="#CFB1FB"
               />
+              </View>
             </>
           }
           infoView={
@@ -808,6 +824,7 @@ const Settings = () => {
               contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
               showsVerticalScrollIndicator={false}
             />
+            <View className="w-full flex-row justify-center">
             <CustomButton
               className="my-2 w-[50%] h-14 self-center rounded-full shadow-none bg-black"
               fontSize="lg"
@@ -817,6 +834,7 @@ const Settings = () => {
                 setLibraryVisible(false);
               }}
             />
+            </View>
           </View>
         </ModalSheet>
       )}

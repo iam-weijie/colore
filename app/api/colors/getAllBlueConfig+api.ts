@@ -15,12 +15,12 @@ export async function GET(request: Request) {
 
     // Posts config
     const postMadeResult = await sql`
-      SELECT id FROM posts WHERE userId = ${userId};
+      SELECT id FROM posts WHERE user_id = ${userId};
     `;
     const postMadeIdList = postMadeResult.map((row) => row.id);
 
     const [postMadeCountResult, postReceivedCountResult] = await sql.transaction([
-      sql`SELECT COUNT(*)::int AS count FROM posts WHERE userId = ${userId}`,
+      sql`SELECT COUNT(*)::int AS count FROM posts WHERE user_id = ${userId}`,
       sql`SELECT COUNT(*)::int AS count FROM posts WHERE recipient_user_id = ${userId}`
     ]);
 
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
     // Boards config
     const [boardMadeResult, boardJoinedResult] = await sql.transaction([
-      sql`SELECT COUNT(*)::int AS count FROM boards WHERE userId = ${userId}`,
+      sql`SELECT COUNT(*)::int AS count FROM boards WHERE user_id = ${userId}`,
       sql`SELECT COUNT(*)::int AS count FROM boards WHERE members_id @> ARRAY[${userId}]::text[]`
     ]);
 
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
 
     // Prompt config
     const promptResult = await sql`
-      SELECT COUNT(*)::int AS count FROM prompts WHERE userId = ${userId};
+      SELECT COUNT(*)::int AS count FROM prompts WHERE user_id = ${userId};
     `;
     const totalPromptMade = promptResult[0]?.count || 0;
 

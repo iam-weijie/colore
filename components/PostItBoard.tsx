@@ -342,9 +342,6 @@ const stackUpdating = useRef(false); // Whether a stack update operation is in p
         setIsPanningMode(true);
   };
 
-  useEffect(() => {
-    fetchRandomPosts();
-  }, []);
   const handleOuterLayout = () => {
     scrollViewRef.current?.scrollTo({
       x: postsWithPosition[0].position.left ?? screenWidth / 2,

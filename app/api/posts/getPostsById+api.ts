@@ -17,6 +17,7 @@ export async function GET(request: Request) {
       );
     }
 
+    console.log("[getPostsById] ids: ", idsParam)
     // Convert to an array of numbers
     const ids = idsParam
       .split(",")
@@ -29,6 +30,7 @@ export async function GET(request: Request) {
       });
     }
 
+    
     // Get total count first
     const countResult = await sql`
       SELECT COUNT(*) as total
@@ -36,6 +38,7 @@ export async function GET(request: Request) {
       WHERE p.id = ANY(${ids}::int[])
     `;
     
+    console.log("[getPostsById] countResult: ", countResult)
     const total = parseInt(countResult[0].total);
     
     // Execute the query with pagination
@@ -49,12 +52,8 @@ export async function GET(request: Request) {
       LIMIT ${limit} OFFSET ${offset}
 
     `;
-    // console.log(
-    //   "pinned updated",
-    //   response.map((p) => {
-    //     return { id: p.id, pinned: p.pinned };
-    //   })
-    // );
+
+
     // Check if posts were found
     if (response.length === 0 && page === 0) {
     if (response.length === 0 && page === 0) {
@@ -62,6 +61,10 @@ export async function GET(request: Request) {
         status: 404,
       });
     }
+  }
+    
+
+  
 
     // Transform the response to match the Post interface
     const mappedPosts = response.map((post) => ({
@@ -108,7 +111,8 @@ export async function GET(request: Request) {
         hasMore
       }
     }), { status: 200 });
-  } catch (error) {
+  
+} catch (error) {
     console.error("Database error:", error);
     return new Response(JSON.stringify({ error: "Failed to fetch posts" }), {
       status: 500,

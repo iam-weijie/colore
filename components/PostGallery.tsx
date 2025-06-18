@@ -231,9 +231,6 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
           numColumns={isIpad ? 3 : 1}
-           ListEmptyComponent={
-                  <EmptyListView message={"MAKE MORE POSTS!"} character="rosie" mood={2} />
-              }
           showsVerticalScrollIndicator={false}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}

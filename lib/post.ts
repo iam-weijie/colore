@@ -127,7 +127,7 @@ export const handleSavePost = async (postId: number, isSaved: boolean, userId: s
   else {
     try {
         await fetchAPI(`/api/posts/newSavedPost`, {
-          method: "PATCH",
+          method: "POST",
           body: JSON.stringify({
             userId: userId,
             postId: postId,

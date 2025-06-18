@@ -7,7 +7,6 @@ import { neon } from "@neondatabase/serverless";
 // For now, it will only take the location
 export async function PATCH(request: Request) {
 
-  console.log("came here 1")
   try {
     const sql = neon(process.env.DATABASE_URL!);
     const {
@@ -18,6 +17,7 @@ export async function PATCH(request: Request) {
       username,
       nickname,
       incognito_name,
+      color,
       email,
       salt
     } = await request.json();
@@ -133,6 +133,13 @@ export async function PATCH(request: Request) {
           )
           RETURNING *;
         `;
+    } else if (color !== undefined) {
+      response = await sql`
+        UPDATE users
+        SET colors = ARRAY_APPEND(colors, ${color})
+        WHERE clerk_id = ${clerkId}
+        RETURNING *;
+        `
     } else if (salt !== undefined) {
         response = await sql`
          UPDATE users
@@ -153,9 +160,7 @@ export async function PATCH(request: Request) {
       throw new Error("Email is already taken.");
     }
 
-    return new Response(JSON.stringify({ data: response }), {
-      status: 200,
-    });
+    return new Response(JSON.stringify({ data: response,  status: 200 }));
   } catch (error: any) {
     console.error("Error updating user info:", error);
     // Check for username uniqueness violation

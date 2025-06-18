@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 
     // Step 5: Count liked posts
     const likedResult = await sql`
-      SELECT COUNT(*)::int AS count FROM liked_posts WHERE user_id = ${userId};
+      SELECT COUNT(*)::int AS count FROM post_likes WHERE user_id = ${userId};
     `;
     const totalLikedPost = likedResult[0]?.count ?? 0;
 

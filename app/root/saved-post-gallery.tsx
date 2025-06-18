@@ -27,11 +27,24 @@ const SavedPostGallery = () => {
   const [refreshingKey, setRefreshingKey] = useState<number>(0);
 
   const fetchSavedPosts = async () => {
-    try {
-      const response = await fetchAPI(`/api/posts/getUserSavedPosts?userId=${user!.id}`);
-      const posts = response.data;
 
-      const sortedPosts = posts.sort((a, b) => a.color.localeCompare(b.color));
+    try {
+      const savePostsResponse = await fetchAPI(`/api/posts/getUserSavedPosts?userId=${user!.id}`);
+      const savedPosts = savePostsResponse.data;
+
+      if (savedPosts.length === 0) return []
+
+      const savedPostIds = savedPosts.map((p) => String(p.post_id))
+
+      
+      let postIds = name == "Saved Posts" ? savedPostIds : JSON.parse(posts) as string[]
+      
+      const postResponse = await fetchAPI(`/api/posts/getPostsById?ids=${postIds}`)
+
+      console.log("[saved-post-gallery] : ", postResponse)
+      const postsData = postResponse.data
+
+      const sortedPosts = postsData.sort((a, b) => a.color.localeCompare(b.color));
       return sortedPosts;
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -88,7 +101,7 @@ const SavedPostGallery = () => {
      title={Array.isArray(name) ? name.join(", ") : name}
      />
       {savedPostsList.length > 0 ? (
-        <View className="flex-1 flex flex-column items-center px-6 pt-6">
+        <View className="flex-1 flex flex-column items-center px-4 pt-6">
             <View className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 "
         style={{
           boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
@@ -127,15 +140,6 @@ const SavedPostGallery = () => {
               //onLoadMore={handleLoadMore}
               isLoading={isLoading}
               //hasMore={hasMore}
-              header={
-                <View className="w-screen px-8 flex flex-row items-center justify-between">
-                  <View>
-                    <Text className="text-lg font-JakartaSemiBold">
-                      Most Recent
-                    </Text>
-                  </View>
-                </View>
-              }
             />
           </View>
         </View>
@@ -146,9 +150,11 @@ const SavedPostGallery = () => {
           </Text>
         </View>
       )}
-      <View className="absolute w-full flex-row items-center justify-between bottom-12  px-8 ">
-      <TouchableOpacity onPress={() => router.back()} className="p-4 rounded-full bg-white shadow-md ">
-          <AntDesign name="caretleft" size={18} />
+      <View className="absolute w-full flex-row items-center justify-center bottom-12  px-8 ">
+      <TouchableOpacity onPress={() => router.back()} className="p-5 rounded-full bg-white shadow-md ">
+          <Image 
+          source={icons.close}
+          className="w-5 h-5"/>
         </TouchableOpacity>
       </View>
     </View>

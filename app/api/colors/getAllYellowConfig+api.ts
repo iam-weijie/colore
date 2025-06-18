@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
     // Step 1: Get all post IDs made by the user
     const userPostsResult = await sql`
-      SELECT id FROM posts WHERE userId = ${userId};
+      SELECT id FROM posts WHERE user_id = ${userId};
     `;
     const postIds = userPostsResult.map((row) => row.id);
 
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
 
     // Step 4: Get all prompt IDs made by the user
     const userPromptsResult = await sql`
-      SELECT id FROM prompts WHERE userId = ${userId};
+      SELECT id FROM prompts WHERE user_id = ${userId};
     `;
     const promptIds = userPromptsResult.map((row) => row.id);
 

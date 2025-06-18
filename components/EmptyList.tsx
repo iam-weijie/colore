@@ -21,7 +21,7 @@ const EmptyListView: React.FC<EmptyListViewProps> = ({
   const selectedCharacter = characterMood[character]?.[mood] ?? null;
 
   return (
-    <View className="flex-1 flex-col items-center justify-center gap-6 px-8">
+    <View className="flex-1 bg-red-500 flex-col items-center justify-center gap-6 px-8">
       {selectedCharacter && (
         <Animated.Image
           entering={FadeInDown.duration(500)}
