@@ -20,6 +20,7 @@
   import { MappingPostitProps } from "@/types/type";
   import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
   import React from "react";
+import { fetchAPI } from "@/lib/fetch";
 
 interface DraggablePostItProps {
     post: PostWithPosition;
@@ -134,6 +135,20 @@ interface DraggablePostItProps {
   }, [stackRef?.center.x, stackRef?.center.y]);
   
   
+  const handleSyncPosition = async (x: number, y: number) => {
+          try {
+            await fetchAPI(`/api/posts/updatePostPosition`, {
+              method: "PATCH",
+              body: JSON.stringify({
+                postId: post.id,
+                top: y,
+                left: x,
+              }),
+            });
+          } catch (err) {
+            console.error("Failed to update post position: ", err);
+          }
+  }
 
   
     // Start drag animation - ALL animations will use JS driver
@@ -231,11 +246,11 @@ interface DraggablePostItProps {
             y: dy,
           };
 
-          //console.log("Final position:", finalX, finalY, "Displacement:", dx, dy);
         
-          updatePosition(finalX, finalY, post); // (optional) update parent live if you want
+          updatePosition(finalX, finalY, post); 
+          handleSyncPosition(finalX, finalY)
 
-        
+
           if (Math.abs(gestureState.dx) < clickThreshold && Math.abs(gestureState.dy) < clickThreshold) {
             onPress();
           }
@@ -247,7 +262,6 @@ interface DraggablePostItProps {
       })
     ).current;
     
-  
   
     return (
       <Animated.View
@@ -268,7 +282,7 @@ interface DraggablePostItProps {
           position: "absolute",
           top: post.position.top,
           left: post.position.left,
-          shadowColor: fontColor,
+          shadowColor: post.pinned ? "#FFF" : fontColor,
           shadowOffset: {
             width: 0,
             height: isDragging ? 8 : 2,
@@ -277,6 +291,9 @@ interface DraggablePostItProps {
           shadowRadius: isDragging ? 12 : 4,
           elevation: isDragging ? 12 : 4,
           zIndex: disabled ? -1 : 999,
+          borderWidth: post.pinned ? 3 : 0,
+          borderColor: "#fff",
+          borderRadius: 20
         }}
       >
         {/* Rest of your component remains exactly the same */}
@@ -287,7 +304,7 @@ interface DraggablePostItProps {
         </TouchableWithoutFeedback>
         {isPinned && (
           <View className="absolute text-black h-full -top-2 -left-2">
-            <View className="p-3 rounded-full bg-[#fafafa] flex-row items-center justify-start">
+            <View className="p-3 rounded-full bg-[#fff] flex-row items-center justify-start">
               <Image 
                 source={icons.pin}
                 tintColor="black"
@@ -307,15 +324,14 @@ interface DraggablePostItProps {
           </View>
         )}
         {showText && (
-          <View className="absolute text-black w-full h-full items-center justify-center">
+          <View className="absolute w-full h-full items-center justify-center">
             <Text
-              className="text-base font-[500] text-black"
+              className="text-[18px] p-5 text-center font-JakartaSemiBold"
               style={{
                 color: fontColor,
-                padding: 18,
                 fontStyle: "italic",
               }}
-              numberOfLines={3}
+              numberOfLines={5}
               ellipsizeMode="tail"
             >
               {post.content}

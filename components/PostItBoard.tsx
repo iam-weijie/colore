@@ -5,13 +5,9 @@ import { Post, PostWithPosition, Stacks, PostItBoardProps } from "@/types/type";
 import { SignedIn } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { 
-  EnhancedRandomPosition, 
-  cleanStoredPosition, 
   calculateBoardDimensions,
-  optimizePostPositions,
-  POSTIT_WIDTH,
-  POSTIT_HEIGHT
-} from "@/lib/utils";
+  getAllPositions
+} from "@/lib/algorithms/position";
 import {
   Dimensions,
   NativeScrollEvent,
@@ -26,14 +22,17 @@ import { useSoundEffects } from "@/hooks/useSoundEffects";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import React, { useEffect, useRef, useState } from "react";
 import { mappingPostIt, reorderPost } from '@/lib/postItBoard';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, FadeOut, FadeIn } from 'react-native-reanimated';
 import StackCircle from "./StackCircle";
 import ModalSheet from "./Modal";
 import RenameContainer from "./RenameContainer";
 import { updateStacks } from "@/lib/stack";
+import ScrollMap from "./ScrollMap";
+import { allColors } from "@/constants";
 
 const screenHeight = Dimensions.get("screen").height;
 const screenWidth = Dimensions.get("screen").width;
+const screenDimensions = {width: screenWidth, height: screenHeight };
 const COLOR_HEIGHT_TRIGGER = 80;
 const LOADING_TIMEOUT = 10000; // 10 seconds timeout for loading
 
@@ -48,34 +47,48 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   isEditable = true,
   randomPostion = true,
 }) => {
-  const [mapType, setMapType] = useState("satellite");
-  const [postsWithPosition, setPostsWithPosition] = useState<Post[]>([]);
-  const [standalonePosts, setStandalonePosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedPosts, setSelectedPosts] = useState<Post[] | null>(null);
-  const [excludeIds, setExcludeIds] = useState<string[]>([]);
-  const [selectedModal, setSelectedModal] = useState<any>(null);
-  const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
-  const [enableStacking, setEnableStacking] = useState(false);
-  const [forceMoveMap, setForceMoveMap] = useState<{ [postId: number]: { dx: number, dy: number } }>({});
-  const [isPinned, setIsPinned] = useState(false);
-  const [maps, setMap] = useState<MappingPostitProps[]>([]);
-  const [isPanningMode, setIsPanningMode] = useState(true);
-  const [isStackMoving, setIsStackMoving] = useState(false);
-  const [allPostsInStack, setAllPostsInStack] = useState<Post[]>([]);
+// 🗺️ Map and Zoom State
+const [mapType, setMapType] = useState("satellite"); // Map display type (e.g., satellite, standard)
+const [zoomScale, setZoomScale] = useState(1); // Current zoom scale level
+const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 }); // Scroll offset to track map movement
+const offsetY = useSharedValue(0); // Shared vertical scroll offset (Reanimated)
+const [showMap, setShowMap] = useState<boolean>(false); // Shows the map with the markers
+const scrollTimeout = useRef<NodeJS.Timeout | null>(null); // Time it takes for map to disappear after end of scrolling behaviour
+const previousOffset = useRef({ x: 0, y: 0 }); // Store previous scrollOffset
 
-  const { stacks, setStacks } = useGlobalContext();
-  const { playSoundEffect } = useSoundEffects();
+// 📍 Post Data and Selection
+const [postsWithPosition, setPostsWithPosition] = useState<Post[]>([]); // All posts with a board position
+const [standalonePosts, setStandalonePosts] = useState<Post[]>([]); // Posts that aren't in a stack
+const [selectedPosts, setSelectedPosts] = useState<Post[] | null>(null); // Posts currently selected by user
+const [excludeIds, setExcludeIds] = useState<string[]>([]); // Post IDs to exclude from render or logic
+const [selectedModal, setSelectedModal] = useState<any>(null); // Currently open modal (e.g., post preview)
+const [selectedTitle, setSelectedTitle] = useState<string | null>(null); // Optional selected post title
+const [allPostsInStack, setAllPostsInStack] = useState<Post[]>([]); // All posts currently grouped in a stack
 
-  const scrollViewRef = useRef<ScrollView>(null);
-  const innerScrollViewRef = useRef<ScrollView>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 });
-  const [zoomScale, setZoomScale] = useState(1);
-  const offsetY = useSharedValue(0);
-  const pendingStackSound = useRef(false);
-  const stackUpdating = useRef(false);
+// 🗃️ Stack and Mapping State
+const [enableStacking, setEnableStacking] = useState(false); // Toggle to allow posts to stack together
+const [isPinned, setIsPinned] = useState(false); // Whether current board view is pinned in place
+const [forceMoveMap, setForceMoveMap] = useState<{ [postId: number]: { dx: number, dy: number } }>({}); // Forces position offset for individual posts
+const [maps, setMap] = useState<MappingPostitProps[]>([]); // Rendered postit mapping information
+const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is currently being dragged
+
+// 🧭 Navigation & Scroll Behavior
+const [isPanningMode, setIsPanningMode] = useState(true); // Whether user can pan the board
+const scrollViewRef = useRef<ScrollView>(null); // Reference to outer scroll view
+const innerScrollViewRef = useRef<ScrollView>(null); // Reference to inner scroll view
+
+// 🔄 State for Refreshing and Lifecycle
+const [loading, setLoading] = useState(true); // Whether the initial data is still loading
+const [error, setError] = useState<string | null>(null); // Error state for fetching or rendering
+const [refreshing, setRefreshing] = useState(false); // Whether pull-to-refresh is active
+
+// 🔊 Sound and Stack Management
+const { stacks, setStacks } = useGlobalContext(); // Stack data shared globally
+const { playSoundEffect } = useSoundEffects(); // Play UI or feedback sounds
+const pendingStackSound = useRef(false); // Flag to prevent playing stack sound too frequently
+const stackUpdating = useRef(false); // Whether a stack update operation is in progress
+
+
 
   if (!userId) {
     return null;
@@ -104,7 +117,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       console.log("Posts fetched:", posts?.length || 0);
 
       // Calculate board dimensions based on post count
-      const boardDimensions = calculateBoardDimensions(posts.length);
+      const boardDimensions = calculateBoardDimensions(posts.length, screenDimensions);
+
+      console.log("Board Dimension: ", boardDimensions, posts.map((p) => p.position))
 
       let postsWithPositions: Array<Post> = [];
 
@@ -113,19 +128,23 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         // Use existing positions
         for (const post of posts) {
           const positionWithOffset = {
-            top: Number(post.position?.top ?? 0) + scrollOffset.y,
-            left: Number(post.position?.left ?? 0) + scrollOffset.x,
+            top: Number(post.position?.top ?? 0) - scrollOffset.y,
+            left: Number(post.position?.left ?? 0) - scrollOffset.x,
             rotate: `${Math.abs(Math.random() * 8)}deg`,
           };
           postsWithPositions.push({ ...post, position: positionWithOffset });
         }
       } else {
         // Use optimized positioning algorithm for better layout
-        const optimizedPosts = optimizePostPositions(posts, boardDimensions);
-        
-        for (const post of optimizedPosts) {
-          const iniX = post.position.left ?? 0 + scrollOffset.x;
-          const iniY = post.position.top ?? 0 + scrollOffset.y;
+        const optimizedPosition = getAllPositions(posts.length, boardDimensions);
+        console.log("board dimension: ", boardDimensions, "optimized position: ", optimizedPosition.length)
+
+        for (const pos of optimizedPosition) {
+          const index = optimizedPosition.indexOf(pos)
+          const post = posts[index]
+          const iniX = pos.left ?? 0;
+          const iniY = pos.top ?? 0;
+
           
           const positionWithOffset = {
             ...post.position,
@@ -133,10 +152,11 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             top: iniY,
           };
           
-          postsWithPositions.push({ ...post, position: positionWithOffset });
+          postsWithPositions.push({ ...posts[index], position: positionWithOffset });
           
+
           // Update position in backend if needed
-          if (!randomPostion && (post.position.top === 0 && post.position.left === 0)) {
+        if (!randomPostion && (post.position.top === 0 && post.position.left === 0)) {
             await fetchAPI(`/api/posts/updatePostPosition`, {
               method: "PATCH",
               body: JSON.stringify({
@@ -173,7 +193,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       setError("Failed to fetch new posts.");
     } finally {
       setLoading(false);
-      cleanStoredPosition();
     }
   };
 
@@ -219,22 +238,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       ...prevMap.filter((p) => p.id !== id),
       postItCoordinates,
     ]);
-
-    if (!randomPostion) {
-      pendingStackSound.current = true;
-      try {
-        await fetchAPI(`/api/posts/updatePostPosition`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            postId: post.id,
-            top: dy + scrollOffset.y,
-            left: dx + scrollOffset.x,
-          }),
-        });
-      } catch (err) {
-        console.error("Failed to update post position: ", err);
-      }
-    }
   };
 
   const handleReorderPost = (post: Post) => {
@@ -266,8 +269,10 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   };
 
   const handleCloseModal = () => {
-    setSelectedPosts(null);
-    setIsPanningMode(true);
+    setTimeout(() => {
+          setSelectedPosts(null);
+    }, 500)
+        setIsPanningMode(true);
   };
 
   const handleOuterLayout = () => {
@@ -316,9 +321,26 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   // --- EFFECTS ---
 
-  useEffect(() => {
-    fetchRandomPosts();
-  }, []);
+useEffect(() => {
+  // If the offset has changed, show the map
+  if (
+    scrollOffset.x !== previousOffset.current.x ||
+    scrollOffset.y !== previousOffset.current.y
+  ) {
+    setShowMap(true);
+    previousOffset.current = scrollOffset;
+
+    // Clear any previous timeout
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current);
+    }
+
+    // Set a timeout to hide map after 2.5s of no movement
+    scrollTimeout.current = setTimeout(() => {
+      setShowMap(false);
+    }, 1500);
+  }
+}, [scrollOffset]);
 
   useEffect(() => {
     if (maps.length > 1 && enableStacking && !stackUpdating.current) {
@@ -384,6 +406,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     );
   }
 
+
   return (
     <View className="flex-1 bg-[#FAFAFA]">
       <Animated.View
@@ -401,6 +424,22 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       />
 
       <SignedIn>
+      {showMap && <Animated.View className="z-[9999]" entering={FadeIn.duration(300)} exiting={FadeOut.duration(400)}><ScrollMap 
+          scrollOffset={{
+            x: scrollOffset.x,
+            y: scrollOffset.y
+          }}
+          
+          scrollableDimensions={{
+            width: calculateBoardDimensions(postsWithPosition.length, screenDimensions).width,
+            height: calculateBoardDimensions(postsWithPosition.length, screenDimensions).height
+          }} 
+          posts={postsWithPosition}
+          indicator={{
+            color: '#FFC757',
+            size: 12
+          }}
+          /></Animated.View>}
         {error ? (
           <View className="flex-1 items-center justify-center">
             <ColoreActivityIndicator text="There seems to be an error..." />
@@ -414,8 +453,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             maximumZoomScale={1.2}
             minimumZoomScale={0.6}
             contentContainerStyle={{
-              width: calculateBoardDimensions(postsWithPosition.length).width,
-              height: calculateBoardDimensions(postsWithPosition.length).height,
+              width: calculateBoardDimensions(postsWithPosition.length, screenDimensions).width + screenDimensions.width + 150,
+              height: calculateBoardDimensions(postsWithPosition.length, screenDimensions).height + screenDimensions.height
             }}
             scrollEnabled={isPanningMode}
             showsHorizontalScrollIndicator={false}
@@ -439,12 +478,13 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
               nestedScrollEnabled
               scrollEnabled={isPanningMode}
               contentContainerStyle={{
-                width: calculateBoardDimensions(postsWithPosition.length).width,
-                height: calculateBoardDimensions(postsWithPosition.length).height,
+              width: calculateBoardDimensions(postsWithPosition.length, screenDimensions).width + screenDimensions.width + 150,
+              height: calculateBoardDimensions(postsWithPosition.length, screenDimensions).height + screenDimensions.height
               }}
             >
               <View className="flex-1 w-full h-full relative">
-                <View className="relative flex-1">
+              
+
                   {/* Render stack circles */}
                   {stacks.map((stack) => {
                     const hasPosts = postsWithPosition.some((p) =>
@@ -493,7 +533,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                       />
                     );
                   })}
-                </View>
               </View>
 
               {/* Modals */}
