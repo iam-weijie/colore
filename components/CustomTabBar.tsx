@@ -279,9 +279,9 @@ const NavbarBackground = () => (
     C${width * 0.665} 0, ${width * 0.665} 0, ${width - 30} 0
     A30 30 0 0 1 ${width} 30
     V${height - 30}
-    A30 30 0 0 1 ${width - 30} ${height}
+    V30 30 0 0 1 ${width - 30} ${height}
     H30
-    A30 30 0 0 1 0 ${height - 30}
+    A30 30 0 0 1 0 ${height}
     V30
     A30 30 0 0 1 30 0
     Z

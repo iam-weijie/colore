@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Image, View, Text } from "react-native";
 import Animated, { BounceIn, FadeInDown } from "react-native-reanimated";
 import { characters, characterMood } from "@/constants";
@@ -18,7 +18,20 @@ const EmptyListView: React.FC<EmptyListViewProps> = ({
   message,
   subMessage,
 }) => {
+  const [shouldRender, setShouldRender] = useState(false);
   const selectedCharacter = characterMood[character]?.[mood] ?? null;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldRender(true);
+    }, 2000); // 2 seconds delay
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!shouldRender) {
+    return <View className="flex-1" />;
+  }
 
   return (
     <View className="flex-1 bg-red-500 flex-col items-center justify-center gap-6 px-8">
