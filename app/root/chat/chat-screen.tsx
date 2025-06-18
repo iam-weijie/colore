@@ -769,6 +769,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               </View>
             </View>
           </View>
+           </View>
         )}
       </View>
     </TouchableWithoutFeedback>
