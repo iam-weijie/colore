@@ -1,6 +1,6 @@
 import { PostModalProps } from "@/types/type";
 import { View, Modal, Animated, Easing, Dimensions, Pressable, Text, Platform } from "react-native";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PostContainer from "./PostContainer";
 
 const { height } = Dimensions.get('window');
@@ -19,39 +19,45 @@ const PostModal: React.FC<PostModalProps> = ({
 }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
 
   console.log("[PostModal] See Comment: ", seeComments)
+  
   useEffect(() => {
     if (isVisible) {
+      setIsAnimationComplete(false);
       // Slide up animation
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 300,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
-      }).start();
-      
-      // Fade in animation
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        // Fade in animation
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }).start(() => {
+          setIsAnimationComplete(true);
+        });
+      });
     } else {
-      // Slide down animation
-      Animated.timing(slideAnim, {
-        toValue: height,
-        duration: 250,
-        easing: Easing.in(Easing.ease),
-        useNativeDriver: true,
-      }).start();
-      
+      setIsAnimationComplete(false);
       // Fade out animation
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 150,
         useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        // Slide down animation
+        Animated.timing(slideAnim, {
+          toValue: height,
+          duration: 250,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: true,
+        }).start();
+      });
     }
   }, [isVisible]);
 
@@ -69,6 +75,8 @@ const PostModal: React.FC<PostModalProps> = ({
     statusBarTranslucent: true,
   } : {};
 
+  console.log("[Post Modal] is rendering")
+  
   return (
     <Modal
       visible={isVisible}
@@ -79,7 +87,7 @@ const PostModal: React.FC<PostModalProps> = ({
     >
       {/* Animated Background */}
       <Animated.View 
-      className="w-full h-full"
+        className="w-full h-full"
         style={[
           {
             flex: 1,
@@ -103,7 +111,8 @@ const PostModal: React.FC<PostModalProps> = ({
           android_ripple={Platform.OS === 'android' ? { color: 'rgba(0,0,0,0.1)' } : undefined}
         />
 
-        {/* Animated Content */}
+        {/* Only render PostContainer after animation completes */}
+        {isAnimationComplete && (
           <PostContainer 
             selectedPosts={selectedPosts} 
             handleCloseModal={handleCloseModal} 
@@ -115,6 +124,7 @@ const PostModal: React.FC<PostModalProps> = ({
             scrollToLoad={scrollToLoad} 
             seeComments={seeComments}
           />
+        )}
       </Animated.View>
     </Modal>
   )

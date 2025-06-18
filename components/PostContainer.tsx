@@ -563,7 +563,7 @@ const getMenuItems = (
     <AnimatedView
       ref={viewRef}
       className="flex-1 absolute w-screen h-screen justify-center"
-      //entering={FadeInUp.duration(300)}
+      entering={FadeInUp.duration(300)}
       style={[animatedBackgroundStyle]}
     >
       <TouchableWithoutFeedback onPress={() => handleCloseModal()}>

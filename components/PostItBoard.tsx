@@ -127,7 +127,6 @@ const stackUpdating = useRef(false); // Whether a stack update operation is in p
       // Calculate board dimensions based on post count
       const boardDimensions = calculateBoardDimensions(posts.length, screenDimensions);
 
-      console.log("Board Dimension: ", boardDimensions, posts.map((p) => p.position))
 
       let postsWithPositions: Array<Post> = [];
 
