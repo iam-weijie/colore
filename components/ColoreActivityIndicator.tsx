@@ -1,70 +1,100 @@
-import React, { useEffect } from "react";
-import { View } from "react-native";
-import Svg, { Circle } from "react-native-svg";
+import React, { useEffect } from 'react';
+import { View, Text } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import Animated, {
   useSharedValue,
-  useAnimatedProps,
-  withRepeat,
   withTiming,
-  useDerivedValue,
+  withRepeat,
+  useAnimatedStyle,
+  useAnimatedProps,
+  interpolateColor,
   Easing,
-} from "react-native-reanimated";
+} from 'react-native-reanimated';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const ColoreActivityIndicator = ({
-  size = 60,
-  dotSize = 5,
-  colors = ["#ffe640", "#FBB1F5", "#93c5fd"],
-  orbitRadius = 14,
+  text = 'Loading...',
+  size = 50,
+  strokeWidth = 6,
+  colors = ['#ffe640', '#FBB1F5', '#93c5fd', '#CFB1FB'],
 }: {
+  text?: string;
   size?: number;
-  dotSize?: number;
+  strokeWidth?: number;
   colors?: string[];
-  orbitRadius?: number;
 }) => {
-  const progress = useSharedValue(0); // Common time base
+  const rotation = useSharedValue(0);
+  const colorCycle = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = withRepeat(
-      withTiming(1, { duration: 1500, easing: Easing.linear }),
+    rotation.value = withRepeat(
+      withTiming(360, { duration: 2000, easing: Easing.linear }),
+      -1
+    );
+    colorCycle.value = withRepeat(
+      withTiming(colors.length, { duration: 4000, easing: Easing.linear }),
       -1
     );
   }, []);
 
-  const getDynamicAngle = (index: number) =>
-    useDerivedValue(() => {
-      const phaseOffset = index / 3;
-      const t = (progress.value + phaseOffset) % 1;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
 
-      // Modulate spacing using sin wave
-      const spacingWave = Math.sin(progress.value * 2 * Math.PI); // -1 to 1
-      const dynamicOffset = (index * 0.25 + 0.05 * spacingWave * index) % 1; // vary angular gap
+  const arcAngles = [0, 120, 240]; // rotation offsets
+  const arcLengthRatio = 0.25; // 25% of the circle
 
-      const angle = 2 * Math.PI * ((progress.value + dynamicOffset) % 1);
-      return angle;
+  const getArcProps = (index: number) =>
+    useAnimatedProps(() => {
+      const stroke = interpolateColor(
+        (colorCycle.value + index) % colors.length,
+        colors.map((_, i) => i),
+        colors
+      );
+
+      return {
+        stroke,
+      };
     });
 
-  const getDotProps = (angleValue: Animated.SharedValue<number>, color: string) =>
-    useAnimatedProps(() => {
+  const containerSpin = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  // Bouncing dots
+  const getDotStyle = (index: number) =>
+    useAnimatedStyle(() => {
+      const phase = (rotation.value + index * 120) * (Math.PI / 180);
       return {
-        fill: color,
-        cx: size / 2 + orbitRadius * Math.cos(angleValue.value),
-        cy: size / 2 + orbitRadius * Math.sin(angleValue.value),
-        r: dotSize,
+        transform: [{ translateY: Math.sin(phase) * 4 }],
+        opacity: 0.6 + 0.3 * Math.sin(phase),
+        backgroundColor: interpolateColor(
+          (colorCycle.value + index) % colors.length,
+          colors.map((_, i) => i),
+          colors
+        ),
       };
     });
 
   return (
-    <View className="items-center justify-center">
-      <Svg width={size} height={size}>
-        {colors.map((color, index) => (
-          <AnimatedCircle
-            key={index}
-            animatedProps={getDotProps(getDynamicAngle(index), color)}
+    <View className="items-center justify-center space-y-3">
+
+      {/* Bouncing dots */}
+      <View className="flex-row space-x-2 mt-1">
+        {[0, 1, 2].map((i) => (
+          <Animated.View
+            key={i}
+            style={[
+              {
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+              },
+              getDotStyle(i),
+            ]}
           />
         ))}
-      </Svg>
+      </View>
     </View>
   );
 };
