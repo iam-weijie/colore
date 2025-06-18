@@ -512,7 +512,7 @@ const getMenuItems = (
 
 
   const backgroundColor = useSharedValue(
-    postColor?.hex || "rgba(0, 0, 0, 0.5)"
+    postColor?.hex || "rgba(0, 0, 0, 0)"
   );
   const prevColor = useRef<string>(postColor?.hex || "rgba(0, 0, 0, 0.5)");
 
