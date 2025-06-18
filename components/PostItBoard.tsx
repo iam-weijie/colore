@@ -405,7 +405,7 @@ useEffect(() => {
     // Set a timeout to hide map after 2.5s of no movement
     scrollTimeout.current = setTimeout(() => {
       setShowMap(false);
-    }, 1500);
+    }, 800);
   }
 }, [scrollOffset]);
 

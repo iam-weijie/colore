@@ -62,7 +62,7 @@ const ScrollMap: React.FC<ScrollMapProps> = ({
   const showMarkers = posts.length < 25;
 
   return (
-    <Animated.View entering={FadeIn.duration(300)} exiting={FadeOut.duration(400)} className="absolute self-center z-[9999]" style={{ top: 20 }}>
+    <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(250)} className="absolute self-center z-[9999]" style={{ top: 20 }}>
       <View 
         className="rounded-full shadow-md"
         style={{
