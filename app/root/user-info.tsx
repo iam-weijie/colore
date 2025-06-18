@@ -43,15 +43,18 @@ const UserInfo = () => {
 
   const { userColors } = useGlobalContext();
 
-
-  console.log("[user-info]: ", allColors.length,  allColors.find((c) => c.id === "pink"))
+  console.log(
+    "[user-info]: ",
+    allColors.length,
+    allColors.find((c) => c.id === "pink")
+  );
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
     allColors.find((c) => c.id === "pink") as PostItColor
   );
 
   const [inputHeight, setInputHeight] = useState(40);
 
-  const [discoverBoards, setDiscoverBoards] = useState<any>();
+  const [discoverBoards, setDiscoverBoards] = useState<any>([]);
   const [joinedCommunities, setJoinedCommunities] = useState<string[]>([]);
 
   const [users, setUsers] = useState<any>();
@@ -95,7 +98,7 @@ const UserInfo = () => {
           throw new Error(response.error);
         }
       }
-      const salt = response.data[0].salt
+      const salt = response.data[0].salt;
       return response.data[0];
     } catch (error) {
       console.error("Failed to fetch user data:", error);
@@ -104,19 +107,23 @@ const UserInfo = () => {
 
   const fetchDiscoverBoards = async () => {
     try {
-      const response = await fetchAPI(`/api/boards/getDiscoverBoards?userId=${user!.id}`, {
-        method: "GET",
-      });
+      const response = await fetchAPI(
+        `/api/boards/getDiscoverBoards?userId=${user!.id}`,
+        {
+          method: "GET",
+        }
+      );
       if (response.error) {
         throw new Error(response.error);
       }
 
-     
       if (response.data) {
         const boardsWithColor = response.data.map(
           (board: any, index: number) => ({
             ...board,
-            color: defaultColors[Math.floor(Math.random() * defaultColors.length)].hex, // only assign if not already set
+            color:
+              defaultColors[Math.floor(Math.random() * defaultColors.length)]
+                .hex, // only assign if not already set
           })
         );
 
@@ -146,7 +153,6 @@ const UserInfo = () => {
       const data = response.data.filter((u) => u.username);
 
       setUsers(data);
-      
     } catch (error) {
       console.error("Failed to fetch users", error);
     }
@@ -200,7 +206,6 @@ const UserInfo = () => {
     incognito_name: userData.incognito_name || stateVars.incognito_name || "",
     userLocation: stateVars.userLocation || "",
   });
-
 
   const handleNavigateToCountry = () => {
     playSoundEffect(SoundType.Navigation);
@@ -427,7 +432,7 @@ const UserInfo = () => {
       caption:
         "Choose at least one. Find your people! We’ll suggest communities you might like.",
       color: "#CFB1FB",
-      disabled: joinedCommunities.length == 0,
+      disabled: discoverBoards.length != 0 && joinedCommunities.length == 0,
       children: (
         <View className="flex-1">
           <FlatList
