@@ -868,7 +868,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
                 </Text>
               )}
             </ScrollView>
-            {!isPreview || !isShowCasing&& (
+            {isPreview ? (<></>) : isShowCasing ? (<></>) : (
               <View className="my-2 flex-row justify-between items-center">
                 <View className="flex flex-row items-center">
                   <TouchableOpacity onPress={handleCommentsPress}>

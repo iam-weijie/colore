@@ -38,6 +38,7 @@ import { starringTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
 import ModalSheet from "@/components/Modal";
 
+
 const screenWidth = Dimensions.get("window").width;
 
 const CreateView = ({
@@ -98,6 +99,7 @@ export default function Page() {
   // Tutorial Logic
   const [skipIntro, setSkipIntro] = useState<boolean>(false);
   
+
     const fetchTutorialStatus = async () => {
       const isTutorialcompleted = await checkTutorialStatus("starring-1")
       setSkipIntro(isTutorialcompleted)
@@ -107,6 +109,7 @@ export default function Page() {
       return isCompleted
     }
     
+
   useEffect(() => {
   fetchTutorialStatus()
   }, [])

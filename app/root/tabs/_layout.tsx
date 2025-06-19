@@ -15,6 +15,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { transform } from '@babel/core';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useSoundEffects, SoundType } from '@/hooks/useSoundEffects';
+import { SignedIn } from '@clerk/clerk-expo';
 
 interface HapticTabBarButtonProps {
   children: React.ReactNode;
@@ -149,6 +150,7 @@ const Layout: React.FC = () => {
         : '-6px -3px 13px 3px rgba(250,230,64,0.25), 5px 4px 13px 3px rgba(147, 197, 253, 0.25)'));
 
   return (
+    <SignedIn>
 <Tabs
   tabBar={(props) => <CustomTabBar {...props} />}
   screenOptions={{
@@ -242,6 +244,7 @@ const Layout: React.FC = () => {
         }}
       />
     </Tabs>
+    </SignedIn>
   );
 };
 
