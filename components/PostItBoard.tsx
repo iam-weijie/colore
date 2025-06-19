@@ -1,5 +1,4 @@
 import { useStacks } from "@/app/contexts/StacksContext";
-import { useStacks } from "@/app/contexts/StacksContext";
 import DraggablePostIt from "./DraggablePostIt";
 import PostModal from "@/components/PostModal";
 import { Post, PostWithPosition, Stacks, PostItBoardProps, UserNicknamePair } from "@/types/type";
@@ -80,6 +79,8 @@ const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is curr
   const [keyboardVisible, setKeyboardVisible] = useState<boolean>(false);
   const [currentStack, setCurrentStack] = useState<Stacks>();
   const [isPanningMode, setIsPanningMode] = useState(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
   const pendingStackSound = useRef(false);
 
   const { stacks, setStacks } = useStacks();

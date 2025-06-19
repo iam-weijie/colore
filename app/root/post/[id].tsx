@@ -10,9 +10,6 @@ import { CommentItem } from "@/components/Comment";
 import { useReplyScroll } from "@/app/contexts/ReplyScrollContext";
 import { useDevice } from "@/app/contexts/DeviceContext";
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
-import { useReplyScroll } from "@/app/contexts/ReplyScrollContext";
-import { useDevice } from "@/app/contexts/DeviceContext";
-import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import {
   useFocusEffect,

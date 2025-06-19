@@ -161,7 +161,6 @@ export const deletePost = async (postId: number, userId: string) => {
     // The DELETE endpoint expects query parameters, not a request body
     const response = await fetchAPI(`/api/posts/deletePost?id=${postId}`, {
       method: "DELETE",
-      // No body needed as we're using query params
     });
     
     if (response && response.error) {
@@ -176,26 +175,6 @@ export const deletePost = async (postId: number, userId: string) => {
   }
 };
 
-export const deletePost = async (postId: number, userId: string) => {
-  try {
-    console.log("Attempting to delete post:", postId);
-    // The DELETE endpoint expects query parameters, not a request body
-    const response = await fetchAPI(`/api/posts/deletePost?id=${postId}`, {
-      method: "DELETE",
-      // No body needed as we're using query params
-    });
-    
-    if (response && response.error) {
-      console.error("Delete post API error:", response.error, response.details);
-      return { success: false, error: response.error };
-    }
-    
-    return { success: true };
-  } catch (error) {
-    console.error("Failed to delete post:", error);
-    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
-  }
-};
 
 export const distanceBetweenPosts = (
   x_ref: number,

@@ -1,12 +1,10 @@
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
-import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import PostGallery from "@/components/PostGallery";
 import { countries } from "@/constants/countries";
 import { allColors, defaultColors } from "@/constants/colors";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
-import { decryptText } from "@/lib/encryption";
 import { decryptText } from "@/lib/encryption";
 
 import axios from "axios";

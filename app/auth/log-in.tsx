@@ -6,12 +6,7 @@ import AppleSignIn from "@/components/AppleSignIn";
 import { Platform } from "react-native";
 import { icons, images } from "@/constants";
 import { useAuth, useSignIn, useUser } from "@clerk/clerk-expo";
-import { useAuth, useSignIn, useUser } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
-import { useCallback, useState, useEffect, useRef } from "react";
-import { Alert, Image, ScrollView, Text, View, ActivityIndicator } from "react-native";
-import { useDevice } from "@/app/contexts/DeviceContext";
-import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useCallback, useState, useEffect, useRef } from "react";
 import { Alert, Image, ScrollView, Text, View, ActivityIndicator } from "react-native";
 import { useDevice } from "@/app/contexts/DeviceContext";
@@ -20,11 +15,10 @@ import React from "react";
 import { fetchAPI } from "@/lib/fetch";
 import { useAlert } from "@/notifications/AlertContext";
 import { encryptionCache } from "@/cache/encryptionCache";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 const LogIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
-  const { signOut, isSignedIn } = useAuth();
-  const { user, isLoaded: isUserLoaded } = useUser();
   const { signOut, isSignedIn } = useAuth();
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
@@ -87,8 +81,6 @@ const LogIn = () => {
 
         // Derive and store encryption key
         const key = deriveKey(form.password, userSalt);
-        console.log("[DEBUG] Login - Derived key:", Boolean(key));
-        console.log("[DEBUG] Login - Key starts with:", key.substring(0, 5) + "...");
         
         setEncryptionKey(key);
         await encryptionCache.setDerivedKey(key);
@@ -102,11 +94,13 @@ const LogIn = () => {
             salt: userSalt
           })
         })
-           router.replace("/root/user-info");
+          
       } catch (error) {
         console.error("Failed to create user's salt", error)
       }
     }
+
+    router.replace("/root/user-info");
    
   }
 
@@ -132,7 +126,6 @@ const LogIn = () => {
       }
     } finally {
       setIsLoading(false);
-      setLoginState(LOGIN_STATES.READY);
     }
   }, [isLoaded, form, signIn, setActive, router, signOut, setEncryptionKey, user]);
 
@@ -204,7 +197,7 @@ const LogIn = () => {
           <View className="flex items-center w-full">
             {isLoading ? (
               <View className="w-[50%] h-16 mt-8 items-center justify-center">
-                <ActivityIndicator size="large" color="#6366f1" />
+                <ColoreActivityIndicator />
               </View>
             ) : (
                       <CustomButton

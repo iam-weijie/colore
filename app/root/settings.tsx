@@ -22,9 +22,6 @@ import {
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
-import { useSettingsContext } from "@/app/contexts/SettingsContext";
-import { useProfileContext } from "@/app/contexts/ProfileContext";
-import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
@@ -111,7 +108,6 @@ const Settings = () => {
 
       if (!alreadyUnlocked) {
         setColorLibrary((prev) => [...prev, matchedColor]);
-      setUserColors((prev) => [...prev, matchedColor]);
       
       const { status } = await handleNewColor(user!.id, matchedColor);
       
@@ -545,21 +541,6 @@ const Settings = () => {
                   backgroundColor="#fafafa"
                 />
               </View>
-
-              {/* Pink Progress */}
-              <View className="px-5 py-2">
-                <Text className="text-[14px] font-JakartaSemiBold text-gray-800 my-2">
-                  Creative Score (R)
-                </Text>
-
-                <ProgressBar
-                  progress={pinkProgress}
-                  height={12}
-                  progressColor="#FBB1F5"
-                  backgroundColor="#fafafa"
-                />
-              </View>
-
              
              {/* Yellow Progress */}
               <View className="px-5 py-2">

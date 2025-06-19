@@ -88,7 +88,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   const { showAlert } = useAlert();
   const { stateVars, setStateVars } = useNavigationContext();
   const { soundEffectsEnabled } = useSettingsContext();
-  const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects();
   const { handlePanGestureStateChange } = useSoundGesture(SoundType.Swipe);
 
@@ -107,15 +106,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   const [toRead, setToRead] = useState<[]>([]);
 
   // Friend List & Request constants
-  const {
-    friendList,
-    friendRequests: allFriendRequests,
-    nicknames,
-    loading: friendsLoading,
-    refreshFriends,
-    refreshFriendRequests,
-    refreshNicknames
-  } = useFriendsContext();
   const {
     friendList,
     friendRequests: allFriendRequests,

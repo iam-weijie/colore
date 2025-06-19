@@ -1,5 +1,4 @@
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
-import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
 import { icons } from "@/constants/index";
 import { allColors } from "@/constants/colors";
@@ -10,13 +9,10 @@ import {
   handlePin,
   handleShare,
   handleSavePost as libHandleSavePost,
-  handleSavePost as libHandleSavePost,
   fetchLikeStatus,
-  deletePost,
   deletePost,
 } from "@/lib/post";
 import { fetchAPI } from "@/lib/fetch";
-import { convertToLocal, formatDateTruncatedMonth, isValidDate } from "@/lib/utils";
 import { convertToLocal, formatDateTruncatedMonth, isValidDate } from "@/lib/utils";
 import {
   Post,
@@ -52,7 +48,6 @@ import {
   TouchableWithoutFeedback,
   View,
   Keyboard,
-  Keyboard,
 } from "react-native";
 import {
   Gesture,
@@ -66,7 +61,6 @@ import Animated, {
   BounceIn,
   BounceInDown,
   Easing,
-  FadeIn,
   FadeIn,
   FadeInUp,
   FadeOutDown,
@@ -89,18 +83,12 @@ import PostScreen from "@/app/root/post/[id]";
 import ItemContainer from "./ItemContainer";
 import EmojiBackground from "./EmojiBackground";
 import { RichText } from "./RichTextInput";
-import { decryptText } from "@/lib/encryption"; // Import decryptText
 import { useStacks } from "@/app/contexts/StacksContext";
 import { useDraftPost } from "@/app/contexts/DraftPostContext";
 import { useDevice } from "@/app/contexts/DeviceContext";
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useUserDataContext } from "@/app/contexts/UserDataContext";
-import { decryptText } from "@/lib/encryption"; // Import decryptText
-import { useStacks } from "@/app/contexts/StacksContext";
-import { useDraftPost } from "@/app/contexts/DraftPostContext";
-import { useDevice } from "@/app/contexts/DeviceContext";
-import { useSettingsContext } from "@/app/contexts/SettingsContext";
-import { useUserDataContext } from "@/app/contexts/UserDataContext";
+import { decryptText } from "@/lib/encryption";
 
 const { width, height } = Dimensions.get("window");
 
@@ -735,16 +723,12 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
 
 
 
-  // Capture the content as soon as the component mounts (first render)
   useEffect(() => {
     if (selectedPosts) {
       setTimeout(() => {
         setShowEmojiModal(false);
       }, 2000);
       
-    } catch (error) {
-      console.error("Error interacting with post:", error);
-      setShowEmojiModal(false);
     }
   }, [currentPost, user, soundEffectsEnabled, playSoundEffect]);
 
