@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
+  FlatList,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -73,6 +74,7 @@ const NewPost = () => {
   );
   const [isPosting, setIsPosting] = useState(false);
 
+  console.log("type: ", type)
   // need to get user's screen size to set a min height
   const screenHeight = Dimensions.get("screen").height;
 
@@ -92,7 +94,7 @@ const NewPost = () => {
       },
     },
     {
-      icon: icons.send,
+      icon: icons.add,
       label: "New Post",
       onPress: async () => {
         playSoundEffect(SoundType.Send)
@@ -217,52 +219,56 @@ Perfect for open discussions or quiet sharing.`,
         );
         setSelectedModalTitle("Comments");
       },
-    },
-    {
-      label: "# Notes",
-      caption: "Select how many notes can be displayed!",
-      restriction: ["4", "5", "6", "7", "8"],
-      icon: icons.globe,
-      iconColor: "#FAFAFA",
-      onPress: async () => {
-        playSoundEffect(SoundType.Tap)
-        setSelectedModal(
-          <NumberSelection minNum={4} maxNum={8} onSelect={handleMaxPost} />
-        );
-        setSelectedModalTitle("Maximum number of notes");
-      },
-    },
+    }
   ];
 
   const restrictionsCommunityBoard = [
     {
       label: "On invite only",
       caption: "Choose who can see you board.",
+      restriction: ["invite-needed", "public"],
       icon: icons.lock,
       iconColor: "#FAFAFA",
       onPress: () => {},
     },
     {
       label: "Location based",
-      caption: "Can you receive comments?",
+      caption: "Is it bound to people in a certain location?",
+      restriction: ["location-needed", ""],
       icon: icons.globe,
       iconColor: "#FAFAFA",
       onPress: () => {},
     },
     {
-      label: "Show notes",
-      caption: "Select how many notes can be displayed!",
-      icon: icons.album,
-      iconColor: "#FAFAFA",
-      onPress: () => {},
-    },
-    {
-      label: "Allow Anonymous Comments",
+      label: "Allow Comments",
       caption: "Can you receive comments?",
+      restriction: ["commentsAllowed", "commentsDisabled"],
       icon: icons.comment,
       iconColor: "#FAFAFA",
-      onPress: () => {},
-    },
+      onPress: async () => {
+        playSoundEffect(SoundType.Tap)
+        const restric = allRestricitons.find(
+          (r) => r.restriction === "comments"
+        );
+        if (!restric) {
+          return;
+        }
+        const cleanedOptions = restric.options.map((option) => {
+          return {
+            label: option.label === "commentsDisabled" ? "Disabled" : "Allowed",
+          };
+        });
+        setSelectedModal(
+          <UniqueSelection
+            options={cleanedOptions}
+            description={restric.description}
+            selected={selectedComments}
+            onSelect={handleSelectedRectriction}
+          />
+        );
+        setSelectedModalTitle("Comments");
+      },
+    }
   ];
 
   const handleSelectedRectriction = (option: string) => {
@@ -353,7 +359,6 @@ Perfect for open discussions or quiet sharing.`,
       }
     }
     if (selectedTab === "Description") {
-      console.log("text", text, text.length <= maxDescriptionCharacters);
       if (text.length <= maxDescriptionCharacters) {
         setBoardDescription(text);
       } else {
@@ -458,13 +463,9 @@ Perfect for open discussions or quiet sharing.`,
           >
             {selectedTab !== "Restriction" ? (
               <View className="flex-1 -mt-32">
-                <KeyboardAvoidingView
-                  behavior="padding"
-                  className="flex-1 flex w-full"
-                >
                   <View className="flex-1 flex-column justify-center items-center ">
                     <TextInput
-                      className=" text-[20px] text-center text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
+                      className=" text-[24px] text-center text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
                       placeholder={
                         selectedTab === "Title"
                           ? "Choose a name..."
@@ -478,7 +479,7 @@ Perfect for open discussions or quiet sharing.`,
                       onContentSizeChange={handleContentSizeChange}
                       autoFocus
                       scrollEnabled
-                      multiline={navigationIndex != 0}
+                      multiline={selectedTab !== "Title"}
                       style={{
                         paddingTop: 10,
                         paddingBottom: 0,
@@ -488,14 +489,24 @@ Perfect for open discussions or quiet sharing.`,
                       }}
                     />
                   </View>
-                </KeyboardAvoidingView>
               </View>
             ) : (
-              <View className="flex-1">
-                <ScrollView className="flex-1 mt-4 mx-6 py-6">
-                  {restrictionsPersonalBoard.map((item, index) => (
+              <View className="flex-1 ">
+                  <View className="flex-1 mx-6 bg-white items-center justify-center my-4 px-8 pt-12 mb-[140px] rounded-[64px] overflow-hidden">
+                <FlatList
+                  data={type == "personal" ? restrictionsPersonalBoard : restrictionsCommunityBoard}
+                  className="flex-1 w-full h-full"
+                  keyExtractor={(item, index) =>
+                    `restriction-${item.label}-${index}`
+                  }
+                  ListFooterComponent={
+
+                 <Text className=" font-JakartaBold text-[14px] text-black mt-6">
+                    {`Restrictions: ${boardRestriction.length} / 2`}
+                  </Text>
+                  }
+                  renderItem={({ item }) => (
                     <ItemContainer
-                      key={`restriction-${item.label}-${index}`}
                       label={item.label}
                       caption={item.caption}
                       icon={item.icon}
@@ -507,16 +518,14 @@ Perfect for open discussions or quiet sharing.`,
                           item.restriction.includes(r)
                         ) && icons.check
                       }
-                      iconColor={"#22c722"}
+                      iconColor="#22c722"
                       onPress={item.onPress}
                     />
-                  ))}
-                </ScrollView>
-                <View className="bottom-40  items-center justify-center">
-                  <Text className=" font-JakartaBold text-[14px] text-black">
-                    {`Restrictions: ${boardRestriction.length} / 3`}
-                  </Text>
-                </View>
+                  )}
+                  contentContainerStyle={{ alignItems: "center", justifyContent: "center" }}
+                  scrollEnabled={false} // disable scrolling if you're managing scroll elsewhere
+                />
+              </View>
               </View>
             )}
           </View>

@@ -235,8 +235,6 @@ export const handleSubmitPost = async (
   draftPost: Post,
   encryptionKey?: string | null
 ) => {
-  console.log("[DEBUG] Starting handleSubmitPost");
-  console.log("[DEBUG] Encryption key available:", Boolean(encryptionKey));
   
   if (!draftPost || draftPost.content.trim() === "") {
     console.log("ended up in an error");
@@ -297,15 +295,12 @@ export const handleSubmitPost = async (
           content: updateContent,
           color: draftPost.color,
           emoji: draftPost.emoji,
-          formatting: shouldEncrypt && encryptionKey && draftPost.formatting
-            ? encryptText(JSON.stringify(draftPost.formatting), encryptionKey)
-            : draftPost.formatting,
+          formatting: draftPost.formatting,
         }),
       });
       router.back();
       return "success";
     } else {
-      console.log("[DEBUG] Creating new post - preparing body");
       const body = {
         content: cleanContent,
         clerkId: userId,

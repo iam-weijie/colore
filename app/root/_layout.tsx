@@ -1,5 +1,6 @@
 import React from "react";
 import { Stack } from "expo-router";
+import { SignedIn } from "@clerk/clerk-expo";
 
 const Layout = () => {
   return (

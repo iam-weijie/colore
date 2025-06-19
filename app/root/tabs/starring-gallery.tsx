@@ -21,13 +21,9 @@ import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useDevice } from "@/app/contexts/DeviceContext";
 import { useStacks } from "@/app/contexts/StacksContext";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
-import CustomButton from "@/components/CustomButton";
-import InfoScreen from "@/components/InfoScreen";
 import EmojiBackground from "@/components/EmojiBackground";
-import { icons } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from "@/notifications/AlertContext";
-import { LinearGradient } from "expo-linear-gradient";
 import {
   RenderPromptCard,
 } from "@/components/RenderCard";
@@ -35,12 +31,6 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import CardCarrousel from "@/components/CardCarroussel";
 import StarringContainer from "@/components/StarringContainer";
-import {
-  convertToLocal,
-  formatDateTruncatedMonth,
-  getRelativeTime,
-} from "@/lib/utils";
-import { allColors } from "@/constants/colors";
 import PostGallery from "@/components/PostGallery";
 import { Ionicons } from "@expo/vector-icons";
 import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
@@ -440,6 +430,7 @@ export default function Page() {
   };
 
   return (
+    <SignedIn>
     <GestureHandlerRootView>
       <View className="flex-1 bg-[#FAFAFA]">
             <Header
@@ -505,5 +496,6 @@ export default function Page() {
         </ModalSheet>}
             </View>
     </GestureHandlerRootView>
+    </SignedIn>
   );
 }

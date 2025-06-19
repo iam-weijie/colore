@@ -30,7 +30,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState, useRef } from "react";
 
-import { icons } from "@/constants/index";
+import { allColors, icons } from "@/constants/index";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import {
   Alert,
@@ -232,8 +232,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         refreshNicknames()
       ]);
       
-      // Fetch conversations separately as before
-      await fetchConversations();
     } catch (err) {
       console.error("Error fetching friend data:", err);
       setError("Failed to load friend data");
@@ -255,7 +253,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   // RENDER LISTS ------ START
-  const renderConversationItem = ({
+  /* const renderConversationItem = ({
     item,
   }: {
     item: ConversationItem;
@@ -301,7 +299,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         </View>
       </View>
     </TouchableOpacity>
-  );
+  ); */
 
   const FriendItem = ({ item, loading, setShowDeleteIcon }) => {
     return (
@@ -478,7 +476,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     fetchFriendData();
   }, []);
 
-  console.log("Re-rendered");
   // console.log(conversations);
   // console.log("firends", friendList, "\n\nSent", allFriendRequests?.sent, "\n\nReceived", allFriendRequests?.received);
 
@@ -759,13 +756,19 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
     }
 
     let label = "";
+    let colors: [string, string] = ["#93c5fd", "#93c5fd"];
+    let baseColor = "";
 
     if (item.commenter_username) {
       label = `${item.commenter_username} commented a post`;
+      colors = ["#93c5fd", "#FBB1F5"];
     } else if (item.username) {
+      if (item.color) { baseColor = allColors.find((c) => c.id == item.color)?.hex ?? "93c5fd"}
       label = `${item.username} sent you a post`;
+      colors = [baseColor, baseColor];
     } else if (item.liker_username) {
       label = `${item.liker_username} liked your ${item.comment_id ? "comment" : "post"}`;
+      colors = ["#FF0000", "#FBB1F5"];
     }
 
     const fetchPosts = async (id: string) => {
@@ -782,12 +785,13 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
         return null;
       }
     };
+    console.log("notifItem: ", item)
 
     return (
       <ItemContainer
         label={label}
         caption={`${item.comment_content ?? item.content ?? item.post_content}`}
-        colors={["#93c5fd", "#93c5fd"]}
+        colors={colors}
         icon={
           item.commenter_username
             ? icons.comment

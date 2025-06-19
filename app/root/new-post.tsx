@@ -527,10 +527,6 @@ const NewPost = () => {
     },
   ];
 
-  const handleTabChange = (tabKey: string) => {
-    console.log("Tab changed to:", tabKey);
-    setSelectedTab(tabKey);
-  };
 
   const [selectedSetting, setSelectedSetting] = useState<string>("");
   const [userPosts, setUserPosts] = useState<Post[]>([]);

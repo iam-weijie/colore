@@ -46,7 +46,6 @@ const Profile = React.memo(() => {
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
 
-  console.log("[Profile] arg: ", userId, username, postId, commentId, tab )
 
   const fetchPost = useCallback(async (id: string) => {
     try {
@@ -199,23 +198,19 @@ const Profile = React.memo(() => {
     setIsUserSettingsVisible(false);
   }, []);
 
-  const handleOpenUserSettings = useCallback(() => {
-    setIsUserSettingsVisible(true);
-  }, []);
+  const handleNewPost = useCallback(() => {
+    const pathname = "root/new-post" 
+    const params = { recipientId: user!.id, username: "Yourself",}
+    router.push({ pathname, params });
+  }, [userId, username]);
 
   const handleGoBack = useCallback(() => {
     router.back();
   }, []);
 
-  const handleGoToChat = useCallback(() => {
-    router.push({
-      pathname: "/root/chat/conversation",
-      params: {
-        clerkId: userId,
-        username: username,
-      },
-    });
-  }, [userId, username]);
+  const handleOpenSettings = useCallback(() => {
+   setIsUserSettingsVisible(true);
+  }, [userId, username, friendStatus]);
 
   useEffect(() => {
     refreshUserData();
@@ -227,7 +222,6 @@ const Profile = React.memo(() => {
   }, [getFriendStatus, fetchPost, postId, refreshUserData]);
 
   const navigationControls = useMemo(() => {
-    if (userId !== user?.id) {
       return [
         {
           icon: icons.back,
@@ -235,38 +229,18 @@ const Profile = React.memo(() => {
           onPress: handleGoBack,
         },
         {
-          icon: icons.user,
-          label: "Friend",
-          onPress: handleOpenUserSettings,
+          icon: icons.pencil,
+          label: "New Post",
+          onPress: handleNewPost,
           isCenter: true,
         },
         {
-          icon: icons.chat,
-          label: "Message",
-          onPress: handleGoToChat,
+          icon: icons.settings,
+          label: "Settings",
+          onPress: handleOpenSettings,
         },
       ];
-    } else {
-      return [
-        {
-          icon: icons.back,
-          label: "Back",
-          onPress: handleGoBack,
-        },
-        {
-          icon: icons.user,
-          label: "User",
-          onPress: handleOpenUserSettings,
-          isCenter: true,
-        },
-        {
-          icon: icons.chat,
-          label: "Message",
-          onPress: handleGoToChat,
-        },
-      ];
-    }
-  }, [userId, user, handleGoBack, handleOpenUserSettings, handleGoToChat]);
+  }, [userId, user, handleGoBack]);
 
   const UserSettings = useMemo(() => {
     const options = [];
@@ -276,28 +250,33 @@ const Profile = React.memo(() => {
         options.push({
           label: "Add Friend",
           onPress: handleSendFriendRequest,
+          icon: icons.addUser,
           disabled: isHandlingFriendRequest,
         });
       } else if (friendStatus === FriendStatus.SENT) {
         options.push({
           label: "Cancel Friend Request",
           onPress: handleCancelFriendRequest,
+          icon: icons.close,
           disabled: isHandlingFriendRequest,
         });
       } else if (friendStatus === FriendStatus.FRIENDS) {
         options.push({
           label: "Unfriend",
           onPress: handleUnfriend,
+          icon: icons.removeUser,
           disabled: isHandlingFriendRequest,
         });
         options.push({
           label: "Add Nickname",
+          icon: icons.add,
           onPress: handleAddNickname,
         });
       }
 
       options.push({
         label: "Report",
+        icon: icons.email,
         onPress: handleReportPress,
       });
     }
@@ -306,7 +285,7 @@ const Profile = React.memo(() => {
       <ModalSheet
         isVisible={isUserSettingsVisible}
         onClose={handleCloseUserSettings}
-        title={`${username || "User"} ${nickname ? `(${nickname})` : ""}`}
+        title={"Settings"}
       >
         <View className="flex flex-col w-full items-center justify-center p-4 gap-y-3">
           {options.map((option, index) => (
@@ -314,7 +293,7 @@ const Profile = React.memo(() => {
               key={index}
               label={option.label}
               caption={option.disabled ? "Processing..." : ""}
-              icon={icons.user}
+              icon={option.icon}
               colors={["#93c5fd", "#b8e1ff"]}
               iconColor="#000"
               onPress={option.onPress}
@@ -341,13 +320,13 @@ const Profile = React.memo(() => {
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
-      <CustomButtonBar buttons={navigationControls} />
       <UserProfile
         userId={userId}
         friendStatus={friendStatus}
         nickname={nickname}
         tab={tab}
       />
+      {user!.id != userId && <CustomButtonBar buttons={navigationControls} />}
       {UserSettings}
       {post && (
         <PostModal

@@ -159,7 +159,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
   useEffect(() => {
     if (post.length) {
       // Filter out any invalid posts
-      const validPosts = post.filter(p => p && typeof p === 'object' && p.id);
+      const validPosts = post.filter(p => p && typeof p === 'object');
       
       if (validPosts.length !== post.length) {
         console.warn("[DEBUG] PostContainer - Filtered out invalid posts:", post.length - validPosts.length);
@@ -782,6 +782,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
       ? JSON.parse(currentPost.formatting)
       : (currentPost?.formatting ?? []);
 
+      console.log("content: ", currentPost?.content)
   return (
     <AnimatedView
       ref={viewRef}
@@ -867,7 +868,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
                 </Text>
               )}
             </ScrollView>
-            {!isPreview && (
+            {!isPreview || !isShowCasing&& (
               <View className="my-2 flex-row justify-between items-center">
                 <View className="flex flex-row items-center">
                   <TouchableOpacity onPress={handleCommentsPress}>

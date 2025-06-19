@@ -30,25 +30,15 @@ import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
-  Alert,
-  Image,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
 import Animated, {
-  SlideInDown,
-  SlideInUp,
-  FadeInDown,
   FadeIn,
 } from "react-native-reanimated";
-import ColorGallery from "./ColorGallery";
-import DropdownMenu from "./DropdownMenu";
-import TabNavigation from "./TabNavigation";
 import { useAlert } from "@/notifications/AlertContext";
-import Circle from "./Circle";
 import Settings from "@/app/root/settings";
 import BoardGallery from "./BoardGallery";
 import PostContainer from "./PostContainer";
@@ -100,8 +90,6 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   const { showAlert } = useAlert();
   const { encryptionKey } = useEncryptionContext();
   const { personalBoards, communityBoards } = useBoardsContext();
-  const { friendList, refreshFriends } = useFriendsContext();
-  const { savedPosts, refreshUserData } = useUserDataContext();
 
   const isEditable = useMemo(() => user!.id === userId, [user, userId]);
 
@@ -144,7 +132,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   const [profileLoading, setProfileLoading] = useState(true);
   const [emojiLoading, setEmojiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [profileUser, setProfileUser] = useState<UserProfileType | null | undefined>(
+  const [userProfile, setUserProfile] = useState<UserProfileType | null | undefined>(
     isEditable ? profile : null
   );
   const [countryEmoji, setCountryEmoji] = useState<string>("");
@@ -176,8 +164,8 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   const [disableInteractions, setDisableInteractions] = useState<boolean>(false);
 
   const Flag = useMemo(() => 
-    countries[(profileUser?.country || "Canada") as keyof typeof countries]
-  , [profileUser?.country]);
+    countries[(userProfile?.country || "Canada") as keyof typeof countries]
+  , [userProfile?.country]);
 
   const fetchFriendCount = useCallback(async () => {
     if (user!.id === userId) {
@@ -250,40 +238,6 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     };
   }, [userId]); // Re-initialize cache when user changes
   
-  // Define a complete Post object matching all required properties with all the required fields
-  const defaultPost = {
-    id: 0, // Use 0 instead of negative ID
-    clerk_id: userId,
-    user_id: userId,
-    firstname: "",
-    username: "",
-    content: "Hi, I am a new Colore User!",
-    created_at: new Date().toISOString(), // Valid date string
-    expires_at: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-    city: "",
-    state: "",
-    country: "",
-    like_count: 0,
-    report_count: 0,
-    unread_comments: 0,
-    recipient_user_id: "",
-    pinned: true,
-    color: "yellow",
-    emoji: "",
-    notified: true,
-    prompt_id: 0, // Use 0 instead of negative ID
-    prompt: "",
-    board_id: 0,
-    reply_to: 0, // Use 0 instead of negative ID
-    // Adding missing required properties
-    nickname: "",
-    incognito_name: "",
-    available_at: new Date().toISOString(), // Valid date string
-    static_emoji: false,
-    formatting: [],
-    formatting_encrypted: "",
-    unread: false 
-  } as unknown as Post;
 
   // Function to decrypt posts and cache the results
   const decryptPosts = useCallback((postsToDecrypt: Post[]) => {
@@ -376,7 +330,6 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     if (postsPreloaded && postsDecrypted) return;
     
     try {
-      console.log("[DEBUG] UserProfile - Preloading posts for user:", userId);
       const response = await fetchAPI(
         `/api/posts/getUserPosts?id=${userId}&page=0`,
         { method: "GET" }
@@ -389,7 +342,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
       const { userInfo, posts, pagination } = response as UserData;
       
       // Process and decrypt posts
-      setProfileUser(userInfo);
+      setUserProfile(userInfo);
       
       // Decrypt posts if encryption key is available
       const processedPosts = encryptionKey ? decryptPosts(posts) : posts;
@@ -479,7 +432,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         return;
       }
       
-      setProfileUser(userInfo);
+      setUserProfile(userInfo);
       setTotalPosts(pagination?.total || userInfo.total_posts || posts.length);
       
       // Decrypt new posts and merge them with existing posts
@@ -727,69 +680,60 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
 
   // Updated empty posts view with different messages for self vs other profiles
   const EmptyPostsView = () => {
-    // Check if viewing own profile or someone else's
-    const isOwnProfile = user!.id === userId;
+
+   // Check if viewing own profile or someone else's
+  const isOwnProfile = user!.id === userId;
+
+  // Define a complete Post object matching all required properties with all the required fields
+  const defaultPost = {
+    id: 0, // Use 0 instead of negative ID
+    clerk_id: userId,
+    user_id: userId,
+    firstname: "",
+    username: "",
+    content: 
+    isOwnProfile ? `You have no pinned posts yet. \n\nPinned posts will appear here.
+    Create a personal post and pin it with the three dots (⋯) at the bottom right of the post view!\nShare things about yourself with your friends!
+
+      ` : 
+      `Hi, I'm a new Coloré user! \n\nI haven't pinned any posts to my profile yet.
+      `,
+    created_at: new Date().toISOString(), // Valid date string
+    expires_at: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+    city: "",
+    state: "",
+    country: "",
+    like_count: 0,
+    report_count: 0,
+    unread_comments: 0,
+    recipient_user_id: "",
+    pinned: false,
+    color: "yellow",
+    emoji: "",
+    notified: true,
+    prompt_id: -1, // Use 0 instead of negative ID
+    prompt: "",
+    board_id: -1,
+    reply_to: 0, // Use 0 instead of negative ID
+    // Adding missing required properties
+    nickname: "",
+    incognito_name: "",
+    available_at: new Date().toISOString(), // Valid date string
+    static_emoji: false,
+    formatting: [],
+    unread: false 
+  } as unknown as Post;
+   
     
-    if (isOwnProfile) {
-      // For user's own profile
-      return (
-        <View className="flex items-center justify-center p-10 pt-14 bg-white/80 rounded-3xl">
-          <Text className="font-JakartaSemiBold text-gray-700 text-center mb-2">
-            No pinned posts yet
-          </Text>
-          <Text className="font-Jakarta text-gray-500 text-center mb-4">
-            Pinned posts will appear here. Create a personal post and pin it with 
-            the three dots (⋯) at the bottom right of the post view!
-            
-            Share things about yourself with your friends!
-          </Text>
-          <TouchableOpacity 
-            onPress={() => {
-              // Navigate to create a personal post
-              // Using the same pattern as in create.tsx for personal notes
-              router.push({
-                pathname: '/root/new-post',
-                params: { 
-                  recipientId: user!.id,
-                  username: 'Yourself',  // This is what create.tsx uses
-                  postType: 'personal'   // This parameter is used in handleSubmitPost
-                }
-              });
-            }}
-            className="bg-purple-400 py-3 px-6 rounded-full mt-2"
-          >
-            <Text className="font-JakartaSemiBold text-white text-center">
-              Create a Personal Post
-            </Text>
-          </TouchableOpacity>
-        </View>
-      );
-    } else {
-      // For viewing other user's profile
-      return (
-        <View className="flex items-center justify-center p-10 pt-14 bg-white/80 rounded-3xl">
-          <Text className="font-JakartaSemiBold text-gray-700 text-center mb-2">
-            Hi, I'm a new Coloré user!
-          </Text>
-          <Text className="font-Jakarta text-gray-500 text-center mb-4">
-            I haven't pinned any posts to my profile yet.
-          </Text>
-          {friendNickname ? (
-            <View className="bg-gray-200 py-3 px-6 rounded-full mt-2">
-              <Text className="font-Jakarta text-gray-600 text-center">
-                {friendNickname}'s pinned posts will appear here
-              </Text>
-            </View>
-          ) : profileUser?.username ? (
-            <View className="bg-gray-200 py-3 px-6 rounded-full mt-2">
-              <Text className="font-Jakarta text-gray-600 text-center">
-                {profileUser.username}'s pinned posts will appear here
-              </Text>
-            </View>
-          ) : null}
-        </View>
-      );
-    }
+   return (
+    
+                <PostContainer
+                  selectedPosts={[defaultPost]}
+                  handleCloseModal={() => {}}
+                  isShowCasing={true}
+                />
+      
+   )
   };
 
   return (
@@ -807,13 +751,13 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
                 <Flag width={32} height={32} />
               </View>
               <View>
-                {friendNickname || profileUser?.username ? (
+                {friendNickname || userProfile?.username ? (
                   <Text className={`text-xl font-JakartaBold`}>
                     {friendNickname
                       ? friendNickname
-                      : profileUser?.username
-                        ? `${friendStatus === FriendStatus.RECEIVED || friendStatus === FriendStatus.FRIENDS ? profileUser?.nickname || profileUser?.username : profileUser?.username}`
-                        : `${profileUser?.firstname?.charAt(0)}.`}{" "}
+                      : userProfile?.username
+                        ? `${friendStatus === FriendStatus.RECEIVED || friendStatus === FriendStatus.FRIENDS ? userProfile?.nickname || userProfile?.username : userProfile?.username}`
+                        : `${userProfile?.firstname?.charAt(0)}.`}{" "}
                   </Text>
                 ) : (
                   <Text
@@ -822,13 +766,13 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
                     Username
                   </Text>
                 )}
-                {profileUser ? (
+                {userProfile ? (
                   <View className="max-w-[200px]">
                     <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
-                      {profileUser?.city == profileUser?.state
+                      {userProfile?.city == userProfile?.state
                         ? ""
-                        : `${profileUser?.city}, `}{" "}
-                      {profileUser?.country}
+                        : `${userProfile?.city}, `}{" "}
+                      {userProfile?.country}
                     </Text>
                   </View>
                 ) : (
@@ -876,9 +820,8 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
 
       {selectedTab === "Profile" && (
         <View className="flex-1">
-          {!profileLoading ? (
-            <View className={`absolute ${personalPosts.length > 0 ? "-top-[20%]" : "top-[5%]"}`}>
-              {personalPosts.length > 0 ? (
+            <View className={`absolute -top-[20%]`}>
+              {!profileLoading && personalPosts.length > 0 ? (
                 <PostContainer
                   selectedPosts={personalPosts}
                   handleCloseModal={() => {}}
@@ -888,16 +831,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
                 <EmptyPostsView />
               )}
             </View>
-          ) : (
-            <View className={`absolute -top-[20%]`}>
-              <PostContainer
-                selectedPosts={[post]}
-                handleCloseModal={() => {}}
-                isPreview={disableInteractions}
-              />
             </View>
-          )}
-        </View>
       )}
 
       {selectedTab === "Posts" && (
@@ -954,7 +888,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
             {selectedTab === "Communities" && <View className="flex-1 pt-4">
             <BoardGallery 
               boards={communityBoards}
-              offsetY={120} />
+              offsetY={0} />
             </View>}
 
             {selectedTab === "Settings" && (

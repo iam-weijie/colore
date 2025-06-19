@@ -25,7 +25,7 @@ declare interface Post {
   unread_comments: number;
   recipient_user_id: string;
   pinned: boolean;
-  color: string; //String for now. Should be changed to PostItColor
+  color: string;
   emoji: string;
   notified: boolean;
   prompt_id: number;

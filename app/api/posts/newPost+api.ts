@@ -33,21 +33,6 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log("Creating new post with data:", {
-      content,
-      clerkId,
-      color,
-      emoji,
-      expires_at,
-      available_at,
-      static_emoji,
-      postType,
-      recipientId,
-      promptId,
-      boardId,
-      formatting,
-    });
-
     // Fix 1: Use a template literal for the interval
     // Fix 2: Handle null emoji properly
     // Fix 3: Ensure proper parenthesis placement
@@ -58,7 +43,7 @@ export async function POST(request: Request) {
       INSERT INTO posts 
         (user_id, content, like_count, report_count, post_type, recipient_user_id, color, emoji, expires_at, available_at, static_emoji, prompt_id, board_id, unread, formatting)
       VALUES 
-        (${clerkId}, ${content}, 0, 0, ${postType}, ${recipientId}, ${color}, ${emoji}, ${expires_at}, ${available_at}, ${static_emoji}, ${promptId}, ${boardId}, ${unread}, ${formattingArray})
+        (${clerkId}, ${content}, 0, 0, ${postType}, ${recipientId}, ${color}, ${emoji}, ${expires_at}, ${available_at}, ${static_emoji}, ${promptId}, ${boardId}, ${unread}, ${formatting})
       RETURNING 
         id,
         user_id, 

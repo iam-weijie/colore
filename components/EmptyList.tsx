@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Image, View, Text } from "react-native";
 import Animated, { BounceIn, FadeInDown } from "react-native-reanimated";
 import { characters, characterMood } from "@/constants";
+import ColoreActivityIndicator from "./ColoreActivityIndicator";
 
 interface EmptyListViewProps {
   scale?: number;
@@ -30,11 +31,13 @@ const EmptyListView: React.FC<EmptyListViewProps> = ({
   }, []);
 
   if (!shouldRender) {
-    return <View className="flex-1" />;
+    return <View className="flex-1 w-full h-full flex flex-col items-center justify-center"> 
+    <ColoreActivityIndicator />
+    </View>;
   }
 
   return (
-    <View className="flex-1 bg-red-500 flex-col items-center justify-center gap-6 px-8">
+    <View className="flex-1 flex-col items-center justify-center gap-6 px-8">
       {selectedCharacter && (
         <Animated.Image
           entering={FadeInDown.duration(500)}

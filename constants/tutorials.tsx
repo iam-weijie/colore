@@ -241,4 +241,35 @@ export const myProfileTutorialPages = [
   },
 ];
 
-
+export const userTutorialPages = [
+  {
+    label: "Who’s this?",
+    caption: "Explore their vibe",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Peep the Profile"
+        content="This is someone else’s vibeboard. You can scroll through their public posts, style, and colors—but this isn’t your sandbox."
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+  {
+    label: "Thinking of interacting?",
+    caption: "Tread curiously",
+    color: "#93c5fd",
+    disabled: false,
+    children: (
+      <TutorialScreen
+        title="Make a Move"
+        content="Leave a post on their board, nickname them for your own records, or report them if needed. Once you’re friends, you can even share post stacks."
+        image={icons.star}
+        onAgree={() => {}}
+        hasAction={false}
+      />
+    ),
+  },
+];
