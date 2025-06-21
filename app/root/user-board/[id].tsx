@@ -7,6 +7,7 @@ import {
   Image,
   FlatList,
   ScrollView,
+  Alert,
 } from "react-native";
 import PersonalBoard from "@/components/PersonalBoard";
 import { AntDesign } from "@expo/vector-icons";
@@ -238,7 +239,7 @@ const UserPersonalBoard = () => {
           icon={icons.pencil}
           colors={["#CFB1FB", "#fef08a"]}
           iconColor="#000"
-          onPress={() => setSelectedSetting("Name")}
+          onPress={() => {}}
         />
       ),
     },
@@ -249,7 +250,7 @@ const UserPersonalBoard = () => {
         <ItemContainer
           label={"Edit Board Permissions"}
           caption={"Modify this board's permissions."}
-          icon={icons.pencil}
+          icon={icons.hide}
           colors={["#CFB1FB", "#fef08a"]}
           iconColor="#000"
           onPress={() => setSelectedSetting("Permissions")}
@@ -266,7 +267,16 @@ const UserPersonalBoard = () => {
           icon={icons.trash}
           colors={["#CFB1FB", "#fef08a"]}
           iconColor="#000"
-          onPress={() => setSelectedSetting("Delete")}
+          onPress={() => {
+            Alert.alert(
+              "Delete Board",
+              "Are you sure you want to delete this board?",
+              [
+                { text: "Cancel", style: "cancel" },
+                { text: "Delete", style: "destructive", onPress: () => {/* TODO: handle delete */} }
+              ]
+            )
+          }}
         />
       ),
     },
@@ -283,20 +293,6 @@ const UserPersonalBoard = () => {
           colors={["#CFB1FB", "#fef08a"]}
           iconColor="#000"
           onPress={() => handleJoinCommunity()}
-        />
-      ),
-    },
-    {
-      label: "Share",
-      role: "",
-      component: (
-        <ItemContainer
-          label={"Share board"}
-          caption={"Invite your friends to this board."}
-          icon={icons.send}
-          colors={["#CFB1FB", "#fef08a"]}
-          iconColor="#000"
-          onPress={() => setSelectedSetting("Share")}
         />
       ),
     },
@@ -340,7 +336,7 @@ const UserPersonalBoard = () => {
       <ModalSheet
         title={!selectedSetting ? "Board Settings" : selectedSetting}
         isVisible={isBoardSettingsVisible}
-        onClose={() => {}}
+        onClose={() => {setIsBoardSettingsVisible(false)}}
       >
         <View 
         className="flex-1 px-6 py-4">
