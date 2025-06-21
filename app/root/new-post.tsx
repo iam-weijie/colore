@@ -60,7 +60,6 @@ import EmojiShorthand from "@/components/EmojiShorthand";
 import PostGallery from "@/components/PostGallery";
 import CalendarView from "@/components/CalendarView";
 import { format, isAfter } from "date-fns";
-import { stripMarkdown } from "@/components/RichTextInput";
 import { FindUser } from "@/components/FindUsers";
 import CustomButton from "@/components/CustomButton";
 import { allColors, defaultColors } from "@/constants/colors";
@@ -344,7 +343,7 @@ const NewPost = () => {
       username: userUsername ?? "",
       nickname: "",
       incognito_name: "",
-      content: postContent ? stripMarkdown(postContent) : "",
+      content: postContent,
       created_at: new Date().toISOString(),
       expires_at: selectedExpirationDate || "",
       available_at: selectedScheduleDate || "",

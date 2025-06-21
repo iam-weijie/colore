@@ -4,9 +4,9 @@ export async function PATCH(request: Request) {
   try {
     //console.log("Received PATCH request for unread comments on post");
     const sql = neon(`${process.env.DATABASE_URL}`);
-    const { clerkId, boardId, title  } = await request.json();
+    const { userId, boardId, title  } = await request.json();
 
-    if (!clerkId || !boardId) {
+    if (!userId || !boardId) {
       return Response.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -18,7 +18,7 @@ export async function PATCH(request: Request) {
     const response = await sql`
       UPDATE boards
       SET title=${title}
-      WHERE id=${boardId} AND user_id=${clerkId}
+      WHERE id=${boardId} AND user_id=${userId}
     `;
 
     return new Response(JSON.stringify({ data: response }), {

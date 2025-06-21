@@ -5,69 +5,7 @@ import { useDraftPost } from "@/app/contexts/DraftPostContext";
 import KeyboardOverlay from './KeyboardOverlay';
 import RichTextEditor from './RichTextEditor';
 
-const getMarkdownTags = (type: TextStyle) => {
-  switch (type) {
-    case 'bold': return ['**', '**'];
-    case 'italic': return ['*', '*'];
-    case 'h1': return ['# ', ''];
-    case 'h2': return ['## ', ''];
-    case 'h3': return ['### ', ''];
-    case 'underline': return ['<u>', '</u>'];
-    case 'ordered': return ['1. ', ''];
-    case 'unordered': return ['- ', ''];
-    default: return ['', ''];
-  }
-};
 
-const getMarkdownOffset = (formats: Format[], selection: { start: number; end: number }) => {
-  let offsetStart = 0;
-  let offsetEnd = 0;
-
-  formats.forEach(({ start, end, type }) => {
-    const [prefix, suffix] = getMarkdownTags(type);
-    const prefixLength = prefix.length;
-    const suffixLength = suffix.length;
-
-    if (start <= selection.start) offsetStart += prefixLength;
-    if (start <= selection.end) offsetEnd += prefixLength;
-    if (end <= selection.start) offsetStart += suffixLength;
-    if (end <= selection.end) offsetEnd += suffixLength;
-  });
-
-  return {
-    start: selection.start - offsetStart,
-    end: selection.end - offsetEnd,
-  };
-};
-
-const applyMarkdown = (text: string, formats: Format[]) => {
-  const sortedFormats = [...formats].sort((a, b) => b.start - a.start);
-
-  for (const format of sortedFormats) {
-    const [prefix, suffix] = getMarkdownTags(format.type);
-    const { start, end } = format;
-
-    const before = text.slice(0, start);
-    const inside = text.slice(start, end);
-    const after = text.slice(end);
-
-    text = before + prefix + inside + suffix + after;
-  }
-
-  return text;
-};
-
-export const stripMarkdown = (text: string) => {
-  return text
-    .replace(/^###\s/gm, '')
-    .replace(/^##\s/gm, '')
-    .replace(/^#\s/gm, '')
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
-    .replace(/<u>(.*?)<\/u>/g, '$1')
-    .replace(/^1\.\s/gm, '')
-    .replace(/^-\s?/gm, '');
-};
 
 const RichTextInput = ({ refresh, exportText, exportStyling, onFocus }: {
   refresh: number;
@@ -77,11 +15,10 @@ const RichTextInput = ({ refresh, exportText, exportStyling, onFocus }: {
 }) => {
   const { draftPost } = useDraftPost();
   const [value, setValue] = useState('');
-   const [style, setStyle] = useState<TextStyle | null>(null);
+  const [style, setStyle] = useState<TextStyle | null>(null);
   const [formats, setFormats] = useState<Format[]>([]);
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [isFocused, setIsFocused] = useState(true);
-  const [isManuallyFocused, setIsManuallyFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const isOverlap = (aStart: number, aEnd: number, bStart: number, bEnd: number) => {
@@ -105,47 +42,40 @@ const RichTextInput = ({ refresh, exportText, exportStyling, onFocus }: {
     return inputFormats.filter(({ start, end }) => end <= text.length);
   };
 
-  const correctMarkdownFromFormats = (rawText: string, cleanFormats: Format[]) => {
-    const noMdText = stripMarkdown(rawText);
-    return applyMarkdown(noMdText, cleanFormats);
+  const toggleFormat = (type: TextStyle) => {
+    if (selection.start === selection.end) return;
+
+    const newFormats: Format[] = [];
+    let removedSomething = false;
+
+    for (const format of formats) {
+      const overlap = isOverlap(selection.start, selection.end, format.start, format.end);
+      const sameType = format.type === type;
+
+      if (!overlap || !sameType) {
+        newFormats.push(format);
+        continue;
+      }
+
+      removedSomething = true;
+
+      // Add left segment if it remains
+      if (format.start < selection.start) {
+        newFormats.push({ start: format.start, end: selection.start, type: format.type });
+      }
+
+      // Add right segment if it remains
+      if (format.end > selection.end) {
+        newFormats.push({ start: selection.end, end: format.end, type: format.type });
+      }
+    }
+
+    if (!removedSomething) {
+      newFormats.push({ start: selection.start, end: selection.end, type });
+    }
+
+    setFormats(cleanInvalidFormats(value, newFormats));
   };
-
-const toggleFormat = (type: TextStyle) => {
-  if (selection.start === selection.end) return;
-
-  const newFormats: Format[] = [];
-  let removedSomething = false;
-  const correctedSelection = getMarkdownOffset(formats, selection);
-
-  for (const format of formats) {
-    const overlap = isOverlap(correctedSelection.start, correctedSelection.end, format.start, format.end);
-    const sameType = format.type === type;
-
-    if (!overlap || !sameType) {
-      newFormats.push(format);
-      continue;
-    }
-
-    removedSomething = true;
-
-    // Add left segment if it remains
-    if (format.start < correctedSelection.start) {
-      newFormats.push({ start: format.start, end: correctedSelection.start, type: format.type });
-    }
-
-    // Add right segment if it remains
-    if (format.end > correctedSelection.end) {
-      newFormats.push({ start: correctedSelection.end, end: format.end, type: format.type });
-    }
-  }
-
-  if (!removedSomething) {
-    newFormats.push({ start: correctedSelection.start, end: correctedSelection.end, type });
-  }
-
-  setFormats(cleanInvalidFormats(value, newFormats));
-};
-
 
   useEffect(() => {
     setValue(draftPost?.content ?? '');
@@ -154,13 +84,20 @@ const toggleFormat = (type: TextStyle) => {
   }, [refresh]);
 
   useEffect(() => {
-    toggleFormat(style);
-  }, [style, refresh]);
+    if (style) {
+      toggleFormat(style);
+      setStyle(null); // Reset style after applying
+    }
+  }, [style]);
 
   useEffect(() => {
     exportText(value);
     exportStyling(formats);
   }, [value, formats]);
+
+  useEffect(() => {
+    onFocus(isFocused);
+  }, [isFocused]);
 
   const getStyleClass = (types: TextStyle[]) => {
     let classNames = 'text-[#FAFAFA] leading-[32px]';
@@ -222,12 +159,15 @@ const toggleFormat = (type: TextStyle) => {
         buffer += char;
       }
 
-      const stylesInLine = Object.values(charStyles)
-        .flat()
-        .filter((s) => s === 'unordered' || s === 'ordered');
+      const lineStyles = [];
+      for (let i = start; i < start + line.length; i++) {
+        if (charStyles[i]) {
+          lineStyles.push(...charStyles[i]);
+        }
+      }
 
-      const hasUnordered = stylesInLine.includes('unordered');
-      const hasOrdered = stylesInLine.includes('ordered');
+      const hasUnordered = lineStyles.includes('unordered');
+      const hasOrdered = lineStyles.includes('ordered');
 
       let prefix = '';
       if (hasUnordered) prefix = '• ';
@@ -244,8 +184,6 @@ const toggleFormat = (type: TextStyle) => {
 
     return chunks;
   };
-
-  console.log("[RichTextInput]: ", isFocused)
 
   return (
     <View className="flex-1 mx-4 pr-12 py-8">
@@ -264,16 +202,8 @@ const toggleFormat = (type: TextStyle) => {
             placeholder="Type here..."
             placeholderTextColor="#F1F1F1"
             onSelectionChange={({ nativeEvent }) => setSelection(nativeEvent.selection)}
-            onFocus={() => {
-              const corrected = correctMarkdownFromFormats(value, formats);
-              setValue(corrected);
-              setIsFocused(true);
-            }}
-            onBlur={() => {
-                  const plainText = stripMarkdown(value);
-              setValue(plainText);
-              setIsFocused(false)
-            }}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             className="font-JakartaSemiBold"
             style={{
               position: 'absolute',
@@ -303,11 +233,11 @@ const toggleFormat = (type: TextStyle) => {
           </TouchableOpacity>
         )}
       </View>
-        {isFocused && (
-          <KeyboardOverlay keyboardAlreadyVisible={true} onFocus={isFocused}>
-              <RichTextEditor handleApplyStyle={(styling: TextStyle) => {setStyle(styling)}} />
-                </KeyboardOverlay>
-            )}
+      {isFocused && (
+        <KeyboardOverlay keyboardAlreadyVisible={true} onFocus={isFocused}>
+          <RichTextEditor handleApplyStyle={(styling: TextStyle) => setStyle(styling)} />
+        </KeyboardOverlay>
+      )}
     </View>
   );
 };

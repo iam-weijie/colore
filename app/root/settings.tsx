@@ -809,7 +809,7 @@ const Settings = () => {
                 : type === "nickname"
                   ? nickname
                   : type === "incognito_name"
-                    ? incognitoName
+                    ? maskedIncognito
                     : email
             }
             onCancel={() => setOnFocus(false)}

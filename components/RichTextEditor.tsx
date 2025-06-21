@@ -9,7 +9,7 @@ import InteractionButton from './InteractionButton';
 
 const RichTextEditor = ({ handleApplyStyle }: { handleApplyStyle: (style: TextStyle) => void}) => {
 
-  const stylingBar = ['bold', 'italic', 'underline', 'H', 'ordered', 'unordered']
+  const stylingBar = ['bold', 'italic', 'underline', 'H'] // 'ordered', 'unordered'
   const [showOptions, setShowOptions] = useState<boolean>(false);
   const headerStyleOptions = ['h1', 'h2', 'h3']
   const applyStyle = (newStyle: TextStyle) => {

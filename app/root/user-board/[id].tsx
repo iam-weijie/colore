@@ -37,6 +37,8 @@ import { Post } from "@/types/type";
 import PostModal from "@/components/PostModal";
 import { decryptText } from "@/lib/encryption";
 import EmptyListView from "@/components/EmptyList";
+import RenameContainer from "@/components/RenameContainer";
+import KeyboardOverlay from "@/components/KeyboardOverlay";
 
 
 const SCREEN_HEIGHT = Dimensions.get("window").height
@@ -50,6 +52,7 @@ const UserPersonalBoard = () => {
     soundEffectsEnabled,
     setSoundEffectsEnabled,
   } = useSettingsContext();
+  const [onFocus, setOnFocus] = useState<boolean>(false);
   const { encryptionKey } = useEncryptionContext();
   const [isBoardSettingsVisible, setIsBoardSettingsVisible] =
     useState<boolean>(false);
@@ -239,7 +242,7 @@ const UserPersonalBoard = () => {
           icon={icons.pencil}
           colors={["#CFB1FB", "#fef08a"]}
           iconColor="#000"
-          onPress={() => {}}
+          onPress={() => {setOnFocus(true)}}
         />
       ),
     },
@@ -327,9 +330,9 @@ const UserPersonalBoard = () => {
   ];
 
   const menuOptions =
-    !isOwnBoard && boardId != "-1"
-      ? allOptions.filter((option) => option.role !== "admin")
-      : allOptions.filter((option) => option.label !== "Membership");
+    isOwnBoard && boardId == "-1"
+      ? allOptions.filter((option) => option.role == "admin")
+      : (isOwnBoard ? allOptions.filter((option) => option.label !== "Membership") : allOptions.filter((option) => option.role !== "admin"));
 
   const BoardSetting = () => {
     return (
@@ -509,6 +512,20 @@ const handleLongUsername = (username: string): string => {
   return cleanUsername;
 };
 
+const handleNewBoardTitle = async (name: string) => {
+  try {
+    const response = fetchAPI(`/api/boards/updateBoard`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        userId: user!.id,
+        boardId: boardId,
+        title: name
+      })
+    })
+  } catch (error) {
+    console.error('Failed to update board title', error)
+  }
+}
 
   return (
     <>
@@ -546,7 +563,7 @@ const handleLongUsername = (username: string): string => {
                 ) : (
                   <View>
                     <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
-                      Your personal space.
+                      {isOwnBoard ? "Your" : username + "'s"} personal space.
                     </Text>
                   </View>
                 )}
@@ -591,6 +608,15 @@ const handleLongUsername = (username: string): string => {
           }}
           seeComments={!!commentId}
         />
+      )}
+        {onFocus && (
+        <KeyboardOverlay onFocus={onFocus} offsetY={0}>
+          <RenameContainer
+            onSave={(newName: string) => {handleNewBoardTitle}}
+            placeholder={boardInfo.title}
+            onCancel={() => setOnFocus(false)}
+          />
+        </KeyboardOverlay>
       )}
     </>
   );

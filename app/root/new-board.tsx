@@ -133,7 +133,7 @@ const NewPost = () => {
     },
   ];
 
-  const allRestricitons = [
+  const allRestrictions = [
     {
       restriction: "privacy",
       description: `Choose Everyone to make your board public—anyone can view and post on it.
@@ -173,7 +173,7 @@ Perfect for open discussions or quiet sharing.`,
       iconColor: "#FAFAFA",
       onPress: async () => {
         playSoundEffect(SoundType.Tap)
-        const restric = allRestricitons.find(
+        const restric = allRestrictions.find(
           (r) => r.restriction === "privacy"
         );
         if (!restric) {
@@ -198,7 +198,7 @@ Perfect for open discussions or quiet sharing.`,
       iconColor: "#FAFAFA",
       onPress: async () => {
         playSoundEffect(SoundType.Tap)
-        const restric = allRestricitons.find(
+        const restric = allRestrictions.find(
           (r) => r.restriction === "comments"
         );
         if (!restric) {
@@ -247,7 +247,7 @@ Perfect for open discussions or quiet sharing.`,
       iconColor: "#FAFAFA",
       onPress: async () => {
         playSoundEffect(SoundType.Tap)
-        const restric = allRestricitons.find(
+        const restric = allRestrictions.find(
           (r) => r.restriction === "comments"
         );
         if (!restric) {
