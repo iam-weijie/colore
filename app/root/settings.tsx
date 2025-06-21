@@ -658,14 +658,14 @@ const Settings = () => {
                     className="w-5 h-5"
                   />
                 }
-                label="Saved Posts"
+                label="Saved Notes"
                 count={savedPosts?.length || 0}
                 onPress={() =>
                   router.push({
                     pathname: "/root/saved-post-gallery",
                     params: {
                       posts: JSON.stringify(savedPosts),
-                      name: "Saved Posts",
+                      name: "Saved Notes",
                     },
                   })
                 }
@@ -679,14 +679,14 @@ const Settings = () => {
                     color="#000"
                   />
                 }
-                label="Liked Posts"
+                label="Liked Notes"
                 count={likedPosts?.length || 0}
                 onPress={() =>
                   router.push({
                     pathname: "/root/saved-post-gallery",
                     params: {
                       posts: JSON.stringify(likedPosts),
-                      name: "Liked Posts",
+                      name: "Liked Notes",
                     },
                   })
                 }

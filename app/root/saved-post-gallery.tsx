@@ -32,12 +32,12 @@ const SavedPostGallery = () => {
       const savePostsResponse = await fetchAPI(`/api/posts/getUserSavedPosts?userId=${user!.id}`);
       const savedPosts = savePostsResponse.data;
 
-      if (name == "Saved Posts" && savedPosts.length === 0) return []
+      if (name == "Saved Notes" && savedPosts.length === 0) return []
 
       const savedPostIds = savedPosts.map((p) => String(p.post_id))
 
       
-      let postIds = name == "Saved Posts" ? savedPostIds : JSON.parse(posts) as string[]
+      let postIds = name == "Saved Notes" ? savedPostIds : JSON.parse(posts) as string[]
       
       const postResponse = await fetchAPI(`/api/posts/getPostsById?ids=${postIds}`)
 
@@ -146,7 +146,7 @@ const SavedPostGallery = () => {
       ) : (
         <View className="flex-1 flex mb-12 items-center justify-center">
           <Text className="text-gray-600 text-base  text-center">
-            You have no {name == "Saved Posts" ? "saved" : "liked"} posts.
+            You have no {name == "Saved Notes" ? "saved" : "liked"} posts.
           </Text>
         </View>
       )}

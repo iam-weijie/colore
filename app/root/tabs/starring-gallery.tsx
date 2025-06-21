@@ -141,7 +141,7 @@ export default function Page() {
   const [selectedModal, setSelectedModal] = useState<any>();
 
   const [isPeekModalVisible, setPeekModalVisible] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<"Create" | "Answer" | "Peek">(
+  const [selectedTab, setSelectedTab] = useState<"Create" | "Answers" | "Peek">(
     "Create"
   );
   const [hasFetchedPersonalPrompts, setHasFetchedPersonalPrompts] =
@@ -149,7 +149,7 @@ export default function Page() {
 
   const tabs = [
     { name: "Create", key: "Create", color: "#CFB1FB" },
-    { name: "Answer", key: "Answer", color: "#93C5FD" },
+    { name: "Answers", key: "Answers", color: "#93C5FD" },
     { name: "Peek", key: "Peek", color: "#FBD38D" },
   ] as const;
 
@@ -290,7 +290,7 @@ export default function Page() {
   }, [selectedTab]);
 
   useEffect(() => {
-    if (selectedTab === "Answer" && !hasFetchedPersonalPrompts) {
+    if (selectedTab === "Answers" && !hasFetchedPersonalPrompts) {
       fetchPersonalPrompts();
     }
   }, [selectedTab, hasFetchedPersonalPrompts]);
@@ -405,7 +405,7 @@ export default function Page() {
           <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
             className="flex-1 pl-2 text-md "
-            placeholder="Looking for a Post..?"
+            placeholder="Looking for a note..?"
              placeholderTextColor="#9CA3AF"
             value={query}
             onChangeText={setQuery}
@@ -462,7 +462,7 @@ export default function Page() {
               />
               </>
             )}
-            {selectedTab === "Answer" && <AnswerView />}
+            {selectedTab === "Answers" && <AnswerView />}
             {selectedTab === "Peek" &&
             
             <StarringContainer

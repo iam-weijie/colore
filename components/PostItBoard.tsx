@@ -536,13 +536,21 @@ useEffect(() => {
         <Text>Error: {error}</Text>
       </View>
     );
+    
   } */
 
-  if (postsWithPosition.length === 0) {
+    if (loading) {
+       return (
+      <View className="flex-1 items-center justify-center">
+        <ColoreActivityIndicator />
+      </View>
+    );
+    }
+
+  if (postsWithPosition.length === 0 && !loading) {
     return (
       <View className="flex-1 items-center justify-center">
         <Text className="text-lg text-gray-600">No posts available</Text>
-        <ColoreActivityIndicator />
       </View>
     );
   }

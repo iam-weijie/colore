@@ -16,6 +16,7 @@ import { transform } from '@babel/core';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useSoundEffects, SoundType } from '@/hooks/useSoundEffects';
 import { SignedIn } from '@clerk/clerk-expo';
+import { runOnJS, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 
 interface HapticTabBarButtonProps {
   children: React.ReactNode;
@@ -74,13 +75,13 @@ const HapticTabBarButton: React.FC<HapticTabBarButtonProps> = ({
     runOnJS(playSoundEffect)(SoundType.Navigation);
   };
 
-  const handlePress = () => {
+  const handlePress = (event: GestureResponderEvent) => {
     if (isCenter) {
       animateCenterButton();
     } else {
       bounceAnimation();
     }
-    onPress?.();
+    onPress?.(event);
   };
 
   // Animated styles

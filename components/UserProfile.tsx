@@ -364,7 +364,6 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
       postsLastLoadedTimestamp.current = Date.now();
       setLoading(false);
       
-      console.log("[DEBUG] UserProfile - Posts preloaded successfully");
     } catch (error) {
       console.error("[DEBUG] UserProfile - Failed to preload posts:", error);
       setError("Failed to preload user data.");
@@ -485,7 +484,6 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   useEffect(() => {
     // When posts are loaded and encryption key is available, mark posts as decrypted
     if (userPosts.length > 0 && encryptionKey && !postsDecrypted) {
-      console.log("[DEBUG] UserProfile - Posts are loaded and encryption key is available, marking as decrypted");
       setPostsDecrypted(true);
     }
   }, [userPosts, encryptionKey, postsDecrypted]);
@@ -630,8 +628,8 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   const myTabs = [
     { name: "Profile", key: "Profile", color: "#CFB1FB", notifications: 0 },
     {
-      name: "Posts",
-      key: "Posts",
+      name: "Notes",
+      key: "Notes",
       color: "#CFB1FB",
       notifications: unreadComments,
     },
@@ -793,7 +791,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
                     {totalPosts}
                   </Text>
                   <Text className="text-[14px] font-JakartaSemiBold">
-                    Posts
+                    Notes
                   </Text>
                 </View>
                 <View className="flex-column items-start justify-center">
@@ -834,7 +832,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
             </View>
       )}
 
-      {selectedTab === "Posts" && (
+      {selectedTab === "Notes" && (
         <View className="relative flex-1 w-full h-full bg-[#FAFAFA] ">
           <View
             className="absolute flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[85%] top-6 self-center z-[10] "
@@ -845,7 +843,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
             <Ionicons name="search" size={20} color="#9ca3af" />
             <TextInput
               className="flex-1 pl-2 text-md "
-              placeholder="Looking for a Post..?"
+              placeholder="Looking for a note..?"
               placeholderTextColor="#9CA3AF"
               value={query}
               onChangeText={setQuery}

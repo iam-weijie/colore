@@ -109,14 +109,14 @@ export const YourActivityInfoPage = () => {
       </View>
 
       <View className="mb-6">
-        <Text className="text-[14px] font-JakartaSemiBold mb-2">Saved Posts</Text>
+        <Text className="text-[14px] font-JakartaSemiBold mb-2">Saved Notes</Text>
         <Text className="text-[12px] font-Jakarta text-tray-600 leading-[22px]">
           To save a post, tap the menu on any post and select “Save”. You can remove saved posts the same way. All saved content shows up here.
         </Text>
       </View>
 
       <View className="mb-6">
-        <Text className="text-[14px] font-JakartaSemiBold mb-2">Liked Posts</Text>
+        <Text className="text-[14px] font-JakartaSemiBold mb-2">Liked Notes</Text>
         <Text className="text-[12px] font-Jakarta text-tray-600 leading-[22px]">
           Every post you've ever liked will appear here. Revisit what resonated with you the most, anytime.
         </Text>
