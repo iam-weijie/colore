@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { defaultColors } from "@/constants/colors";
@@ -41,14 +47,17 @@ export const BoardsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const fetchPersonalBoards = useCallback(async () => {
     if (!user?.id) return;
-    
+
     try {
       setLoading(true);
-      
-      const response = await fetchAPI(`/api/boards/getBoards?user_id=${user.id}`, {
-        method: "GET",
-      });
-      
+
+      const response = await fetchAPI(
+        `/api/boards/getBoards?user_id=${user.id}`,
+        {
+          method: "GET",
+        }
+      );
+
       if (response.error) {
         throw new Error(response.error);
       }
@@ -59,31 +68,37 @@ export const BoardsProvider: React.FC<{ children: React.ReactNode }> = ({
         user_id: user.id,
         description: "Your window to the world!",
         members_id: [user.id],
-        board_type: 'personal',
-        restrictions: ['personal', 'commentsAllowed', '5'],
+        board_type: "personal",
+        restrictions: ["personal", "commentsAllowed", "5"],
         created_at: Date.now(),
-        color: "#93c5fd"
+        color: "#93c5fd",
       };
 
       const shareWithMeBoard: Board = {
         id: -2,
         title: "Shared with Me",
         user_id: user.id,
-        description: "Everything that was share with you!",
+        description: "Everything that was shared with you!",
         members_id: [user.id],
-        board_type: 'personal',
-        restrictions: ['personal', 'commentsAllowed', '5'],
+        board_type: "personal",
+        restrictions: ["personal", "commentsAllowed", "5"],
         created_at: Date.now(),
-        color: "#CFB1FB"
+        color: "#CFB1FB",
       };
 
       if (response.data && response.data.length > 0) {
-        const boardsWithColor = response.data.map((board: any, index: number) => ({
-          ...board,
-          color: defaultColors[Math.floor(Math.random() * 3)].hex,
-        }));
-        
-        setPersonalBoards([personalBoard, shareWithMeBoard, ...boardsWithColor]);
+        const boardsWithColor = response.data.map(
+          (board: any, index: number) => ({
+            ...board,
+            color: defaultColors[Math.floor(Math.random() * 3)].hex,
+          })
+        );
+
+        setPersonalBoards([
+          personalBoard,
+          shareWithMeBoard,
+          ...boardsWithColor,
+        ]);
       } else {
         setPersonalBoards([personalBoard, shareWithMeBoard]);
       }
@@ -97,24 +112,29 @@ export const BoardsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const fetchCommunityBoards = useCallback(async () => {
     if (!user?.id) return;
-    
+
     try {
       setLoading(true);
-      
-      const response = await fetchAPI(`/api/boards/getCommunityBoards?userId=${user.id}`, {
-        method: "GET",
-      });
-      
+
+      const response = await fetchAPI(
+        `/api/boards/getCommunityBoards?userId=${user.id}`,
+        {
+          method: "GET",
+        }
+      );
+
       if (response.error) {
         throw new Error(response.error);
       }
 
       if (response.data && response.data.length > 0) {
-        const boardsWithColor = response.data.map((board: any, index: number) => ({
-          ...board,
-          color: defaultColors[Math.floor(Math.random() * 3)].hex,
-        }));
-        
+        const boardsWithColor = response.data.map(
+          (board: any, index: number) => ({
+            ...board,
+            color: defaultColors[Math.floor(Math.random() * 3)].hex,
+          })
+        );
+
         setCommunityBoards(boardsWithColor);
       } else {
         setCommunityBoards([]);
@@ -129,24 +149,26 @@ export const BoardsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const fetchDiscoverBoards = useCallback(async () => {
     if (!user?.id) return;
-    
+
     try {
       setLoading(true);
-      
+
       const response = await fetchAPI(`/api/boards/getDiscoverBoards`, {
         method: "GET",
       });
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
 
       if (response.data && response.data.length > 0) {
-        const boardsWithColor = response.data.map((board: any, index: number) => ({
-          ...board,
-          color: defaultColors[Math.floor(Math.random() * 3)].hex,
-        }));
-        
+        const boardsWithColor = response.data.map(
+          (board: any, index: number) => ({
+            ...board,
+            color: defaultColors[Math.floor(Math.random() * 3)].hex,
+          })
+        );
+
         setDiscoverBoards(boardsWithColor);
       } else {
         setDiscoverBoards([]);
@@ -161,10 +183,10 @@ export const BoardsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const refreshAllBoards = useCallback(async () => {
     if (!user?.id) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       await Promise.all([
         fetchPersonalBoards(),
@@ -208,4 +230,4 @@ export const useBoardsContext = () => {
 };
 
 // Add default export for the BoardsProvider component
-export default BoardsProvider; 
+export default BoardsProvider;

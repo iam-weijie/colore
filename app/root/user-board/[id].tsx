@@ -14,15 +14,13 @@ import { useLocalSearchParams } from "expo-router";
 import { icons } from "@/constants";
 import { router } from "expo-router";
 import { fetchAPI } from "@/lib/fetch";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAlert } from "@/notifications/AlertContext";
 import { useUser } from "@clerk/clerk-expo";
 import Header from "@/components/Header";
 import { CustomButtonBar } from "@/components/CustomTabBar";
-import Animated, {
-  FadeIn,
-} from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import ModalSheet from "@/components/Modal";
 import { set } from "date-fns";
 import ItemContainer from "@/components/ItemContainer";
@@ -36,10 +34,10 @@ import { Post } from "@/types/type";
 import PostModal from "@/components/PostModal";
 import { decryptText } from "@/lib/encryption";
 import EmptyListView from "@/components/EmptyList";
+import { useBoardsContext } from "@/app/contexts/BoardsContext";
 
-
-const SCREEN_HEIGHT = Dimensions.get("window").height
-const UserPersonalBoard = () => {
+const SCREEN_HEIGHT = Dimensions.get("window").height;
+const UserBoard = () => {
   const { user } = useUser();
   const { id, username, boardId, postId, commentId } = useLocalSearchParams();
   const { playSoundEffect } = useSoundEffects();
@@ -62,6 +60,8 @@ const UserPersonalBoard = () => {
   const [joinedCommunity, setJoinedCommunity] = useState<boolean>(false);
   const [canParticipate, setCanParticipate] = useState<boolean>(false);
   const { showAlert } = useAlert();
+  const { personalBoards } = useBoardsContext();
+
   const handleNewPost = () => {
     router.push({
       pathname: "/root/new-post",
@@ -100,50 +100,79 @@ const UserPersonalBoard = () => {
   };
 
   const fetchBoard = async () => {
+    // handling personal board
     if (boardId == "-1" || username == "Personal Board") return;
-    try {
-      const response = await fetchAPI(`/api/boards/getBoardById?id=${boardId}`)
-      
-      if (!response.data) {
-        console.error("Board data is undefined");
+    // handling shared with me board
+    else if (boardId == "-2") {
+      for (let i = 0; i < personalBoards.length; i++) {
+        if (personalBoards[i].id == -2) {
+          setBoardInfo(personalBoards[i]);
+        }
+      }
+
+      /*try {
+        const response = await fetchAPI(
+          `/api/stacks/getSharedStacks?user_id=${user!.id}`
+        );
+      } catch (error) {
+        console.error("Failed to fetch shared stacks: ", error);
         showAlert({
-          title: 'Error',
-          message: `Could not load board information`,
-          type: 'ERROR',
-          status: 'error',
+          title: "Error",
+          message: `Failed to load board`,
+          type: "ERROR",
+          status: "error",
         });
-        return;
+      }*/
+    } else {
+      // handling custom boards
+      try {
+        const response = await fetchAPI(
+          `/api/boards/getBoardById?id=${boardId}`
+        );
+
+        if (!response.data) {
+          console.error("Board data is undefined");
+          showAlert({
+            title: "Error",
+            message: `Could not load board information`,
+            type: "ERROR",
+            status: "error",
+          });
+          return;
+        }
+
+        const isPrivate = response.data.board_type == "personal";
+
+        let boardData = response.data;
+        if (isPrivate && encryptionKey) {
+          try {
+            boardData = {
+              ...boardData,
+              title: decryptText(boardData.title, encryptionKey),
+              description: decryptText(boardData.description, encryptionKey),
+            };
+          } catch {}
+        }
+
+        setBoardInfo(boardData);
+        setCanParticipate(!isPrivate);
+        setPostCount(response.count || 0);
+
+        const hasJoined =
+          response.data.members_id &&
+          response.data.members_id.includes(user!.id);
+        setJoinedCommunity(hasJoined);
+
+        console.log("this board 3", response);
+      } catch (error) {
+        console.error("Failed to fetch board", error);
+        showAlert({
+          title: "Error",
+          message: `Failed to load board`,
+          type: "ERROR",
+          status: "error",
+        });
       }
-
-      const isPrivate = response.data.board_type == "personal";
-
-      let boardData = response.data;
-      if (isPrivate && encryptionKey) {
-        try {
-          boardData = {
-            ...boardData,
-            title: decryptText(boardData.title, encryptionKey),
-            description: decryptText(boardData.description, encryptionKey),
-          };
-        } catch {}
-      }
-
-      setBoardInfo(boardData);
-      setCanParticipate(!isPrivate);
-      setPostCount(response.count || 0);
-
-      const hasJoined = response.data.members_id && response.data.members_id.includes(user!.id)
-      setJoinedCommunity(hasJoined)
-
-      console.log("this board 3", response)
-    } catch (error) {
-      console.error("Failed to fetch board", error)
-      showAlert({
-        title: 'Error',
-        message: `Failed to load board`,
-        type: 'ERROR',
-        status: 'error',
-      });
     }
   };
 
@@ -342,42 +371,60 @@ const UserPersonalBoard = () => {
         isVisible={isBoardSettingsVisible}
         onClose={() => {}}
       >
-        <View 
-        className="flex-1 px-6 py-4">
+        <View className="flex-1 px-6 py-4">
           {!selectedSetting ? (
             <FlatList
               data={menuOptions}
               keyExtractor={(item, index) => item.label ?? `option-${index}`}
               ListEmptyComponent={
-                  <EmptyListView message={"No options? Weird..."} character="steve" mood={0} />
-                }
+                <EmptyListView
+                  message={"No options? Weird..."}
+                  character="steve"
+                  mood={0}
+                />
+              }
               renderItem={({ item, index }) => {
                 return (
-                   <View>
-                        {item.role == "admin" ? 
-                        (index > 0 && menuOptions[index - 1].role === item.role ? <></>  : <Text className="text-center text-[14px] font-JakartaMedium ml-4 text-gray-300">Edit</Text>)
-                         : (index > 0 && menuOptions[index - 1].role === item.role ? <></> : <Text className="text-center  text-[14px] font-JakartaMedium ml-4 text-gray-300">Interact</Text>)}
-                        {item.component}
-                      </View>
+                  <View>
+                    {item.role == "admin" ? (
+                      index > 0 && menuOptions[index - 1].role === item.role ? (
+                        <></>
+                      ) : (
+                        <Text className="text-center text-[14px] font-JakartaMedium ml-4 text-gray-300">
+                          Edit
+                        </Text>
+                      )
+                    ) : index > 0 &&
+                      menuOptions[index - 1].role === item.role ? (
+                      <></>
+                    ) : (
+                      <Text className="text-center  text-[14px] font-JakartaMedium ml-4 text-gray-300">
+                        Interact
+                      </Text>
+                    )}
+                    {item.component}
+                  </View>
                 );
               }}
               contentContainerStyle={{ paddingBottom: 80, marginBottom: 16 }}
               showsVerticalScrollIndicator={false}
             />
           ) : selectedSetting == "Share" ? (
-            <View 
-            className="flex-1 my-2"
-             style={{
-              height: SCREEN_HEIGHT * 0.5
-            }}>
+            <View
+              className="flex-1 my-2"
+              style={{
+                height: SCREEN_HEIGHT * 0.5,
+              }}
+            >
               <FindUser selectedUserInfo={() => {}} />
             </View>
           ) : selectedSetting == "Members" ? (
-            <View 
-            className="flex-1"
-            style={{
-              height: SCREEN_HEIGHT * 0.5
-            }}>
+            <View
+              className="flex-1"
+              style={{
+                height: SCREEN_HEIGHT * 0.5,
+              }}
+            >
               <FindUser
                 selectedUserInfo={() => {}}
                 inGivenList={boardInfo.members_id}
@@ -386,7 +433,7 @@ const UserPersonalBoard = () => {
           ) : selectedSetting == "Info" ? (
             <ScrollView
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{  height: SCREEN_HEIGHT * 0.5 }}
+              contentContainerStyle={{ height: SCREEN_HEIGHT * 0.5 }}
               className="flex-1"
             >
               <HeaderCard
@@ -401,69 +448,71 @@ const UserPersonalBoard = () => {
                       accentColor="#93c5fd"
                     />
 
-                                <DetailRow 
-                                          label="Description" 
-                                          value={`${boardInfo.description}`} 
-                                          onPress={null}
-                                          accentColor="#93c5fd"
-                                />
-                                <DetailRow 
-                                          label="Owner" 
-                                          value={"A good person"} 
-                                          onPress={null}
-                                          accentColor="#93c5fd"
-                                />
-                                                         </>
-                            }
-                            infoView={null}
-                          />
-                          <View className="my-4"></View>
-                      <HeaderCard 
-                            title="Preferences" 
-                            color="#ffe640"
-                            content={
-                              <>
-                                <ToggleRow 
-                                  label="Notifications"
-                                  description="Get notified whenever there is a new post"
-                                  value={hapticsEnabled}
-                                  onValueChange={handleHapticsToggle}
-                                  accentColor="#ffe640"
-                                />
-                              </>
-                            }
-                            infoView={null}
-                          />
-                           <View className="my-4"></View>
-                    {selectedSetting &&  <View className="flex-1 flex items-center w-full mb-4">
-                              <CustomButton
-                              className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
-                              fontSize="lg"
-                              title="Close"
-                              padding={4}
-                              onPress={() => {
-                                setSelectedSetting("");
-                              }}
-                            />
-                            </View>}
-                            <View className="my-8"></View>
-                    </ScrollView>
-                  ): (
-                    <View className="flex-1 px-6 max-h-[80%]">
-
-                    </View>
-                  )}
-         {selectedSetting &&  <View className="flex-1 flex items-center w-full mb-4">
-          <CustomButton
-          className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
-          fontSize="lg"
-          title="Close"
-          padding={4}
-          onPress={() => {
-            setSelectedSetting("");
-          }}
-        />
-        </View>}
+                    <DetailRow
+                      label="Description"
+                      value={`${boardInfo.description}`}
+                      onPress={null}
+                      accentColor="#93c5fd"
+                    />
+                    <DetailRow
+                      label="Owner"
+                      value={"A good person"}
+                      onPress={null}
+                      accentColor="#93c5fd"
+                    />
+                  </>
+                }
+                infoView={null}
+              />
+              <View className="my-4"></View>
+              <HeaderCard
+                title="Preferences"
+                color="#ffe640"
+                content={
+                  <>
+                    <ToggleRow
+                      label="Notifications"
+                      description="Get notified whenever there is a new post"
+                      value={hapticsEnabled}
+                      onValueChange={handleHapticsToggle}
+                      accentColor="#ffe640"
+                    />
+                  </>
+                }
+                infoView={null}
+              />
+              <View className="my-4"></View>
+              {selectedSetting && (
+                <View className="flex-1 flex items-center w-full mb-4">
+                  <CustomButton
+                    className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+                    fontSize="lg"
+                    title="Close"
+                    padding={4}
+                    onPress={() => {
+                      setSelectedSetting("");
+                    }}
+                  />
+                </View>
+              )}
+              <View className="my-8"></View>
+            </ScrollView>
+          ) : (
+            <View className="flex-1 px-6 max-h-[80%]"></View>
+          )}
+          {selectedSetting && (
+            <View className="flex-1 flex items-center w-full mb-4">
+              <CustomButton
+                className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+                fontSize="lg"
+                title="Close"
+                padding={4}
+                onPress={() => {
+                  setSelectedSetting("");
+                }}
+              />
+            </View>
+          )}
         </View>
       </ModalSheet>
     );
@@ -479,40 +528,39 @@ const UserPersonalBoard = () => {
     }
   }, [postId]);
 
-const handleLongUsername = (username: string): string => {
-  // Trim and normalize spacing
-  let cleanUsername = username.trim().replace(/\s+/g, " ");
+  const handleLongUsername = (username: string): string => {
+    // Trim and normalize spacing
+    let cleanUsername = username.trim().replace(/\s+/g, " ");
 
-  // If the username has spaces and is too long
-  if (cleanUsername.includes(" ") && cleanUsername.length > 14) {
-    // Replace "and" and "to" with "&" and "2" respectively (only whole words)
-    cleanUsername = cleanUsername
-      .split(" ")
-      .map(word => {
-        if (/^and$/i.test(word)) return "&";
-        if (/^to$/i.test(word)) return "2";
-        return word;
-      })
-      .join(" ");
+    // If the username has spaces and is too long
+    if (cleanUsername.includes(" ") && cleanUsername.length > 14) {
+      // Replace "and" and "to" with "&" and "2" respectively (only whole words)
+      cleanUsername = cleanUsername
+        .split(" ")
+        .map((word) => {
+          if (/^and$/i.test(word)) return "&";
+          if (/^to$/i.test(word)) return "2";
+          return word;
+        })
+        .join(" ");
 
-    // Take first character of each word, preserve special symbols like & or 2
-    return cleanUsername
-      .split(" ")
-      .filter(Boolean)
-      .map(word => (word.length === 1 ? word : word[0].toUpperCase()))
-      .join("");
-  }
+      // Take first character of each word, preserve special symbols like & or 2
+      return cleanUsername
+        .split(" ")
+        .filter(Boolean)
+        .map((word) => (word.length === 1 ? word : word[0].toUpperCase()))
+        .join("");
+    }
 
-  // If it's a long single word, extract all capital letters
-  if (!cleanUsername.includes(" ") && cleanUsername.length > 14) {
-    const caps = cleanUsername.match(/[A-Z]/g);
-    return caps ? caps.join("") : cleanUsername.slice(0, 8);
-  }
+    // If it's a long single word, extract all capital letters
+    if (!cleanUsername.includes(" ") && cleanUsername.length > 14) {
+      const caps = cleanUsername.match(/[A-Z]/g);
+      return caps ? caps.join("") : cleanUsername.slice(0, 8);
+    }
 
-  // Otherwise return as-is
-  return cleanUsername;
-};
-
+    // Otherwise return as-is
+    return cleanUsername;
+  };
 
   return (
     <>
@@ -600,4 +648,4 @@ const handleLongUsername = (username: string): string => {
   );
 };
 
-export default UserPersonalBoard;
+export default UserBoard;

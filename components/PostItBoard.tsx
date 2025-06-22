@@ -52,6 +52,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   isEditable = true,
   randomPostion = true,
 }) => {
+const { user } = useUser();
+
 // 🗺️ Map and Zoom State
 const [mapType, setMapType] = useState("satellite"); // Map display type (e.g., satellite, standard)
 const [zoomScale, setZoomScale] = useState(1); // Current zoom scale level
@@ -358,7 +360,7 @@ const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is curr
         stackId: newlyCreatedStack.id, // Remove optional chaining since we validated above
         sharedById: userId,
         sharedToId: friendId,
-        boardId: -1,
+        boardId: -2,
         message: ""
       }),
     });
@@ -565,7 +567,7 @@ useEffect(() => {
       />
 
       <SignedIn>
-      {showMap && 
+      {!!showMap && 
         <ScrollMap 
           scrollOffset={{
             x: scrollOffset.x,
@@ -684,7 +686,7 @@ useEffect(() => {
                   })}
               </View>
           
-          {selectedPosts && (
+          {!!selectedPosts && (
             <PostModal
               isVisible={!!selectedPosts}
               selectedPosts={selectedPosts}
@@ -694,7 +696,7 @@ useEffect(() => {
             />
           )}
           
-          {selectedModal && (
+          {!!selectedModal && (
             <ModalSheet
               isVisible={!!selectedModal}
               title={selectedTitle}
