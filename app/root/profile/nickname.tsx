@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
-const Nickname = () => {
+const NicknameView = ({ onUpdate }: { onUpdate: () => void}) => {
   const router = useRouter();
   const { user } = useUser();
   const { stateVars, setStateVars } = useNavigationContext();
@@ -50,13 +50,15 @@ const Nickname = () => {
 
   const updateNicknames = async () => {
     // //console.log("Updating nicknames to: ", nicknames);
-    await fetchAPI("/api/users/updateUserNicknames", {
+    const response = await fetchAPI("/api/users/updateUserNicknames", {
       method: "PATCH",
       body: JSON.stringify({
         clerkId: user!.id,
         nicknames: nicknames,
       }),
     });
+
+    if (response) {  onUpdate() }
   };
   const handleNicknameConfirm = (): void => {
     if (findUserNickname(nicknames, stateVars.userId) === -1) {
@@ -66,24 +68,26 @@ const Nickname = () => {
         nicknameText;
     }
     updateNicknames();
-    setStateVars({});
-    router.back();
+
   };
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <View className="flex-1 pt-16">
+
+      <View className="flex-1 w-full h-full">
         <View className="flex flex-row items-center mx-4 mb-4">
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <AntDesign name="caretleft" size={18} />
-          </TouchableOpacity>
+          <View className="relative flex-1 flex flex-row items-center justify-between bg-white rounded-[32px] px-4 h-[48px] mx-2 mb-2 "
+        style={{
+          boxShadow: "0 0 7px 1px rgba(150,150,150,.15)"
+        }}
+        >
           <TextInput
-            className="flex-1 px-4 w-full py-2 rounded-lg border border-gray-300 text-base focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+            className="flex-1 pl-2 text-[14px]"
             placeholder="Add a nickname..."
             placeholderTextColor="#4a4a4a"
             value={nicknameText}
             onChangeText={(text): void => setNicknameText(text)}
           />
+          </View>
           <TouchableOpacity
             onPress={handleNicknameConfirm}
             className="w-10 h-10 ml-2 flex justify-center items-center bg-black rounded-full"
@@ -94,8 +98,7 @@ const Nickname = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
   );
 };
 
-export default Nickname;
+export default NicknameView;

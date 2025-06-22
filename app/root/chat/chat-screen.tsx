@@ -253,53 +253,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   );
 
   // RENDER LISTS ------ START
-  /* const renderConversationItem = ({
-    item,
-  }: {
-    item: ConversationItem;
-  }): React.ReactElement => (
-    <TouchableOpacity onPress={() => handleOpenChat(item)}>
-      <View
-        className="flex items-center mb-2 p-4 rounded-[16px]"
-        style={{ backgroundColor: loading ? "#E5E7EB" : "#FAFAFA" }}
-      >
-        <View className="w-full">
-          <View className="flex flex-row justify-between items-center">
-            <Text className="text-[16px] font-bold mb-1">{item.name}</Text>
-            <Text className="text-[12px] text-gray-400">
-              {item.lastMessageTimestamp && !loading
-                ? new Date(item.lastMessageTimestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                  })
-                : ""}
-            </Text>
-          </View>
-          {item.lastMessageContent ? (
-            <View className="flex flex-row items-start justify-between -mt-1">
-              <Text
-                className="text-[14px]"
-                style={{ fontWeight: item.unread_messages ? 600 : 400 }}
-              >
-                {item.lastMessageContent}
-              </Text>
-              {item.unread_messages > 0 && (
-                <NotificationBubble
-                  unread={item.unread_messages}
-                  color={"#000000"}
-                />
-              )}
-            </View>
-          ) : (
-            <Text className="text-gray-600 text-sm -mt-1 ">
-              {loading ? "" : "No messages yet"}
-            </Text>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  ); */
 
   const FriendItem = ({ item, loading, setShowDeleteIcon }) => {
     return (

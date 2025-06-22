@@ -25,6 +25,7 @@ import ItemContainer from "@/components/ItemContainer";
 import { useDraftPost } from "@/app/contexts/DraftPostContext";
 import PostModal from "@/components/PostModal";
 import { useUserDataContext } from "@/app/contexts/UserDataContext";
+import NicknameView from "./nickname";
 
 const Profile = React.memo(() => {
   const { user } = useUser();
@@ -44,6 +45,7 @@ const Profile = React.memo(() => {
   );
   const { showAlert } = useAlert();
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
+  const [selectedTabSetting, setSelectedTabSetting] = useState<string>("");
   const { stateVars, setStateVars } = useNavigationContext();
 
 
@@ -64,14 +66,9 @@ const Profile = React.memo(() => {
     setFriendStatus(status);
   }, [user, userId]);
 
-  const handleAddNickname = useCallback(() => {
-    setStateVars({
-      ...stateVars,
-      previousScreen: "profile",
-      userId: userId,
-    });
-    router.push("/root/profile/nickname");
-  }, [stateVars, userId, setStateVars]);
+  const handleAddNickname = () => {
+   setSelectedTabSetting("nickname")
+  }
 
   const nickname = useMemo(() => {
     if (!userId) return "";
@@ -288,7 +285,11 @@ const Profile = React.memo(() => {
         title={"Settings"}
       >
         <View className="flex flex-col w-full items-center justify-center py-4 px-6 gap-y-4">
-          {options.map((option, index) => (
+         {selectedTabSetting && selectedTabSetting == "nickname" && 
+         <View className="flex-1  w-full h-full">
+          <NicknameView onUpdate={() => setSelectedTabSetting("")}/>
+          </View>}
+        {!selectedTabSetting && options.map((option, index) => (
             <ItemContainer
               key={index}
               label={option.label}
