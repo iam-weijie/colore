@@ -26,9 +26,7 @@ import { icons } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from "@/notifications/AlertContext";
 import { LinearGradient } from "expo-linear-gradient";
-import {
-  RenderPromptCard,
-} from "@/components/RenderCard";
+import { RenderPromptCard } from "@/components/RenderCard";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import CardCarrousel from "@/components/CardCarroussel";
@@ -41,7 +39,10 @@ import {
 import { allColors } from "@/constants/colors";
 import PostGallery from "@/components/PostGallery";
 import { Ionicons } from "@expo/vector-icons";
-import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
+import {
+  checkTutorialStatus,
+  completedTutorialStep,
+} from "@/hooks/useTutorial";
 import { starringTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
 import ModalSheet from "@/components/Modal";
@@ -59,36 +60,35 @@ const CreateView = ({
   userId,
 }: any) => (
   <View className="flex-1 mb-[90px]">
-  <KeyboardAvoidingView
-    behavior={Platform.OS === "ios" ? "padding" : "height"}
-    style={{ flex: 1 }}
-  >
-    
-    {loading ? (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ColoreActivityIndicator text="Loading…" />
-      </View>
-    ) : (
-      <CardCarrousel
-        items={prompts}
-        renderItem={(prompt: Prompt) => (
-          <RenderPromptCard
-            item={prompt}
-            userId={userId}
-            promptContent={promptContent}
-            updatePromptContent={updatePromptContent}
-            handlePromptSubmit={handlePromptSubmit}
-          />
-        )}
-        handleScrollBeginDrag={handleScrollBeginDrag}
-        inputRef={inputRef}
-      />
-    )}
-  </KeyboardAvoidingView>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      {loading ? (
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <ColoreActivityIndicator text="Loading…" />
+        </View>
+      ) : (
+        <CardCarrousel
+          items={prompts}
+          renderItem={(prompt: Prompt) => (
+            <RenderPromptCard
+              item={prompt}
+              userId={userId}
+              promptContent={promptContent}
+              updatePromptContent={updatePromptContent}
+              handlePromptSubmit={handlePromptSubmit}
+            />
+          )}
+          handleScrollBeginDrag={handleScrollBeginDrag}
+          inputRef={inputRef}
+        />
+      )}
+    </KeyboardAvoidingView>
   </View>
 );
-
-
 
 export default function Page() {
   const { user } = useUser();
@@ -96,36 +96,33 @@ export default function Page() {
   const { isIpad, stacks, setStacks, profile } = useGlobalContext();
 
   // Tutorial constants
-  
+
   const pages = starringTutorialPages;
   const totalSteps = pages.length;
-  
-  
+
   // Tutorial Logic
   const [skipIntro, setSkipIntro] = useState<boolean>(false);
-  
-    const fetchTutorialStatus = async () => {
-      const isTutorialcompleted = await checkTutorialStatus("starring-1")
-      setSkipIntro(isTutorialcompleted)
-    }
-    const handleCompleteTutorial = async () => {
-      const isCompleted = await completedTutorialStep("starring-1")
-      return isCompleted
-    }
-    
+
+  const fetchTutorialStatus = async () => {
+    const isTutorialcompleted = await checkTutorialStatus("starring-1");
+    setSkipIntro(isTutorialcompleted);
+  };
+  const handleCompleteTutorial = async () => {
+    const isCompleted = await completedTutorialStep("starring-1");
+    return isCompleted;
+  };
+
   useEffect(() => {
-  fetchTutorialStatus()
-  }, [])
+    fetchTutorialStatus();
+  }, []);
   const [step, setStep] = useState(0);
-    const handleNext = () => {
-  
-      if (step < totalSteps - 1) setStep((prev) => prev + 1);
-      else {
-        handleCompleteTutorial()
-        setSkipIntro(true)
-      }
-    };
-  
+  const handleNext = () => {
+    if (step < totalSteps - 1) setStep((prev) => prev + 1);
+    else {
+      handleCompleteTutorial();
+      setSkipIntro(true);
+    }
+  };
 
   const [userInfo, setUserInfo] = useState<UserData | null>();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -139,7 +136,7 @@ export default function Page() {
   const [hasSubmittedPrompt, setHasSubmittedPrompt] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
-   const [query, setQuery] = useState<string>("");
+  const [query, setQuery] = useState<string>("");
 
   const [selectedModal, setSelectedModal] = useState<any>();
 
@@ -192,7 +189,7 @@ export default function Page() {
     setLoading(true);
     try {
       const res = await fetchAPI(
-        `/api/posts/getTrendingPosts?number=${isIpad ? 24 : 18}&id=${user?.id}`
+        `/api/v2/posts/getPosts?type=trending&number=${isIpad ? 24 : 18}&id=${user?.id}`
       );
       //log
       console.log("Fetched posts:", res.data[0]);
@@ -228,40 +225,121 @@ export default function Page() {
     setLoading(true);
     try {
       const response = await fetchAPI(`/api/prompts/getPrompts`);
+      const fetched = response.data;
 
-      // Filter out duplicates based on item.cue
-      const hasRecentPrompt = response.data.find((p) => p.user_id == user!.id);
+      // 1. Compute the maximum numeric ID from fetched prompts
+      const fetchedIds = fetched.map((p) => Number(p.id));
+      const maxFetchedId = fetchedIds.length ? Math.max(...fetchedIds) : 0;
 
-      console.log("has submitted prompt", hasSubmittedPrompt, typeof user!.id);
-      console.log(
-        response.data.find((p) => {
-          return String(p.user_id).trim() === String(user!.id).trim();
-        })
+      // 2. Define your precreated prompt templates
+      const systemTemplates = [
+        {
+          cue: "If I could travel anywhere",
+          content: "If I could travel anywhere, I’d go to…",
+          theme: "Wanderlust",
+          color: "#FFD700",
+        },
+        {
+          cue: "My favorite childhood memory",
+          content: "My favorite childhood memory is…",
+          theme: "Nostalgia",
+          color: "#00BFFF",
+        },
+        {
+          cue: "What scares me the most",
+          content: "What scares me the most is…",
+          theme: "Fear",
+          color: "#FF7F7F",
+        },
+        {
+          cue: "The best compliment I've ever received",
+          content: "The best compliment I've ever received was…",
+          theme: "Self-esteem",
+          color: "#CFB1FB",
+        },
+        {
+          cue: "One thing I wish people knew about me",
+          content: "One thing I wish people knew about me is…",
+          theme: "Identity",
+          color: "#FBB1F5",
+        },
+        {
+          cue: "A rule I always break",
+          content: "A rule I always break is…",
+          theme: "Rebellion",
+          color: "#93c5fd",
+        },
+        {
+          cue: "When I feel most alive",
+          content: "I feel most alive when…",
+          theme: "Existence",
+          color: "#98FB98",
+        },
+        {
+          cue: "My most irrational fear",
+          content: "My most irrational fear is…",
+          theme: "Humor",
+          color: "#FFE640",
+        },
+        {
+          cue: "If I had a superpower",
+          content: "If I had a superpower, it would be…",
+          theme: "Imagination",
+          color: "#FFC0CB",
+        },
+        {
+          cue: "The one thing I can't live without",
+          content: "I can't live without…",
+          theme: "Essentials",
+          color: "#AFEEEE",
+        },
+      ];
+
+      // 3. Assign each a unique numeric ID beyond maxFetchedId
+      const precreatedPrompts = systemTemplates.map((tpl, idx) => ({
+        id: maxFetchedId + idx + 1, // numeric and conflict-free
+        user_id: "system",
+        cue: tpl.cue,
+        content: tpl.content,
+        theme: tpl.theme,
+        color: tpl.color,
+        created_at: new Date().toISOString(),
+        engagement: 0,
+      }));
+
+      // 4. Filter fetched for unique cues
+      const uniqueFetched = fetched.filter(
+        (value, i, arr) =>
+          i === arr.findIndex((other) => other.cue === value.cue)
       );
 
-      if (hasRecentPrompt) {
-        const daysDifference =
-          (Date.now() - new Date(hasRecentPrompt.created_at).getTime()) /
+      // 5. Merge & dedupe again by cue
+      const merged = [...precreatedPrompts, ...uniqueFetched];
+      const uniqueMerged = merged.filter(
+        (value, i, arr) =>
+          i === arr.findIndex((other) => other.cue === value.cue)
+      );
+
+      // 6. Shuffle and pick 10 random cues
+      const shuffled = uniqueMerged
+        .map((a) => ({ sort: Math.random(), value: a }))
+        .sort((a, b) => a.sort - b.sort)
+        .map((a) => a.value)
+        .slice(0, 10);
+
+      setPrompts(shuffled);
+
+      // 7. Check recent submission as before
+      const hasRecent = fetched.find((p) => p.user_id === user!.id);
+      if (hasRecent) {
+        const daysDiff =
+          (Date.now() - new Date(hasRecent.created_at).getTime()) /
           (1000 * 60 * 60 * 24);
-
-        console.log("Days difference", daysDifference);
-        if (daysDifference < 0.75) {
-          setHasSubmittedPrompt(hasRecentPrompt);
-        }
+        if (daysDiff < 0.75) setHasSubmittedPrompt(hasRecent);
       }
-
-      const uniquePrompts = response.data.filter(
-        (value, index, self) =>
-          index ===
-          self.findIndex(
-            (t) => t.cue === value.cue // Compare by cue
-          )
-      );
-
-      setPrompts(uniquePrompts);
     } catch (error) {
-      console.error("Failed to fetch posts:", error);
-      setError("Failed to load posts");
+      console.error("Failed to fetch prompts:", error);
+      setError("Failed to load prompts");
     } finally {
       setLoading(false);
     }
@@ -270,8 +348,7 @@ export default function Page() {
   // reset modal visible each time the screen comes into focus
   useFocusEffect(
     useCallback(() => {
-     
-        fetchPosts()
+      fetchPosts();
     }, [user, isIpad])
   );
 
@@ -298,12 +375,11 @@ export default function Page() {
     }
   }, [selectedTab, hasFetchedPersonalPrompts]);
 
-
   // Clear current search
 
   const handleClearSearch = () => {
-  setQuery("");
-};
+    setQuery("");
+  };
 
   const handleScrollToLoad = async () => {
     setLoading(true);
@@ -353,7 +429,6 @@ export default function Page() {
         status: "success",
         color: "#ffe640",
       });
-
     } catch (error) {
       console.error("Couldn't submit prompt", error);
       showAlert({
@@ -400,36 +475,37 @@ export default function Page() {
           </View>
         ) : (
           <>
-                      <View className="absolute  flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[90%] top-6 self-center z-[10] "
-        style={{
-          boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
-        }}
-        >
-          <Ionicons name="search" size={20} color="#9ca3af" />
-          <TextInput
-            className="flex-1 pl-2 text-md "
-            placeholder="Looking for a Post..?"
-             placeholderTextColor="#9CA3AF"
-            value={query}
-            onChangeText={setQuery}
-            returnKeyType="search"
-          />
-          {query.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearSearch}
-              className="w-6 h-6 items-center justify-center"
+            <View
+              className="absolute  flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[90%] top-6 self-center z-[10] "
+              style={{
+                boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
+              }}
             >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
-        </View>
-         <PostGallery
-          posts={personalPosts ?? []} 
-          profileUserId={user!.id}  
-          query={query}
-          offsetY={70}       
-         />
-         </>
+              <Ionicons name="search" size={20} color="#9ca3af" />
+              <TextInput
+                className="flex-1 pl-2 text-md "
+                placeholder="Looking for a Post..?"
+                placeholderTextColor="#9CA3AF"
+                value={query}
+                onChangeText={setQuery}
+                returnKeyType="search"
+              />
+              {query.length > 0 && (
+                <TouchableOpacity
+                  onPress={handleClearSearch}
+                  className="w-6 h-6 items-center justify-center"
+                >
+                  <Ionicons name="close-circle" size={20} color="#9ca3af" />
+                </TouchableOpacity>
+              )}
+            </View>
+            <PostGallery
+              posts={personalPosts ?? []}
+              profileUserId={user!.id}
+              query={query}
+              offsetY={70}
+            />
+          </>
         )}
       </View>
     );
@@ -438,68 +514,69 @@ export default function Page() {
   return (
     <GestureHandlerRootView>
       <View className="flex-1 bg-[#FAFAFA]">
-            <Header
-              title="Starring"
-              tabs={tabs}
-              selectedTab={selectedTab}
-              onTabChange={handleTabChange}
-              tabCount={tabs.length}
-              style={{ zIndex: 10 }}
+        <Header
+          title="Starring"
+          tabs={tabs}
+          selectedTab={selectedTab}
+          onTabChange={handleTabChange}
+          tabCount={tabs.length}
+          style={{ zIndex: 10 }}
+        />
+
+        {/* Render content based on selected tab */}
+        {selectedTab === "Create" && (
+          <>
+            <EmojiBackground emoji="🤩" color="#ffe640" />
+            <CreateView
+              userId={user!.id}
+              loading={loading}
+              prompts={prompts}
+              promptContent={promptContent}
+              handleScrollBeginDrag={handleCreateScrollBegin}
+              updatePromptContent={updatePromptContent}
+              handlePromptSubmit={handlePromptSubmit}
+              inputRef={inputRef}
+              disableShadow={true}
             />
-            
-            {/* Render content based on selected tab */}
-            {selectedTab === "Create" && (
-              <>
-              <EmojiBackground emoji="🤩" color="#ffe640" />
-              <CreateView
-                userId={user!.id}
-                loading={loading}
-                prompts={prompts}
-                promptContent={promptContent}
-                handleScrollBeginDrag={handleCreateScrollBegin}
-                updatePromptContent={updatePromptContent}
-                handlePromptSubmit={handlePromptSubmit}
-                inputRef={inputRef}
-                disableShadow={true}
-              />
-              </>
-            )}
-            {selectedTab === "Answer" && <AnswerView />}
-            {selectedTab === "Peek" &&
-            
-            <StarringContainer
-              selectedPosts={posts}
-              handleCloseModal={() => {}}
-              infiniteScroll
-              scrollToLoad={async () => {
-                setLoading(true);
-                await fetchPosts();
-                setLoading(false);
-              }}
-            />
-            
-}
- {!skipIntro && <ModalSheet 
-        title={""} 
-        isVisible={!skipIntro} 
-        onClose={() => {
-          setSkipIntro(true)
-          }} >
+          </>
+        )}
+        {selectedTab === "Answer" && <AnswerView />}
+        {selectedTab === "Peek" && (
+          <StarringContainer
+            selectedPosts={posts}
+            handleCloseModal={() => {}}
+            infiniteScroll
+            scrollToLoad={async () => {
+              setLoading(true);
+              await fetchPosts();
+              setLoading(false);
+            }}
+          />
+        )}
+        {!skipIntro && (
+          <ModalSheet
+            title={""}
+            isVisible={!skipIntro}
+            onClose={() => {
+              setSkipIntro(true);
+            }}
+          >
             <View className="flex-1 px-4">
-            <CarouselPage
-          label={pages[step].label}
-          caption={pages[step].caption}
-          color={pages[step].color}
-          onSubmit={handleNext}
-          progress={step + 1}
-          total={totalSteps}
-          disabled={pages[step].disabled}
-        >
-          {pages[step].children}
-        </CarouselPage>
-        </View>
-        </ModalSheet>}
+              <CarouselPage
+                label={pages[step].label}
+                caption={pages[step].caption}
+                color={pages[step].color}
+                onSubmit={handleNext}
+                progress={step + 1}
+                total={totalSteps}
+                disabled={pages[step].disabled}
+              >
+                {pages[step].children}
+              </CarouselPage>
             </View>
+          </ModalSheet>
+        )}
+      </View>
     </GestureHandlerRootView>
   );
 }

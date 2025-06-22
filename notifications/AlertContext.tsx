@@ -1,17 +1,22 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import AlertNotification from '@/components/Alert'; // your existing component
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import AlertNotification from "@/components/Alert"; // your existing component
 
+// Extend status to include 'info'
+type AlertStatus = "success" | "error" | "warning" | "info";
 
-type AlertStatus = 'success' | 'error' | 'warning';
-
-type AlertOptions = {
+export type AlertOptions = {
   title: string;
   message: string;
-  type: string;
   status: AlertStatus;
-  duration?: number;
+  duration?: number; // milliseconds
   action?: () => void;
-  color?: string;
+  color?: string; // override color
   actionText?: string;
 };
 
@@ -24,7 +29,7 @@ const AlertContext = createContext<AlertContextType | undefined>(undefined);
 export const useAlert = () => {
   const context = useContext(AlertContext);
   if (!context) {
-    throw new Error('useAlert must be used within an AlertProvider');
+    throw new Error("useAlert must be used within an AlertProvider");
   }
   return context;
 };
@@ -33,9 +38,26 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
   const [alertOptions, setAlertOptions] = useState<AlertOptions | null>(null);
   const [visible, setVisible] = useState(false);
 
+  const defaultColors: Record<AlertStatus, string> = {
+    success: "#4BB543",
+    error: "#D63447",
+    warning: "#FFA500",
+    info: "#2678C2",
+  };
+
   const showAlert = (options: AlertOptions) => {
-    setAlertOptions(options);
+    // assign default color if none provided
+    const color = options.color ?? defaultColors[options.status];
+    setAlertOptions({ ...options, color });
     setVisible(true);
+
+    // auto-hide after duration
+    const timeout = setTimeout(() => {
+      setVisible(false);
+    }, options.duration ?? 2000);
+
+    // cleanup if showing another alert
+    return () => clearTimeout(timeout);
   };
 
   const hideAlert = () => {
@@ -47,8 +69,13 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
       {children}
       {alertOptions && visible && (
         <AlertNotification
-          {...alertOptions}
-          duration={alertOptions.duration ?? 2000}
+          title={alertOptions.title}
+          message={alertOptions.message}
+          status={alertOptions.status}
+          duration={alertOptions.duration}
+          action={alertOptions.action}
+          actionText={alertOptions.actionText}
+          color={alertOptions.color}
           onClose={hideAlert}
         />
       )}

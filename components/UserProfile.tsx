@@ -423,7 +423,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   const fetchPersonalPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getPersonalPosts?number=${8}&recipient_id=${userId}&user_id=${user!.id}`
+      `/api/v2/posts/getPosts?type=personal&number=8&recipient_id=${userId}&user_id=${user!.id}`
     );
 
     const filteredPosts = response.data.filter((p) => p.pinned);

@@ -86,7 +86,7 @@ export default function Page() {
 
   const fetchPosts = async () => {
     const response = await fetchAPI(
-      `/api/posts/getRandomPosts?number=${isIpad ? 48 : 32}&id=${user!.id}&mode=${geographicalMode}`
+      `/api/v2/posts/getPosts?type=public&number=${isIpad ? 48 : 32}&user_id=${user!.id}&mode=${geographicalMode}`
     );
     return response.data;
   };
@@ -97,7 +97,7 @@ export default function Page() {
     try {
       const excludeIdsParam = excludeIds.join(",");
       const response = await fetch(
-        `/api/posts/getRandomPostsExcluding?number=${1}&id=${user!.id}&exclude_ids=${excludeIdsParam}&mode=${geographicalMode}`
+        `/api/v2/posts/getPosts?type=public&number=1&user_id=${user!.id}&exclude_ids=${excludeIdsParam}&mode=${geographicalMode}`
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
