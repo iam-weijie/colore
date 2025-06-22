@@ -1,4 +1,4 @@
-import { TextInputProps, TouchableOpacityProps } from "react-native";
+import { ImageSourcePropType, TextInputProps, TouchableOpacityProps } from "react-native";
 import * as Haptics from 'expo-haptics'; // Import Haptics for the style type
 
 declare interface Post {
@@ -25,12 +25,43 @@ declare interface Post {
   prompt: string;
   board_id: number;
   reply_to: number;
-  
+  unread: boolean;
+  position?: {
+    top: number;
+    left: number;
+  };
+  formatting: Format[];
+
 }
-declare interface ActionPromptsProps {
-  friendName: string, 
-  action: { name: string };
-  handleAction: () => void;
+
+declare interface StylingType {
+  id: number,
+  bold?: boolean,
+  italic?: boolean,
+  underlinde?: boolean,
+  orderedList?: boolean,
+  underedList?: boolean,
+  quote?: boolean
+}
+declare interface TextStylingType {
+  id: number;
+  value: string;
+  style: StylingType[];
+
+}
+
+declare interface InfoScreenProps {
+  title: string;
+  subtitle?: string;
+  image: ImageSourcePropType;
+  content: string;
+  hasAction?: boolean;
+  onAgree: () => void;
+}
+
+declare interface EmojiBackgroundProps {
+  emoji: string;
+  color: string;
 }
 
 
@@ -43,8 +74,12 @@ declare interface Board {
   board_type: string;
   restrictions: string[];
   created_at: string;
-  number_of_posts: number;
   color?: string;
+  count?: number;
+  isNew?: boolean;
+  isPrivate?: boolean;
+  commentAllowed: boolean;
+  imageUrl?: string;
 }
 
 declare interface DraftPost {
@@ -67,6 +102,7 @@ declare interface PostComment {
   post_id: number;
   user_id: string;
   sender_id: string;
+  index: number;
   content: string;
   username: string;
   created_at: string;
@@ -91,6 +127,7 @@ declare interface UserProfileType {
   is_paid_user: boolean;
   report_count: number;
   saved_posts: string[];
+  shorthand_emojis?: string[];
 }
 
 declare interface UserData {
@@ -105,11 +142,19 @@ declare interface PostWithPosition extends Post {
   };
 }
 
+type Attribute={
+  class: string;
+  level: number;
+  description: string;
+}
 declare interface PostItColor {
   name: string;
   id: number;
   hex: string;
   rarity: string;
+  SRB: number[];
+  attributes?: Attribute;
+  meaning: string;
   foldcolorhex: string;
   fontColor: string;
 }
@@ -128,6 +173,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
     | "outline"
     | "success"
     | "gradient"
+    | "gradient2"
     | "oauth";
   textVariant?:
     | "primary"
@@ -154,12 +200,19 @@ declare interface UserPostsGalleryProps {
 
 declare interface UserProfileProps {
   userId: string;
+  friendStatus: FriendStatusType;
   onSignOut?: () => void;
+}
+
+declare interface Format {
+  start: number;
+  end: number;
+  type: TextStyle;
 }
 
 declare interface PostModalProps {
   isVisible: boolean;
-  selectedPost: Post;
+  selectedPosts: Post[];
   handleCloseModal: () => void;
   invertedColors?: boolean;
   handleUpdate?: (isPinned: boolean) => void | Promise<void>;
@@ -169,9 +222,30 @@ declare interface PostModalProps {
   scrollToLoad?: () => void;
 }
 
+declare interface PostContainerProps {
+  selectedPosts: Post[];
+  handleCloseModal: () => void;
+  invertedColors?: boolean;
+  handleUpdate?: (isPinned: boolean) => void | Promise<void>;
+  infiniteScroll?: boolean;
+  header?: React.ReactElement;
+  isPreview?: boolean;
+  infiniteScroll?: boolean;
+  scrollToLoad?: () => void;
+}
+
 declare interface UserPostsGalleryProps {
   posts: Post[];
 }
+
+type MappingPostitProps = {
+  id: number;
+  coordinates: {
+    x_coordinate: number;
+    y_coordinate: number;
+  };
+};
+
 
 declare interface InputFieldProps extends TextInputProps {
   label: string;
@@ -205,6 +279,7 @@ declare interface ConversationItem {
   active_participants: number;
   unread_messages: number;
 }
+
 
 declare interface Message {
   id: number;
@@ -250,9 +325,16 @@ declare interface Friendship {
   friend_username: string;
 }
 
-type Stacks = {
+declare interface Stacks {
+  id: number;
+  name: string;
   ids: [];
   elements: [];
+  center: {x: number, y: number};
+  boardId: number;
+  userId: string;
+  createdAt: string;
+  isSharing: string[];
 };
 
 type Prompt = {
@@ -264,6 +346,7 @@ type Prompt = {
   created_at: string,
   color?: string;
 };
+
 
 
 type GeographicalMode = 'city' | 'state' | 'country' | 'world'
@@ -289,3 +372,45 @@ type RadioButtonProps = {
   onSelect: () => void;
 };
 
+
+type TabItem = {
+  name: string;
+  key: string;
+  color: string;
+  notifications?: number;
+};
+
+type TabsContainerProps = {
+  tabs?: TabItem[];
+  selectedTab?: string;
+  onTabChange?: (tabKey: string) => void;
+  tabCount?: number;
+};
+
+type TextStyle = 'bold' | 'italic' | 'underline' | 'H' | 'h1' | 'h2' | 'h3' | 'h4' | 'ordered' | 'unordered' | null;
+
+declare interface EmojiData {
+  id: string;
+  emoji: string;
+  categories: string[];
+}
+
+declare interface EmojiSelectorProps {
+  onEmojiSelected: (emoji: string) => void;
+  selectedEmoji?: string | null;
+  mode?: 'shorthand' | 'library' | 'both';
+  showInModal?: boolean;
+  isVisible?: boolean;
+  onClose?: () => void;
+}
+
+declare interface EmojiShorthandProps {
+  onEmojiSelected: (emoji: string) => void;
+  selectedEmoji?: string | null;
+  customShorthandEmojis?: string[];
+}
+
+declare interface EmojiLibraryProps {
+  onEmojiSelected: (emoji: string) => void;
+  selectedEmoji?: string | null;
+}

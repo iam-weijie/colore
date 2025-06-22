@@ -24,20 +24,22 @@ export async function POST(request: Request) {
         description, 
         title, 
         board_type, 
-        restrictions
+        restrictions,
+        members_id
       )
       VALUES (
         ${clerkId}, 
         ${description}, 
         ${title}, 
         ${type}, 
-        ${restrictions}
+        ${restrictions},
+        ${[clerkId]}
       )
       RETURNING *
     `;
 
 
-    console.log("response", response)
+    //console.log("response", response)
     return new Response(
       JSON.stringify({ 
         success: true,

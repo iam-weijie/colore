@@ -1,5 +1,3 @@
-
-
 import { NavigationProvider } from "@/components/NavigationContext";
 import { NotificationProvider } from '../notifications/NotificationContext';
 import SplashVideo from "@/components/SplashVideo";
@@ -14,6 +12,8 @@ import { useEffect, useState } from "react";
 import { LogBox, View } from "react-native";
 import "react-native-reanimated";
 import Animated, { FadeIn } from "react-native-reanimated";
+import React from "react";
+import { preloadCommonSounds } from '@/hooks/useSoundEffects';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -32,16 +32,20 @@ export default function RootLayout() {
     "Jakarta-ExtraLight": require("../assets/fonts/PlusJakartaSans-ExtraLight.ttf"),
     "Jakarta-Light": require("../assets/fonts/PlusJakartaSans-Light.ttf"),
     "Jakarta-Medium": require("../assets/fonts/PlusJakartaSans-Medium.ttf"),
+    "Jakarta-MediumItalic": require("../assets/fonts/PlusJakartaSans-MediumItalic.ttf"),
     "Jakarta": require("../assets/fonts/PlusJakartaSans-Regular.ttf"),
     "Jakarta-SemiBold": require("../assets/fonts/PlusJakartaSans-SemiBold.ttf"),
+    "Jakarta-SemiBoldItalic": require("../assets/fonts/PlusJakartaSans-SemiBoldItalic.ttf"),
   });
 
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      preloadCommonSounds();
       setAppReady(true);
     }
   }, [loaded]);
+
 
   const showSplashVideo = !appReady || !isSplashVideoComplete;
 

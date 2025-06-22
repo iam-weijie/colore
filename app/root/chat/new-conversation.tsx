@@ -5,7 +5,6 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Text,
@@ -14,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 
 const NewConversation = (): React.ReactElement => {
   const [searchText, setSearchText] = useState("");
@@ -208,8 +208,8 @@ const NewConversation = (): React.ReactElement => {
               </View>
             </View>
             {loading ? (
-              <View className="flex-[0.8] justify-center items-center">
-                <ActivityIndicator size="small" color="#888888" />
+              <View className="flex-1 items-center justify-center">
+              <ColoreActivityIndicator text="Summoning Bob..." />
               </View>
             ) : error ? (
               <Text>{error}</Text>

@@ -10,9 +10,11 @@ import google from "@/assets/icons/google.png";
 import fire from "@/assets/icons/fire.png";
 import heart from "@/assets/icons/heart.png";
 import home from "@/assets/icons/home.png";
+import home1 from "@/assets/icons/home1.png";
 import hide from "@/assets/icons/hide.png";
 import lock from "@/assets/icons/lock.png";
 import menu from "@/assets/icons/menu.png";
+import menuBase from "@/assets/icons/menu-base.png";
 import note from "@/assets/icons/note.png";
 import notification from "@/assets/icons/notification.png";
 import addUser from "@/assets/icons/add-user.png";
@@ -22,8 +24,12 @@ import palette from "@/assets/icons/palette.png";
 import pencil from "@/assets/icons/pencil.png";
 import person from "@/assets/icons/person.png";
 import plus from "@/assets/icons/plus.png";
+import info from "@/assets/icons/info.png";
+import shuffle from "@/assets/icons/shuffle.png";
+import plusBase from "@/assets/icons/plus-base.png";
 import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
+import profileBase from "@/assets/icons/profile-base.png";
 import planet from "@/assets/icons/planet-earth.png";
 import refresh from "@/assets/icons/refresh.png";
 import vineyard from "@/assets/icons/vineyard.png";
@@ -32,10 +38,19 @@ import search from "@/assets/icons/search.png";
 import send from "@/assets/icons/send.png";
 import settings from "@/assets/icons/settings.png";
 import star from "@/assets/icons/star.png";
+import starBase from "@/assets/icons/star-base.png";
 import timer from "@/assets/icons/timer.png";
 import trash from "@/assets/icons/trash.png";
 import wink from "@/assets/icons/wink.png";
 import placeholder from "@/assets/icons/placeholder.png";
+import back from "@/assets/icons/back.png";
+import bold from "@/assets/icons/bold.png"
+import italics from "@/assets/icons/italics.png"
+import underline from "@/assets/icons/underline.png"
+import H from "@/assets/icons/h.png"
+import oList from "@/assets/icons/ordered-list.png"
+import add from "@/assets/icons/add.png"
+import uList from "@/assets/icons/unordered-list.png"
 
 
 import login from "@/assets/images/login_squares.png";
@@ -54,23 +69,41 @@ import italy from "@/assets/countries/italy.png";
 import china from "@/assets/countries/china.png";
 import argentina from "@/assets/countries/argentina.png";
 
+/* CHARACTER IMAGES */
+import steveAmazed from "@/assets/characters/steve-amazed-1.png";
+import steveAnnoyed from "@/assets/characters/steve-annoyed-1.png";
+
 export const icons = {
   person,
   email,
   lock,
   globe,
   google,
+  back,
   check,
   home,
+  bold,
+  italics,
+  underline,
+  H,
+  oList,
+  uList,
+  home1,
   pin,
   chat,
   planet,
   close,
   fire,
+  info, 
+  shuffle,
   hide,
   timer,
   profile,
   menu,
+  menuBase,
+  plusBase,
+  profileBase,
+  starBase,
   plus,
   album,
   search,
@@ -92,7 +125,8 @@ export const icons = {
   chevron,
   notification,
   hamburgerMenu,
-  addUser
+  addUser,
+  add
 };
 
 export const countries = {
@@ -112,6 +146,10 @@ export const images = {
   highlightLg1
 };
 
+export const characters = {
+  steveAmazed,
+  steveAnnoyed
+}
 
 export const temporaryColors: PostItColor[] = [
   {
@@ -120,14 +158,18 @@ export const temporaryColors: PostItColor[] = [
     hex: "#ffe640",
     rarity: "default",
     foldcolorhex: "#fef08a",
+    SRB: [0, 0, 0],
+    meaning: "",
     fontColor: "#B29B00",
   },
   {
     name: "pink",
     id: 1,
-    hex: "#fbb1d6",
+    hex: "#FBB1F5",
     rarity: "default",
-    foldcolorhex: "#ffc7e2",
+    foldcolorhex: "#FFC8FB",
+    SRB: [0, 0, 0],
+    meaning: "",
     fontColor: "#D82C82",
   },
   {
@@ -136,6 +178,8 @@ export const temporaryColors: PostItColor[] = [
     hex: "#93c5fd",
     rarity: "default",
     foldcolorhex: "#b8e1ff",
+    SRB: [0, 0, 0],
+    meaning: "",
     fontColor: "#2775CC",
   },
   {
@@ -144,6 +188,13 @@ export const temporaryColors: PostItColor[] = [
     hex: "#CFB1FB",
     rarity: "default",
     foldcolorhex: "#E2C7FF",
+    SRB: [0, 0, 0],
+    meaning: "",
+    attributes: {
+      class: "Curious",
+      level: 1,
+      description: "A soft and calming color, perfect for gentle reminders.",
+    },
     fontColor: "#8654CF",
   },
 ];

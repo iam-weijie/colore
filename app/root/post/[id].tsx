@@ -1,7 +1,7 @@
 import CustomButton from "@/components/CustomButton";
 import { icons, temporaryColors } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
-import { convertToLocal, formatDateTruncatedMonth } from "@/lib/utils";
+import { convertToLocal, formatDateTruncatedMonth, getRelativeTime } from "@/lib/utils";
 import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
 import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -18,13 +18,13 @@ import {
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -33,10 +33,13 @@ import {
   View,
 } from "react-native";
 
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+
 import { useNavigationContext } from "@/components/NavigationContext";
 
 import * as Linking from "expo-linking";
 import { SafeAreaView } from "react-native-safe-area-context";
+import React from "react";
 
 interface GestureContext {
   startX: number;
@@ -50,25 +53,16 @@ interface PostCommentGroup {
 
 
 
-const PostScreen = () => {
+const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const { user } = useUser();
   const router = useRouter();
   const navigation = useNavigation();
   const { showAlert } = useAlert();
   const {
-    id = "",
     clerk_id = "",
-    content = "",
-    nickname,
-    firstname,
-    username = "",
     like_count,
-    report_count,
-    created_at,
-    unread_comments = 0,
     anonymous = "",
     color,
-    saved,
   } = useLocalSearchParams();
 
   const [loading, setLoading] = useState(true);
@@ -108,7 +102,6 @@ const PostScreen = () => {
   const [replyView, setReplyView] = useState<PostComment | null>(null);
   const inputRef = useRef(null);
 
-  console.log("user", userId, clerk_id)
 
   const fetchCommentById = async (id: string) => {
     try {
@@ -164,134 +157,6 @@ const PostScreen = () => {
     }, [])
   );
 
-  // Updated like handler
-  const handleLikePress = async () => {
-    if (!id || !user?.id || isLoadingLike) return;
-
-    // Play like sound if enabled
-    if (soundEffectsEnabled) {
-      playSoundEffect(SoundType.Like);
-    }
-
-    try {
-      setIsLoadingLike(true);
-      const increment = !isLiked;
-
-      // Optimistically update UI
-      setIsLiked(!isLiked);
-      setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
-
-      const response = await fetchAPI(`/api/posts/updateLikeCount`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          postId: id,
-          userId: user.id,
-          increment,
-        }),
-      });
-
-      if (response.error) {
-        // Revert optimistic update if failed
-        setIsLiked(isLiked);
-        setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
-        showAlert({
-          title: 'Error',
-          message: `Unable to update like status`,
-          type: 'ERROR',
-          status: 'error',
-        });
-        return;
-      }
-
-      // Update with actual server values
-      setLikeCount(response.data.likeCount);
-      setIsLiked(response.data.liked);
-    } catch (error) {
-      console.error("Failed to update like status:", error);
-      // Revert optimistic update
-      setIsLiked(isLiked);
-      setLikeCount((prev) => (!isLiked ? prev - 1 : prev + 1));
-      showAlert({
-        title: 'Error',
-        message: `Unable to update like status. Please check your connection.`,
-        type: 'ERROR',
-        status: 'error',
-      });
-    } finally {
-      setIsLoadingLike(false);
-    }
-  };
-
-  const handleCommentLike = async (commentId: number) => {
-    if (!user || isLoadingCommentLike) return;
-
-    try {
-      setIsLoadingCommentLike(true);
-      const isCurrentlyLiked = commentLikes[commentId];
-
-      // Optimistic update
-      setCommentLikes((prev) => ({ ...prev, [commentId]: !isCurrentlyLiked }));
-      setCommentLikeCounts((prev) => ({
-        ...prev,
-        [commentId]: prev[commentId] + (isCurrentlyLiked ? -1 : 1),
-      }));
-
-      const response = await fetchAPI("/api/comments/updateCommentLike", {
-        method: "PATCH",
-        body: JSON.stringify({
-          commentId,
-          userId: user.id,
-          increment: !isCurrentlyLiked,
-        }),
-      });
-
-      if (response.error) {
-        // Revert optimistic update
-        setCommentLikes((prev) => ({ ...prev, [commentId]: isCurrentlyLiked }));
-        setCommentLikeCounts((prev) => ({
-          ...prev,
-          [commentId]: prev[commentId] + (isCurrentlyLiked ? 1 : -1),
-        }));
-        showAlert({
-          title: 'Error',
-          message: `Unable to update like status. Please check your connection.`,
-          type: 'ERROR',
-          status: 'error',
-        });
-        return;
-      }
-
-      // Update with server values
-      setCommentLikes((prev) => ({
-        ...prev,
-        [commentId]: response.data.liked,
-      }));
-      setCommentLikeCounts((prev) => ({
-        ...prev,
-        [commentId]: response.data.likeCount,
-      }));
-    } catch (error) {
-      console.error("Failed to update comment like:", error);
-      // Revert optimistic update on error
-      const isCurrentlyLiked = commentLikes[commentId];
-      setCommentLikes((prev) => ({ ...prev, [commentId]: isCurrentlyLiked }));
-      setCommentLikeCounts((prev) => ({
-        ...prev,
-        [commentId]: prev[commentId] + (isCurrentlyLiked ? 1 : -1),
-      }));
-    } finally {
-      setIsLoadingCommentLike(false);
-    }
-  };
-
-  function findUserNickname(
-    userArray: UserNicknamePair[],
-    userId: string
-  ): number {
-    const index = userArray.findIndex((pair) => pair[0] === userId);
-    return index;
-  }
-
   const fetchNicknames = async () => {
     try {
       // //console.log("user: ", user!.id);
@@ -324,7 +189,7 @@ const PostScreen = () => {
   const scrollToItem = () => {
    // Find the index of the group that contains the target comment
    const groupIndex = postComments.findIndex((p) =>
-    p.comments.some(item => item.id == scrollTo)
+    p.comments.some(item => item.id.toString() == scrollTo)
   );
 
   console.log("groupIndex:", groupIndex);
@@ -338,7 +203,7 @@ const PostScreen = () => {
   const fetchComments = async () => {
     //setLoading(true);
     setError(null);
-
+console.log("happend", "id", id)
     if (!id || !user?.id) {
       console.error("Missing required parameters:", {
         postId: id,
@@ -413,7 +278,7 @@ const PostScreen = () => {
 
     const trimmedComment = newComment.trim();
 
-    if (!trimmedComment || !id || !user?.id || !clerk_id) {
+    if (!trimmedComment || !id || !user?.id || !clerkId) {
       /*console.log("Missing required data:", { 
           content: trimmedComment, 
           postId: id, 
@@ -445,7 +310,7 @@ const PostScreen = () => {
           content: trimmedComment,
           postId: id,
           clerkId: user.id,
-          postClerkId: clerk_id,
+          postClerkId: clerkId,
           replyId: replyTo ?? null
         }),
       });
@@ -472,47 +337,6 @@ const PostScreen = () => {
     }
   };
 
-  const handleDeletePostPress = async () => {
-    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
-      { text: "Cancel" },
-      { text: "Delete", onPress: handleDeletePost },
-    ]);
-  };
-
-  const handleDeletePost = async () => {
-    try {
-      setIsPostDeleted(true);
-
-      await fetchAPI(`/api/posts/deletePost?id=${id}`, {
-        method: "DELETE",
-      });
-      router.back();
-      showAlert({
-        title: 'Post deleted.',
-        message: `This post has been deleted.`,
-        type: 'DELETE',
-        status: 'success',
-      });
-    } catch (error) {
-      setIsPostDeleted(false);
-      showAlert({
-        title: 'Error',
-        message: `An error occured. This post has not been deleted.`,
-        type: 'ERROR',
-        status: 'error',
-      });
-    }
-  };
-  const handleDeleteCommentPress = async (id: number) => {
-    Alert.alert(
-      "Delete Comment",
-      "Are you sure you want to delete this comment?",
-      [
-        { text: "Cancel" },
-        { text: "Delete", onPress: () => handleDeleteComment(id) },
-      ]
-    );
-  };
 
   const handleDeleteComment = async (id: number) => {
     try {
@@ -538,15 +362,6 @@ const PostScreen = () => {
     }
   };
 
-  const handleUserProfile = async (id: string) => {
-    if (anonymous === "true") {
-      return;
-    }
-    router.push({
-      pathname: "/root/profile/[id]",
-      params: { id },
-    });
-  };
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -562,24 +377,6 @@ const PostScreen = () => {
     }
   };
 
-  const handleReadComments = async () => {
-    if (clerk_id === user!.id) {
-      try {
-        console.log("Patching comments")
-        
-        await fetchAPI(`/api/posts/updateUnreadComments`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            clerkId: user?.id,
-            postId: id,
-            postClerkId: clerk_id,
-          }),
-        });
-      } catch (error) {
-        console.error("Failed to update unread comments:", error);
-      }
-    }
-  };
 
 
   useEffect(() => {
@@ -592,6 +389,7 @@ const PostScreen = () => {
     }
   }, [replyView])
 
+  /*
   useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
       handleReadComments()
@@ -599,6 +397,7 @@ const PostScreen = () => {
       console.log("User goes back from post screen");
     });
   }, []);
+  */
 
   const renderCommentItem = ({
     item,
@@ -610,7 +409,11 @@ const PostScreen = () => {
     return (
       <View style={{ marginBottom: 15 }}>
       {/* Show the date as the header */}
-      <Text className="text-gray-500 text-center text-[12px]">{item.date}</Text>
+      <Text className="text-gray-500 text-center text-[12px]">{
+      
+      getRelativeTime(item.date)
+      
+      }</Text>
 
       {/* Render each comment in the group */}
       {item.comments.map((comment, index) => (
@@ -618,8 +421,9 @@ const PostScreen = () => {
           key={comment.id}
           id={comment.id}
           user_id={comment.user_id}
-          sender_id={clerk_id}
+          sender_id={comment.sender_id}
           post_id={comment.post_id}
+          index={index}
           username={
             anonymousComments ? "" :
             index > 0 ? (item.comments[index - 1].username == comment.username ? "" : comment.username) : comment.username
@@ -640,90 +444,21 @@ const PostScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1">
-    <SignedIn>
-      <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
+    <View className="flex-1 h-[450px]">
+
+         <Pressable onPress={() => 
+                  {
+                    Keyboard.dismiss()
+                  }
+                  } />
         <View className="flex-1">
-          <View className="flex-row justify-between items-center mx-6 my-6">
-            <TouchableOpacity onPress={() => router.back()} className="mr-4">
-              <AntDesign name="caretleft" size={18} />
-            </TouchableOpacity>
-            <TouchableOpacity
-            onPress={() => {
-              router.push({
-                pathname: "/root/new-personal-post",
-                params: { 
-                  recipient_id: clerk_id,
-                  source: 'board'
-                }
-              })
-            }}
-            className="py-3 px-4 bg-white rounded-[24px] shadow-xs">
-              <Text className="font-JakartaSemiBold" style={{
-                color: postColor?.fontColor ?? color 
-              }}>Reply to {anonymousComments ? "Author" : username}</Text>
-            </TouchableOpacity>
-          </View>
-          <View 
-          className="mb-6 p-6 rounded-[24px] mx-auto flex flex-row items-center justify-between"
-          style={{
-            backgroundColor: postColor?.hex ?? color,
-            width: isIpad ? "95%" : "90%"
-          }}>
-            <View className="flex-1">
-              <TouchableOpacity onPress={() => handleUserProfile(userId)}>
-                <Text className="font-JakartaSemiBold text-lg">
-                  {anonymousComments
-                    ? clerk_id === user!.id
-                      ? "Me"
-                      : "Anonymous"
-                    : username}
-                </Text>
-              </TouchableOpacity>
-              <Text className="text-sm text-gray-700">
-                {typeof created_at === "string"
-                  ? formatDateTruncatedMonth(
-                      convertToLocal(new Date(created_at))
-                    )
-                  : "No date"}
-              </Text>
-              <TouchableWithoutFeedback
-                onPress={() => Keyboard.dismiss()}
-                onPressIn={() => Keyboard.dismiss()}
-              >
-                <ScrollView
-                  style={{ maxHeight: screenHeight / 6 }}
-                  showsVerticalScrollIndicator={false}
-                >
-                  <Text className="font-Jakarta min-h-[30]">{content}</Text>
-                </ScrollView>
-              </TouchableWithoutFeedback>
-            </View>
-            <View className="flex flex-row justify-center items-center">
-                <View>
-                  {/* Only show like count to post creator */}
-                  <Text
-                    className={`${clerk_id === user?.id ? "text-gray-800" : "text-transparent"} text-center mr-1 text-sm`}
-                  >
-                    {clerk_id === user?.id ? likeCount : "0"}
-                  </Text>
-                </View>
-                  <TouchableOpacity
-                    onPress={handleLikePress}
-                    disabled={isLoadingLike}
-                  >
-                    <MaterialCommunityIcons
-                      name={isLiked ? "heart" : "heart-outline"}
-                      size={24}
-                      color={isLiked ? "red" : "black"}
-                    />
-                  </TouchableOpacity>
-                </View>
-          </View>
+        
           <View className="flex-1">
             {/* Comment section */}
             <View className="h-full">
-              {loading && <ActivityIndicator size="small" color="#888888" />}
+              {loading &&  <View className="flex-1 items-center justify-center">
+                <ColoreActivityIndicator text="Summoning Bob..." />
+                </View>}
               {error && <Text className="text-red-500 mx-4">{error}</Text>}
               {!loading && !error && postComments.length === 0 && (
                 <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2 text-center">
@@ -734,10 +469,10 @@ const PostScreen = () => {
                 <FlatList
                   ref={flatListRef}
                   data={postComments}
-                  className="rounded-[20px] mx-4"
+                  className="rounded-[20px] max-h-[400px] "
                   renderItem={renderCommentItem}
                   keyExtractor={(item) => item.date as unknown as string}
-                  contentContainerStyle={{ padding: 16 }}
+                  contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
                   style={{ flexGrow: 1 }}
                   extraData={postComments}
                   onContentSizeChange={() => {
@@ -750,20 +485,32 @@ const PostScreen = () => {
           </View>
 
 <View className="flex flex-col">
-{replyView && 
-<View
-className="mt-2 -mb-1 ml-5 flex flex-row"
->
-  <Text   
-  className="ml-1 text-[14px] italic max-w-[80%]"
-  numberOfLines={2}
-  style={{
-    color:"#757575"
-  }}
-            >Reply to : {replyView.content}
-            </Text>
-</View>}
-          <View className="flex-row items-center p-4">
+{replyView && (
+  <View className="mt-2 mb-1 ml-2 pl-3 flex-row items-center border-l-2 border-gray-200 max-w-[85%]">
+    <Image
+    source={icons.chevron}
+    className="mr-4 h-4 w-4"
+    tintColor={"#9e9e9e"}
+    />
+    <Text 
+      className="text-sm text-gray-500"
+      numberOfLines={2}
+    >
+      {replyView.content}
+    </Text>
+    <TouchableOpacity 
+      onPress={() => setReplyView(null)}
+      className="ml-2 p-1"
+    >
+      <Image
+    source={icons.close}
+    className="ml-5 h-5 w-5"
+    tintColor={"#9e9e9e"}
+    />
+    </TouchableOpacity>
+  </View>
+)}
+          <View className="flex-row items-center p-2">
             <TextInput
               ref={inputRef}
               className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
@@ -789,10 +536,83 @@ className="mt-2 -mb-1 ml-5 flex flex-row"
           </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
-    </SignedIn>
-  </SafeAreaView>
+  </View>
   );
 };
 
 export default PostScreen;
+
+
+ {/* <View className="flex-row justify-between items-center mx-6 my-6">
+            <TouchableOpacity onPress={() => router.back()} className="mr-4">
+              <AntDesign name="caretleft" size={18} />
+            </TouchableOpacity>
+            <TouchableOpacity
+            onPress={() => {
+              router.push({
+                pathname: "/root/new-personal-post",
+                params: { 
+                  recipient_id: clerk_id,
+                  source: 'board'
+                }
+              })
+            }}
+            className="py-3 px-4 bg-white rounded-[24px] shadow-xs">
+              <Text className="font-JakartaSemiBold" style={{
+                color: postColor?.fontColor ?? color 
+              }}>Reply to {anonymousComments ? "Author" : username}</Text>
+            </TouchableOpacity>
+          </View>*/}
+          {/*<View 
+          className="mb-6 p-6 rounded-[24px] mx-auto flex flex-row items-center justify-between"
+          style={{
+            backgroundColor: postColor?.hex ?? color,
+            width: isIpad ? "95%" : "90%"
+          }}>
+            <View className="flex-1">
+              <TouchableOpacity onPress={() => handleUserProfile(userId)}>
+                <Text className="font-JakartaSemiBold text-lg">
+                  {anonymousComments
+                    ? clerk_id === user!.id
+                      ? "Me"
+                      : "Anonymous"
+                    : username}
+                </Text>
+              </TouchableOpacity>
+              <Text className="text-sm text-gray-700">
+                {typeof created_at === "string"
+                  ? getRelativeTime(convertToLocal(new Date(created_at)))
+                  : "No date"}
+              </Text>
+              <TouchableWithoutFeedback
+                onPress={() => Keyboard.dismiss()}
+                onPressIn={() => Keyboard.dismiss()}
+              >
+                <ScrollView
+                  style={{ maxHeight: screenHeight / 6 }}
+                  showsVerticalScrollIndicator={false}
+                >
+                  <Text className="font-Jakarta min-h-[30]">{content}</Text>
+                </ScrollView>
+              </TouchableWithoutFeedback>
+            </View>
+            <View className="flex flex-row justify-center items-center">
+                <View>
+                  <Text
+                    className={`${clerk_id === user?.id ? "text-gray-800" : "text-transparent"} text-center mr-1 text-sm`}
+                  >
+                    {clerk_id === user?.id ? likeCount : "0"}
+                  </Text>
+                </View>
+                  <TouchableOpacity
+                    onPress={handleLikePress}
+                    disabled={isLoadingLike}
+                  >
+                    <MaterialCommunityIcons
+                      name={isLiked ? "heart" : "heart-outline"}
+                      size={24}
+                      color={isLiked ? "red" : "black"}
+                    />
+                  </TouchableOpacity>
+                </View>
+          </View>*/}

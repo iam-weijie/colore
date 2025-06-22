@@ -2,9 +2,9 @@
 
 import InputField from "@/components/InputField";
 import { useNavigationContext } from "@/components/NavigationContext";
-import { icons } from "@/constants";
+import { icons, temporaryColors } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { UserProfileType } from "@/types/type";
+import { PostItColor, UserProfileType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -12,6 +12,7 @@ import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
+  FlatList,
   Image,
   KeyboardAvoidingView,
   ScrollView,
@@ -23,20 +24,113 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useGlobalContext } from "@/app/globalcontext"; // Import Global Context
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
-import { useAlert } from '@/notifications/AlertContext';
+import { useAlert } from "@/notifications/AlertContext";
+import ModalSheet from "@/components/Modal";
+import RenameContainer from "@/components/RenameContainer";
+import { Modal as RNModal } from "react-native";
+import CustomButton from "@/components/CustomButton";
+import Circle from "@/components/Circle";
+import ItemContainer from "@/components/ItemContainer";
+import ProgressBar from "@/components/ProgressBar";
+import { Modal } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Settings = () => {
+  const [infoVisible, setInfoVisible] = useState(false);
+  const [colorAttempts, setColorAttempts] = useState<number>(0);
+  const [lastAttemptTime, setLastAttemptTime] = useState<number | null>(null);
+
   const { signOut } = useAuth();
   const { user } = useUser();
   const [username, setUsername] = useState("");
-  const [newUsername, setNewUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [newEmail, setNewEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const { stateVars, setStateVars } = useNavigationContext();
+  const [selectedModal, setSelectedModal] = useState<any>(null);
+  const [selectedTitle, setSelectedTitle] = useState<string>("");
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
   const [savedPosts, setSavedPosts] = useState<string[]>();
   const [likedPosts, setLikedPosts] = useState<string[]>();
+  const [libraryVisible, setLibraryVisible] = useState(false);
+  const [colorLibrary, setColorLibrary] = useState<PostItColor[]>([]);
+  const blueProgress = Math.min(
+    100,
+    Math.floor((savedPosts?.length || 0) / 3) * 20
+  );
+  const yellowProgress = Math.min(
+    100,
+    Math.floor((likedPosts?.length || 0) / 10) * 20
+  );
+  const pinkProgress = Math.min(
+    100,
+    Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
+  );
+  const [unlockedColors, setUnlockedColors] = useState<PostItColor[]>([]);
+  const handleAttemptColorCreation = async () => {
+    if (colorAttempts >= 4) {
+      showAlert({
+        title: "Limit Reached",
+        message:
+          "You’ve reached your 4 color attempts for today. Come back in 24 hours!",
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    const S = Math.floor((savedPosts?.length || 0) / 3);
+    const R = Math.floor((likedPosts?.length || 0) / 10);
+    const B = Math.floor((profileUser?.customizations?.length || 0) / 5);
+    const userSRB = [S, R, B];
+
+    const matchedColor = colorLibrary.find(
+      (c) =>
+        c.SRB[0] === userSRB[0] &&
+        c.SRB[1] === userSRB[1] &&
+        c.SRB[2] === userSRB[2]
+    );
+
+    setColorAttempts((prev) => {
+      const newAttempts = prev + 1;
+      AsyncStorage.setItem("colorAttempts", newAttempts.toString());
+      if (prev === 0) {
+        AsyncStorage.setItem("lastAttemptTime", Date.now().toString());
+        setLastAttemptTime(Date.now());
+      }
+      return newAttempts;
+    });
+
+    if (matchedColor) {
+      const alreadyUnlocked = unlockedColors.some(
+        (uc) => uc.name === matchedColor.name
+      );
+
+      if (!alreadyUnlocked) {
+        setUnlockedColors((prev) => [...prev, matchedColor]);
+
+        showAlert({
+          title: "🎉 Color Unlocked!",
+          message: `${matchedColor.name} has been added to your collection.`,
+          type: "UPDATE",
+          status: "success",
+        });
+      } else {
+        showAlert({
+          title: "Already Unlocked",
+          message: `You already have ${matchedColor.name}.`,
+          type: "UPDATE",
+          status: "info",
+        });
+      }
+    } else {
+      showAlert({
+        title: "No Match",
+        message: "Your current SRB doesn't match any color. Try again later!",
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  };
 
   // Get settings state and setters from Global Context
   const {
@@ -84,8 +178,26 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    fetchUserData();
-    fetchLikedPosts();
+    const loadAttempts = async () => {
+      const storedAttempts = await AsyncStorage.getItem("colorAttempts");
+      const storedTimestamp = await AsyncStorage.getItem("lastAttemptTime");
+
+      const attempts = storedAttempts ? parseInt(storedAttempts) : 0;
+      const lastTime = storedTimestamp ? parseInt(storedTimestamp) : null;
+
+      if (lastTime && Date.now() - lastTime >= 24 * 60 * 60 * 1000) {
+        // Reset after 24h
+        setColorAttempts(0);
+        setLastAttemptTime(Date.now());
+        await AsyncStorage.setItem("colorAttempts", "0");
+        await AsyncStorage.setItem("lastAttemptTime", `${Date.now()}`);
+      } else {
+        setColorAttempts(attempts);
+        setLastAttemptTime(lastTime);
+      }
+    };
+
+    loadAttempts();
   }, []);
 
   const verifyValidUsername = (username: string): boolean => {
@@ -93,16 +205,28 @@ const Settings = () => {
     return usernameRegex.test(username);
   };
 
-  const handleUsernameUpdate = async () => {
-    if (!verifyValidUsername(newUsername)) {
+  const handleUsernameUpdate = async (newName: string) => {
+    console.log("New Username: ", newName);
+    if (!verifyValidUsername(newName)) {
       showAlert({
-        title: 'Invalid Username',
-        message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
-        type: 'ERROR',
-        status: 'error',
+        title: "Invalid Username",
+        message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long.`,
+        type: "ERROR",
+        status: "error",
       });
       return;
     }
+    
+    if (containsBadWord(newName)) {
+      showAlert({
+        title: "Inappropriate Username",
+        message: `Please avoid using inappropriate or offensive words in your name.`,
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+    
 
     setLoading(true);
     try {
@@ -110,39 +234,38 @@ const Settings = () => {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
-          username: newUsername,
+          username: newName,
         }),
       });
 
       //console.log("Changed Username", response)
       if (response.error) {
         if (response.error.includes("already taken")) {
-
-      showAlert({
-        title: 'Username taken',
-        message: `Username ${username} already exists. Please try another one.`,
-        type: 'ERROR',
-        status: 'error',
-      });
+          showAlert({
+            title: "Username taken",
+            message: `Username ${newName} already exists. Please try another one.`,
+            type: "ERROR",
+            status: "error",
+          });
         } else {
           throw new Error(response.error);
         }
       } else {
         showAlert({
-          title: 'New Username',
-          message: `Username updated successfully to ${newUsername}.`,
-          type: 'UPDATE',
-          status: 'success',
+          title: "New Username",
+          message: `Username updated successfully to ${newName}.`,
+          type: "UPDATE",
+          status: "success",
         });
         await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to update username:", error);
       showAlert({
-        title: 'Error',
+        title: "Error",
         message: `Failed to update username. Please try again.`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
     } finally {
       setLoading(false);
@@ -153,17 +276,17 @@ const Settings = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
-  const handleEmailUpdate = async () => {
+  const handleEmailUpdate = async (newEmail: string) => {
     if (!newEmail || newEmail === email) {
       return;
     }
 
     if (!verifyValidEmail(newEmail)) {
       showAlert({
-        title: 'Email address is invalid. ',
+        title: "Email address is invalid. ",
         message: `Please enter a valid email address.`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
       return;
     }
@@ -180,30 +303,30 @@ const Settings = () => {
       if (response.error) {
         if (response.error.includes("already taken")) {
           showAlert({
-            title: 'Email taken',
+            title: "Email taken",
             message: `Email ${newEmail} already exists. Please try another one.`,
-            type: 'ERROR',
-            status: 'error',
+            type: "ERROR",
+            status: "error",
           });
         } else {
           throw new Error(response.error);
         }
       } else {
         showAlert({
-          title: 'Success',
+          title: "Success",
           message: `Email updated successfully to ${newEmail}.`,
-          type: 'UPDATE',
-          status: 'success',
+          type: "UPDATE",
+          status: "success",
         });
         await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to update email:", error);
       showAlert({
-        title: 'Error',
+        title: "Error",
         message: `Failed to update email. Please try again.`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
     } finally {
       setLoading(false);
@@ -225,16 +348,41 @@ const Settings = () => {
     try {
       await signOut();
       setLoading(true);
-      router.replace("/auth/log-in");
+      router.replace("/auth/onboarding");
     } catch (error) {
       console.error("Error signing out:", error);
       showAlert({
-        title: 'Error',
+        title: "Error",
         message: `Failed to sign out.`,
-        type: 'ERROR',
-        status: 'error',
+        type: "ERROR",
+        status: "error",
       });
     }
+  };
+
+  const handleUpdateValue = (type: string) => {
+    setSelectedTitle(`${type == "username" ? "New username" : "New Email"}`);
+    setSelectedModal(
+      <RenameContainer
+        initialValue={""}
+        onSave={(newName: string) => {
+          if (type === "username") {
+            handleUsernameUpdate(newName);
+          } else {
+            handleEmailUpdate(newName);
+          }
+
+          setSelectedModal(null);
+          setSelectedTitle("");
+        }}
+        onCancel={() => {
+          setSelectedModal(null);
+          setSelectedTitle("");
+        }}
+        placeholder={type === "username" ? username : email}
+        maxCharacters={type === "username" ? 20 : 50}
+      />
+    );
   };
 
   const currentLocation = profileUser
@@ -261,195 +409,485 @@ const Settings = () => {
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
   };
   return (
-    <SafeAreaView className="flex-1">
-      <KeyboardAvoidingView behavior="padding" className="flex-1">
-        <View className="flex flex-row items-center px-4 pt-2">
-          <View>
-            <TouchableOpacity onPress={() => router.back()} className="mr-2">
-              <AntDesign name="caretleft" size={18} />
-            </TouchableOpacity>
+    <ScrollView className="flex-1 pt-6" showsVerticalScrollIndicator={false}>
+      {/* Account Section */}
+      <View className="mx-6 mb-6">
+        <View
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4"
+          style={{
+            backgroundColor: "#93c5fd",
+            borderColor: "#ffffff80",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 5,
+          }}
+        >
+          <View className="px-5 py-3">
+            <Text className="text-lg font-JakartaBold text-gray-800">
+              Account Information
+            </Text>
           </View>
-          <View>
-            <Text className="font-JakartaBold text-2xl">Settings</Text>
+          <View className="px-5 py-3">
+            <View className="flex flex-row items-center justify-between mb-1">
+              <Text className="text-lg font-JakartaSemiBold text-[#000]">
+                Username
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => handleUpdateValue("username")}
+                className="bg-black px-3 py-2 rounded-full"
+              >
+                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">
+                  Update
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <Text className="text-gray-800 text-base font-JakartaMedium mt-1">
+              {username || "Not specified"}
+            </Text>
+          </View>
+          <View className="px-5 py-3">
+            <View className="flex flex-row items-center justify-between mb-1">
+              <Text className="text-lg font-JakartaSemiBold text-[#000]">
+                Email
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => handleUpdateValue("email")}
+                className="bg-black px-3 py-2 rounded-full"
+              >
+                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">
+                  Update
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <Text className="text-gray-800 text-base font-JakartaMedium mt-1">
+              {email || "Not specified"}
+            </Text>
+          </View>
+
+          <View className="px-5 py-3">
+            <View className="flex flex-row items-center justify-between mb-1">
+              <Text className="text-lg font-JakartaSemiBold text-[#000]">
+                Location
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleLocationUpdate}
+                className="bg-black px-3 py-2 rounded-full"
+              >
+                <Text className="text-[#93c5fd] text-sm font-JakartaSemiBold">
+                  Update
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <Text className="text-gray-800 text-base font-JakartaMedium  mt-1">
+              {currentLocation || "Not specified"}
+            </Text>
           </View>
         </View>
-        <ScrollView className="flex-1">
-          <View className=" mx-6">
-            <Text className="text-xl font-JakartaBold my-4 bg-[#93c5fd] text-[#ffffff] rounded-[24px] px-5 py-6">
-              Account
-            </Text>
-            <View className="bg-[#fafafa] rounded-[32px] p-5">
-              <View className="flex flex-row items-center justify-between -mb-14 p-2">
-                <Text className="text-lg font-JakartaSemiBold my-2">
-                  Username
-                </Text>
-              </View>
-              <InputField
-                label=""
-                value={newUsername}
-                onChangeText={setNewUsername}
-                placeholder={username || "Enter username"}
-                onSubmitEditing={() => {
-                  if (!newUsername || loading) {
-                    return;
-                  }
-                  handleUsernameUpdate();
-                  setUsername(newUsername);
-                  setNewUsername("");
-                }}
-              />
-              <View className="flex flex-row items-center justify-between -mb-14 p-2">
-                <Text className="text-lg font-JakartaSemiBold mb-2">
-                  Email Address
-                </Text>
-              </View>
-              <InputField
-                label=""
-                value={newEmail}
-                onChangeText={setNewEmail}
-                placeholder={profileUser?.email || "Enter email address"}
-                onSubmitEditing={() => {
-                  if (!newEmail || loading) {
-                    return;
-                  }
-                  handleEmailUpdate();
-                  setEmail(newEmail);
-                  setNewEmail("");
-                }}
-                containerStyle="mb-4"
-              />
-              <View className="mb-4 mx-2 pr-[20px]">
-                <View className="flex flex-row items-center justify-between mb-4">
-                  <Text className="text-lg  font-JakartaSemiBold ">
-                    Location
-                  </Text>
-                  <TouchableOpacity
-                    activeOpacity={0.5}
-                    onPress={handleLocationUpdate}
-                  >
-                    <Text className="text-md text-[#93c5fd] font-JakartaSemiBold">
-                      Update
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+      </View>
 
-                <Text className="text-gray-500 mb-2">{currentLocation}</Text>
-              </View>
-            </View>
-          </View>
-          <View className=" mx-6">
-            <Text className=" text-xl font-JakartaBold my-4 bg-[#CFB1FB] text-[#ffffff]  rounded-[24px] px-5 py-6">
-              Activity
+      {/* Activity Section */}
+      <View className="mx-6 mb-6">
+        <View
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4"
+          style={{
+            backgroundColor: "#CFB1FB",
+            borderColor: "#ffffff80",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 5,
+          }}
+        >
+          <View className="px-5 py-4">
+            <Text className="text-lg font-JakartaBold text-gray-800">
+              Your Activity
             </Text>
-            <View className="bg-[#fafafa] rounded-[32px] p-5">
-              <TouchableOpacity
-                activeOpacity={0.6}
-                onPress={() => {
-                  router.push({
-                    pathname: "/root/saved-post-gallery",
-                    params: {
-                      posts: JSON.stringify(savedPosts),
-                      name: "Saved Posts",
-                    },
-                  });
-                }}
-              >
-                <View className="flex flex-row items-center justify-between p-2">
-                  <View>
-                    <Text className="text-lg font-JakartaSemiBold my-2">
-                      Saved Posts
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => {
+              router.push({
+                pathname: "/root/saved-post-gallery",
+                params: {
+                  posts: JSON.stringify(savedPosts),
+                  name: "Saved Posts",
+                },
+              });
+            }}
+            className="px-5 py-4 flex flex-row items-center justify-between"
+          >
+            <View className="flex flex-row items-center">
+              <View className="bg-black p-2 rounded-xl mr-3">
+                <Image
+                  source={icons.bookmark}
+                  tintColor="#ffffff"
+                  resizeMode="contain"
+                  className="w-5 h-5"
+                />
+              </View>
+              <Text className="text-base font-JakartaSemiBold text-gray-800">
+                Saved Posts
+              </Text>
+            </View>
+            <View className="flex flex-row items-center">
+              <Text className="text-[#000] text-sm mr-2">
+                {savedPosts?.length || 0}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => {
+              router.push({
+                pathname: "/root/saved-post-gallery",
+                params: {
+                  posts: JSON.stringify(likedPosts),
+                  name: "Liked Posts",
+                },
+              });
+            }}
+            className="px-5 py-4 flex flex-row items-center justify-between"
+          >
+            <View className="flex flex-row items-center">
+              <View className="bg-black p-2 rounded-xl mr-3">
+                <MaterialCommunityIcons
+                  name="heart-outline"
+                  size={20}
+                  color="#EF4444"
+                />
+              </View>
+              <Text className="text-base font-JakartaSemiBold text-gray-800">
+                Liked Posts
+              </Text>
+            </View>
+            <View className="flex flex-row items-center">
+              <Text className="text-[#000] text-sm mr-2">
+                {likedPosts?.length || 0}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Preferences Section */}
+      <View className="mx-6 mb-6">
+        <View
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4"
+          style={{
+            backgroundColor: "#ffe640",
+            borderColor: "#ffffff80",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 5,
+          }}
+        >
+          <View className="px-5 py-4">
+            <Text className="text-lg font-JakartaBold text-gray-800">
+              Preferences
+            </Text>
+          </View>
+
+          <View className="px-5 py-3 flex flex-row items-center justify-between">
+            <View className="flex-1">
+              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">
+                Haptic Feedback
+              </Text>
+              <Text className="text-sm text-gray-800">
+                Get physical feedback for interactions
+              </Text>
+            </View>
+            <Switch
+              trackColor={{ false: "#888", true: "#000" }}
+              thumbColor={hapticsEnabled ? "#ffffff" : "#f4f3f4"}
+              ios_backgroundColor="#E5E7EB"
+              onValueChange={handleHapticsToggle}
+              value={hapticsEnabled}
+            />
+          </View>
+
+          <View className="px-5 py-3 flex flex-row items-center justify-between">
+            <View className="flex-1">
+              <Text className="text-base font-JakartaSemiBold text-gray-800 mb-1">
+                Sound Effects
+              </Text>
+              <Text className="text-sm text-gray-800">
+                Play sounds for certain actions
+              </Text>
+            </View>
+            <Switch
+              trackColor={{ false: "#888", true: "#000" }}
+              thumbColor={soundEffectsEnabled ? "#ffffff" : "#f4f3f4"}
+              ios_backgroundColor="#E5E7EB"
+              onValueChange={handleSoundToggle}
+              value={soundEffectsEnabled}
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Colors Section */}
+
+      <View className="mx-6 mb-6">
+        <View
+          className="flex-1 p-4 rounded-[48px] overflow-hidden shadow-sm border-4"
+          style={{
+            backgroundColor: "#fdf6e3",
+            borderColor: "#ffffff80",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 5,
+          }}
+        >
+          <View className="px-5 py-3">
+            <Text className="text-lg font-JakartaBold text-gray-800">
+              Colors
+            </Text>
+          </View>
+
+          {/* SRB Info Button */}
+          <View className="px-5 py-2">
+            <TouchableOpacity
+              onPress={() => setInfoVisible(true)}
+              className="border border-black px-4 py-3 rounded-full items-center"
+              activeOpacity={0.8}
+            >
+              <Text className="text-black text-sm font-JakartaSemiBold">
+                ℹ️ What is SRB?
+              </Text>
+              {infoVisible && (
+                <ModalSheet
+                  title="About SRB"
+                  isVisible={infoVisible}
+                  onClose={() => setInfoVisible(false)}
+                >
+                  <View className="p-4">
+                    <Text className="text-xl font-JakartaBold mb-4 text-black">
+                      🔍 What is SRB?
                     </Text>
-                  </View>
-                  <View className="flex flex-row items-center">
-                    <Text className="text-gray-400 text-sm mr-2">
-                      {savedPosts?.length || ""}
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      🎨 SRB stands for Saved, Reacted, and Built.
                     </Text>
-                    <Image
-                      source={icons.bookmark}
-                      tintColor="#000000"
-                      resizeMode="contain"
-                      className="w-6 h-6"
+
+                    <Text className="text-sm text-gray-800 mb-3">
+                      It’s a creative system that tracks your activity across
+                      the app and lets you unlock new colors as a reward.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      🔵 S — Saved
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      Every 3 posts you save contributes 1 point to your “S”
+                      score.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      🟡 R — Reacted
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      Every 10 likes or comments you receive adds 1 point to
+                      your “R” score.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      🩷 B — Built
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      Every 5 customizations you've made (like emojis or style
+                      changes) give you 1 point for “B”.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      💡 How Colors Are Formed
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      When your SRB score matches the pattern of a secret color
+                      in our color library, that color gets unlocked and added
+                      to your collection.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      ⏳ Limitations
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      You can try unlocking a color up to 4 times per day. The
+                      attempts reset every 24 hours.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      🎁 Why Unlock Colors?
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      Unlocked colors can be used to personalize your notes,
+                      boards, and posts — and show off your unique activity
+                      style.
+                    </Text>
+
+                    <CustomButton
+                      className="mt-6 bg-black w-[160px] self-center"
+                      title="Got it!"
+                      onPress={() => setInfoVisible(false)}
                     />
                   </View>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.6}
-                onPress={() => {
-                  router.push({
-                    pathname: "/root/saved-post-gallery",
-                    params: {
-                      posts: JSON.stringify(likedPosts),
-                      name: "Liked Posts",
-                    },
-                  });
-                }}
-              >
-                <View className="flex flex-row items-center justify-between p-2">
-                  <View>
-                    <Text className="text-lg font-JakartaSemiBold my-2">
-                      Liked Posts
-                    </Text>
-                  </View>
-                  <View className="flex flex-row items-center">
-                    <Text className="text-gray-400 text-sm mr-2">
-                      {likedPosts?.length || ""}
-                    </Text>
-                    <MaterialCommunityIcons
-                      name={"heart-outline"}
-                      size={24}
-                      color={"black"}
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </View>
+                </ModalSheet>
+              )}
+            </TouchableOpacity>
           </View>
-          {/* End Activity Section View */}
 
-          {/* --- New Audio & Haptics Section --- */}
-          <View className=" mx-6">
-             <Text className=" text-xl font-JakartaBold my-4 bg-[#FACC15] text-[#ffffff] rounded-[24px] px-5 py-6">
-               Audio & Haptics
-             </Text>
-             <View className="bg-[#fafafa] rounded-[32px] p-5">
-               {/* Haptics Toggle */}
-               <View className="flex flex-row items-center justify-between p-2 mb-2">
-                 <Text className="text-lg font-JakartaSemiBold">Enable Haptic Feedback</Text>
-                 <Switch
-                   trackColor={{ false: "#767577", true: "#FACC15" }}
-                   thumbColor={hapticsEnabled ? "#ffffff" : "#f4f3f4"}
-                   ios_backgroundColor="#888888"
-                   onValueChange={handleHapticsToggle} // Use wrapped handler
-                   value={hapticsEnabled}
-                 />
-               </View>
-               {/* Sound Effects Toggle */}
-               <View className="flex flex-row items-center justify-between p-2">
-                 <Text className="text-lg font-JakartaSemiBold">Enable Sound Effects</Text>
-                 <Switch
-                   trackColor={{ false: "#767577", true: "#FACC15" }}
-                   thumbColor={soundEffectsEnabled ? "#ffffff" : "#f4f3f4"}
-                   ios_backgroundColor="#888888"
-                   onValueChange={handleSoundToggle} // Use wrapped handler
-                   value={soundEffectsEnabled}
-                 />
-               </View>
-             </View>
-           </View>
-           {/* --- End New Section --- */}
-
-
-          <View className="my-[36px]">
-            <TouchableOpacity onPress={handleSignOut}>
-              <Text className="font-JakartaBold text-xl text-red-500 text-center">
-                Sign Out
+          <View className="px-5 py-4">
+            <TouchableOpacity
+              onPress={() => setLibraryVisible(true)}
+              className="bg-black px-4 py-3 rounded-full items-center"
+              activeOpacity={0.8}
+            >
+              <Text className="text-white text-sm font-JakartaSemiBold">
+                🎨 View Color Library
               </Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+          <View className="px-5 py-2">
+            <TouchableOpacity
+              onPress={handleAttemptColorCreation}
+              className="bg-yellow-500 px-4 py-3 rounded-full items-center"
+              activeOpacity={0.8}
+            >
+              <Text className="text-black text-sm font-JakartaSemiBold">
+                ✨ Attempt Create Color
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Blue Progress */}
+          <View className="px-5 py-2">
+            <Text className="text-sm font-JakartaSemiBold text-gray-800 mb-1">
+              🔵 Blue Level
+            </Text>
+
+            <ProgressBar
+              progress={Math.min(
+                100,
+                Math.floor((savedPosts?.length || 0) / 3) * 20
+              )}
+              height={8}
+              progressColor="#60a5fa"
+              backgroundColor="#E5E7EB"
+            />
+          </View>
+
+          {/* Yellow Progress */}
+          <View className="px-5 py-2">
+            <Text className="text-sm font-JakartaSemiBold text-gray-800 mb-1">
+              🟡 Yellow Level
+            </Text>
+
+            <ProgressBar
+              progress={Math.min(
+                100,
+                Math.floor((likedPosts?.length || 0) / 10) * 20
+              )}
+              height={8}
+              progressColor="#facc15"
+              backgroundColor="#E5E7EB"
+            />
+          </View>
+
+          {/* Pink Progress */}
+          <View className="px-5 py-2">
+            <Text className="text-sm font-JakartaSemiBold text-gray-800 mb-1">
+              🩷 Pink Level
+            </Text>
+
+            <ProgressBar
+              progress={pinkProgress}
+              height={8}
+              progressColor="#FBB1F5"
+              backgroundColor="#E5E7EB"
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Sign Out Section */}
+      <View className="mx-6 mb-6">
+        <TouchableOpacity
+          onPress={handleSignOut}
+          className="bg-white rounded-[32px] p-4 shadow-sm overflow-hidden flex items-center justify-center"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+          }}
+        >
+          <Text className="font-JakartaBold text-lg text-red-500">
+            Sign Out
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {!!selectedModal && (
+        <ModalSheet
+          children={selectedModal}
+          title={selectedTitle}
+          isVisible={!!selectedModal}
+          onClose={() => {
+            setSelectedModal(null);
+            setSelectedTitle("");
+          }}
+        />
+      )}
+      {libraryVisible && (
+        <ModalSheet
+          title={"Your Color Library"}
+          isVisible={libraryVisible}
+          onClose={() => {}}
+        >
+          <View className="flex-1 p-6">
+            <FlatList
+              className="flex-1"
+              data={colorLibrary}
+              keyExtractor={(item, index) => index.toString()}
+              ListEmptyComponent={
+                <Text style={{ fontSize: 16, color: "gray" }}>
+                  You haven't collected any colors yet.
+                </Text>
+              }
+              renderItem={({ item }) => (
+                <ItemContainer
+                  label={item.name}
+                  caption={item.meaning || "No description available."}
+                  icon={0}
+                  colors={[item.hex, item.foldcolorhex]}
+                  iconColor={""}
+                  onPress={() => {}}
+                />
+              )}
+              contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
+              showsVerticalScrollIndicator={false}
+            />
+            <CustomButton
+              className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
+              fontSize="lg"
+              title="Close"
+              padding="0"
+              onPress={() => {
+                setLibraryVisible(false);
+              }}
+            />
+          </View>
+        </ModalSheet>
+      )}
+    </ScrollView>
   );
 };
 
