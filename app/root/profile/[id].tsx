@@ -200,7 +200,7 @@ const Profile = React.memo(() => {
 
   const handleNewPost = useCallback(() => {
     const pathname = "root/new-post" 
-    const params = { recipientId: user!.id, username: "Yourself",}
+    const params = { recipientId: userId, username: username}
     router.push({ pathname, params });
   }, [userId, username]);
 

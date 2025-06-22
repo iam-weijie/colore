@@ -241,7 +241,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   const decryptedPostsCache = useRef<Map<number, Post>>(new Map());
 
   const handlePostsRefresh = async () => {
-    const response = await fetchUserPosts();
+    const response = await fetchPersonalPosts();
     return response;
   }
 
@@ -514,7 +514,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     }
   }, [isLoadingMore, hasMore, fetchUserData]);
 
-  const fetchUserPosts = useCallback(async () => {
+  const fetchUserPosts = async () => {
     try {
       const response = await fetchAPI(`/api/posts/getUserPosts?id=${userId}`, {
         method: "GET",
@@ -523,13 +523,13 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         throw new Error(response.error);
       }
       const { posts } = response;
-      setUserPosts(posts);
+      setUserPosts(posts)
     } catch (error) {
       console.error("Failed to fetch user posts:", error);
     }
-  }, [userId]);
+  }
 
-  const fetchPersonalPosts = useCallback(async () => {
+  const fetchPersonalPosts = async () => {
     try {
       // Get all personal posts including pinned ones
       const response = await fetchAPI(
@@ -572,13 +572,15 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         // Enable interactions since we found pinned posts
         setDisableInteractions(false);
         setProfileLoading(false);
+
+        return filteredPosts
       }
     } catch (error) {
       console.error("[DEBUG] UserProfile - Failed to fetch personal posts:", error);
       setDisableInteractions(true);
       setPersonalPosts([]);
     }
-  }, [userId, user, encryptionKey, decryptPosts]);
+  }
 
   const fetchPersonalBoards = async () => {
 
@@ -931,11 +933,11 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
       )}
 
       {selectedTab === "Board" && (
-        <View>
+        <View className="flex-1">
           <PostItBoard 
           userId={userId} 
           handlePostsRefresh={handlePostsRefresh} 
-          handleNewPostFetch={handleNewPostFetch} 
+          handleNewPostFetch={handlePostsRefresh} 
           handleUpdatePin={() => {}} 
           allowStacking={false} 
           randomPostion={false} />

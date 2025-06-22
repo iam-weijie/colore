@@ -8,8 +8,6 @@ import {
   View,
   Image,
   Text,
-  ViewStyle,
-  StyleSheet,
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useRouter } from "expo-router";
@@ -58,28 +56,20 @@ const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElemen
     FadeIn.duration(400).springify().delay(item.id % 10 * 100)
   , [item.id]);
 
-  // Create styles using StyleSheet to avoid inline styles
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      backgroundColor: item.color,
-      borderColor: "#ffffff80",
-      height: 225,
-      width: 170,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.1,
-      shadowRadius: 5,
-      borderWidth: 2,
-      borderRadius: 36,
-      overflow: 'hidden',
-      margin: 8,
-    }
-  }), [item.color]);
-
   return (
     <Animated.View
       entering={animationStyle}
-      style={styles.container}
+      className="overflow-hidden m-2 border-2 rounded-[36px] shadow-md"
+      style={{
+        backgroundColor: item.color,
+        borderColor: '#ffffff80',
+        height: 225,
+        width: 170,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+      }}
     >
       <TouchableOpacity
         activeOpacity={0.9}
@@ -140,41 +130,6 @@ const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElemen
 const BoardGallery = React.memo(({ boards, offsetY }: {boards: Board[], offsetY?: number}) => {
   const { isIpad } = useDevice();
 
-  // Create styles using StyleSheet
-  const styles = useMemo(() => StyleSheet.create({
-    contentContainer: {
-      paddingHorizontal: isIpad ? 16 : 4,
-      paddingBottom: 20,
-      paddingTop: offsetY ?? 0
-    },
-    columnWrapperIpad: {
-      justifyContent: 'flex-start',
-      gap: 12,
-      marginBottom: 16,
-    },
-    columnWrapperMobile: {
-      justifyContent: 'space-between',
-      paddingHorizontal: 8,
-      marginBottom: 16,
-    },
-    emptyContainer: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 32,
-    },
-    emptyText: {
-      color: '#6b7280',
-    },
-    footer: {
-      height: 80
-    },
-    list: {
-      flex: 1,
-      paddingTop: 16
-    }
-  }), [isIpad, offsetY]);
-
   // Memoize the performance settings
   const performanceSettings = useMemo(() => ({
     initialNumToRender: isIpad ? 16 : 4,
@@ -193,25 +148,30 @@ const BoardGallery = React.memo(({ boards, offsetY }: {boards: Board[], offsetY?
 
   // Memoize the empty component
   const ListEmptyComponent = useMemo(() => (
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>
-        No Boards Yet.
-      </Text>
+    <View className="flex-1 items-center justify-center">
+      <EmptyListView character="rosie" mood={1} message="No boards? Don't you have any hobbies?"/>
     </View>
-  ), [styles.emptyContainer, styles.emptyText]);
+  ), []);
 
   // Memoize the footer component
-  const ListFooterComponent = useMemo(() => <View style={styles.footer} />, [styles.footer]);
+  const ListFooterComponent = useMemo(() => <View className="h-20" />, []);
 
   return (
     <FlatList
-      style={styles.list}
+      className="flex-1 pt-4"
       data={boards}
       keyExtractor={keyExtractor}
       numColumns={isIpad ? 6 : 2}
       renderItem={renderItem}
-      contentContainerStyle={styles.contentContainer}
-      columnWrapperStyle={isIpad ? styles.columnWrapperIpad : styles.columnWrapperMobile}
+      contentContainerStyle={{
+        paddingHorizontal: isIpad ? 16 : 4,
+        paddingBottom: 20,
+        paddingTop: offsetY ?? 0,
+      }}
+      columnWrapperStyle={isIpad
+        ? { justifyContent: 'flex-start', gap: 12, marginBottom: 16 }
+        : { justifyContent: 'space-between', paddingHorizontal: 8, marginBottom: 16 }
+      }
       showsVerticalScrollIndicator={false}
       ListEmptyComponent={ListEmptyComponent}
       ListFooterComponent={ListFooterComponent}

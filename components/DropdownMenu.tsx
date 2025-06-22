@@ -120,6 +120,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ icon, menuItems, customMenu
 
           {menuItems.map((item, index) => (
           <View 
+          key={String(index)}
           className="-my-2"
           style={{
             transform: "scale(0.9)"

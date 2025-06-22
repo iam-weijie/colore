@@ -34,6 +34,7 @@ import { distanceBetweenPosts } from "@/lib/post";
 import KeyboardOverlay from "./KeyboardOverlay";
 import { FindUser } from "./FindUsers";
 import { useAlert } from "@/notifications/AlertContext";
+import EmptyListView from "./EmptyList";
 
 const screenHeight = Dimensions.get("screen").height;
 const screenWidth = Dimensions.get("screen").width;
@@ -209,8 +210,8 @@ const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is curr
         // Use existing positions
         for (const post of posts) {
           const positionWithOffset = {
-            top: Number(post.position?.top ?? 0) - scrollOffset.y,
-            left: Number(post.position?.left ?? 0) - scrollOffset.x,
+            top: Number(post.position?.top ?? 60) - scrollOffset.y,
+            left: Number(post.position?.left ?? 60) - scrollOffset.x,
             rotate: `${Math.abs(Math.random() * 8)}deg`,
           };
           postsWithPositions.push({ ...post, position: positionWithOffset });
@@ -501,43 +502,6 @@ useEffect(() => {
     fetchRandomPosts();
   }, [mode]);
 
-  // Add a useEffect for loading timeout
-  /* useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    if (loading) {
-      console.log("Starting loading timeout");
-      timeoutId = setTimeout(() => {
-        console.log("Loading timeout reached, forcing state update");
-        setLoading(false);
-        if (postsWithPosition.length === 0) {
-          setError("Loading timed out. Please try refreshing.");
-        }
-      }, LOADING_TIMEOUT);
-    }
-    
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [loading]);
-
-  // Modify the rendering logic to prevent infinite loading
-  if (loading) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ColoreActivityIndicator />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <Text>Error: {error}</Text>
-      </View>
-    );
-    
-  } */
 
     if (loading) {
        return (
@@ -549,8 +513,8 @@ useEffect(() => {
 
   if (postsWithPosition.length === 0 && !loading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-lg text-gray-600">No posts available</Text>
+      <View className="flex-1 items-center justify-center -mt-[25%]">
+        <EmptyListView mood={2} character={"steve"} message={"No posts Available. Should I investigate?"}  />
       </View>
     );
   }
@@ -714,7 +678,7 @@ useEffect(() => {
               {selectedModal}
             </ModalSheet>
           )}
-      )}
+     
         </ScrollView>
         </ScrollView>)}
   </SignedIn>
