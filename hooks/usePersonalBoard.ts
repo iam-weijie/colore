@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Dimensions } from "react-native";
 import { fetchAPI } from "@/lib/fetch";
-import { Board, Post, UsePersonalPostsParams } from "@/types/type";
+import { Board, Post, Stacks, UsePersonalPostsParams } from "@/types/type";
 import { decryptText } from "@/lib/encryption";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 
@@ -42,16 +42,17 @@ const filterPersonalPosts = (
   );
 };
 
-const filterPostsByBoard = (posts: Post[], boardId: number): Post[] => {
-  return boardId === -1
-    ? posts
-    : posts.filter((p: Post) => p.board_id == boardId);
+const filterItemsByBoard = (
+  items: Post[] | Stacks[],
+  boardId: number
+): (Post | Stacks)[] => {
+  return boardId < 0 ? items : items.filter((p: Post) => p.board_id == boardId);
 };
 
 export const usePersonalPosts = (params: UsePersonalPostsParams) => {
   const { userId, viewerId, boardId, isIpad, isOwnBoard, postRefIDs } = params;
 
-  const [boardOnlyPosts, setBoardOnlyPosts] = useState<Post[]>([]);
+  const [boardOnlyPosts, setBoardOnlyPosts] = useState<(Post | Stacks)[]>([]);
   const [maxPosts, setMaxPosts] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,26 +63,68 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
     boardId: number,
     userId: string
   ): Promise<Post[]> => {
-    console.log(`[usePersonalBoard]: Fetching board posts for boardId=${boardId}, userId=${userId}`);
+    console.log(
+      `[usePersonalBoard]: Fetching board posts for boardId=${boardId}, userId=${userId}`
+    );
     try {
       const [boardResponse, postsResponse] = await Promise.all([
         fetchAPI(`/api/boards/getBoardById?id=${boardId}`),
         fetchAPI(`/api/posts/getPostsByBoardId?id=${boardId}&userId=${userId}`),
       ]);
-      
-      console.log(`[usePersonalBoard]: Board API response status:`, boardResponse.status);
-      console.log(`[usePersonalBoard]: Posts API response status:`, postsResponse.status);
+
+      console.log(
+        `[usePersonalBoard]: Board API response status:`,
+        boardResponse.status
+      );
+      console.log(
+        `[usePersonalBoard]: Posts API response status:`,
+        postsResponse.status
+      );
 
       const filteredPosts = filterPostsByRestrictions(
         postsResponse.data,
         boardResponse.data,
         userId
       );
-      
-      console.log(`[usePersonalBoard]: Filtered posts count:`, filteredPosts.length);
+
+      console.log(
+        `[usePersonalBoard]: Filtered posts count:`,
+        filteredPosts.length
+      );
       return filteredPosts;
     } catch (error) {
       console.error("[usePersonalBoard]: Error in fetchBoardPosts:", error);
+      throw error;
+    }
+  };
+
+  const fetchSharedStacks = async (userId: string): Promise<Stacks[]> => {
+    console.log(
+      `[usePersonalBoard]: Fetching shared with me stacks for userId=${userId}`
+    );
+
+    try {
+      const response = await fetchAPI(
+        `/api/stacks/getSharedStacks?user_id=${userId}`
+      );
+
+      console.log(
+        `[usePersonalBoard]: Shared stacks API response status:`,
+        response.status
+      );
+      console.log(
+        `[usePersonalBoard]: Shared stacks data count:`,
+        response.data?.length || 0
+      );
+
+      if (!response.data.length) {
+        console.log("[usePersonalBoard]: No shared stacks found");
+        return [];
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("[usePersonalBoard]: Error in fetchSharedStacks:", error);
       throw error;
     }
   };
@@ -90,22 +133,37 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
     userId: string,
     viewerId: string
   ): Promise<Post[]> => {
-    console.log(`[usePersonalBoard]: Fetching personal posts for userId=${userId}, viewerId=${viewerId}`);
+    console.log(
+      `[usePersonalBoard]: Fetching personal posts for userId=${userId}, viewerId=${viewerId}`
+    );
     try {
       const response = await fetchAPI(
         `/api/posts/getPersonalPosts?recipient_id=${userId}&user_id=${viewerId}`
       );
-      
-      console.log(`[usePersonalBoard]: Personal posts API response status:`, response.status);
-      console.log(`[usePersonalBoard]: Personal posts data count:`, response.data?.length || 0);
+
+      console.log(
+        `[usePersonalBoard]: Personal posts API response status:`,
+        response.status
+      );
+      console.log(
+        `[usePersonalBoard]: Personal posts data count:`,
+        response.data?.length || 0
+      );
 
       if (!response.data.length) {
         console.log("[usePersonalBoard]: No personal posts found");
         return [];
       }
 
-      const filteredPosts = filterPersonalPosts(response.data, isOwnBoard, viewerId);
-      console.log(`[usePersonalBoard]: Filtered personal posts count:`, filteredPosts.length);
+      const filteredPosts = filterPersonalPosts(
+        response.data,
+        isOwnBoard,
+        viewerId
+      );
+      console.log(
+        `[usePersonalBoard]: Filtered personal posts count:`,
+        filteredPosts.length
+      );
       return filteredPosts;
     } catch (error) {
       console.error("[usePersonalBoard]: Error in fetchPersonalPosts:", error);
@@ -113,74 +171,118 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
     }
   };
 
-  const fetchPosts = useCallback(async (): Promise<Post[]> => {
+  const fetchPosts = useCallback(async (): Promise<(Post | Stacks)[]> => {
     console.log("[usePersonalBoard]: fetchPosts called with boardId=", boardId);
     setIsLoading(true);
     setError(null);
 
     try {
-      let filteredPosts: Post[];
+      let filteredItems: Post[] | Stacks[];
 
       if (boardId > 0) {
         console.log("[usePersonalBoard]: Fetching board posts");
-        filteredPosts = await fetchBoardPosts(boardId, userId);
+        filteredItems = await fetchBoardPosts(boardId, userId);
+      } else if (boardId == -2) {
+        console.log("[usePersonalBoard]: Fetching shared wiht me stacks");
+        filteredItems = await fetchSharedStacks(userId);
       } else {
         console.log("[usePersonalBoard]: Fetching personal posts");
-        filteredPosts = await fetchPersonalPosts(userId, viewerId);
+        filteredItems = await fetchPersonalPosts(userId, viewerId);
       }
 
-      
-      const finalPosts = filterPostsByBoard(filteredPosts, boardId)
-        .map((p: Post) => {
+      const finalPosts = filterItemsByBoard(filteredItems, boardId).map(
+        (p: Post | Stacks) => {
           const isPrivate = Boolean(p.recipient_user_id);
           if (isPrivate && encryptionKey) {
             try {
-              console.log("[DEBUG] usePersonalBoard - Attempting to decrypt post:", p.id);
+              console.log(
+                "[DEBUG] usePersonalBoard - Attempting to decrypt post:",
+                p.id
+              );
               // Decrypt the content
               const decryptedContent = decryptText(p.content, encryptionKey);
-              console.log("[DEBUG] usePersonalBoard - Decrypted content:", decryptedContent.substring(0, 30));
-              
+              console.log(
+                "[DEBUG] usePersonalBoard - Decrypted content:",
+                decryptedContent.substring(0, 30)
+              );
+
               // Handle formatting - check both formatting and formatting_encrypted fields
               let decryptedFormatting = p.formatting;
-              
+
               // If formatting_encrypted exists, it takes precedence (newer format)
-              if (p.formatting_encrypted && typeof p.formatting_encrypted === "string") {
+              if (
+                p.formatting_encrypted &&
+                typeof p.formatting_encrypted === "string"
+              ) {
                 try {
-                  const decryptedFormattingStr = decryptText(p.formatting_encrypted, encryptionKey);
+                  const decryptedFormattingStr = decryptText(
+                    p.formatting_encrypted,
+                    encryptionKey
+                  );
                   decryptedFormatting = JSON.parse(decryptedFormattingStr);
-                  console.log("[DEBUG] usePersonalBoard - Successfully decrypted formatting_encrypted field");
+                  console.log(
+                    "[DEBUG] usePersonalBoard - Successfully decrypted formatting_encrypted field"
+                  );
                 } catch (formattingError) {
-                  console.warn("[DEBUG] usePersonalBoard - Failed to decrypt formatting_encrypted for post", p.id, formattingError);
+                  console.warn(
+                    "[DEBUG] usePersonalBoard - Failed to decrypt formatting_encrypted for post",
+                    p.id,
+                    formattingError
+                  );
                   // Fall back to regular formatting if available
                 }
-              } 
+              }
               // Otherwise try the old way (formatting as encrypted string)
-              else if (p.formatting && typeof p.formatting === "string" && 
-                      ((p.formatting as string).startsWith('U2FsdGVkX1') || (p.formatting as string).startsWith('##FALLBACK##'))) {
+              else if (
+                p.formatting &&
+                typeof p.formatting === "string" &&
+                ((p.formatting as string).startsWith("U2FsdGVkX1") ||
+                  (p.formatting as string).startsWith("##FALLBACK##"))
+              ) {
                 try {
-                  const decryptedFormattingStr = decryptText(p.formatting as unknown as string, encryptionKey);
+                  const decryptedFormattingStr = decryptText(
+                    p.formatting as unknown as string,
+                    encryptionKey
+                  );
                   decryptedFormatting = JSON.parse(decryptedFormattingStr);
-                  console.log("[DEBUG] usePersonalBoard - Successfully decrypted formatting string");
+                  console.log(
+                    "[DEBUG] usePersonalBoard - Successfully decrypted formatting string"
+                  );
                 } catch (formattingError) {
-                  console.warn("[DEBUG] usePersonalBoard - Failed to decrypt formatting for post", p.id, formattingError);
+                  console.warn(
+                    "[DEBUG] usePersonalBoard - Failed to decrypt formatting for post",
+                    p.id,
+                    formattingError
+                  );
                 }
               }
-              
-              return { 
-                ...p, 
-                content: decryptedContent, 
-                formatting: decryptedFormatting 
+
+              return {
+                ...p,
+                content: decryptedContent,
+                formatting: decryptedFormatting,
               };
             } catch (e) {
-              console.warn("[DEBUG] usePersonalBoard - Failed decryption for post", p.id, e);
+              console.warn(
+                "[DEBUG] usePersonalBoard - Failed decryption for post",
+                p.id,
+                e
+              );
             }
           }
           return p;
-        });
+        }
+      );
 
-      console.log("[DEBUG] usePersonalBoard - Final posts after decryption:", finalPosts.length);
+      console.log(
+        "[DEBUG] usePersonalBoard - Final posts after decryption:",
+        finalPosts.length
+      );
       if (finalPosts.length > 0) {
-        console.log("[DEBUG] usePersonalBoard - First final post content:", finalPosts[0].content.substring(0, 30));
+        console.log(
+          "[DEBUG] usePersonalBoard - First final post content:",
+          finalPosts[0]
+        );
       }
 
       setBoardOnlyPosts(finalPosts);
@@ -245,7 +347,9 @@ export const fetchNewPersonalPost = async ({
       `/api/posts/getPersonalPostsExcluding?number=1&user_id=${clerkId}&recipient_id=${userId}&exclude_ids=${excludeIdsParam}`
     );
     const result = await res.json();
-    const filteredForBoard = result.data.filter((p: Post) => p.board_id == boardId);
+    const filteredForBoard = result.data.filter(
+      (p: Post) => p.board_id == boardId
+    );
     return filteredForBoard[0] || null;
   } catch (e) {
     console.error("Error fetching new post:", e);
