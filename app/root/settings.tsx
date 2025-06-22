@@ -33,10 +33,12 @@ import Circle from "@/components/Circle";
 import ItemContainer from "@/components/ItemContainer";
 import ProgressBar from "@/components/ProgressBar";
 import { Modal } from "react-native";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Settings = () => {
   const [infoVisible, setInfoVisible] = useState(false);
+  const [colorAttempts, setColorAttempts] = useState<number>(0);
+  const [lastAttemptTime, setLastAttemptTime] = useState<number | null>(null);
 
   const { signOut } = useAuth();
   const { user } = useUser();
@@ -64,7 +66,18 @@ const Settings = () => {
     Math.floor((profileUser?.customizations?.length || 0) / 5) * 20
   );
   const [unlockedColors, setUnlockedColors] = useState<PostItColor[]>([]);
-  const handleAttemptColorCreation = () => {
+  const handleAttemptColorCreation = async () => {
+    if (colorAttempts >= 4) {
+      showAlert({
+        title: "Limit Reached",
+        message:
+          "You’ve reached your 4 color attempts for today. Come back in 24 hours!",
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
     const S = Math.floor((savedPosts?.length || 0) / 3);
     const R = Math.floor((likedPosts?.length || 0) / 10);
     const B = Math.floor((profileUser?.customizations?.length || 0) / 5);
@@ -76,6 +89,16 @@ const Settings = () => {
         c.SRB[1] === userSRB[1] &&
         c.SRB[2] === userSRB[2]
     );
+
+    setColorAttempts((prev) => {
+      const newAttempts = prev + 1;
+      AsyncStorage.setItem("colorAttempts", newAttempts.toString());
+      if (prev === 0) {
+        AsyncStorage.setItem("lastAttemptTime", Date.now().toString());
+        setLastAttemptTime(Date.now());
+      }
+      return newAttempts;
+    });
 
     if (matchedColor) {
       const alreadyUnlocked = unlockedColors.some(
@@ -155,9 +178,26 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    fetchUserData();
-    fetchLikedPosts();
-    setColorLibrary(temporaryColors);
+    const loadAttempts = async () => {
+      const storedAttempts = await AsyncStorage.getItem("colorAttempts");
+      const storedTimestamp = await AsyncStorage.getItem("lastAttemptTime");
+
+      const attempts = storedAttempts ? parseInt(storedAttempts) : 0;
+      const lastTime = storedTimestamp ? parseInt(storedTimestamp) : null;
+
+      if (lastTime && Date.now() - lastTime >= 24 * 60 * 60 * 1000) {
+        // Reset after 24h
+        setColorAttempts(0);
+        setLastAttemptTime(Date.now());
+        await AsyncStorage.setItem("colorAttempts", "0");
+        await AsyncStorage.setItem("lastAttemptTime", `${Date.now()}`);
+      } else {
+        setColorAttempts(attempts);
+        setLastAttemptTime(lastTime);
+      }
+    };
+
+    loadAttempts();
   }, []);
 
   const verifyValidUsername = (username: string): boolean => {
@@ -170,12 +210,23 @@ const Settings = () => {
     if (!verifyValidUsername(newName)) {
       showAlert({
         title: "Invalid Username",
-        message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long`,
+        message: `Username can only contain alphanumeric characters, '_', '-', and '.' and must be at most 20 characters long.`,
         type: "ERROR",
         status: "error",
       });
       return;
     }
+    
+    if (containsBadWord(newName)) {
+      showAlert({
+        title: "Inappropriate Username",
+        message: `Please avoid using inappropriate or offensive words in your name.`,
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+    
 
     setLoading(true);
     try {
@@ -608,10 +659,89 @@ const Settings = () => {
               className="border border-black px-4 py-3 rounded-full items-center"
               activeOpacity={0.8}
             >
-              <Text className="text-black text-sm font-JakartaSemiBold">ℹ️ What is SRB?</Text>
+              <Text className="text-black text-sm font-JakartaSemiBold">
+                ℹ️ What is SRB?
+              </Text>
+              {infoVisible && (
+                <ModalSheet
+                  title="About SRB"
+                  isVisible={infoVisible}
+                  onClose={() => setInfoVisible(false)}
+                >
+                  <View className="p-4">
+                    <Text className="text-xl font-JakartaBold mb-4 text-black">
+                      🔍 What is SRB?
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      🎨 SRB stands for Saved, Reacted, and Built.
+                    </Text>
+
+                    <Text className="text-sm text-gray-800 mb-3">
+                      It’s a creative system that tracks your activity across
+                      the app and lets you unlock new colors as a reward.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      🔵 S — Saved
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      Every 3 posts you save contributes 1 point to your “S”
+                      score.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      🟡 R — Reacted
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      Every 10 likes or comments you receive adds 1 point to
+                      your “R” score.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      🩷 B — Built
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      Every 5 customizations you've made (like emojis or style
+                      changes) give you 1 point for “B”.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      💡 How Colors Are Formed
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      When your SRB score matches the pattern of a secret color
+                      in our color library, that color gets unlocked and added
+                      to your collection.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      ⏳ Limitations
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      You can try unlocking a color up to 4 times per day. The
+                      attempts reset every 24 hours.
+                    </Text>
+
+                    <Text className="text-base font-JakartaSemiBold mb-2 text-black">
+                      🎁 Why Unlock Colors?
+                    </Text>
+                    <Text className="text-sm text-gray-800 mb-3">
+                      Unlocked colors can be used to personalize your notes,
+                      boards, and posts — and show off your unique activity
+                      style.
+                    </Text>
+
+                    <CustomButton
+                      className="mt-6 bg-black w-[160px] self-center"
+                      title="Got it!"
+                      onPress={() => setInfoVisible(false)}
+                    />
+                  </View>
+                </ModalSheet>
+              )}
             </TouchableOpacity>
           </View>
-
 
           <View className="px-5 py-4">
             <TouchableOpacity
@@ -758,7 +888,6 @@ const Settings = () => {
         </ModalSheet>
       )}
     </ScrollView>
-  
   );
 };
 

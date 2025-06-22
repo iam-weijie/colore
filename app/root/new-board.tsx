@@ -37,7 +37,6 @@ import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 const NewPost = () => {
   const { playSoundEffect } = useSoundEffects();
 
-
   const { user } = useUser();
   const { type } = useLocalSearchParams();
   const { showAlert } = useAlert();
@@ -77,7 +76,7 @@ const NewPost = () => {
       icon: icons.back,
       label: "Back",
       onPress: async () => {
-        playSoundEffect(SoundType.Navigation)
+        playSoundEffect(SoundType.Navigation);
         router.back();
       },
     },
@@ -85,7 +84,7 @@ const NewPost = () => {
       icon: icons.send,
       label: "New Post",
       onPress: async () => {
-        playSoundEffect(SoundType.Send)
+        playSoundEffect(SoundType.Send);
 
         if (selectedTab !== "Restriction") {
           if (selectedTab === "Title" && boardTitle.length > 0) {
@@ -160,7 +159,7 @@ Perfect for open discussions or quiet sharing.`,
       icon: icons.hide,
       iconColor: "#FAFAFA",
       onPress: async () => {
-        playSoundEffect(SoundType.Tap)
+        playSoundEffect(SoundType.Tap);
         const restric = allRestricitons.find(
           (r) => r.restriction === "privacy"
         );
@@ -185,7 +184,7 @@ Perfect for open discussions or quiet sharing.`,
       icon: icons.comment,
       iconColor: "#FAFAFA",
       onPress: async () => {
-        playSoundEffect(SoundType.Tap)
+        playSoundEffect(SoundType.Tap);
         const restric = allRestricitons.find(
           (r) => r.restriction === "comments"
         );
@@ -215,7 +214,7 @@ Perfect for open discussions or quiet sharing.`,
       icon: icons.globe,
       iconColor: "#FAFAFA",
       onPress: async () => {
-        playSoundEffect(SoundType.Tap)
+        playSoundEffect(SoundType.Tap);
         setSelectedModal(
           <NumberSelection minNum={4} maxNum={8} onSelect={handleMaxPost} />
         );
@@ -432,6 +431,42 @@ Perfect for open discussions or quiet sharing.`,
             onTabChange={handleTabChange}
             tabCount={0}
           />
+          {/* Board Settings Icons */}
+          <View className="flex-row flex-wrap gap-2 px-6 mt-2">
+            {/* Type */}
+            <View className="flex-row items-center bg-[#E0F2FE] px-3 py-1 rounded-full">
+              <AntDesign name="idcard" size={14} color="#0284C7" />
+              <Text className="ml-1 text-xs text-[#0284C7] font-JakartaSemiBold">
+                {type === "community" ? "Community" : "Personal"}
+              </Text>
+            </View>
+
+            {/* Privacy */}
+            <View className="flex-row items-center bg-[#FDE68A] px-3 py-1 rounded-full">
+              <AntDesign
+                name={selectedPrivacy === "Everyone" ? "unlock" : "lock"}
+                size={14}
+                color="#92400E"
+              />
+              <Text className="ml-1 text-xs text-[#92400E] font-JakartaSemiBold">
+                {selectedPrivacy}
+              </Text>
+            </View>
+
+            {/* Comments */}
+            <View className="flex-row items-center bg-[#E9D5FF] px-3 py-1 rounded-full">
+              <AntDesign
+                name={
+                  selectedComments === "Allowed" ? "message1" : "closecircleo"
+                }
+                size={14}
+                color="#7E22CE"
+              />
+              <Text className="ml-1 text-xs text-[#7E22CE] font-JakartaSemiBold">
+                Comments {selectedComments}
+              </Text>
+            </View>
+          </View>
 
           <View
             className="flex-1  overflow-hidden "
