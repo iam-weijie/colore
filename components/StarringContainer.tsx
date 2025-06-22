@@ -87,6 +87,7 @@ import { RichText } from "./RichTextInput";
 import { useStacks } from "@/app/contexts/StacksContext";
 import { useDevice } from "@/app/contexts/DeviceContext";
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
+import { BlurView } from "expo-blur";
 
 const { width, height } = Dimensions.get("window");
 
@@ -724,25 +725,61 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       {header}
       {currentPost?.prompt && !isPreview && (
         <Animated.View
-          className="absolute w-full top-[25%] mx-auto flex-row items-center justify-center"
+          className="absolute w-full top-[25%] mx-auto flex-row items-center justify-center px-4"
           entering={FadeInUp.duration(200)}
           exiting={FadeOutDown.duration(200)}
         >
-             <TouchableOpacity
-                           className="w-[75%] max-w-[300px]"
-                           onPress={() => {
-                            router.push({
-                            pathname: "/root/new-post",
-                            params: {
-                              prompt: currentPost?.prompt,
-                              promptId: currentPost?.prompt_id,
-                            },
-                          });
-                           }}>
-                            <Text className="text-center text-[18px] font-JakartaSemiBold text-white shadow-md ">
-                              {currentPost?.prompt}
-                            </Text>
-                          </TouchableOpacity>
+          <TouchableOpacity
+            className="w-[80%]"
+            onPress={() => {
+              router.push({
+                pathname: "/root/new-post",
+                params: {
+                  prompt: currentPost?.prompt,
+                  promptId: currentPost?.prompt_id,
+                },
+              });
+            }}
+          >
+            {currentPost?.static_emoji ? (
+              <BlurView
+                intensity={30}
+                tint="dark"
+                className="flex-row items-center justify-center p-4 rounded-[32px] overflow-hidden"
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 8,
+                }}
+              >
+                <Text
+                  className="text-center text-lg font-JakartaSemiBold text-white/95"
+                  style={{
+                    textShadowColor: "rgba(0, 0, 0, 0.4)",
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 3,
+                  }}
+                >
+                  {currentPost?.prompt.trim()}
+                </Text>
+              </BlurView>
+            ) : (
+              <View
+                className="flex-row items-center justify-center p-4 rounded-[32px] overflow-hidden bg-white"
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 8,
+                }}
+              >
+                <Text className="text-center text-lg font-JakartaSemiBold text-black/80">
+                  {currentPost?.prompt.trim()}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </Animated.View>
       )}
 
