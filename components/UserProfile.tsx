@@ -24,6 +24,7 @@ import {
   UserProfileProps,
   UserProfileType,
   Board as UserBoard,
+  Board,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import * as Linking from "expo-linking";
@@ -55,6 +56,10 @@ import { useNotificationsContext } from "@/app/contexts/NotificationsContext";
 import { useBoardsContext, Board as ContextBoard } from "@/app/contexts/BoardsContext";
 import { useFriendsContext } from "@/app/contexts/FriendsContext";
 import { useUserDataContext } from "@/app/contexts/UserDataContext";
+import PersonalBoard from "./PersonalBoard";
+import PostItBoard from "./PostItBoard";
+import { calculateSRB } from "@/hooks/useColors";
+import { formatNumber } from "@/lib/utils";
 
 // Skeleton component for post loading states
 const PostSkeleton = React.memo(() => (
@@ -89,7 +94,9 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   const { unreadComments } = useNotificationsContext();
   const { showAlert } = useAlert();
   const { encryptionKey } = useEncryptionContext();
-  const { personalBoards, communityBoards } = useBoardsContext();
+
+  const [personalBoards, setPersonalBoards] = useState<UserBoard[]>([]);
+  const [communityBoards, setCommunityBoards] = useState<UserBoard[]>([]);
 
   const isEditable = useMemo(() => user!.id === userId, [user, userId]);
 
@@ -128,6 +135,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   }, [step, totalSteps, handleCompleteTutorial]);
 
   const [query, setQuery] = useState<string>("");
+  const { userColors } = useProfileContext();
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
   const [emojiLoading, setEmojiLoading] = useState(true);
@@ -147,8 +155,6 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
 
   const [myBoards, setMyBoards] = useState<UserBoard[]>([]);
   
-  // Remove duplicate communityBoards declaration
-  const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
 
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
@@ -158,7 +164,9 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   const [friendCount, setFriendCount] = useState<number>(0);
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
   const [isFocusedOnProfile, setIsFocusedOnProfile] = useState<boolean>(true);
-  const [selectedTab, setSelectedTab] = useState<string>(tab || "Profile");
+  const [selectedTab, setSelectedTab] = useState<string>(tab || (isEditable ? "Notes" : "Board"));
+
+  const [trustValue, setTrustValue] = useState<number>(0);
 
   const [personalPosts, setPersonalPosts] = useState<Post[]>([]);
   const [disableInteractions, setDisableInteractions] = useState<boolean>(false);
@@ -186,23 +194,24 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
       } else {
         // Use context data instead of direct API calls
         if (personalBoards) {
-          // Convert ContextBoard[] to UserBoard[] by adding required properties
-          const convertedBoards = personalBoards.map(board => ({
-            ...board,
-            commentAllowed: true, // Default value
-            // Add other required properties if needed
-          }));
-          setMyBoards(convertedBoards as unknown as UserBoard[]);
+          
+          fetchPersonalBoards();
+          fetchCommunityBoards();
         }
       }
 
       return () => {
         // Cleanup if needed
       };
-    }, [userId, stateVars, personalBoards, communityBoards])
+    }, [userId, stateVars])
   );
 
   useEffect(() => {
+    const getTrustValue = async () => {
+      const result = await calculateSRB(userId, userColors);
+      setTrustValue(result.Trust);
+    }
+
     const getFriendStatus = async () => {
       let status;
       if (user!.id !== userId) {
@@ -222,6 +231,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     getFriendStatus();
     getFriendNickname();
     fetchFriendCount();
+    getTrustValue();
   }, [userId, user, fetchFriendCount]);
 
   const [postsPreloaded, setPostsPreloaded] = useState<boolean>(false);
@@ -229,6 +239,15 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   const [firstLoadComplete, setFirstLoadComplete] = useState<boolean>(false);
   const postsLastLoadedTimestamp = useRef<number>(0);
   const decryptedPostsCache = useRef<Map<number, Post>>(new Map());
+
+  const handlePostsRefresh = async () => {
+    const response = await fetchUserPosts();
+    return response;
+  }
+
+  const handleNewPostFetch = async (excludeIds: number[]) => {
+    await fetchUserPosts();
+  }
   
   // Clear decrypted posts cache on component unmount or when user changes
   useEffect(() => {
@@ -561,27 +580,44 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     }
   }, [userId, user, encryptionKey, decryptPosts]);
 
-  const fetchPersonalBoards = useCallback(async () => {
-    // Use data from context instead of direct API call
-    if (personalBoards) {
-      // Convert ContextBoard[] to UserBoard[] by adding required properties
-      // The Board from context is different from the Board in types.d.ts
-      const convertedBoards = personalBoards.map(board => ({
-        ...board,
-        commentAllowed: true, // Required by UserBoard type
-        isNew: false,
-        isPrivate: board.board_type === 'private',
-        // Properly convert the board to match the expected UserBoard type
-      }));
-      // Use type assertion to avoid TypeScript errors when adding the missing property
-      setMyBoards(convertedBoards as unknown as UserBoard[]);
-    }
-  }, [personalBoards]);
+  const fetchPersonalBoards = async () => {
 
-  const fetchCommunityBoards = useCallback(async () => {
-    // Use data from context instead of direct API call
-    // No need to set communityBoards as we're using it from context
-  }, []);
+      try {
+        const response = await fetchAPI(`/api/boards/getBoards?user_id=${userId}`, {
+          method: "GET",
+        });
+        if (response.error) {
+          throw new Error(response.error);
+        }
+
+        const boardWithColor = response.data.map((board: Board) => ({
+          ...board,
+          color: userColors[Math.floor(Math.random() * userColors.length)].hex  || "yellow",
+        }));
+        setPersonalBoards(boardWithColor);
+      } catch (error) {
+        console.error("[DEBUG] UserProfile - Failed to fetch personal boards:", error);
+      }
+  };
+
+  const fetchCommunityBoards = async () => {
+
+      try {
+        const response = await fetchAPI(`/api/boards/getCommunityBoards?userId=${userId}`, {
+          method: "GET",
+        });
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        const boardWithColor = response.data.map((board: Board) => ({
+          ...board,
+          color: userColors[Math.floor(Math.random() * userColors.length)].hex || "#F59E0B",
+        }));
+        setCommunityBoards(boardWithColor);  
+      } catch (error) {
+        console.error("[DEBUG] UserProfile - Failed to fetch community boards:", error);
+      }
+  }
 
   useEffect(() => {
     fetchUserData();
@@ -638,7 +674,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
 
   const userTabs = [
     { name: "Profile", key: "Profile", color: "#CFB1FB", notifications: 0 },
-    { name: "Boards", key: "Boards", color: "#CFB1FB" },
+    { name: "Board", key: "Board", color: "#CFB1FB" },
     {
       name: "Communities",
       key: "Communities",
@@ -804,7 +840,24 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
                 </View>
               </View>
             ) : (
-              <>{/* PLACEHOLDER FOR COLOR COUNT */}</>
+              <View className="flex-row gap-6 mr-7">
+                <View>
+                  <Text className="text-lg font-JakartaSemiBold">
+                    {formatNumber(trustValue)}
+                  </Text>
+                  <Text className="text-[14px] font-JakartaSemiBold">
+                    Trust
+                  </Text>
+                </View>
+                <View className="flex-column items-start justify-center">
+                  <Text className="text-lg font-JakartaSemiBold">
+                    {userProfile?.colors?.length ?? 0}
+                  </Text>
+                  <Text className="text-[14px] font-JakartaSemiBold">
+                    Colors
+                  </Text>
+                </View>
+              </View>
             )}
           </View>
         }
@@ -877,10 +930,17 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         </View>
       )}
 
-      {selectedTab === "Boards" && (
-        <View className="flex-1 pt-4">
-          <BoardGallery boards={myBoards} />
+      {selectedTab === "Board" && (
+        <View>
+          <PostItBoard 
+          userId={userId} 
+          handlePostsRefresh={handlePostsRefresh} 
+          handleNewPostFetch={handleNewPostFetch} 
+          handleUpdatePin={() => {}} 
+          allowStacking={false} 
+          randomPostion={false} />
         </View>
+        
       )}
 
             {selectedTab === "Communities" && <View className="flex-1 pt-4">

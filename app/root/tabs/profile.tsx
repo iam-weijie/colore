@@ -20,7 +20,7 @@ const Profile = React.memo(() => {
   const params = useLocalSearchParams();
   const post = params.post ? String(params.post) : undefined;
   const commentId = params.commentId ? String(params.commentId) : undefined;
-  const tab = params.tab ? String(params.tab) : "posts";
+  const tab = params.tab ? String(params.tab) : "Notes";
 
   const parsedPost = useMemo(() => 
     post ? JSON.parse(post) as Post : null

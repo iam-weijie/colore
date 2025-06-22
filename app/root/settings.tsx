@@ -88,7 +88,8 @@ const Settings = () => {
   const [blueProgress, setBlueProgress] = useState<number>(0);
   const [yellowProgress, setYellowProgress] = useState<number>(0);
   const [pinkProgress, setPinkProgress] = useState<number>(0); 
-
+  const [trustProgress, setTrustProgress] = useState<number>(0);
+  
   const [remainingAttempts, setRemainingAttempts] = useState<number>(4);
 
   const handleAttemptColorCreation = async () => {
@@ -170,6 +171,7 @@ const Settings = () => {
    setBlueProgress(result.S);
    setYellowProgress(result.B);
    setPinkProgress(result.R);
+   setTrustProgress(result.Trust);
     } catch (error) {
       console.error("failed to compute SRB", error)
     }

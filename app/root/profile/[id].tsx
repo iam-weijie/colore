@@ -287,7 +287,7 @@ const Profile = React.memo(() => {
         onClose={handleCloseUserSettings}
         title={"Settings"}
       >
-        <View className="flex flex-col w-full items-center justify-center p-4 gap-y-3">
+        <View className="flex flex-col w-full items-center justify-center py-4 px-6 gap-y-4">
           {options.map((option, index) => (
             <ItemContainer
               key={index}

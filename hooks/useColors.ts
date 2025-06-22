@@ -121,7 +121,7 @@ export const calculatePink = async (userId: string): Promise<number> => {
 // Final SRB Color Distribution
 export const calculateSRB = async (
   userId: string, userColors: PostItColor[]
-): Promise<{ S: number; R: number; B: number }> => {
+): Promise<{ S: number; R: number; B: number; Trust: number }> => {
   const [blue, yellow, pink] = await Promise.all([
     calculateBlue(userId),
     calculateYellow(userId),
@@ -151,6 +151,7 @@ export const calculateSRB = async (
     S: finalS,
     R: finalR,
     B: finalB,
+    Trust: Math.floor((blue + yellow + pink) / 3)
   };
 };
 

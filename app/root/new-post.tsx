@@ -876,9 +876,8 @@ const NewPost = () => {
           <TouchableWithoutFeedback
             accessible={false}
             onPress={() => {
-              if (!isFocused) {
                 Keyboard.dismiss();
-              }
+              
             }}
           >
             <View
