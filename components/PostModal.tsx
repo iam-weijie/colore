@@ -3,7 +3,7 @@ import { View, Modal, Animated, Easing, Dimensions, Pressable, Text, Platform } 
 import React, { useEffect, useRef, useState } from "react";
 import PostContainer from "./PostContainer";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
-import { decryptText } from "@/lib/encryption";
+import { useDecryptPosts } from "@/hooks/useDecrypt";
 
 const { height } = Dimensions.get('window');
 
@@ -25,6 +25,12 @@ const PostModal: React.FC<PostModalProps> = ({
   const { encryptionKey } = useEncryptionContext();
   const [processedPosts, setProcessedPosts] = useState(selectedPosts);
 
+  // Use the new decrypt posts hook
+  const { decryptPosts } = useDecryptPosts({
+    encryptionKey,
+    debugPrefix: "PostModal"
+  });
+
   console.log("[PostModal] See Comment: ", seeComments);
   
   // Process posts for decryption if needed
@@ -34,58 +40,11 @@ const PostModal: React.FC<PostModalProps> = ({
       return;
     }
 
-    // Try to decrypt posts if they appear to be encrypted
-    const decryptedPosts = selectedPosts.map(post => {
-      if (post.recipient_user_id && 
-          typeof post.content === 'string' && 
-          post.content.startsWith('U2FsdGVkX1')) {
-        try {
-          console.log("[DEBUG] PostModal - Attempting to decrypt post:", post.id);
-          const decryptedContent = decryptText(post.content, encryptionKey);
-          console.log("[DEBUG] PostModal - Decrypted content:", decryptedContent.substring(0, 30));
-          
-          // Handle formatting - check both formatting and formatting_encrypted fields
-          let decryptedFormatting = post.formatting;
-          
-          // If formatting_encrypted exists, it takes precedence (newer format)
-          if (post.formatting_encrypted && typeof post.formatting_encrypted === "string") {
-            try {
-              const decryptedFormattingStr = decryptText(post.formatting_encrypted, encryptionKey);
-              decryptedFormatting = JSON.parse(decryptedFormattingStr);
-              console.log("[DEBUG] PostModal - Successfully decrypted formatting_encrypted field");
-            } catch (formattingError) {
-              console.warn("[DEBUG] PostModal - Failed to decrypt formatting_encrypted for post", post.id, formattingError);
-            }
-          } 
-          // Otherwise try the old way (formatting as encrypted string)
-          else if (post.formatting && typeof post.formatting === "string" && 
-                  ((post.formatting as string).startsWith('U2FsdGVkX1') || (post.formatting as string).startsWith('##FALLBACK##'))) {
-            try {
-              const decryptedFormattingStr = decryptText(post.formatting as unknown as string, encryptionKey);
-              decryptedFormatting = JSON.parse(decryptedFormattingStr);
-              console.log("[DEBUG] PostModal - Successfully decrypted formatting string");
-            } catch (formattingError) {
-              console.warn("[DEBUG] PostModal - Failed to decrypt formatting for post", post.id, formattingError);
-            }
-          }
-          
-          return { 
-            ...post, 
-            content: decryptedContent, 
-            formatting: decryptedFormatting 
-          };
-        } catch (e) {
-          console.warn("[DEBUG] PostModal - Failed decryption for post", post.id, e);
-          return post;
-        }
-      }
-      return post;
-    });
-    
+    // Use the hook to decrypt posts
+    const decryptedPosts = decryptPosts(selectedPosts);
     setProcessedPosts(decryptedPosts);
-  }, [selectedPosts, encryptionKey]);
+  }, [selectedPosts, encryptionKey, decryptPosts]);
 
-  
   useEffect(() => {
     if (isVisible) {
       setIsAnimationComplete(false);

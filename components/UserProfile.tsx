@@ -5,7 +5,7 @@ import { countries } from "@/constants/countries";
 import { allColors, defaultColors } from "@/constants/colors";
 import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
-import { decryptText } from "@/lib/encryption";
+import { useDecryptPosts } from "@/hooks/useDecrypt";
 
 import axios from "axios";
 import {
@@ -238,7 +238,13 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   const [postsDecrypted, setPostsDecrypted] = useState<boolean>(false);
   const [firstLoadComplete, setFirstLoadComplete] = useState<boolean>(false);
   const postsLastLoadedTimestamp = useRef<number>(0);
-  const decryptedPostsCache = useRef<Map<number, Post>>(new Map());
+
+  // Use the new decrypt posts hook
+  const { decryptPosts } = useDecryptPosts({
+    encryptionKey,
+    userId,
+    debugPrefix: "UserProfile"
+  });
 
   const handlePostsRefresh = async () => {
     const response = await fetchPersonalPosts();
@@ -249,101 +255,6 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
     await fetchUserPosts();
   }
   
-  // Clear decrypted posts cache on component unmount or when user changes
-  useEffect(() => {
-    return () => {
-      // Clear cache when component unmounts
-      decryptedPostsCache.current.clear();
-    };
-  }, [userId]); // Re-initialize cache when user changes
-  
-
-  // Function to decrypt posts and cache the results
-  const decryptPosts = useCallback((postsToDecrypt: Post[]) => {
-    if (!encryptionKey || postsToDecrypt.length === 0) {
-      return postsToDecrypt;
-    }
-    
-    // First filter out posts that need decryption (optimization)
-    const postsNeedingDecryption = postsToDecrypt.filter(post => {
-      // Skip posts that don't need decryption
-      if (!post.recipient_user_id || !post.content || typeof post.content !== 'string' || !post.content.startsWith('U2FsdGVkX1')) {
-        return false;
-      }
-      // Skip posts already in cache
-      if (decryptedPostsCache.current.has(post.id)) {
-        return false;
-      }
-      return true;
-    });
-
-    // If nothing needs decryption, return original posts with cached items replaced
-    if (postsNeedingDecryption.length === 0) {
-      console.log(`[DEBUG] UserProfile - All ${postsToDecrypt.length} posts already cached, no decryption needed`);
-      // Replace posts with cached versions where available
-      return postsToDecrypt.map(post => decryptedPostsCache.current.get(post.id) || post);
-    }
-    
-    console.log(`[DEBUG] UserProfile - Decrypting ${postsNeedingDecryption.length} out of ${postsToDecrypt.length} posts`);
-    
-    // Process each post, using cache when possible
-    return postsToDecrypt.map(post => {
-      // Check if this post is already in cache
-      const cachedPost = decryptedPostsCache.current.get(post.id);
-      if (cachedPost) {
-        return cachedPost;
-      }
-      
-      // Post needs decryption
-      if (post.recipient_user_id && 
-          typeof post.content === 'string' && 
-          post.content.startsWith('U2FsdGVkX1')) {
-        try {
-          const decryptedContent = decryptText(post.content, encryptionKey);
-          
-          // Handle formatting - check both formatting and formatting_encrypted fields
-          let decryptedFormatting = post.formatting;
-          
-          // If formatting_encrypted exists, it takes precedence (newer format)
-          if (post.formatting_encrypted && typeof post.formatting_encrypted === "string") {
-            try {
-              const decryptedFormattingStr = decryptText(post.formatting_encrypted, encryptionKey);
-              decryptedFormatting = JSON.parse(decryptedFormattingStr);
-            } catch (formattingError) {
-              console.warn(`[DEBUG] UserProfile - Failed to decrypt formatting_encrypted for post ${post.id}`, formattingError);
-            }
-          } 
-          // Otherwise try the old way (formatting as encrypted string)
-          else if (post.formatting && typeof post.formatting === "string" && 
-                  ((post.formatting as string).startsWith('U2FsdGVkX1') || (post.formatting as string).startsWith('##FALLBACK##'))) {
-            try {
-              const decryptedFormattingStr = decryptText(post.formatting as unknown as string, encryptionKey);
-              decryptedFormatting = JSON.parse(decryptedFormattingStr);
-            } catch (formattingError) {
-              console.warn(`[DEBUG] UserProfile - Failed to decrypt formatting for post ${post.id}`, formattingError);
-            }
-          }
-          
-          // Create decrypted post object
-          const decryptedPost = { 
-            ...post, 
-            content: decryptedContent, 
-            formatting: decryptedFormatting 
-          };
-          
-          // Cache the decrypted post
-          decryptedPostsCache.current.set(post.id, decryptedPost);
-          
-          return decryptedPost;
-        } catch (e) {
-          console.warn(`[DEBUG] UserProfile - Failed decryption for post ${post.id}`, e);
-          return post;
-        }
-      }
-      return post;
-    });
-  }, [encryptionKey]);
-
   // Preload posts when the profile is first loaded
   const preloadPosts = useCallback(async () => {
     if (postsPreloaded && postsDecrypted) return;
@@ -544,13 +455,52 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         return;
       }
 
+      console.log("[DEBUG] UserProfile - Raw API response:", {
+        totalPosts: response.data.length,
+        postsWithContent: response.data.filter((p: Post) => p && p.content).length,
+        postsWithPinned: response.data.filter((p: Post) => p && p.pinned).length,
+        samplePost: response.data[0] ? {
+          id: response.data[0].id,
+          hasContent: !!response.data[0].content,
+          contentLength: response.data[0].content?.length || 0,
+          contentPreview: response.data[0].content?.substring(0, 50) || "No content",
+          isPinned: response.data[0].pinned
+        } : "No posts"
+      });
+
       // Filter only pinned posts
       const filteredPosts = response.data.filter((p: Post) => p && p.pinned);
 
       if (filteredPosts.length === 0) {
-        console.log("[DEBUG] UserProfile - No pinned posts found");
-        setDisableInteractions(true);
-        setPersonalPosts([]);
+        console.log("[DEBUG] UserProfile - No pinned posts found, showing all personal posts");
+        
+        // If no pinned posts, show all personal posts instead of empty view
+        const allPersonalPosts = response.data.filter((p: Post) => p && p.content);
+        
+        if (allPersonalPosts.length === 0) {
+          console.log("[DEBUG] UserProfile - No personal posts with content found");
+          setDisableInteractions(true);
+          setPersonalPosts([]);
+        } else {
+          console.log(`[DEBUG] UserProfile - Found ${allPersonalPosts.length} personal posts with content`);
+          
+          // Sort by creation date (newest first)
+          const sortedPosts = [...allPersonalPosts].sort((a, b) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          
+          // Decrypt personal posts using our caching logic
+          if (encryptionKey) {
+            const decryptedPosts = decryptPosts(sortedPosts);
+            setPersonalPosts(decryptedPosts);
+          } else {
+            setPersonalPosts(sortedPosts);
+          }
+          
+          // Enable interactions since we found posts
+          setDisableInteractions(false);
+          setProfileLoading(false);
+        }
       } else {
         console.log(`[DEBUG] UserProfile - Found ${filteredPosts.length} pinned posts`);
         

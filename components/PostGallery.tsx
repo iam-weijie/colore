@@ -26,7 +26,7 @@ import {
   Image,
 } from "react-native";
 import { useNavigationContext } from "./NavigationContext";
-import { decryptText, encryptText } from "@/lib/encryption";
+import { useDecryptPosts } from "@/hooks/useDecrypt";
 import { useDevice } from "@/app/contexts/DeviceContext";
 import EmptyListView from "./EmptyList";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
@@ -75,8 +75,13 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   const [isSaved, setIsSaved] = useState(true);
   const { stateVars, setStateVars } = useNavigationContext();
   const router = useRouter();
-  // Add a decryption cache to avoid redundant decryption
-  const decryptedPostsCache = useRef<Map<number, Post>>(new Map());
+
+  // Use the new decrypt posts hook
+  const { decryptPosts } = useDecryptPosts({
+    encryptionKey,
+    userId: profileUserId,
+    debugPrefix: "PostGallery"
+  });
 
   // Memoize the sorting function to avoid recreating it on each render
   const sortByUnread = useCallback((a: Post, b: Post) => {
@@ -92,104 +97,6 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   const filteredPosts = sortedPosts.filter((post) =>
     post.content.toLowerCase().includes(query.toLowerCase())
   );
-
-  // Helper function to check if a post needs decryption
-  const needsDecryption = useCallback((post: Post): boolean => {
-    // Skip posts that don't need decryption
-    if (!post.recipient_user_id || !post.content || typeof post.content !== 'string') {
-      return false;
-    }
-    
-    // If content doesn't start with the encryption marker, it's already decrypted
-    if (!post.content.startsWith('U2FsdGVkX1')) {
-      return false;
-    }
-    
-    // Check if already in cache
-    if (decryptedPostsCache.current.has(post.id)) {
-      return false;
-    }
-    
-    return true;
-  }, []);
-
-  // Function to decrypt a batch of posts with caching
-  const decryptPosts = useCallback((postsToProcess: Post[]): Post[] => {
-    if (!encryptionKey) return postsToProcess;
-    
-    // First check if any posts need decryption
-    const postsNeedingDecryption = postsToProcess.filter(needsDecryption);
-    
-    if (postsNeedingDecryption.length === 0) {
-      console.log('[DEBUG] PostGallery - All posts already decrypted or don\'t need decryption');
-      
-      // Return posts, replacing with cached versions where available
-      return postsToProcess.map(post => decryptedPostsCache.current.get(post.id) || post);
-    }
-    
-    console.log(`[DEBUG] PostGallery - Decrypting ${postsNeedingDecryption.length} out of ${postsToProcess.length} posts`);
-    
-    // Process each post
-    return postsToProcess.map(post => {
-      // Check if this post is already in cache
-      const cachedPost = decryptedPostsCache.current.get(post.id);
-      if (cachedPost) {
-        return cachedPost;
-      }
-      
-      // Post needs decryption
-      if (post.recipient_user_id && 
-          typeof post.content === 'string' && 
-          post.content.startsWith('U2FsdGVkX1')) {
-        try {
-          console.log("[DEBUG] PostGallery - Attempting to decrypt post:", post.id);
-          const decryptedContent = decryptText(post.content, encryptionKey);
-          console.log("[DEBUG] PostGallery - Decrypted content:", decryptedContent.substring(0, 30));
-          
-          // Handle formatting - check both formatting and formatting_encrypted fields
-          let decryptedFormatting = post.formatting;
-          
-          // If formatting_encrypted exists, it takes precedence (newer format)
-          if (post.formatting_encrypted && typeof post.formatting_encrypted === "string") {
-            try {
-              const decryptedFormattingStr = decryptText(post.formatting_encrypted, encryptionKey);
-              decryptedFormatting = JSON.parse(decryptedFormattingStr);
-              console.log("[DEBUG] PostGallery - Successfully decrypted formatting_encrypted field");
-            } catch (formattingError) {
-              console.warn("[DEBUG] PostGallery - Failed to decrypt formatting_encrypted for post", post.id, formattingError);
-            }
-          } 
-          // Otherwise try the old way (formatting as encrypted string)
-          else if (post.formatting && typeof post.formatting === "string" && 
-                  ((post.formatting as string).startsWith('U2FsdGVkX1') || (post.formatting as string).startsWith('##FALLBACK##'))) {
-            try {
-              const decryptedFormattingStr = decryptText(post.formatting as unknown as string, encryptionKey);
-              decryptedFormatting = JSON.parse(decryptedFormattingStr);
-              console.log("[DEBUG] PostGallery - Successfully decrypted formatting string");
-            } catch (formattingError) {
-              console.warn("[DEBUG] PostGallery - Failed to decrypt formatting for post", post.id, formattingError);
-            }
-          }
-          
-          // Create the decrypted post object
-          const decryptedPost = { 
-            ...post, 
-            content: decryptedContent, 
-            formatting: decryptedFormatting 
-          };
-          
-          // Save to cache
-          decryptedPostsCache.current.set(post.id, decryptedPost);
-          
-          return decryptedPost;
-        } catch (e) {
-          console.warn("[DEBUG] PostGallery - Failed decryption for post", post.id, e);
-          return post;
-        }
-      }
-      return post;
-    });
-  }, [encryptionKey, needsDecryption]);
 
   // New function to sort posts with pinned posts at the top
   const sortByPinnedAndUnread = useCallback((a: Post, b: Post) => {

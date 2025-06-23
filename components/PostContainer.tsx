@@ -1,5 +1,6 @@
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
+import { useDecryptPosts } from "@/hooks/useDecrypt";
 import { icons } from "@/constants/index";
 import { allColors } from "@/constants/colors";
 import {
@@ -88,7 +89,6 @@ import { useDraftPost } from "@/app/contexts/DraftPostContext";
 import { useDevice } from "@/app/contexts/DeviceContext";
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useUserDataContext } from "@/app/contexts/UserDataContext";
-import { decryptText } from "@/lib/encryption";
 
 const { width, height } = Dimensions.get("window");
 
@@ -120,6 +120,13 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
     addSavedPost, 
     removeSavedPost 
   } = useUserDataContext();
+
+  // Use the new decrypt posts hook
+  const { decryptPosts } = useDecryptPosts({
+    encryptionKey,
+    debugPrefix: "PostContainer"
+  });
+
   const [nickname, setNickname] = useState<string>("");
   const [currentPost, setCurrentPost] = useState<Post>();
   const [currentPostIndex, setCurrentPostIndex] = useState<number>(0);
@@ -200,26 +207,31 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
       if (newCurrentPost.content) {
         console.log("[DEBUG] PostContainer - Current post content:", newCurrentPost.content.substring(0, 30));
         
-        // Try to decrypt the content directly if it's a personal post
-        if (newCurrentPost.recipient_user_id && 
-            encryptionKey && 
-            typeof newCurrentPost.content === 'string' &&
-            newCurrentPost.content.startsWith('U2FsdGVkX1')) {
+        // Always use the hook to process the post (it handles both encrypted and non-encrypted posts)
+        if (newCurrentPost.recipient_user_id && encryptionKey) {
           try {
-            const decryptedContent = decryptText(newCurrentPost.content, encryptionKey);
-            console.log("[DEBUG] PostContainer - Directly decrypted content:", decryptedContent.substring(0, 30));
+            // Use the hook to decrypt the post
+            const decryptedPosts = decryptPosts([newCurrentPost]);
+            const processedPost = decryptedPosts[0];
             
-            // Update the current post with decrypted content
-            setCurrentPost({
-              ...newCurrentPost,
-              content: decryptedContent
-            });
+            if (processedPost) {
+              console.log("[DEBUG] PostContainer - Processed content:", processedPost.content.substring(0, 30));
+              
+              // Always update the current post with the processed result
+              setCurrentPost(processedPost);
+            }
           } catch (error) {
-            console.error("[DEBUG] PostContainer - Direct decryption failed:", error);
+            console.error("[DEBUG] PostContainer - Decryption failed:", error);
+            // Fallback to original post on error
+            setCurrentPost(newCurrentPost);
           }
+        } else {
+          // For non-personal posts or when no encryption key, just set the post as is
+          setCurrentPost(newCurrentPost);
         }
       } else {
         console.warn("[DEBUG] PostContainer - Post has no content:", newCurrentPost.id);
+        setCurrentPost(newCurrentPost);
       }
 
       if (
@@ -231,7 +243,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
         scrollToLoad();
       }
     }
-  }, [currentPostIndex, encryptionKey, infiniteScroll, scrollToLoad, posts]);
+  }, [currentPostIndex, encryptionKey, infiniteScroll, scrollToLoad, posts, decryptPosts]);
 
   useEffect(() => {
     console.log("[PostContainer] See Comment: ", seeComments)
@@ -783,6 +795,15 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
       : (currentPost?.formatting ?? []);
 
       console.log("content: ", currentPost?.content)
+      console.log("[DEBUG] PostContainer - Final content check:", {
+        hasCurrentPost: !!currentPost,
+        hasContent: !!currentPost?.content,
+        contentLength: currentPost?.content?.length || 0,
+        contentPreview: currentPost?.content?.substring(0, 50) || "No content",
+        isPreview,
+        hasDraftPost: !!draftPost,
+        draftContent: draftPost?.content?.substring(0, 50) || "No draft content"
+      });
   return (
     <AnimatedView
       ref={viewRef}

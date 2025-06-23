@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Dimensions } from "react-native";
 import { fetchAPI } from "@/lib/fetch";
 import { Board, Post, UsePersonalPostsParams } from "@/types/type";
-import { decryptText } from "@/lib/encryption";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
+import { useDecryptPosts } from "./useDecrypt";
 
 const POSTS_CONFIG = {
   IPAD_MAX: 48,
@@ -57,6 +57,13 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
   const [error, setError] = useState<string | null>(null);
 
   const { encryptionKey } = useEncryptionContext();
+  
+  // Use the new decrypt posts hook
+  const { decryptPosts } = useDecryptPosts({
+    encryptionKey,
+    userId,
+    debugPrefix: "usePersonalBoard"
+  });
 
   const fetchBoardPosts = async (
     boardId: number,
@@ -136,41 +143,15 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
           if (isPrivate && encryptionKey) {
             try {
               console.log("[DEBUG] usePersonalBoard - Attempting to decrypt post:", p.id);
-              // Decrypt the content
-              const decryptedContent = decryptText(p.content, encryptionKey);
-              console.log("[DEBUG] usePersonalBoard - Decrypted content:", decryptedContent.substring(0, 30));
               
-              // Handle formatting - check both formatting and formatting_encrypted fields
-              let decryptedFormatting = p.formatting;
+              // Use the hook to decrypt the post
+              const decryptedPosts = decryptPosts([p]);
+              const decryptedPost = decryptedPosts[0];
               
-              // If formatting_encrypted exists, it takes precedence (newer format)
-              if (p.formatting_encrypted && typeof p.formatting_encrypted === "string") {
-                try {
-                  const decryptedFormattingStr = decryptText(p.formatting_encrypted, encryptionKey);
-                  decryptedFormatting = JSON.parse(decryptedFormattingStr);
-                  console.log("[DEBUG] usePersonalBoard - Successfully decrypted formatting_encrypted field");
-                } catch (formattingError) {
-                  console.warn("[DEBUG] usePersonalBoard - Failed to decrypt formatting_encrypted for post", p.id, formattingError);
-                  // Fall back to regular formatting if available
-                }
-              } 
-              // Otherwise try the old way (formatting as encrypted string)
-              else if (p.formatting && typeof p.formatting === "string" && 
-                      ((p.formatting as string).startsWith('U2FsdGVkX1') || (p.formatting as string).startsWith('##FALLBACK##'))) {
-                try {
-                  const decryptedFormattingStr = decryptText(p.formatting as unknown as string, encryptionKey);
-                  decryptedFormatting = JSON.parse(decryptedFormattingStr);
-                  console.log("[DEBUG] usePersonalBoard - Successfully decrypted formatting string");
-                } catch (formattingError) {
-                  console.warn("[DEBUG] usePersonalBoard - Failed to decrypt formatting for post", p.id, formattingError);
-                }
+              if (decryptedPost && decryptedPost.content !== p.content) {
+                console.log("[DEBUG] usePersonalBoard - Decrypted content:", decryptedPost.content.substring(0, 30));
+                return decryptedPost;
               }
-              
-              return { 
-                ...p, 
-                content: decryptedContent, 
-                formatting: decryptedFormatting 
-              };
             } catch (e) {
               console.warn("[DEBUG] usePersonalBoard - Failed decryption for post", p.id, e);
             }
