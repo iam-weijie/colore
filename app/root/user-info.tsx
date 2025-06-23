@@ -327,12 +327,6 @@ const UserInfo = () => {
     setInputHeight(event.nativeEvent.contentSize.height);
   };
 
-  const filteredUsers =
-    searchText.length > 0
-      ? users.filter((user) =>
-          user.username?.toLowerCase().includes(searchText.toLowerCase())
-        )
-      : users;
 
   // RENDER START
 
@@ -419,7 +413,7 @@ const UserInfo = () => {
       caption:
         "This will be the name your friends see to maintain your anonymity.",
       color: "#93c5fd",
-      disabled: !form.username,
+      disabled: !form.incognito_name,
       children: (
         <InputField
           label="Incognito Name"
@@ -488,15 +482,6 @@ const UserInfo = () => {
       disabled: false,
       children: (
         <View className="flex-1">
-          <View className="flex-grow mt-4 mx-4">
-            <TextInput
-              className="w-full h-12 px-3 -pt-1 bg-[#FAFAFA] rounded-[16px] text-[12px] focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Search users..."
-              placeholderTextColor="#888"
-              value={searchText}
-              onChangeText={(text): void => setSearchText(text)}
-            />
-          </View>
           <FindUser selectedUserInfo={(item: UserNicknamePair) => {
                           router.push({
                             pathname: "/root/profile/[id]",
