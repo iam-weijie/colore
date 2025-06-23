@@ -1,30 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
-import { UserNicknamePair } from "@/types/type";
+import { UserNicknamePair, FriendRequest, Friendship } from "@/types/type";
 
-export interface FriendRequest {
-  id: string;
-  senderId: string;
-  senderUsername: string;
-  senderNickname?: string;
-  receiverId: string;
-  receiverUsername: string;
-  receiverNickname?: string;
-  status: string;
-  createdAt: string;
-}
-
-export interface Friendship {
-  id: string;
-  friend_id: string;
-  friend_username: string;
-  friend_nickname?: string;
-  city: string;
-  state: string;
-  country: string;
-}
-
+// Define FriendRequestList locally using the imported FriendRequest type
 export interface FriendRequestList {
   sent: FriendRequest[];
   received: FriendRequest[];
@@ -126,6 +105,7 @@ export const FriendsProvider: React.FC<{ children: React.ReactNode }> = ({
         receiverNickname: friendRequest.user2_nickname || friendRequest.user1_nickname,
         status: friendRequest.status,
         createdAt: friendRequest.created_at,
+        notified: friendRequest.notified ?? false,
       };
     });
   };

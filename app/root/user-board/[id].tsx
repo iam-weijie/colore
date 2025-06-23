@@ -613,7 +613,7 @@ console.log("[BOARD INFO] : ", boardInfo)
       {post && (
         <PostModal
           isVisible={!!post}
-          selectedPosts={[post]}
+          selectedPosts={post}
           handleCloseModal={() => {
             setIsModalVisible(false);
             setPost(undefined)

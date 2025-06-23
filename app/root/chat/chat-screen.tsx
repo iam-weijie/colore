@@ -424,6 +424,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     setSearchText("");
     Keyboard.dismiss();
   };
+  
   return (
     <TouchableWithoutFeedback
       className="flex-1"
@@ -533,7 +534,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             {/* Container for both lists, flex-1 to take all available space */}
             <View className="flex-1 flex-col">
               {/* Top half: Incoming Requests */}
-              <View className="">
+              <View className={allFriendRequests?.received.length > 0 ? "flex-1" : ""}>
                   <View className=" p-2 flex-row items-center justify-start mx-4">
                     <Text className="font-JakartaSemiBold text-[14px]">
                       Request (
@@ -574,7 +575,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
 
               {/* Bottom half: Outgoing Requests */}
               <View className="flex-1 flex-col mt-2">
-                <View className="p-2">
+              <View className={allFriendRequests?.sent.length > 0 ? "flex-1" : ""}>
                   <View className="flex-row items-center justify-start mx-4">
                     <Text className="font-JakartaSemiBold text-[14px]">
                       Sent ({allFriendRequests?.sent.length})
@@ -590,6 +591,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                       />
                     </View>
                   </View>
+                  
                 <FlatList
                   className="flex-1 rounded-[24px]"
                   keyExtractor={(item) => item.id.toString()}
@@ -604,9 +606,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   </View>
                 }
                   showsVerticalScrollIndicator={false}
-                  scrollEnabled={
-                    allFriendRequests && allFriendRequests?.sent.length > 0
-                  }
                 />
               </View>
             </View>
