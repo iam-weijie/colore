@@ -28,7 +28,6 @@ export async function GET(request: Request) {
         c.post_id,
         u.clerk_id AS user_id,
         c.content, 
-        u.firstname,
         CASE
           WHEN EXISTS (
             SELECT 1

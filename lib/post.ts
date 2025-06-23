@@ -258,23 +258,16 @@ export const handleSubmitPost = async (
 
   const isUpdate = Boolean(draftPost.id);
   const isPersonal = Boolean(draftPost.recipient_user_id);
+  const isOnBoard = Boolean(draftPost.board_id);
+  const checkType = (isPersonal || isOnBoard) ? "personal" : "public"
   const isPrompt = Boolean(draftPost.prompt_id);
-  const shouldEncrypt = isPersonal;
+  const isReceipient = draftPost.recipient_user_id === userId
+  const shouldEncrypt = isPersonal && isReceipient;
 
-  console.log("[DEBUG] Post details:", {
-    isUpdate,
-    isPersonal,
-    shouldEncrypt,
-    recipientId: draftPost.recipient_user_id,
-    content: cleanContent.substring(0, 20) + (cleanContent.length > 20 ? "..." : "")
-  });
 
   if (shouldEncrypt && encryptionKey) {
-    console.log("[DEBUG] Encrypting content...");
-    const originalContent = cleanContent;
+
     cleanContent = encryptText(cleanContent, encryptionKey);
-    console.log("[DEBUG] Content before encryption:", originalContent.substring(0, 20) + (originalContent.length > 20 ? "..." : ""));
-    console.log("[DEBUG] Content after encryption:", cleanContent.substring(0, 20) + (cleanContent.length > 20 ? "..." : ""));
   } else if (shouldEncrypt) {
     console.warn("[DEBUG] Should encrypt but no encryption key available!");
   }
@@ -286,7 +279,6 @@ export const handleSubmitPost = async (
         ? encryptText(draftPost.content, encryptionKey) 
         : draftPost.content;
       
-      console.log("[DEBUG] Update post - content encrypted:", shouldEncrypt && Boolean(encryptionKey));
         
       await fetchAPI("/api/posts/updatePost", {
         method: "PATCH",
@@ -303,17 +295,20 @@ export const handleSubmitPost = async (
     } else {
       const body = {
         content: cleanContent,
-        clerkId: userId,
+        userId: userId,
         color: draftPost.color,
         emoji: draftPost.emoji,
         ...(isPersonal && {
-          recipientId: draftPost.recipient_user_id,
-          boardId: draftPost.board_id,
-          postType: "personal",
+          recipientId: draftPost.recipient_user_id
         }),
         ...(isPrompt && {
           promptId: draftPost.prompt_id,
         }),
+        ...(checkType && {
+          post_type: checkType
+        }),
+        ...(isOnBoard && {
+          board_id: draftPost.board_id}),
         expires_at: draftPost.expires_at
           ? draftPost.expires_at
           : addDays(new Date(), 365).toISOString(),

@@ -7,23 +7,25 @@ export async function POST(request: Request) {
   try {
     const {
       content,
-      clerkId,
+      userId,
       color = "yellow",
       emoji = null,
       expires_at,
       available_at,
       static_emoji,
-      postType = "public",
+      post_type = "public",
       recipientId,
       promptId,
-      boardId,
+      board_id,
       formatting,
     } = await request.json();
 
-    if (!content || !clerkId) {
+    console.log("BOARD ID: ", board_id)
+
+    if (!content || !userId) {
       console.error("Missing required fields:", {
         content,
-        clerkId,
+        userId,
         expires_at,
         available_at,
       });
@@ -38,12 +40,12 @@ export async function POST(request: Request) {
     // Fix 3: Ensure proper parenthesis placement
     
 
-    const unread = postType === "personal";
+    const unread = post_type === "personal";
     const [insertedPost] = await sql`
       INSERT INTO posts 
         (user_id, content, like_count, report_count, post_type, recipient_user_id, color, emoji, expires_at, available_at, static_emoji, prompt_id, board_id, unread, formatting)
       VALUES 
-        (${clerkId}, ${content}, 0, 0, ${postType}, ${recipientId}, ${color}, ${emoji}, ${expires_at}, ${available_at}, ${static_emoji}, ${promptId}, ${boardId}, ${unread}, ${formatting})
+        (${userId}, ${content}, 0, 0, ${post_type}, ${recipientId}, ${color}, ${emoji}, ${expires_at}, ${available_at}, ${static_emoji}, ${promptId}, ${board_id}, ${unread}, ${formatting})
       RETURNING 
         id,
         user_id, 
@@ -63,22 +65,31 @@ export async function POST(request: Request) {
     `;
 
     if (
-      postType === "personal" &&
-      insertedPost.recipient_user_id !== clerkId &&
+      post_type === "personal" &&
+      insertedPost.recipient_user_id !== userId &&
       insertedPost.unread
     ) {
-      const posterUser = await sql`
-          SELECT 
-            clerk_id,
-            firstname,
-            lastname,
-            username,
-            country,
-            state,
-            city
-          FROM posts 
-          WHERE clerk_id = ${insertedPost.user_id}
-        `;
+      const posterUser = await sql.query(`
+        SELECT 
+          p.user_id,
+          CASE
+            WHEN EXISTS (
+              SELECT 1
+              FROM friendships f
+              WHERE 
+                (f.user_id = $1 AND f.friend_id = $2)
+                OR
+                (f.friend_id = $1 AND f.user_id = $2)
+            ) THEN u.incognito_name
+            ELSE u.username
+          END AS username,
+          u.country,
+          u.state,
+          u.city
+        FROM posts p
+        JOIN users u ON p.user_id = u.clerk_id
+        WHERE p.user_id = $3
+      `, [userId, recipientId, insertedPost.user_id]);
 
       const recipientPushToken = await sql`
         SELECT

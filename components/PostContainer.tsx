@@ -106,6 +106,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
   header,
   scrollToLoad,
   seeComments = false,
+  allowedComments = true
 }) => {
   const { stacks, setStacks } = useStacks();
   const { draftPost } = useDraftPost();
@@ -155,7 +156,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
     if (currentPost) {
       // Check if post is saved
       if (savedPosts) {
-        setIsSaved(savedPosts.includes(currentPost.id.toString()));
+        setIsSaved(savedPosts.includes(String(currentPost.id)));
       }
       
       // Check if post is pinned
@@ -892,9 +893,9 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
             {isPreview ? (<></>) : isShowCasing ? (<></>) : (
               <View className="my-2 flex-row justify-between items-center">
                 <View className="flex flex-row items-center">
-                  <TouchableOpacity onPress={handleCommentsPress}>
+                  {allowedComments && <TouchableOpacity onPress={handleCommentsPress}>
                     <Image source={icons.comment} className="w-7 h-7" />
-                  </TouchableOpacity>
+                  </TouchableOpacity>}
                   <TouchableOpacity onPress={handleLikePress} className="ml-2">
                     <MaterialCommunityIcons
                       name={isLiked ? "heart" : "heart-outline"}

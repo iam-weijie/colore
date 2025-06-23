@@ -32,6 +32,7 @@ import { usePersonalPosts } from "@/hooks/usePersonalBoard";
 type PersonalBoardProps = {
     userId: string;
     boardId: number;
+    restrictions?: {allowedComments: boolean};
     shuffleModeOn?: boolean;
     setShuffleModeOn?: (value: boolean) => void;
 }
@@ -39,7 +40,7 @@ type PersonalBoardProps = {
   const screenWidth = Dimensions.get("screen").width;
 
 
-const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, shuffleModeOn, setShuffleModeOn }) => {
+const PersonalBoard: React.FC<PersonalBoardProps> = ({ userId, boardId, restrictions, shuffleModeOn, setShuffleModeOn }) => {
   const { user } = useUser();
   const { isIpad } = useDevice();
   const [loading, setLoading] = useState(true);
@@ -152,6 +153,7 @@ const handleFetchPosts = async () => {
         showPostItText={true}
         invertColors={true}
         randomPostion={false}
+        allowedComments={restrictions?.allowedComments ?? true}
       />
     </MotiView>
 
@@ -186,7 +188,8 @@ const handleFetchPosts = async () => {
       <PostModal 
       isVisible={shuffleModeOn} 
       selectedPosts={handleShuffle() ?? []} 
-      handleCloseModal={() => setShuffleModeOn && setShuffleModeOn(false)} />
+      handleCloseModal={() => setShuffleModeOn && setShuffleModeOn(false)}
+      allowedComments={restrictions?.allowedComments ?? true} />
       }
   </SignedIn>
 </View>

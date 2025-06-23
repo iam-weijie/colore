@@ -744,7 +744,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
             {currentPost?.static_emoji ? (
               <BlurView
                 intensity={30}
-                tint="dark"
+                tint="light"
                 className="flex-row items-center justify-center p-4 rounded-[32px] overflow-hidden"
                 style={{
                   shadowColor: "#000",
@@ -766,7 +766,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
               </BlurView>
             ) : (
               <View
-                className="flex-row items-center justify-center p-4 rounded-[32px] overflow-hidden bg-white"
+                className="flex-row items-center justify-center py-4 px-6 rounded-[32px] overflow-hidden bg-white"
                 style={{
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 4 },
@@ -774,7 +774,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
                   shadowRadius: 8,
                 }}
               >
-                <Text className="text-center text-lg font-JakartaSemiBold text-black/80">
+                <Text className="text-center text-[16px] font-JakartaSemiBold leading-6 text-black/80">
                   {currentPost?.prompt.trim()}
                 </Text>
               </View>

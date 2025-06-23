@@ -6,7 +6,9 @@ import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { 
   calculateBoardDimensions,
-  getAllPositions
+  getAllPositions,
+  POSTIT_HEIGHT,
+  POSTIT_WIDTH
 } from "@/lib/algorithms/position";
 import {
   Dimensions,
@@ -52,6 +54,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   mode = "world",
   isEditable = true,
   randomPostion = true,
+  allowedComments = true
 }) => {
 // 🗺️ Map and Zoom State
 const [mapType, setMapType] = useState("satellite"); // Map display type (e.g., satellite, standard)
@@ -195,9 +198,7 @@ const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is curr
     setLoading(true);
     setEnableStacking(false);
     try {
-      console.log("Fetching posts...");
       const posts: Post[] = await handlePostsRefresh();
-      console.log("Posts fetched:", posts?.length || 0);
 
       // Calculate board dimensions based on post count
       const boardDimensions = calculateBoardDimensions(posts.length, screenDimensions);
@@ -205,16 +206,47 @@ const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is curr
 
       let postsWithPositions: Array<Post> = [];
 
-      // Only use manual positioning if randomPosition is false
+      // Only use manual positioning if randomPostion is false
       if (!randomPostion && posts.some(post => post.position?.top !== 0 || post.position?.left !== 0)) {
         // Use existing positions
         for (const post of posts) {
+          let top = Number(post.position?.top ?? 0) - scrollOffset.y;
+          let left = Number(post.position?.left ?? 0) - scrollOffset.x;
+          let needsReposition = false;
+
+          // Sanity check: ensure within boardDimensions
+          if (
+            top < 0 ||
+            left < 0 ||
+            top > boardDimensions.height - POSTIT_HEIGHT ||
+            left > boardDimensions.width - POSTIT_WIDTH
+          ) {
+            // Out of bounds, re-assign random position
+            const newPos = {
+              top: Math.random() * (boardDimensions.height - POSTIT_HEIGHT),
+              left: Math.random() * (boardDimensions.width - POSTIT_WIDTH),
+              rotate: `${Math.abs(Math.random() * 8)}deg`,
+            };
+            top = newPos.top;
+            left = newPos.left;
+            needsReposition = true;
+            // Save to backend
+            await fetchAPI(`/api/posts/updatePostPosition`, {
+              method: "PATCH",
+              body: JSON.stringify({
+                postId: post.id,
+                top: newPos.top,
+                left: newPos.left,
+              }),
+            });
+          }
+
           const positionWithOffset = {
-            top: Number(post.position?.top ?? 60) - scrollOffset.y,
-            left: Number(post.position?.left ?? 60) - scrollOffset.x,
+            top,
+            left,
             rotate: `${Math.abs(Math.random() * 8)}deg`,
           };
-          postsWithPositions.push({ ...post, position: positionWithOffset });
+          postsWithPositions.push({ ...post, position: { top, left } });
         }
       } else {
         // Use optimized positioning algorithm for better layout
@@ -224,27 +256,52 @@ const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is curr
         for (const pos of optimizedPosition) {
           const index = optimizedPosition.indexOf(pos)
           const post = posts[index]
-          const iniX = pos.left ?? 0;
-          const iniY = pos.top ?? 0;
+          let iniX = pos.left ?? 0;
+          let iniY = pos.top ?? 0;
+          let needsReposition = false;
 
-          
+          // Sanity check: ensure within boardDimensions
+          if (
+            iniY < 0 ||
+            iniX < 0 ||
+            iniY > boardDimensions.height - POSTIT_HEIGHT ||
+            iniX > boardDimensions.width - POSTIT_WIDTH
+          ) {
+            // Out of bounds, re-assign random position
+            const newPos = {
+              top: Math.random() * (boardDimensions.height - POSTIT_HEIGHT),
+              left: Math.random() * (boardDimensions.width - POSTIT_WIDTH),
+              rotate: `${Math.abs(Math.random() * 8)}deg`,
+            };
+            iniX = newPos.left;
+            iniY = newPos.top;
+            needsReposition = true;
+            // Save to backend
+            await fetchAPI(`/api/posts/updatePostPosition`, {
+              method: "PATCH",
+              body: JSON.stringify({
+                postId: post.id,
+                top: newPos.top,
+                left: newPos.left,
+              }),
+            });
+          }
+
           const positionWithOffset = {
             ...post.position,
             left: iniX,
             top: iniY,
           };
-          
-          postsWithPositions.push({ ...posts[index], position: positionWithOffset });
-          
+          postsWithPositions.push({ ...posts[index], position: { top: iniY, left: iniX } });
 
           // Update position in backend if needed
-        if (!randomPostion && (post.position.top === 0 && post.position.left === 0)) {
+          if (!randomPostion && (post.position?.top === 0 && post.position?.left === 0)) {
             await fetchAPI(`/api/posts/updatePostPosition`, {
               method: "PATCH",
               body: JSON.stringify({
                 postId: post.id,
-                top: post.position.top,
-                left: post.position.left
+                top: post.position?.top ?? 0,
+                left: post.position?.left ?? 0
               }),
             });
           }
@@ -253,8 +310,12 @@ const [isStackMoving, setIsStackMoving] = useState(false); // If a stack is curr
 
       // Initialize each post as a stack
       setStacks((prevStack) => prevStack.filter((stack) => stacks));
-      setPostsWithPosition(postsWithPositions);
-      setStandalonePosts(postsWithPositions);
+      const safePostsWithPositions = postsWithPositions.map(post => ({
+        ...post,
+        position: post.position ?? { top: 0, left: 0 }
+      }));
+      setPostsWithPosition(safePostsWithPositions);
+      setStandalonePosts(safePostsWithPositions);
       
       // Initialize to add to map
       const initialMap = postsWithPositions.map((post: Post) =>
@@ -630,22 +691,21 @@ useEffect(() => {
 
                   {/* Render standalone posts */}
                   {postsWithPosition.map((post) => {
-                    if (allPostsInStack.includes(post)) return null;
+                    if (allPostsInStack.map(p => p.id).includes(post.id)) return null;
+                    const safePost = { ...post, position: post.position ?? { top: 0, left: 0 } };
                     return (
                       <DraggablePostIt
-                        key={post.id}
-                        post={post}
+                        key={safePost.id}
+                        post={safePost}
                         position={{
-                          top: post.position.top,
-                          left: post.position.left,
+                          top: safePost.position.top,
+                          left: safePost.position.left,
                         }}
-                        updateIndex={() => handleReorderPost(post)}
-                        updatePosition={(dx, dy) =>
-                          updatePostPosition(dx, dy, post)
-                        }
-                        onPress={() => handlePostPress(post)}
+                        updateIndex={() => handleReorderPost(safePost)}
+                        updatePosition={(dx, dy) => updatePostPosition(dx, dy, safePost)}
+                        onPress={() => handlePostPress(safePost)}
                         showText={showPostItText}
-                        isViewed={excludeIds.includes(String(post.id))}
+                        isViewed={excludeIds.includes(String(safePost.id))}
                         enabledPan={() => setIsPanningMode((prev) => !prev)}
                         zoomScale={zoomScale}
                         scrollOffset={scrollOffset}
@@ -663,6 +723,7 @@ useEffect(() => {
               handleCloseModal={handleCloseModal}
               handleUpdate={(isPinned: boolean) => handleIsPinned(isPinned)}
               invertedColors={invertColors}
+              allowedComments={allowedComments}
             />
           )}
           

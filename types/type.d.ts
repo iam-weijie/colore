@@ -53,6 +53,7 @@ declare interface PostItBoardProps {
   mode?: GeographicalMode;
   isEditable?: boolean;
   randomPostion: boolean;
+  allowedComments?: boolean
 }
 declare interface UsePersonalPostsParams {
   userId: string;
@@ -107,7 +108,7 @@ declare interface Board {
   count?: number;
   isNew?: boolean;
   isPrivate?: boolean;
-  commentAllowed: boolean;
+  allowedComments: boolean;
   imageUrl?: string;
 }
 
@@ -295,6 +296,7 @@ declare interface PostModalProps {
   infiniteScroll?: boolean;
   scrollToLoad?: () => void;
   seeComments?: boolean;
+  allowedComments?: boolean
 }
 
 declare interface PostContainerProps {
@@ -310,6 +312,7 @@ declare interface PostContainerProps {
   scrollToLoad?: () => void;
   staticEmoji?: boolean;
   seeComments?: boolean;
+  allowedComments?: boolean
 }
 
 type MappingPostitProps = {

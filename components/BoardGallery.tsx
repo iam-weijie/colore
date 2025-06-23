@@ -15,22 +15,23 @@ import { icons } from "@/constants";
 import { Board } from "@/types/type";
 import { useHaptics } from "@/hooks/useHaptics";
 import * as Haptics from 'expo-haptics';
-import { decryptText } from "@/lib/encryption";
+import { useDecrypt } from "@/hooks/useDecrypt";
 import EmptyListView from "./EmptyList";
   
 const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElement => {
   const { encryptionKey } = useEncryptionContext();
   const isPrivate = useMemo(() => item.restrictions?.includes("Private"), [item.restrictions]);
   
+  const decrypt = useDecrypt();
   const displayTitle = useMemo(() => {
     let title = item.title;
     if (isPrivate && encryptionKey) {
       try {
-        title = decryptText(item.title, encryptionKey);
+        title = decrypt(item.title) ?? "";
       } catch {}
     }
-    return title;
-  }, [item.title, isPrivate, encryptionKey]);
+    return title ?? "";
+  }, [item.title, isPrivate, encryptionKey, decrypt]);
   
   const router = useRouter();
   const { user } = useUser();

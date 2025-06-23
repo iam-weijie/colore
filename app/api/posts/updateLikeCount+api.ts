@@ -146,12 +146,23 @@ export async function PATCH(request: Request) {
         WHERE clerk_id = ${postInfo[0].user_id}
       `;
 
-      const likerUsername = await sql`
+      const likerUsername = await sql.query(`
         SELECT 
-          username
+          CASE
+              WHEN EXISTS (
+                SELECT 1
+                FROM friendships f
+                WHERE 
+                  (f.user_id = $1 AND f.friend_id = $2)
+                  OR
+                  (f.friend_id = $1 AND f.user_id = $2)
+              ) THEN u.incognito_name
+              ELSE u.username
+            END AS username,
         FROM users
         WHERE clerk_id = ${userId}
-      `;
+        JOIN users u ON u.clerk_id = $1
+      `, [userId, postInfo[0].user_id]);
 
       // don't send a notification if someone likes their own post
       if (postInfo[0].user_id !== userId) {

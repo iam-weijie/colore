@@ -65,7 +65,7 @@ export async function GET(request: Request) {
         count: b.post_count,
         isNew: daysDifference < 3,
         isPrivate: board.restrictions.includes("Private"),
-        commentAllowed: board.restrictions.includes("commentsAllowed"),
+        allowedComments: board.restrictions.includes("commentsAllowed"),
         imageUrl: "",
       };
     });

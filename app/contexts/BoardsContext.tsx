@@ -133,7 +133,7 @@ export const BoardsProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       setLoading(true);
       
-      const response = await fetchAPI(`/api/boards/getDiscoverBoards`, {
+      const response = await fetchAPI(`/api/boards/getDiscoverBoards?userId=${user!.id}`, {
         method: "GET",
       });
       

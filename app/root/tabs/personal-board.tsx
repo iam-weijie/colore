@@ -34,7 +34,7 @@ const UserPersonalBoard = () => {
   // Convert the boards to match the expected type with commentAllowed property
   const convertToTypedBoard = (board: any): Board => ({
     ...board,
-    commentAllowed: board.restrictions?.includes("commentsAllowed") || true,
+    allowedComments: board.restrictions?.includes("commentsAllowed") || true,
   });
   
   const personalBoards = rawPersonalBoards.map(convertToTypedBoard);

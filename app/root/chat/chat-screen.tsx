@@ -45,19 +45,6 @@ import {
   View,
   Keyboard,
 } from "react-native";
-import {
-  GestureHandlerRootView,
-  PanGestureHandler,
-  PanGestureHandlerGestureEvent,
-} from "react-native-gesture-handler";
-import Animated, {
-  runOnJS,
-  useAnimatedGestureHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
 import { useNavigationContext } from "@/components/NavigationContext";
 import { useAlert } from "@/notifications/AlertContext";
 import TabNavigation from "@/components/TabNavigation";
@@ -72,6 +59,7 @@ import EmptyListView from "@/components/EmptyList";
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useNotificationsContext } from "@/app/contexts/NotificationsContext";
 import { useFriendsContext } from "@/app/contexts/FriendsContext";
+import { FindUser } from "@/components/FindUsers";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -478,33 +466,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
         </View>
 
         {selectedTab == "Find" && (
-          <View>
-            <View
-              className="absolute z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 self-center"
-              style={{
-                boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
-                width: "90%",
-              }}
-            >
-              <Ionicons name="search" size={20} color="#9ca3af" />
-              <TextInput
-                className="flex-1 pl-2 text-md "
-                placeholder="Write your friend's name..."
-                placeholderTextColor="#9CA3AF"
-                value={searchText}
-                onChangeText={setSearchText}
-                returnKeyType="search"
-              />
-              {searchText.length > 0 && (
-                <TouchableOpacity
-                  onPress={handleClearSearch}
-                  className="w-6 h-6 items-center justify-center"
-                >
-                  <Ionicons name="close-circle" size={20} color="#9ca3af" />
-                </TouchableOpacity>
-              )}
-            </View>
-
+          <View className="flex-1">
             {loading ? (
               <View className="flex-1 items-center justify-center">
                 <ColoreActivityIndicator text="Summoning Bob..." />
@@ -512,20 +474,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
             ) : error ? (
               <Text>{error}</Text>
             ) : (
-              <FlatList
-                className="rounded-[24px]"
-                data={filteredUsers}
-                contentContainerStyle={{
-                  marginTop: 64,
-                  paddingBottom: 120,
-                }}
-                ListEmptyComponent={
-                  <EmptyListView message={"Weird... is no one around here?"} character="steve" mood={1} />
-                }
-                renderItem={renderUser}
-                keyExtractor={(item): string => String(item[0])}
-                showsVerticalScrollIndicator={false}
-              />
+              <View className="flex-1 h-full">
+              <FindUser selectedUserInfo={(item: UserNicknamePair) => {
+                router.push({
+                  pathname: "/root/profile/[id]",
+                  params: { userId: item[0], username: item[1] },
+                });
+              }} />
+              </View>
             )}
           </View>
         )}
@@ -617,7 +573,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
               </View>
 
               {/* Bottom half: Outgoing Requests */}
-              <View className=" flex-col mt-2">
+              <View className="flex-1 flex-col mt-2">
                 <View className="p-2">
                   <View className="flex-row items-center justify-start mx-4">
                     <Text className="font-JakartaSemiBold text-[14px]">
@@ -636,14 +592,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
                   </View>
                 <FlatList
                   className="flex-1 rounded-[24px]"
+                  keyExtractor={(item) => item.id.toString()}
                   data={allFriendRequests?.sent}
                   contentContainerStyle={{
                     paddingBottom: 80,
                   }}
                   renderItem={renderOutgoingRequest}
-                  keyExtractor={(item) => item.id.toString()}
                   ListEmptyComponent={
-                  <View className="flex-1 pt-6">
+                  <View className="flex-1  pt-6">
                   <EmptyListView message={"Not interested in making friends?"} character="steve" mood={2} scale={0.6}/>
                   </View>
                 }
@@ -718,7 +674,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
     } else if (item.username) {
       if (item.color) { baseColor = allColors.find((c) => c.id == item.color)?.hex ?? "93c5fd"}
       label = `${item.username} sent you a post`;
-      colors = [baseColor, baseColor];
+      colors = [baseColor, "#1FD1F5"];
     } else if (item.liker_username) {
       label = `${item.liker_username} liked your ${item.comment_id ? "comment" : "post"}`;
       colors = ["#FF0000", "#FBB1F5"];
@@ -761,8 +717,8 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
               params: {
                 id: `${user!.id}`,
                 username: `Personal board`,
-                postId: post?.id,
-                commentId: item.id,
+                boardId: -1,
+                postId: item.id,
               },
             });
           } else if (item.liker_username) {
@@ -771,7 +727,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
                 pathname: "/root/tabs/profile",
                 params: {
                   post: JSON.stringify(post),
-                  tab: "Posts",
+                  tab: "Notes",
                 },
               });
             });
@@ -781,7 +737,7 @@ export const NotificationScreen: React.FC<ChatScreenProps> = () => {
               params: {
                 post: JSON.stringify(post),
                 commentId: item.id,
-                tab: "Posts",
+                tab: "Notes",
               },
             });
           }

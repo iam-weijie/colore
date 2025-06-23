@@ -65,7 +65,7 @@ export async function GET(request: Request) {
             count: b.post_count,
             isNew: daysDifference < 3,
             isPrivate: board?.restrictions?.includes("Private") ?? false,
-            commentAllowed: board?.restrictions.includes("commentsAllowed") ?? false,
+            allowedComments: board?.restrictions.includes("commentsAllowed") ?? false,
             imageUrl: "",
           }
     

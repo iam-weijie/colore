@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { decryptText } from '@/lib/encryption';
 import { Post } from '@/types/type';
+import { useEncryptionContext } from '@/app/contexts/EncryptionContext';
 
 interface UseDecryptPostsOptions {
   encryptionKey: string | null;
@@ -44,12 +45,9 @@ export const useDecryptPosts = ({
 
     // If nothing needs decryption, return original posts with cached items replaced
     if (postsNeedingDecryption.length === 0) {
-      console.log(`[DEBUG] ${debugPrefix} - All ${postsToDecrypt.length} posts already cached, no decryption needed`);
       // Replace posts with cached versions where available
       return postsToDecrypt.map(post => decryptedPostsCache.current.get(post.id) || post);
     }
-    
-    console.log(`[DEBUG] ${debugPrefix} - Decrypting ${postsNeedingDecryption.length} out of ${postsToDecrypt.length} posts`);
     
     // Process each post, using cache when possible
     return postsToDecrypt.map(post => {
@@ -113,4 +111,22 @@ export const useDecryptPosts = ({
     decryptPosts,
     clearCache: () => decryptedPostsCache.current.clear()
   };
+};
+
+export const useDecrypt = () => {
+  const { encryptionKey } = useEncryptionContext();
+
+  const decrypt = useCallback((text: string | undefined | null) => {
+    if (!encryptionKey || !text || typeof text !== 'string' || !text.startsWith('U2FsdGVkX1')) {
+      return text;
+    }
+    try {
+      return decryptText(text, encryptionKey);
+    } catch (error) {
+      console.warn('Failed to decrypt text', error);
+      return text; // Return original text on failure
+    }
+  }, [encryptionKey]);
+
+  return decrypt;
 }; 

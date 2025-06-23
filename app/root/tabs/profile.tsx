@@ -52,7 +52,7 @@ const Profile = React.memo(() => {
 
   useEffect(() => {
     if (post) {
-      setTimeout(() => {setIsModalVisible(true)}, 500);
+      setTimeout(() => {setIsModalVisible(true)}, 800);
     }
   }, [post]);
   

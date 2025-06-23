@@ -179,7 +179,7 @@ const boardOptions = [
         params: { type: "personal" },
       }),
   },
-  {
+  /*{
     label: "Community Board",
     icon: icons.comment,
     caption: "Hear everyone's thoughts!",
@@ -188,7 +188,7 @@ const boardOptions = [
         type: "board",
         params: { type: "community" },
       }),
-  },
+  }*/
 ];
 
 const handleTabChange = (tabKey: string) => {

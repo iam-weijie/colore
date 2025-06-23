@@ -35,7 +35,7 @@ import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { Post } from "@/types/type";
 import PostModal from "@/components/PostModal";
-import { decryptText } from "@/lib/encryption";
+import { useDecrypt } from "@/hooks/useDecrypt";
 import EmptyListView from "@/components/EmptyList";
 import RenameContainer from "@/components/RenameContainer";
 import KeyboardOverlay from "@/components/KeyboardOverlay";
@@ -46,6 +46,7 @@ const UserPersonalBoard = () => {
   const { user } = useUser();
   const { id, username, boardId, postId, commentId } = useLocalSearchParams();
   const { playSoundEffect } = useSoundEffects();
+  const decrypt = useDecrypt();
   const {
     hapticsEnabled,
     setHapticsEnabled,
@@ -65,6 +66,7 @@ const UserPersonalBoard = () => {
   const [postCount, setPostCount] = useState<number>(0);
   const [joinedCommunity, setJoinedCommunity] = useState<boolean>(false);
   const [canParticipate, setCanParticipate] = useState<boolean>(false);
+  const [canComment, setCanComment] = useState<boolean>(true);
   const { showAlert } = useAlert();
   const handleNewPost = () => {
     router.push({
@@ -78,6 +80,7 @@ const UserPersonalBoard = () => {
     });
   };
 
+  console.log("[USER BOARD PARAMS]: ", id, username, boardId, postId, commentId )
   const handleHapticsToggle = (value: boolean) => {
     setHapticsEnabled(value);
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
@@ -88,16 +91,22 @@ const UserPersonalBoard = () => {
     playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
   };
 
-  const fetchPosts = async (id: string[]) => {
+
+
+  const fetchNewPost = async (id: string) => {
     try {
       const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`);
       const post = response.data;
 
+      console.log("POST: ", response, post)
+
       if (!post || post.length === 0) {
         return null;
       }
-      setPost(post);
-      setIsModalVisible(true);
+      setTimeout(() => {
+        setPost(post);
+        setIsModalVisible(true);
+      }, 800)
     } catch (error) {
       return null;
     }
@@ -126,20 +135,21 @@ const UserPersonalBoard = () => {
         try {
           boardData = {
             ...boardData,
-            title: decryptText(boardData.title, encryptionKey),
-            description: decryptText(boardData.description, encryptionKey),
+            title: decrypt(boardData.title),
+            description: decrypt(boardData.description),
           };
         } catch {}
       }
 
       setBoardInfo(boardData);
       setCanParticipate(!isPrivate);
+      setCanComment(boardData.restrictions.includes("commentsAllowed"))
       setPostCount(response.count || 0);
 
       const hasJoined = response.data.members_id && response.data.members_id.includes(user!.id)
       setJoinedCommunity(hasJoined)
 
-      console.log("this board 3", response)
+
     } catch (error) {
       console.error("Failed to fetch board", error)
       showAlert({
@@ -204,9 +214,8 @@ const UserPersonalBoard = () => {
             icon: icons.settings,
             label: "Settings",
             onPress: () => {
-              setIsBoardSettingsVisible(true);
-            },
-            isCenter: true,
+              setIsBoardSettingsVisible(false); // Just for the time of the beta testing
+            }
           },
         ]
       : [
@@ -225,9 +234,8 @@ const UserPersonalBoard = () => {
             icon: icons.settings,
             label: "Settings",
             onPress: () => {
-              setIsBoardSettingsVisible(true);
-            },
-            isCenter: true,
+              setIsBoardSettingsVisible(false); // Just for the time of the beta testing
+            }
           },
         ];
 
@@ -474,7 +482,7 @@ const UserPersonalBoard = () => {
 
   useEffect(() => {
     if (postId) {
-      fetchPosts([postId as string]);
+      fetchNewPost(postId);
     }
   }, [postId]);
 
@@ -526,6 +534,8 @@ const handleNewBoardTitle = async (name: string) => {
     console.error('Failed to update board title', error)
   }
 }
+
+console.log("[BOARD INFO] : ", boardInfo)
 
   return (
     <>
@@ -595,6 +605,7 @@ const handleNewBoardTitle = async (name: string) => {
           boardId={Number(boardId)}
           shuffleModeOn={shuffleMode}
           setShuffleModeOn={() => setShuffleMode(false)}
+          restrictions={{ allowedComments: canComment} }
         />
         <CustomButtonBar buttons={navigationControls} />
         {isBoardSettingsVisible && BoardSetting()}
@@ -605,6 +616,7 @@ const handleNewBoardTitle = async (name: string) => {
           selectedPosts={[post]}
           handleCloseModal={() => {
             setIsModalVisible(false);
+            setPost(undefined)
           }}
           seeComments={!!commentId}
         />

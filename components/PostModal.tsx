@@ -17,7 +17,8 @@ const PostModal: React.FC<PostModalProps> = ({
   isPreview = false,
   infiniteScroll = false,
   scrollToLoad,
-  seeComments = false
+  seeComments = false,
+  allowedComments = true
 }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -30,8 +31,6 @@ const PostModal: React.FC<PostModalProps> = ({
     encryptionKey,
     debugPrefix: "PostModal"
   });
-
-  console.log("[PostModal] See Comment: ", seeComments);
   
   // Process posts for decryption if needed
   useEffect(() => {
@@ -145,6 +144,7 @@ const PostModal: React.FC<PostModalProps> = ({
             infiniteScroll={infiniteScroll}
             scrollToLoad={scrollToLoad} 
             seeComments={seeComments}
+            allowedComments={allowedComments}
           />
         )}
       </Animated.View>

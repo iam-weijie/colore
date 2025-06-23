@@ -106,9 +106,10 @@ export const FindUser: React.FC<FindUserProps> = ({
   const handleClearSearch = () => {
     setSearchText("");
   };
+
   return (
-    <View className="flex-1 ">
-      <View className="flex-1 mt-4 mx-4">
+    <View className="flex-1 h-full">
+      <View className="mt-4 mx-4">
         <View
           className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 "
           style={{
@@ -142,10 +143,10 @@ export const FindUser: React.FC<FindUserProps> = ({
         <Text>{error}</Text>
       ) : (
         <FlatList
-          className={`mt-4 pb-4 flex-1`}
+          className={`flex-1 mt-4 pb-4 flex-1`}
           contentContainerStyle={{ paddingBottom: 80 }}
           data={
-            filteredUsers.length > 0
+            filteredUsers.length > 0 && searchText.length > 0
               ? filteredUsers
               : inGivenList
                 ? users
