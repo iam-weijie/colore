@@ -231,10 +231,11 @@ const NewPost = () => {
 
 
   const handleChangeText = (text: string) => {
-    if (text.length <= maxCharacters) {
-      setPostContent(text);
+    const trimmed = text.trim();
+    if (trimmed.length <= maxCharacters) {
+      setPostContent(trimmed);
     } else {
-      setPostContent(text.substring(0, maxCharacters));
+      setPostContent(trimmed.substring(0, maxCharacters));
       showAlert({
         title: "Limit Reached",
         message: `You can only enter up to ${maxCharacters} characters.`,

@@ -567,7 +567,7 @@ console.log("[BOARD INFO] : ", boardInfo)
                 {boardInfo ? (
                   <View className="max-w-[200px]">
                     <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
-                      {boardInfo.description}
+                      {boardInfo.description.trim()}
                     </Text>
                   </View>
                 ) : (

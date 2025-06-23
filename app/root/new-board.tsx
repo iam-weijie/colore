@@ -344,12 +344,12 @@ Perfect for open discussions or quiet sharing.`,
   };
 
   const handleChangeText = (text: string) => {
+    const trimmed = text.trim();
     if (selectedTab === "Title") {
-      if (text.length <= maxTitleCharacters) {
-        setBoardTitle(text);
+      if (trimmed.length <= maxTitleCharacters) {
+        setBoardTitle(trimmed);
       } else {
-        setBoardTitle(text.substring(0, maxTitleCharacters));
-
+        setBoardTitle(trimmed.substring(0, maxTitleCharacters));
         showAlert({
           title: "Limit Reached",
           message: `You can only enter up to ${maxTitleCharacters} characters.`,
@@ -359,11 +359,10 @@ Perfect for open discussions or quiet sharing.`,
       }
     }
     if (selectedTab === "Description") {
-      if (text.length <= maxDescriptionCharacters) {
-        setBoardDescription(text);
+      if (trimmed.length <= maxDescriptionCharacters) {
+        setBoardDescription(trimmed);
       } else {
-        setBoardDescription(text.substring(0, maxDescriptionCharacters));
-
+        setBoardDescription(trimmed.substring(0, maxDescriptionCharacters));
         showAlert({
           title: "Limit Reached",
           message: `You can only enter up to ${maxDescriptionCharacters} characters.`,
