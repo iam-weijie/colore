@@ -410,12 +410,19 @@ export default function Page() {
     }
   };
 
-  const handlePromptSubmit = async (item: Prompt, content: string) => {
+  const handlePromptSubmit = async (item: Prompt, content: string = "") => {
+    // 1. Trim and lowercase only if there’s actual text
+    const suffix = content.trim() ? content.trim().toLowerCase() : "";
+    // 2. Build the full prompt without ever appending “undefined”
+    const fullContent = suffix ? `${item.cue} ${suffix}` : item.cue;
+
+    console.log("Prompt submit content:", content);
+
     try {
       await fetchAPI("/api/prompts/newPrompt", {
         method: "POST",
         body: JSON.stringify({
-          content: `${item.cue} ${content?.toLocaleLowerCase()}`,
+          content: fullContent,
           clerkId: user!.id,
           theme: item.theme,
           cue: item.cue,
@@ -424,26 +431,22 @@ export default function Page() {
 
       showAlert({
         title: "Prompt Submitted",
-        message: `Your prompt was submitted successfully.`,
+        message: "Your prompt was submitted successfully!",
         type: "POST",
         status: "success",
         color: "#ffe640",
       });
+      setHasSubmittedPrompt(true);
     } catch (error) {
       console.error("Couldn't submit prompt", error);
       showAlert({
         title: "Error",
-        message: `Your prompt was not submitted.`,
+        message: "Your prompt was not submitted.",
         type: "ERROR",
         status: "error",
       });
     } finally {
       setPromptContent("");
-      const timeoutId = setTimeout(() => {
-        setHasSubmittedPrompt(true);
-      }, 2000);
-
-      return () => clearTimeout(timeoutId);
     }
   };
 

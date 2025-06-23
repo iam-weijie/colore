@@ -19,10 +19,10 @@ import Animated, {
 } from "react-native-reanimated";
 import CustomButton from "./CustomButton"; // Assuming this is your button component
 import { Prompt } from "@/types/type"; // Update path to your types
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from "expo-linear-gradient";
 
 // Sample image URLs (replace with your actual image paths)
-const PLUS_ICON = 'https://cdn-icons-png.flaticon.com/512/2997/2997933.png';
+const PLUS_ICON = "https://cdn-icons-png.flaticon.com/512/2997/2997933.png";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -38,7 +38,7 @@ export const RenderPromptCard = ({
   userId: string;
   promptContent: string;
   updatePromptContent: (text: string) => void;
-  handlePromptSubmit: (item: Prompt) => void;
+  handlePromptSubmit: (item: Prompt, content: string) => void;
 }) => {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(30);
@@ -55,10 +55,7 @@ export const RenderPromptCard = ({
 
   const animatedCardStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
   }));
 
   return (
@@ -74,7 +71,6 @@ export const RenderPromptCard = ({
           },
         ]}
       >
-
         {/* Header */}
         <View className="items-center justify-center mb-5 mt-2 px-4">
           <Text className="text-tray-400 text-[12px] font-JakartaMedium">
@@ -119,14 +115,13 @@ export const RenderPromptCard = ({
             title="Submit"
             padding={4}
             disabled={promptContent.length === 0}
-            onPress={() => handlePromptSubmit(item)}
+            onPress={() => handlePromptSubmit(item, promptContent.trim())}
           />
         </View>
       </Animated.View>
     </TouchableWithoutFeedback>
   );
 };
-
 
 export const RenderCreateCard = ({
   item,
@@ -141,30 +136,29 @@ export const RenderCreateCard = ({
 
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 400 });
-    translateY.value = withSpring(0, { 
-      damping: 10,  // Balanced bounce
+    translateY.value = withSpring(0, {
+      damping: 10, // Balanced bounce
       stiffness: 120,
-      mass: 0.8
+      mass: 0.8,
     });
     scale.value = withSequence(
       withTiming(0.98, { duration: 100 }), // Tiny initial squeeze
-      withSpring(1.02, { // Subtle overshoot
+      withSpring(1.02, {
+        // Subtle overshoot
         damping: 8,
-        stiffness: 150
+        stiffness: 150,
       }),
-      withSpring(1, { // Settle
+      withSpring(1, {
+        // Settle
         damping: 10,
-        stiffness: 100
+        stiffness: 100,
       })
     );
   }, []);
 
   const animatedCardStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value }
-    ],
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
   }));
 
   return (
@@ -173,10 +167,10 @@ export const RenderCreateCard = ({
         className="flex-1 items-center justify-center my-4 rounded-[64px] max-w-[500px] overflow-hidden"
         style={[
           animatedCardStyle,
-          { 
+          {
             backgroundColor: "rgba(255,255,255,1)",
-            width: screenWidth * 0.85
-          }
+            width: screenWidth * 0.85,
+          },
         ]}
       >
         {/* Rest of your component remains unchanged */}

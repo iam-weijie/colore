@@ -84,7 +84,8 @@ const NewPost = () => {
   const prompt = safeParam(rawParams.prompt as any);
   const promptId = safeParam(rawParams.promptId as any);
   const boardId = safeParam(rawParams.boardId as any);
-  const { profile, userColors, setDraftPost, draftPost, encryptionKey } = useGlobalContext();
+  const { profile, userColors, setDraftPost, draftPost, encryptionKey } =
+    useGlobalContext();
   const { showAlert } = useAlert();
 
   // 🔒 USER & GLOBAL STATE
@@ -100,16 +101,18 @@ const NewPost = () => {
 
   // 🎨 STYLING & FORMATTING
   const [selectedColor, setSelectedColor] = useState<PostItColor>(
-    allColors.find((c) => c.id === color) ?? defaultColors[Math.floor(Math.random() * defaultColors.length)]
+    allColors.find((c) => c.id === color) ??
+      defaultColors[Math.floor(Math.random() * defaultColors.length)]
   );
   const [formats, setFormats] = useState<Format[]>([]);
   const [isFocused, setIsFocused] = useState<boolean>(false);
 
-
   // 😊 EMOJI HANDLING
   const [selectedStaticEmoji, setSelectedStaticEmoji] =
     useState<boolean>(false);
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji || null);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(
+    emoji || null
+  );
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isQuickEmojiSelectorVisible, setQuickEmojiSelectorVisible] =
     useState(false);
@@ -194,25 +197,25 @@ const NewPost = () => {
 
   console.log(
     "arguments passed: ",
-    "postId",
+    "|postId",
     postId,
-    "content",
+    "|content",
     content,
-    "color",
+    "|color",
     color,
-    "emoji",
+    "|emoji",
     emoji,
-    "recipient",
+    "|recipient",
     recipientId,
-    "username",
+    "|username",
     username,
-    "exp",
+    "|exp",
     expiration,
-    "prompt",
+    "|prompt",
     prompt,
-    "promptId",
+    "|promptId",
     promptId,
-    "board",
+    "|board",
     boardId
   );
 
@@ -225,7 +228,6 @@ const NewPost = () => {
     setSelectedColor(color);
     setIsEmojiSelectorVisible(false);
   };
-
 
   const handleChangeText = (text: string) => {
     if (text.length <= maxCharacters) {
@@ -267,10 +269,9 @@ const NewPost = () => {
     }
   };
 
-
   const handleChangeFocus = (state: boolean) => {
-    setIsFocused(state)
-  }
+    setIsFocused(state);
+  };
   const resetDraftPost = () => {
     setPostContent("");
     setFormats([]);
@@ -383,9 +384,7 @@ const NewPost = () => {
   useEffect(() => {
     if (draftPost && !postId) {
       setPostContent(draftPost.content);
-      const savedColor = userColors.find(
-        (c) => c.id === draftPost.color
-      );
+      const savedColor = userColors.find((c) => c.id === draftPost.color);
       if (savedColor) setSelectedColor(savedColor);
       if (draftPost.emoji) setSelectedEmoji(draftPost.emoji);
       if (draftPost.recipient_user_id)
@@ -458,7 +457,11 @@ const NewPost = () => {
         Haptics.selectionAsync();
         if (selectedTab == "customize") {
           if (!draftPost) return;
-          const status = await handleSubmitPost(user!.id, draftPost as Post, encryptionKey);
+          const status = await handleSubmitPost(
+            user!.id,
+            draftPost as Post,
+            encryptionKey
+          );
           console.log("status: ", status);
           if (status == "success") {
             showAlert({
@@ -615,7 +618,8 @@ const NewPost = () => {
           />
         ),
       },
-      {/*
+      {
+        /*
         label: "Reply",
         component: (
           <ItemContainer
@@ -633,7 +637,8 @@ const NewPost = () => {
             actionIcon={replyToPostId && icons.check}
           />
         ),
-      */},
+      */
+      },
     ];
 
     const menuOptions = promptId
@@ -707,7 +712,7 @@ const NewPost = () => {
           ) : ["Schedule", "Expiration"].includes(selectedSetting) ? (
             <View className="flex-1">
               <CalendarView
-              color={selectedColor?.hex}
+                color={selectedColor?.hex}
                 onDateSelect={
                   selectedSetting === "Schedule"
                     ? (selected: Date) => {
@@ -740,33 +745,35 @@ const NewPost = () => {
           )}
         </View>
 
-        { selectedSetting == "Recipient" &&
-                       <View className="flex items-center w-full mb-4">
-                <CustomButton
-                    fontSize="lg"
-                    title="Keep it Private"
-                    padding={4}
-                    bgVariant="gradient5"
-                    onPress={() => {
-                        setSelectedRecipientId(user!.id);
+        {selectedSetting == "Recipient" && (
+          <View className="flex items-center w-full mb-4">
+            <CustomButton
+              fontSize="lg"
+              title="Keep it Private"
+              padding={4}
+              bgVariant="gradient5"
+              onPress={() => {
+                setSelectedRecipientId(user!.id);
 
-                        setUserUsername("Yourself");
-                        setSelectedUser([user!.id, profile.username]);
-                        setSelectedSetting("");
-                }}
-                  />
-                  </View>
-        }
-      {selectedSetting && <View className="flex items-center w-full mb-4">
-                     <CustomButton
-          fontSize="lg"
-          title="Close"
-          padding={4}
-          onPress={() => {
-            setSelectedSetting("");
-          }}
-        />
-                    </View>}
+                setUserUsername("Yourself");
+                setSelectedUser([user!.id, profile.username]);
+                setSelectedSetting("");
+              }}
+            />
+          </View>
+        )}
+        {selectedSetting && (
+          <View className="flex items-center w-full mb-4">
+            <CustomButton
+              fontSize="lg"
+              title="Close"
+              padding={4}
+              onPress={() => {
+                setSelectedSetting("");
+              }}
+            />
+          </View>
+        )}
       </ModalSheet>
     );
   };
@@ -860,87 +867,91 @@ const NewPost = () => {
                     : "New Post"
             }
           />
-{selectedTab == "create" && (
-          <TouchableWithoutFeedback
-            accessible={false}
-            onPress={() => {
-              if (!isFocused) {
-                Keyboard.dismiss();
-              }
-            }}
-          >
-            <View
-              className="flex-1  mt-0 overflow-hidden "
-              style={[animatedBackgroundStyle]}
+          {selectedTab == "create" && (
+            <TouchableWithoutFeedback
+              accessible={false}
+              onPress={() => {
+                if (!isFocused) {
+                  Keyboard.dismiss();
+                }
+              }}
             >
-              <View className="flex-1 ">
-                <KeyboardAvoidingView
-                  behavior="padding"
-                  className="flex-1 flex w-full"
-                >
-                  <View className="flex-1 flex-column justify-start items-center  ">
-                    <View className="w-full">
-                      <RichTextInput
-                        refresh={refreshingKey}
-                        exportStyling={handleChangeFormat}
-                        exportText={handleChangeText}
-                        onFocus={handleChangeFocus}
-                      />
-                    </View>
-                  </View>
-                </KeyboardAvoidingView>
-              </View>
-
-              <View  className="flex-1 flex-col items-center justify-center gap-2 absolute p-4 mt-4 right-0" >
-               <View>
-              <ColorPickerSlider
-                colors={userColors}
-                selectedColor={selectedColor}
-                onColorSelect={handleColorSelect}
-              />
-           </View>
-              <View>
-              <View className="flex flex-col items-center justify-center gap-2 py-2 rounded-[32px]">
-                <View>
-                   <InteractionButton 
-                    label=""
-                    icon={icons.wink}
-                    emoji={selectedEmoji ? selectedEmoji : ""}
-                    showLabel={false}
-                    color={"#000000"}
-                    onPress={() => setQuickEmojiSelectorVisible((prev) => !prev)}
-                    //onPress={toggleEmojiSelector} 
-                    size={"sm"}
-                    styling="shadow-md"              />
-                    </View>
-                    {isQuickEmojiSelectorVisible && (
-                      <View>
-                        <EmojiShorthand
-                          onEmojiSelected={(emoji: string) =>
-                            handleEmojiSelect(emoji)
-                          }
+              <View
+                className="flex-1  mt-0 overflow-hidden "
+                style={[animatedBackgroundStyle]}
+              >
+                <View className="flex-1 ">
+                  <KeyboardAvoidingView
+                    behavior="padding"
+                    className="flex-1 flex w-full"
+                  >
+                    <View className="flex-1 flex-column justify-start items-center  ">
+                      <View className="w-full">
+                        <RichTextInput
+                          refresh={refreshingKey}
+                          exportStyling={handleChangeFormat}
+                          exportText={handleChangeText}
+                          onFocus={handleChangeFocus}
                         />
                       </View>
-                    )}
-                    {isQuickEmojiSelectorVisible && (
+                    </View>
+                  </KeyboardAvoidingView>
+                </View>
+
+                <View className="flex-1 flex-col items-center justify-center gap-2 absolute p-4 mt-4 right-0">
+                  <View>
+                    <ColorPickerSlider
+                      colors={userColors}
+                      selectedColor={selectedColor}
+                      onColorSelect={handleColorSelect}
+                    />
+                  </View>
+                  <View>
+                    <View className="flex flex-col items-center justify-center gap-2 py-2 rounded-[32px]">
                       <View>
                         <InteractionButton
                           label=""
-                          icon={icons.add}
-                          emoji={""}
+                          icon={icons.wink}
+                          emoji={selectedEmoji ? selectedEmoji : ""}
                           showLabel={false}
-                          color={"#C1C1C1"}
-                          onPress={toggleEmojiSelector}
+                          color={"#000000"}
+                          onPress={() =>
+                            setQuickEmojiSelectorVisible((prev) => !prev)
+                          }
+                          //onPress={toggleEmojiSelector}
                           size={"sm"}
                           styling="shadow-md"
                         />
                       </View>
-                    )}
+                      {isQuickEmojiSelectorVisible && (
+                        <View>
+                          <EmojiShorthand
+                            onEmojiSelected={(emoji: string) =>
+                              handleEmojiSelect(emoji)
+                            }
+                          />
+                        </View>
+                      )}
+                      {isQuickEmojiSelectorVisible && (
+                        <View>
+                          <InteractionButton
+                            label=""
+                            icon={icons.add}
+                            emoji={""}
+                            showLabel={false}
+                            color={"#C1C1C1"}
+                            onPress={toggleEmojiSelector}
+                            size={"sm"}
+                            styling="shadow-md"
+                          />
+                        </View>
+                      )}
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
-          </TouchableWithoutFeedback>)}
+            </TouchableWithoutFeedback>
+          )}
           {selectedTab == "customize" && (
             <View key={refreshingKey} className="absolute top-8">
               <PostContainer
@@ -959,22 +970,23 @@ const NewPost = () => {
                       tintColor={'#fff'}
                     />
                   </TouchableOpacity>*/}
-                    <InteractionButton 
-                    label={""} 
-                    icon={
-                          !selectedStaticEmoji
-                            ? icons.sparklesFill
-                            : icons.sparkles
-                        }
-                    size="sm"
-                    onPress= {() => {
+                    <InteractionButton
+                      label={""}
+                      icon={
+                        !selectedStaticEmoji
+                          ? icons.sparklesFill
+                          : icons.sparkles
+                      }
+                      size="sm"
+                      onPress={() => {
                         if (selectedEmoji) {
                           setSelectedStaticEmoji((prev) => !prev);
                           setRefreshingKey((prev) => prev + 1);
                         }
                       }}
-                      showLabel={false} 
-                      color={""} />
+                      showLabel={false}
+                      color={""}
+                    />
                   </View>
                 }
                 staticEmoji={selectedStaticEmoji}
@@ -1008,7 +1020,6 @@ const NewPost = () => {
           />
         </View>
       </TouchableWithoutFeedback>
-      
     </Animated.View>
   );
 };
