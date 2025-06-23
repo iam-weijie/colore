@@ -424,7 +424,7 @@ onPress={() => {
 
         <View className="mx-6">
           {/*Platform.OS === "android" && <OAuth />*/}
-          {Platform.OS === "ios" && <AppleSignIn />}
+          {/*Platform.OS === "ios" && <AppleSignIn />*/}
 
           <Animated.Text
             entering={FadeInUp.duration(600).delay(800)}

@@ -10,7 +10,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "scripts": {
-    "cleanup": "ts-node scripts/cleanup.ts"
+      "cleanup": "ts-node scripts/cleanup.ts"
     },
     "splash": {
       "image": "./assets/splash.jpg",
@@ -21,47 +21,55 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.arthur1235.colore",
       "infoPlist": {
-        "UIBackgroundModes": ["fetch", "remote-notification"],
-        "NSUserTrackingUsageDescription": "To enhance your experience, this app collects your email address, country, state, and city. This information helps us identify users, improve our services, and provide targeted marketing. However, your data will never be shared with data brokers."
-      
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification",
+          "fetch",
+          "remote-notification"
+        ],
+        "NSUserTrackingUsageDescription": "To enhance your experience, this app collects your email address, country, state, and city. This information helps us identify users, improve our services, and provide targeted marketing. However, your data will never be shared with data brokers.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-    "backgroundFetch": {
-      "minimumInterval": 900,
-      "stopOnTerminate": false,
-      "startOnBoot": true
-    },
+      "backgroundFetch": {
+        "minimumInterval": 900,
+        "stopOnTerminate": false,
+        "startOnBoot": true
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.arthur1235.colore",
-      "permissions": ["NOTIFICATIONS", "android.permission.ACCESS_BACKGROUND_LOCATION"]
+      "permissions": [
+        "NOTIFICATIONS",
+        "android.permission.ACCESS_BACKGROUND_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "server",
       "favicon": "./assets/favicon.png"
     },
-   "plugins": [
-    [
-      "expo-notifications",
-      {
-        "icon": "./assets/icon.png",
-        "color": "#000000"
-      }
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#000000"
+        }
+      ],
+      [
+        "expo-router",
+        {
+          "origin": "https://colore.expo.app"
+        }
+      ],
+      "expo-font",
+      "expo-secure-store"
     ],
-    [
-      "expo-router",
-      {
-        "origin": "https://colore.expo.app"
-      }
-    ],
-    "expo-font",
-    "expo-secure-store"
-  ],
-      "experiments": {
+    "experiments": {
       "typedRoutes": true
     },
     "extra": {

@@ -213,7 +213,7 @@ const LogIn = () => {
           </View>
 
           {/*Platform.OS === "android" && <OAuth />*/}
-          {Platform.OS === "ios" && <AppleSignIn />}
+          {/*Platform.OS === "ios" && <AppleSignIn />*/}
 
           <Text className="text-base text-center text-general-200 mt-5">
             Don't have an account?{" "}
