@@ -43,7 +43,7 @@ declare interface Post {
 
 declare interface PostItBoardProps {
   userId: string;
-  handlePostsRefresh: () => Promise<(Post | Stacks)[]>;
+  handlePostsRefresh: () => Promise<Post[]>;
   handleBack?: () => void;
   handleNewPostFetch: (excludeIds: number[]) => Promise<Post>; // do not refetch IDs
   handleUpdatePin: (ids: number[]) => void;

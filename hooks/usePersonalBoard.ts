@@ -42,11 +42,8 @@ const filterPersonalPosts = (
   );
 };
 
-const filterItemsByBoard = (
-  items: Post[] | Stacks[],
-  boardId: number
-): (Post | Stacks)[] => {
-  return boardId < 0 ? items : items.filter((p: Post) => p.board_id == boardId);
+const filterPostsByBoard = (posts: Post[], boardId: number): Post[] => {
+  return boardId < 0 ? posts : posts.filter((p: Post) => p.board_id == boardId);
 };
 
 export const usePersonalPosts = (params: UsePersonalPostsParams) => {
@@ -98,31 +95,41 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
     }
   };
 
-  const fetchSharedStacks = async (userId: string): Promise<Stacks[]> => {
+  const fetchSharedStacks = async (userId: string): Promise<Post[]> => {
     console.log(
       `[usePersonalBoard]: Fetching shared with me stacks for userId=${userId}`
     );
 
     try {
-      const response = await fetchAPI(
+      const stacks = await fetchAPI(
         `/api/stacks/getSharedStacks?user_id=${userId}`
       );
 
+      let stackPosts = [];
+
+      for (let i = 0; i < stacks.data.length; i++) {
+        const response = await fetchAPI(
+          `/api/posts/getPostsById?ids=${stacks.data[i].ids}`
+        );
+
+        stackPosts.push(...response.data);
+      }
+
       console.log(
         `[usePersonalBoard]: Shared stacks API response status:`,
-        response.status
+        stacks.status
       );
       console.log(
         `[usePersonalBoard]: Shared stacks data count:`,
-        response.data?.length || 0
+        stackPosts.length
       );
 
-      if (!response.data.length) {
-        console.log("[usePersonalBoard]: No shared stacks found");
+      if (!stackPosts.length) {
+        console.log("[usePersonalBoard]: No posts from shared stacks found");
         return [];
       }
 
-      return response.data;
+      return stackPosts;
     } catch (error) {
       console.error("[usePersonalBoard]: Error in fetchSharedStacks:", error);
       throw error;
@@ -177,21 +184,21 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
     setError(null);
 
     try {
-      let filteredItems: Post[] | Stacks[];
+      let filteredPosts: Post[];
 
       if (boardId > 0) {
         console.log("[usePersonalBoard]: Fetching board posts");
-        filteredItems = await fetchBoardPosts(boardId, userId);
+        filteredPosts = await fetchBoardPosts(boardId, userId);
       } else if (boardId == -2) {
-        console.log("[usePersonalBoard]: Fetching shared wiht me stacks");
-        filteredItems = await fetchSharedStacks(userId);
+        console.log("[usePersonalBoard]: Fetching shared with me stacks");
+        filteredPosts = await fetchSharedStacks(userId);
       } else {
         console.log("[usePersonalBoard]: Fetching personal posts");
-        filteredItems = await fetchPersonalPosts(userId, viewerId);
+        filteredPosts = await fetchPersonalPosts(userId, viewerId);
       }
 
-      const finalPosts = filterItemsByBoard(filteredItems, boardId).map(
-        (p: Post | Stacks) => {
+      const finalPosts = filterPostsByBoard(filteredPosts, boardId).map(
+        (p: Post) => {
           const isPrivate = Boolean(p.recipient_user_id);
           if (isPrivate && encryptionKey) {
             try {
@@ -281,7 +288,7 @@ export const usePersonalPosts = (params: UsePersonalPostsParams) => {
       if (finalPosts.length > 0) {
         console.log(
           "[DEBUG] usePersonalBoard - First final post content:",
-          finalPosts[0]
+          finalPosts[0].content.substring(0, 120)
         );
       }
 

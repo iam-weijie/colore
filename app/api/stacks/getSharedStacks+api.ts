@@ -13,9 +13,18 @@ export async function GET(request: Request) {
       );
     }
 
-    const sharedStacks = await sql`
+    const response = await sql`
         SELECT * FROM shared_stacks WHERE shared_to_id = ${userId}
     `;
+
+    const sharedStacks = await Promise.all(
+      response.map(async (sharedStack) => {
+        const stack = await sql`
+      SELECT * FROM stacks WHERE id = ${sharedStack.stack_id}
+    `;
+        return stack[0];
+      })
+    );
 
     return Response.json(
       {

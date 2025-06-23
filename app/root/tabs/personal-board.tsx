@@ -1,19 +1,17 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useUser } from "@clerk/clerk-expo";
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  Text,
-} from "react-native";
+import { View, TextInput, TouchableOpacity, Text } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
-import BoardGallery from "@/components/BoardGallery"
+import BoardGallery from "@/components/BoardGallery";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import { Ionicons } from "@expo/vector-icons";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
 import { useBoardsContext } from "@/app/contexts/BoardsContext";
-import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
+import {
+  checkTutorialStatus,
+  completedTutorialStep,
+} from "@/hooks/useTutorial";
 import { boardTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
 import ModalSheet from "@/components/Modal";
@@ -23,51 +21,51 @@ const UserPersonalBoard = () => {
   const router = useRouter();
   const { user } = useUser();
   const { userColors } = useProfileContext();
-  const { 
-    personalBoards: rawPersonalBoards, 
+  const {
+    personalBoards: rawPersonalBoards,
     communityBoards: rawCommunityBoards,
     discoverBoards: rawDiscoverBoards,
     loading,
-    refreshAllBoards 
+    refreshAllBoards,
   } = useBoardsContext();
-  
+
   // Convert the boards to match the expected type with commentAllowed property
   const convertToTypedBoard = (board: any): Board => ({
     ...board,
     commentAllowed: board.restrictions?.includes("commentsAllowed") || true,
   });
-  
+
   const personalBoards = rawPersonalBoards.map(convertToTypedBoard);
   const communityBoards = rawCommunityBoards.map(convertToTypedBoard);
   const discoverBoards = rawDiscoverBoards.map(convertToTypedBoard);
-  
+
   // Tutorial constants
   const pages = boardTutorialPages;
   const totalSteps = pages.length;
-  
+
   // Tutorial Logic
   const [skipIntro, setSkipIntro] = useState<boolean>(false);
 
   const fetchTutorialStatus = async () => {
-    const isTutorialcompleted = await checkTutorialStatus("board-1")
-    setSkipIntro(isTutorialcompleted)
-  }
+    const isTutorialcompleted = await checkTutorialStatus("board-1");
+    setSkipIntro(isTutorialcompleted);
+  };
   const handleCompleteTutorial = async () => {
-    const isCompleted = await completedTutorialStep("board-1")
-    return isCompleted
-  }
-  
+    const isCompleted = await completedTutorialStep("board-1");
+    return isCompleted;
+  };
+
   useEffect(() => {
-    fetchTutorialStatus()
-  }, [])
-  
+    fetchTutorialStatus();
+  }, []);
+
   const [step, setStep] = useState(0);
-  
+
   const handleNext = () => {
     if (step < totalSteps - 1) setStep((prev) => prev + 1);
     else {
-      handleCompleteTutorial()
-      setSkipIntro(true)
+      handleCompleteTutorial();
+      setSkipIntro(true);
     }
   };
 
@@ -77,7 +75,7 @@ const UserPersonalBoard = () => {
   const tabs = [
     { name: "Mine", key: "MyBoards", color: "#CFB1FB", notifications: 0 },
     { name: "Community", key: "Community", color: "#CFB1FB" },
-    { name: "Discover", key: "Discover", color: "#93c5fd", notifications: 0 }
+    { name: "Discover", key: "Discover", color: "#93c5fd", notifications: 0 },
   ];
 
   const handleTabChange = (tabKey: string) => {
@@ -117,57 +115,55 @@ const UserPersonalBoard = () => {
 
   return (
     <View className="flex-1 bg-white">
-  <Header 
+      <Header
         title="Boards"
         tabs={tabs}
         selectedTab={selectedTab}
-        onTabChange={handleTabChange} 
-        tabCount={0}    />
+        onTabChange={handleTabChange}
+        tabCount={0}
+      />
 
-            <View className=" z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 mx-6"
+      <View
+        className=" z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 mx-6"
         style={{
           boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
-          width: '90%',
-          marginTop: 24
+          width: "90%",
+          marginTop: 24,
         }}
-        >
-          <Ionicons name="search" size={20} color="#9ca3af" />
-          <TextInput
-            className="flex-1 pl-2 text-md "
-            placeholder="Looking for a specific board..?"
-             placeholderTextColor="#9CA3AF"
-            value={searchText}
-            onChangeText={setSearchText}
-            returnKeyType="search"
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearSearch}
-              className="w-6 h-6 items-center justify-center"
-            >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
-        </View>
-      
+      >
+        <Ionicons name="search" size={20} color="#9ca3af" />
+        <TextInput
+          className="flex-1 pl-2 text-md "
+          placeholder="Looking for a specific board..?"
+          placeholderTextColor="#9CA3AF"
+          value={searchText}
+          onChangeText={setSearchText}
+          returnKeyType="search"
+        />
+        {searchText.length > 0 && (
+          <TouchableOpacity
+            onPress={handleClearSearch}
+            className="w-6 h-6 items-center justify-center"
+          >
+            <Ionicons name="close-circle" size={20} color="#9ca3af" />
+          </TouchableOpacity>
+        )}
+      </View>
+
       {loading ? (
-        <ColoreActivityIndicator />
+        <View className="flex-1 justify-center items-center">
+          <ColoreActivityIndicator />
+        </View>
+      ) : selectedTab === "MyBoards" ? (
+        <BoardGallery boards={filteredPersonalBoards} />
+      ) : selectedTab === "Community" ? (
+        <BoardGallery boards={filteredCommunityBoards} />
       ) : (
-        selectedTab === "MyBoards" ? (
-          <BoardGallery boards={filteredPersonalBoards} />
-        ) : selectedTab === "Community" ? (
-          <BoardGallery boards={filteredCommunityBoards} />
-        ) : (
-          <BoardGallery boards={filteredDiscoverBoards} />
-        )
+        <BoardGallery boards={filteredDiscoverBoards} />
       )}
-      
+
       {!skipIntro && !loading && (
-        <ModalSheet
-          title=""
-          isVisible={!skipIntro}
-          onClose={() => {}}
-        >
+        <ModalSheet title="" isVisible={!skipIntro} onClose={() => {}}>
           <View className="flex-1 px-4">
             <CarouselPage
               label={pages[step].label}
@@ -188,4 +184,3 @@ const UserPersonalBoard = () => {
 };
 
 export default UserPersonalBoard;
-
