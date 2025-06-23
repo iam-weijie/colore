@@ -3,16 +3,16 @@ const path = require("path");
 
 const config = getDefaultConfig(__dirname);
 
-// Fix assetExts and sourceExts before overriding resolver
+// Destructure existing resolver parts
 const { assetExts, sourceExts } = config.resolver;
 
-// Update transformer to use SVG transformer
+// Extend transformer to handle SVG
 config.transformer = {
   ...config.transformer,
   babelTransformerPath: require.resolve("react-native-svg-transformer"),
 };
 
-// Extend resolver without overwriting previous settings
+// Rebuild the resolver with custom asset/sourceExts, extra modules, and alias
 config.resolver = {
   ...config.resolver,
   assetExts: assetExts.filter(ext => ext !== "svg"),
@@ -22,6 +22,10 @@ config.resolver = {
     crypto: require.resolve("react-native-crypto"),
     stream: require.resolve("stream-browserify"),
     buffer: require.resolve("buffer/"),
+  },
+  alias: {
+    ...(config.resolver.alias || {}),
+    tslib: path.resolve(__dirname, "node_modules/tslib/tslib.es6.js"),
   },
 };
 

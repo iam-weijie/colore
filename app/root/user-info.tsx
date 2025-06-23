@@ -22,7 +22,7 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { useAlert } from '@/notifications/AlertContext';
 import CarouselPage from "@/components/CarrousselPage";
-import { PostItColor } from "@/types/type";
+import { PostItColor, UserNicknamePair } from "@/types/type";
 import BoardGallery from "@/components/BoardGallery";
 import ItemContainer from "@/components/ItemContainer";
 import { icons } from "@/constants";
@@ -34,6 +34,7 @@ import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
 import * as Haptics from "expo-haptics";
 import { deriveKey } from "@/lib/encryption";
+import { FindUser } from "@/components/FindUsers";
 
 const UserInfo = () => {
   const { playSoundEffect } = useSoundEffects();
@@ -496,22 +497,12 @@ const UserInfo = () => {
               onChangeText={(text): void => setSearchText(text)}
             />
           </View>
-          <FlatList
-            className="rounded-[16px] mt-4 mb-20 z-[10]"
-            data={filteredUsers}
-            contentContainerStyle={{
-              paddingBottom: 40,
-              justifyContent: "center",
-            }}
-            renderItem={ListItem}
-            keyExtractor={(item) => item.id.toString()}
-            ListEmptyComponent={
-              <Text className="text-center text-gray-500">
-                No users available
-              </Text>
-            }
-            showsVerticalScrollIndicator={true}
-          />
+          <FindUser selectedUserInfo={(item: UserNicknamePair) => {
+                          router.push({
+                            pathname: "/root/profile/[id]",
+                            params: { userId: item[0], username: item[1] },
+                          });
+                        }} />
         </View>
       ),
     },
