@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "Color.app"
-               BlueprintName = "Color"
-               ReferencedContainer = "container:Color.xcodeproj">
+               BuildableName = "Colore.app"
+               BlueprintName = "Colore"
+               ReferencedContainer = "container:Colore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "ColorTests.xctest"
-               BlueprintName = "ColorTests"
-               ReferencedContainer = "container:Color.xcodeproj">
+               BuildableName = "ColoreTests.xctest"
+               BlueprintName = "ColoreTests"
+               ReferencedContainer = "container:Colore.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Color.app"
-            BlueprintName = "Color"
-            ReferencedContainer = "container:Color.xcodeproj">
+            BuildableName = "Colore.app"
+            BlueprintName = "Colore"
+            ReferencedContainer = "container:Colore.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Color.app"
-            BlueprintName = "Color"
-            ReferencedContainer = "container:Color.xcodeproj">
+            BuildableName = "Colore.app"
+            BlueprintName = "Colore"
+            ReferencedContainer = "container:Colore.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

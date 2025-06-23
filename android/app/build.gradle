@@ -2,8 +2,7 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
-// Modified to avoid path issues with special characters
-def projectRoot = file("../../").absolutePath.replace("\\", "/")
+def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -151,14 +150,6 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-
-    // Fix for duplicate classes error
-    configurations.all {
-        resolutionStrategy {
-            force 'androidx.core:core:1.13.1'
-            exclude group: 'com.android.support', module: 'support-compat'
-        }
-    }
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
