@@ -698,7 +698,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
   };
 
   if (isLoading) {
-    return <ColoreActivityIndicator />;
+    return <View className="flex-1 w-full h-full"><ColoreActivityIndicator /></View>;
   }
 
   const cleanFormatting: Format[] =

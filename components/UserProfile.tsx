@@ -523,7 +523,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         setDisableInteractions(false);
         setProfileLoading(false);
 
-        return filteredPosts
+        return response.data
       }
     } catch (error) {
       console.error("[DEBUG] UserProfile - Failed to fetch personal posts:", error);

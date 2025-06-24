@@ -493,13 +493,60 @@ const UserInfo = () => {
     },
   ];
 
+
+  const handleUpdatedModification = async () => {
+    if (!form.username || !form.userLocation) {
+      showAlert({
+        title: "Error",
+        message: `Please fill out all fields.`,
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetchAPI("/api/users/updateUserInfo", {
+        method: "PATCH",
+        body: JSON.stringify({
+          username: form.username,
+          incognito_name: form.incognito_name,
+          city: stateVars.city,
+          state: stateVars.state,
+          country: stateVars.country,
+          clerkId: user!.id,
+        }),
+      });
+      if (response.error) {
+        if (
+          response.error.detail ===
+          `Key (username)=(${form.username}) already exists.`
+        ) {
+          showAlert({
+            title: "Username taken",
+            message: `Username ${form.username} already exists. Please try another one.`,
+            type: "ERROR",
+            status: "error",
+          });
+        } else {
+          throw new Error(response.error);
+        }
+      } else {
+        router.push("/root/tabs/home");
+      }
+    } catch (error) {
+      console.error("Failed to post user data:", error);
+    }
+  }
+
   const handleNext = () => {
     playSoundEffect(SoundType.Navigation);
     Haptics.selectionAsync();
 
     if (step < totalSteps - 1) setStep((prev) => prev + 1);
     else {
-      router.push("/root/tabs/home");
+      
+      handleUpdatedModification()
     }
   };
 

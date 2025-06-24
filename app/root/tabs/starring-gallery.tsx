@@ -37,6 +37,7 @@ import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial"
 import { starringTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
 import ModalSheet from "@/components/Modal";
+import EmptyListView from "@/components/EmptyList";
 
 
 const screenWidth = Dimensions.get("window").width;
@@ -393,7 +394,7 @@ export default function Page() {
 
         personalPosts.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <Text className="text-lg">You haven't posted anything yet!</Text>
+            <EmptyListView character="rosie" mood={2} message="Make a prompt and maybe you'll get some answers..."/>
           </View>
         ) : (
           <>

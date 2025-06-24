@@ -95,7 +95,7 @@ export const RenderPromptCard = ({
           <View className="px-2">
             <TextInput
               className="font-Jakarta text-[16px] text-black px-4 py-3 rounded-[24px] bg-tray-50"
-              placeholder="Type something fun..."
+              placeholder={`Complete the prompt...`}
               placeholderTextColor="#999"
               value={promptContent}
               onChangeText={updatePromptContent}
