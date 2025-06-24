@@ -84,7 +84,7 @@
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "~4.10.0",
-    "react-native-share": "^12.0.9",
+    "react-native-share": "^12.1.0",
     "react-native-svg": "15.11.2",
     "react-native-tracking-transparency": "^0.1.2",
     "react-native-view-shot": "~4.0.3",
@@ -102,6 +102,7 @@
     "@types/node": "^22.15.21",
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.0.7",
+    "babel-plugin-module-resolver": "^5.0.2",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~8.0.1",
     "eslint-config-prettier": "^9.1.0",
@@ -117,7 +118,7 @@
     "tsx": "^4.7.0",
     "typescript": "~5.3.3"
   },
-    "resolutions": {
+  "resolutions": {
     "tslib": "^2.4.1"
   },
   "private": true
