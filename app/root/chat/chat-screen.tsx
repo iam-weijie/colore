@@ -123,7 +123,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const [selectedTab, setSelectedTab] = useState<string>(tab ? tab : "Friends");
 
-  const fetchConversations = async (): Promise<void> => {
+  /*const fetchConversations = async (): Promise<void> => {
     setLoading(true);
     setSkeletalConversationList([
       skeletalConversation("1"),
@@ -178,7 +178,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };*/
 
   const fetchUsers = async () => {
     setLoading(true);

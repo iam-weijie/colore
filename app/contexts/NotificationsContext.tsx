@@ -41,7 +41,6 @@ export const fetchNotificationsExternal = async (
     ] = await Promise.all([
       fetch(`/api/users/getUserInfo?id=${userId}`),
       fetch(`/api/notifications/getComments?id=${userId}`),
-      fetch(`/api/notifications/getMessages?id=${userId}`),
       fetch(`/api/notifications/getUserPersonalPosts?id=${userId}`),
       fetch(`/api/friends/getFriendRequests?userId=${userId}`),
       fetch(`/api/notifications/getLikes?id=${userId}`),

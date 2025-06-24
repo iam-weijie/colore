@@ -28,20 +28,8 @@ const Layout = () => {
         }}
       />
       <Stack.Screen
-        name="preview-post"
-        options={{ headerShown: false, animation: "none" }}
-      />
-      <Stack.Screen
         name="saved-post-gallery"
         options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="edit-post"
-        options={{
-          headerShown: false,
-          animation: "fade",
-          animationDuration: 300,
-        }}
       />
       <Stack.Screen name="location" options={{ headerShown: false }} />
       <Stack.Screen name="profile" options={{ headerShown: false }} />

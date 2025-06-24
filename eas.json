@@ -12,7 +12,14 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsuY29sb3JlLmNhJA",
+      "DATABASE_URL": "postgresql://driftn_owner:UJq7kzPwdvm1@ep-late-forest-a5us88et-pooler.us-east-2.aws.neon.tech/driftn?sslmode=require",
+      "EXPO_PUBLIC_SERVER_URL": "https://colore-test-socket-server.onrender.com",
+      "CLERK_SECRET_KEY": "sk_live_QqTsPjIpE2r8Ut2qqW1ziZglRd0Fi69IyA1PNR36Lg",
+      "PORT": "3000"
+    }
     }
   },
   "submit": {

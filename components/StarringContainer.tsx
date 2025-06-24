@@ -421,7 +421,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     ));
   };
 
-  const handleInteractionPress = async (emoji: string) => {
+  /*const handleInteractionPress = async (emoji: string) => {
     try {
       console.log("Patching prompts");
 
@@ -457,7 +457,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
       }, 2000);
       return () => clearTimeout(timeoutId);
     }
-  };
+  };*/
 
   // Capture the content as soon as the component mounts (first render)
   useEffect(() => {
