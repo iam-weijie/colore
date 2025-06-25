@@ -6,24 +6,14 @@ export enum SoundType {
   Tap = 'tap',
   ToggleOn = 'toggleOn',
   ToggleOff = 'toggleOff',
-  Like = 'like',
-  Comment = 'comment',
   Navigation = 'navigation',
-  Button = 'button',
-  Delete = 'delete',
-  Scroll = 'scroll',
 }
 
 const soundFiles = {
   [SoundType.Tap]: require('../assets/sounds/tap.mp3'),
   [SoundType.ToggleOn]: require('../assets/sounds/toggle.mp3'),
   [SoundType.ToggleOff]: require('../assets/sounds/toggle.mp3'),
-  [SoundType.Like]: require('../assets/sounds/like.mp3'),
-  [SoundType.Comment]: require('../assets/sounds/comment.mp3'),
   [SoundType.Navigation]: require('../assets/sounds/navigation.mp3'),
-  [SoundType.Button]: require('../assets/sounds/button.mp3'),
-  [SoundType.Delete]: require('../assets/sounds/delete.mp3'),
-  [SoundType.Scroll]: require('../assets/sounds/scroll.mp3'),
 };
 
 // Global sound cache that persists across hook instances
@@ -31,14 +21,10 @@ const soundCache = new Map<SoundType, Audio.Sound>();
 const DEFAULT_VOLUME = 1.0;
 const DEBOUNCE_INTERVAL = 200; // ms for debouncing same sound type
 const COMMON_SOUNDS = [
-  SoundType.Button,
   SoundType.Tap,
   SoundType.Navigation,
-  SoundType.Scroll,
   SoundType.ToggleOn,
   SoundType.ToggleOff,
-  SoundType.Like,
-  SoundType.Comment
 ];
 
 // Preload sounds during app initialization (call this in your App.tsx or root component)

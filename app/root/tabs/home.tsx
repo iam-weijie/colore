@@ -244,7 +244,7 @@ const Home = () => {
                     setActiveModalTitle("Select a region");
                   }}
                 >
-                  <Image source={icons.planet} className="w-6 h-6" />
+                  <Image source={icons.globe} className="w-6 h-6" />
                 </TouchableOpacity>
               </View>
             </View>

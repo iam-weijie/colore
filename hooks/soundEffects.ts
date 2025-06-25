@@ -20,7 +20,6 @@ export const getSoundTypeForAction = (action: string): SoundType => {
     case 'send':
     case 'delete':
     case 'remove':
-      return SoundType.Delete;
     case 'success':
     case 'error':
     case 'fail':
@@ -33,6 +32,6 @@ export const getSoundTypeForAction = (action: string): SoundType => {
     case 'switch':
       return SoundType.ToggleOn;
     default:
-      return SoundType.Button;
+      return SoundType.Tap;
   }
 }; 

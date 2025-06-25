@@ -21,7 +21,6 @@ import info from "@/assets/icons/info.png";
 import shuffle from "@/assets/icons/shuffle.png";
 import pin from "@/assets/icons/pin.png";
 import profile from "@/assets/icons/profile.png";
-import planet from "@/assets/icons/planet-earth.png";
 import send from "@/assets/icons/send.png";
 import settings from "@/assets/icons/settings.png";
 import star from "@/assets/icons/star.png";
@@ -74,7 +73,6 @@ export const icons = {
   underline,
   H,
   pin,
-  planet,
   close,
   fire,
   info, 
