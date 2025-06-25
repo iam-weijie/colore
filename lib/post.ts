@@ -329,9 +329,8 @@ export const handleSubmitPost = async (
       });
 
       // Check if the post was created successfully
-      if (response && response.data) {
-        console.log("[DEBUG] Post created successfully:", response.data.id);
-        router.back(); // slight delay for safe stack unwinding
+      if (response) {
+        router.back();
         return "success";
       } else {
         console.error("[DEBUG] Failed to create post:", response);
