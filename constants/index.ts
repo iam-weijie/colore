@@ -52,7 +52,6 @@ import { allColors, defaultColors } from "@/constants/colors";
 /* CHARACTER IMAGES */
 import alexelliotSad from "@/assets/characters/alexelliot-sad-1.png";
 import alexelliotScared from "@/assets/characters/alexelliot-scared.png";
-import alexelliotSleepy2 from "@/assets/characters/alexelliot-sleepy-2.png";
 
 import bobChill from "@/assets/characters/bob-chill-1.png";
 import bobChill2 from "@/assets/characters/bob-chill-2.png";
@@ -68,7 +67,6 @@ import steveAmazed from "@/assets/characters/steve-amazed-1.png";
 import steveAnnoyed from "@/assets/characters/steve-annoyed-1.png";
 import steveAnnoyed2 from "@/assets/characters/steve-annoyed-2.png";
 import steveNerd from "@/assets/characters/steve-nerd-1.png";
-import steveSurprised from "@/assets/characters/steve-surprised-1.png";
 
 
 export const icons = {
@@ -124,7 +122,6 @@ export const images = {
 export const characters = {
   alexelliotSad,
   alexelliotScared,
-  alexelliotSleepy2,
 
   bobChill,
   bobChill2,
@@ -140,7 +137,6 @@ export const characters = {
   steveAnnoyed,
   steveAnnoyed2,
   steveNerd,
-  steveSurprised,
 };
 
 // Export colors for use in components
@@ -152,7 +148,6 @@ export const characterMood = {
   alexelliot: [
     alexelliotSad,
     alexelliotScared,
-    alexelliotSleepy2,
   ],
   bob: [
     bobChill,
@@ -171,7 +166,6 @@ export const characterMood = {
     steveAnnoyed,
     steveAnnoyed2,
     steveNerd,
-    steveSurprised,
   ],
 };
 
