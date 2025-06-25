@@ -34,7 +34,6 @@ export const fetchNotificationsExternal = async (
     const [
       userResponse,
       commentsResponse,
-      messagesResponse,
       postResponse,
       friendRequestResponse,
       likesResponse,
@@ -50,10 +49,6 @@ export const fetchNotificationsExternal = async (
     const comments = commentsData.toNotify;
     const storedComments = commentsData.toStore;
     const unread_comments = commentsData.unread_count ?? 0;
-
-    const messagesData = await messagesResponse.json();
-    const messages = messagesData.toNotify;
-    const unread_messages = messagesData.unread_count ?? 0;
 
     const personalPostsData = await postResponse.json();
     const personalPosts = personalPostsData.toNotify;
@@ -88,7 +83,6 @@ export const fetchNotificationsExternal = async (
     // Combine all notifications
     const allNotifications = [
       ...comments,
-      ...messages,
       ...personalPosts,
       ...friendRequests,
     ];
