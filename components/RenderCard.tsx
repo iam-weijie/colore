@@ -38,7 +38,7 @@ export const RenderPromptCard = ({
   userId: string;
   promptContent: string;
   updatePromptContent: (text: string) => void;
-  handlePromptSubmit: (item: Prompt) => void;
+  handlePromptSubmit: (item: Prompt, content: string) => void;
 }) => {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(30);
@@ -119,7 +119,7 @@ export const RenderPromptCard = ({
             title="Submit"
             padding={4}
             disabled={promptContent.length === 0}
-            onPress={() => handlePromptSubmit(item)}
+            onPress={() => handlePromptSubmit(item, promptContent.trim())}
           />
         </View>
       </Animated.View>

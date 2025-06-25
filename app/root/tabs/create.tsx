@@ -21,6 +21,7 @@ import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial"
 import { createTutorialPages } from "@/constants/tutorials";
 import ModalSheet from "@/components/Modal";
 import CarouselPage from "@/components/CarrousselPage";
+import { Prompt } from "@/types/type";
 
 
 
@@ -102,13 +103,12 @@ const navigateTo = ({
 const handlePromptSubmit = async () => {
   try {
     const response = await fetchAPI("/api/prompts/getPrompts");
-    const uniquePrompts = response.data.filter(
-      (value, index, self) =>
-        index === self.findIndex((t) => t.cue === value.cue)
-    );
+    const uniquePrompts = response.data.filter((p: Prompt) => p.content);
 
     const randomIndex = Math.floor(Math.random() * uniquePrompts.length);
     const prompt = uniquePrompts[randomIndex];
+
+    console.log("prompt: ", prompt)
 
     navigateTo({
       type: "prompt",

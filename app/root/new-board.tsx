@@ -296,8 +296,7 @@ Perfect for open discussions or quiet sharing.`,
   };
 
   useEffect(() => {
-    console.log("restriction", boardRestriction);
-    if (boardRestriction.length === 3) {
+    if (boardRestriction.length === 2) {
       setBoardComplete(true);
     } else {
       setBoardComplete(false);
