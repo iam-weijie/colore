@@ -10,18 +10,8 @@ export enum SoundType {
   Comment = 'comment',
   Navigation = 'navigation',
   Button = 'button',
-  Success = 'success',
-  Error = 'error',
-  Notification = 'notification',
-  Swipe = 'swipe',
-  Send = 'send',
   Delete = 'delete',
   Scroll = 'scroll',
-  Modal = 'modal',
-  Share = 'share',
-  Submit = 'submit',
-  Reply = 'reply',
-  Stack = 'stack',
 }
 
 const soundFiles = {
@@ -32,18 +22,8 @@ const soundFiles = {
   [SoundType.Comment]: require('../assets/sounds/comment.mp3'),
   [SoundType.Navigation]: require('../assets/sounds/navigation.mp3'),
   [SoundType.Button]: require('../assets/sounds/button.mp3'),
-  [SoundType.Success]: require('../assets/sounds/success.mp3'),
-  [SoundType.Error]: require('../assets/sounds/error.mp3'),
-  [SoundType.Notification]: require('../assets/sounds/notification.mp3'),
-  [SoundType.Swipe]: require('../assets/sounds/swipe.mp3'),
-  [SoundType.Send]: require('../assets/sounds/send.mp3'),
   [SoundType.Delete]: require('../assets/sounds/delete.mp3'),
   [SoundType.Scroll]: require('../assets/sounds/scroll.mp3'),
-  [SoundType.Modal]: require('../assets/sounds/modal.mp3'),
-  [SoundType.Share]: require('../assets/sounds/share.mp3'),
-  [SoundType.Submit]: require('../assets/sounds/submit.mp3'),
-  [SoundType.Reply]: require('../assets/sounds/reply.mp3'),
-  [SoundType.Stack]: require('../assets/sounds/stack.mp3'),
 };
 
 // Global sound cache that persists across hook instances
