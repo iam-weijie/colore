@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
+import { encryptionCache } from "@/cache/encryptionCache";
 
 const ENCRYPTION_KEY_STORAGE = "encryptionKey";
 
@@ -27,7 +27,7 @@ export const EncryptionProvider: React.FC<{ children: React.ReactNode }> = ({
   // Load key from storage on mount
   useEffect(() => {
     const loadKey = async () => {
-      const savedKey = await AsyncStorage.getItem(ENCRYPTION_KEY_STORAGE);
+      const savedKey = await encryptionCache.getDerivedKey();
       if (savedKey !== null) {
         console.log("[EncryptionContext] Loaded encryption key from storage");
         setEncryptionKeyState(savedKey);
@@ -39,11 +39,11 @@ export const EncryptionProvider: React.FC<{ children: React.ReactNode }> = ({
   // Persist key on change
   useEffect(() => {
     if (encryptionKey) {
-      AsyncStorage.setItem(ENCRYPTION_KEY_STORAGE, encryptionKey).catch((e) =>
+      encryptionCache.setDerivedKey(encryptionKey).catch((e: any) =>
         console.error("[EncryptionContext] Failed to save key", e)
       );
     } else if (encryptionKey === null) {
-      AsyncStorage.removeItem(ENCRYPTION_KEY_STORAGE).catch((e) =>
+      encryptionCache.clearDerivedKey().catch((e: any) =>
         console.error("[EncryptionContext] Failed to remove key", e)
       );
     }

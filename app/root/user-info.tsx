@@ -34,10 +34,13 @@ import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
 import * as Haptics from "expo-haptics";
 import { deriveKey } from "@/lib/encryption";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
+import { encryptUserIdentityFields } from "@/lib/userEncryption";
 
 const UserInfo = () => {
   const { playSoundEffect } = useSoundEffects();
   const { soundEffectsEnabled } = useSettingsContext();
+  const { encryptionKey } = useEncryptionContext();
 
   const { user } = useUser();
   const { showAlert } = useAlert();
@@ -281,12 +284,29 @@ const UserInfo = () => {
       });
       return;
     }
+
+    if (!encryptionKey) {
+      showAlert({
+        title: "Error",
+        message: "Encryption key not available. Please log in again.",
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
     try {
+      // Encrypt username and incognito_name before sending to API
+      const encryptedFields = encryptUserIdentityFields({
+        username: form.username,
+        incognito_name: form.incognito_name,
+      }, encryptionKey);
+
       const response = await fetchAPI("/api/users/newUserInfo", {
         method: "POST",
         body: JSON.stringify({
-          username: form.username,
-          incognito_name: form.incognito_name,
+          username_encrypted: encryptedFields.username_encrypted,
+          incognito_name_encrypted: encryptedFields.incognito_name_encrypted,
           city: stateVars.city,
           state: stateVars.state,
           country: stateVars.country,

@@ -1,4 +1,5 @@
 import { deriveKey, generateSalt } from "@/lib/encryption";
+import { encryptUserIdentityFields, userNeedsMigration } from "@/lib/userEncryption";
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
@@ -84,6 +85,42 @@ const LogIn = () => {
         
         setEncryptionKey(key);
         await encryptionCache.setDerivedKey(key);
+
+        // Check if user needs migration to encrypted fields
+        try {
+          const userDataResponse = await fetchAPI(`/api/users/getUserInfo?id=${userId}`, {
+            method: "GET",
+          });
+          
+          if (userDataResponse.data?.[0]) {
+            const userData = userDataResponse.data[0];
+            
+            if (userNeedsMigration(userData)) {
+              console.log("[DEBUG] Login - User needs migration, encrypting identity fields");
+              
+              // Encrypt the existing plaintext fields
+              const encryptedFields = encryptUserIdentityFields({
+                username: userData.username,
+                nickname: userData.nickname,
+                incognito_name: userData.incognito_name,
+              }, key);
+              
+              // Save encrypted fields to database
+              await fetchAPI('/api/users/migrateEncryption', {
+                method: 'PATCH',
+                body: JSON.stringify({
+                  clerkId: userId,
+                  ...encryptedFields,
+                }),
+              });
+              
+              console.log("[DEBUG] Login - Migration completed successfully");
+            }
+          }
+        } catch (migrationError) {
+          console.error("[DEBUG] Login - Migration failed:", migrationError);
+          // Don't fail login if migration fails, just log the error
+        }
 
         if (needToCreateSalt) {
         try {

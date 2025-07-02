@@ -12,16 +12,24 @@ export async function POST(request: Request) {
 
     if (request.method === "POST") {
       //console.log("Received POST request.");
-      const { username, incognito_name, city, state, country, clerkId } =
-        await request.json();
+      const { 
+        username, 
+        incognito_name, 
+        city, 
+        state, 
+        country, 
+        clerkId,
+        username_encrypted,
+        incognito_name_encrypted 
+      } = await request.json();
 
       if (
-        !username ||
-        !incognito_name ||
         !city ||
         !state ||
         !country ||
-        !clerkId
+        !clerkId ||
+        (!username && !username_encrypted) ||
+        (!incognito_name && !incognito_name_encrypted)
       ) {
         return Response.json(
           { error: "Missing required fields" },
@@ -29,26 +37,35 @@ export async function POST(request: Request) {
         );
       }
 
-      // const response = await sql`
-      // UPDATE users
-      // SET
-      //   firstname = ${firstName},
-      //   lastname = ${lastName},
-      //   date_of_birth = ${dateOfBirth},
-      //   user_location = ${userLocation}
-      // WHERE email = ${userEmail}
-      // `;
-
-      const response = await sql`
-        UPDATE users
-        SET
-          username = ${username},
-          incognito_name = ${incognito_name},
-          city = ${city},
-          state = ${state},
-          country = ${country}
-        WHERE clerk_id = ${clerkId} 
-      `;
+      // Prefer encrypted fields over plaintext
+      let response;
+      if (username_encrypted && incognito_name_encrypted) {
+        // Use encrypted fields
+        response = await sql`
+          UPDATE users
+          SET
+            username_encrypted = ${username_encrypted},
+            incognito_name_encrypted = ${incognito_name_encrypted},
+            city = ${city},
+            state = ${state},
+            country = ${country}
+          WHERE clerk_id = ${clerkId} 
+          RETURNING *
+        `;
+      } else {
+        // Fallback to plaintext (for legacy compatibility)
+        response = await sql`
+          UPDATE users
+          SET
+            username = ${username || ''},
+            incognito_name = ${incognito_name || ''},
+            city = ${city},
+            state = ${state},
+            country = ${country}
+          WHERE clerk_id = ${clerkId} 
+          RETURNING *
+        `;
+      }
 
       return new Response(JSON.stringify({ data: response }), {
         status: 201,

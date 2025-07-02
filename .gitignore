@@ -14,6 +14,7 @@ env.DEVELPMENT/
 .github/
 .tmp-node_modules
 .vscode/
+.instructions.md
 
 # macOS
 .DS_Store

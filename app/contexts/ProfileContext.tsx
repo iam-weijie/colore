@@ -3,6 +3,8 @@ import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { defaultColors } from "@/constants";
 import { UserProfileType, PostItColor } from "@/types/type";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
+import { decryptUserIdentityFields } from "@/lib/userEncryption";
 
 // Types
 export type ProfileContextType = {
@@ -19,6 +21,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { user } = useUser();
+  const { encryptionKey } = useEncryptionContext();
   const [profile, setProfile] = useState<UserProfileType>();
   const [userColors, setUserColors] = useState<PostItColor[]>(defaultColors);
 
@@ -31,15 +34,20 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
       });
       if (response.error) throw new Error(response.error);
 
-      const userData: UserProfileType | undefined = response.data?.[0];
+      let userData: UserProfileType | undefined = response.data?.[0];
       if (userData) {
+        // Decrypt identity fields if encryption key is available
+        if (encryptionKey) {
+          userData = decryptUserIdentityFields(userData, encryptionKey);
+        }
+        
         setProfile(userData);
         setUserColors(userData.colors || defaultColors);
       }
     } catch (error) {
       console.error("[ProfileContext] Failed to fetch user profile:", error);
     }
-  }, [user]);
+  }, [user, encryptionKey]);
 
   useEffect(() => {
     fetchUserProfile();

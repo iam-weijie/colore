@@ -70,9 +70,9 @@ declare interface StylingType {
   id: number;
   bold?: boolean;
   italic?: boolean;
-  underlinde?: boolean;
+  underline?: boolean;
   orderedList?: boolean;
-  underedList?: boolean;
+  unorderedList?: boolean;
   quote?: boolean;
 }
 declare interface TextStylingType {
@@ -153,14 +153,6 @@ declare interface PostLike {
   liker_username: string;
 }
 
-declare interface PostLike {
-  id: number;
-  post_id: number;
-  post_content: string;
-  post_color: string;
-  liker_username: string;
-}
-
 declare interface UserProfileType {
   id: number;
   clerk_id: string;
@@ -169,6 +161,9 @@ declare interface UserProfileType {
   username: string;
   nickname: string;
   incognito_name: string;
+  username_encrypted?: string;
+  nickname_encrypted?: string;
+  incognito_name_encrypted?: string;
   email: string;
   date_of_birth: string;
   city: string;
@@ -187,6 +182,7 @@ declare interface UserProfileType {
   shorthand_emojis?: string[];
   colors: PostItColor[];
   customizations?: any[];
+  salt?: string;
 }
 
 declare interface UserData {
@@ -308,7 +304,6 @@ declare interface PostContainerProps {
   header?: React.ReactElement;
   isPreview?: boolean;
   isShowCasing?: boolean;
-  infiniteScroll?: boolean;
   scrollToLoad?: () => void;
   staticEmoji?: boolean;
   seeComments?: boolean;

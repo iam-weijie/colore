@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { UserProfileType, UserNicknamePair } from "@/types/type";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
+import { decryptUserIdentityFields } from "@/lib/userEncryption";
 
 export type UserDataContextType = {
   savedPosts: string[];
@@ -21,6 +23,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { user } = useUser();
+  const { encryptionKey } = useEncryptionContext();
   const [userData, setUserData] = useState<UserProfileType | null>(null);
   const [savedPosts, setSavedPosts] = useState<string[]>([]);
   const [nicknames, setNicknames] = useState<Record<string, string>>({});
@@ -47,14 +50,20 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("User data not found");
       }
       
-      setUserData(userDataResponse);
+      // Decrypt identity fields if encryption key is available
+      let processedUserData = userDataResponse;
+      if (encryptionKey) {
+        processedUserData = decryptUserIdentityFields(userDataResponse, encryptionKey);
+      }
+      
+      setUserData(processedUserData);
       
       // Extract saved posts
-      const userSavedPosts = userDataResponse.saved_posts || [];
+      const userSavedPosts = processedUserData.saved_posts || [];
       setSavedPosts(userSavedPosts);
       
       // Extract nicknames
-      const userNicknames: UserNicknamePair[] = userDataResponse.nicknames || [];
+      const userNicknames: UserNicknamePair[] = processedUserData.nicknames || [];
       const nicknamesMap = convertNicknamesToMap(userNicknames);
       setNicknames(nicknamesMap);
     } catch (error) {
@@ -63,7 +72,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, encryptionKey]);
 
   const convertNicknamesToMap = (nicknamesPairs: UserNicknamePair[]): Record<string, string> => {
     return nicknamesPairs.reduce((acc: Record<string, string>, [userId, nickname]) => {

@@ -16,7 +16,9 @@ export async function GET(request: Request) {
       });
     }
     const { rows } = await sql.query(`
-      SELECT * from users WHERE clerk_id = $1
+      SELECT 
+        *
+      FROM users WHERE clerk_id = $1
     `, [clerkId]);
     
     if (rows.length === 0) {
@@ -35,6 +37,9 @@ export async function GET(request: Request) {
         nickname: u.nickname,
         nicknames: u.nicknames ? u.nicknames : [],
         incognito_name: u.incognito_name,
+        username_encrypted: u.username_encrypted,
+        nickname_encrypted: u.nickname_encrypted,
+        incognito_name_encrypted: u.incognito_name_encrypted,
         email: u.email,
         date_of_birth: u.date_of_birth,
         city: u.city,

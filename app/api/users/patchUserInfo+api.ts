@@ -16,6 +16,9 @@ export async function PATCH(request: Request) {
       username,
       nickname,
       incognito_name,
+      username_encrypted,
+      nickname_encrypted,
+      incognito_name_encrypted,
       email,
     } = await request.json();
 
@@ -77,17 +80,68 @@ export async function PATCH(request: Request) {
     // Handle each update case separately to ensure proper SQL syntax
     let response;
 
-    if (username !== undefined) {
-      response = await sql`
-        UPDATE users
-        SET username = ${username}
-        WHERE clerk_id = ${clerkId}
-        RETURNING *
-      `;
+    if (username !== undefined || username_encrypted !== undefined) {
+      // Handle username update - prefer encrypted over plaintext
+      if (username_encrypted !== undefined) {
+        response = await sql`
+          UPDATE users
+          SET username_encrypted = ${username_encrypted}
+          WHERE clerk_id = ${clerkId}
+          RETURNING *
+        `;
+      } else {
+        response = await sql`
+          UPDATE users
+          SET username = ${username}
+          WHERE clerk_id = ${clerkId}
+          RETURNING *
+        `;
+      }
+    } else if (nickname !== undefined || nickname_encrypted !== undefined) {
+      // Handle nickname update - prefer encrypted over plaintext
+      if (nickname_encrypted !== undefined) {
+        response = await sql`
+          UPDATE users
+          SET nickname_encrypted = ${nickname_encrypted}
+          WHERE clerk_id = ${clerkId}
+          RETURNING *
+        `;
+      } else {
+        response = await sql`
+          UPDATE users
+          SET nickname = ${nickname}
+          WHERE clerk_id = ${clerkId}
+          RETURNING *
+        `;
+      }
+    } else if (incognito_name !== undefined || incognito_name_encrypted !== undefined) {
+      // Handle incognito_name update - prefer encrypted over plaintext
+      if (incognito_name_encrypted !== undefined) {
+        response = await sql`
+          UPDATE users
+          SET incognito_name_encrypted = ${incognito_name_encrypted}
+          WHERE clerk_id = ${clerkId}
+          RETURNING *
+        `;
+      } else {
+        response = await sql`
+          UPDATE users
+          SET incognito_name = ${incognito_name}
+          WHERE clerk_id = ${clerkId}
+          RETURNING *
+        `;
+      }
     } else if (nickname !== undefined && incognito_name !== undefined) {
       response = await sql`
         UPDATE users
         SET nickname = ${nickname}, incognito_name = ${incognito_name}
+        WHERE clerk_id = ${clerkId}
+        RETURNING *
+      `;
+    } else if (nickname_encrypted !== undefined && incognito_name_encrypted !== undefined) {
+      response = await sql`
+        UPDATE users
+        SET nickname_encrypted = ${nickname_encrypted}, incognito_name_encrypted = ${incognito_name_encrypted}
         WHERE clerk_id = ${clerkId}
         RETURNING *
       `;

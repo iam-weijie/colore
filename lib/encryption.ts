@@ -1,4 +1,5 @@
 import CryptoJS from "crypto-js";
+import { getDecryptedValue, setDecryptedValue } from "@/cache/decryptionCache";
 // Access the global variable for random values on different platforms
 const globalObj: any = global || window || self || {};
 
@@ -143,6 +144,12 @@ export const decryptText = (cipherText: string, keyHex: string): string => {
     return "";
   }
   
+  // Check cache first
+  const cachedValue = getDecryptedValue(cipherText);
+  if (cachedValue !== undefined) {
+    return cachedValue;
+  }
+  
   // Check if this is a failed encryption marker
   if (cipherText.startsWith('##ENCRYPTION_FAILED##')) {
     console.warn("[decryptText] Attempted to decrypt a failed encryption marker");
@@ -172,7 +179,11 @@ export const decryptText = (cipherText: string, keyHex: string): string => {
       }
       
       // Convert bytes to string
-      return String.fromCharCode(...textBytes);
+      const result = String.fromCharCode(...textBytes);
+      
+      // Cache the result
+      setDecryptedValue(cipherText, result);
+      return result;
     } catch (fallbackError) {
       console.warn("[decryptText] Fallback decryption failed", fallbackError);
       return "";
@@ -181,7 +192,11 @@ export const decryptText = (cipherText: string, keyHex: string): string => {
   
   try {
     const bytes = CryptoJS.AES.decrypt(cipherText, keyHex);
-    return bytes.toString(CryptoJS.enc.Utf8);
+    const result = bytes.toString(CryptoJS.enc.Utf8);
+    
+    // Cache the result
+    setDecryptedValue(cipherText, result);
+    return result;
   } catch (e) {
     console.warn("[decryptText] Standard decryption failed", e);
     return "";

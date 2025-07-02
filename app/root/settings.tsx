@@ -23,6 +23,8 @@ import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
+import { encryptUserIdentityFields } from "@/lib/userEncryption";
+import { clearDecryptionCache } from "@/cache/decryptionCache";
 import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
 import RenameContainer from "@/components/RenameContainer";
@@ -56,7 +58,7 @@ const Settings = () => {
     refreshProfile,
     userColors,
   } = useProfileContext();
-  const { setEncryptionKey } = useEncryptionContext();
+  const { encryptionKey, setEncryptionKey } = useEncryptionContext();
   const { playSoundEffect } = useSoundEffects(); // Use the sound hook
   const { showAlert } = useAlert();
 
@@ -221,13 +223,28 @@ const Settings = () => {
       return;
     }
 
+    if (!encryptionKey) {
+      showAlert({
+        title: "Error",
+        message: "Encryption key not available. Please log in again.",
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/updateUserInfo", {
+      // Encrypt the new username
+      const encryptedFields = encryptUserIdentityFields({
+        username: newName,
+      }, encryptionKey);
+
+      const response = await fetchAPI("/api/users/patchUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
-          username: newName,
+          username_encrypted: encryptedFields.username_encrypted,
         }),
       });
 
@@ -250,7 +267,7 @@ const Settings = () => {
           type: "UPDATE",
           status: "success",
         });
-        await fetchUserData();
+        await refreshProfile();
       }
     } catch (error) {
       console.error("Failed to update username:", error);
@@ -277,13 +294,28 @@ const Settings = () => {
       return;
     }
 
+    if (!encryptionKey) {
+      showAlert({
+        title: "Error",
+        message: "Encryption key not available. Please log in again.",
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/updateUserInfo", {
+      // Encrypt the new nickname
+      const encryptedFields = encryptUserIdentityFields({
+        nickname: newName,
+      }, encryptionKey);
+
+      const response = await fetchAPI("/api/users/patchUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
-          nickname: newName,
+          nickname_encrypted: encryptedFields.nickname_encrypted,
         }),
       });
 
@@ -297,7 +329,7 @@ const Settings = () => {
           type: "UPDATE",
           status: "success",
         });
-        await fetchUserData();
+        await refreshProfile();
       }
     } catch (error) {
       console.error("Failed to update nickname:", error);
@@ -325,13 +357,28 @@ const Settings = () => {
       return;
     }
 
+    if (!encryptionKey) {
+      showAlert({
+        title: "Error",
+        message: "Encryption key not available. Please log in again.",
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await fetchAPI("/api/users/updateUserInfo", {
+      // Encrypt the new incognito name
+      const encryptedFields = encryptUserIdentityFields({
+        incognito_name: newName,
+      }, encryptionKey);
+
+      const response = await fetchAPI("/api/users/patchUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
-          incognito_name: newName,
+          incognito_name_encrypted: encryptedFields.incognito_name_encrypted,
         }),
       });
 
@@ -345,7 +392,7 @@ const Settings = () => {
           type: "UPDATE",
           status: "success",
         });
-        await fetchUserData();
+        await refreshProfile();
       }
     } catch (error) {
       console.error("Failed to update incognito name:", error);
@@ -439,9 +486,10 @@ const Settings = () => {
       // Loading state is now set by the button press
       // No need to show alert here as it's shown by the button press
       
-      // Clear encryption key
-      console.log("[DEBUG] Settings - Clearing encryption key");
+      // Clear encryption key and cache
+      console.log("[DEBUG] Settings - Clearing encryption key and cache");
       await setEncryptionKey(null);
+      clearDecryptionCache();
       
       // Sign out the user
       console.log("[DEBUG] Settings - Calling signOut()");
