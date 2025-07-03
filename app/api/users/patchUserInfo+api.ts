@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { validateUserAuthorization } from "@/lib/auth";
 
 // TODO: update this route to be able to only update properties
 // that the user specifies - for example, updating email
@@ -18,7 +19,6 @@ export async function PATCH(request: Request) {
       incognito_name,
       username_encrypted,
       nickname_encrypted,
-      incognito_name_encrypted,
       email,
     } = await request.json();
 
@@ -26,6 +26,14 @@ export async function PATCH(request: Request) {
       return Response.json(
         { error: "Missing required fields" },
         { status: 400 }
+      );
+    }
+
+    // Validate user authorization (now async)
+    if (!(await validateUserAuthorization(clerkId, request.headers))) {
+      return Response.json(
+        { error: "Unauthorized - invalid user credentials" },
+        { status: 401 }
       );
     }
 
@@ -114,45 +122,8 @@ export async function PATCH(request: Request) {
           RETURNING *
         `;
       }
-    } else if (incognito_name !== undefined || incognito_name_encrypted !== undefined) {
-      // Handle incognito_name update - prefer encrypted over plaintext
-      if (incognito_name_encrypted !== undefined) {
-        response = await sql`
-          UPDATE users
-          SET incognito_name_encrypted = ${incognito_name_encrypted}
-          WHERE clerk_id = ${clerkId}
-          RETURNING *
-        `;
-      } else {
-        response = await sql`
-          UPDATE users
-          SET incognito_name = ${incognito_name}
-          WHERE clerk_id = ${clerkId}
-          RETURNING *
-        `;
-      }
-    } else if (nickname !== undefined && incognito_name !== undefined) {
-      response = await sql`
-        UPDATE users
-        SET nickname = ${nickname}, incognito_name = ${incognito_name}
-        WHERE clerk_id = ${clerkId}
-        RETURNING *
-      `;
-    } else if (nickname_encrypted !== undefined && incognito_name_encrypted !== undefined) {
-      response = await sql`
-        UPDATE users
-        SET nickname_encrypted = ${nickname_encrypted}, incognito_name_encrypted = ${incognito_name_encrypted}
-        WHERE clerk_id = ${clerkId}
-        RETURNING *
-      `;
-    } else if (nickname !== undefined) {
-      response = await sql`
-        UPDATE users
-        SET nickname = ${nickname}
-        WHERE clerk_id = ${clerkId}
-        RETURNING *
-      `;
     } else if (incognito_name !== undefined) {
+      // Only handle plaintext incognito_name
       response = await sql`
         UPDATE users
         SET incognito_name = ${incognito_name}

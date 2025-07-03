@@ -1,6 +1,7 @@
 import * as Linking from "expo-linking";
 import * as SecureStore from "expo-secure-store";
 import { fetchAPI } from "./fetch";
+import { verifyToken } from '@clerk/backend'; // Add Clerk backend SDK import
 
 export const tokenCache = {
   
@@ -111,3 +112,55 @@ export const appleOAuth = async (signUpResult: any, appleId: string) => {
     };
   }
 };
+
+/**
+ * Authentication helper for API routes
+ * Validates that the user can only modify their own data
+ */
+
+/**
+ * Validate that a user can only perform actions on their own data
+ * Now uses Clerk JWT verification
+ * @param clerkId - The clerkId from the request body
+ * @param headers - Request headers that should contain authentication info
+ * @returns true if the request is authorized
+ */
+export async function validateUserAuthorization(clerkId: string, headers: Headers): Promise<boolean> {
+  if (!clerkId) {
+    return false;
+  }
+
+  // Extract JWT from Authorization header
+  const authorization = headers.get('Authorization');
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    return false;
+  }
+  const token = authorization.substring(7);
+
+  try {
+    // Verify the JWT using Clerk SDK
+    const payload = await verifyToken(token, { secretKey: process.env.CLERK_JWT_KEY });
+    // Ensure the userId in the token matches the clerkId being modified
+    if (payload.sub && payload.sub === clerkId) {
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.error('[validateUserAuthorization] Clerk JWT verification failed:', err);
+    return false;
+  }
+}
+
+/**
+ * Extract authorization info from request headers
+ * This would typically contain the Clerk session token
+ */
+export function getAuthFromHeaders(headers: Headers): { sessionToken?: string } {
+  const authorization = headers.get('Authorization');
+  
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return { sessionToken: authorization.substring(7) };
+  }
+  
+  return {};
+}

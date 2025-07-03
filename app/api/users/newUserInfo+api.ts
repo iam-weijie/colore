@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { validateUserAuthorization } from "@/lib/auth";
 
 // NOTE: for some reason you get a "Method not allowed" if you
 // use the handler instead of just putting a POST request in
@@ -19,8 +20,7 @@ export async function POST(request: Request) {
         state, 
         country, 
         clerkId,
-        username_encrypted,
-        incognito_name_encrypted 
+        username_encrypted
       } = await request.json();
 
       if (
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         !country ||
         !clerkId ||
         (!username && !username_encrypted) ||
-        (!incognito_name && !incognito_name_encrypted)
+        !incognito_name
       ) {
         return Response.json(
           { error: "Missing required fields" },
@@ -37,15 +37,22 @@ export async function POST(request: Request) {
         );
       }
 
-      // Prefer encrypted fields over plaintext
+      // Validate user authorization (now async)
+      if (!(await validateUserAuthorization(clerkId, request.headers))) {
+        return Response.json(
+          { error: "Unauthorized - invalid user credentials" },
+          { status: 401 }
+        );
+      }
+
+      // Prefer encrypted username, but incognito_name is always plaintext
       let response;
-      if (username_encrypted && incognito_name_encrypted) {
-        // Use encrypted fields
+      if (username_encrypted) {
         response = await sql`
           UPDATE users
           SET
             username_encrypted = ${username_encrypted},
-            incognito_name_encrypted = ${incognito_name_encrypted},
+            incognito_name = ${incognito_name},
             city = ${city},
             state = ${state},
             country = ${country}
@@ -53,7 +60,7 @@ export async function POST(request: Request) {
           RETURNING *
         `;
       } else {
-        // Fallback to plaintext (for legacy compatibility)
+        // Fallback to plaintext username (for legacy compatibility)
         response = await sql`
           UPDATE users
           SET

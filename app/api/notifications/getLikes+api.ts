@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { validateUserAuthorization } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -13,13 +14,21 @@ export async function GET(request: Request) {
       );
     }
 
+    // Validate user authorization
+    if (!validateUserAuthorization(clerkId, request.headers)) {
+      return Response.json(
+        { error: "Unauthorized - invalid user credentials" },
+        { status: 401 }
+      );
+    }
+
     /*  
         n: {
             id,
             post_id,
             post_content,
             post_color,
-            liker_username
+            liker_username_encrypted
         }
     */
 
@@ -29,7 +38,7 @@ export async function GET(request: Request) {
             p.id AS post_id,
             p.content AS post_content,
             p.color AS post_color,
-            u.username AS liker_username
+            u.username_encrypted AS liker_username_encrypted
         FROM post_likes pl
         JOIN posts p ON pl.post_id = p.id
         JOIN users u ON pl.user_id = u.clerk_id
@@ -43,7 +52,7 @@ export async function GET(request: Request) {
                     comment_id,
                     post_id,
                     comment_content,
-                    liker_username
+                    liker_username_encrypted
                 }
     */
 
@@ -53,7 +62,7 @@ export async function GET(request: Request) {
             c.id AS comment_id,
             c.post_id,
             c.content AS comment_content,
-            u.username AS liker_username
+            u.username_encrypted AS liker_username_encrypted
         FROM comment_likes cl
         JOIN comments c ON cl.comment_id = c.id
         JOIN users u ON cl.user_id = u.clerk_id

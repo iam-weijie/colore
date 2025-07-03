@@ -102,7 +102,7 @@ const LogIn = () => {
               const encryptedFields = encryptUserIdentityFields({
                 username: userData.username,
                 nickname: userData.nickname,
-                incognito_name: userData.incognito_name,
+                // incognito_name is now always plaintext, do not encrypt
               }, key);
               
               // Save encrypted fields to database

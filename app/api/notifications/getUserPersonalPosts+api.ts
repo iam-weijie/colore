@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { validateUserAuthorization } from "@/lib/auth";
 
 export async function GET(request: Request) {
   //console.log("Received GET request for user posts and information");
@@ -11,6 +12,14 @@ export async function GET(request: Request) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
         status: 400,
       });
+    }
+
+    // Validate user authorization
+    if (!(await validateUserAuthorization(clerkId, request.headers))) {
+      return Response.json(
+        { error: "Unauthorized - invalid user credentials" },
+        { status: 401 }
+      );
     }
 
     const { rows } = await sql.query(
@@ -39,9 +48,9 @@ export async function GET(request: Request) {
               (f.user_id = $1 AND f.friend_id = u.clerk_id)
               OR
               (f.friend_id = $1 AND f.user_id = u.clerk_id)
-          ) THEN u.incognito_name
-          ELSE u.username
-        END AS username,
+          ) THEN u.incognito_name_encrypted
+          ELSE u.username_encrypted
+        END AS username_encrypted,
         u.country, 
         u.state, 
         u.city
@@ -68,7 +77,7 @@ export async function GET(request: Request) {
     const userPosts = rows.map((post) => ({
       id: post.id,
       clerk_id: post.clerk_id,
-      username: post.username,
+      username_encrypted: post.username_encrypted,
       content: post.content,
       created_at: post.created_at,
       city: post.city,

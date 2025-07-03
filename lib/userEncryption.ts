@@ -25,10 +25,9 @@ export const decryptUserIdentityFields = (
   if (userData.nickname_encrypted) {
     decryptedData.nickname = decryptText(userData.nickname_encrypted, encryptionKey);
   }
-  
-  if (userData.incognito_name_encrypted) {
-    decryptedData.incognito_name = decryptText(userData.incognito_name_encrypted, encryptionKey);
-  }
+
+  // incognito_name is now always plaintext, just pass it through
+  // (no decryption needed)
 
   return decryptedData;
 };
@@ -43,18 +42,17 @@ export const encryptUserIdentityFields = (
   identityData: {
     username?: string;
     nickname?: string;
-    incognito_name?: string;
+    // incognito_name is now always plaintext, do not encrypt
   },
   encryptionKey: string
 ): {
   username_encrypted?: string;
   nickname_encrypted?: string;
-  incognito_name_encrypted?: string;
+  // incognito_name_encrypted removed
 } => {
   const encryptedData: {
     username_encrypted?: string;
     nickname_encrypted?: string;
-    incognito_name_encrypted?: string;
   } = {};
 
   if (identityData.username !== undefined && identityData.username !== null) {
@@ -64,10 +62,8 @@ export const encryptUserIdentityFields = (
   if (identityData.nickname !== undefined && identityData.nickname !== null) {
     encryptedData.nickname_encrypted = encryptText(identityData.nickname, encryptionKey);
   }
-  
-  if (identityData.incognito_name !== undefined && identityData.incognito_name !== null) {
-    encryptedData.incognito_name_encrypted = encryptText(identityData.incognito_name, encryptionKey);
-  }
+
+  // incognito_name is not encrypted
 
   return encryptedData;
 };
@@ -81,7 +77,7 @@ export const userNeedsMigration = (userData: UserProfileType): boolean => {
   return (
     !userData.username_encrypted &&
     !userData.nickname_encrypted &&
-    !userData.incognito_name_encrypted &&
-    !!(userData.username || userData.nickname || userData.incognito_name)
+    !!(userData.username || userData.nickname)
+    // incognito_name is always plaintext, so not checked for migration
   );
 };

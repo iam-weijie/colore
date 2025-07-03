@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { validateUserAuthorization } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -13,6 +14,14 @@ export async function GET(request: Request) {
       );
     }
 
+    // Validate user authorization
+    if (!validateUserAuthorization(userId, request.headers)) {
+      return Response.json(
+        { error: "Unauthorized - invalid user credentials" },
+        { status: 401 }
+      );
+    }
+
     // return friend requests involving user (sent or receiving)
     // if they exist as array of responses
     // the response is of the form:
@@ -23,8 +32,8 @@ export async function GET(request: Request) {
      *  user_id2,
      *  requestor = 'UID1' or 'UID2',
      *  created_at,
-     *  user1_username,
-     *  user2_username
+     *  user1_username_encrypted,
+     *  user2_username_encrypted
      * }
      */
     const response = await sql`
@@ -35,10 +44,10 @@ export async function GET(request: Request) {
         fr.requestor,
         fr.created_at,
         fr.notified,
-        u1.username AS user1_username,
-        u1.nickname AS user1_nickname,
-        u2.username AS user2_username,
-        u2.nickname AS user2_nickname
+        u1.username_encrypted AS user1_username_encrypted,
+        u1.nickname_encrypted AS user1_nickname_encrypted,
+        u2.username_encrypted AS user2_username_encrypted,
+        u2.nickname_encrypted AS user2_nickname_encrypted
       FROM friend_requests fr
       JOIN users u1 ON fr.user_id1 = u1.clerk_id
       JOIN users u2 ON fr.user_id2 = u2.clerk_id

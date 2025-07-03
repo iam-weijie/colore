@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { validateUserAuthorization } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -13,12 +14,21 @@ export async function GET(request: Request) {
       );
     }
 
+    // Validate user authorization
+    if (!(await validateUserAuthorization(clerkId, request.headers))) {
+      return Response.json(
+        { error: "Unauthorized - invalid user credentials" },
+        { status: 401 }
+      );
+    }
+
     const postsWithComments = await sql`
       SELECT 
         p.id,
         p.content,
         u.firstname,
-        u.username, 
+        u.username_encrypted,
+        u.incognito_name,
         p.created_at,
         p.user_id,
         p.like_count,
@@ -36,7 +46,8 @@ export async function GET(request: Request) {
             'comment_report_count', c.report_count,
             'notified', c.notified,
             'commenter_firstname', c.firstname,
-            'commenter_username', c.username,
+            'commenter_username_encrypted', c.username_encrypted,
+            'commenter_incognito_name', c.incognito_name,
             'is_liked', COALESCE(cl.is_liked, FALSE)
           )
         ) FILTER (WHERE c.id IS NOT NULL) AS comments
@@ -46,7 +57,8 @@ export async function GET(request: Request) {
         SELECT 
           c.*, 
           u.firstname, 
-          u.username,
+          u.username_encrypted,
+          u.incognito_name,
           CASE 
             WHEN EXISTS (
               SELECT 1 
@@ -69,7 +81,7 @@ export async function GET(request: Request) {
         AND cl.user_id = ${clerkId}
       ) cl ON TRUE
       WHERE u.clerk_id = ${clerkId}
-      GROUP BY p.id, u.firstname, u.username
+      GROUP BY p.id, u.firstname, u.username_encrypted, u.incognito_name
       HAVING json_agg(c.*) IS NOT NULL
       ORDER BY p.created_at ASC;
     `;

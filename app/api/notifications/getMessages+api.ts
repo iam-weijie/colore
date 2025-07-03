@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { validateUserAuthorization } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -10,6 +11,14 @@ export async function GET(request: Request) {
       return new Response(
         JSON.stringify({ error: "Missing user ID parameter" }),
         { status: 400 }
+      );
+    }
+
+    // Validate user authorization
+    if (!(await validateUserAuthorization(clerkId, request.headers))) {
+      return Response.json(
+        { error: "Unauthorized - invalid user credentials" },
+        { status: 401 }
       );
     }
 

@@ -4,8 +4,6 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { encryptionCache } from "@/cache/encryptionCache";
 
-const ENCRYPTION_KEY_STORAGE = "encryptionKey";
-
 export type EncryptionContextType = {
   encryptionKey: string | null;
   setEncryptionKey: React.Dispatch<React.SetStateAction<string | null>>;

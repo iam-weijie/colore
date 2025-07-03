@@ -43,6 +43,8 @@ import { SRBInfoPage, InformationInfoPage, YourActivityInfoPage, PreferencesInfo
 import { encryptionCache } from "@/cache/encryptionCache";
 import { calculateSRB, handleNewColor } from "@/hooks/useColors";
 import { colorMatch } from "@/lib/colorsystem";
+import { handlePasswordChange, verifyOldPassword } from "@/lib/passwordChange";
+import InputField from "@/components/InputField";
 
 const Settings = () => {
   const {
@@ -93,6 +95,15 @@ const Settings = () => {
   const [trustProgress, setTrustProgress] = useState<number>(0);
   
   const [remainingAttempts, setRemainingAttempts] = useState<number>(4);
+
+  // Password change state
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordChangeForm, setPasswordChangeForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
 
   const handleAttemptColorCreation = async () => {
    
@@ -357,32 +368,17 @@ const Settings = () => {
       return;
     }
 
-    if (!encryptionKey) {
-      showAlert({
-        title: "Error",
-        message: "Encryption key not available. Please log in again.",
-        type: "ERROR",
-        status: "error",
-      });
-      return;
-    }
-
     setLoading(true);
     try {
-      // Encrypt the new incognito name
-      const encryptedFields = encryptUserIdentityFields({
-        incognito_name: newName,
-      }, encryptionKey);
-
+      // Directly send plaintext incognito_name
       const response = await fetchAPI("/api/users/patchUserInfo", {
         method: "PATCH",
         body: JSON.stringify({
           clerkId: user!.id,
-          incognito_name_encrypted: encryptedFields.incognito_name_encrypted,
+          incognito_name: newName,
         }),
       });
 
-      //console.log("Changed Incognito Name", response)
       if (response.error) {
         throw new Error(response.error);
       } else {
@@ -512,6 +508,110 @@ const Settings = () => {
   const handleUpdateValue = (type: string) => {
     setUpdateType(type);
     setOnFocus(true);
+  };
+
+  const handlePasswordChangeSubmit = async () => {
+    if (!user || !profile || !encryptionKey) {
+      showAlert({
+        title: "Error",
+        message: "User session not found. Please log in again.",
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    // Validate form
+    if (!passwordChangeForm.oldPassword || !passwordChangeForm.newPassword || !passwordChangeForm.confirmPassword) {
+      showAlert({
+        title: "Error",
+        message: "Please fill in all password fields.",
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    if (passwordChangeForm.newPassword !== passwordChangeForm.confirmPassword) {
+      showAlert({
+        title: "Error",
+        message: "New passwords do not match.",
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    if (passwordChangeForm.newPassword.length < 8) {
+      showAlert({
+        title: "Error",
+        message: "New password must be at least 8 characters long.",
+        type: "ERROR",
+        status: "error",
+      });
+      return;
+    }
+
+    setPasswordChangeLoading(true);
+
+    try {
+      // Check if user has salt
+      if (!profile.salt) {
+        throw new Error("User salt not found. Please log out and log back in.");
+      }
+
+      // Verify old password
+      if (!verifyOldPassword(profile, passwordChangeForm.oldPassword, profile.salt)) {
+        throw new Error("Current password is incorrect");
+      }
+
+      // Handle password change and re-encryption
+      const { newSalt, newEncryptedData } = await handlePasswordChange(
+        profile,
+        passwordChangeForm.oldPassword,
+        passwordChangeForm.newPassword,
+        profile.salt
+      );
+
+      // Send to API
+      const response = await fetchAPI('/api/users/changePassword', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          clerkId: user.id,
+          newSalt,
+          newEncryptedData,
+        }),
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      showAlert({
+        title: "Success",
+        message: "Password changed successfully. Please log in again with your new password.",
+        type: "SUCCESS",
+        status: "success",
+      });
+
+      // Reset form and close modal
+      setPasswordChangeForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+      setShowPasswordChange(false);
+
+      // Sign out user to force re-authentication with new password
+      await handleSignOut();
+
+    } catch (error: any) {
+      console.error("[Settings] Password change error:", error);
+      showAlert({
+        title: "Error",
+        message: error.message || "Failed to change password. Please try again.",
+        type: "ERROR",
+        status: "error",
+      });
+    } finally {
+      setPasswordChangeLoading(false);
+    }
   };
 
   const currentLocation = profileUser
@@ -770,6 +870,48 @@ const Settings = () => {
         />
       </View>
 
+      {/* Security Section */}
+      <View className="mx-4 mb-6">
+        <HeaderCard
+          title="Security"
+          color="#ff6b6b"
+          content={
+            <>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => router.push("/root/change-password")}
+                className="px-4 py-3 flex flex-row items-center justify-between"
+              >
+                <View className="flex flex-row items-center">
+                  <View className="p-2 rounded-xl mr-3" style={{ backgroundColor: "#fafafa" }}>
+                    <MaterialCommunityIcons
+                      name="key-outline"
+                      size={20}
+                      color="#000"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[14px] font-JakartaSemiBold text-gray-800">Change Password</Text>
+                    <Text className="text-[12px] text-gray-600 mt-1">Update your password and re-encrypt your data</Text>
+                  </View>
+                </View>
+                <MaterialCommunityIcons name="chevron-right" size={20} color="#9ca3af" />
+              </TouchableOpacity>
+            </>
+          }
+          infoView={
+            <View className="p-4">
+              <Text className="text-sm text-gray-700 mb-2">
+                Your password is used to encrypt your personal data including username, nickname, and incognito name.
+              </Text>
+              <Text className="text-sm text-gray-700">
+                When you change your password, all encrypted data will be re-encrypted with the new password for security.
+              </Text>
+            </View>
+          }
+        />
+      </View>
+
       {/* Preferences Section */}
       <View className="mx-4 mb-6">
         <HeaderCard
@@ -918,6 +1060,82 @@ const Settings = () => {
               }}
             />
             </View>
+          </View>
+        </ModalSheet>
+      )}
+
+      {/* Password Change Modal */}
+      {showPasswordChange && (
+        <ModalSheet
+          title="Change Password"
+          isVisible={showPasswordChange}
+          onClose={() => {
+            setShowPasswordChange(false);
+            setPasswordChangeForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+          }}
+        >
+          <View className="flex-1 p-6">
+            <Text className="text-sm text-gray-600 mb-6">
+              Changing your password will re-encrypt all your personal data with the new password for security.
+            </Text>
+
+            <InputField
+              label="Current Password"
+              placeholder="Enter your current password"
+              value={passwordChangeForm.oldPassword}
+              onChangeText={(text) =>
+                setPasswordChangeForm(prev => ({ ...prev, oldPassword: text }))
+              }
+              secureTextEntry
+              containerStyle="mb-4"
+            />
+
+            <InputField
+              label="New Password"
+              placeholder="Enter your new password"
+              value={passwordChangeForm.newPassword}
+              onChangeText={(text) =>
+                setPasswordChangeForm(prev => ({ ...prev, newPassword: text }))
+              }
+              secureTextEntry
+              containerStyle="mb-4"
+            />
+
+            <InputField
+              label="Confirm New Password"
+              placeholder="Confirm your new password"
+              value={passwordChangeForm.confirmPassword}
+              onChangeText={(text) =>
+                setPasswordChangeForm(prev => ({ ...prev, confirmPassword: text }))
+              }
+              secureTextEntry
+              containerStyle="mb-6"
+            />
+
+            <View className="flex-row justify-between space-x-4">
+              <CustomButton
+                title="Cancel"
+                onPress={() => {
+                  setShowPasswordChange(false);
+                  setPasswordChangeForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+                }}
+                className="flex-1 bg-gray-200 rounded-full h-14"
+                textVariant="primary"
+                disabled={passwordChangeLoading}
+              />
+              
+              <CustomButton
+                title={passwordChangeLoading ? "Changing..." : "Change Password"}
+                onPress={handlePasswordChangeSubmit}
+                className="flex-1 bg-red-500 rounded-full h-14"
+                textVariant="primary"
+                disabled={passwordChangeLoading}
+              />
+            </View>
+
+            <Text className="text-xs text-gray-500 text-center mt-4">
+              You will be signed out after changing your password and will need to log in again.
+            </Text>
           </View>
         </ModalSheet>
       )}

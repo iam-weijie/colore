@@ -9,6 +9,29 @@ import { useUser } from "@clerk/clerk-expo";
 import { io } from "socket.io-client";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
 import { fetchAPI } from "@/lib/fetch";
+import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
+import { decryptText } from "@/lib/encryption";
+import { encryptionCache } from "@/cache/encryptionCache";
+
+/**
+ * Helper function to safely decrypt username from encrypted data
+ */
+const decryptUsername = async (encryptedUsername: string | null): Promise<string> => {
+  if (!encryptedUsername) return "User";
+  
+  try {
+    const encryptionKey = await encryptionCache.getDerivedKey();
+    if (!encryptionKey) {
+      console.warn("[NotificationsContext] No encryption key available for decryption");
+      return "User";
+    }
+    
+    return decryptText(encryptedUsername, encryptionKey);
+  } catch (error) {
+    console.warn("[NotificationsContext] Failed to decrypt username:", error);
+    return "User";
+  }
+};
 
 export type NotificationsContextType = {
   notifications: any[];
@@ -174,9 +197,14 @@ const handleSendNotificationExternal = async (
   try {
     if (type === "Comments") {
       const notificationContent = content.comment_content.slice(0, 120);
+      // Decrypt the commenter username if available, otherwise use incognito_name
+      let commenterUsername = content.commenter_incognito_name || "User";
+      if (content.commenter_username_encrypted) {
+        commenterUsername = await decryptUsername(content.commenter_username_encrypted);
+      }
       await sendPushNotification(
         pushToken,
-        `${content.commenter_username} responded to your post`,
+        `${commenterUsername} responded to your post`,
         notificationContent,
         "comment",
         {
@@ -192,10 +220,17 @@ const handleSendNotificationExternal = async (
 
     if (type === "Requests") {
       if (content.requestor) {
+        // Decrypt usernames for friend requests, fallback to incognito_name
+        let user1Username = content.user1_incognito_name || "User";
+        let user2Username = content.user2_incognito_name || "User";
+        if (content.user1_username_encrypted) {
+          user1Username = await decryptUsername(content.user1_username_encrypted);
+        }
+        if (content.user2_username_encrypted) {
+          user2Username = await decryptUsername(content.user2_username_encrypted);
+        }
         const username =
-          content.requestor === "UID1"
-            ? content.user1_username
-            : content.user2_username;
+          content.requestor === "UID1" ? user1Username : user2Username;
         await sendPushNotification(
           pushToken,
           `${username} wants to be your friend!`,
@@ -210,9 +245,14 @@ const handleSendNotificationExternal = async (
     }
 
     if (type === "Posts") {
+      // Decrypt username for post notifications
+      let username = n.incognito_name || "User";
+      if (n.username_encrypted) {
+        username = await decryptUsername(n.username_encrypted);
+      }
       await sendPushNotification(
         pushToken,
-        `${n.username} has posted on your board`,
+        `${username} has posted on your board`,
         `${n.content}`,
         "post",
         {
@@ -346,4 +386,4 @@ export const useNotificationsContext = () => {
   return ctx;
 };
 
-export default NotificationsProvider; 
+export default NotificationsProvider;

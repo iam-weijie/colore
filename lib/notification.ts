@@ -50,10 +50,9 @@ export const handleSendNotificationExternal = async (
   try {
     if (type === "Comments") {
       const notificationContent = content.comment_content.slice(0, 120);
-
       await sendPushNotification(
         pushToken,
-        `${content.commenter_username} responded to your post`,
+        `${content.commenter_username || content.commenter_incognito_name || "Someone"} responded to your post`,
         notificationContent,
         "comment",
         {
@@ -65,6 +64,9 @@ export const handleSendNotificationExternal = async (
             nickname: notification.nickname,
             firstname: notification.firstname,
             username: notification.username,
+            username_encrypted: notification.username_encrypted,
+            nickname_encrypted: notification.nickname_encrypted,
+            incognito_name: notification.incognito_name,
             like_count: notification.like_count,
             report_count: notification.report_count,
             created_at: notification.created_at,
@@ -88,7 +90,12 @@ export const handleSendNotificationExternal = async (
           "request",
           {
             route: `/root/chat`,
-            params: { tab: "Requests" },
+            params: {
+              tab: "Requests",
+              username_encrypted: notification.username_encrypted,
+              nickname_encrypted: notification.nickname_encrypted,
+              incognito_name: notification.incognito_name,
+            },
           }
         );
 

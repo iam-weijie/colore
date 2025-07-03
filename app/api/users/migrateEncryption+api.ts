@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { validateUserAuthorization } from "@/lib/auth";
 
 /**
  * API endpoint for migrating user identity fields from plaintext to encrypted
@@ -10,14 +11,21 @@ export async function PATCH(request: Request) {
     const {
       clerkId,
       username_encrypted,
-      nickname_encrypted,
-      incognito_name_encrypted,
+      nickname_encrypted
     } = await request.json();
 
     if (!clerkId) {
       return Response.json(
         { error: "Missing clerk_id" },
         { status: 400 }
+      );
+    }
+
+    // Validate user authorization (now async)
+    if (!(await validateUserAuthorization(clerkId, request.headers))) {
+      return Response.json(
+        { error: "Unauthorized - invalid user credentials" },
+        { status: 401 }
       );
     }
 
@@ -33,39 +41,13 @@ export async function PATCH(request: Request) {
       );
     }
 
-    // Execute migration updates based on provided fields
+    // Only update username_encrypted and nickname_encrypted
     let response;
-
-    if (username_encrypted !== undefined && nickname_encrypted !== undefined && incognito_name_encrypted !== undefined) {
-      response = await sql`
-        UPDATE users 
-        SET username_encrypted = ${username_encrypted},
-            nickname_encrypted = ${nickname_encrypted},
-            incognito_name_encrypted = ${incognito_name_encrypted}
-        WHERE clerk_id = ${clerkId}
-        RETURNING *
-      `;
-    } else if (username_encrypted !== undefined && nickname_encrypted !== undefined) {
+    if (username_encrypted !== undefined && nickname_encrypted !== undefined) {
       response = await sql`
         UPDATE users 
         SET username_encrypted = ${username_encrypted},
             nickname_encrypted = ${nickname_encrypted}
-        WHERE clerk_id = ${clerkId}
-        RETURNING *
-      `;
-    } else if (username_encrypted !== undefined && incognito_name_encrypted !== undefined) {
-      response = await sql`
-        UPDATE users 
-        SET username_encrypted = ${username_encrypted},
-            incognito_name_encrypted = ${incognito_name_encrypted}
-        WHERE clerk_id = ${clerkId}
-        RETURNING *
-      `;
-    } else if (nickname_encrypted !== undefined && incognito_name_encrypted !== undefined) {
-      response = await sql`
-        UPDATE users 
-        SET nickname_encrypted = ${nickname_encrypted},
-            incognito_name_encrypted = ${incognito_name_encrypted}
         WHERE clerk_id = ${clerkId}
         RETURNING *
       `;
@@ -80,13 +62,6 @@ export async function PATCH(request: Request) {
       response = await sql`
         UPDATE users 
         SET nickname_encrypted = ${nickname_encrypted}
-        WHERE clerk_id = ${clerkId}
-        RETURNING *
-      `;
-    } else if (incognito_name_encrypted !== undefined) {
-      response = await sql`
-        UPDATE users 
-        SET incognito_name_encrypted = ${incognito_name_encrypted}
         WHERE clerk_id = ${clerkId}
         RETURNING *
       `;

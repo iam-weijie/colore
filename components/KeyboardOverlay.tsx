@@ -211,7 +211,7 @@ const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({
       onDismiss={Keyboard.dismiss}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View className="absolute" />
+        <View className="absolute" pointerEvents="none" />
       </TouchableWithoutFeedback>
 
         <Animated.View
