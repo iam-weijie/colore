@@ -21,6 +21,7 @@ import Animated, {
 import {
   FlatList,
   KeyboardAvoidingView,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -300,11 +301,10 @@ const checkNumberOfParticipants = async (activity: boolean) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-        <View
-          className="flex flex-row items-center justify-between px-4 pt-2 pr-9"
-          style={{ height: 50 }}
-        >
+      <View
+        className="flex flex-row items-center justify-between px-4 pt-2 pr-9"
+        style={{ height: 50 }}
+      >
           <View className="mr-2">
             <TouchableOpacity onPress={() => router.back()}>
               <AntDesign name="caretleft" size={18} color="0076e3" />
@@ -348,25 +348,30 @@ const checkNumberOfParticipants = async (activity: boolean) => {
               }}
             />
           )}
-          <View className="flex-row items-center p-4 border-t border-gray-200">
-            <TextInput
-              className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
-              placeholder="Type a message..."
-              value={newMessage}
-              multiline
-              onChangeText={(text) => setNewMessage(text)}
-            />
-            <CustomButton
-              title="Send"
-              onPress={handleSendMessage}
-              disabled={!newMessage.trim()}
-              className="ml-3 w-14 h-10 rounded-full shadow-none"
-              fontSize="sm"
-              padding={4}
-            />
-          </View>
+          
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+          >
+            <View className="flex-row items-center p-4 border-t border-gray-200 bg-white" style={{ marginBottom: 20, paddingBottom: 20 }}>
+              <TextInput
+                className="flex-1 border-[1px] border-gray-300 rounded-[20px] px-4 py-3"
+                placeholder="Type a message..."
+                value={newMessage}
+                multiline
+                onChangeText={(text) => setNewMessage(text)}
+              />
+              <CustomButton
+                title="Send"
+                onPress={handleSendMessage}
+                disabled={!newMessage.trim()}
+                className="ml-3 w-14 h-10 rounded-full shadow-none"
+                fontSize="sm"
+                padding={4}
+              />
+            </View>
+          </KeyboardAvoidingView>
         </View>
-      </KeyboardAvoidingView>
     </View>
   );
 };

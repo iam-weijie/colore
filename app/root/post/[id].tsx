@@ -72,7 +72,6 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const height = useSharedValue(450);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const flatListRef = useRef(null);
   const [postComments, setPostComments] = useState<PostCommentGroup[]>([]);
   const [newComment, setNewComment] = useState<string>("");
   const [nicknames, setNicknames] = useState<UserNicknamePair[]>([]);
@@ -107,7 +106,8 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   const { soundEffectsEnabled } = useSettingsContext();
   const { playSoundEffect } = useSoundEffects(); // Get sound function
   const [replyView, setReplyView] = useState<PostComment | null>(null);
-  const inputRef = useRef(null);
+  const inputRef = useRef<TextInput>(null);
+  const flatListRef = useRef<FlatList>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   // Add pagination states
@@ -132,6 +132,21 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
       setReplyView(null)
     }
   }, [replyTo])
+
+  // Focus on input when replying
+  useEffect(() => {
+    if (replyView) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [replyView]);
+
+  // Also focus when replyTo is set (for immediate responsiveness)
+  useEffect(() => {
+    if (replyTo) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [replyTo]);
+
   useEffect(() => {
     const fetchLikesForPost = async () => {
       if (!id || !user?.id) return;
@@ -190,16 +205,36 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   }, [scrollTo])
 
   const scrollToItem = () => {
-   // Find the index of the group that contains the target comment
-   const groupIndex = postComments.findIndex((p) =>
-    p.comments.some(item => item.id.toString() == scrollTo)
-  );
+    if (!scrollTo || !flatListRef.current) return;
 
+    // Add a small delay to ensure FlatList is fully rendered
+    setTimeout(() => {
+      if (!flatListRef.current) return;
 
-  // Scroll to the group's index if valid
-  if (groupIndex !== -1 && flatListRef.current) {
-    flatListRef.current.scrollToIndex({ index: groupIndex });
-  }
+      // Find the index of the group that contains the target comment
+      const groupIndex = postComments.findIndex((p) =>
+        p.comments.some(item => item.id.toString() === scrollTo)
+      );
+
+      // Scroll to the group's index if valid, positioning it at the top
+      if (groupIndex !== -1) {
+        try {
+          flatListRef.current.scrollToIndex({ 
+            index: groupIndex, 
+            animated: true,
+            viewPosition: 0 // Position at top of visible area
+          });
+        } catch (error) {
+          // Fallback to scrollToEnd if scrollToIndex fails
+          console.log("ScrollToIndex failed, falling back to scrollToEnd");
+          try {
+            flatListRef.current.scrollToEnd({ animated: true });
+          } catch (fallbackError) {
+            console.log("Fallback scroll also failed:", fallbackError);
+          }
+        }
+      }
+    }, 100);
   };
 
   const fetchComments = async (pageNum = 0, append = false) => {
@@ -365,7 +400,7 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
     setIsSubmitting(true);
 
     // Create temporary comment for optimistic update
-    const tempId = Date.now();
+    const tempId = -(Date.now() % 1000000); // Negative number to avoid conflicts, smaller range
 
     // Use the same date as the most recent comment group to ensure proper grouping
     let optimisticTimestamp = new Date().toISOString();
@@ -468,9 +503,20 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
         throw new Error(response.error);
       }
 
-      // Don't update the ID to keep the key stable and prevent double animation
-      // The temporary ID will work fine for the UI, and the real ID isn't needed for display
-      console.log("✅ Comment successfully saved to server with ID:", response.data.id);
+      // Update the temporary comment with the real ID from server
+      const realId = response.data.id;
+      setPostComments(prev =>
+        prev.map(group => ({
+          ...group,
+          comments: group.comments.map(comment =>
+            comment.id === tempComment.id 
+              ? { ...comment, id: realId }
+              : comment
+          )
+        }))
+      );
+
+      console.log("✅ Comment successfully saved to server with ID:", realId);
     } catch (error) {
       console.error("Failed to submit comment:", error);
 
@@ -497,28 +543,14 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
   };
 
 
-  const handleDeleteComment = async (id: number) => {
-    try {
-      await fetchAPI(`/api/comments/deleteComment?id=${id}`, {
-        method: "DELETE",
-      });
-
-      showAlert({
-        title: 'Comment deleted.',
-        message: `This comment has been deleted.`,
-        type: 'DELETE',
-        status: 'success',
-      });
-      fetchComments();
-    } catch (error) {
-      showAlert({
-        title: 'Error',
-        message: `An error occured. This comment has not been deleted.`,
-        type: 'ERROR',
-        status: 'error',
-      });
-      console.error("Failed to delete comment:", error);
-    }
+  const handleDeleteComment = (commentId: number) => {
+    // Optimistically remove comment from UI
+    setPostComments(prev =>
+      prev.map(group => ({
+        ...group,
+        comments: group.comments.filter(comment => comment.id !== commentId)
+      })).filter(group => group.comments.length > 0) // Remove empty groups
+    );
   };
 
 
@@ -582,6 +614,7 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
           is_liked={commentLikes[comment.id]}
           postColor={postColor?.hex}
           reply_comment_id={comment.reply_comment_id}
+          onDelete={handleDeleteComment}
         />
       ))}
     </View>
@@ -694,6 +727,7 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
         }}
         >
           <TextInput
+            ref={inputRef}
             className="flex-1 pl-2 text-[14px] pr-16 "
              placeholderTextColor="#9CA3AF"
             placeholder="Write a something..."

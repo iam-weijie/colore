@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo, useLayoutEffect } from "react";
 import { icons } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -27,6 +27,7 @@ import {
     BounceIn,
     FadeIn,
     runOnJS,
+    runOnUI,
     SlideInLeft,
     SlideInRight,
     useAnimatedGestureHandler,
@@ -40,7 +41,13 @@ import { isOnlyEmoji } from "@/lib/post";
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useReplyScroll } from "@/app/contexts/ReplyScrollContext";
 
-export const CommentItem: React.FC<PostComment> = ({
+interface GestureContext {
+  startX: number;
+  startY: number;
+  [key: string]: unknown;
+}
+
+export const CommentItem = React.memo<PostComment & { onDelete?: (commentId: number) => void }>(({
     id,
     post_id,
     user_id,
@@ -52,7 +59,8 @@ export const CommentItem: React.FC<PostComment> = ({
     like_count,
     is_liked,
     postColor,
-    reply_comment_id
+    reply_comment_id,
+    onDelete
   }) => {
     const { user } = useUser();
     const router = useRouter();
@@ -65,16 +73,16 @@ export const CommentItem: React.FC<PostComment> = ({
     const { handlePanGestureStateChange } = useSoundGesture(SoundType.Swipe);
 
 
-    // Comment Reply
-    const fetchCommentById = async (ids: string) => {
+    // Comment Reply - memoized and immediate
+    const fetchCommentById = useCallback(async (ids: string) => {
         try {
-          const response = await fetchAPI(`/api/comments/getCommentsById?id=${reply_comment_id}`);
-
-          setReplyingTo(response.data[0] || null); // Return null if no post is found
+          const response = await fetchAPI(`/api/comments/getCommentsById?id=${ids}`);
+          setReplyingTo(response.data[0] || null);
         } catch (error) {
+          setReplyingTo(null);
           return null;
         }
-      };
+      }, []);
     // Comment like constant
     const [tapCount, setTapCount] = useState(0);
     const [isLoadingLike, setIsLoadingLike] = useState<boolean>(false);
@@ -90,8 +98,8 @@ export const CommentItem: React.FC<PostComment> = ({
     const [isLoadingCommentLike, setIsLoadingCommentLike] =
       useState<boolean>(false);
 
-    // Report Logic
-    const handleReportPress = () => {
+    // Report Logic - memoized
+    const handleReportPress = useCallback(() => {
       Alert.alert(
         "Report Comment",
         "Are you sure you want to report this comment?",
@@ -103,10 +111,10 @@ export const CommentItem: React.FC<PostComment> = ({
           },
         ]
       );
-    };
+    }, []);
 
-    // Comment Like Logic
-    const handleCommentLike = async (commentId: number) => {
+    // Comment Like Logic - memoized
+    const handleCommentLike = useCallback(async (commentId: number) => {
       if (!user || isLoadingCommentLike) return;
 
       try {
@@ -167,13 +175,26 @@ export const CommentItem: React.FC<PostComment> = ({
       } finally {
         setIsLoadingCommentLike(false);
       }
-    };
+    }, [user, isLoadingCommentLike, commentLikes, soundEffectsEnabled, playSoundEffect]);
 
     const translateX = useSharedValue(0);
 
-    // Maximum swipe distance
-    const maxSwipe = user_id != user!.id ? 30 : 0; // Adjust as needed
-    const minSwipe = user_id == user!.id ?  -30 : 0; // Adjust as needed
+    // Memoized reset functions to avoid render warnings
+    const resetTranslateX = useCallback(() => {
+      runOnUI(() => {
+        translateX.value = withTiming(0, { duration: 200 });
+      })();
+    }, []);
+
+    const resetTranslateXImmediate = useCallback(() => {
+      runOnUI(() => {
+        translateX.value = 0;
+      })();
+    }, []);
+
+    // Memoize gesture values to prevent unnecessary recalculations
+    const maxSwipe = useMemo(() => user_id != user!.id ? 30 : 0, [user_id, user?.id]);
+    const minSwipe = useMemo(() => user_id == user!.id ? -30 : 0, [user_id, user?.id]);
 
 
     const gestureHandler = useAnimatedGestureHandler<
@@ -186,7 +207,7 @@ export const CommentItem: React.FC<PostComment> = ({
         try {
           runOnJS(handlePanGestureStateChange)({ nativeEvent: { state: 1 } });
         } catch (error) {
-          console.log("Error playing swipe start sound:", error);
+          // Silent error handling for sound effects
         }
       },
       onActive: (event, context) => {
@@ -206,25 +227,37 @@ export const CommentItem: React.FC<PostComment> = ({
         try {
           runOnJS(handlePanGestureStateChange)({ nativeEvent: { state: 5 } });
         } catch (error) {
-          console.log("Error playing swipe end sound:", error);
+          // Silent error handling for sound effects
         }
         
-        if (Math.abs(offSetX) > 30) {
+        if (Math.abs(offSetX) > 20) {
           if (replyTo == `${id}`) {
             runOnJS(setReplyTo)(null);
           } else {
             runOnJS(setReplyTo)(`${id}`);
           }
         }
-        translateX.value = withTiming(0, { duration: 300 }); // Use `withTiming` to reset smoothly
+        
+        // Always reset position to prevent offset issues
+        translateX.value = withTiming(0, { duration: 300 });
+      },
+      onCancel: () => {
+        // Reset position if gesture is cancelled
+        runOnJS(setShowReplyIcon)(false);
+        translateX.value = withTiming(0, { duration: 200 });
+      },
+      onFail: () => {
+        // Reset position if gesture fails
+        runOnJS(setShowReplyIcon)(false);
+        translateX.value = withTiming(0, { duration: 200 });
       },
     });
 
 
 
-    const doubleTapHandler = () => {
+    const doubleTapHandler = useCallback(() => {
       setTapCount((prevCount) => prevCount + 1);
-    };
+    }, []);
 
     useEffect(() => {
       if (tapCount === 2) {
@@ -232,13 +265,37 @@ export const CommentItem: React.FC<PostComment> = ({
         handleCommentLike(id);
         setTapCount(0); // Reset tap count
       }
-    }, [tapCount]);
+    }, [tapCount, id, handleCommentLike]);
 
+    // Fetch reply comment immediately when component mounts with reply_comment_id
     useEffect(() => {
         if (reply_comment_id) {
-            fetchCommentById(reply_comment_id.toString())
+            // Immediately fetch without delay to prevent reflow
+            fetchCommentById(reply_comment_id.toString());
         }
-    }, [])
+    }, [reply_comment_id, fetchCommentById])
+
+    // Reset animation when reply data is loaded to prevent offset
+    useEffect(() => {
+      if (replyingTo) {
+        resetTranslateXImmediate();
+      }
+    }, [replyingTo, resetTranslateXImmediate])
+
+    // Reset translateX when reply state changes to prevent visual offset
+    useEffect(() => {
+      resetTranslateX();
+    }, [replyTo, resetTranslateX])
+
+    // Ensure translateX is reset on component mount and when reply data changes
+    useEffect(() => {
+      resetTranslateXImmediate();
+    }, [id, reply_comment_id, resetTranslateXImmediate])
+
+    // Critical: Reset animation BEFORE layout to prevent visual glitches
+    useLayoutEffect(() => {
+      resetTranslateXImmediate();
+    }, [reply_comment_id])
 
     const animatedStyle = useAnimatedStyle(() => ({
       transform: [
@@ -283,20 +340,22 @@ export const CommentItem: React.FC<PostComment> = ({
                 onPress={() => {
                   router.push({
                     pathname: "/root/profile/[id]",
-                    params: { userId: user_id, username: username },
+                    params: { id: user_id, userId: user_id, username: username },
                   });
                 }}
               >
                 <Text className="font-JakartaMedium text-[12px] text-tray-400">{username}</Text>
               </TouchableOpacity>
             </View>}
-            { replyingTo &&
+            { reply_comment_id && (
             <View
             className="max-w-[70%]"
               style={{
                 marginTop: 8,
                 alignSelf: user_id === user?.id ? "flex-end" : "flex-start",
+                minHeight: replyingTo ? 'auto' : 60, // Reserve space to prevent reflow
                 }}>
+                {replyingTo ? (
                 <TouchableOpacity
                 onPress={() => {setScrollTo(`${replyingTo.id}`)}}>
                 <View 
@@ -315,12 +374,31 @@ export const CommentItem: React.FC<PostComment> = ({
                     }}
                     numberOfLines={4}
                     >
-                        {replyingTo!.content}
+                        {replyingTo.content}
                     </Text>
                     </View>
                     </TouchableOpacity>
+                ) : (
+                  // Placeholder while loading to prevent reflow
+                  <View 
+                  className="flex flex-row rounded-[24px] py-3 px-4"
+                  style={{
+                    backgroundColor: "#f3f4f6",
+                    opacity: 0.5
+                  }}
+                  >
+                      <Text 
+                      className="ml-1 text-[14px] italic"
+                      style={{
+                          color: "#9ca3af"
+                      }}
+                      >
+                          Loading...
+                      </Text>
+                      </View>
+                )}
                 </View>
-                }
+                )}
             <View
             className="py-3 px-4 rounded-[24px] max-w-[70%]"
             style={{
@@ -347,6 +425,11 @@ export const CommentItem: React.FC<PostComment> = ({
                     { text: "Cancel" },
                     { text: "Delete", onPress: async () => {
                       try {
+                        // Optimistically remove comment from UI first
+                        if (onDelete) {
+                          onDelete(id);
+                        }
+
                         await fetchAPI(`/api/comments/deleteComment?id=${id}`, {
                           method: "DELETE",
                         });
@@ -356,6 +439,7 @@ export const CommentItem: React.FC<PostComment> = ({
                       } catch (error) {
                         Alert.alert("Error", "Failed to delete comment.");
                         console.error("Failed to delete comment:", error);
+                        // TODO: Could restore comment in UI on error if needed
                       }
                     }},
                   ]
@@ -436,4 +520,5 @@ export const CommentItem: React.FC<PostComment> = ({
         </PanGestureHandler>
       </GestureHandlerRootView>
     );
-  };
+  }
+);

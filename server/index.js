@@ -26,27 +26,36 @@ app.use(express.json());
 const connectedUsers = new Map();
 
 app.post("/dispatch", (req, res) => {
-  const { recipientId, type, notification, content } = req.body;
+  try {
+    const { recipientId, type, notification, content } = req.body;
 
-  if (!recipientId || !type || !notification) {
-    return res.status(400).json({
+    if (!recipientId || !type || !notification) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing fields to dispatch notification",
+      });
+    }
+
+    const socket = connectedUsers.get(recipientId);
+
+    if (socket) {
+      socket.emit("notification", { type, notification, content });
+      return res.status(200).json({
+        success: true,
+        message: `"${type}" notification sent successfully`,
+      });
+    } else {
+      return res
+        .status(202)
+        .json({ success: false, message: `User ${recipientId} is offline` });
+    }
+  } catch (error) {
+    console.error("Error in /dispatch endpoint:", error);
+    return res.status(500).json({
       success: false,
-      message: "Missing fields to dispatch notification",
+      message: "Internal server error",
+      error: error.message
     });
-  }
-
-  const socket = connectedUsers.get(recipientId);
-
-  if (socket) {
-    socket.emit("notification", { type, notification, content });
-    return res.status(200).json({
-      success: true,
-      message: `"${type}" notification sent successfully`,
-    });
-  } else {
-    return res
-      .status(202)
-      .json({ success: false, message: `User ${recipientId} is offline` });
   }
 });
 
