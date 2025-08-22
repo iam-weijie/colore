@@ -6,7 +6,7 @@ import {
   Text, 
   TouchableOpacity, 
   View,
-  StyleSheet,
+  Image,
   Dimensions,
   TextInput,
   PanResponder
@@ -17,6 +17,7 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
 import Header from "@/components/Header";
 import { Ionicons } from "@expo/vector-icons";
+import { icons } from "@/constants";
 // import AlphabetScrollbar from "@/components/AlphabetScrollbar";
 
 // Define simpler interfaces for better performance
@@ -402,6 +403,13 @@ const Country = () => {
           containerHeight={screenHeight * 0.7}
         />
         */}
+      </View>
+      <View className="absolute w-full flex-row items-center justify-center bottom-12  px-8 ">
+      <TouchableOpacity onPress={() => router.back()} className="p-5 rounded-full bg-white shadow-md ">
+          <Image 
+          source={icons.close}
+          className="w-5 h-5"/>
+        </TouchableOpacity>
       </View>
     </View>
   );

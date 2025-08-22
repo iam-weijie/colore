@@ -21,6 +21,7 @@ const TabIcon: React.FC<TabIconProps> = ({
   isCenter = false, 
   nativeIcon = true
 }) => {
+
   return (
     <View className="flex-1 flex flex-col items-center justify-center">
       <View
@@ -36,9 +37,6 @@ const TabIcon: React.FC<TabIconProps> = ({
           shadowOffset: isCenter && focused ? { width: 0, height: 3 } : undefined,
         }}
       >
-        {focused && !isCenter && (
-          <View className="absolute w-full h-full rounded-full bg-[#e0e0e0] opacity-20" />
-        )}
         <Animated.Image
           source={source}
           className={`${nativeIcon ? "w-10 h-10" : isCenter ? "w-[20] h-[20]" : "w-[18] h-[18]"}`}
@@ -47,6 +45,11 @@ const TabIcon: React.FC<TabIconProps> = ({
           }}
           resizeMode="cover"
         />
+          {focused && !isCenter && (
+          <View 
+          className={` w-1 h-1 rounded-full`}
+          style={{backgroundColor: color ? color : "#e0e0e0"}} />
+        )}
       </View>
       {/* Hide label if center */}
       {!isCenter && (

@@ -47,38 +47,44 @@ const PostModal: React.FC<PostModalProps> = ({
   useEffect(() => {
     if (isVisible) {
       setIsAnimationComplete(false);
-      // Slide up animation
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }).start(() => {
-        // Fade in animation
+      
+      // Reset animations to initial state
+      slideAnim.setValue(height);
+      fadeAnim.setValue(0);
+      
+      // Sequence: Slide up first, then fade in
+      Animated.sequence([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 200,
           useNativeDriver: true,
-        }).start(() => {
-          setIsAnimationComplete(true);
-        });
+        })
+      ]).start(() => {
+        setIsAnimationComplete(true);
       });
     } else {
       setIsAnimationComplete(false);
-      // Fade out animation
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }).start(() => {
-        // Slide down animation
+      
+      // Sequence: Fade out first, then slide down
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
         Animated.timing(slideAnim, {
           toValue: height,
-          duration: 250,
-          easing: Easing.in(Easing.ease),
+          duration: 300,
+          easing: Easing.in(Easing.cubic),
           useNativeDriver: true,
-        }).start();
-      });
+        })
+      ]).start();
     }
   }, [isVisible]);
 

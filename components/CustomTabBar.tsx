@@ -17,6 +17,15 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
   const centerIndex = Math.floor(state.routes.length / 2);
    const { triggerHaptic } = useHaptics();
 
+
+   const colorMap = {
+    "home": "",
+    "personal-board": "#CFB1FB",
+    "profile": "#7CB9FC",
+    "starring-gallery": "#FFDD2B",
+    "create": "#FBB1F5"
+   }
+
   return (
     <View 
     className='self-center'
@@ -103,7 +112,7 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
                   source={options.tabBarIcon?.({ focused: isFocused, color: '', size: 24 })?.props?.source}
                   focused={isFocused}
                   unread={0}
-                  color=""
+                  color={colorMap[route.name as keyof typeof colorMap]}
                   label={options.tabBarLabel as string}
                   isCenter={false}
                   nativeIcon={true}

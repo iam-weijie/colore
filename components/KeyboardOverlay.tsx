@@ -16,6 +16,7 @@ interface KeyboardOverlayProps {
   offsetY?: number;
   onFocus?: boolean;
   keyboardAlreadyVisible?: boolean;
+  withdraw?: boolean
 }
 
 const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({
@@ -23,9 +24,10 @@ const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({
   offsetY = 0,
   onFocus = true,
   keyboardAlreadyVisible = false,
+  withdraw = false
 }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [isVisible, setIsVisible] = useState(onFocus);
+  const [isVisible, setIsVisible] = useState(onFocus && !withdraw);
   const [isKeyboardHeightSet, setIsKeyboardHeightSet] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const screenHeight = Dimensions.get('window').height;
@@ -174,7 +176,7 @@ const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({
     }
   }, [keyboardAlreadyVisible, isKeyboardHeightSet, screenHeight]);
 
-  if (!isVisible) return null;
+  if (!isVisible || withdraw) return null;
 
   console.log("Keyboard Height:", keyboardHeight);
 
@@ -182,7 +184,7 @@ const KeyboardOverlay: React.FC<KeyboardOverlayProps> = ({
   if (keyboardAlreadyVisible) {
     return (
       <Animated.View
-        className="absolute self-center h-[70px] w-full py-2 bg-white rounded-t-[32px] shadow-md z-50"
+        className="absolute self-center h-[70px] w-full py-2 bg-white rounded-t-[32px] rounded-b-[16px] shadow-md z-50"
         style={{
           bottom: -1 * keyboardHeight - 20,
           opacity: fadeAnim,

@@ -22,7 +22,8 @@ import { useAlert } from "@/notifications/AlertContext";
 import { GeographicalMode } from "@/types/type";
 import UserInfo from "../user-info";
 
-import { ChatScreen, NotificationScreen } from "../chat/chat-screen";
+import { SocialScreen } from "../chat/social-screen";
+import { NotificationScreen } from "../chat/notification-screen";
 import NotificationBubble from "@/components/NotificationBubble";
 import ItemContainer from "@/components/ItemContainer";
 import ModalSheet from "@/components/Modal";
@@ -141,10 +142,10 @@ const Home = () => {
               <View className="flex flex-row p-1 items-center justify-center gap-4">
                 <TouchableOpacity
                   onPress={() => {
-                    //router.push("/root/chat/chat-screen");
+                    //router.push("/root/chat/social-screen");
                     triggerHaptic(Haptics.ImpactFeedbackStyle.Light)
                     playSoundEffect(SoundType.Navigation)
-                    setSelectedModal(() => <ChatScreen />);
+                    setSelectedModal(() => <SocialScreen />);
                     setActiveModalTitle("Socials");
                   }}
                 >
@@ -174,78 +175,6 @@ const Home = () => {
                     />
                   </View>
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    triggerHaptic(Haptics.ImpactFeedbackStyle.Light)
-                    playSoundEffect(SoundType.Navigation)
-                    setSelectedModal(() => (
-                      <View className="flex-1 px-6"> 
-                        <ItemContainer
-                          label={"World"}
-                          caption={"See notes from around the world!"}
-                          icon={icons.globe}
-                          colors={["#FBB1F5", "#ffe640"] as [string, string]}
-                          actionIcon={
-                            geographicalMode == "world" && icons.check
-                          }
-                          iconColor={"#22c722"}
-                          onPress={() => {
-                            setGeographicalMode("world");
-                            setSelectedModal(null);
-                            setActiveModalTitle("");
-                          }}
-                        />
-                        <ItemContainer
-                          label={`${userInfo?.country}`}
-                          caption={`So... what is going on in ${userInfo?.country}?`}
-                          icon={icons.globe}
-                          colors={["#FBB1F5", "#ffe640"] as [string, string]}
-                          actionIcon={
-                            geographicalMode == "country" && icons.check
-                          }
-                          iconColor={"#22c722"}
-                          onPress={() => {
-                            setGeographicalMode("country");
-                            setSelectedModal(null);
-                            setActiveModalTitle("");
-                          }}
-                        />
-                        <ItemContainer
-                          label={`${userInfo?.state}`}
-                          caption={`Living in ${userInfo?.state}!`}
-                          icon={icons.globe}
-                          colors={["#FBB1F5", "#ffe640"] as [string, string]}
-                          actionIcon={
-                            geographicalMode == "state" && icons.check
-                          }
-                          iconColor={"#22c722"}
-                          onPress={() => {
-                            setGeographicalMode("state");
-                            setSelectedModal(null);
-                            setActiveModalTitle("");
-                          }}
-                        />
-                        <ItemContainer
-                          label={`${userInfo?.city}`}
-                          caption={`Everything that happens in ${userInfo?.city} stays there.`}
-                          icon={icons.globe}
-                          colors={["#FBB1F5", "#ffe640"] as [string, string]}
-                          actionIcon={geographicalMode == "city" && icons.check}
-                          iconColor={"#22c722"}
-                          onPress={() => {
-                            setGeographicalMode("city");
-                            setSelectedModal(null);
-                            setActiveModalTitle("");
-                          }}
-                        />
-                      </View>
-                    ));
-                    setActiveModalTitle("Select a region");
-                  }}
-                >
-                  <Image source={icons.globe} className="w-6 h-6" />
-                </TouchableOpacity>
               </View>
             </View>
           }
@@ -260,9 +189,9 @@ const Home = () => {
           randomPostion={true} 
           handleUpdatePin={() => {}}        />
         </View>
-        
+
           <ModalSheet
-            children={selectedModal}
+            children={typeof selectedModal === "function" ? selectedModal() : selectedModal}
             title={activeModalTitle}
             isVisible={!!selectedModal}
             onClose={() => {

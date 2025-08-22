@@ -151,7 +151,9 @@ const UserPersonalBoard = () => {
         </View>
       
       {loading ? (
+        <View className="flex-1 flex items-center justify-center">
         <ColoreActivityIndicator />
+        </View>
       ) : (
         selectedTab === "MyBoards" ? (
           <BoardGallery boards={filteredPersonalBoards} />
@@ -162,27 +164,7 @@ const UserPersonalBoard = () => {
         )
       )}
       
-      {!skipIntro && !loading && (
-        <ModalSheet
-          title=""
-          isVisible={!skipIntro}
-          onClose={() => {}}
-        >
-          <View className="flex-1 px-4">
-            <CarouselPage
-              label={pages[step].label}
-              caption={pages[step].caption}
-              color={pages[step].color}
-              onSubmit={handleNext}
-              progress={step + 1}
-              total={totalSteps}
-              disabled={pages[step].disabled}
-            >
-              {pages[step].children}
-            </CarouselPage>
-          </View>
-        </ModalSheet>
-      )}
+
     </View>
   );
 };

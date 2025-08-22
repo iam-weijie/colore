@@ -1,24 +1,23 @@
-
-    import { icons } from "@/constants";
-  import { allColors } from "@/constants/colors";
-  import { Post, PostWithPosition, Position, Stacks } from "@/types/type";
-  import { useEffect, useRef, useState, useMemo } from "react";
-  import PostIt from "@/components/PostIt";
-  import {
-    Animated,
-    Dimensions,
-    Easing,
-    Image, 
-    PanResponder,
-    RefreshControl,
-    ScrollView,
-    Text,
-    TouchableWithoutFeedback,
-    View,
-  } from "react-native";
-  import { MappingPostitProps } from "@/types/type";
-  import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
-  import React from "react";
+import { icons } from "@/constants";
+import { allColors } from "@/constants/colors";
+import { Post, PostWithPosition, Position, Stacks } from "@/types/type";
+import { useEffect, useRef, useState, useMemo } from "react";
+import PostIt from "@/components/PostIt";
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  Image, 
+  PanResponder,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import { MappingPostitProps } from "@/types/type";
+import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
+import React from "react";
 import { fetchAPI } from "@/lib/fetch";
 import { useStacks } from "@/app/contexts/StacksContext";
 
@@ -35,6 +34,9 @@ interface DraggablePostItProps {
   zoomScale: number;
   disabled: boolean;
   visibility: number;
+  // Add these new callback props
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 }
 
 const DraggablePostIt: React.FC<DraggablePostItProps> = ({
@@ -50,6 +52,8 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   zoomScale,
   disabled = false,
   visibility = 1,
+  onDragStart,
+  onDragEnd,
 }) => {
   const { playSoundEffect } = useSoundEffects();
 
@@ -73,6 +77,8 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   const [isPinned, setIsPinned] = useState<boolean>(post.pinned);
 
   const accumulatedPosition = useRef({ x: position.left, y: position.top });
+  const dragStartTime = useRef(0);
+  const isDragValid = useRef(false);
 
   const stackRef = useMemo<Stacks | undefined>(
     () => stacks.find((p) => p.ids.includes(post.id)),
@@ -93,6 +99,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   useEffect(() => {
     getFontColorHex(post.color);
   }, [post.color]);
+
   useEffect(() => {
     if (stackRef) {
       const stackCenterX = stackRef?.center?.x;
@@ -133,101 +140,129 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
     }
   }, [stackRef?.center.x, stackRef?.center.y]);
   
-  
   const handleSyncPosition = async (x: number, y: number) => {
-          try {
-            await fetchAPI(`/api/posts/updatePostPosition`, {
-              method: "PATCH",
-              body: JSON.stringify({
-                postId: post.id,
-                top: y,
-                left: x,
-              }),
-            });
-          } catch (err) {
-            console.error("Failed to update post position: ", err);
-          }
+    try {
+      await fetchAPI(`/api/posts/updatePostPosition`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          postId: post.id,
+          top: y,
+          left: x,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to update post position: ", err);
+    }
   }
 
-  
-    // Start drag animation - ALL animations will use JS driver
-    const startDragAnimation = () => {
-      playSoundEffect(SoundType.Button);
-      Animated.parallel([
-        Animated.spring(scale, {
-          toValue: 1.1,
-          useNativeDriver: false, // Changed to false
-        }),
-        Animated.spring(rotation, {
-          toValue: 0.05,
-          useNativeDriver: false, // Changed to false
-        }),
-        Animated.timing(shadowOpacity, {
-          toValue: 0.3,
-          duration: 200,
-          useNativeDriver: false, // Changed to false
-        }),
-      ]).start();
-    };
-  
-    // End drag animation - ALL animations will use JS driver
-    const endDragAnimation = () => {
-      playSoundEffect(SoundType.Button);
-      Animated.parallel([
-        Animated.spring(scale, {
-          toValue: 1,
-          friction: 3,
-          tension: 40,
-          useNativeDriver: false, // Changed to false
-        }),
-        Animated.spring(rotation, {
-          toValue: 0,
-          friction: 3,
-          tension: 40,
-          useNativeDriver: false, // Changed to false
-        }),
-        Animated.timing(shadowOpacity, {
-          toValue: 0.2,
-          duration: 200,
-          useNativeDriver: false, // Changed to false
-        }),
-      ]).start();
-    };
- 
-    const panResponder = useRef(
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => !disabled,
-        onMoveShouldSetPanResponder: () => !disabled,
-    
-        onPanResponderGrant: () => {
-          updateIndex();
-          if (isPinned) {
-            onPress();
-            return;
-          }
-          setIsDragging(true);
-          enabledPan();
-          animatedPosition.extractOffset();
-          startDragAnimation();
-        },
-    
-        onPanResponderMove: (event, gestureState) => {
-          if (!isPinned) {
-            animatedPosition.setValue({
-              x: gestureState.dx,
-              y: gestureState.dy,
-            });
-    
-            const rotate = gestureState.vx * 0.02;
-            rotation.setValue(rotate);
-          }
-        },
-    
-        onPanResponderRelease: (event, gestureState) => {
-          if (isPinned) return;
+  // Start drag animation - ALL animations will use JS driver
+  const startDragAnimation = () => {
+    playSoundEffect(SoundType.Button);
+    Animated.parallel([
+      Animated.spring(scale, {
+        toValue: 1.1,
+        useNativeDriver: false,
+      }),
+      Animated.spring(rotation, {
+        toValue: 0.05,
+        useNativeDriver: false,
+      }),
+      Animated.timing(shadowOpacity, {
+        toValue: 0.3,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
+
+  // End drag animation - ALL animations will use JS driver
+  const endDragAnimation = () => {
+    playSoundEffect(SoundType.Button);
+    Animated.parallel([
+      Animated.spring(scale, {
+        toValue: 1,
+        friction: 3,
+        tension: 40,
+        useNativeDriver: false,
+      }),
+      Animated.spring(rotation, {
+        toValue: 0,
+        friction: 3,
+        tension: 40,
+        useNativeDriver: false,
+      }),
+      Animated.timing(shadowOpacity, {
+        toValue: 0.2,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => !disabled,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // Only start moving if we've moved more than a small threshold
+        const threshold = 3;
+        return !disabled && (
+          Math.abs(gestureState.dx) > threshold || 
+          Math.abs(gestureState.dy) > threshold
+        );
+      },
+
+      onPanResponderGrant: () => {
+        console.log("🎯 [POST-IT] PanResponder granted for post:", post.id);
         
-          animatedPosition.extractOffset();
+        updateIndex();
         
+        if (isPinned) {
+          onPress();
+          return;
+        }
+
+        // Record drag start time and mark as valid drag attempt
+        dragStartTime.current = Date.now();
+        isDragValid.current = true;
+        
+        // Notify parent that drag is starting
+        console.log("🚀 [POST-IT] Calling onDragStart callback");
+        onDragStart?.();
+        
+        setIsDragging(true);
+        enabledPan();
+        animatedPosition.extractOffset();
+        startDragAnimation();
+      },
+
+      onPanResponderMove: (event, gestureState) => {
+        if (!isPinned && isDragValid.current) {
+          animatedPosition.setValue({
+            x: gestureState.dx,
+            y: gestureState.dy,
+          });
+
+          const rotate = gestureState.vx * 0.02;
+          rotation.setValue(rotate);
+        }
+      },
+
+      onPanResponderRelease: (event, gestureState) => {
+        console.log("🎯 [POST-IT] PanResponder released for post:", post.id);
+        
+        if (isPinned) {
+          isDragValid.current = false;
+          return;
+        }
+
+        // Calculate drag duration
+        const dragDuration = Date.now() - dragStartTime.current;
+        console.log("⏱️ [POST-IT] Drag duration:", dragDuration + "ms");
+      
+        animatedPosition.extractOffset();
+      
+        // Only process position update if this was a valid drag
+        if (isDragValid.current) {
           // Compute displacement corrected for zoom
           const correctedDx = (gestureState.dx) / zoomScale;
           const correctedDy = (gestureState.dy) / zoomScale;
@@ -237,7 +272,6 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
           const dy = accumulatedPosition.current.y + correctedDy - scrollOffset.y;
           const finalX = dx + position.left;
           const finalY = dy + position.top;
-          
         
           // Save new accumulated position locally
           accumulatedPosition.current = {
@@ -245,100 +279,122 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
             y: dy,
           };
 
-        
           updatePosition(finalX, finalY, post); 
-          handleSyncPosition(finalX, finalY)
+          handleSyncPosition(finalX, finalY);
+        }
 
-
-          if (Math.abs(gestureState.dx) < clickThreshold && Math.abs(gestureState.dy) < clickThreshold) {
-            onPress();
-          }
+        // Handle click vs drag
+        const isClick = Math.abs(gestureState.dx) < clickThreshold && 
+                       Math.abs(gestureState.dy) < clickThreshold;
         
-          setIsDragging(false);
-          enabledPan();
-          endDragAnimation();
-        },  
-      })
-    ).current;
+        if (isClick) {
+          console.log("👆 [POST-IT] Click detected");
+          onPress();
+        } else {
+          console.log("🎯 [POST-IT] Drag completed");
+        }
+      
+        // Clean up drag state
+        setIsDragging(false);
+        isDragValid.current = false;
+        enabledPan();
+        endDragAnimation();
+        
+        // Notify parent that drag has ended with duration info
+        console.log("🏁 [POST-IT] Calling onDragEnd callback");
+        onDragEnd?.();
+      },
+
+      // Add termination handler for edge cases
+      onPanResponderTerminate: () => {
+        console.log("🛑 [POST-IT] PanResponder terminated for post:", post.id);
+        
+        // Clean up if gesture is terminated unexpectedly
+        setIsDragging(false);
+        isDragValid.current = false;
+        enabledPan();
+        endDragAnimation();
+        onDragEnd?.();
+      },
+    })
+  ).current;
     
-  
-    return (
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={{
-          transform: [
-            { translateX: animatedPosition.x },
-            { translateY: animatedPosition.y },
-            { scale: scale },
-            {
-              rotate: rotation.interpolate({
-                inputRange: [-1, 1],
-                outputRange: ['-5deg', '5deg'],
-              }),
-            },
-          ],
-          opacity: visibility,
-          position: "absolute",
-          top: post.position.top,
-          left: post.position.left,
-          shadowColor: post.pinned ? "#FFF" : fontColor,
-          shadowOffset: {
-            width: 0,
-            height: isDragging ? 8 : 2,
+  return (
+    <Animated.View
+      {...panResponder.panHandlers}
+      style={{
+        transform: [
+          { translateX: animatedPosition.x },
+          { translateY: animatedPosition.y },
+          { scale: scale },
+          {
+            rotate: rotation.interpolate({
+              inputRange: [-1, 1],
+              outputRange: ['-5deg', '5deg'],
+            }),
           },
-          shadowOpacity,
-          shadowRadius: isDragging ? 12 : 4,
-          elevation: isDragging ? 12 : 4,
-          zIndex: disabled ? -1 : 999,
-          borderWidth: post.pinned ? 3 : 0,
-          borderColor: "#fff",
-          borderRadius: 20
-        }}
-      >
-        {/* Rest of your component remains exactly the same */}
-        <TouchableWithoutFeedback onPress={onPress}>
-          <PostIt 
+        ],
+        opacity: visibility,
+        position: "absolute",
+        top: post.position.top,
+        left: post.position.left,
+        shadowColor: post.pinned ? "#FFF" : fontColor,
+        shadowOffset: {
+          width: 0,
+          height: isDragging ? 8 : 2,
+        },
+        shadowOpacity,
+        shadowRadius: isDragging ? 12 : 4,
+        elevation: isDragging ? 12 : 4,
+        zIndex: disabled ? -1 : 999,
+        borderWidth: post.pinned ? 3 : 0,
+        borderColor: "#fff",
+        borderRadius: 20
+      }}
+    >
+      <TouchableWithoutFeedback onPress={onPress}>
+        <PostIt 
           viewed={isViewed}
           color={post.color || "yellow"} />
-        </TouchableWithoutFeedback>
-        {isPinned && (
-          <View className="absolute text-black h-full -top-2 -left-2">
-            <View className="p-3 rounded-full bg-[#fff] flex-row items-center justify-start">
-              <Image 
-                source={icons.pin}
-                tintColor="black"
-                resizeMode="contain"
-                className="w-4 h-4"
-                style={{
-                  opacity: 0.8,
-                  transform: [{ scaleX: -1 }]
-                }}
-              />
-            </View>
-          </View>
-        )}
-        {!showText && (
-          <View className="absolute text-black w-full h-full items-center justify-center">
-            <Text style={{ fontSize: 50 }}>{post.emoji && post.emoji}</Text>
-          </View>
-        )}
-        {showText && (
-          <View className="absolute w-full h-full items-center justify-center">
-            <Text
-              className="text-[18px] p-5 text-center font-JakartaSemiBold"
+      </TouchableWithoutFeedback>
+      {isPinned && (
+        <View className="absolute text-black h-full -top-2 -left-2">
+          <View className="p-3 rounded-full bg-[#fff] flex-row items-center justify-start">
+            <Image 
+              source={icons.pin}
+              tintColor="black"
+              resizeMode="contain"
+              className="w-4 h-4"
               style={{
-                color: fontColor,
-                fontStyle: "italic",
+                opacity: 0.8,
+                transform: [{ scaleX: -1 }]
               }}
-              numberOfLines={5}
-              ellipsizeMode="tail"
-            >
-              {post.content}
-            </Text>
+            />
           </View>
-        )}
-      </Animated.View>
-    );
-  };
+        </View>
+      )}
+      {!showText && (
+        <View className="absolute text-black w-full h-full items-center justify-center">
+          <Text style={{ fontSize: 50 }}>{post.emoji && post.emoji}</Text>
+        </View>
+      )}
+      {showText && (
+        <View className="absolute w-full h-full items-center justify-center">
+          <Text
+            className="text-[18px] p-5 text-center font-JakartaSemiBold"
+            style={{
+              color: fontColor,
+              fontStyle: "italic",
+            }}
+            numberOfLines={5}
+            ellipsizeMode="tail"
+          >
+            {post.content}
+          </Text>
+        </View>
+      )}
+    </Animated.View>
+  );
+};
 
 export default DraggablePostIt;

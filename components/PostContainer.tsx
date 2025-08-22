@@ -677,10 +677,13 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
       // Improved navigation between posts with better animation timing
       if (translateX.value > threshold && currentPostIndex > 0) {
         // Swiping right - go to previous post
-        translateX.value = withTiming(0);
+        translateX.value = withTiming(0, { duration: 200 });
         opacity.value = withTiming(0, { duration: 150 }, () => {
           runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
-          opacity.value = withTiming(1, { duration: 200 });
+          // Small delay before fading in new post
+          setTimeout(() => {
+            opacity.value = withTiming(1, { duration: 250 });
+          }, 50);
           
           // Provide haptic feedback for navigation
           if (soundEffectsEnabled) {
@@ -690,10 +693,13 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
       } else if (translateX.value < -threshold) {
         if (!isLastPost) {
           // Swipe left: go to next post
-          translateX.value = withTiming(0);
+          translateX.value = withTiming(0, { duration: 200 });
           opacity.value = withTiming(0, { duration: 150 }, () => {
             runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
-            opacity.value = withTiming(1, { duration: 200 });
+            // Small delay before fading in new post
+            setTimeout(() => {
+              opacity.value = withTiming(1, { duration: 250 });
+            }, 50);
             
             // Provide haptic feedback for navigation
             if (soundEffectsEnabled) {
@@ -703,13 +709,13 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
         } else {
           // Bounce back with more pronounced animation for better feedback
           translateX.value = withSequence(
-            withTiming(-5, { duration: 100 }),
-            withSpring(0, { damping: 20, stiffness: 300 })
+            withTiming(-10, { duration: 100 }),
+            withSpring(0, { damping: 25, stiffness: 400 })
           );
         }
       } else {
-        // Small movement - bounce back
-        translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+        // Small movement - bounce back smoothly
+        translateX.value = withSpring(0, { damping: 25, stiffness: 400 });
       }
     });
 
@@ -717,13 +723,10 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateX: withSpring(translateX.value, {
-          damping: 20,
-          stiffness: 300,
-        }),
+        translateX: translateX.value,
       },
     ],
-    opacity: withTiming(opacity.value),
+    opacity: opacity.value,
   }));
 
 

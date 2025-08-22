@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 const Layout = () => {
   return (
     <Stack>
-      <Stack.Screen name="chat-screen" options={{ headerShown: false }} />
+      <Stack.Screen name="social-screen" options={{ headerShown: false }} />
     </Stack>
   );
 };

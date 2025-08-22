@@ -111,7 +111,7 @@ export const FindUser: React.FC<FindUserProps> = ({
     <View className="flex-1 h-full">
       <View className="mt-4 mx-4">
         <View
-          className="flex flex-row items-center bg-white rounded-[24px] px-4 h-12 "
+          className="flex flex-row items-center rounded-[24px] px-4 h-12 "
           style={{
             boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
           }}
@@ -136,7 +136,7 @@ export const FindUser: React.FC<FindUserProps> = ({
         </View>
       </View>
       {loading ? (
-        <View className="flex-1 items-center justify-center">
+        <View className="flex-1 items-center justify-center ">
           <ColoreActivityIndicator text="Summoning Bob..." />
         </View>
       ) : error ? (

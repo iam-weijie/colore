@@ -43,8 +43,8 @@ const EmptyListView: React.FC<EmptyListViewProps> = ({
           entering={FadeInDown.duration(500)}
           source={selectedCharacter}
           style={{
-            width: 81 * scale,
-            height: 81 * scale,
+            width: 72 * scale,
+            height: 72 * scale,
             resizeMode: "contain",
           }}
         />

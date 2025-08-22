@@ -630,7 +630,7 @@ const Settings = () => {
               />
               <DetailRow
                 label="Location"
-                value={currentLocation}
+                value={" "}
                 onPress={handleLocationUpdate}
                 accentColor="#93c5fd"
               />
@@ -832,43 +832,99 @@ const Settings = () => {
 
       {libraryVisible && (
         <ModalSheet
-          title={"Your Color Library"}
+          title={""}
           isVisible={libraryVisible}
-          onClose={() => {}}
+          onClose={() => {
+            setLibraryVisible(false)
+          }}
         >
-          <View className="flex-1 p-6">
+          <View className="flex-1 bg-gray-50">
+            {/* Compact header */}
+            <View className="p-4 bg-white rounded-b-[32px] items-center">
+              <View className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-400 rounded-xl items-center justify-center mb-2">
+                <Text className="text-2xl">🎨</Text>
+              </View>
+              <Text className="text-xl font-bold text-gray-800">My Color Library</Text>
+              <Text className="text-gray-500 text-sm mt-1">Your collected palette</Text>
+            </View>
+            
             <FlatList
-              className="flex-1"
+              className="flex-1 px-4"
               data={colorLibrary}
               keyExtractor={(item, index) => index.toString()}
               ListEmptyComponent={
-                <Text style={{ fontSize: 16, color: "gray" }}>
-                  You haven't collected any colors yet.
-                </Text>
+                <View className="flex-1 justify-center items-center py-16">
+                  <View className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl items-center justify-center mb-4">
+                    <Text className="text-3xl">🌈</Text>
+                  </View>
+                  <Text className="text-lg text-gray-600 text-center mb-1 font-medium">
+                    No colors yet
+                  </Text>
+                  <Text className="text-gray-400 text-center text-sm max-w-xs">
+                    Start collecting colors to build your palette
+                  </Text>
+                </View>
               }
               renderItem={({ item }) => (
-                <ItemContainer
-                  label={item.name}
-                  caption={item.meaning || "No description available."}
-                  icon={0}
-                  colors={[item.hex, item.foldcolorhex]}
-                  iconColor={""}
-                  onPress={() => {}}
-                />
+                <View className="flex flex-row justify-start bg-white rounded-[24px]  mb-2 pt-4 overflow-hidden">
+                  {/* Compact color preview */}
+                  <View className="flex-1 flex flex-row items-end gap-4 justify-start ml-1 -mb-1 ">
+                    <View className="flex-row rounded-[16px] overflow-hidden ">
+                      <View 
+                        className="w-12 h-12" 
+                        style={{ backgroundColor: item.hex }}
+                      />
+                      <View 
+                        className="w-12 h-12" 
+                        style={{ backgroundColor: item.foldcolorhex }}
+                      />
+                    </View>
+                    <View className="flex flex-col justify-start mb-4">
+                    <Text className="text-base font-semibold text-gray-800 text-left" numberOfLines={1}>
+                      {item.name || "Unnamed Color"}
+                    </Text>
+
+                    {!item.meaning ? (<View className="flex-row mt-1.5">
+                      <View className="bg-gray-100 rounded-full px-2 py-1 mr-1.5">
+                        <Text className="text-gray-700 text-[10px]  font-medium">{item.hex}</Text>
+                      </View>
+                      <View className="bg-gray-100 rounded-full px-2 py-1">
+                        <Text className="text-gray-700 text-[10px]  font-medium">{item.foldcolorhex}</Text>
+                      </View>
+                    </View>) :
+                    (
+                      <View className="flex-1">
+                      <Text className="text-gray-700 text-wrap text-[10px]  text-left italic">
+                        "{item.meaning}"
+                      </Text>
+                      </View>
+                  )}
+                  </View>
+                  
+                  {/* Compact description */}
+
+
+                </View>
+
+                </View>
               )}
-              contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
+              contentContainerStyle={{ paddingVertical: 16 }}
               showsVerticalScrollIndicator={false}
             />
-            <View className="w-full flex-row justify-center">
-            <CustomButton
-              className="my-2 w-[50%] h-14 self-center rounded-full shadow-none bg-black"
-              fontSize="lg"
-              title="Close"
-             padding={4}
-              onPress={() => {
-                setLibraryVisible(false);
-              }}
-            />
+            
+            {/* Compact footer */}
+            <View className="px-4 pb-5 pt-3 bg-white rounded-t-[32px]">
+              <View className="items-center">
+                <CustomButton
+                  className="h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 w-40"
+                  fontSize="md"
+                  title="Close Library"
+                  padding={4}
+                  onPress={() => {
+                    setLibraryVisible(false);
+                  }}
+                />
+              </View>
             </View>
           </View>
         </ModalSheet>

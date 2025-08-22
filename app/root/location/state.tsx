@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, memo } from "react";
 import { router, useLocalSearchParams, Href } from "expo-router";
-import { FlatList, Text, TouchableOpacity, View, Alert, StyleSheet, TextInput } from "react-native";
+import { FlatList, Text, TouchableOpacity, Image, View, Alert, StyleSheet, TextInput } from "react-native";
 import { getStatesFromCache, generateAcronym, isNameTooLong } from "./cacheStore";
 import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
@@ -11,6 +11,7 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import React from "react";
 import Header from "@/components/Header";
 import { Ionicons } from "@expo/vector-icons";
+import { icons } from "@/constants";
 
 // Define the State interface
 interface State {
@@ -282,6 +283,13 @@ const State = () => {
           )}
         />
       )}
+            <View className="absolute w-full flex-row items-center justify-center bottom-12  px-8 ">
+      <TouchableOpacity onPress={() => router.back()} className="p-5 rounded-full bg-white shadow-md ">
+          <Image 
+          source={icons.close}
+          className="w-5 h-5"/>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

@@ -230,26 +230,6 @@ const handleTabChange = (tabKey: string) => {
           handleOptionSubmit={() => item.onPress()}
           />}/>
         </View>
-         <ModalSheet 
-        title={""} 
-        isVisible={!skipIntro} 
-        onClose={() => {
-          setSkipIntro(true)
-          }} >
-            <View className="flex-1 px-4">
-            <CarouselPage
-          label={pages[step].label}
-          caption={pages[step].caption}
-          color={pages[step].color}
-          onSubmit={handleNext}
-          progress={step + 1}
-          total={totalSteps}
-          disabled={pages[step].disabled}
-        >
-          {pages[step].children}
-        </CarouselPage>
-        </View>
-        </ModalSheet>
     </View>
   );
 };

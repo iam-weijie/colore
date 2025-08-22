@@ -7,6 +7,7 @@ export enum SoundType {
   ToggleOn = 'toggleOn',
   ToggleOff = 'toggleOff',
   Navigation = 'navigation',
+  Comment = "Comment",
 }
 
 const soundFiles = {

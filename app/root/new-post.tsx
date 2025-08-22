@@ -46,9 +46,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import RichTextEditor from "@/components/RichTextEditor";
 import RichTextInput from "@/components/RichTextInput";
-import KeyboardOverlay from "@/components/KeyboardOverlay";
 import PostContainer from "@/components/PostContainer";
 import { handleSubmitPost } from "@/lib/post";
 import * as Haptics from "expo-haptics";
@@ -125,6 +123,7 @@ const NewPost = () => {
   const [isLinkHolderVisible, setIsLinkHolderVisible] = useState(false);
   const [link, setLink] = useState<string>("");
   const [isSettingVisible, setIsSettingVisible] = useState(false);
+  const [withdrawKeyboard, setWithdrawKeyboard] = useState(false)
 
   // 📆 SCHEDULING & EXPIRATION
   const [selectedExpirationDate, setSelectedExpirationDate] =
@@ -877,7 +876,20 @@ const NewPost = () => {
           <TouchableWithoutFeedback
             accessible={false}
             onPress={() => {
-                Keyboard.dismiss();
+
+
+                    setWithdrawKeyboard(true)
+                    setTimeout(() => {
+                     
+                      Keyboard.dismiss()
+                      }, 200)
+                      setTimeout(() => {
+                     
+                        setWithdrawKeyboard(false)
+                        }, 250)
+                    
+                      
+                    
               
             }}
           >
@@ -897,6 +909,7 @@ const NewPost = () => {
                         exportStyling={handleChangeFormat}
                         exportText={handleChangeText}
                         onFocus={handleChangeFocus}
+                        withdrawKeyboard={withdrawKeyboard}
                       />
                     </View>
                   </View>

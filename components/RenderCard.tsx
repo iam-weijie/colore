@@ -192,7 +192,7 @@ export const RenderCreateCard = ({
             <View className="w-full h-full bg-white/10 rounded-full justify-center items-center">
               <Image
                 source={item.icon}
-                className="w-12 h-12"
+                className="w-10 h-10"
                 style={{ tintColor: "#FAFAFA" }}
                 resizeMode="contain"
               />

@@ -59,8 +59,8 @@ const CreateView = ({
   >
     
     {loading ? (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ColoreActivityIndicator text="Loading…" />
+      <View className="flex-1 items-center justify-center ">
+        <ColoreActivityIndicator text="Loading…" colors={["#FAFAFA", "#FAFAFA",  "#FAFAFA"]} />
       </View>
     ) : (
       <CardCarrousel
@@ -387,7 +387,7 @@ export default function Page() {
     return (
       <View className="flex-1 px-4 py-2 bg-[#FAFAFA]">
         {answerLoading ? (
-          <View className="flex-1 items-center justify-center">
+          <View className="flex-1 items-center justify-center bg-[#FAFAFA]">
             <ColoreActivityIndicator text="Loading my prompts…" />
           </View>
         ) : //ts-ignore-next-line
@@ -478,26 +478,7 @@ export default function Page() {
             />
             
 }
- {!skipIntro && <ModalSheet 
-        title={""} 
-        isVisible={!skipIntro} 
-        onClose={() => {
-          setSkipIntro(true)
-          }} >
-            <View className="flex-1 px-4">
-            <CarouselPage
-          label={pages[step].label}
-          caption={pages[step].caption}
-          color={pages[step].color}
-          onSubmit={handleNext}
-          progress={step + 1}
-          total={totalSteps}
-          disabled={pages[step].disabled}
-        >
-          {pages[step].children}
-        </CarouselPage>
-        </View>
-        </ModalSheet>}
+
             </View>
     </GestureHandlerRootView>
     </SignedIn>

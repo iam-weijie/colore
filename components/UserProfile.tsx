@@ -60,6 +60,7 @@ import PersonalBoard from "./PersonalBoard";
 import PostItBoard from "./PostItBoard";
 import { calculateSRB } from "@/hooks/useColors";
 import { formatNumber } from "@/lib/utils";
+import ColoreActivityIndicator from "./ColoreActivityIndicator";
 
 // Skeleton component for post loading states
 const PostSkeleton = React.memo(() => (
@@ -523,8 +524,9 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
         setDisableInteractions(false);
         setProfileLoading(false);
 
-        return response.data
+        
       }
+      return response.data
     } catch (error) {
       console.error("[DEBUG] UserProfile - Failed to fetch personal posts:", error);
       setDisableInteractions(true);
@@ -864,7 +866,9 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
             )}
           </View>
           {loading && !postsDecrypted ? (
-            <PostGallerySkeleton />
+            <View className="flex-1 items-center justify-center">
+            <ColoreActivityIndicator />
+            </View>
           ) : (
             <View className="flex-1 h-full w-full px-4 -mt-12">
               <PostGallery
@@ -906,27 +910,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
                 <Settings />
               </>
             )}
-        
-  <ModalSheet 
-        title={""} 
-        isVisible={!skipIntro} 
-        onClose={() => {
-          setSkipIntro(true)
-          }} >
-            <View className="flex-1 px-4">
-            <CarouselPage
-          label={pages[step].label}
-          caption={pages[step].caption}
-          color={pages[step].color}
-          onSubmit={handleNext}
-          progress={step + 1}
-          total={totalSteps}
-          disabled={pages[step].disabled}
-        >
-          {pages[step].children}
-        </CarouselPage>
-        </View>
-        </ModalSheet>
+
     </View>
   );
 });

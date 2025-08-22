@@ -16,7 +16,7 @@ const Layout = () => {
         options={{
           headerShown: false,
           animation: "slide_from_bottom",
-          animationDuration: 300,
+          animationDuration: 400,
         }}
       />
       <Stack.Screen
@@ -24,7 +24,7 @@ const Layout = () => {
         options={{
           headerShown: false,
           animation: "slide_from_bottom",
-          animationDuration: 300,
+          animationDuration: 400,
         }}
       />
       <Stack.Screen
@@ -35,7 +35,14 @@ const Layout = () => {
       <Stack.Screen name="profile" options={{ headerShown: false }} />
       <Stack.Screen name="post" options={{ headerShown: false }} />
       <Stack.Screen name="settings" options={{ headerShown: false }} />
-      <Stack.Screen name="user-board" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="user-board"
+        options={{
+          headerShown: false,
+          animation: "slide_from_bottom",
+          animationDuration: 400,
+        }}
+      />
       <Stack.Screen name="global-board" options={{ headerShown: false }} />
     </Stack>
   );

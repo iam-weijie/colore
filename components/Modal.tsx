@@ -1,181 +1,201 @@
-
 import * as React from "react";
 import { useEffect, useState, useCallback } from "react";
-
-import { router, useFocusEffect } from "expo-router";
-import { Dimensions,
-  Image,
+import { useFocusEffect } from "expo-router";
+import {
+  Dimensions,
   Modal,
-  ImageSourcePropType,
   Keyboard,
   KeyboardAvoidingView,
   Pressable,
-  SafeAreaView,
-  TouchableOpacity,
+  Platform,
   View,
   Text,
-  } from "react-native";
-import Animated, { useSharedValue, withSpring, useAnimatedStyle, BounceIn, FadeIn, FadeOut, withTiming, runOnJS } from "react-native-reanimated";
-import { GestureDetector, GestureHandlerRootView, Gesture } from 'react-native-gesture-handler';
+} from "react-native";
+import Animated, {
+  useSharedValue,
+  withSpring,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+  interpolate,
+  Extrapolation,
+} from "react-native-reanimated";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 
-const ModalSheet = ({ children, title, isVisible, onClose }) => {
-    const [visible, setVisible] = useState(isVisible);
-    const screenHeight = Dimensions.get('window').height;
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-    // Animation values
-    const translateY = useSharedValue(screenHeight);
-    const modalOpacity = useSharedValue(0);
-    const startY = useSharedValue(0);
+interface ModalSheetProps {
+  children: React.ReactNode;
+  title?: string;
+  isVisible: boolean;
+  onClose: () => void;
+}
 
-    // Gesture handler for drag to close
-    const panGesture = Gesture.Pan()
-        .onBegin(() => {
-            startY.value = translateY.value;
-        })
-        .onUpdate((e) => {
-            // Only allow dragging downward
-            if (e.translationY > 0) {
-                translateY.value = startY.value + e.translationY;
-            }
-        })
-        .onEnd((e) => {
-            // If dragged more than 20% of screen height, close modal
-            if (e.translationY > screenHeight * 0.2) {
-                translateY.value = withSpring(screenHeight, {
-                    damping: 40,
-                    stiffness: 120,
-                    mass: 1,
-                });
-                modalOpacity.value = withTiming(0, { duration: 200 });
-                runOnJS(setVisible)(false);
-                runOnJS(onClose)();
-            } else {
-                // Return to original position
-                translateY.value = withSpring(0, {
-                    damping: 40,
-                    stiffness: 120,
-                    mass: 1,
-                });
-            }
-        });
+const ModalSheet: React.FC<ModalSheetProps> = ({
+  children,
+  title,
+  isVisible,
+  onClose,
+}) => {
+  const [visible, setVisible] = useState(isVisible);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const screenHeight = Dimensions.get("window").height;
 
-    const animatedOpacity = useAnimatedStyle(() => ({
-        opacity: modalOpacity.value
-    }));
+  // Animation values
+  const translateY = useSharedValue(screenHeight);
+  const overlayOpacity = useSharedValue(0);
+  const context = useSharedValue({ y: 0 });
 
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ translateY: translateY.value }],
-    }));
+  // Fullscreen is driven by keyboard visibility
+  const isFull = keyboardVisible;
 
-    useEffect(() => {
-        if (isVisible) {
-            setVisible(true);
-            translateY.value = withSpring(0, {
-                damping: 40,
-                stiffness: 120,
-                mass: 1,
-            });
-            modalOpacity.value = withTiming(0.2, { duration: 200 });
-        } else {
-            handleClose()
-        }
-    }, [isVisible]);
+  // Keyboard listeners
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
 
-    const handleClose = () => {
-        translateY.value = withSpring(screenHeight, {
-            damping: 40,
-            stiffness: 120,
-            mass: 1,
-        });
-        modalOpacity.value = withTiming(0, { duration: 200 });
-        setTimeout(() => {
-            setVisible(false);
-            onClose();
-        }, 200);
+    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
     };
+  }, []);
 
-    useFocusEffect(
-        useCallback(() => {
-              return () => {
-                if (visible) {
-                    handleClose()
-                }
-            }}, [visible])
-          );
+  // Gesture handler (disabled in fullscreen)
+  const panGesture = Gesture.Pan()
+    .onBegin(() => {
+      context.value = { y: translateY.value };
+    })
+    .onUpdate((event) => {
+      if (!isFull && event.translationY > 0) {
+        translateY.value = context.value.y + event.translationY;
+        overlayOpacity.value = interpolate(
+          translateY.value,
+          [0, screenHeight * 0.5],
+          [0.2, 0.05],
+          Extrapolation.CLAMP
+        );
+      }
+    })
+    .onEnd((event) => {
+      if (!isFull && event.translationY > screenHeight * 0.2) {
+        translateY.value = withSpring(screenHeight, { damping: 20, stiffness: 90 });
+        overlayOpacity.value = withTiming(0, { duration: 200 });
+        runOnJS(setVisible)(false);
+        runOnJS(onClose)();
+      } else {
+        translateY.value = withSpring(0, { damping: 20, stiffness: 90 });
+        overlayOpacity.value = withTiming(isFull ? 0 : 0.2, { duration: 200 });
+      }
+    });
 
-    if (!visible) return null;
+  const animatedOverlay = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }));
 
-    return (
-        <Modal transparent visible={visible} onRequestClose={handleClose}>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-                <KeyboardAvoidingView behavior={'height'} style={{ flex: 1 }}>
-                    <Pressable
-                        className="flex-1"
-                        onPress={() => {
-                            handleClose();
-                            Keyboard.dismiss();
-                        }}
-                    >
-                        <Animated.View
-                            style={[animatedOpacity, {backgroundColor: "#000000"}]}
-                            className="flex-1 absolute top-0 left-0 right-0 bottom-0"
-                        />
-                    </Pressable>
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
-                    <Animated.View
-                        style={[animatedStyle, {
-                            position: 'absolute',
-                            width: '92%',
-                            maxHeight: '75%',
-                            left: '50%',
-                            marginLeft: '-46%',
-                            paddingBottom: 8,
-                            backgroundColor: '#FFFFFF',
-                            borderRadius: 48,
-                            bottom: 20,
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 4,
-                            elevation: 5,
-                            overflow: 'hidden'
-                        }]}
-                    >
-                        {/* Drag indicator - only this area responds to pan gestures */}
-                        <GestureDetector gesture={panGesture}>
-                            <View style={{
-                                width: '100%',
-                                alignItems: 'center',
-                                paddingTop: 16,
-                                paddingHorizontal: 24
-                            }}>
-                                <View className="w-12 h-1 bg-gray-300 rounded-full" />
-                            </View>
-                        </GestureDetector>
+  // Open/close animations
+  useEffect(() => {
+    if (isVisible) {
+      setVisible(true);
+      requestAnimationFrame(() => {
+        translateY.value = withSpring(0, { damping: 20, stiffness: 90 });
+        overlayOpacity.value = withTiming(isFull ? 0 : 0.2, { duration: 300 });
+      });
+    } else {
+      handleClose();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible]);
 
-                        {title && <View style={{
-                            width: '100%',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginVertical: 8,
-                            paddingHorizontal: 24
-                        }}>
-                             <Text className="text-[16px] font-JakartaBold">
-                                {title}
-                            </Text>
-                        </View>}
+  // If keyboard visibility changes while open, adjust overlay immediately
+  useEffect(() => {
+    if (!visible) return;
+    overlayOpacity.value = withTiming(isFull ? 0 : 0.2, { duration: 150 });
+  }, [isFull, visible, overlayOpacity]);
 
-                        <View style={{
-                            flex: 1,
-                            overflow: 'hidden'
-                        }}>
-                            {children}
-                        </View>
+  const handleClose = useCallback(() => {
+    translateY.value = withSpring(screenHeight, { damping: 20, stiffness: 90 });
+    overlayOpacity.value = withTiming(0, { duration: 300 });
+    setTimeout(() => {
+      setVisible(false);
+      onClose();
+    }, 300);
+  }, [screenHeight, onClose, translateY, overlayOpacity]);
 
-                    </Animated.View>
-                </KeyboardAvoidingView>
-            </GestureHandlerRootView>
-        </Modal>
-    );
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (visible) handleClose();
+      };
+    }, [visible, handleClose])
+  );
+
+  if (!visible) return null;
+
+  return (
+    <Modal
+      transparent
+      visible={visible}
+      onRequestClose={handleClose}
+      animationType="none"
+      statusBarTranslucent
+    >
+      <GestureHandlerRootView className="flex-1">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+        >
+          {/* Overlay only in sheet mode */}
+          {!isFull && (
+            <AnimatedPressable
+              style={[{ flex: 1 }, animatedOverlay]}
+              onPress={() => {
+                handleClose();
+                Keyboard.dismiss();
+              }}
+            >
+              <View className="flex-1 bg-black" />
+            </AnimatedPressable>
+          )}
+
+          {/* Sheet / Fullscreen container */}
+          <Animated.View
+            style={animatedStyle}
+            className={
+              isFull
+                ? "absolute top-0 left-0 right-0 bottom-0 bg-white py-4"
+                : "absolute bottom-5 w-[92%] max-h-[75%] left-[4%] pb-2 bg-white rounded-[48px] shadow-xl elevation-10 overflow-hidden"
+            }
+          >
+            {/* Drag handle (only sheet mode) */}
+            {!isFull && (
+              <GestureDetector gesture={panGesture}>
+                <View className="w-full items-center pt-4 px-6">
+                  <View className="w-12 h-1 bg-gray-300 rounded-full" />
+                </View>
+              </GestureDetector>
+            )}
+
+            {/* Title */}
+            {title && (
+              <View className="w-full items-center justify-center my-2 px-6">
+                <Text className="text-[16px] font-JakartaSemiBold">{title}</Text>
+              </View>
+            )}
+
+            {/* Content */}
+            <View className="flex-1">{children}</View>
+          </Animated.View>
+        </KeyboardAvoidingView>
+      </GestureHandlerRootView>
+    </Modal>
+  );
 };
-export default ModalSheet
+
+export default ModalSheet;

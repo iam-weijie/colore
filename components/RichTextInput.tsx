@@ -7,11 +7,12 @@ import RichTextEditor from './RichTextEditor';
 
 
 
-const RichTextInput = ({ refresh, exportText, exportStyling, onFocus }: {
+const RichTextInput = ({ refresh, exportText, exportStyling, onFocus, withdrawKeyboard = false }: {
   refresh: number;
   exportText: (value: string) => void;
   exportStyling: (styling: Format[]) => void;
   onFocus: (state: boolean) => void;
+  withdrawKeyboard: boolean;
 }) => {
   const { draftPost } = useDraftPost();
   const [value, setValue] = useState('');
@@ -108,7 +109,7 @@ const RichTextInput = ({ refresh, exportText, exportStyling, onFocus }: {
     else classNames += ' text-[24px]';
 
     if (types.includes('italic')) classNames += ' font-JakartaSemiBoldItalic';
-    else if (types.includes('bold')) classNames += ' font-JakartaExtraBold';
+    else if (types.includes('bold')) classNames += ' font-JakartaBold';
     else classNames += ' font-JakartaSemiBold';
 
     if (types.includes('underline')) classNames += ' underline';
@@ -230,11 +231,17 @@ const RichTextInput = ({ refresh, exportText, exportStyling, onFocus }: {
             <Text className="font-JakartaSemiBold text-[#FAFAFA]">
               {renderStyledOverlay()}
             </Text>
+
+            {!value.length && <View className='absolute top-0 left-0 right-0 p-4'>
+              <Text className='font-JakartaSemiBold text-2xl  text-[#EEEEEE]'>
+                Tap to start writing a notes...
+              </Text>
+            </View>}
           </TouchableOpacity>
         )}
       </View>
       {isFocused && (
-        <KeyboardOverlay keyboardAlreadyVisible={true} onFocus={isFocused}>
+        <KeyboardOverlay keyboardAlreadyVisible={true} onFocus={isFocused} withdraw={withdrawKeyboard}>
           <RichTextEditor handleApplyStyle={(styling: TextStyle) => setStyle(styling)} />
         </KeyboardOverlay>
       )}

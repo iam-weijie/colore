@@ -243,7 +243,7 @@ const City = () => {
           <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
             className="flex-1 ml-2 h-full text-base "
-            placeholder="Search countries..."
+            placeholder="Search cities..."
             placeholderTextColor="#D1D1D1"
             value={searchText}
             onChangeText={setSearchText}

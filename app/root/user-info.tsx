@@ -202,7 +202,8 @@ const UserInfo = () => {
         data.country &&
         data.email &&
         data.username &&
-        data.incognito_name
+        data.incognito_name && 
+        false
       ) {
         router.replace("/root/tabs/home");
       } else {
@@ -398,14 +399,16 @@ const UserInfo = () => {
       color: "#93c5fd",
       disabled: !form.username,
       children: (
+        <View className="flex-1 flex-col ">
         <InputField
-          label="Username"
+          label=""
           placeholder="Your Username"
           containerStyle="w-full"
           inputStyle="p-4"
           value={form.username}
           onChangeText={(value) => setForm({ ...form, username: value })}
         />
+        </View>
       ),
     },
     {
@@ -415,14 +418,16 @@ const UserInfo = () => {
       color: "#93c5fd",
       disabled: !form.incognito_name,
       children: (
+        <View className="flex-1 flex-col ">
         <InputField
-          label="Incognito Name"
+          label=""
           placeholder="Your Incognito Name"
-          containerStyle="w-full"
+          containerStyle="w-full "
           inputStyle="p-4"
           value={form.incognito_name}
           onChangeText={(value) => setForm({ ...form, incognito_name: value })}
         />
+        </View>
       ),
     },
     {
@@ -431,8 +436,7 @@ const UserInfo = () => {
       color: "#ffe640",
       disabled: !form.userLocation,
       children: (
-        <View className="my-2 w-full">
-          <Text className="text-lg font-JakartaSemiBold mb-3">Location</Text>
+        <View className="my-2 w-full flex-1 flex-col">
           <View className="flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ">
             <Pressable onPress={handleNavigateToCountry}>
               <TextInput

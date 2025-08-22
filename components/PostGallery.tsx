@@ -146,7 +146,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   const renderFooter = () => {
     if (!isLoading) return null;
     return (
-      <View className="py-5 flex items-center justify-center">
+      <View className="py-5 flex items-center justify-center bg-transparent">
         <ColoreActivityIndicator />
       </View>
     );

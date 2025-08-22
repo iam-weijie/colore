@@ -6,15 +6,19 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Animated,
-  Easing
+  Easing,
+  TouchableOpacity,
+  Platform
 } from "react-native";
 import CustomButton from "./CustomButton";
+import { Ionicons } from "@expo/vector-icons";
 
 interface CarouselPageProps {
   label: string;
   caption: string;
   color: string;
   onSubmit: () => void;
+  onBack?: () => void;
   children: React.ReactNode;
   progress: number;
   total: number;
@@ -26,6 +30,7 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
   caption,
   color,
   onSubmit,
+  onBack,
   children,
   progress,
   total,
@@ -38,7 +43,6 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
 
   // Animation trigger on mount and progress change
   useEffect(() => {
-    // Skip the reset on initial render
     if (!isInitialRender.current) {
       fadeAnim.setValue(0);
       slideAnim.setValue(20);
@@ -79,38 +83,48 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
       className="flex-1" 
       onPress={() => Keyboard.dismiss()}
     >
-      <Animated.View 
-        className="flex-1 px-6 py-6"
-        style={{
-          opacity: fadeAnim,
-          transform: [{ translateX: slideAnim }],
-        }}
-      >
-        {/* Animated Progress Bar */}
-        <View className="h-2 rounded-full bg-[#FAFAFA] mb-4 overflow-hidden">
-          <Animated.View
-            style={{ 
-              width: progressAnim.interpolate({
-                inputRange: [0, 100],
-                outputRange: ['0%', '100%']
-              }), 
-              backgroundColor: color,
-            }}
-            className="h-2 rounded-full"
-          />
+      <View className="flex-1 bg-white">
+        {/* Header with progress indicator and back button */}
+        <View className="px-6 pt-6 pb-4">
+          <View className="flex-row items-center justify-between mb-4">
+            {/* Back button - only show if not on first step and onBack provided */}
+            {onBack && progress > 1 && (
+              <TouchableOpacity 
+                onPress={onBack}
+                className="p-2 rounded-full bg-gray-100"
+                accessibilityLabel="Go back"
+              >
+                <Ionicons name="arrow-back" size={20} color="#4B5563" />
+              </TouchableOpacity>
+            )}
+            
+            {/* Progress info - centered */}
+            <View className="flex-1 items-center">
+              <Text className="text-sm font-JakartaSemiBold text-gray-500">
+                Step {progress} of {total}
+              </Text>
+            </View>
+            
+            {/* Empty view to balance the layout */}
+            {onBack && progress > 1 ? (
+              <View className="w-10" /> // Invisible spacer to balance the back button
+            ) : null}
+          </View>
+          
+          {/* Animated Progress Bar - Removed the ruler styling */}
+          <View className="h-2 rounded-full bg-gray-100 overflow-hidden">
+            <Animated.View
+              style={{ 
+                width: progressAnim.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: ['0%', '100%']
+                }), 
+                backgroundColor: color,
+              }}
+              className="h-2 rounded-full"
+            />
+          </View>
         </View>
-
-        <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ translateX: slideAnim }],
-          }}
-        >
-          <Text className="text-[20px] font-JakartaBold mb-1">{label}</Text>
-          <Text className="text-tray-700 mb-6 text-[16px] font-Jakarta">
-            {caption}
-          </Text>
-        </Animated.View>
 
         <Animated.View 
           className="flex-1"
@@ -119,26 +133,56 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
             transform: [{ translateX: slideAnim }],
           }}
         >
-          {children}
+          {/* Content - Centered */}
+          <View className="mb-6  px-6">
+            <Text className="text-2xl font-JakartaBold mb-2 text-gray-900 text-center">
+              {label}
+            </Text>
+            <Text className="text-base text-gray-600 font-Jakarta leading-6 text-center">
+              {caption}
+            </Text>
+            
+          </View>
+                    {/* Main content area - Centered with horizontal padding */}
+                    <View className="flex-1 w-full mb-6 justify-center px-6">
+            {children}
+          </View>
+
         </Animated.View>
      
-        <KeyboardAvoidingView className="" behavior="padding">
+        {/* Footer with centered button - KeyboardAvoidingView with proper spacing */}
+        <KeyboardAvoidingView 
+          className="px-6 pb-6 pt-4 bg-white "
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        >
           <Animated.View 
-          className="self-center"
+            className="items-center"
             style={{
               opacity: fadeAnim,
               transform: [{ translateX: slideAnim }],
             }}
           >
             <CustomButton
-              title={progressPercent < 100 ? "continue" : "submit"}
+              title={progress < total ? "Continue" : "Get Started"}
               padding={4}
               onPress={onSubmit}
               disabled={disabled}
+              backgroundColor={color}
+              className="rounded-xl w-full max-w-md" // Centered with max width
             />
+            
+            {/* Optional: Skip button for intermediate steps */}
+            {progress < total && (
+              <TouchableOpacity onPress={onSubmit} className="mt-4">
+                <Text className="text-center text-gray-500 font-Jakarta">
+                  Skip for now
+                </Text>
+              </TouchableOpacity>
+            )}
           </Animated.View>
         </KeyboardAvoidingView>
-      </Animated.View>
+      </View>
     </TouchableWithoutFeedback>
   );
 };
