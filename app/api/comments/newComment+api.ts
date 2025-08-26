@@ -17,6 +17,7 @@ export async function POST(request: Request) {
 
     // When the comment is from someone other than the post owner
     if (clerkId !== postClerkId) {
+      
       // First insert the comment
       const insertedComment = await sql`
         INSERT INTO comments (user_id, post_id, content, reply_comment_id)
@@ -31,53 +32,96 @@ export async function POST(request: Request) {
         WHERE id = ${postId};
       `;
 
-      // Dispatching notification to post owner
-      const [post, comment, commenter, postOwner] = await Promise.all([
-        sql`
+      // Fetch data needed for notification + display-name logic
+      const [post, comment, commenter, postOwner, friendship] = await Promise.all([
+        sql/*sql*/`
           SELECT id, content, created_at, user_id, like_count, report_count, unread_comments, color, post_type, board_id
           FROM posts
           WHERE id = ${postId};
         `,
-        sql`
+        sql/*sql*/`
           SELECT id, content AS comment_content, created_at AS comment_created_at, like_count AS comment_like_count, report_count AS comment_report_count, notified
           FROM comments
           WHERE id = ${insertedComment[0].id};
         `,
-        sql`
-          SELECT firstname, username
+        // include nickname + incognito_name for display rule
+        sql/*sql*/`
+          SELECT firstname, username, nickname, incognito_name
           FROM users
           WHERE clerk_id = ${clerkId};
         `,
-        sql`
-          SELECT firstname, username, push_token
+        // include incognito_name for personal posts
+        sql/*sql*/`
+          SELECT firstname, username, nickname, incognito_name, push_token
           FROM users
           WHERE clerk_id = ${postClerkId};
         `,
+        // determine friendship (viewer = post owner, target = commenter)
+        sql/*sql*/`
+          SELECT EXISTS(
+            SELECT 1
+            FROM friendships f
+            WHERE
+              (f.user_id = ${postClerkId} AND f.friend_id = ${clerkId})
+              OR
+              (f.friend_id = ${postClerkId} AND f.user_id = ${clerkId})
+          ) AS are_friends;
+        `,
       ]);
 
+      const p = post[0];
+      const c = comment[0];
+      const cm = commenter[0];
+      const po = postOwner[0];
+      const areFriends = Boolean(friendship?.[0]?.are_friends);
+
+      // Unified display-name helper
+      const getDisplayName = (
+        target: { username?: string | null; nickname?: string | null; incognito_name?: string | null },
+        postType: string,
+        isFriend: boolean
+      ) => {
+        if (postType === "personal") {
+          // hard override for personal posts
+          return target.incognito_name ?? target.username ?? "";
+        }
+        // friendship rule
+        return (isFriend ? target.nickname : undefined) ?? target.username ?? "";
+      };
+
+      // Viewer is the post owner (recipient of the notification)
+      const commenterDisplay = getDisplayName(cm, p.post_type, areFriends);
+
+      // For the post owner field in the payload, apply personal override only.
+      // (Viewer == owner; friendship rule doesn't apply to self.)
+      const postOwnerDisplay =
+        p.post_type === "personal"
+          ? (po.incognito_name ?? po.username ?? "")
+          : areFriends ? (po.nickname) : (po.username ?? "");
+
       const new_comment = {
-        id: comment[0].id,
-        comment_content: comment[0].comment_content,
-        comment_created_at: comment[0].comment_created_at,
-        comment_like_count: comment[0].comment_like_count,
-        comment_report_count: comment[0].comment_report_count,
-        notified: comment[0].notified,
-        commenter_firstname: commenter[0].firstname,
-        commenter_username: commenter[0].username,
+        id: c.id,
+        comment_content: c.comment_content,
+        comment_created_at: c.comment_created_at,
+        comment_like_count: c.comment_like_count,
+        comment_report_count: c.comment_report_count,
+        notified: c.notified,
+        commenter_firstname: cm.firstname, 
+        commenter_username: commenterDisplay,
         is_liked: false,
       };
 
       const notification = {
-        post_id: post[0].id,
-        content: post[0].content,
-        firstname: postOwner[0].firstname,
-        username: postOwner[0].username,
-        created_at: post[0].created_at,
-        user_id: post[0].user_id,
-        like_count: post[0].like_count,
-        report_count: post[0].report_count,
-        unread_comments: post[0].unread_comments,
-        color: post[0].color,
+        post_id: p.id,
+        content: p.content,
+        firstname: po.firstname, 
+        username: postOwnerDisplay,
+        created_at: p.created_at,
+        user_id: p.user_id,
+        like_count: p.like_count,
+        report_count: p.report_count,
+        unread_comments: p.unread_comments,
+        color: p.color,
         comments: [new_comment],
       };
 
@@ -86,15 +130,14 @@ export async function POST(request: Request) {
         "Comments",
         notification,
         new_comment,
-        postOwner[0]?.push_token
+        po?.push_token
       );
 
       return new Response(JSON.stringify({ data: insertedComment[0] }), {
         status: 201,
       });
-    }
-    // When the post owner comments on their own post
-    else {
+    } else {
+      // When the post owner comments on their own post
       const response = await sql`
         INSERT INTO comments (user_id, post_id, content, reply_comment_id, notified)
         VALUES (${clerkId}, ${postId}, ${content}, ${replyId}, true)

@@ -26,8 +26,7 @@ import { StacksProvider } from "@/app/contexts/StacksContext";
 import { DraftPostProvider } from "@/app/contexts/DraftPostContext";
 import { DeviceProvider } from "@/app/contexts/DeviceContext";
 import { ReplyScrollProvider } from "@/app/contexts/ReplyScrollContext";
-
-
+import { ThemeProvider } from "@/app/contexts/ThemeContext";
 
 // DEBUG: Log all imported components
 console.log({
@@ -39,6 +38,7 @@ console.log({
   SettingsProvider,
   NotificationsProvider,
   EncryptionProvider,
+  ThemeProvider,
   StacksProvider,
   DraftPostProvider,
   DeviceProvider,
@@ -61,7 +61,6 @@ export default function RootLayout() {
 
   const [loaded] = useFonts({
     "Jakarta-Bold": require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
-    "Jakarta-ExtraLight": require("../assets/fonts/PlusJakartaSans-ExtraLight.ttf"),
     "Jakarta-Light": require("../assets/fonts/PlusJakartaSans-Light.ttf"),
     "Jakarta-Medium": require("../assets/fonts/PlusJakartaSans-Medium.ttf"),
     "Jakarta-MediumItalic": require("../assets/fonts/PlusJakartaSans-MediumItalic.ttf"),
@@ -83,7 +82,7 @@ export default function RootLayout() {
 
   if (showSplashVideo) {
     return (
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-white dark:bg-black">
         <SplashVideo
           onAnimationFinish={(isCancelled) => {
             if (!isCancelled) {
@@ -107,18 +106,19 @@ export default function RootLayout() {
         <ClerkLoaded>
               <NavigationProvider>
          <EncryptionProvider>
-          <SettingsProvider>
-           <ProfileProvider>
-            <NotificationsProvider>
-             <BoardsProvider>
-              <FriendsProvider>
-               <UserDataProvider>
-                <StacksProvider>
-                 <DraftPostProvider>
-                  <DeviceProvider>
-                   <ReplyScrollProvider>
-                    <AlertProvider>
-                     <ExpoNotificationProvider>
+          <ThemeProvider>
+           <SettingsProvider>
+            <ProfileProvider>
+             <NotificationsProvider>
+              <BoardsProvider>
+               <FriendsProvider>
+                <UserDataProvider>
+                 <StacksProvider>
+                  <DraftPostProvider>
+                   <DeviceProvider>
+                    <ReplyScrollProvider>
+                     <AlertProvider>
+                      <ExpoNotificationProvider>
           
             
                       <Animated.View style={{ flex: 1 }} entering={FadeIn}>
@@ -142,7 +142,8 @@ export default function RootLayout() {
             </NotificationsProvider>
            </ProfileProvider>
           </SettingsProvider>
-         </EncryptionProvider>
+         </ThemeProvider>
+        </EncryptionProvider>
         </NavigationProvider>
        </ClerkLoaded>
       </ClerkProvider>

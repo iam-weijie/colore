@@ -55,6 +55,7 @@ import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useHaptics } from "@/hooks/useHaptics";
 import InteractionButton from "@/components/InteractionButton";
 import EmojiShorthand from "@/components/EmojiShorthand";
+import { useEmojiPreferences } from '@/hooks/useEmojiPreferences';
 import PostGallery from "@/components/PostGallery";
 import CalendarView from "@/components/CalendarView";
 import { format, isAfter } from "date-fns";
@@ -110,6 +111,7 @@ const NewPost = () => {
   // 😊 EMOJI HANDLING
   const [selectedStaticEmoji, setSelectedStaticEmoji] =
     useState<boolean>(false);
+  const { shorthandEmojis } = useEmojiPreferences();
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(emoji || null);
   const [isEmojiSelectorVisible, setIsEmojiSelectorVisible] = useState(false);
   const [isQuickEmojiSelectorVisible, setQuickEmojiSelectorVisible] =
@@ -248,16 +250,6 @@ const NewPost = () => {
     setFormats(formats);
   };
 
-  const isLink = (text: string) => {
-    try {
-      // Attempt to create a URL object (browser & Node.js compatible)
-      new URL(text.trim());
-      return true;
-    } catch (e) {
-      return false;
-    }
-  };
-
   const handleEmojiSelect = async (emoji: string) => {
     // Add to recent emojis
     await addRecentEmoji(emoji);
@@ -331,11 +323,7 @@ const NewPost = () => {
   }, [selectedEmoji]);
 
   useEffect(() => {
-    //console.log("Post content updated:", postContent);
-    if (postId) {
-      setPostContent(content as string);
-    }
-    console.log("[DEBUG] encryptionKey available in new-post:", Boolean(encryptionKey));
+
     setDraftPost({
       id: Number(postId ?? 0),
       user_id: user?.id ?? "",
@@ -626,26 +614,7 @@ const NewPost = () => {
             onPress={() => setSelectedSetting("Expiration")}
           />
         ),
-      },
-      {/*
-        label: "Reply",
-        component: (
-          <ItemContainer
-            label={replyToPostId ? "Reply selected!" : "Reply to another post"}
-            caption="Send this as a reply to another post"
-            icon={icons.link}
-            colors={[selectedColor.foldcolorhex, selectedColor.hex]}
-            iconColor="#000"
-            onPress={() => {
-              fetchUserPosts(user!.id).then((posts) => {
-                setUserPosts(posts);
-                setSelectedSetting("Reply");
-              });
-            }}
-            actionIcon={replyToPostId && icons.check}
-          />
-        ),
-      */},
+      }
     ];
 
     const menuOptions = promptId
@@ -783,45 +752,6 @@ const NewPost = () => {
     );
   };
 
-  const LinkPlaceholder = () => {
-    const inputRef = useRef<TextInput>(null);
-
-    // Trigger keyboard immediately when component mounts
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 150); // Small delay ensures proper mounting
-
-      return () => clearTimeout(timer);
-    }, []);
-
-    return (
-      <TextInput
-        ref={inputRef}
-        className="w-[90%] h-12 rounded-[16px] bg-gray-100 p-4 text-[16px] font-Jakarta"
-        placeholder="Paste your link here"
-        value={link}
-        onChangeText={setLink}
-        onSubmitEditing={() => {
-          if (isLink(link)) {
-            setIsLinkHolderVisible(false);
-            //(prev => `${prev}\n${link}`);
-            setLink("");
-          } else {
-            showAlert({
-              title: "Invalid Link",
-              message: "Please enter a valid URL.",
-              type: "ERROR",
-              status: "error",
-            });
-          }
-        }}
-        autoFocus={false}
-        keyboardType="url"
-        returnKeyType="done"
-      />
-    );
-  };
 
   const backgroundColor = useSharedValue(
     selectedColor?.hex || "rgba(0, 0, 0, 0.5)"
@@ -944,6 +874,7 @@ const NewPost = () => {
                           onEmojiSelected={(emoji: string) =>
                             handleEmojiSelect(emoji)
                           }
+                          customShorthandEmojis={shorthandEmojis}
                         />
                       </View>
                     )}

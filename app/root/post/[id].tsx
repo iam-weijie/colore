@@ -1,212 +1,206 @@
-import CustomButton from "@/components/CustomButton";
-import { icons } from "@/constants/index";
-import { allColors } from "@/constants/colors";
-import { fetchAPI } from "@/lib/fetch";
-import { getRelativeTime } from "@/lib/utils";
-import { PostComment, PostItColor, UserNicknamePair } from "@/types/type";
-import { useUser } from "@clerk/clerk-expo";
-import { useAlert } from '@/notifications/AlertContext';
-import { CommentItem } from "@/components/Comment";
-import { useReplyScroll } from "@/app/contexts/ReplyScrollContext";
-import { useDevice } from "@/app/contexts/DeviceContext";
-import { useSettingsContext } from "@/app/contexts/SettingsContext";
-import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects"; // Import sound hook
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  useFocusEffect,
-  useLocalSearchParams,
-} from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import Animated from 'react-native-reanimated';
-import {
-  Dimensions,
   FlatList,
   Keyboard,
+  Platform,
   Pressable,
   Text,
   TextInput,
   TouchableOpacity,
   View,
   Image,
-  Platform,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
+
+import CustomButton from "@/components/CustomButton";
+import { icons } from "@/constants";
+import { allColors } from "@/constants/colors";
+import { fetchAPI } from "@/lib/fetch";
+import { getRelativeTime } from "@/lib/utils";
+import { PostComment, PostItColor } from "@/types/type";
+import { useAlert } from "@/notifications/AlertContext";
+import { CommentItem } from "@/components/Comment";
+import { useReplyScroll } from "@/app/contexts/ReplyScrollContext";
+import { useSettingsContext } from "@/app/contexts/SettingsContext";
+import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
-import { useNavigationContext } from "@/components/NavigationContext";
 import EmptyListView from "@/components/EmptyList";
-import {
-  fetchLikeStatus,
-} from "@/lib/post";
-import React from "react";
+import { fetchLikeStatus } from "@/lib/post";
+import { useNavigationContext } from "@/components/NavigationContext";
 
 interface PostCommentGroup {
-  date: string;
-  comments: PostComment[]
+  date: string; // day key
+  comments: PostComment[];
 }
 
-const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
+const isIOS = Platform.OS === "ios";
+
+const normalizeDayKey = (isoLike: string) => {
+  const d = new Date(isoLike);
+  const y = d.getUTCFullYear();
+  const m = d.getUTCMonth();
+  const day = d.getUTCDate();
+  return new Date(Date.UTC(y, m, day)).toISOString(); // stable key
+};
+
+const CommentView = ({ id, clerkId, likes = 0, anonymousParam = true, color = "pink" }: { id: string; clerkId: string, likes: number | string, anonymousParam: boolean, color: string}) => {
   const { user } = useUser();
   const { showAlert } = useAlert();
-  const {
-    clerk_id = "",
-    like_count,
-    anonymous = "",
-    color,
-  } = useLocalSearchParams();
 
+  const postColor = allColors.find((c) => c.id === color) as PostItColor | undefined;
+
+  // UI & data
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const flatListRef = useRef(null);
   const [postComments, setPostComments] = useState<PostCommentGroup[]>([]);
-  const [newComment, setNewComment] = useState<string>("");
-  const [anonymousComments, setAnonymousComments] = useState<boolean>(
-    anonymous === "true"
-  );
+  const [anonymousComments, setAnonymousComments] = useState<boolean>(anonymousParam);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newComment, setNewComment] = useState("");
+
+  // likes
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(
-    typeof like_count === "string" ? parseInt(like_count) : 0
+    typeof likes === "string" ? parseInt(likes) : 0
   );
-  const [commentLikes, setCommentLikes] = useState<{ [key: string]: boolean }>(
-    {}
-  );
-  const [commentLikeCounts, setCommentLikeCounts] = useState<{
-    [key: string]: number;
-  }>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const postColor = allColors.find(
-    (c) => c.id === color
-  ) as PostItColor;
-  const { stateVars, setStateVars } = useNavigationContext();
-  const { replyTo, setReplyTo, scrollTo, setScrollTo } = useReplyScroll();
-  const { soundEffectsEnabled } = useSettingsContext();
-  const { playSoundEffect } = useSoundEffects(); // Get sound function
-  const [replyView, setReplyView] = useState<PostComment | null>(null);
-  const inputRef = useRef(null);
+  const [commentLikes, setCommentLikes] = useState<Record<number, boolean>>({});
+  const [commentLikeCounts, setCommentLikeCounts] = useState<Record<number, number>>({});
 
-  // Add pagination states
+  // reply state
+  const { replyTo, setReplyTo } = useReplyScroll();
+  const [replyView, setReplyView] = useState<PostComment | null>(null);
+
+  // nav shared
+  const { stateVars, setStateVars } = useNavigationContext();
+
+  // sounds
+  const { soundEffectsEnabled } = useSettingsContext();
+  const { playSoundEffect } = useSoundEffects();
+
+  // refs
+  const flatListRef = useRef<FlatList<PostCommentGroup>>(null);
+  const inputRef = useRef<TextInput>(null);
+
+  // paging
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  // --- START NEW LOGIC ---
+  // structural remount key
+  const [listVersion, setListVersion] = useState(0);
+  const bumpList = () => setListVersion((v) => v + 1);
 
-  // Handler function for replying to a comment
-  const handleReplyComment = useCallback((comment: PostComment) => {
-    setReplyTo(comment.id.toString());
-    setReplyView(comment);
-    setTimeout(() => {
-      // Focus the input to bring up the keyboard
-      inputRef.current?.focus();
-    }, 100);
-  }, []);
+  // rollback snapshot
+  const prevCommentsRef = useRef<PostCommentGroup[]>([]);
 
-  // Handler function for deleting a comment
-  const handleDeleteComment = useCallback(async (commentId: number) => {
-    try {
-      // Optimistic UI update: remove the comment immediately
-      const originalComments = postComments;
-      setPostComments(prev =>
-        prev.map(group => ({
-          ...group,
-          comments: group.comments.filter(comment => comment.id !== commentId)
-        })).filter(group => group.comments.length > 0)
-      );
-      
-      const response = await fetchAPI(`/api/comments/delete`, {
-        method: "DELETE",
-        body: JSON.stringify({ commentId: commentId }),
-      });
+  // only autoscroll if the user is near the bottom
+  const nearBottomRef = useRef(true);
+  const BOTTOM_THRESHOLD = 120; // px from end to consider "near bottom"
+  const [autoScrollNextSizeChange, setAutoScrollNextSizeChange] = useState(false);
 
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      showAlert({
-        title: "Success",
-        message: "Comment deleted successfully!",
-        type: "SUCCESS",
-        status: "success",
-      });
+  // autoscroll helpers
+  const scrollToBottom = (animated = true) =>
+    requestAnimationFrame(() => flatListRef.current?.scrollToEnd({ animated }));
 
-    } catch (error) {
-      console.error("Failed to delete comment:", error);
-      // Rollback the optimistic update on error
-      setPostComments(originalComments);
-      showAlert({
-        title: "Error",
-        message: "Failed to delete comment. Please try again.",
-        type: "ERROR",
-        status: "error",
-      });
-    }
-  }, [postComments, showAlert]);
-  
-  // --- END NEW LOGIC ---
-
-  const fetchCommentById = async (id: string) => {
-    try {
-      const response = await fetchAPI(`/api/comments/getCommentsById?id=${id}`);
-      setReplyView(response.data[0] || null); // Return null if no post is found
-    } catch (error) {
-      return null;
-    }
+  const armAutoScroll = () => {
+    if (nearBottomRef.current) setAutoScrollNextSizeChange(true);
   };
 
+  // after first load (or any structural refresh) — jump to bottom once
   useEffect(() => {
-    if (replyTo) {
-    fetchCommentById(replyTo)
-    } else {
-      setReplyView(null)
-    }
-  }, [replyTo])
+    if (!loading && postComments.length) armAutoScroll();
+  }, [loading, listVersion]); // fires when your data is first painted
 
+  // optional: when keyboard opens, keep the last message visible
   useEffect(() => {
-    const fetchLikesForPost = async () => {
+    const sub = Keyboard.addListener('keyboardDidShow', () => armAutoScroll());
+    return () => sub.remove();
+  }, []);
+
+
+
+  // ---- effects: post likes ----
+  useEffect(() => {
+    const run = async () => {
       if (!id || !user?.id) return;
       try {
-        const status = await fetchLikeStatus(parseInt(id), user.id);
+        const status = await fetchLikeStatus(parseInt(id as string, 10), user.id);
         setIsLiked(status.isLiked);
         setLikeCount(status.likeCount);
-      } catch (error) {
-        console.error("Failed to fetch like status:", error);
-      }
+      } catch {}
     };
-    fetchLikesForPost();
+    run();
   }, [id, user?.id]);
 
+  // ---- effects: focus handling ----
   useFocusEffect(
     useCallback(() => {
-      setAnonymousComments(anonymous === "true");
-      setReplyTo(null)
-      setReplyView(null)
+      setAnonymousComments(anonymousParam);
+      setReplyTo(null);
+      setReplyView(null);
       return () => {
-        setReplyTo(null)
-        setStateVars({ ...stateVars, queueRefresh: true});
-      }
+        setReplyTo(null);
+        setStateVars({ ...stateVars, queueRefresh: true });
+      };
     }, [])
   );
 
+  // ---- fetch helpers ----
+  const fetchCommentById = async (cid: string) => {
+    try {
+      const res = await fetchAPI(`/api/comments/getCommentsById?id=${cid}`);
+      setReplyView(res?.data?.[0] || null);
+    } catch {
+      setReplyView(null);
+    }
+  };
+
   useEffect(() => {
-    scrollToItem()
-  }, [scrollTo])
+    if (replyTo) fetchCommentById(replyTo);
+    else setReplyView(null);
+  }, [replyTo]);
 
-  const scrollToItem = () => {
-   // Find the index of the group that contains the target comment
-   const groupIndex = postComments.findIndex((p) =>
-    p.comments.some(item => item.id.toString() == scrollTo)
-  );
+  const groupAndSort = (rows: PostComment[]) => {
+    const buckets: Record<string, PostComment[]> = {};
+    for (const c of rows) {
+      const key = normalizeDayKey(c.created_at);
+      (buckets[key] ||= []).push(c);
+    }
+    const groups: PostCommentGroup[] = Object.keys(buckets)
+      .sort()
+      .map((k) => ({
+        date: k,
+        comments: buckets[k].sort(
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        ),
+      }));
+    return groups;
+  };
 
-  // Scroll to the group's index if valid
-  if (groupIndex !== -1 && flatListRef.current) {
-    flatListRef.current.scrollToIndex({ index: groupIndex });
-  }
+  const mergeGroups = (prev: PostCommentGroup[], next: PostCommentGroup[]) => {
+    const merged: PostCommentGroup[] = JSON.parse(JSON.stringify(prev));
+    for (const ng of next) {
+      const idx = merged.findIndex((g) => g.date === ng.date);
+      if (idx >= 0) {
+        const existingIds = new Set(merged[idx].comments.map((c) => c.id));
+        const toAdd = ng.comments.filter((c) => !existingIds.has(c.id));
+        merged[idx].comments.push(...toAdd);
+        merged[idx].comments.sort(
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        );
+      } else {
+        merged.push(ng);
+      }
+    }
+    merged.sort((a, b) => a.date.localeCompare(b.date));
+    return merged;
   };
 
   const fetchComments = async (pageNum = 0, append = false) => {
-    if (pageNum === 0) {
-      setLoading(true);
-    } else {
-      setIsLoadingMore(true);
-    }
+    pageNum === 0 ? setLoading(true) : setIsLoadingMore(true);
     setError(null);
 
     if (!id || !user?.id) {
@@ -217,84 +211,41 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
     }
 
     try {
-      const response = await fetchAPI(
+      const resp = await fetchAPI(
         `/api/comments/getComments?postId=${id}&userId=${user.id}&page=${pageNum}&limit=25`,
         { method: "GET" }
       );
+      if (resp?.error) throw new Error(resp.error);
+      const rows = (resp?.data ?? []) as PostComment[];
 
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      if (!Array.isArray(response.data)) {
-        throw new Error("Invalid response format");
-      }
-
-      // Update pagination info
-      setHasMore(response.pagination?.hasMore || false);
-      setPage(pageNum);
-
-      // Initialize like states from the response
-      interface CommentResponse {
-        id: number;
-        is_liked: boolean;
-        like_count: number;
-        created_at: string; // Ensure your comments have a created_at field
-      }
-
-      const likeStatuses: { [key: number]: boolean } = {};
-      const likeCounts: { [key: number]: number } = {};
-
-      (response.data as CommentResponse[]).forEach((comment) => {
-        likeStatuses[comment.id] = comment.is_liked || false;
-        likeCounts[comment.id] = comment.like_count || 0;
+      const likeStatuses: Record<number, boolean> = {};
+      const likeCounts: Record<number, number> = {};
+      rows.forEach((c: any) => {
+        likeStatuses[c.id] = !!c.is_liked;
+        likeCounts[c.id] = c.like_count ?? 0;
       });
 
-      // Group comments by date
-      const groupedComments = response.data.reduce((acc, comment) => {
-        const commentDate = new Date(comment.created_at).toDateString(); // Convert to a readable date
-        // Find existing group or create a new one
-        const existingGroup = acc.find(group => group.date === commentDate);
-        if (existingGroup) {
-          existingGroup.comments.push(comment);
-        } else {
-          acc.push({
-            date: commentDate,
-            comments: [comment]
-          });
-        }
-        return acc;
-      }, [] as PostCommentGroup[]);
+      const grouped = groupAndSort(rows);
 
-      // Add fetched comments to state
       if (append) {
-        // Append new comments to existing ones
-        setPostComments(prev => {
-          const combinedGroups = [...prev];
-          // Merge the new groups with existing ones
-          groupedComments.forEach(newGroup => {
-            const existingGroupIndex = combinedGroups.findIndex(g => g.date === newGroup.date);
-            if (existingGroupIndex >= 0) {
-              // Add new comments to existing date group
-              combinedGroups[existingGroupIndex].comments.push(...newGroup.comments);
-            } else {
-              // Add new date group
-              combinedGroups.push(newGroup);
-            }
-          });
-          return combinedGroups;
-        });
+        setPostComments((prev) => mergeGroups(prev, grouped));
+        if (nearBottomRef.current) {armAutoScroll()}   // auto-scroll on tail add
+        else {
+          setPostComments(grouped);
+          armAutoScroll();                               // initial load -> bottom
+        }
+        bumpList();
       } else {
-        // Replace with new comments
-        setPostComments(groupedComments);
+        setPostComments(grouped);
       }
 
-      // Update like states
-      setCommentLikes(prev => ({ ...prev, ...likeStatuses }));
-      setCommentLikeCounts(prev => ({ ...prev, ...likeCounts }));
+      setCommentLikes((p) => ({ ...p, ...likeStatuses }));
+      setCommentLikeCounts((p) => ({ ...p, ...likeCounts }));
+      setHasMore(Boolean(resp?.pagination?.hasMore));
+      setPage(pageNum);
 
-    } catch (error) {
-      console.error("Error fetching comments:", error);
+      bumpList(); // remount on structural changes
+    } catch (e) {
       setError("Failed to load comments. Please try again.");
     } finally {
       setLoading(false);
@@ -302,329 +253,372 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
     }
   };
 
-  // Load initial comments
   useEffect(() => {
-    if (id && user?.id) {
-      fetchComments(0, false);
-    }
+    if (id && user?.id) fetchComments(0, false);
   }, [id, user?.id]);
 
-  // Function to load more comments when user scrolls
   const handleLoadMore = () => {
-    if (!isLoadingMore && hasMore) {
-      fetchComments(page + 1, true);
-    }
+    if (!isLoadingMore && hasMore) fetchComments(page + 1, true);
   };
 
+  // ---- Reply / Delete / Submit ----
+  const handleReplyComment = useCallback(
+    (comment: PostComment) => {
+      setReplyTo(String(comment.id));
+      setReplyView(comment);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    },
+    [setReplyTo]
+  );
+
+  const handleDeleteComment = useCallback(
+    async (commentId: number) => {
+      prevCommentsRef.current = postComments;
+
+      // optimistic remove
+      setPostComments((prev) =>
+        prev
+          .map((g) => ({ ...g, comments: g.comments.filter((c) => c.id !== commentId) }))
+          .filter((g) => g.comments.length > 0)
+      );
+      bumpList();
+
+      if (replyView?.id === commentId) setReplyView(null);
+      setReplyTo((cur) => (cur === String(commentId) ? "" : cur));
+
+      try {
+        const res = await fetchAPI(`/api/comments/deleteComment`, {
+          method: "DELETE",
+          body: JSON.stringify({ id: commentId }),
+        });
+        if (res?.error) throw new Error(res.error);
+        showAlert({ title: "Deleted", message: "Comment removed.", type: "SUCCESS", status: "success" });
+      } catch {
+        // rollback
+        setPostComments(prevCommentsRef.current);
+        bumpList();
+        showAlert({
+          title: "Error",
+          message: "Failed to delete comment. Please try again.",
+          type: "ERROR",
+          status: "error",
+        });
+      }
+    },
+    [postComments, replyView]
+  );
+
   const handleCommentSubmit = async () => {
-    // Prevent submission if already submitting
-    if (isSubmitting) {
-      return;
-    }
-    const trimmedComment = newComment.trim();
-    if (!trimmedComment || !id || !user?.id || !clerkId) {
+    if (isSubmitting) return;
+    const trimmed = newComment.trim();
+
+    if (!trimmed || !id || !user?.id) {
+      const missing_fields = []
+      if (!trimmed) {missing_fields.push("trimmed")}
+      if (!id) {missing_fields.push("id")}
+      if (!user?.id) {missing_fields.push("userId")}
+
+      console.log("[MISSING FIELDS]: ", missing_fields.join(", "))
+
       showAlert({
-        title: 'Error',
-        message: `Unable to submit comment. Missing required data.`,
-        type: 'ERROR',
-        status: 'error',
+        title: "Error",
+        message: `Unable to submit comment. Missing required data: ${missing_fields.join(", ")}.`,
+        type: "ERROR",
+        status: "error",
       });
       return;
     }
 
-    // Play comment sound if enabled
-    if (soundEffectsEnabled) {
-      playSoundEffect(SoundType.Comment);
-    }
+    if (soundEffectsEnabled) playSoundEffect(SoundType.Navigation);
 
-    // Immediately clear the input and prevent further submissions
-    setNewComment('');
+    setNewComment("");
     setIsSubmitting(true);
 
-    // Create temporary comment for optimistic update
-    const tempId = Date.now();
-    // Use the same date as the most recent comment group to ensure proper grouping
-    let optimisticTimestamp = new Date().toISOString();
-    if (postComments.length > 0) {
-      // Get the most recent comment from the last group
-      const lastGroup = postComments[postComments.length - 1];
-      if (lastGroup.comments.length > 0) {
-        const lastComment = lastGroup.comments[lastGroup.comments.length - 1];
-        // Use a timestamp that's just slightly after the last comment but same day
-        const lastCommentDate = new Date(lastComment.created_at);
-        const newTimestamp = new Date(lastCommentDate.getTime() + 1000); // Add 1 second
-        optimisticTimestamp = newTimestamp.toISOString();
-      }
-    }
-    // Find the username from existing comments by the same user to ensure consistency
-    let optimisticUsername = 'Anonymous';
-    // First try to find username from existing comments by the same user
-    for (const group of postComments) {
-      const userComment = group.comments.find(comment => comment.user_id === user.id);
-      if (userComment && userComment.username && userComment.username !== 'Anonymous') {
-        optimisticUsername = userComment.username;
+    // optimistic username
+    let optimisticUsername = "Anonymous";
+    for (const g of postComments) {
+      const uc = g.comments.find((c) => c.user_id === user.id);
+      if (uc?.username && uc.username !== "Anonymous") {
+        optimisticUsername = uc.username;
         break;
       }
     }
-
-    // If no existing comment found, try to get username from database
-    if (optimisticUsername === 'Anonymous') {
+    if (optimisticUsername === "Anonymous") {
       try {
-        const userResponse = await fetchAPI(`/api/users/getUsername?clerkId=${user.id}`, {
-          method: "GET",
-        });
-        if (userResponse.data && userResponse.data.username) {
-          optimisticUsername = userResponse.data.username;
-        }
-      } catch (error) {
-        console.log("Could not fetch username from database, using Anonymous");
-      }
+        const ures = await fetchAPI(`/api/users/getUsername?clerkId=${user.id}`, { method: "GET" });
+        if (ures?.data?.username) optimisticUsername = ures.data.username;
+      } catch {}
     }
-    const tempComment: PostComment = {
-      id: tempId, // Temporary ID that we'll keep stable
-      post_id: parseInt(id as string),
+
+    const tempId = Date.now();
+    const nowIso = new Date().toISOString();
+    const temp: PostComment = {
+      id: tempId,
+      post_id: parseInt(id as string, 10),
       user_id: user.id,
       sender_id: user.id,
-      content: trimmedComment,
+      content: trimmed,
       username: optimisticUsername,
-      created_at: optimisticTimestamp,
+      created_at: nowIso,
       like_count: 0,
       report_count: 0,
       is_liked: false,
-      index: 0, // Will be updated
-      postColor: postColor?.hex || '#000000',
-      reply_comment_id: replyView?.id || null
+      index: 0,
+      postColor: postColor?.hex || "#000000",
+      reply_comment_id: replyView?.id ?? null,
     };
 
+    // optimistic add to today's bucket
+    setPostComments((prev) => {
+      const key = normalizeDayKey(nowIso);
+      const copy = JSON.parse(JSON.stringify(prev)) as PostCommentGroup[];
+      const idx = copy.findIndex((g) => g.date === key);
+      if (idx >= 0) copy[idx].comments.push(temp);
+      else copy.push({ date: key, comments: [temp] });
+      copy.sort((a, b) => a.date.localeCompare(b.date));
+      return copy;
+    });
+    bumpList();
+
+    // only auto-scroll if near bottom (prevents jump while user reads older content)
+    if (nearBottomRef.current) {
+      setAutoScrollNextSizeChange(true);
+    }
+
+    setReplyView(null);
+    setReplyTo("");
+
     try {
-      // Optimistically add the comment to UI immediately
-      setPostComments(prev => {
-        // Always add to the last (most recent) group if it exists, or create a new one
-        if (prev.length > 0) {
-          // Add to the last group (most recent date group)
-          const updatedGroups = [...prev];
-          const lastGroup = updatedGroups[updatedGroups.length - 1];
-          lastGroup.comments.push(tempComment);
-          return updatedGroups;
-        } else {
-          // Create new group if no groups exist
-          const today = new Date().toDateString();
-          return [{ date: today, comments: [tempComment] }];
-        }
-      });
-
-      // Reset reply view
-      setReplyView(null);
-      setReplyTo("");
-
-      // Scroll to bottom to show the new comment
-      setTimeout(() => {
-        if (flatListRef.current) {
-          flatListRef.current.scrollToEnd({ animated: true });
-        }
-      }, 100);
-
       const response = await fetchAPI(`/api/comments/newComment`, {
         method: "POST",
         body: JSON.stringify({
-          content: trimmedComment,
+          content: trimmed,
           postId: id,
           clerkId: user.id,
-          postClerkId: clerkId,
-          replyId: replyTo ?? null
+          postClerkId: user.id,
+          replyId: replyTo ?? null,
         }),
       });
-
-      if (response.error) {
-        throw new Error(response.error);
-      }
-    } catch (error) {
-      console.error("Failed to submit comment:", error);
-      // Remove the optimistic comment on error
-      setPostComments(prev =>
-        prev.map(group => ({
-          ...group,
-          comments: group.comments.filter(comment => comment.id !== tempComment.id)
-        })).filter(group => group.comments.length > 0) // Remove empty groups
+      if (response?.error) throw new Error(response.error);
+    } catch {
+      // remove optimistic
+      setPostComments((prev) =>
+        prev
+          .map((g) => ({ ...g, comments: g.comments.filter((c) => c.id !== tempId) }))
+          .filter((g) => g.comments.length > 0)
       );
-      // Restore the comment text
-      setNewComment(trimmedComment);
+      bumpList();
+      setNewComment(trimmed);
       showAlert({
-        title: 'Error',
-        message: `Failed to submit comment. Please try again.`,
-        type: 'ERROR',
-        status: 'error',
+        title: "Error",
+        message: "Failed to submit comment. Please try again.",
+        type: "ERROR",
+        status: "error",
       });
     } finally {
-      setIsSubmitting(false); // End submission regardless of success/failure
+      setIsSubmitting(false);
     }
   };
 
-  const handleChangeText = (text: string) => {
-    const maxCharacters = 6000;
-    if (text.length <= maxCharacters) {
-      setNewComment(text);
-    } else {
-      setNewComment(text.substring(0, maxCharacters));
-      showAlert({
-        title: 'Limit Reached',
-        message: `You can only enter up to ${maxCharacters} characters.`,
-        type: 'ERROR',
-        status: 'error',
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (replyView) {
-    setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  }, [replyView])
-
-  const renderCommentItem = ({
-    item,
-  }: {
-    item: { date: string; comments: PostComment[] };
-  }): React.ReactElement => {
+  // ---- List render ----
+  const renderCommentItem = ({ item }: { item: PostCommentGroup }) => {
+    const prettyDate = getRelativeTime(new Date(item.date).toDateString());
     return (
-      <View style={{ marginBottom: 15 }}>
-      {/* Show the date as the header */}
-        <Text className="text-gray-500 text-center text-[12px]">{
-        getRelativeTime(item.date)
-        }</Text>
-      {/* Render each comment in the group */}
-      {item.comments.map((comment, index) => (
-        <CommentItem
-          key={comment.id}
-          id={comment.id}
-          user_id={comment.user_id}
-          sender_id={comment.sender_id}
-          post_id={comment.post_id}
-          index={index}
-          username={anonymousComments ? "" :
-            index > 0 ? (item.comments[index - 1].username == comment.username ? "" : comment.username) : comment.username}
-          like_count={comment.like_count || 0}
-          content={comment.content}
-          created_at={comment.created_at}
-          report_count={comment.report_count}
-          is_liked={commentLikes[comment.id]}
-          postColor={postColor?.hex}
-          reply_comment_id={comment.reply_comment_id} 
-          nickname={""} 
-          incognito_name={""}
-          // The new props your CommentItem needs to enable the reply and delete functionality.
-          // You will need to update your CommentItem component to use these props.
-          onReply={() => handleReplyComment(comment)}
-          onDelete={() => handleDeleteComment(comment.id)}
-          currentUserId={user?.id}
-        />
-      ))}
-    </View>
-    );
-  };
-
-  // Update the renderFooter to show loading indicator when loading more comments
-  const renderFooter = () => {
-    if (!isLoadingMore) return null;
-    return (
-      <View style={{ paddingVertical: 20 }}>
-        <ColoreActivityIndicator />
+      <View className="mb-4">
+        <Text className="text-gray-500 text-center text-xs">{prettyDate}</Text>
+        {item.comments.map((comment, index) => (
+          <CommentItem
+            key={comment.id}
+            id={comment.id}
+            user_id={comment.user_id}
+            sender_id={comment.sender_id}
+            post_id={comment.post_id}
+            index={index}
+            username={
+              anonymousComments
+                ? ""
+                : index > 0
+                ? item.comments[index - 1].username === comment.username
+                  ? ""
+                  : comment.username
+                : comment.username
+            }
+            like_count={comment.like_count || 0}
+            content={comment.content}
+            created_at={comment.created_at}
+            report_count={comment.report_count}
+            is_liked={!!commentLikes[comment.id]}
+            postColor={postColor?.hex}
+            reply_comment_id={comment.reply_comment_id}
+            nickname={""}
+            incognito_name={""}
+            onReply={() => handleReplyComment(comment)}
+            onDelete={() => handleDeleteComment(comment.id)}
+            currentUserId={user?.id}
+            scrollSimultaneousHandlerRef={flatListRef}
+          />
+        ))}
       </View>
     );
   };
 
+  const keyExtractor = (item: PostCommentGroup) => item.date;
+
+  const getItemLayout = (_: PostCommentGroup[] | null | undefined, index: number) => ({
+    length: 120,
+    offset: 120 * index,
+    index,
+  });
+
+  // Track if user is near bottom to decide whether to autoscroll when new items arrive
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentSize, contentOffset, layoutMeasurement } = e.nativeEvent;
+    const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+    nearBottomRef.current = distanceFromBottom < BOTTOM_THRESHOLD;
+  };
+
   return (
-    <KeyboardAvoidingView 
-      keyboardVerticalOffset={64}
-      style={{ flex: 1, paddingHorizontal: 24, paddingVertical: 8, minHeight: 500 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      keyboardVerticalOffset={isIOS ? 64 : 0}
+      behavior={isIOS ? "padding" : "height"}
+      className="flex-1 pt-4 px-2"
+      style={{
+        minHeight: 500
+      }}
     >
-        <Pressable onPress={() => { Keyboard.dismiss() }} />
-        <View className="flex-1">
-          {loading &&  <View className="flex-1 items-center justify-center">
-            <ColoreActivityIndicator text="Summoning Bob..." />
-            </View>}
+      <Pressable onPress={() => Keyboard.dismiss()} className="flex-1">
+        {/* MAIN COLUMN: 80% LIST */}
+        <View className="flex-1 relative px-6">
+          {loading && (
+            <View className="flex-1 items-center justify-center">
+              <ColoreActivityIndicator text="Summoning Bob..." />
+            </View>
+          )}
+
           {error && <Text className="text-red-500 mx-4">{error}</Text>}
+
           {!loading && !error && postComments.length === 0 && (
             <Text className="text-gray-500 mx-4 mt-4 min-h-[30px] pl-2 text-center">
               No messages yet.
             </Text>
           )}
+
           {!loading && !error && postComments.length > 0 && (
             <FlatList
               ref={flatListRef}
               data={postComments}
-              className="rounded-[20px]"
+              key={listVersion} // force remount on structural change
               renderItem={renderCommentItem}
-              keyExtractor={(item) => item.date as unknown as string}
-              contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-              style={{ flexGrow: 1 }}
-              extraData={postComments}
+              keyExtractor={keyExtractor}
+              className="flex-1 rounded-2xl"
+              contentContainerClassName="p-4 pb-6"
+              contentContainerStyle={{ paddingBottom: 64 }}
+              extraData={[postComments, listVersion]}
               ListEmptyComponent={
-              <EmptyListView message={"Be the first to comment."} character="bob" mood={0} />
-            }
-              onContentSizeChange={() => {
-                flatListRef.current?.scrollToEnd({ animated: true });
-              }}
+                <EmptyListView message={"Be the first to comment."} character="bob" mood={0} />
+              }
               showsVerticalScrollIndicator={false}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
-              ListFooterComponent={renderFooter}
+              ListFooterComponent={
+                isLoadingMore ? (
+                  <View className="py-5">
+                    <ColoreActivityIndicator />
+                  </View>
+                ) : null
+              }
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              maintainVisibleContentPosition={isIOS ? { minIndexForVisible: 0 } : undefined}
+              getItemLayout={getItemLayout}
+              removeClippedSubviews={false}
+              initialNumToRender={6}
+              maxToRenderPerBatch={8}
+              windowSize={7}
+              onScroll={onScroll}
+              onContentSizeChange={() => {
+                if (autoScrollNextSizeChange) {
+                  flatListRef.current?.scrollToEnd({ animated: true });
+                  scrollToBottom(true);
+                  setAutoScrollNextSizeChange(false);
+                }
+
+              }}
             />
           )}
         </View>
 
-        <View className="flex flex-col">
+        {/* 20% REPLY + COMPOSER */}
+        <View className="flex-1 relative justify-end px-4"
+        style={{
+          minHeight: 64
+        }}>
+          {/* Reply preview (clamped by natural content + container height) */}
           {replyView && (
-            <View className="mt-2 mb-1 ml-2 pl-3 flex-row items-center border-l-2 border-gray-200 max-w-[85%]">
-              <Image
-              source={icons.chevron}
-              className="mr-4 h-4 w-4"
-              tintColor={"#9e9e9e"}
-              />
-              <Text
-                className="text-sm text-gray-500"
-                numberOfLines={2}
-              >
-                {replyView.content}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setReplyView(null)}
-                className="ml-2 p-1"
-              >
-                <Image
-              source={icons.close}
-              className="ml-5 h-5 w-5"
-              tintColor={"#9e9e9e"}
-              />
-              </TouchableOpacity>
-            </View>
-          )}
-          <View className="relative flex flex-row items-center justify-between bg-white rounded-[32px] px-4 h-[48px] mx-2 mb-2 "
-                style={{
-                  boxShadow: "0 0 7px 1px rgba(150,150,150,.15)"
-                }}
+              <View className="relative py-1 mx-2 flex-row items-start  bg-white border-t-2 border-gray-100">
+                
+                {/* Colored side accent */}
+                <View className="absolute left-0 top-0 bottom-0" />
+
+                {/* Inner content */}
+                <View className="flex-1 px-4 py-3 ml-1.5">
+                  <Text 
+                    className="text-sm text-gray-700 leading-snug" 
+                    numberOfLines={2} 
+                    ellipsizeMode="tail"
+                  >
+                    {replyView.content}
+                  </Text>
+                </View>
+
+                {/* Close button */}
+                <TouchableOpacity
+                  onPress={() => setReplyView(null)}
+                  className="self-center mr-4 p-2 rounded-full bg-gray-100 active:bg-gray-200"
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
+                  <Image 
+                    source={icons.close} 
+                    className="h-3 w-3" 
+                    tintColor={"#6b7280"} 
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+
+
+          {/* Composer fills remaining space in the 20% panel */}
+          <View className="relative flex flex-row items-center bg-white rounded-[32px] px-4 mx-2 mb-2 shadow-md min-h-12">
             <TextInput
-              className="flex-1 pl-2 text-[14px] pr-16 "
-                placeholderTextColor="#9CA3AF"
-              placeholder="Write a something..."
-                value={newComment}
-                multiline
-                scrollEnabled
-                onFocus={() => {}} // Removed unused state
-                onBlur={() => {}} // Removed unused state
-                onChangeText={handleChangeText}
-                onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
-                editable={!isSubmitting}
+              ref={inputRef}
+              className="flex-1 pl-2 text-sm pr-16 py-4"
+              placeholderTextColor="#9CA3AF"
+              placeholder="Write something..."
+              value={newComment}
+              multiline
+              scrollEnabled
+              onChangeText={(t) => {
+                const max = 300;
+                if (t.length <= max) setNewComment(t);
+                else {
+                  setNewComment(t.slice(0, max));
+                  showAlert({
+                    title: "Limit Reached",
+                    message: `You can only enter up to ${max} characters.`,
+                    type: "ERROR",
+                    status: "error",
+                  });
+                }
+              }}
+              onSubmitEditing={isSubmitting ? undefined : handleCommentSubmit}
+              editable={!isSubmitting}
+              textAlignVertical="center"
             />
-            <View className="absolute right-1 w-[25%]">
-                          <CustomButton
+            <View className="absolute right-1 w-1/4">
+              <CustomButton
                 title={isSubmitting ? "..." : "Send"}
                 onPress={handleCommentSubmit}
-                disabled={
-                  newComment.length === 0 || isSubmitting
-                }
+                disabled={newComment.length === 0 || isSubmitting}
                 fontSize="sm"
                 bgVariant={newComment.length === 0 || isSubmitting ? "gradient2" : undefined}
                 padding={3}
@@ -632,8 +626,9 @@ const PostScreen = ({ id, clerkId }: {id: string, clerkId: string}) => {
             </View>
           </View>
         </View>
+      </Pressable>
     </KeyboardAvoidingView>
   );
 };
 
-export default PostScreen;
+export default CommentView;

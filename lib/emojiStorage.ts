@@ -104,6 +104,54 @@ export class EmojiStorage {
   }
 
   /**
+   * Check if stored emojis are valid (array of 6 strings)
+   * @param userId - The user's clerk ID
+   * @returns Promise<boolean> - True if stored emojis are valid
+   */
+  static async hasValidEmojis(userId: string): Promise<boolean> {
+    try {
+      const emojis = await this.getUserShorthandEmojis(userId);
+      return Array.isArray(emojis) && emojis.length === 6;
+    } catch (error) {
+      console.error('Failed to check emoji validity:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get storage status for debugging
+   * @param userId - The user's clerk ID
+   * @returns Promise<{hasStorage: boolean, isValid: boolean, emojis: string[] | null}>
+   */
+  static async getStorageStatus(userId: string): Promise<{
+    hasStorage: boolean;
+    isValid: boolean;
+    emojis: string[] | null;
+  }> {
+    try {
+      const storageKey = this.getStorageKey(userId);
+      const storedEmojis = await AsyncStorage.getItem(storageKey);
+      const hasStorage = storedEmojis !== null;
+      
+      if (!hasStorage) {
+        return { hasStorage: false, isValid: false, emojis: null };
+      }
+
+      const parsedEmojis = JSON.parse(storedEmojis);
+      const isValid = Array.isArray(parsedEmojis) && parsedEmojis.length === 6;
+      
+      return {
+        hasStorage: true,
+        isValid,
+        emojis: isValid ? parsedEmojis : null
+      };
+    } catch (error) {
+      console.error('Failed to get storage status:', error);
+      return { hasStorage: false, isValid: false, emojis: null };
+    }
+  }
+
+  /**
    * Get all stored emoji preferences (for debugging or migration)
    * @returns Promise<Record<string, string[]>> - Object with userId as key and emojis as value
    */

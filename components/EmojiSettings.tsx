@@ -16,6 +16,7 @@ import { useEmojiPreferences } from '@/hooks/useEmojiPreferences';
 import { icons } from '@/constants';
 import { Ionicons } from '@expo/vector-icons';
 import InteractionButton from './InteractionButton';
+import { useUserDataContext } from "@/app/contexts/UserDataContext";
 
 const { width, height } = Dimensions.get('window');
 const EMOJI_SIZE = 44;
@@ -23,17 +24,28 @@ const EMOJIS_PER_ROW = Math.floor((width - 80) / (EMOJI_SIZE + 8));
 const MODAL_HEIGHT = height * 0.75;
 const BUTTON_HEIGHT = 80;
 
-const EmojiSettings = ({ onClose }) => {
+interface EmojiSettingsProps {
+  onClose?: () => void;
+}
+
+const EmojiSettings: React.FC<EmojiSettingsProps> = ({ onClose }) => {
   const { showAlert } = useAlert();
-  const { shorthandEmojis, saveEmojiPreferences, resetEmojiPreferences } = useEmojiPreferences();
-  const [selectedEmojis, setSelectedEmojis] = useState(DEFAULT_SHORTHAND_EMOJIS);
+  const { userData } = useUserDataContext()
+  const { shorthandEmojis, saveEmojiPreferences, resetEmojiPreferences, refreshEmojiPreferences } = useEmojiPreferences();
+  const [selectedEmojis, setSelectedEmojis] = useState<string[]>(DEFAULT_SHORTHAND_EMOJIS);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
+  // Sync local state with hook state whenever shorthandEmojis changes
   useEffect(() => {
     setSelectedEmojis(shorthandEmojis);
   }, [shorthandEmojis]);
+
+  // Force refresh when component mounts or when needed
+  useEffect(() => {
+    refreshEmojiPreferences();
+  }, [refreshEmojiPreferences]);
 
   const filteredEmojis = useMemo(() => {
     let filtered = EMOJI_LIBRARY;
@@ -52,7 +64,7 @@ const EmojiSettings = ({ onClose }) => {
     return [...selectedEmojiObjects, ...unselectedEmojiObjects];
   }, [searchQuery, selectedCategory, selectedEmojis]);
 
-  const handleEmojiSelect = (emoji) => {
+  const handleEmojiSelect = (emoji: string) => {
     if (selectedEmojis.includes(emoji)) {
       setSelectedEmojis((prev) => prev.filter((e) => e !== emoji));
     } else if (selectedEmojis.length < 6) {
@@ -83,6 +95,9 @@ const EmojiSettings = ({ onClose }) => {
       const success = await saveEmojiPreferences(selectedEmojis);
 
       if (success) {
+        // Force a refresh to ensure the hook state is updated
+        refreshEmojiPreferences();
+        
         showAlert({
           title: 'Success',
           message: 'Your emoji preferences have been saved to this device!',
@@ -114,7 +129,11 @@ const EmojiSettings = ({ onClose }) => {
         style: 'destructive',
         onPress: async () => {
           setSelectedEmojis([...DEFAULT_SHORTHAND_EMOJIS]);
-          await resetEmojiPreferences();
+          const success = await resetEmojiPreferences();
+          if (success) {
+            // Force a refresh to ensure the hook state is updated
+            refreshEmojiPreferences();
+          }
         },
       },
     ]);
@@ -124,7 +143,7 @@ const EmojiSettings = ({ onClose }) => {
     setSearchQuery("")
   }
 
-  const renderPreviewSlot = (index) => (
+  const renderPreviewSlot = (index: number) => (
     <View
       key={`slot-${index}`}
       className={`w-10 h-10 rounded-full items-center justify-center border-2 ${
@@ -139,7 +158,7 @@ const EmojiSettings = ({ onClose }) => {
     </View>
   );
 
-  const renderEmojiItem = ({ item }) => {
+  const renderEmojiItem = ({ item }: { item: EmojiData }) => {
     const isSelected = selectedEmojis.includes(item.emoji);
     const selectionIndex = selectedEmojis.indexOf(item.emoji);
     return (
@@ -162,7 +181,7 @@ const EmojiSettings = ({ onClose }) => {
     );
   };
 
-  const renderCategoryItem = ({ item: category }) => (
+  const renderCategoryItem = ({ item: category }: { item: string }) => (
    <TouchableOpacity
         onPress={() => setSelectedCategory(category)}
         className={`px-4 py-2 rounded-full mx-1`}
@@ -178,7 +197,7 @@ const EmojiSettings = ({ onClose }) => {
   );
 
   return (
-    <View className="bg-gray-50" style={{ height: MODAL_HEIGHT }}>
+    <View className="bg-[#FAFAFA]" style={{ height: MODAL_HEIGHT }}>
       <View className="flex-1 px-6 pt-4 pb-20">
         <View className="mb-4">
           <Text className="text-sm font-[Jakarta-Regular] text-gray-500 text-center w-[75%] mx-auto mb-2">
@@ -187,9 +206,26 @@ const EmojiSettings = ({ onClose }) => {
         </View>
 
         <View className="bg-white rounded-[32px] p-4 mb-4 shadow-md">
+          <View className='w-full flex flex-row justify-between items-center mb-2'>
           <Text className="text-xs font-[Jakarta-Medium] text-gray-700 mb-3">
             Selected ({selectedEmojis.length}/6):
           </Text>
+          <TouchableOpacity
+          onPress={handleSave}
+          className={`py-2 px-4 rounded-[24px] items-center justify-center ${
+            selectedEmojis.length === 6 && !saving ? 'bg-blue-500/30 border-2 border-blue-500' : 'bg-gray-300'
+          }`}
+          disabled={selectedEmojis.length !== 6 || saving}
+        >
+          <Text
+            className={`text-xs font-[Jakarta-Medium] ${
+              selectedEmojis.length === 6 && !saving ? 'text-blue-500 font-JakartaBold' : 'text-gray-400 font-JakartaSemiBold' 
+            }`}
+          >
+            {saving ? 'Saving...' : 'Save'}
+          </Text>
+        </TouchableOpacity>
+          </View>
           <View className="flex-row flex-wrap justify-center gap-2">
             {Array.from({ length: 6 }).map((_, index) => renderPreviewSlot(index))}
           </View>
@@ -264,30 +300,6 @@ const EmojiSettings = ({ onClose }) => {
         />
       </View>
 
-      <View className="absolute bottom-0 left-0 right-0 h-20 bg-gray-50 border-t border-gray-200 px-6 py-4 flex-row items-center gap-4 z-50">
-        <TouchableOpacity
-          onPress={handleReset}
-          className="flex-1 py-3 rounded-xl bg-gray-100 items-center justify-center"
-          disabled={saving}
-        >
-          <Text className="text-base font-[Jakarta-Medium] text-gray-700">Reset</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleSave}
-          className={`flex-1 py-3 rounded-xl items-center justify-center ${
-            selectedEmojis.length === 6 && !saving ? 'bg-blue-500' : 'bg-gray-300'
-          }`}
-          disabled={selectedEmojis.length !== 6 || saving}
-        >
-          <Text
-            className={`text-base font-[Jakarta-Medium] ${
-              selectedEmojis.length === 6 && !saving ? 'text-white' : 'text-gray-400'
-            }`}
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };

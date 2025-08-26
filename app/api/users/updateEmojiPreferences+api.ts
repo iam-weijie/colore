@@ -12,9 +12,10 @@ export async function PATCH(request: Request) {
       );
     }
 
-    if (!Array.isArray(shorthandEmojis) || shorthandEmojis.length !== 6) {
+    // Allow null for clearing preferences, or validate array of 6 emojis
+    if (shorthandEmojis !== null && (!Array.isArray(shorthandEmojis) || shorthandEmojis.length !== 6)) {
       return Response.json(
-        { error: "Shorthand emojis must be an array of exactly 6 emojis" },
+        { error: "Shorthand emojis must be null or an array of exactly 6 emojis" },
         { status: 400 }
       );
     }
@@ -41,7 +42,7 @@ export async function PATCH(request: Request) {
     // Update user's shorthand emoji preferences
     const response = await sql`
       UPDATE users
-      SET shorthand_emojis = ${JSON.stringify(shorthandEmojis)}
+      SET shorthand_emojis = ${shorthandEmojis === null ? null : JSON.stringify(shorthandEmojis)}
       WHERE clerk_id = ${clerkId}
       RETURNING *
     `;
@@ -56,7 +57,7 @@ export async function PATCH(request: Request) {
     return Response.json(
       {
         success: true,
-        message: "Emoji preferences updated successfully",
+        message: shorthandEmojis === null ? "Emoji preferences cleared successfully" : "Emoji preferences updated successfully",
         data: response[0]
       },
       { status: 200 }

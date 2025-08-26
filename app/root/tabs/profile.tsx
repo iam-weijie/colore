@@ -9,6 +9,7 @@ import { SafeAreaView, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FriendStatus } from "@/lib/enum";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
+import { useBackgroundColor } from "@/hooks/useTheme";
 
 const ENCRYPTION_KEY_STORAGE = "encryptionKey";
 
@@ -16,6 +17,7 @@ const Profile = React.memo(() => {
   const { signOut } = useAuth();
   const { user } = useUser();
   const { setEncryptionKey } = useEncryptionContext();
+  const backgroundColor = useBackgroundColor();
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const params = useLocalSearchParams();
   const post = params.post ? String(params.post) : undefined;
@@ -57,7 +59,7 @@ const Profile = React.memo(() => {
   }, [post]);
   
   return (
-    <View className="flex-1 bg-[#FAFAFA]">
+    <View style={{ flex: 1, backgroundColor: backgroundColor }}>
       {user && <UserProfile 
         userId={user.id} 
         onSignOut={handleSignOut} 

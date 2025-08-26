@@ -93,12 +93,12 @@ export const EMOJI_LIBRARY: EmojiData[] = [
 
 // Default shorthand emojis (6 most commonly used)
 export const DEFAULT_SHORTHAND_EMOJIS: string[] = [
-  '😊', // Happy face
-  '❤️', // Heart
-  '👍', // Thumbs up
-  '😂', // Laughing
-  '🔥', // Fire
-  '🥳'  // Party face
+  '😊',
+  '❤️', 
+  '👍', 
+  '😂', 
+  '🔥', 
+  '🥳'  
 ];
 
 // Categories for filtering

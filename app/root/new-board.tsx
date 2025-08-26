@@ -435,11 +435,8 @@ Perfect for open discussions or quiet sharing.`,
       router.back();
       
       // Navigate to appropriate board screen
-      if (boardType === "personal") {
         router.push(`/root/tabs/personal-board`);
-      } else {
-        router.push(`/root/tabs/community-board`);
-      }
+
       
     } catch (error) {
       console.error("Couldn't submit board", error);

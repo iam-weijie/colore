@@ -59,7 +59,7 @@ const RenameContainer = ({
                 <View className="absolute right-1 w-[25%]">
                         <CustomButton
               title={"Cancel"}
-              onPress={() => {}}
+              onPress={() => onCancel()}
               fontSize="sm"
               padding={3}
             />

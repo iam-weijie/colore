@@ -79,7 +79,7 @@ import { useAlert } from "@/notifications/AlertContext";
 import InteractionButton from "./InteractionButton";
 import CarrouselIndicator from "./CarrouselIndicator";
 import EmojiExplosionModal from "./EmojiExplosiveModal";
-import PostScreen from "@/app/root/post/[id]";
+import CommentView from "@/app/root/post/[id]";
 import ItemContainer from "./ItemContainer";
 import EmojiBackground from "./EmojiBackground";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
@@ -414,7 +414,7 @@ const StarringContainer: React.FC<PostContainerProps> = ({
     if (!currentPost?.id) return;
     
     setSelectedBoard(() => (
-      <PostScreen
+      <CommentView
         id={currentPost.id.toString()}
         clerkId={currentPost.user_id || ""}
       />

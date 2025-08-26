@@ -38,6 +38,7 @@ import { starringTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
 import ModalSheet from "@/components/Modal";
 import EmptyListView from "@/components/EmptyList";
+import { useThemeColors, useBackgroundColor, useTextColor } from "@/hooks/useTheme";
 
 
 const screenWidth = Dimensions.get("window").width;
@@ -90,6 +91,9 @@ export default function Page() {
   const { isIpad } = useDevice();
   const { stacks, setStacks } = useStacks();
   const { profile } = useProfileContext();
+  const colors = useThemeColors();
+  const backgroundColor = useBackgroundColor();
+  const textColor = useTextColor();
 
   // Tutorial constants
   
@@ -385,9 +389,9 @@ export default function Page() {
     const personalPosts = Array.isArray(personalPrompts) ? personalPrompts : [];
 
     return (
-      <View className="flex-1 px-4 py-2 bg-[#FAFAFA]">
+      <View style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: backgroundColor }}>
         {answerLoading ? (
-          <View className="flex-1 items-center justify-center bg-[#FAFAFA]">
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: backgroundColor }}>
             <ColoreActivityIndicator text="Loading my prompts…" />
           </View>
         ) : //ts-ignore-next-line
@@ -398,26 +402,28 @@ export default function Page() {
           </View>
         ) : (
           <>
-                      <View className="absolute  flex flex-row items-center bg-white rounded-[24px] px-4 h-12 w-[90%] top-6 self-center z-[10] "
+                      <View className="absolute  flex flex-row items-center rounded-[24px] px-4 h-12 w-[90%] top-6 self-center z-[10] "
         style={{
+          backgroundColor: colors.surface,
           boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
         }}
         >
-          <Ionicons name="search" size={20} color="#9ca3af" />
+          <Ionicons name="search" size={20} color={colors.textSecondary} />
           <TextInput
             className="flex-1 pl-2 text-md "
             placeholder="Looking for a note..?"
-             placeholderTextColor="#9CA3AF"
+             placeholderTextColor={colors.textSecondary}
             value={query}
             onChangeText={setQuery}
             returnKeyType="search"
+            style={{ color: textColor }}
           />
           {query.length > 0 && (
             <TouchableOpacity 
               onPress={handleClearSearch}
               className="w-6 h-6 items-center justify-center"
             >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+              <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
@@ -436,7 +442,7 @@ export default function Page() {
   return (
     <SignedIn>
     <GestureHandlerRootView>
-      <View className="flex-1 bg-[#FAFAFA]">
+      <View style={{ flex: 1, backgroundColor: backgroundColor }}>
             <Header
               title="Starring"
               tabs={tabs}

@@ -1,42 +1,34 @@
-import { icons } from "@/constants";
-import { allColors } from "@/constants/colors";
-import { Post, PostWithPosition, Position, Stacks } from "@/types/type";
-import { useEffect, useRef, useState, useMemo } from "react";
-import PostIt from "@/components/PostIt";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
-  Dimensions,
-  Easing,
-  Image, 
   PanResponder,
-  RefreshControl,
-  ScrollView,
   Text,
   TouchableWithoutFeedback,
   View,
+  Image,
 } from "react-native";
-import { MappingPostitProps } from "@/types/type";
+import { allColors } from "@/constants/colors";
+import { PostWithPosition } from "@/types/type";
+import PostIt from "@/components/PostIt";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
-import React from "react";
 import { fetchAPI } from "@/lib/fetch";
-import { useStacks } from "@/app/contexts/StacksContext";
+import { icons } from "@/constants";
 
 interface DraggablePostItProps {
   post: PostWithPosition;
   updateIndex: () => void;
   position: { top: number; left: number };
-  updatePosition: (x: number, y: number, post: PostWithPosition) => void;
+  updatePosition: (dx: number, dy: number) => void;
   onPress: () => void;
   showText?: boolean;
   isViewed?: boolean;
-  enabledPan: () => void;
   scrollOffset: { x: number; y: number };
   zoomScale: number;
   disabled: boolean;
   visibility: number;
-  // Add these new callback props
   onDragStart?: () => void;
   onDragEnd?: () => void;
+  enabledPan?: () => void; // Re-added this prop that was missing
 }
 
 const DraggablePostIt: React.FC<DraggablePostItProps> = ({
@@ -47,278 +39,282 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   onPress,
   showText = false,
   isViewed = false,
-  enabledPan,
   scrollOffset,
   zoomScale,
   disabled = false,
   visibility = 1,
   onDragStart,
   onDragEnd,
+  enabledPan,
 }) => {
-  const { playSoundEffect } = useSoundEffects();
 
+
+  // Animated values for visual effects during drag
   const animatedPosition = useRef(
     new Animated.ValueXY({
-      x: position.left,
-      y: position.top,
+      x: 0, // Start at 0 for relative positioning
+      y: 0,
     })
   ).current;
 
   const scale = useRef(new Animated.Value(1)).current;
   const rotation = useRef(new Animated.Value(0)).current;
   const shadowOpacity = useRef(new Animated.Value(0.2)).current;
-  const clickThreshold = 2;
+
+  // State and refs for tracking component state
+  const clickThreshold = 5; // Reduced for better touch handling
+  const moveThreshold = 3; // Reduced for earlier movement detection
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [fontColor, setFontColor] = useState<string>("#0000ff");
-  const { stacks, setStacks } = useStacks();
-  const [newPosition, setNewPosition] = useState<MappingPostitProps | null>(
-    null
-  );
   const [isPinned, setIsPinned] = useState<boolean>(post.pinned);
-
-  const accumulatedPosition = useRef({ x: position.left, y: position.top });
+  
+  // Track cumulative position changes
+  const accumulatedPosition = useRef({ x: 0, y: 0 });
+  const initialPosition = useRef({ x: position.left, y: position.top });
+  
+  // Drag state tracking
   const dragStartTime = useRef(0);
   const isDragValid = useRef(false);
+  const hasMovedSignificantly = useRef(false);
 
-  const stackRef = useMemo<Stacks | undefined>(
-    () => stacks.find((p) => p.ids.includes(post.id)),
-    [stacks, post.id]
-  );
-
-  const hasUpdatedPosition = useRef(false);
-
+  // Helper function to get font color based on post color
   const getFontColorHex = (colorName: string | undefined) => {
     const foundColor = allColors.find((c) => c.id === colorName);
     setFontColor(foundColor?.fontColor || "#ff0000");
   };
 
+  // Keep state in sync with prop changes
   useEffect(() => {
     setIsPinned(post.pinned);
-  }, [post]);
+  }, [post.pinned]);
 
   useEffect(() => {
     getFontColorHex(post.color);
   }, [post.color]);
 
+  // Reset position when the position prop changes externally
   useEffect(() => {
-    if (stackRef) {
-      const stackCenterX = stackRef?.center?.x;
-      const stackCenterY = stackRef?.center?.y;
+    initialPosition.current = { x: position.left, y: position.top };
+    accumulatedPosition.current = { x: 0, y: 0 };
+    animatedPosition.setValue({ x: 0, y: 0 });
+  }, [position.left, position.top]);
 
-      const currentPostX = accumulatedPosition.current.x + post.position.left;
-      const currentPostY = accumulatedPosition.current.y + post.position.top;
-
-      const dx = stackCenterX - currentPostX;
-      const dy = stackCenterY - currentPostY;
-
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance > 20) {
-        console.log(">>> Forced move for post:", post.id);
-        console.log("Before accumulated:", accumulatedPosition.current);
-        console.log("Static post.position:", post.position);
-        console.log("Stack center:", stackRef.center);
-
-        // 🔄 Animate by relative delta
-        animatedPosition.setValue({ x: dx, y: dy });
-
-        // ✅ Update accumulated position RELATIVELY
-        accumulatedPosition.current.x += dx;
-        accumulatedPosition.current.y += dy;
-
-        const finalX = post.position.left + accumulatedPosition.current.x;
-        const finalY = post.position.top + accumulatedPosition.current.y;
-
-        updatePosition(finalX, finalY, post);
-
-        console.log(">>> Drag End:", post.id, finalX, finalY);
-        console.log("After accumulated:", {
-          x: accumulatedPosition.current.x + post.position.left,
-          y: accumulatedPosition.current.y + post.position.top,
-        });
-      }
-    }
-  }, [stackRef?.center.x, stackRef?.center.y]);
-  
-  const handleSyncPosition = async (x: number, y: number) => {
-    try {
-      await fetchAPI(`/api/posts/updatePostPosition`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          postId: post.id,
-          top: y,
-          left: x,
-        }),
-      });
-    } catch (err) {
-      console.error("Failed to update post position: ", err);
-    }
-  }
-
-  // Start drag animation - ALL animations will use JS driver
+  // Start drag animation with parallel animations
   const startDragAnimation = () => {
-    playSoundEffect(SoundType.Button);
+ 
     Animated.parallel([
       Animated.spring(scale, {
         toValue: 1.1,
         useNativeDriver: false,
       }),
       Animated.spring(rotation, {
-        toValue: 0.05,
+        toValue: (Math.random() - 0.5) * 0.1, // Random slight rotation
         useNativeDriver: false,
       }),
       Animated.timing(shadowOpacity, {
-        toValue: 0.3,
+        toValue: 0.4,
         duration: 200,
         useNativeDriver: false,
       }),
     ]).start();
   };
 
-  // End drag animation - ALL animations will use JS driver
+  // End drag animation
   const endDragAnimation = () => {
-    playSoundEffect(SoundType.Button);
+   
     Animated.parallel([
       Animated.spring(scale, {
         toValue: 1,
-        friction: 3,
-        tension: 40,
+        friction: 4,
+        tension: 50,
         useNativeDriver: false,
       }),
       Animated.spring(rotation, {
         toValue: 0,
-        friction: 3,
-        tension: 40,
+        friction: 4,
+        tension: 50,
         useNativeDriver: false,
       }),
       Animated.timing(shadowOpacity, {
         toValue: 0.2,
-        duration: 200,
+        duration: 300,
         useNativeDriver: false,
       }),
     ]).start();
   };
 
+  // PanResponder logic for handling gestures
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => !disabled,
+      onStartShouldSetPanResponder: (evt, gestureState) => {
+        return !disabled && !isPinned;
+      },
+      
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Only start moving if we've moved more than a small threshold
-        const threshold = 3;
-        return !disabled && (
-          Math.abs(gestureState.dx) > threshold || 
-          Math.abs(gestureState.dy) > threshold
+        const shouldMove = !disabled && !isPinned && (
+          Math.abs(gestureState.dx) > moveThreshold ||
+          Math.abs(gestureState.dy) > moveThreshold
         );
+        
+        return shouldMove;
       },
 
       onPanResponderGrant: () => {
-        console.log("🎯 [POST-IT] PanResponder granted for post:", post.id);
-        
-        updateIndex();
         
         if (isPinned) {
           onPress();
           return;
         }
 
-        // Record drag start time and mark as valid drag attempt
+        // Initialize drag state
         dragStartTime.current = Date.now();
         isDragValid.current = true;
+        hasMovedSignificantly.current = false;
         
-        // Notify parent that drag is starting
-        console.log("🚀 [POST-IT] Calling onDragStart callback");
-        onDragStart?.();
+        // Update z-index for this post
+        updateIndex();
         
+        // Notify parent and start animations
+        onDragStart?.(); // Notify parent that dragging has started
         setIsDragging(true);
-        enabledPan();
+        
+        // Extract current offset to make future movements relative
         animatedPosition.extractOffset();
         startDragAnimation();
       },
 
       onPanResponderMove: (event, gestureState) => {
-        if (!isPinned && isDragValid.current) {
-          animatedPosition.setValue({
-            x: gestureState.dx,
-            y: gestureState.dy,
-          });
-
-          const rotate = gestureState.vx * 0.02;
-          rotation.setValue(rotate);
+        if (isPinned || !isDragValid.current) {
+          return;
         }
+        
+        // Track if we've moved significantly
+        if (!hasMovedSignificantly.current && 
+            (Math.abs(gestureState.dx) > clickThreshold || Math.abs(gestureState.dy) > clickThreshold)) {
+          hasMovedSignificantly.current = true;
+
+        }
+        
+        // Apply movement with zoom correction
+        const adjustedDx = gestureState.dx / zoomScale;
+        const adjustedDy = gestureState.dy / zoomScale;
+        
+        animatedPosition.setValue({
+          x: adjustedDx,
+          y: adjustedDy,
+        });
+
+        // Subtle rotation based on velocity for natural feel
+        const rotate = Math.max(-0.05, Math.min(0.05, gestureState.vx * 0.01));
+        rotation.setValue(rotate);
+        
       },
 
       onPanResponderRelease: (event, gestureState) => {
-        console.log("🎯 [POST-IT] PanResponder released for post:", post.id);
+
         
         if (isPinned) {
+
           isDragValid.current = false;
           return;
         }
 
-        // Calculate drag duration
+        // Calculate if this was a click or drag
         const dragDuration = Date.now() - dragStartTime.current;
-        console.log("⏱️ [POST-IT] Drag duration:", dragDuration + "ms");
-      
-        animatedPosition.extractOffset();
-      
-        // Only process position update if this was a valid drag
-        if (isDragValid.current) {
-          // Compute displacement corrected for zoom
-          const correctedDx = (gestureState.dx) / zoomScale;
-          const correctedDy = (gestureState.dy) / zoomScale;
+        const isClick = !hasMovedSignificantly.current && 
+                       Math.abs(gestureState.dx) < clickThreshold && 
+                       Math.abs(gestureState.dy) < clickThreshold &&
+                       dragDuration < 300;
         
-          // Compute final new absolute position
-          const dx = accumulatedPosition.current.x + correctedDx - scrollOffset.x;
-          const dy = accumulatedPosition.current.y + correctedDy - scrollOffset.y;
-          const finalX = dx + position.left;
-          const finalY = dy + position.top;
-        
-          // Save new accumulated position locally
-          accumulatedPosition.current = {
-            x: dx,
-            y: dy,
-          };
 
-          updatePosition(finalX, finalY, post); 
-          handleSyncPosition(finalX, finalY);
-        }
-
-        // Handle click vs drag
-        const isClick = Math.abs(gestureState.dx) < clickThreshold && 
-                       Math.abs(gestureState.dy) < clickThreshold;
-        
         if (isClick) {
-          console.log("👆 [POST-IT] Click detected");
+          console.log("👆 [POST-IT] Click detected - showing modal");
+          // Reset position for click
+          animatedPosition.setValue({ x: 0, y: 0 });
           onPress();
-        } else {
-          console.log("🎯 [POST-IT] Drag completed");
+        } else if (isDragValid.current && hasMovedSignificantly.current) {
+          
+          // Finalize the position
+          animatedPosition.extractOffset();
+          
+          // Calculate new absolute position
+          const correctedDx = gestureState.dx / zoomScale;
+          const correctedDy = gestureState.dy / zoomScale;
+          
+          // Update accumulated position
+          accumulatedPosition.current.x += correctedDx;
+          accumulatedPosition.current.y += correctedDy;
+          
+          // Calculate final absolute position
+          const finalX = initialPosition.current.x + accumulatedPosition.current.x;
+          const finalY = initialPosition.current.y + accumulatedPosition.current.y;
+          
+          
+          // Update position in parent - call with correct parameters
+          updatePosition(finalX, finalY); // dx and dy for position update
         }
-      
+
         // Clean up drag state
         setIsDragging(false);
         isDragValid.current = false;
-        enabledPan();
+        hasMovedSignificantly.current = false;
         endDragAnimation();
         
-        // Notify parent that drag has ended with duration info
-        console.log("🏁 [POST-IT] Calling onDragEnd callback");
+        // Notify parent that drag has ended
         onDragEnd?.();
       },
 
-      // Add termination handler for edge cases
       onPanResponderTerminate: () => {
-        console.log("🛑 [POST-IT] PanResponder terminated for post:", post.id);
         
         // Clean up if gesture is terminated unexpectedly
         setIsDragging(false);
         isDragValid.current = false;
-        enabledPan();
+        hasMovedSignificantly.current = false;
+        endDragAnimation();
+        onDragEnd?.(); // Notify parent that drag has ended
+      },
+
+      // Prevent termination during active drag - this is key to preventing premature termination
+      onPanResponderTerminationRequest: () => {
+        const shouldTerminate = !isDragValid.current || !hasMovedSignificantly.current;
+        return shouldTerminate;
+      },
+
+      // Add these properties to make the PanResponder more robust
+      onShouldBlockNativeResponder: () => {
+        // Block native responder when we're actively dragging
+        return isDragValid.current && hasMovedSignificantly.current;
+      },
+
+      onPanResponderReject: () => {
+
+        // Clean up if responder is rejected
+        setIsDragging(false);
+        isDragValid.current = false;
+        hasMovedSignificantly.current = false;
         endDragAnimation();
         onDragEnd?.();
       },
+
+      // Additional properties for better gesture handling
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+        // Capture the responder when we start moving
+        if (!disabled && !isPinned && isDragValid.current) {
+          return true;
+        }
+        return false;
+      },
+
+      onStartShouldSetPanResponderCapture: (evt, gestureState) => {
+        // Capture the responder when we start touching
+        if (!disabled && !isPinned) {
+          return true;
+        }
+        return false;
+      },
     })
   ).current;
-    
+
   return (
     <Animated.View
       {...panResponder.panHandlers}
@@ -336,31 +332,33 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
         ],
         opacity: visibility,
         position: "absolute",
-        top: post.position.top,
-        left: post.position.left,
-        shadowColor: post.pinned ? "#FFF" : fontColor,
+        top: position.top,
+        left: position.left,
+        shadowColor: isPinned ? "#FFF" : fontColor,
         shadowOffset: {
           width: 0,
-          height: isDragging ? 8 : 2,
+          height: isDragging ? 10 : 3,
         },
         shadowOpacity,
-        shadowRadius: isDragging ? 12 : 4,
-        elevation: isDragging ? 12 : 4,
-        zIndex: disabled ? -1 : 999,
-        borderWidth: post.pinned ? 3 : 0,
+        shadowRadius: isDragging ? 15 : 6,
+        elevation: isDragging ? 15 : 6,
+        zIndex: disabled ? -1 : (isDragging ? 1000 : 999),
+        borderWidth: isPinned ? 3 : 0,
         borderColor: "#fff",
         borderRadius: 20
       }}
     >
       <TouchableWithoutFeedback onPress={onPress}>
-        <PostIt 
+        <PostIt
           viewed={isViewed}
-          color={post.color || "yellow"} />
+          color={post.color || "yellow"} 
+        />
       </TouchableWithoutFeedback>
+      
       {isPinned && (
         <View className="absolute text-black h-full -top-2 -left-2">
           <View className="p-3 rounded-full bg-[#fff] flex-row items-center justify-start">
-            <Image 
+            <Image
               source={icons.pin}
               tintColor="black"
               resizeMode="contain"
@@ -373,11 +371,13 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
           </View>
         </View>
       )}
+      
       {!showText && (
         <View className="absolute text-black w-full h-full items-center justify-center">
           <Text style={{ fontSize: 50 }}>{post.emoji && post.emoji}</Text>
         </View>
       )}
+      
       {showText && (
         <View className="absolute w-full h-full items-center justify-center">
           <Text

@@ -8,7 +8,7 @@ import {
   Animated,
   Easing,
   TouchableOpacity,
-  Platform
+  Platform,
 } from "react-native";
 import CustomButton from "./CustomButton";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,6 +25,15 @@ interface CarouselPageProps {
   disabled: boolean;
 }
 
+// Separate component for children to prevent re-render
+const MemoizedChildren = React.memo(({ children }: { children: React.ReactNode }) => {
+  return (
+    <View className="flex-1 w-full mb-6 justify-center px-6">
+      {children}
+    </View>
+  );
+});
+
 const CarouselPage: React.FC<CarouselPageProps> = ({
   label,
   caption,
@@ -39,14 +48,13 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
   const progressPercent = (progress / total) * 100;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
-  const isInitialRender = useRef(true);
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const prevProgressRef = useRef(0);
 
-  // Animation trigger on mount and progress change
+  // Content animation on mount and progress change
   useEffect(() => {
-    if (!isInitialRender.current) {
-      fadeAnim.setValue(0);
-      slideAnim.setValue(20);
-    }
+    fadeAnim.setValue(0);
+    slideAnim.setValue(20);
 
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -62,20 +70,22 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
         useNativeDriver: true,
       }),
     ]).start();
-
-    isInitialRender.current = false;
   }, [progress]);
 
-  // Progress bar width animation
-  const progressAnim = useRef(new Animated.Value(0)).current;
-  
+  // Progress bar animation - improved with better timing
   useEffect(() => {
-    Animated.timing(progressAnim, {
-      toValue: progressPercent,
-      duration: 500,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: false,
-    }).start();
+    if (prevProgressRef.current !== progressPercent) {
+      progressAnim.setValue(prevProgressRef.current);
+      
+      Animated.timing(progressAnim, {
+        toValue: progressPercent,
+        duration: 400,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: false,
+      }).start();
+      
+      prevProgressRef.current = progressPercent;
+    }
   }, [progressPercent]);
 
   return (
@@ -107,12 +117,12 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
             
             {/* Empty view to balance the layout */}
             {onBack && progress > 1 ? (
-              <View className="w-10" /> // Invisible spacer to balance the back button
+              <View className="w-10" />
             ) : null}
           </View>
           
-          {/* Animated Progress Bar - Removed the ruler styling */}
-          <View className="h-2 rounded-full bg-gray-100 overflow-hidden">
+          {/* Improved Progress Bar */}
+          <View className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
             <Animated.View
               style={{ 
                 width: progressAnim.interpolate({
@@ -120,8 +130,9 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
                   outputRange: ['0%', '100%']
                 }), 
                 backgroundColor: color,
+                height: '100%',
+                borderRadius: 6,
               }}
-              className="h-2 rounded-full"
             />
           </View>
         </View>
@@ -134,25 +145,22 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
           }}
         >
           {/* Content - Centered */}
-          <View className="mb-6  px-6">
+          <View className="mb-6 px-6">
             <Text className="text-2xl font-JakartaBold mb-2 text-gray-900 text-center">
               {label}
             </Text>
             <Text className="text-base text-gray-600 font-Jakarta leading-6 text-center">
               {caption}
             </Text>
-            
           </View>
-                    {/* Main content area - Centered with horizontal padding */}
-                    <View className="flex-1 w-full mb-6 justify-center px-6">
-            {children}
-          </View>
-
+          
+          {/* Main content area - using memoized component */}
+          <MemoizedChildren children={children} />
         </Animated.View>
      
         {/* Footer with centered button - KeyboardAvoidingView with proper spacing */}
         <KeyboardAvoidingView 
-          className="px-6 pb-6 pt-4 bg-white "
+          className="px-6 pb-6 pt-4 bg-white"
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
         >
@@ -169,7 +177,7 @@ const CarouselPage: React.FC<CarouselPageProps> = ({
               onPress={onSubmit}
               disabled={disabled}
               backgroundColor={color}
-              className="rounded-xl w-full max-w-md" // Centered with max width
+              className="rounded-xl w-full max-w-md"
             />
             
             {/* Optional: Skip button for intermediate steps */}

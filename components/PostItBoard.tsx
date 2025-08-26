@@ -19,7 +19,7 @@ import {
   View,
 } from "react-native";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { mappingPostIt, reorderPost } from '@/lib/postItBoard';
 import Animated, { 
   useSharedValue, 
@@ -77,13 +77,13 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const [isPanningMode, setIsPanningMode] = useState(true);
   const [isStackMoving, setIsStackMoving] = useState(false);
   const [isPostItDragging, setIsPostItDragging] = useState(false);
+  const [dragStartTime, setDragStartTime] = useState(0);
+  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Refs for gesture coordination
+  // Refs
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const previousOffset = useRef({ x: 0, y: 0 });
-  const dragCounter = useRef(0);
-  const gestureBlockTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Shared values for animations
   const offsetY = useSharedValue(0);
@@ -111,182 +111,71 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
     opacity: withTiming(Math.min(Math.abs(offsetY.value) / 80, 1)),
   }));
 
-  // Callback functions for post-it drag coordination
-  const handlePostItDragStart = useCallback(() => {
-    console.log("🎯 [BOARD] Post-it drag started - Blocking background gestures");
-    dragCounter.current++;
-    
-    // Clear any existing timeout
-    if (gestureBlockTimeout.current) {
-      clearTimeout(gestureBlockTimeout.current);
-      gestureBlockTimeout.current = null;
-    }
-    
-    setIsPostItDragging(true);
-    console.log("📊 [BOARD] Drag counter:", dragCounter.current, "| State:", { isPostItDragging: true });
-  }, []);
-
-  const handlePostItDragEnd = useCallback(() => {
-    console.log("🎯 [BOARD] Post-it drag ended - Preparing to unblock gestures");
-    dragCounter.current = Math.max(0, dragCounter.current - 1);
-    
-    // Only unblock if no other drags are active
-    if (dragCounter.current === 0) {
-      // Add a small delay to prevent gesture conflicts
-      gestureBlockTimeout.current = setTimeout(() => {
-        console.log("✅ [BOARD] All drags completed - Re-enabling background gestures");
-        setIsPostItDragging(false);
-        gestureBlockTimeout.current = null;
-      }, 100);
-    }
-    
-    console.log("📊 [BOARD] Drag counter:", dragCounter.current, "| Will unblock:", dragCounter.current === 0);
-  }, []);
-
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-      if (gestureBlockTimeout.current) clearTimeout(gestureBlockTimeout.current);
-    };
-  }, []);
-
-  // Enhanced gesture handlers with better coordination
-  const panGestureHandler = useAnimatedGestureHandler({
-    onStart: (_, context: any) => {
-      const shouldBlock = isPostItDragging;
-      console.log("🔄 [PAN] Attempting to start", { 
-        isPostItDragging, 
-        shouldBlock,
-        timestamp: Date.now() 
-      });
-      
-      if (shouldBlock) {
-        console.log("🚫 [PAN] Blocked - Post-it is being dragged");
-        return false;
-      }
-      
-      console.log("✅ [PAN] Started - Background panning enabled");
-      context.startX = translateX.value;
-      context.startY = translateY.value;
-      return true;
-    },
-    onActive: (event, context) => {
-      if (!isPanningMode || isPostItDragging) {
-        console.log("🚫 [PAN] Active blocked", { isPanningMode, isPostItDragging });
-        return;
-      }
-      
-      const newX = context.startX + event.translationX;
-      const newY = context.startY + event.translationY;
-      
-      translateX.value = newX;
-      translateY.value = newY;
-      
-      runOnJS(setScrollOffset)({ x: newX, y: newY });
-    },
-    onEnd: () => {
-      console.log("✅ [PAN] Ended - Background panning complete");
-    }
-  });
-
-  const pinchGestureHandler = useAnimatedGestureHandler({
-    onStart: (_, context: any) => {
-      const shouldBlock = isPostItDragging;
-      console.log("🔍 [PINCH] Attempting to start", { 
-        isPostItDragging, 
-        shouldBlock,
-        timestamp: Date.now() 
-      });
-      
-      if (shouldBlock) {
-        console.log("🚫 [PINCH] Blocked - Post-it is being dragged");
-        return false;
-      }
-      
-      console.log("✅ [PINCH] Started - Background zooming enabled");
-      context.startScale = scale.value;
-      return true;
-    },
-    onActive: (event: any, context) => {
-      if (!isPanningMode || isPostItDragging) {
-        console.log("🚫 [PINCH] Active blocked", { isPanningMode, isPostItDragging });
-        return;
-      }
-      
-      const newScale = Math.max(0.6, Math.min(context.startScale * event.scale, 1.2));
-      scale.value = newScale;
-      lastScale.current = newScale;
-      
-      runOnJS(setZoomScale)(newScale);
-    }
-  });
-
-  const doubleTapGesture = Gesture.Tap()
+    const pan = Gesture.Pan()
+    .enabled(isPanningMode && !isPostItDragging)
+    .runOnJS(true)
+    .onUpdate(e => {
+      // (optional) if you actually want board panning via transform:
+      // translateX.value += e.changeX;
+      // translateY.value += e.changeY;
+      // runOnJS(setScrollOffset)({ x: translateX.value, y: translateY.value });
+    });
+  
+  const pinch = Gesture.Pinch()
+    .enabled(isPanningMode && !isPostItDragging)
+    .runOnJS(true)
+    .onUpdate(e => {
+      const next = Math.max(0.6, Math.min(lastScale.current * e.scale, 1.2));
+      scale.value = next;
+      runOnJS(setZoomScale)(next);
+    })
+    .onEnd(() => { lastScale.current = scale.value; });
+  
+  const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
+    .enabled(isPanningMode && !isPostItDragging)
     .runOnJS(true)
     .onEnd(() => {
-      const shouldBlock = !isPanningMode || isPostItDragging;
-      console.log("👆 [DOUBLE_TAP] Attempting", { 
-        isPanningMode, 
-        isPostItDragging, 
-        shouldBlock,
-        timestamp: Date.now() 
-      });
-      
-      if (shouldBlock) {
-        console.log("🚫 [DOUBLE_TAP] Blocked");
-        return;
-      }
-      
-      console.log("✅ [DOUBLE_TAP] Executing - Resetting zoom and position");
       scale.value = withTiming(1, { duration: 250, easing: Easing.ease });
       lastScale.current = 1;
-      setZoomScale(1);
       translateX.value = withTiming(0, { duration: 250 });
       translateY.value = withTiming(0, { duration: 250 });
       runOnJS(setScrollOffset)({ x: 0, y: 0 });
     });
-
-  // Smart gesture combination
+  
   const combinedGestures = Gesture.Simultaneous(
-    Gesture.Exclusive(doubleTapGesture, Gesture.Pan()),
-    Gesture.Pinch()
+    Gesture.Exclusive(doubleTap, pan),
+    pinch
   );
+  
 
-  // Effects
+  // Effects - MUST be before any early returns
   useEffect(() => {
     if (scrollOffset.x !== previousOffset.current.x || scrollOffset.y !== previousOffset.current.y) {
-      console.log("🗺️ [SCROLL] Offset changed:", { 
-        x: scrollOffset.x, 
-        y: scrollOffset.y, 
-        isPostItDragging 
-      });
-      
       setShowMap(true);
       previousOffset.current = scrollOffset;
 
       if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-      scrollTimeout.current = setTimeout(() => {
-        setShowMap(false);
-      }, 800);
+      scrollTimeout.current = setTimeout(() => setShowMap(false), 800);
     }
   }, [scrollOffset]);
-
-  useEffect(() => {
-    console.log("🔄 [STATE] Post-it dragging state changed:", { 
-      isPostItDragging, 
-      isPanningMode,
-      dragCounter: dragCounter.current,
-      timestamp: Date.now() 
-    });
-  }, [isPostItDragging, isPanningMode]);
 
   useEffect(() => {
     fetchPosts();
   }, [mode]);
 
-  // Scroll handler
+
+  useEffect(() => {
+
+    if (isPostItDragging) {
+      setIsPanningMode(false)
+    } else {
+      setIsPanningMode(true)
+    }
+
+  }, [isPostItDragging])
+
+  // Scroll handler - MUST be before any early returns
   const scrollHandler = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { x, y } = event.nativeEvent.contentOffset;
     setScrollOffset({ x, y });
@@ -303,11 +192,11 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         let left = Number(post.position?.left ?? 0);
         
         // Ensure within bounds
-        if (top < 0 || left < 0 || 
+        if (top <= 0 || left <= 0 || 
             top > boardDimensions.height - POSTIT_HEIGHT || 
-            left > boardDimensions.width - POSTIT_WIDTH) {
-          top = Math.random() * (boardDimensions.height - POSTIT_HEIGHT);
-          left = Math.random() * (boardDimensions.width - POSTIT_WIDTH);
+            left > boardDimensions.width - POSTIT_WIDTH || (top <= POSTIT_HEIGHT && left <= POSTIT_WIDTH)) {
+          top = Math.random() * (boardDimensions.height - POSTIT_HEIGHT) + POSTIT_HEIGHT/2 ;
+          left = Math.random() * (boardDimensions.width - POSTIT_WIDTH) + POSTIT_WIDTH/2;
           
           // Update backend
           fetchAPI(`/api/posts/updatePostPosition`, {
@@ -470,7 +359,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   // Loading and empty states
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#FAFAFA]">
+      <View className="flex-1 items-center justify-center">
         <ColoreActivityIndicator />
       </View>
     );
@@ -478,7 +367,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 
   if (posts.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center -mt-[25%] bg-[#FAFAFA]">
+      <View className="flex-1 items-center justify-center -mt-[25%]">
         <EmptyListView mood={2} character="steve" message="No posts available. Should I investigate?" />
       </View>
     );
@@ -517,7 +406,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         )}
         
         {error ? (
-          <View className="flex-1 items-center justify-center bg-[#FAFAFA]">
+          <View className="flex-1 items-center justify-center">
             <ColoreActivityIndicator />
           </View>
         ) : (
@@ -546,66 +435,39 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                   }
                   horizontal
                 >
-                  <View className="flex-1 w-full h-full relative">
-                    {/* Render stacks */}
-                    {stacks.map((stack) => {
-                      const hasPosts = posts.some(p => stack.ids.includes(p.id));
-                      if (!hasPosts) return null;
-                      
-                      return (
-                        <StackCircle
-                          key={stack.name}
-                          stack={stack}
-                          scrollOffset={scrollOffset}
-                          isEditable={isEditable}
-                          onViewPress={() => setSelectedPosts(stack.elements)}
-                          onEditPress={() => isEditable && setSelectedModal(stack)}
-                          onSendPress={() => {
-                            setSelectedModal(
-                              <View className="flex-1 mx-6">
-                                <FindUser selectedUserInfo={(user) => handleShareStack(user, stack)} />
-                              </View>
-                            );
-                            setSelectedTitle("Sharing with?");
-                          }}
-                          enabledPan={() => setIsPanningMode(prev => !prev)}
-                          stackMoving={() => setIsStackMoving(prev => !prev)}
-                          updateStackPosition={(x, y, s) => {
-                            setStacks(prev => prev.map(stack => 
-                              stack.name === s.name ? { ...stack, center: { x, y } } : stack
-                            ));
-                            setIsPanningMode(true);
-                          }}
-                        />
-                      );
-                    })}
 
-                    {/* Render posts with enhanced drag coordination */}
+                    {/* Render posts */}
                     {posts.map((post) => (
                       <DraggablePostIt
                         key={post.id}
-                        post={post}
+                        post={{
+                          ...post,
+                          position: {
+                            top: post.position?.top ?? 0,
+                            left: post.position?.left ?? 0,
+                          }
+                        }}
                         position={{
                           top: post.position?.top ?? 0,
                           left: post.position?.left ?? 0,
                         }}
                         updateIndex={() => setPosts(prev => reorderPost(prev, post))}
                         updatePosition={(dx, dy) => {
-                          // Update map position logic here if needed
+                          // Update map position
                         }}
                         onPress={() => handlePostPress(post)}
                         showText={showPostItText}
                         isViewed={false}
                         enabledPan={() => setIsPanningMode(prev => !prev)}
-                        onDragStart={handlePostItDragStart}
-                        onDragEnd={handlePostItDragEnd}
+                        onDragStart={() => setIsPostItDragging(true)}
+                        onDragEnd={() => setIsPostItDragging(false)}
                         zoomScale={zoomScale}
                         scrollOffset={scrollOffset}
                         disabled={isStackMoving}
                         visibility={isStackMoving ? 0.5 : 1}
                       />
                     ))}
-                  </View>
+
                 </ScrollView>
               </Animated.View>
             </GestureDetector>
@@ -645,3 +507,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 };
 
 export default PostItBoard;
+        
+        
+      

@@ -1,48 +1,34 @@
 import {
-  SafeAreaView,
   View,
   Dimensions,
-  TouchableOpacity,
-  Text,
-  Image,
-  FlatList,
-  ScrollView,
   Alert,
 } from "react-native";
 import PersonalBoard from "@/components/PersonalBoard";
-import { AntDesign } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { icons } from "@/constants";
 import { router } from "expo-router";
 import { fetchAPI } from "@/lib/fetch";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAlert } from "@/notifications/AlertContext";
 import { useUser } from "@clerk/clerk-expo";
 import Header from "@/components/Header";
 import { CustomButtonBar } from "@/components/CustomTabBar";
-import Animated, {
-  FadeIn,
-} from "react-native-reanimated";
-import ModalSheet from "@/components/Modal";
-import { set } from "date-fns";
-import ItemContainer from "@/components/ItemContainer";
-import CustomButton from "@/components/CustomButton";
-import { FindUser } from "@/components/FindUsers";
-import { DetailRow, HeaderCard, ToggleRow } from "@/components/CardInfo";
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
-import { Post } from "@/types/type";
+import { Post, Board } from "@/types/type";
 import PostModal from "@/components/PostModal";
 import { useDecrypt } from "@/hooks/useDecrypt";
-import EmptyListView from "@/components/EmptyList";
 import RenameContainer from "@/components/RenameContainer";
 import KeyboardOverlay from "@/components/KeyboardOverlay";
+import BoardSettingsModal from "@/components/BoardSettingsModal";
+import BoardHeader from "@/components/BoardHeader";
 
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
-const SCREEN_HEIGHT = Dimensions.get("window").height
 const UserPersonalBoard = () => {
+  // All hooks must be called at the top level, never conditionally
   const { user } = useUser();
   const { id, username, boardId, postId, commentId } = useLocalSearchParams();
   const { playSoundEffect } = useSoundEffects();
@@ -53,22 +39,27 @@ const UserPersonalBoard = () => {
     soundEffectsEnabled,
     setSoundEffectsEnabled,
   } = useSettingsContext();
-  const [onFocus, setOnFocus] = useState<boolean>(false);
   const { encryptionKey } = useEncryptionContext();
-  const [isBoardSettingsVisible, setIsBoardSettingsVisible] =
-    useState<boolean>(false);
+  const { showAlert } = useAlert();
+
+  // State declarations
+  const [onFocus, setOnFocus] = useState<boolean>(false);
+  const [isBoardSettingsVisible, setIsBoardSettingsVisible] = useState<boolean>(false);
   const [selectedSetting, setSelectedSetting] = useState<string>("");
   const [shuffleMode, setShuffleMode] = useState<boolean>(false);
-  const [boardInfo, setBoardInfo] = useState<any>();
+  const [boardInfo, setBoardInfo] = useState<Board | undefined>();
   const [post, setPost] = useState<Post>();
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const isOwnBoard = !id || id == user?.id;
   const [postCount, setPostCount] = useState<number>(0);
   const [joinedCommunity, setJoinedCommunity] = useState<boolean>(false);
   const [canParticipate, setCanParticipate] = useState<boolean>(false);
   const [canComment, setCanComment] = useState<boolean>(true);
-  const { showAlert } = useAlert();
-  const handleNewPost = () => {
+
+  // Computed values
+  const isOwnBoard = !id || id == user?.id;
+
+  // Event handlers
+  const handleNewPost = useCallback(() => {
     router.push({
       pathname: "/root/new-post",
       params: {
@@ -78,44 +69,39 @@ const UserPersonalBoard = () => {
         source: "board",
       },
     });
-  };
+  }, [id, username, boardId]);
 
-  console.log("[USER BOARD PARAMS]: ", id, username, boardId, postId, commentId )
-  const handleHapticsToggle = (value: boolean) => {
+  const handleHapticsToggle = useCallback((value: boolean) => {
     setHapticsEnabled(value);
-    playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
-  };
+    playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff);
+  }, [setHapticsEnabled, playSoundEffect]);
 
-  const handleSoundToggle = (value: boolean) => {
+  const handleSoundToggle = useCallback((value: boolean) => {
     setSoundEffectsEnabled(value);
-    playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff); // Play sound on toggle
-  };
+    playSoundEffect(value ? SoundType.ToggleOn : SoundType.ToggleOff);
+  }, [setSoundEffectsEnabled, playSoundEffect]);
 
-
-
-  const fetchNewPost = async (id: string) => {
+  const fetchNewPost = useCallback(async (id: string) => {
     try {
       const response = await fetchAPI(`/api/posts/getPostsById?ids=${id}`);
       const post = response.data;
-
-      console.log("POST: ", response, post)
 
       if (!post || post.length === 0) {
         return null;
       }
       setTimeout(() => {
-        setPost(post);
+        setPost(post[0]);
         setIsModalVisible(true);
-      }, 800)
+      }, 800);
     } catch (error) {
       return null;
     }
-  };
+  }, []);
 
-  const fetchBoard = async () => {
+  const fetchBoard = useCallback(async () => {
     if (boardId == "-1" || username == "Personal Board") return;
     try {
-      const response = await fetchAPI(`/api/boards/getBoardById?id=${boardId}`)
+      const response = await fetchAPI(`/api/boards/getBoardById?id=${boardId}`);
       
       if (!response.data) {
         console.error("Board data is undefined");
@@ -143,15 +129,13 @@ const UserPersonalBoard = () => {
 
       setBoardInfo(boardData);
       setCanParticipate(!isPrivate);
-      setCanComment(boardData.restrictions.includes("commentsAllowed"))
+      setCanComment(boardData.restrictions.includes("commentsAllowed"));
       setPostCount(response.count || 0);
 
-      const hasJoined = response.data.members_id && response.data.members_id.includes(user!.id)
-      setJoinedCommunity(hasJoined)
-
-
+      const hasJoined = response.data.members_id && response.data.members_id.includes(user!.id);
+      setJoinedCommunity(hasJoined);
     } catch (error) {
-      console.error("Failed to fetch board", error)
+      console.error("Failed to fetch board", error);
       showAlert({
         title: 'Error',
         message: `Failed to load board`,
@@ -159,9 +143,9 @@ const UserPersonalBoard = () => {
         status: 'error',
       });
     }
-  };
+  }, [boardId, username, encryptionKey, decrypt, showAlert, user]);
 
-  const handleJoinCommunity = async () => {
+  const handleJoinCommunity = useCallback(async () => {
     const response = await fetchAPI(`/api/boards/handleJoiningCommunityBoard`, {
       method: "PATCH",
       body: JSON.stringify({
@@ -174,7 +158,6 @@ const UserPersonalBoard = () => {
     if (response.data[0].user_id != user!.id) {
       if (!joinedCommunity) {
         setJoinedCommunity(true);
-
         showAlert({
           title: "Success",
           message: `You've joined the community.`,
@@ -194,348 +177,182 @@ const UserPersonalBoard = () => {
         status: "error",
       });
     }
-  };
+  }, [user, boardId, joinedCommunity, showAlert]);
 
-  const navigationControls =
-    isOwnBoard || boardId == "-1"
-      ? [
-          {
-            icon: icons.back,
-            label: "Back",
-            onPress: () => router.back(),
-          },
-          {
-            icon: icons.pencil,
-            label: "New Post",
-            onPress: handleNewPost,
-            isCenter: true,
-          },
-          {
-            icon: icons.settings,
-            label: "Settings",
-            onPress: () => {
-              setIsBoardSettingsVisible(false); // Just for the time of the beta testing
-            }
-          },
-        ]
-      : [
-          {
-            icon: icons.back,
-            label: "Back",
-            onPress: () => router.back(),
-          },
-          {
-            icon: icons.shuffle,
-            label: "Shuffle",
-            onPress: () => setShuffleMode(true),
-            isCenter: true,
-          },
-          {
-            icon: icons.settings,
-            label: "Settings",
-            onPress: () => {
-              setIsBoardSettingsVisible(false); // Just for the time of the beta testing
-            }
-          },
-        ];
+  const handleNewBoardTitle = useCallback(async (name: string) => {
+    try {
+      const response = await fetchAPI(`/api/boards/updateBoard`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          userId: user!.id,
+          boardId: boardId,
+          title: name
+        })
+      });
 
-  const allOptions = [
-    {
-      label: "Name",
-      role: "admin",
-      component: (
-        <ItemContainer
-          label={"Edit Name"}
-          caption={"Modify this board's name."}
-          icon={icons.pencil}
-          colors={["#CFB1FB", "#fef08a"]}
-          iconColor="#000"
-          onPress={() => {setOnFocus(true)}}
-        />
-      ),
-    },
-    {
-      label: "Permissions",
-      role: "admin",
-      component: (
-        <ItemContainer
-          label={"Edit Board Permissions"}
-          caption={"Modify this board's permissions."}
-          icon={icons.hide}
-          colors={["#CFB1FB", "#fef08a"]}
-          iconColor="#000"
-          onPress={() => setSelectedSetting("Permissions")}
-        />
-      ),
-    },
-    {
-      label: "Delete",
-      role: "admin",
-      component: (
-        <ItemContainer
-          label={"Delete Board"}
-          caption={"Delete this board"}
-          icon={icons.trash}
-          colors={["#CFB1FB", "#fef08a"]}
-          iconColor="#000"
-          onPress={() => {
-            Alert.alert(
-              "Delete Board",
-              "Are you sure you want to delete this board?",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Delete", style: "destructive", onPress: () => {/* TODO: handle delete */} }
-              ]
-            )
-          }}
-        />
-      ),
-    },
-    {
-      label: "Membership",
-      role: "",
-      component: (
-        <ItemContainer
-          label={joinedCommunity ? "Wanna leave?" : "Wanna join?"}
-          caption={
-            joinedCommunity ? "Leave this community." : "Join this community."
-          }
-          icon={joinedCommunity ? icons.close : icons.add}
-          colors={["#CFB1FB", "#fef08a"]}
-          iconColor="#000"
-          onPress={() => handleJoinCommunity()}
-        />
-      ),
-    },
-    {
-      label: "Members",
-      role: "",
-      component: (
-        <ItemContainer
-          label={"See Members"}
-          caption={"View the members of this board."}
-          icon={icons.addUser}
-          colors={["#CFB1FB", "#fef08a"]}
-          iconColor="#000"
-          onPress={() => setSelectedSetting("Members")}
-        />
-      ),
-    },
-    {
-      label: "Info",
-      role: "",
-      component: (
-        <ItemContainer
-          label={"Show Board Info"}
-          caption={"View this board's information."}
-          icon={icons.info}
-          colors={["#CFB1FB", "#fef08a"]}
-          iconColor="#000"
-          onPress={() => setSelectedSetting("Info")}
-        />
-      ),
-    },
-  ];
+      if (response.success) {
+        setBoardInfo(prev => prev ? { ...prev, title: name } : prev);
+        setOnFocus(false);
+        
+        showAlert({
+          title: "Success",
+          message: "Board title updated successfully",
+          type: "SUCCESS",
+          status: "success",
+        });
+      } else {
+        throw new Error(response.error || "Failed to update board title");
+      }
+    } catch (error) {
+      console.error('Failed to update board title', error);
+      showAlert({
+        title: "Error",
+        message: "Failed to update board title. Please try again.",
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  }, [user, boardId, showAlert]);
 
-  const menuOptions =
-    isOwnBoard && boardId == "-1"
-      ? allOptions.filter((option) => option.role == "admin")
-      : (isOwnBoard ? allOptions.filter((option) => option.label !== "Membership") : allOptions.filter((option) => option.role !== "admin"));
+  const handleDeleteBoard = useCallback(async () => {
+    try {
+      const response = await fetchAPI(`/api/boards/deleteBoard`, {
+        method: 'DELETE',
+        body: JSON.stringify({
+          userId: user!.id,
+          boardId: boardId
+        })
+      });
 
-  const BoardSetting = () => {
-    return (
-      <ModalSheet
-        title={!selectedSetting ? "Board Settings" : selectedSetting}
-        isVisible={isBoardSettingsVisible}
-        onClose={() => {setIsBoardSettingsVisible(false)}}
-      >
-        <View 
-        className="flex-1 px-6 py-4">
-          {!selectedSetting ? (
-            <FlatList
-              data={menuOptions}
-              keyExtractor={(item, index) => item.label ?? `option-${index}`}
-              ListEmptyComponent={
-                  <EmptyListView message={"No options? Weird..."} character="steve" mood={0} />
-                }
-              renderItem={({ item, index }) => {
-                return (
-                   <View>
-                        {item.role == "admin" ? 
-                        (index > 0 && menuOptions[index - 1].role === item.role ? <></>  : <Text className="text-center text-[14px] font-JakartaMedium ml-4 text-gray-300">Edit</Text>)
-                         : (index > 0 && menuOptions[index - 1].role === item.role ? <></> : <Text className="text-center  text-[14px] font-JakartaMedium ml-4 text-gray-300">Interact</Text>)}
-                        {item.component}
-                      </View>
-                );
-              }}
-              contentContainerStyle={{ paddingBottom: 80, marginBottom: 16 }}
-              showsVerticalScrollIndicator={false}
-            />
-          ) : selectedSetting == "Share" ? (
-            <View 
-            className="flex-1 my-2"
-             style={{
-              height: SCREEN_HEIGHT * 0.5
-            }}>
-              <FindUser selectedUserInfo={() => {}} />
-            </View>
-          ) : selectedSetting == "Members" ? (
-            <View 
-            className="flex-1"
-            style={{
-              height: SCREEN_HEIGHT * 0.5
-            }}>
-              <FindUser
-                selectedUserInfo={() => {}}
-                inGivenList={boardInfo.members_id}
-              />
-            </View>
-          ) : selectedSetting == "Info" ? (
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{  height: SCREEN_HEIGHT * 0.5 }}
-              className="flex-1"
-            >
-              <HeaderCard
-                title="Information"
-                color="#93c5fd"
-                content={
-                  <>
-                    <DetailRow
-                      label="Title"
-                      value={`${boardInfo.title ?? username}`}
-                      onPress={null}
-                      accentColor="#93c5fd"
-                    />
+      if (response.success) {
+        showAlert({
+          title: "Success",
+          message: "Board deleted successfully",
+          type: "SUCCESS",
+          status: "success",
+        });
+        
+        router.push('/root/tabs/personal-board');
+      } else {
+        throw new Error(response.error || "Failed to delete board");
+      }
+    } catch (error) {
+      console.error('Failed to delete board', error);
+      showAlert({
+        title: "Error",
+        message: "Failed to delete board. Please try again.",
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  }, [user, boardId, showAlert]);
 
-                                <DetailRow 
-                                          label="Description" 
-                                          value={`${boardInfo.description}`} 
-                                          onPress={null}
-                                          accentColor="#93c5fd"
-                                />
-                                <DetailRow 
-                                          label="Owner" 
-                                          value={"A good person"} 
-                                          onPress={null}
-                                          accentColor="#93c5fd"
-                                />
-                                                         </>
-                            }
-                            infoView={null}
-                          />
-                          <View className="my-4"></View>
-                      <HeaderCard 
-                            title="Preferences" 
-                            color="#ffe640"
-                            content={
-                              <>
-                                <ToggleRow 
-                                  label="Notifications"
-                                  description="Get notified whenever there is a new post"
-                                  value={hapticsEnabled}
-                                  onValueChange={handleHapticsToggle}
-                                  accentColor="#ffe640"
-                                />
-                              </>
-                            }
-                            infoView={null}
-                          />
-                           <View className="my-4"></View>
-                    {selectedSetting &&  <View className="flex-1 flex items-center w-full mb-4">
-                              <CustomButton
-                              className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
-                              fontSize="lg"
-                              title="Close"
-                              padding={4}
-                              onPress={() => {
-                                setSelectedSetting("");
-                              }}
-                            />
-                            </View>}
-                            <View className="my-8"></View>
-                    </ScrollView>
-                  ): (
-                    <View className="flex-1 px-6 max-h-[80%]">
+  const handleUpdateBoardPermissions = useCallback(async (newRestrictions: string[]) => {
+    try {
+      const response = await fetchAPI(`/api/boards/updateBoardPermissions`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          userId: user!.id,
+          boardId: boardId,
+          restrictions: newRestrictions
+        })
+      });
 
-                    </View>
-                  )}
-         {selectedSetting &&  <View className="flex-1 flex items-center w-full mb-4">
-          <CustomButton
-          className="my-2 w-[175px] h-14 self-center rounded-full shadow-none bg-black"
-          fontSize="lg"
-          title="Close"
-          padding={4}
-          onPress={() => {
-            setSelectedSetting("");
-          }}
-        />
-        </View>}
-        </View>
-      </ModalSheet>
-    );
-  };
+      if (response.success) {
+        setBoardInfo(prev => prev ? { ...prev, restrictions: newRestrictions } : prev);
+        setCanComment(newRestrictions.includes("commentsAllowed"));
+        
+        showAlert({
+          title: "Success",
+          message: "Board permissions updated successfully",
+          type: "SUCCESS",
+          status: "success",
+        });
+      } else {
+        throw new Error(response.error || "Failed to update board permissions");
+      }
+    } catch (error) {
+      console.error('Failed to update board permissions', error);
+      showAlert({
+        title: "Error",
+        message: "Failed to update board permissions. Please try again.",
+        type: "ERROR",
+        status: "error",
+      });
+    }
+  }, [user, boardId, showAlert]);
 
+  const handleSettingSelect = useCallback((setting: string) => {
+    setSelectedSetting(setting);
+  }, []);
+
+  const handleRenameBoard = useCallback(() => {
+    setIsBoardSettingsVisible(false)
+    setSelectedSetting("")
+
+    setTimeout(() => {
+      setOnFocus(true);
+    }, 250)
+  }, []);
+
+  const handleCloseSettings = useCallback(() => {
+    setIsBoardSettingsVisible(false);
+    setSelectedSetting("");
+  }, []);
+
+  // Navigation controls
+  const navigationControls = useMemo(() => {
+    if (isOwnBoard || boardId == "-1") {
+      return [
+        {
+          icon: icons.back,
+          label: "Back",
+          onPress: () => router.back(),
+        },
+        {
+          icon: icons.pencil,
+          label: "New Post",
+          onPress: handleNewPost,
+          isCenter: true,
+        },
+        {
+          icon: icons.settings,
+          label: "Settings",
+          onPress: () => setIsBoardSettingsVisible(true),
+        },
+      ];
+    } else {
+      return [
+        {
+          icon: icons.back,
+          label: "Back",
+          onPress: () => router.back(),
+        },
+        {
+          icon: icons.shuffle,
+          label: "Shuffle",
+          onPress: () => setShuffleMode(true),
+          isCenter: true,
+        },
+        {
+          icon: icons.settings,
+          label: "Settings",
+          onPress: () => setIsBoardSettingsVisible(true),
+        },
+      ];
+    }
+  }, [isOwnBoard, boardId, handleNewPost]);
+
+  // Effects
   useEffect(() => {
     fetchBoard();
-  }, [joinedCommunity]);
+  }, [fetchBoard, joinedCommunity]);
 
   useEffect(() => {
-    if (postId) {
+    if (postId && typeof postId === 'string') {
       fetchNewPost(postId);
     }
-  }, [postId]);
-
-const handleLongUsername = (username: string): string => {
-  // Trim and normalize spacing
-  let cleanUsername = username.trim().replace(/\s+/g, " ");
-
-  // If the username has spaces and is too long
-  if (cleanUsername.includes(" ") && cleanUsername.length > 14) {
-    // Replace "and" and "to" with "&" and "2" respectively (only whole words)
-    cleanUsername = cleanUsername
-      .split(" ")
-      .map(word => {
-        if (/^and$/i.test(word)) return "&";
-        if (/^to$/i.test(word)) return "2";
-        return word;
-      })
-      .join(" ");
-
-    // Take first character of each word, preserve special symbols like & or 2
-    return cleanUsername
-      .split(" ")
-      .filter(Boolean)
-      .map(word => (word.length === 1 ? word : word[0].toUpperCase()))
-      .join("");
-  }
-
-  // If it's a long single word, extract all capital letters
-  if (!cleanUsername.includes(" ") && cleanUsername.length > 14) {
-    const caps = cleanUsername.match(/[A-Z]/g);
-    return caps ? caps.join("") : cleanUsername.slice(0, 8);
-  }
-
-  // Otherwise return as-is
-  return cleanUsername;
-};
-
-const handleNewBoardTitle = async (name: string) => {
-  try {
-    const response = fetchAPI(`/api/boards/updateBoard`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        userId: user!.id,
-        boardId: boardId,
-        title: name
-      })
-    })
-  } catch (error) {
-    console.error('Failed to update board title', error)
-  }
-}
-
-console.log("[BOARD INFO] : ", boardInfo)
+  }, [postId, fetchNewPost]);
 
   return (
     <>
@@ -549,54 +366,12 @@ console.log("[BOARD INFO] : ", boardInfo)
 
         <Header
           item={
-            <View className="mx-6 mt-2 mb-6 flex-row justify-between items-center w-full px-4">
-              <Animated.View entering={FadeIn.duration(800)}>
-                {username ? (
-                  <View className="max-w-[200px]">
-                    <Text className={`text-xl font-JakartaBold`}>
-                      {handleLongUsername(username)}
-                    </Text>
-                  </View>
-                ) : (
-                  <Text
-                    className={`text-xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}
-                  >
-                    Personal Board
-                  </Text>
-                )}
-                {boardInfo ? (
-                  <View className="max-w-[200px]">
-                    <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
-                      {boardInfo.description.trim()}
-                    </Text>
-                  </View>
-                ) : (
-                  <View>
-                    <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
-                      {isOwnBoard ? "Your" : username + "'s"} personal space.
-                    </Text>
-                  </View>
-                )}
-              </Animated.View>
-              {boardInfo && (
-                <View className="flex-row gap-6 mr-7">
-                  <View>
-                    <Text className="text-lg font-JakartaSemiBold">
-                      {postCount}
-                    </Text>
-                    <Text className="text-xs font-JakartaSemiBold">Posts</Text>
-                  </View>
-                  <View className="flex-column items-start justify-center">
-                    <Text className="text-lg font-JakartaSemiBold">
-                      {boardInfo?.members_id.length}
-                    </Text>
-                    <Text className="text-xs font-JakartaSemiBold">
-                      Members
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
+            <BoardHeader
+              username={username}
+              boardInfo={boardInfo}
+              postCount={postCount}
+              isOwnBoard={isOwnBoard}
+            />
           }
         />
 
@@ -605,28 +380,56 @@ console.log("[BOARD INFO] : ", boardInfo)
           boardId={Number(boardId)}
           shuffleModeOn={shuffleMode}
           setShuffleModeOn={() => setShuffleMode(false)}
-          restrictions={{ allowedComments: canComment} }
+          restrictions={{ allowedComments: canComment }}
         />
+        
         <CustomButtonBar buttons={navigationControls} />
-        {isBoardSettingsVisible && BoardSetting()}
+        
+        {isBoardSettingsVisible && Number(boardId) > 0 && (
+          <BoardSettingsModal
+            isVisible={isBoardSettingsVisible}
+            selectedSetting={selectedSetting}
+            boardInfo={boardInfo}
+            username={username}
+            postCount={postCount}
+            hapticsEnabled={hapticsEnabled}
+            soundEffectsEnabled={soundEffectsEnabled}
+            isOwnBoard={isOwnBoard}
+            boardId={boardId}
+            joinedCommunity={joinedCommunity}
+            canComment={canComment}
+            onClose={handleCloseSettings}
+            onSettingSelect={handleSettingSelect}
+            onHapticsToggle={handleHapticsToggle}
+            onSoundToggle={handleSoundToggle}
+            onUpdatePermissions={handleUpdateBoardPermissions}
+            onJoinCommunity={handleJoinCommunity}
+            onDeleteBoard={handleDeleteBoard}
+            onRenameBoard={handleRenameBoard}
+          />
+        )}
       </View>
+
       {post && (
         <PostModal
           isVisible={!!post}
-          selectedPosts={post}
+          selectedPosts={post ? [post] : []}
           handleCloseModal={() => {
             setIsModalVisible(false);
-            setPost(undefined)
+            setPost(undefined);
           }}
           seeComments={!!commentId}
         />
       )}
-        {onFocus && (
+
+      {onFocus && (
         <KeyboardOverlay onFocus={onFocus} offsetY={0}>
           <RenameContainer
-            onSave={(newName: string) => {handleNewBoardTitle}}
-            placeholder={boardInfo.title}
-            onCancel={() => setOnFocus(false)}
+            onSave={handleNewBoardTitle}
+            placeholder={boardInfo?.title}
+            onCancel={() => {
+              handleCloseSettings()
+              setOnFocus(false)}}
           />
         </KeyboardOverlay>
       )}

@@ -108,7 +108,7 @@ export const FindUser: React.FC<FindUserProps> = ({
   };
 
   return (
-    <View className="flex-1 h-full">
+    <View className="flex-1">
       <View className="mt-4 mx-4">
         <View
           className="flex flex-row items-center rounded-[24px] px-4 h-12 "

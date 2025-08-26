@@ -18,11 +18,15 @@ import { boardTutorialPages } from "@/constants/tutorials";
 import CarouselPage from "@/components/CarrousselPage";
 import ModalSheet from "@/components/Modal";
 import { Board } from "@/types/type";
+import { useThemeColors, useBackgroundColor, useTextColor } from "@/hooks/useTheme";
 
 const UserPersonalBoard = () => {
   const router = useRouter();
   const { user } = useUser();
   const { userColors } = useProfileContext();
+  const colors = useThemeColors();
+  const backgroundColor = useBackgroundColor();
+  const textColor = useTextColor();
   const { 
     personalBoards: rawPersonalBoards, 
     communityBoards: rawCommunityBoards,
@@ -116,7 +120,7 @@ const UserPersonalBoard = () => {
   );
 
   return (
-    <View className="flex-1 bg-white">
+    <View style={{ flex: 1, backgroundColor: backgroundColor }}>
   <Header 
         title="Boards"
         tabs={tabs}
@@ -124,28 +128,30 @@ const UserPersonalBoard = () => {
         onTabChange={handleTabChange} 
         tabCount={0}    />
 
-            <View className=" z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 mx-6"
+            <View className=" z-10 flex flex-row items-center rounded-[24px] px-4 mt-4 h-12 mx-6"
         style={{
+          backgroundColor: colors.surface,
           boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
           width: '90%',
           marginTop: 24
         }}
         >
-          <Ionicons name="search" size={20} color="#9ca3af" />
+          <Ionicons name="search" size={20} color={colors.textSecondary} />
           <TextInput
             className="flex-1 pl-2 text-md "
             placeholder="Looking for a specific board..?"
-             placeholderTextColor="#9CA3AF"
+             placeholderTextColor={colors.textSecondary}
             value={searchText}
             onChangeText={setSearchText}
             returnKeyType="search"
+            style={{ color: textColor }}
           />
           {searchText.length > 0 && (
             <TouchableOpacity 
               onPress={handleClearSearch}
               className="w-6 h-6 items-center justify-center"
             >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+              <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>

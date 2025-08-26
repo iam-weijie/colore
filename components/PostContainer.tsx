@@ -80,7 +80,7 @@ import { useAlert } from "@/notifications/AlertContext";
 import InteractionButton from "./InteractionButton";
 import CarrouselIndicator from "./CarrouselIndicator";
 import EmojiExplosionModal from "./EmojiExplosiveModal";
-import PostScreen from "@/app/root/post/[id]";
+import CommentView from "@/app/root/post/[id]";
 import ItemContainer from "./ItemContainer";
 import EmojiBackground from "./EmojiBackground";
 import { RichText } from "./RichTextInput";
@@ -109,7 +109,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
   allowedComments = true
 }) => {
   const { stacks, setStacks } = useStacks();
-  const { draftPost } = useDraftPost();
+  const { draftPost, setDraftPost } = useDraftPost();
   const { isIpad } = useDevice();
   const { soundEffectsEnabled } = useSettingsContext();
   const { encryptionKey } = useEncryptionContext();
@@ -150,6 +150,8 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
 
   // Memoize the posts array to prevent unnecessary re-renders
   const post = useMemo(() => selectedPosts, [selectedPosts]);
+
+  console.log("[CONTAINER] Number of posts: ", post.length);
 
   // Check if post is saved and pinned
   useEffect(() => {
@@ -257,71 +259,70 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
 
 
   // Fetch like status when current post changes
-  useEffect(() => {
+// keep your existing state: isLiked, likeCount, currentPost, user…
 
-    if (currentPost && user) {
-      getLikeStatus();
-    }
-  }, [currentPost, user]);
+useEffect(() => {
+  if (!currentPost?.id || !user?.id) return;
 
-  const getLikeStatus = useCallback(async () => {
-    if (!currentPost || !user) return;
-    
+  // Debounce: wait 250–300ms after currentPost/user settles
+  const t = setTimeout(async () => {
     try {
       const status = await fetchLikeStatus(currentPost.id, user.id);
       setIsLiked(status.isLiked);
       setLikeCount(status.likeCount);
-    } catch (error) {
-      console.error("Error fetching like status:", error);
+    } catch (err) {
+      // swallow or log; avoids noisy "Premature close" during fast swipes
+      if (__DEV__) console.warn("fetchLikeStatus failed:", err);
     }
-  }, [currentPost, user]);
+  }, 250);
+
+  // Cancel pending call if post/user changes again or component unmounts
+  return () => clearTimeout(t);
+}, [currentPost?.id, user?.id]);
 
 
-  const handleLikePress = useCallback(async () => {
-    if (!currentPost || isLoadingLike || !user) return;
-    
+
+  const handleLikePress = async () => {
+    if (isLoadingLike || !currentPost?.id || !user?.id) return;
     setIsLoadingLike(true);
-    
     try {
-      const endpoint = isLiked ? "unlikePost" : "likePost";
-      
-      // Play sound effect
-      if (soundEffectsEnabled) {
-        playSoundEffect(SoundType.Like);
+      // Play like sound if liking (not unliking) and enabled
+      if (!isLiked && soundEffectsEnabled) {
+        playSoundEffect(SoundType.Tap);
       }
-      
-      // Optimistic update
-      setIsLiked(!isLiked);
-      setLikeCount(prevCount => isLiked ? prevCount - 1 : prevCount + 1);
-      
-      const response = await fetchAPI(`/api/posts/${endpoint}`, {
-        method: "POST",
+      const increment = !isLiked;
+      setIsLiked(increment);
+      setLikeCount((prev) => (increment ? prev + 1 : prev - 1));
+
+      const response = await fetchAPI(`/api/posts/updateLikeCount`, {
+        method: "PATCH",
         body: JSON.stringify({
           postId: currentPost.id,
           userId: user.id,
+          increment,
         }),
       });
-      
+
       if (response.error) {
-        // Revert optimistic update on error
-        setIsLiked(isLiked);
-        setLikeCount(prevCount => isLiked ? prevCount : prevCount - 1);
-        throw new Error(response.error);
+        setIsLiked(!increment);
+        setLikeCount((prev) => (increment ? prev - 1 : prev + 1));
+        showAlert({
+          title: 'Error',
+          message: "Unable to update like status.",
+          type: 'ERROR',
+          status: 'error',
+        });
+        return;
       }
-      
+
+      setIsLiked(response.data.liked);
+      setLikeCount(response.data.likeCount);
     } catch (error) {
-      console.error("Error liking/unliking post:", error);
+      console.error("Failed to update like status:", error);
     } finally {
       setIsLoadingLike(false);
     }
-  }, [currentPost, isLoadingLike, user, isLiked, soundEffectsEnabled, playSoundEffect]);
-
-  const findUserNickname = useCallback((
-    userArray: UserNicknamePair[],
-    userId: string
-  ): number => {
-    return userArray.findIndex(([id]) => id === userId);
-  }, []);
+  };
 
   const handleDeletePress = useCallback(async () => {
     if (!currentPost || !user) return;
@@ -410,7 +411,6 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
 
   const getMenuItems = useCallback((
     isOwner: boolean,
-    invertedColors: boolean,
     isPreview: boolean
   ) => {
     const menuItems = [];
@@ -422,7 +422,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
         menuItems.push({
           source: icons.pin,
           label: Boolean(currentPost?.pinned) ? "Unpin" : "Pin",
-          color: "#000000",
+          color: "#E1E1E1",
           onPress: async () => {
             if (currentPost && user) {
               console.log(`Attempting to ${Boolean(currentPost?.pinned) ? "unpin" : "pin"} post:`, currentPost.id);
@@ -537,39 +537,49 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
         });
       }
       
-      if (isOwner) {
-        menuItems.push({
-          source: icons.trash,
-          label: "Delete",
-          color: "#DA0808",
-          onPress: handleDeletePress,
-        });
-      }
+
       
       menuItems.push({
         source: icons.bookmark,
         label: isSaved ? "Unsave" : "Save",
-        color: "#000000",
+        color: isSaved ? "#CFB1FB" : "#E2C7FF",
         onPress: () => handleSavePostPress(currentPost?.id),
       });
-      
-      menuItems.push({
-        source: icons.send,
-        label: "Share",
-        color: "#000000",
-        onPress: handleCapture,
-      });
+
       
       if (!isOwner) {
         menuItems.push({
           source: icons.info,
           label: "Report",
-          color: "#DA0808",
+          color: "#4689a1",
           onPress: () => {
             Linking.openURL("mailto:support@colore.ca");
           },
         });
       }
+
+      if (isOwner) {
+
+        menuItems.push({
+          source: icons.pencil,
+          label: "Edit",
+          color: "#6bc6c9",
+          onPress: () => {
+            if (currentPost) {
+              setDraftPost(currentPost);
+              handleEditing(currentPost);
+            }
+          }
+        });
+          menuItems.push({
+            source: icons.trash,
+            label: "Delete",
+            color: "#DA0808",
+            onPress: handleDeletePress,
+          });
+  
+  
+        }
     }
     
     return menuItems;
@@ -583,7 +593,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
       
       // Play sound effect
       if (soundEffectsEnabled) {
-        playSoundEffect(SoundType.Button);
+        playSoundEffect(SoundType.Tap);
       }
       
       // Optimistic update
@@ -665,7 +675,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
 
   const swipeGesture = Gesture.Pan()
     .onStart((event) => {
-      console.log("Swipe started");
+      console.log("Swipe started!!");
     })
     .onUpdate((event) => {
       translateX.value = event.translationX;
@@ -679,7 +689,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
         // Swiping right - go to previous post
         translateX.value = withTiming(0, { duration: 200 });
         opacity.value = withTiming(0, { duration: 150 }, () => {
-          runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
+          //runOnJS(setCurrentPostIndex)(currentPostIndex - 1);
           // Small delay before fading in new post
           setTimeout(() => {
             opacity.value = withTiming(1, { duration: 250 });
@@ -687,7 +697,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
           
           // Provide haptic feedback for navigation
           if (soundEffectsEnabled) {
-            runOnJS(playSoundEffect)(SoundType.Button);
+            runOnJS(playSoundEffect)(SoundType.Navigation);
           }
         });
       } else if (translateX.value < -threshold) {
@@ -695,7 +705,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
           // Swipe left: go to next post
           translateX.value = withTiming(0, { duration: 200 });
           opacity.value = withTiming(0, { duration: 150 }, () => {
-            runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
+            //runOnJS(setCurrentPostIndex)(currentPostIndex + 1);
             // Small delay before fading in new post
             setTimeout(() => {
               opacity.value = withTiming(1, { duration: 250 });
@@ -703,7 +713,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
             
             // Provide haptic feedback for navigation
             if (soundEffectsEnabled) {
-              runOnJS(playSoundEffect)(SoundType.Button);
+              runOnJS(playSoundEffect)(SoundType.Navigation);
             }
           });
         } else {
@@ -733,7 +743,9 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
   const handleCommentsPress = () => {
     const current = post[currentPostIndex];
     setSelectedBoard(() => (
-      <PostScreen id={String(current.id)} clerkId={current.user_id} />
+
+      <CommentView id={String(current.id)} clerkId={current.user_id} color={currentPost?.color ?? ""} anonymousParam={invertedColors} likes={likeCount}/>
+          
     ));
   };
 
@@ -914,9 +926,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
                 {
                   <DropdownMenu
                     menuItems={getMenuItems(
-                      (currentPost?.user_id === user?.id) ||
-                        (currentPost?.recipient_user_id === user?.id),
-                      invertedColors,
+                      (currentPost?.user_id === user?.id),
                       isPreview
                     )}
                   />
@@ -969,7 +979,7 @@ const PostContainer: React.FC<PostContainerProps> = React.memo(({
             setSelectedBoard(null);
           }}
         >
-          <View className="flex-1 h-full">{selectedBoard}</View>
+          {selectedBoard}
         </ModalSheet>
     </AnimatedView>
   );

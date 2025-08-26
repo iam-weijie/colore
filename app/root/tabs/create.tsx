@@ -22,6 +22,7 @@ import { createTutorialPages } from "@/constants/tutorials";
 import ModalSheet from "@/components/Modal";
 import CarouselPage from "@/components/CarrousselPage";
 import { Prompt } from "@/types/type";
+import { useBackgroundColor } from "@/hooks/useTheme";
 
 
 
@@ -29,6 +30,7 @@ import { Prompt } from "@/types/type";
 const Create = () => {
 
 const { user } = useUser();
+const backgroundColor = useBackgroundColor();
 
 // Tutorial constants
 
@@ -179,7 +181,7 @@ const boardOptions = [
         params: { type: "personal" },
       }),
   },
-  /*{
+  {
     label: "Community Board",
     icon: icons.comment,
     caption: "Hear everyone's thoughts!",
@@ -188,7 +190,7 @@ const boardOptions = [
         type: "board",
         params: { type: "community" },
       }),
-  }*/
+  }
 ];
 
 const handleTabChange = (tabKey: string) => {
@@ -197,7 +199,7 @@ const handleTabChange = (tabKey: string) => {
   
   
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1, backgroundColor: backgroundColor }}>
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           onPressIn={() => Keyboard.dismiss()}

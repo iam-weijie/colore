@@ -217,6 +217,7 @@ const FriendItem = ({ item, onViewProfile }) => {
       iconColor="#000"
       actionIcon={icons.chevron}
       onPress={() => {
+        console.log("🇮🇹 BUTTON PRESSED")
         onViewProfile(item.friend_id, displayName);
       }}
     />
@@ -304,6 +305,7 @@ export const SocialScreen: React.FC = () => {
   };
 
   const handleUserProfile = (userId: string, username: string) => {
+    console.log("✅ GOING TO PROFILE")
     router.push({
       pathname: "/root/profile/[id]",
       params: { id: userId, username },
@@ -369,21 +371,7 @@ export const SocialScreen: React.FC = () => {
     <FriendItem item={item} onViewProfile={handleUserProfile} />
   );
 
-  const renderUser = ({ item }: { item: UserNicknamePair }) => (
-    <ItemContainer
-      label={item[1]}
-      colors={["#FBB1F5", "#CFB1FB"]}
-      icon={icons.user}
-      actionIcon={icons.chevron}
-      iconColor="#000"
-      onPress={() => {
-        router.push({
-          pathname: "/root/profile/[id]",
-          params: { id: item[0], username: item[1] },
-        });
-      }}
-    />
-  );
+
 
   // Effects
   useEffect(() => {

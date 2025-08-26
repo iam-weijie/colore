@@ -9,7 +9,7 @@ import { TabItem } from "@/types/type";
 import TabsContainer from "./TabsContainer";
 import { AntDesign } from '@expo/vector-icons';
 import { router } from "expo-router";
-import { BlurView } from "expo-blur";
+import { useThemeColors, useBackgroundColor, useTextColor } from "@/hooks/useTheme";
 
 
 type HeaderProps = {
@@ -37,6 +37,9 @@ const Header = ({
     showBackButton?: boolean,
     onBackPress?: () => void
   }) => {
+    const colors = useThemeColors();
+    const backgroundColor = useBackgroundColor("surface");
+    const textColor = useTextColor();
 
     const handleTabChange = (tabKey: string) => {
         if (tabs && onTabChange) {
@@ -57,8 +60,9 @@ const Header = ({
 
   return (
      <View 
-     className={`flex-column justify-end items-start ${platformTopPadding} w-full self-center bg-white z-10 rounded-b-[44px] overflow-hidden`}
+     className={`flex-column justify-end items-start ${platformTopPadding} w-full self-center z-10 rounded-b-[44px] overflow-x-hidden`}
      style={{
+        backgroundColor: backgroundColor,
         boxShadow: '0 8px 24px rgba(180, 180, 180, 0.1)', // Custom shadow
       }}
     >
@@ -68,7 +72,7 @@ const Header = ({
             onPress={handleBackPress} 
             className="absolute left-3 top-4 p-2 z-10"
           >
-            <AntDesign name="arrowleft" size={20} color="black" />
+            <AntDesign name="arrowleft" size={20} color={textColor} />
           </TouchableOpacity>
         )}
         {title && (
@@ -76,7 +80,8 @@ const Header = ({
             <Text 
               className="text-[22px] font-JakartaBold"
               style={{
-                marginBottom: tabs ? 0 : (item ? 8 : 24)
+                marginBottom: tabs ? 0 : (item ? 8 : 24),
+                color: textColor
               }}
             >
               {title}

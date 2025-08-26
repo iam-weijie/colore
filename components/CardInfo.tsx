@@ -49,8 +49,8 @@ export const HeaderCard = ({ title, color, content, infoView }) => {
       onPress={() => {setIsModalVisible(true)}}>
     <Image
     source={icons.info}
-    className="w-5 h-5"
-    tintColor="#9ca3af"
+    className="w-4 h-4"
+    tintColor="#000"
     />
     </TouchableOpacity>
     </View>
@@ -59,7 +59,7 @@ export const HeaderCard = ({ title, color, content, infoView }) => {
     <View className="px-4 py-4 rounded-[48px] overflow-hidden">
       {content}
     </View>
-      <ModalSheet title={"Description"} isVisible={isModalVisible} onClose={() => {setIsModalVisible(false)}}>
+      <ModalSheet title="" isVisible={isModalVisible} onClose={() => {setIsModalVisible(false)}}>
         <View className="flex-1 px-2"
         style={{
           height: SCREEN_HEIGHT * 0.6

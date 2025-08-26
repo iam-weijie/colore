@@ -7,20 +7,15 @@ import { FriendStatus } from "@/lib/enum";
 import { fetchAPI } from "@/lib/fetch";
 import { useDecryptPosts } from "@/hooks/useDecrypt";
 
-import axios from "axios";
 import {
-  acceptFriendRequest,
-  cancelFriendRequest,
   fetchFriendNickname,
   fetchFriends,
   fetchFriendStatus,
-  unfriend,
 } from "@/lib/friend";
 import {
   FriendStatusType,
   Post,
   UserData,
-  UserNicknamePair,
   UserProfileProps,
   UserProfileType,
   Board as UserBoard,
@@ -108,6 +103,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   // Tutorial Logic
   const [skipIntro, setSkipIntro] = useState<boolean>(true);
        
+  console.log("[CHECK FOR USERId] ", `${userId ? "✅ There is a userid " : "❌ There is no userId "}`, userId)
   const fetchTutorialStatus = useCallback(async () => {
     const isTutorialcompleted = isEditable ? 
       await checkTutorialStatus("my-profile-1") : 
@@ -172,9 +168,8 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
   const [personalPosts, setPersonalPosts] = useState<Post[]>([]);
   const [disableInteractions, setDisableInteractions] = useState<boolean>(false);
 
-  const Flag = useMemo(() => 
-    countries[(userProfile?.country || "Canada") as keyof typeof countries]
-  , [userProfile?.country]);
+  const countryKey = (userProfile?.country || "Canada").trim();
+  const Flag = useMemo(() => countries[countryKey as keyof typeof countries], [countryKey])
 
   const fetchFriendCount = useCallback(async () => {
     if (user!.id === userId) {
@@ -736,7 +731,7 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
               className="flex flex-row items-center gap-2"
             >
               <View>
-                <Flag width={32} height={32} />
+              {Flag ? <Flag width={32} height={32} /> : null}
               </View>
               <View>
                 {friendNickname || userProfile?.username ? (
@@ -894,6 +889,8 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(({
           handleNewPostFetch={handlePostsRefresh} 
           handleUpdatePin={() => {}} 
           allowStacking={false} 
+          invertColors={true}
+          showPostItText={true}
           randomPostion={false} />
         </View>
         

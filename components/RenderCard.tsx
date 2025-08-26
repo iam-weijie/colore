@@ -20,6 +20,7 @@ import Animated, {
 import CustomButton from "./CustomButton"; // Assuming this is your button component
 import { Prompt } from "@/types/type"; // Update path to your types
 import { LinearGradient } from 'expo-linear-gradient';
+import { useThemeColors, useBackgroundColor, useTextColor } from "@/hooks/useTheme";
 
 // Sample image URLs (replace with your actual image paths)
 const PLUS_ICON = 'https://cdn-icons-png.flaticon.com/512/2997/2997933.png';
@@ -40,6 +41,9 @@ export const RenderPromptCard = ({
   updatePromptContent: (text: string) => void;
   handlePromptSubmit: (item: Prompt, content: string) => void;
 }) => {
+  const colors = useThemeColors();
+  const backgroundColor = useBackgroundColor("surface");
+  const textColor = useTextColor();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(30);
   const scale = useSharedValue(0.9);
@@ -68,7 +72,7 @@ export const RenderPromptCard = ({
         style={[
           animatedCardStyle,
           {
-            backgroundColor: "white",
+            backgroundColor: backgroundColor,
             width: screenWidth * 0.85,
             minHeight: screenHeight * 0.56,
           },
@@ -77,10 +81,10 @@ export const RenderPromptCard = ({
 
         {/* Header */}
         <View className="items-center justify-center mb-5 mt-2 px-4">
-          <Text className="text-tray-400 text-[12px] font-JakartaMedium">
+          <Text style={[styles.themeText, { color: colors.textSecondary }]}>
             {item.theme.toUpperCase()}
           </Text>
-          <Text className="text-[28px] font-JakartaSemiBold text-center text-black mt-1">
+          <Text style={[styles.cueText, { color: textColor }]}>
             {item.cue}...
           </Text>
         </View>
@@ -94,10 +98,14 @@ export const RenderPromptCard = ({
         >
           <View className="px-2">
             <TextInput
-              className="font-Jakarta text-[16px] text-black px-4 py-3 rounded-[24px] bg-tray-50"
+              className="font-Jakarta text-[16px] px-4 py-3 rounded-[24px]"
               placeholder={`Complete the prompt...`}
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textSecondary}
               value={promptContent}
+              style={{
+                color: textColor,
+                backgroundColor: colors.surfaceSecondary,
+              }}
               onChangeText={updatePromptContent}
               multiline
               scrollEnabled
@@ -135,6 +143,9 @@ export const RenderCreateCard = ({
   item: any;
   handleOptionSubmit: () => void;
 }) => {
+  const colors = useThemeColors();
+  const backgroundColor = useBackgroundColor("surface");
+  const textColor = useTextColor();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(20);
   const scale = useSharedValue(0.95);
@@ -174,7 +185,7 @@ export const RenderCreateCard = ({
         style={[
           animatedCardStyle,
           { 
-            backgroundColor: "rgba(255,255,255,1)",
+            backgroundColor: backgroundColor,
             width: screenWidth * 0.85
           }
         ]}
@@ -200,10 +211,10 @@ export const RenderCreateCard = ({
           </LinearGradient>
 
           {/* Text Content */}
-          <Text className="text-black text-[12px]  font-JakartaMedium tracking-widest mb-1">
+          <Text style={[styles.labelText, { color: colors.textSecondary }]}>
             {item.label.toUpperCase()}
           </Text>
-          <Text className="text-black text-[28px] text-center font-JakartaSemiBold mt-2 mb-8 leading-tight">
+          <Text style={[styles.captionText, { color: textColor }]}>
             {item.caption}
           </Text>
 
@@ -227,3 +238,33 @@ export const RenderCreateCard = ({
     </TouchableWithoutFeedback>
   );
 };
+
+// Styles for theme-aware text elements
+const styles = {
+  themeText: {
+    fontSize: 12,
+    fontFamily: "Jakarta-Medium",
+  },
+  cueText: {
+    fontSize: 28,
+    fontFamily: "Jakarta-SemiBold",
+    textAlign: "center",
+    marginTop: 4,
+  },
+  labelText: {
+    fontSize: 12,
+    fontFamily: "Jakarta-Medium",
+    letterSpacing: 1.2,
+    marginBottom: 4,
+  },
+  captionText: {
+    fontSize: 28,
+    fontFamily: "Jakarta-SemiBold",
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 32,
+    lineHeight: 34,
+  },
+};
+
+export default RenderPromptCard;

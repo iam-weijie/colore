@@ -147,10 +147,7 @@ const ModalSheet: React.FC<ModalSheetProps> = ({
       statusBarTranslucent
     >
       <GestureHandlerRootView className="flex-1">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
-        >
+
           {/* Overlay only in sheet mode */}
           {!isFull && (
             <AnimatedPressable
@@ -192,7 +189,7 @@ const ModalSheet: React.FC<ModalSheetProps> = ({
             {/* Content */}
             <View className="flex-1">{children}</View>
           </Animated.View>
-        </KeyboardAvoidingView>
+
       </GestureHandlerRootView>
     </Modal>
   );

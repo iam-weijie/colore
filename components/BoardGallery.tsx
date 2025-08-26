@@ -8,6 +8,7 @@ import {
   View,
   Image,
   Text,
+  ImageSourcePropType,
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useRouter } from "expo-router";
@@ -17,25 +18,44 @@ import { useHaptics } from "@/hooks/useHaptics";
 import * as Haptics from 'expo-haptics';
 import { useDecrypt } from "@/hooks/useDecrypt";
 import EmptyListView from "./EmptyList";
+
+const badgeShadow = {
+  shadowColor: "#000",
+  shadowOpacity: 0.15,
+  shadowOffset: { width: 0, height: 1 },
+  shadowRadius: 3,
+  elevation: 3, // Android
+};
   
 const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElement => {
   const { encryptionKey } = useEncryptionContext();
-  const isPrivate = useMemo(() => item.restrictions?.includes("Private"), [item.restrictions]);
-  
   const decrypt = useDecrypt();
+  const router = useRouter();
+  const { user } = useUser();
+  const { triggerHaptic } = useHaptics();
+
+  // Fast membership checks
+  const restrictions = useMemo(() => new Set(item.restrictions ?? []), [item.restrictions]);
+
+  const isPrivate = useMemo(() => restrictions.has("Private"), [restrictions]);
+  const isCommentsDisallowed = useMemo(
+    () => restrictions.has("Comments disallowed"),
+    [restrictions]
+  );
+  const isLocationBased = useMemo(
+    () => item.type === "community" && restrictions.has("Location-based"),
+    [item.type, restrictions]
+  );
+
   const displayTitle = useMemo(() => {
-    let title = item.title;
+    let title = item.title ?? "";
     if (isPrivate && encryptionKey) {
       try {
         title = decrypt(item.title) ?? "";
       } catch {}
     }
-    return title ?? "";
+    return title;
   }, [item.title, isPrivate, encryptionKey, decrypt]);
-  
-  const router = useRouter();
-  const { user } = useUser();
-  const { triggerHaptic } = useHaptics();
 
   const handlePress = useCallback(() => {
     triggerHaptic(Haptics.ImpactFeedbackStyle.Soft);
@@ -52,10 +72,23 @@ const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElemen
     }
   }, [item, user, router, triggerHaptic]);
 
-  // Memoize the animation style to prevent recalculation
-  const animationStyle = useMemo(() => 
-    FadeIn.duration(400).springify().delay(item.id % 10 * 100)
-  , [item.id]);
+  // Animation
+  const animationStyle = useMemo(
+    () => FadeIn.duration(400).springify().delay((item.id % 10) * 100),
+    [item.id]
+  );
+
+  // Icons (ordered + cohesive)
+  const boardTypeIcon = item.board_type === "personal" ? icons.user : icons.addUser;
+
+  const iconRow: ImageSourcePropType[] = useMemo(() => {
+    const row: ImageSourcePropType[] = [];
+    row.push(boardTypeIcon);
+    row.push(isPrivate ? icons.lock : icons.globe); // public/private
+    if (isLocationBased) row.push(icons.pin); // community-only
+    row.push(isCommentsDisallowed ? icons.hide : icons.comment); // comments
+    return row;
+  }, [boardTypeIcon, isPrivate, isLocationBased, isCommentsDisallowed]);
 
   return (
     <Animated.View
@@ -63,70 +96,75 @@ const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElemen
       className="overflow-hidden m-2 border-2 rounded-[36px] shadow-md"
       style={{
         backgroundColor: item.color,
-        borderColor: '#ffffff80',
+        borderColor: "#ffffff80",
         height: 225,
         width: 170,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.1,
         shadowRadius: 5,
       }}
     >
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={handlePress}
-        className="flex-1"
-      >
-        {/* Gradient overlay at bottom */}
+      <TouchableOpacity activeOpacity={0.9} onPress={handlePress} className="flex-1">
+        {/* Compact icon row (top-right) */}
+        <View className="absolute top-4 right-5 z-[10]">
+          <View className="flex-row items-center ">
+            {iconRow.map((src, i) => (
+              <View
+                key={i}
+                className="w-7 h-7 rounded-full bg-white items-center justify-center  -mx-0.5"
+                style={badgeShadow}
+              >
+                <Image
+                  source={src}
+                  className="w-3 h-3"
+                  // Dark tint so it reads on white; adjust if you prefer brand colors
+                  tintColor="#C1C1C1"
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Gradient overlay at bottom (keep your original styling if needed) */}
         <View className="absolute bottom-0 left-0 right-0 h-1/3" />
-        
-        {/* Title and metadata at bottom */}
+
+        {/* Title + meta */}
         <View className="w-full h-full flex-col items-center justify-center p-3 z-[10]">
-          <Text 
+          <Text
             className="text-white text-center text-[16px] font-JakartaBold shadow-md"
             numberOfLines={2}
           >
             {displayTitle}
           </Text>
-          
-          {/* Additional metadata - you can customize these */}
-          <View className="flex-row items-center">
-            {item.id > 0 && <Text className="text-white/90 text-[12px] font-JakartaSemiBold drop-shadow-md ">
-              {item.count || 0} notes
-            </Text>}
-            {item.isPrivate && (
-              <View className="">
-                <Image
-                source={icons.lock}
-                tintColor={"white"}
-                className="w-4 h-4"
-                />
-              </View>
-            )}
-          </View>
+
+          {item.id > 0 && (
+            <View className="flex-row items-center">
+              <Text className="text-white/90 text-[12px] font-JakartaSemiBold drop-shadow-md ">
+                {item.count || 0} notes
+              </Text>
+            </View>
+          )}
         </View>
-        
+
         {/* Optional "New" badge */}
         {item.isNew && (
-          <View className="absolute top-4 left-4 bg-red-500 px-2 py-1 rounded-full">
+          <View className="absolute top-4 left-4 bg-red-500 px-2 py-1 rounded-full z-[10]">
             <Text className="text-white text-[10px] font-JakartaBold">NEW</Text>
           </View>
         )}
 
-        {/* Optional image placeholder - you could replace this with actual board cover images */}
+        {/* Cover */}
         {item.imageUrl ? (
-          <Image 
-            source={{ uri: item.imageUrl }}
-            className="absolute w-full h-full"
-            resizeMode="cover"
-          />
+          <Image source={{ uri: item.imageUrl }} className="absolute w-full h-full" resizeMode="cover" />
         ) : (
-          <View className="absolute self-center w-[97%] h-[97%]  top-[50%] -mt-[48.5%] border-2 border-white rounded-[32px] bg-white/20 z-[-1] " />
+          <View className="absolute self-center w-[97%] h-[97%] top-[50%] -mt-[48.5%] border-2 border-white rounded-[32px] bg-white/20 z-[-1]" />
         )}
       </TouchableOpacity>
     </Animated.View>
   );
 });
+
 
 const BoardGallery = React.memo(({ boards, offsetY }: {boards: Board[], offsetY?: number}) => {
   const { isIpad } = useDevice();

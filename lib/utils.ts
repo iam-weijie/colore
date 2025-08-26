@@ -2,138 +2,181 @@ import { Post, Position } from "@/types/type";
 import { Dimensions } from "react-native";
 import { useState } from "react";
 
-export function formatTime(minutes: number): string {
-  const formattedMinutes = +minutes?.toFixed(0) || 0;
+/** ---------------------------------------------
+ * Date/Time Utilities (UTC storage → Local display)
+ * - Treats all incoming timestamp strings as UTC.
+ * - Formats all dates/times using the user's local timezone.
+ * ----------------------------------------------*/
 
-  if (formattedMinutes < 60) {
-    return `${minutes} min`;
+type DateLike = string | number | Date;
+
+/** Internal: robust UTC parser (handles missing "Z" and date-only) */
+function parseUTC(input: DateLike): Date {
+  if (input instanceof Date) return new Date(input.getTime());
+  if (typeof input === "number") return new Date(input); // ms since epoch
+
+  if (typeof input === "string") {
+    const s = input.trim();
+
+    // Already has tz info (Z or ±HH:MM)
+    if (/[zZ]$|[+\-]\d{2}:?\d{2}$/.test(s)) return new Date(s);
+
+    // Date-only → treat as midnight UTC
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(`${s}T00:00:00Z`);
+
+    // ISO-like without tz → force UTC
+    if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?/.test(s)) {
+      return new Date(`${s.replace(" ", "T")}Z`);
+    }
+
+    // Fallback (may be locale-dependent)
+    return new Date(s);
+  }
+
+  return new Date(NaN);
+}
+
+/** Converts UTC input to a Date at the correct instant (local shown at format time). */
+export function convertToLocal(rawDate: DateLike): Date {
+  try {
+    const d = parseUTC(rawDate);
+    if (isNaN(d.getTime())) throw new Error("Invalid date");
+    return new Date(d.getTime()); // same instant; formatting applies local tz
+  } catch (err) {
+    console.warn("Date conversion failed:", err, rawDate);
+    return new Date(); // safe fallback
+  }
+}
+
+/** Relative time: seconds → minutes → hours → days → weeks → months → years */
+export function getRelativeTime(rawDate: DateLike): string {
+  const target = convertToLocal(rawDate);
+  const diffMs = target.getTime() - Date.now(); // positive = future, negative = past
+
+  // Units in ms
+  const sec = 1000;
+  const min = 60 * sec;
+  const hour = 60 * min;
+  const day = 24 * hour;
+  const week = 7 * day;
+  const month = 30.4375 * day;    // avg calendar month
+  const year = 365.25 * day;      // avg calendar year
+
+  const absMs = Math.abs(diffMs);
+
+  // Choose the best unit threshold
+  let value: number;
+  let unit: Intl.RelativeTimeFormatUnit;
+
+  if (absMs < 5 * sec) {
+    return diffMs >= 0 ? "in a few seconds" : "just now";
+  } else if (absMs < min) {
+    value = Math.round(diffMs / sec);
+    unit = "second";
+  } else if (absMs < hour) {
+    value = Math.round(diffMs / min);
+    unit = "minute";
+  } else if (absMs < day) {
+    value = Math.round(diffMs / hour);
+    unit = "hour";
+  } else if (absMs < week) {
+    value = Math.round(diffMs / day);
+    unit = "day";
+  } else if (absMs < month) {
+    value = Math.round(diffMs / week);
+    unit = "week";
+  } else if (absMs < year) {
+    value = Math.round(diffMs / month);
+    unit = "month";
   } else {
-    const hours = Math.floor(formattedMinutes / 60);
-    const remainingMinutes = formattedMinutes % 60;
-    return `${hours}h ${remainingMinutes}m`;
+    value = Math.round(diffMs / year);
+    unit = "year";
   }
-}
 
-/**
- * Converts a UTC date to the user's local timezone
- * This function ensures the date is properly converted to the local timezone
- * without applying the timezone offset twice
- * 
- * @param rawDate The date to convert (Date object)
- * @returns A Date object in the user's local timezone
- */
-/**
- * Converts a UTC date to the user's local timezone
- * This function ensures the date is properly converted to the local timezone
- * without applying the timezone offset twice
- * 
- * @param rawDate The date to convert (Date object)
- * @returns A Date object in the user's local timezone
- */
-export function convertToLocal(rawDate: Date): Date {
-  // Check if the date is valid before conversion
-  if (isNaN(rawDate.getTime())) {
-    console.warn('Invalid date provided to convertToLocal:', rawDate);
-    return new Date(); // Return current date as fallback
-  }
-  
+  // Prefer Intl for localization
   try {
-    // Create a new date object from the ISO string to ensure proper timezone handling
-    return new Date(rawDate.toISOString());
-  } catch (error) {
-    console.error('Error in convertToLocal:', error);
-    return new Date(); // Return current date as fallback
-  }
-  // Check if the date is valid before conversion
-  if (isNaN(rawDate.getTime())) {
-    console.warn('Invalid date provided to convertToLocal:', rawDate);
-    return new Date(); // Return current date as fallback
-  }
-  
+    if (typeof Intl !== "undefined" && Intl.RelativeTimeFormat) {
+      const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+      return rtf.format(value, unit);
+    }
+  } catch {}
+
+  // Manual fallback (English)
+  const absVal = Math.abs(value);
+  const s = absVal === 1 ? "" : "s";
+  const unitStr = `${unit}${s}`;
+  return value >= 0 ? `in ${absVal} ${unitStr}` : `${absVal} ${unitStr} ago`;
+}
+
+/** Duration (not wall-clock): "45 mins", "1h 15m", "2h" */
+export function formatTime(minutes: number): string {
+  const total = Math.max(0, Math.round(Number.isFinite(minutes) ? minutes : 0));
+  if (total < 60) return `${total} min${total === 1 ? "" : "s"}`;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
+/** "MM/DD/YYYY" using local timezone derived from UTC input */
+export function formatDate(rawDate: DateLike): string {
+  const d = convertToLocal(rawDate);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${mm}/${dd}/${yyyy}`;
+}
+
+// Fallback month names for environments without full Intl support
+const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_LONG  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+/** "Aug. 22, 2025" (with period after month) */
+export function formatDateTruncatedMonth(rawDate: DateLike): string {
+  const d = convertToLocal(rawDate);
   try {
-    // Create a new date object from the ISO string to ensure proper timezone handling
-    return new Date(rawDate.toISOString());
-  } catch (error) {
-    console.error('Error in convertToLocal:', error);
-    return new Date(); // Return current date as fallback
+    const month = d.toLocaleDateString(undefined, { month: "short" });
+    const day = d.getDate();
+    const year = d.getFullYear();
+    return `${month.replace(".", "")}. ${day}, ${year}`;
+  } catch {
+    return `${MONTH_SHORT[d.getMonth()]}. ${d.getDate()}, ${d.getFullYear()}`;
   }
 }
 
-export function formatDateTruncatedMonth(rawDate: Date): string {
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  const month = months[rawDate.getMonth()];
-  const day = String(rawDate.getDate());
-  const year = rawDate.getFullYear();
-
-  // let hours = rawDate.getHours();
-  // const minutes = String(rawDate.getMinutes());
-  // const amOrPm = hours >= 12 ? "pm" : "am";
-  // hours = hours % 12 || 12; // display 12am instead of 0
-
-  return `${month}. ${day}, ${year}`;
+/** "22 August 2025" */
+export function formatDateWithMonth(rawDate: DateLike): string {
+  const d = convertToLocal(rawDate);
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(d);
+  } catch {
+    const day = d.getDate();
+    return `${day} ${MONTH_LONG[d.getMonth()]} ${d.getFullYear()}`;
+  }
 }
 
-export function formatDate(rawDate: Date): string {
-  let date = new Date(rawDate);
+/** Age from birthday; date-only strings are treated as UTC midnight */
+export function calculateAge(birthday: DateLike): number {
+  const b = parseUTC(birthday);
+  if (isNaN(b.getTime())) return 0;
 
-  let day: string | number = date.getDate();
-  let month: string | number = date.getMonth() + 1;
-  let year = date.getFullYear();
+  // Use UTC components for the birth date to avoid DST edge effects
+  const by = b.getUTCFullYear();
+  const bm = b.getUTCMonth();
+  const bd = b.getUTCDate();
 
-  month = month < 10 ? `0${month}` : month;
-  day = day < 10 ? `0${day}` : day;
-
-  return `${month}/${day}/${year}`;
-}
-
-export function formatDateWithMonth(dateString: string): string {
-  const date = new Date(dateString);
-  const day = date.getDate();
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const month = monthNames[date.getMonth()];
-  const year = date.getFullYear();
-
-  return `${day < 10 ? "0" + day : day} ${month} ${year}`;
-}
-
-export function calculateAge(birthday: Date): number {
   const today = new Date();
+  let age = today.getFullYear() - by;
+  const mDiff = today.getMonth() - bm;
+  const dDiff = today.getDate() - bd;
+  if (mDiff < 0 || (mDiff === 0 && dDiff < 0)) age--;
 
-  let age = today.getFullYear() - birthday.getFullYear();
-  const m = today.getMonth() - birthday.getMonth();
-
-  if (m < 0 || (m === 0 && today.getDate() < birthday.getDate())) {
-    age--;
-  }
-
-  return age;
+  return Math.max(0, age);
 }
+
 
 // Constants for Post-It dimensions
 export const POSTIT_WIDTH = 160;
@@ -351,74 +394,6 @@ export const EnhancedRandomPosition = (
  * @param date The date to format (Date object or string)
  * @returns A string representing the relative time
  */
-export function getRelativeTime(date: Date | string): string {
-  // Get current time in milliseconds
-  const now = Date.now();
-  
-  // Convert input to Date object if it's a string, then get time in milliseconds
-  let timestamp: number;
-  
-  try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    
-    // Check if the date is valid
-    if (isNaN(dateObj.getTime())) {
-      console.warn('Invalid date provided to getRelativeTime:', date);
-      return 'unknown time';
-    }
-    
-    timestamp = dateObj.getTime();
-  } catch (error) {
-    console.error('Error in getRelativeTime:', error);
-    return 'unknown time';
-  }
-  
-  // Get time difference in milliseconds
-  const diff = now - timestamp;
-  
-  // Convert to seconds
-  const seconds = Math.floor(diff / 1000);
-  
-  // Less than a minute
-  if (seconds < 60) {
-    return 'just now';
-  }
-  
-  // Minutes (less than an hour)
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) {
-
-    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-  }
-  
-  // Hours (less than a day)
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-  }
-  
-  // Days (less than a week)
-  const days = Math.floor(hours / 24);
-  if (days < 7) {
-    return `${days} day${days > 1 ? "s" : ""} ago`;
-  }
-  
-  // Weeks (less than a month)
-  const weeks = Math.floor(days / 7);
-  if (weeks < 4) {
-    return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
-  }
-  
-  // Months (less than a year)
-  const months = Math.floor(days / 30);
-  if (months < 12) {
-    return `${months} month${months > 1 ? "s" : ""} ago`;
-  }
-  
-  // Years
-  const years = Math.floor(days / 365);
-  return `${years} year${years > 1 ? "s" : ""} ago`;
-}
 
 /**
  * Formats numbers with K (thousands), M (millions), and B (billions) abbreviations

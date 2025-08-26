@@ -186,6 +186,39 @@ const RichTextInput = ({ refresh, exportText, exportStyling, onFocus, withdrawKe
     return chunks;
   };
 
+  // New onChangeText function to handle text and format changes
+  const handleTextChange = (newText: string) => {
+    const oldText = value;
+    const oldFormats = [...formats];
+    
+    // Determine the nature of the change
+    const lengthDifference = newText.length - oldText.length;
+    let changeIndex = 0;
+    while (changeIndex < oldText.length && changeIndex < newText.length && oldText[changeIndex] === newText[changeIndex]) {
+      changeIndex++;
+    }
+
+    const newFormats = oldFormats.map(format => {
+      const { start, end, type } = format;
+      const newFormat = { ...format };
+
+      // Case 1: The change happens before the format starts
+      if (changeIndex <= start) {
+        newFormat.start = start + lengthDifference;
+        newFormat.end = end + lengthDifference;
+      }
+      // Case 2: The change happens within the format
+      else if (changeIndex > start && changeIndex <= end) {
+        newFormat.end = end + lengthDifference;
+      }
+      
+      return newFormat;
+    }).filter(format => format.end > format.start); // Remove invalid formats
+
+    setValue(newText);
+    setFormats(newFormats);
+  };
+
   return (
     <View className="flex-1 mx-4 pr-12 py-8">
       <View className="relative min-h-[250px] mb-4">
@@ -193,11 +226,7 @@ const RichTextInput = ({ refresh, exportText, exportStyling, onFocus, withdrawKe
           <TextInput
             ref={inputRef}
             value={value}
-            onChangeText={(newText) => {
-              const cleanedFormats = cleanInvalidFormats(newText, formats);
-              setValue(newText);
-              setFormats(cleanedFormats);
-            }}
+            onChangeText={handleTextChange} // Use the new handler
             multiline
             autoFocus
             placeholder="Type here..."

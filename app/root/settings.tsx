@@ -27,7 +27,6 @@ import { useAlert } from "@/notifications/AlertContext";
 import ModalSheet from "@/components/Modal";
 import RenameContainer from "@/components/RenameContainer";
 import CustomButton from "@/components/CustomButton";
-import ItemContainer from "@/components/ItemContainer";
 import ProgressBar from "@/components/ProgressBar";
 import EmojiSettings from "@/components/EmojiSettings";
 import {
@@ -697,7 +696,7 @@ const Settings = () => {
               <ActionRow
                 icon={<AntDesign name="clockcircleo" size={20} color="#000" />}
                 label="Quick Reaction Emojis"
-                count={0} // Placeholder for future implementation
+                count={6} // Placeholder for future implementation
                 onPress={() => {
                   playSoundEffect(SoundType.Navigation);
                   setSelectedTitle("Customize Emojis");

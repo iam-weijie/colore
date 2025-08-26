@@ -55,6 +55,7 @@ import bobChill3 from "@/assets/characters/bob-chill-3.png";
 import rosieChill from "@/assets/characters/rosie-chill-1.png";
 import rosieDisgusted from "@/assets/characters/rosie-disgusted-1.png";
 import rosieMad from "@/assets/characters/rosie-mad-1.png";
+import rosieMoney from "@/assets/characters/rosie-money-1.png";
 
 import steveAmazed from "@/assets/characters/steve-amazed-1.png";
 import steveAnnoyed from "@/assets/characters/steve-annoyed-1.png";
@@ -115,6 +116,7 @@ export const characters = {
   bobChill2,
   bobChill3,
 
+  rosieMoney,
   rosieChill,
   rosieDisgusted,
   rosieMad,
@@ -137,6 +139,7 @@ export const characterMood = {
     bobChill3,
   ],
   rosie: [
+    rosieMoney,
     rosieChill,
     rosieDisgusted,
     rosieMad,

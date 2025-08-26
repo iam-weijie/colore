@@ -31,10 +31,13 @@ import Header from "@/components/Header";
 import * as Haptics from "expo-haptics";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import { useHaptics } from "@/hooks/useHaptics";
+import { useThemeColors, useBackgroundColor } from "@/hooks/useTheme";
 
 const Home = () => {
  const { playSoundEffect } = useSoundEffects()
  const { triggerHaptic } = useHaptics();
+ const colors = useThemeColors();
+ const backgroundColor = useBackgroundColor();
 
 
   const [error, setError] = useState<string | null>(null);
@@ -127,11 +130,11 @@ const Home = () => {
 
 
   return (
-    <View className="flex-1 bg-[#FAFAFA]">
+    <View style={{ flex: 1, backgroundColor: "#FAFAFA" }}>
       <SignedIn>
         <Header
           item={
-            <View className="flex-row justify-between items-center px-11 pt-4  w-full mb-4">
+            <View className="flex-row justify-between items-center px-11 pt-4  w-full mb-4 ">
               <Image
                 source={require("@/assets/images/colore-word-logo.png")}
                 style={{ width: 105, height: 45 }}
@@ -146,13 +149,13 @@ const Home = () => {
                     triggerHaptic(Haptics.ImpactFeedbackStyle.Light)
                     playSoundEffect(SoundType.Navigation)
                     setSelectedModal(() => <SocialScreen />);
-                    setActiveModalTitle("Socials");
+                    setActiveModalTitle("Socialsy");
                   }}
                 >
                   <Image
                     source={icons.searchUsers}
                     className="w-5 h-5"
-                    style={{ tintColor: "#000" }}
+                    style={{ tintColor: colors.text }}
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -167,6 +170,7 @@ const Home = () => {
                     source={icons.notification}
                     className="w-6 h-6 shadow-sm"
                     resizeMode="cover"
+                    style={{ tintColor: colors.text }}
                   />
                   <View className="absolute right-2">
                     <NotificationBubble
@@ -179,7 +183,7 @@ const Home = () => {
             </View>
           }
         />
-        <View className=" h-screen w-screen ">
+        <View className=" h-screen w-screen">
         <PostItBoard
           userId={user!.id}
           handlePostsRefresh={fetchPosts}
