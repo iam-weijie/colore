@@ -31,6 +31,8 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import EmptyListView from "@/components/EmptyList";
 import { fetchLikeStatus } from "@/lib/post";
 import { useNavigationContext } from "@/components/NavigationContext";
+import { BlurView } from "expo-blur";
+import { useTextColor } from "@/hooks/useTheme";
 
 interface PostCommentGroup {
   date: string; // day key
@@ -52,6 +54,7 @@ const CommentView = ({ id, clerkId, likes = 0, anonymousParam = true, color = "p
   const { showAlert } = useAlert();
 
   const postColor = allColors.find((c) => c.id === color) as PostItColor | undefined;
+  const textColor = useTextColor()
 
   // UI & data
   const [loading, setLoading] = useState(true);
@@ -124,15 +127,23 @@ const CommentView = ({ id, clerkId, likes = 0, anonymousParam = true, color = "p
 
   // ---- effects: post likes ----
   useEffect(() => {
+    if (!id || !user?.id) return;
+
+    let cancelled = false;
+
     const run = async () => {
-      if (!id || !user?.id) return;
-      try {
-        const status = await fetchLikeStatus(parseInt(id as string, 10), user.id);
-        setIsLiked(status.isLiked);
-        setLikeCount(status.likeCount);
-      } catch {}
+      const { isLiked, likeCount } = await fetchLikeStatus(parseInt(id), user.id);
+      if (!cancelled) {
+        setIsLiked(isLiked);
+        setLikeCount(likeCount);
+      }
     };
+
     run();
+
+    return () => {
+      cancelled = true; // prevent stale setState
+    };
   }, [id, user?.id]);
 
   // ---- effects: focus handling ----
@@ -555,26 +566,18 @@ const CommentView = ({ id, clerkId, likes = 0, anonymousParam = true, color = "p
         }}>
           {/* Reply preview (clamped by natural content + container height) */}
           {replyView && (
-              <View className="relative py-1 mx-2 flex-row items-start  bg-white border-t-2 border-gray-100">
-                
-                {/* Colored side accent */}
-                <View className="absolute left-0 top-0 bottom-0" />
+<>
+                <View className="absolute top-0 left-0 w-4 h-4 bg-yellow"/>
+                <View className="absolute top-0 right-0 w-4 h-4 bg-pink"/>
+                <View className="absolute top-0 self-center w-4 h-4 bg-blue"/>
 
-                {/* Inner content */}
-                <View className="flex-1 px-4 py-3 ml-1.5">
-                  <Text 
-                    className="text-sm text-gray-700 leading-snug" 
-                    numberOfLines={2} 
-                    ellipsizeMode="tail"
-                  >
-                    {replyView.content}
-                  </Text>
-                </View>
+                <BlurView intensity={70} tint={"light"} className="mx-2 rounded-full">
+                <View className="relative py-1 mx-2 flex-row items-start">
 
                 {/* Close button */}
                 <TouchableOpacity
                   onPress={() => setReplyView(null)}
-                  className="self-center mr-4 p-2 rounded-full bg-gray-100 active:bg-gray-200"
+                  className="self-center mr-1 p-2 rounded-full bg-gray-100 active:bg-gray-200"
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <Image 
@@ -583,7 +586,25 @@ const CommentView = ({ id, clerkId, likes = 0, anonymousParam = true, color = "p
                     tintColor={"#6b7280"} 
                   />
                 </TouchableOpacity>
-              </View>
+
+                {/* Inner content */}
+                <View className="flex-1 px-4 py-3 ml-1.5">
+                  <Text 
+                    className="text-xs leading-snug" 
+                    numberOfLines={2} 
+                    ellipsizeMode="tail"
+                    style={{
+                      color: textColor
+                    }}
+                  >
+                    {replyView.content}
+                  </Text>
+                </View>
+
+                </View>
+                </BlurView>
+                </>
+            
             )}
 
 
@@ -591,7 +612,7 @@ const CommentView = ({ id, clerkId, likes = 0, anonymousParam = true, color = "p
           <View className="relative flex flex-row items-center bg-white rounded-[32px] px-4 mx-2 mb-2 shadow-md min-h-12">
             <TextInput
               ref={inputRef}
-              className="flex-1 pl-2 text-sm pr-16 py-4"
+              className="flex-1 pl-2 text-sm pr-16 py-3.5"
               placeholderTextColor="#9CA3AF"
               placeholder="Write something..."
               value={newComment}

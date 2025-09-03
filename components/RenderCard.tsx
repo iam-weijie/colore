@@ -42,7 +42,7 @@ export const RenderPromptCard = ({
   handlePromptSubmit: (item: Prompt, content: string) => void;
 }) => {
   const colors = useThemeColors();
-  const backgroundColor = useBackgroundColor("surface");
+  const backgroundColor = useBackgroundColor();
   const textColor = useTextColor();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(30);
@@ -105,17 +105,12 @@ export const RenderPromptCard = ({
               style={{
                 color: textColor,
                 backgroundColor: colors.surfaceSecondary,
+                
               }}
               onChangeText={updatePromptContent}
               multiline
               scrollEnabled
-              style={{
-                paddingTop: 12,
-                paddingBottom: 12,
-                minHeight: 100,
-                maxHeight: 250,
-                textAlignVertical: "top",
-              }}
+              
             />
           </View>
         </KeyboardAvoidingView>
@@ -144,7 +139,7 @@ export const RenderCreateCard = ({
   handleOptionSubmit: () => void;
 }) => {
   const colors = useThemeColors();
-  const backgroundColor = useBackgroundColor("surface");
+  const backgroundColor = useBackgroundColor();
   const textColor = useTextColor();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(20);

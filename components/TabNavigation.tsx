@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { useHaptics } from "@/hooks/useHaptics";
 import { formatNumber } from "@/lib/utils";
+import { useTextColor, useThemeColors } from "@/hooks/useTheme";
 //import { ScrollView } from "react-native-gesture-handler";
 
 type TabNavigationProps = {
@@ -22,6 +23,8 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
   color = "#000",
 }) => {
   const { triggerHaptic } = useHaptics();
+  const textColor = useTextColor();
+  const colors = useThemeColors()
   
   return (
     <TouchableOpacity
@@ -37,7 +40,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
 
     <Text
       className={`relative text-[14px] ${focused ? "font-JakartaSemiBold" : "font-JakartaMedium"} text-center `}
-      style={{ color: focused ? "#000" : "#B1B1B1" }}
+      style={{ color: focused ? color : textColor }}
     >
       {name}
     </Text>

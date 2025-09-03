@@ -18,6 +18,7 @@ import React from "react";
 import Header from "@/components/Header";
 import { Ionicons } from "@expo/vector-icons";
 import { icons } from "@/constants";
+import { useBackgroundColor, useTextColor, useThemeColors } from "@/hooks/useTheme";
 // import AlphabetScrollbar from "@/components/AlphabetScrollbar";
 
 // Define simpler interfaces for better performance
@@ -60,16 +61,27 @@ const CountryItem = memo(({
   const handlePress = useCallback(() => {
     onPress(item.cca2, item.name);
   }, [onPress, item.cca2, item.name]);
+
+  const textColor = useTextColor();
+  const colors = useThemeColors();
   
   return (
     <TouchableOpacity
-      className="flex-row items-center justify-between bg-white py-4 px-6 rounded-[32px] mx-5 my-1"
+      className="flex-row items-center justify-between py-4 px-6 rounded-[32px] mx-5 my-1"
+      style={{
+        backgroundColor: colors.surfaceSecondary
+      }}
       onPress={handlePress}
       activeOpacity={0.7}
     >
       <View className="flex-1 flex-row items-center">
         <Text className="mr-2" style={{ fontSize: 35 }}>{item.emoji}</Text>
-        <Text className="text-base font-JakartaSemiBold max-w-[85%]" numberOfLines={1}>
+        <Text
+         className="text-base font-JakartaSemiBold max-w-[85%]" 
+         style={{
+          color: textColor
+         }}
+         numberOfLines={1}>
           {item.name}
         </Text>
       </View>
@@ -108,6 +120,10 @@ const Country = () => {
   const flatListRef = useRef<FlatList>(null);
   const batchSize = useRef(50);
   const itemHeight = 76;
+
+  const backgroundColor = useBackgroundColor()
+  const colors = useThemeColors()
+  const textColor = useTextColor()
   
   // Initialize with placeholders for consistent layout
   useEffect(() => {
@@ -335,28 +351,31 @@ const Country = () => {
   const displayData = getPlaceholderData();
 
   return (
-    <View className="flex-1 bg-[#FAFAFA]">
+    <View className="flex-1"
+    style={{
+      backgroundColor: backgroundColor
+    }}>
       <Header title="Select a Country" 
       item={
       <View className=" w-full px-6 -pt-2 pb-2">
-        <View className="flex-row items-center bg-white rounded-[24px] px-4 h-14">
-          <Ionicons name="search" size={20} color="#9ca3af" />
+        <View 
+        className="flex-row items-center rounded-[24px] px-4 h-12"
+        style={{
+          backgroundColor: colors.surfaceSecondary
+        }}>
+          <Ionicons name="search" size={20} color={colors.surfaceSecondary} />
           <TextInput
             className="flex-1 ml-2 h-full text-base"
             placeholder="Search countries..."
+            placeholderTextColor={colors.textSecondary}
+            style={{
+              color: colors.textSecondary
+            }}
             value={searchText}
             onChangeText={setSearchText}
             returnKeyType="search"
             clearButtonMode="while-editing"
           />
-          {searchText.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearSearch}
-              className="w-6 h-6 items-center justify-center"
-            >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
         </View>
       </View>
       }/>
@@ -404,11 +423,19 @@ const Country = () => {
         />
         */}
       </View>
-      <View className="absolute w-full flex-row items-center justify-center bottom-12  px-8 ">
-      <TouchableOpacity onPress={() => router.back()} className="p-5 rounded-full bg-white shadow-md ">
+      <View 
+      className="absolute w-full flex-row items-center justify-center bottom-12  px-8 ">
+      <TouchableOpacity 
+      onPress={() => router.back()} 
+      className="p-5 rounded-full  shadow-md "
+      style={{
+        backgroundColor: backgroundColor 
+      }}>
           <Image 
           source={icons.close}
-          className="w-5 h-5"/>
+          className="w-5 h-5"
+          tintColor={textColor}
+          />
         </TouchableOpacity>
       </View>
     </View>

@@ -1,7 +1,7 @@
 import { PostModalProps } from "@/types/type";
 import { View, Modal, Animated, Easing, Dimensions, Pressable, Text, Platform } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import PostContainer from "./PostContainer";
+import PostContainer from "./post-container/PostContainer";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
 import { useDecryptPosts } from "@/hooks/useDecrypt";
 
@@ -135,7 +135,7 @@ const PostModal: React.FC<PostModalProps> = ({
             height: '100%' 
           }} 
           onPress={handleCloseModal}
-          android_ripple={Platform.OS === 'android' ? { color: 'rgba(0,0,0,0.1)' } : undefined}
+          android_ripple={Platform.OS === 'android' ? { color: 'rgba(250,250,250,0.1)' } : undefined}
         />
 
         {/* Only render PostContainer after animation completes */}

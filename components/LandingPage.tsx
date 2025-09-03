@@ -70,7 +70,6 @@ const LandingPage = () => {
 
   return (
     <Animated.View 
-      entering={FadeIn.duration(500)}
       className="flex-1"
     >
       {/* Brand multi-stop gradient background */}
@@ -117,7 +116,6 @@ const LandingPage = () => {
 
             {/* Carousel */}
             <Animated.View 
-              entering={ZoomIn.delay(400).duration(800).springify()}
               style={{ flex: 1 }}
             >
               <FlatList

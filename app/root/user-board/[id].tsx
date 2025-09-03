@@ -7,6 +7,7 @@ import PersonalBoard from "@/components/PersonalBoard";
 import { useLocalSearchParams } from "expo-router";
 import { icons } from "@/constants";
 import { router } from "expo-router";
+import { navigateToNewPost } from "@/lib/postNavigation";
 import { fetchAPI } from "@/lib/fetch";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -24,6 +25,7 @@ import RenameContainer from "@/components/RenameContainer";
 import KeyboardOverlay from "@/components/KeyboardOverlay";
 import BoardSettingsModal from "@/components/BoardSettingsModal";
 import BoardHeader from "@/components/BoardHeader";
+import { useBackgroundColor, useTextColor, useThemeColors } from "@/hooks/useTheme";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -58,16 +60,15 @@ const UserPersonalBoard = () => {
   // Computed values
   const isOwnBoard = !id || id == user?.id;
 
+  const backgroundColor = useBackgroundColor()
+  const textColor = useTextColor()
+
   // Event handlers
   const handleNewPost = useCallback(() => {
-    router.push({
-      pathname: "/root/new-post",
-      params: {
-        recipient_id: id,
-        username: username,
-        boardId: boardId,
-        source: "board",
-      },
+    navigateToNewPost({
+      recipientId: id as string,
+      username: username as string,
+      boardId: boardId as string,
     });
   }, [id, username, boardId]);
 
@@ -356,13 +357,11 @@ const UserPersonalBoard = () => {
 
   return (
     <>
-      <View className="flex-1 bg-[#FAFAFA]">
-        <LinearGradient
-          colors={["#FAFAFA", "#FAFAFA"]}
-          start={{ x: 0.1, y: 0.1 }}
-          end={{ x: 0.9, y: 0.9 }}
-          className="absolute w-full h-full inset-0 z-0"
-        />
+      <View className="flex-1"
+      style={{
+        backgroundColor: backgroundColor
+      }}>
+
 
         <Header
           item={

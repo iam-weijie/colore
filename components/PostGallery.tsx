@@ -1,6 +1,6 @@
 import PostModal from "@/components/PostModal";
 import { useEncryptionContext } from "@/app/contexts/EncryptionContext";
-import { allColors } from "@/constants/colors";
+import { useAllPostItColors } from "@/hooks/useTheme";
 import { formatDateTruncatedMonth, getRelativeTime, formatNumber } from "@/lib/utils";
 import { Post, UserPostsGalleryProps } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
@@ -11,7 +11,7 @@ import Animated, {
   FadeInDown,
   FadeIn,
 } from "react-native-reanimated";
-import { router } from "expo-router";
+import { navigateToNewPost } from "@/lib/postNavigation";
 import * as Haptics from "expo-haptics";
 import { useHaptics } from "@/hooks/useHaptics";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -31,6 +31,7 @@ import { useDevice } from "@/app/contexts/DeviceContext";
 import EmptyListView from "./EmptyList";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
 import { icons } from "@/constants";
+import { useBackgroundColor, useTextColor, useIsDark, useThemeColors, useAdaptiveColor } from "@/hooks/useTheme";
 
 // Skeleton component for post loading states with faster animations
 const PostSkeleton = React.memo(() => (
@@ -75,6 +76,11 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   const [isSaved, setIsSaved] = useState(true);
   const { stateVars, setStateVars } = useNavigationContext();
   const router = useRouter();
+
+  const backgroundThemeColor = useBackgroundColor()
+  const textThemeColor = useTextColor()
+  const allColors = useAllPostItColors()
+  const isDark = useIsDark()
 
   // Use the new decrypt posts hook
   const { decryptPosts } = useDecryptPosts({
@@ -199,7 +205,7 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
               style={{
                 borderRadius: 32,
                 backgroundColor,
-                borderColor: isPinned  ? "#ffffff" : "#ffffff90",
+                borderColor: isPinned  ? "#ffffff" : isDark ? backgroundColor : "#ffffff90",
                 borderWidth: isPinned ? 3 : 2,
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
@@ -278,21 +284,29 @@ const UserPostsGallery: React.FC<UserPostsGalleryProps> = ({
   );
 
   return (
-    <View className="flex-1  w-full rounded-[24px] max-h-[100%]">
+    <View 
+    className="flex-1  w-full rounded-[24px] max-h-[100%]"
+    style={{
+      backgroundColor: backgroundThemeColor
+    }}>
       {filteredPosts.length > 0 ? (
         header
       ) : (
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={() => {
-            router.push("/root/new-post");
-          }}
+                      onPress={() => {
+              navigateToNewPost();
+            }}
         >
           <Animated.View
             entering={FadeIn.duration(400)}
             className="w-full flex items-center justify-center p-6"
           >
-            <Text className="font-Jakarta text-gray-500 text-center">
+            <Text 
+            className="font-Jakarta text-gray-500 text-center"
+            style={{
+              color: textThemeColor
+            }}>
               Click to make a post and see it here!
             </Text>
           </Animated.View>

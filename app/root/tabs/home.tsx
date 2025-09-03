@@ -130,7 +130,7 @@ const Home = () => {
 
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#FAFAFA" }}>
+    <View style={{ flex: 1, backgroundColor:  backgroundColor }}>
       <SignedIn>
         <Header
           item={

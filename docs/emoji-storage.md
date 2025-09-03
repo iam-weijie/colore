@@ -104,7 +104,7 @@ const {
 } = useEmojiPreferences();
 
 // Save new preferences
-await saveEmojiPreferences(['😊', '❤️', '👍', '😂', '🔥', '🥳']);
+await saveEmojiPreferences(['😊', '❤️', '👌', '😂', '🔥', '🥳']);
 
 // Force sync between device and database
 await syncEmojiPreferences();

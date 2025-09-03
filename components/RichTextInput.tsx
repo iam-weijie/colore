@@ -4,6 +4,7 @@ import { TextStyle, Format } from '@/types/type';
 import { useDraftPost } from "@/app/contexts/DraftPostContext";
 import KeyboardOverlay from './KeyboardOverlay';
 import RichTextEditor from './RichTextEditor';
+import { useTextColor } from '@/hooks/useTheme';
 
 
 
@@ -289,6 +290,7 @@ export const RichText = ({
 }) => {
   const [value, setValue] = useState("");
   const [formats, setFormats] = useState<Format[]>([]);
+  const textColor = useTextColor()
 
   useEffect(() => {
     setValue(content);
@@ -296,7 +298,7 @@ export const RichText = ({
   }, [content, formatStyling]);
 
   const getStyleClass = (types: TextStyle[]) => {
-    let classNames = 'text-black';
+    let classNames = '';
 
     if (types.includes('h1')) classNames += ' text-[24px] font-JakartaBold';
     else if (types.includes('h2')) classNames += ' text-[20px] font-JakartaBold';
@@ -354,7 +356,11 @@ export const RichText = ({
 
   return (
     <View className="flex-1">
-      <Text className="font-Jakarta text-black my-4 p-1">
+      <Text 
+      className="font-Jakarta my-4 p-1"
+      style={{
+        color: textColor
+      }}>
         {renderStyledOverlay()}
       </Text>
     </View>

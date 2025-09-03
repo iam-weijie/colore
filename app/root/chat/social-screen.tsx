@@ -26,6 +26,7 @@ import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import EmptyListView from "@/components/EmptyList";
 import { useFriendsContext } from "@/app/contexts/FriendsContext";
 import { FindUser } from "@/components/FindUsers";
+import { useTextColor, useThemeColors } from "@/hooks/useTheme";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -40,6 +41,7 @@ const RequestSection = ({
     containerStyle = ""
   }) => {
     const hasData = data && data.length > 0;
+    const textColor = useTextColor()
     
     return (
       <View className={`${containerStyle}`}>
@@ -58,23 +60,34 @@ const RequestSection = ({
           />
         ) : (
           <View className="items-center justify-center py-8">
-            <Text className="text-sm text-gray-800">{emptyMessage}</Text>
+            <Text 
+            className="text-sm"
+            style={{
+              color: textColor
+            }}>{emptyMessage}</Text>
           </View>
         )}
       </View>
     );
   };
 
-const SectionHeader = ({ title, count }) => (
+const SectionHeader = ({ title, count }) => {
+  const textColor = useTextColor();
+  
+  return (
   <View className="p-2 flex-row items-center justify-start mx-4 relative">
-    <Text className="font-JakartaSemiBold text-sm">
+    <Text 
+    className="font-JakartaSemiBold text-sm"
+    style={{
+      color: textColor
+    }}>
       {title} ({count})
     </Text>
     <View className="absolute top-1/2 right-3 -translate-y-1/2">
       <NotificationBubble unread={count} color="#CFB1FB" />
     </View>
   </View>
-);
+);}
 
 const IncomingRequestItem = ({ 
   request, 
@@ -224,19 +237,22 @@ const FriendItem = ({ item, onViewProfile }) => {
   );
 };
 
-const SearchHeader = ({ searchText, setSearchText, onClear }) => (
+const SearchHeader = ({ searchText, setSearchText, onClear }) => {
+  const colors = useThemeColors()
+  return (
   <View
-    className="absolute z-10 flex flex-row items-center bg-white rounded-[24px] px-4 mt-4 h-12 self-center"
+    className="absolute z-10 flex flex-row items-center rounded-[24px] px-4 mt-4 h-12 self-center"
     style={{
+      backgroundColor: colors.surfaceSecondary,
       boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
       width: "90%",
     }}
   >
-    <Ionicons name="search" size={20} color="#9ca3af" />
+    <Ionicons name="search" size={20} color={colors.surfaceSecondary} />
     <TextInput
       className="flex-1 pl-2 text-md "
       placeholder="Search for a friend..."
-      placeholderTextColor="#9CA3AF"
+      placeholderTextColor={colors.textSecondary}
       value={searchText}
       onChangeText={setSearchText}
       returnKeyType="search"
@@ -250,7 +266,7 @@ const SearchHeader = ({ searchText, setSearchText, onClear }) => (
       </TouchableOpacity>
     )}
   </View>
-);
+);}
 
 // Main Component
 export const SocialScreen: React.FC = () => {
@@ -392,18 +408,21 @@ export const SocialScreen: React.FC = () => {
             focused={selectedTab === "Find"}
             onPress={() => handleTabChange("Find")}
             notifications={0}
+            color={"#ffe640"}
           />
           <TabNavigation
             name="Friends"
             focused={selectedTab === "Friends"}
             onPress={() => handleTabChange("Friends")}
             notifications={0}
+            color={"#93c5fd"}
           />
           <TabNavigation
             name="Requests"
             focused={selectedTab === "Requests"}
             onPress={() => setSelectedTab("Requests")}
             notifications={allFriendRequests ? allFriendRequests.received.length : 0}
+            color={"#CFB1FB"}
           />
         </View>
 

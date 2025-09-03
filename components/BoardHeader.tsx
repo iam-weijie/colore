@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Board } from "@/types/type";
+import { useBackgroundColor, useTextColor } from "@/hooks/useTheme";
 
 interface BoardHeaderProps {
   username: string | string[];
@@ -19,6 +20,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
   postCount,
   isOwnBoard,
 }) => {
+  const textColor = useTextColor()
   const handleLongUsername = (username: string): string => {
     // Trim and normalize spacing
     let cleanUsername = username.trim().replace(/\s+/g, " ");
@@ -58,26 +60,43 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
       <Animated.View entering={FadeIn.duration(800)}>
         {username ? (
           <View className="max-w-[200px]">
-            <Text className={`text-xl font-JakartaBold`}>
+            <Text 
+            className={`text-xl font-JakartaBold`}
+            style={{
+              color: textColor
+            }}>
               {handleLongUsername(username as string)}
             </Text>
           </View>
         ) : (
           <Text
-            className={`text-xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}
+            className={`text-xl font-JakartaBold`}
+            style={{
+                color: textColor
+              }}
+            
           >
             Personal Board
           </Text>
         )}
         {boardInfo ? (
           <View className="max-w-[200px]">
-            <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
+            <Text 
+            className=" text-[14px] text-left font-Jakarta"
+            style={{
+              color: textColor
+            }}>
               {boardInfo.description.trim()}
             </Text>
           </View>
         ) : (
           <View>
-            <Text className=" text-[14px] text-gray-600 text-left font-Jakarta">
+            <Text 
+            className=" text-[14px] text-left font-Jakarta"
+            style={{
+              color: textColor
+            }}
+            >
               {isOwnBoard ? "Your" : username + "'s"} personal space.
             </Text>
           </View>
@@ -86,16 +105,32 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
       {boardInfo && (
         <View className="flex-row gap-6 mr-7">
           <View>
-            <Text className="text-lg font-JakartaSemiBold">
+            <Text 
+            className="text-lg font-JakartaSemiBold"
+            style={{
+              color: textColor
+            }}>
               {postCount}
             </Text>
-            <Text className="text-xs font-JakartaSemiBold">Posts</Text>
+            <Text 
+            className="text-xs font-JakartaSemiBold"
+            style={{
+              color: textColor
+            }}>Posts</Text>
           </View>
           <View className="flex-column items-start justify-center">
-            <Text className="text-lg font-JakartaSemiBold">
+            <Text 
+            className="text-lg font-JakartaSemiBold"
+            style={{
+              color: textColor
+            }}>
               {boardInfo?.members_id.length}
             </Text>
-            <Text className="text-xs font-JakartaSemiBold">
+            <Text 
+            className="text-xs font-JakartaSemiBold"
+            style={{
+              color: textColor
+            }}>
               Members
             </Text>
           </View>

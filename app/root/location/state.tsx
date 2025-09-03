@@ -12,6 +12,7 @@ import React from "react";
 import Header from "@/components/Header";
 import { Ionicons } from "@expo/vector-icons";
 import { icons } from "@/constants";
+import { useBackgroundColor, useTextColor, useThemeColors } from "@/hooks/useTheme";
 
 // Define the State interface
 interface State {
@@ -33,16 +34,25 @@ const StateItem = memo(({ item, onPress }: {
   onPress: (item: State) => void 
 }) => {
   const requiresScrolling = isNameTooLong(item.name, 15);
+  const colors = useThemeColors()
+  const textColor = useTextColor()
   
   return (
        <TouchableOpacity
-          className="flex-row items-center justify-between  mx-6 py-6 px-6 bg-white my-1 rounded-[32px]"
+          className="flex-row items-center justify-between  mx-6 py-6 px-6 my-1 rounded-[32px]"
+          style={{
+            backgroundColor: colors.surfaceSecondary
+          }}
           onPress={() => onPress(item)}
           activeOpacity={0.7}
         >
           <View  className="flex-1 flex-row items-center">
            
-              <Text className="text-base font-JakartaSemiBold max-w-[85%]">
+              <Text 
+              className="text-base font-JakartaSemiBold max-w-[85%]"
+              style={{
+                color: textColor
+              }}>
                 {item.name}
               </Text>
           
@@ -61,6 +71,10 @@ const State = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const { showAlert } = useAlert();
+
+  const backgroundColor = useBackgroundColor()
+  const colors = useThemeColors()
+  const textColor = useTextColor()
 
   // Format the country name in the title
   const formattedCountryName = useCallback(() => {
@@ -234,31 +248,30 @@ const State = () => {
 
     
   return (
-    <View className="flex-1 bg-[#FAFAFA]">
+    <View className="flex-1"
+    style={{
+      backgroundColor: backgroundColor
+    }}>
 
       <Header
         title={`Select a State in ${formattedCountryName()}`}
         item={
       <View className=" w-full px-6 -pt-2 pb-2">
-        <View className="flex-row items-center bg-white rounded-[24px] px-4 h-14 ">
-          <Ionicons name="search" size={20} color="#9ca3af" />
+        <View className="flex-row items-center rounded-[24px] px-4 h-12">
+          <Ionicons name="search" size={20} color={colors.surfaceSecondary} />
           <TextInput
             className="flex-1 ml-2 h-full text-base "
             placeholder="Search countries..."
-            placeholderTextColor="#D1D1D1"
+            placeholderTextColor={colors.textSecondary}
+            style={{
+              color: colors.textSecondary
+            }}
             value={searchText}
             onChangeText={setSearchText}
             returnKeyType="search"
             clearButtonMode="while-editing"
           />
-          {searchText.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearSearch}
-              className="w-6 h-6 items-center justify-center"
-            >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
+
         </View>
       </View>
       }
@@ -283,11 +296,18 @@ const State = () => {
           )}
         />
       )}
-            <View className="absolute w-full flex-row items-center justify-center bottom-12  px-8 ">
-      <TouchableOpacity onPress={() => router.back()} className="p-5 rounded-full bg-white shadow-md ">
+            <View 
+            className="absolute w-full flex-row items-center justify-center bottom-12  px-8 ">
+      <TouchableOpacity onPress={() => router.back()} 
+      className="p-5 rounded-full shadow-md "
+      style={{
+        backgroundColor: backgroundColor
+      }}>
           <Image 
           source={icons.close}
-          className="w-5 h-5"/>
+          className="w-5 h-5"
+          tintColor={textColor}
+          />
         </TouchableOpacity>
       </View>
     </View>

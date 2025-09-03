@@ -6,6 +6,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import TabIcon from './TabIcon'; // Adjust your import
 import { useHaptics } from '@/hooks/useHaptics';
 import * as Haptics from "expo-haptics"
+import { useBackgroundColor, useTextColor } from '@/hooks/useTheme';
 
 let { width } = Dimensions.get('window');
 width = width > 500 ? 700 : width
@@ -141,6 +142,7 @@ export const CustomButtonBar: React.FC<{ buttons: CustomButton[] }> = ({ buttons
   const rightButtons = buttons.slice(centerIndex + 1);
   
   const { triggerHaptic } = useHaptics();
+  const textColor =  useTextColor()
 
   return (
     <View 
@@ -194,7 +196,7 @@ export const CustomButtonBar: React.FC<{ buttons: CustomButton[] }> = ({ buttons
           source={button.icon}
           focused={false}
           unread={0}
-          color=""
+          color={textColor}
           label={button.label}
           isCenter={false}
           nativeIcon={false}
@@ -276,7 +278,9 @@ export const CustomButtonBar: React.FC<{ buttons: CustomButton[] }> = ({ buttons
 
 
 // --- 3. Navbar Background shared
-const NavbarBackground = () => (
+const NavbarBackground = () => {
+  const backgroundColor = useBackgroundColor()
+  return (
   <Svg width={width} height={height} style={{ position: 'absolute' }}>
 <Path
   d={`
@@ -295,12 +299,12 @@ const NavbarBackground = () => (
     A30 30 0 0 1 30 0
     Z
   `}
-  fill="white"
+  fill={backgroundColor}
 />
 
 
   </Svg>
-);
+)};
 
 /* Save Copy
 

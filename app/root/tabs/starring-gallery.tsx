@@ -19,7 +19,6 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useDevice } from "@/app/contexts/DeviceContext";
-import { useStacks } from "@/app/contexts/StacksContext";
 import { useProfileContext } from "@/app/contexts/ProfileContext";
 import EmojiBackground from "@/components/EmojiBackground";
 import { PostItColor, Prompt } from "@/types/type";
@@ -30,7 +29,7 @@ import {
 import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
 import Header from "@/components/Header";
 import CardCarrousel from "@/components/CardCarroussel";
-import StarringContainer from "@/components/StarringContainer";
+import StarringContainer from "@/components/starring-container/StarringContainer";
 import PostGallery from "@/components/PostGallery";
 import { Ionicons } from "@expo/vector-icons";
 import { checkTutorialStatus, completedTutorialStep } from "@/hooks/useTutorial";
@@ -61,7 +60,7 @@ const CreateView = ({
     
     {loading ? (
       <View className="flex-1 items-center justify-center ">
-        <ColoreActivityIndicator text="Loading…" colors={["#FAFAFA", "#FAFAFA",  "#FAFAFA"]} />
+        <ColoreActivityIndicator text="Loading…" colors={["#FAFAFA", "#FAFAFA",  "#FAFAFA"]} paddingType="fullPage" />
       </View>
     ) : (
       <CardCarrousel
@@ -89,7 +88,6 @@ export default function Page() {
   const { user } = useUser();
   const { showAlert } = useAlert();
   const { isIpad } = useDevice();
-  const { stacks, setStacks } = useStacks();
   const { profile } = useProfileContext();
   const colors = useThemeColors();
   const backgroundColor = useBackgroundColor();
@@ -153,9 +151,9 @@ export default function Page() {
     useState(false);
 
   const tabs = [
-    { name: "Create", key: "Create", color: "#CFB1FB" },
-    { name: "Answers", key: "Answers", color: "#93C5FD" },
-    { name: "Peek", key: "Peek", color: "#FBD38D" },
+    { name: "Create", key: "Create", color: "#000" },
+    { name: "Answers", key: "Answers", color: "#000" },
+    { name: "Peek", key: "Peek", color: "#000" },
   ] as const;
 
   const renderPrompt = useCallback(
@@ -194,7 +192,7 @@ export default function Page() {
     setLoading(true);
     try {
       const res = await fetchAPI(
-        `/api/posts/getTrendingPosts?number=${isIpad ? 24 : 18}&id=${user?.id}`
+        `/api/posts/getTrendingPosts?number=${isIpad ? 24 : 18}&id=${user!.id}`
       );
       //log
       console.log("Fetched posts:", res.data[0]);
@@ -282,9 +280,9 @@ export default function Page() {
     fetchPrompts();
     if (user) {
       fetchUserData();
-      if (stacks.length == 0) {
-        fetchPosts();
-      }
+
+      fetchPosts();
+      
     }
   }, [user, isIpad]);
 
@@ -392,7 +390,7 @@ export default function Page() {
       <View style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: backgroundColor }}>
         {answerLoading ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: backgroundColor }}>
-            <ColoreActivityIndicator text="Loading my prompts…" />
+            <ColoreActivityIndicator text="Loading my prompts…" paddingType="fullPage"/>
           </View>
         ) : //ts-ignore-next-line
 
@@ -441,7 +439,7 @@ export default function Page() {
 
   return (
     <SignedIn>
-    <GestureHandlerRootView>
+    <GestureHandlerRootView className="flex-1">
       <View style={{ flex: 1, backgroundColor: backgroundColor }}>
             <Header
               title="Starring"
@@ -471,7 +469,7 @@ export default function Page() {
             )}
             {selectedTab === "Answers" && <AnswerView />}
             {selectedTab === "Peek" &&
-            
+             <>
             <StarringContainer
               selectedPosts={posts}
               handleCloseModal={() => {}}
@@ -482,6 +480,7 @@ export default function Page() {
                 setLoading(false);
               }}
             />
+            </>
             
 }
 

@@ -52,7 +52,13 @@ export async function GET(request: Request) {
       u.country, 
       u.state, 
       u.city,
-      pr.content as prompt
+      pr.content as prompt,
+      EXISTS(
+        SELECT 1 
+        FROM post_likes pl 
+        WHERE pl.post_id = p.id 
+        AND pl.user_id = $1
+      ) as is_liked
     `;
 
     // Validate mode against allowed values
@@ -82,6 +88,8 @@ export async function GET(request: Request) {
       user_id: post.user_id,
       firstname: post.firstname,
       username: post.username,
+      nickname: post.username, // Use username as nickname if not available
+      incognito_name: post.username, // Use username as incognito_name if not available
       content: post.content,
       created_at: post.created_at,
       city: post.city,
@@ -100,13 +108,15 @@ export async function GET(request: Request) {
       board_id: post.board_id,
       reply_to: post.reply_to,
       unread: post.unread,
+      isLiked: post.is_liked,
       position:
         post.top !== null && post.left !== null
           ? { top: Number(post.top), left: Number(post.left) }
           : undefined,
       formatting: (post.formatting as Format) || [],
       static_emoji: post.static_emoji,
-      expires_at: "", // Default value
+      expires_at: post.expires_at || "", // Use actual value if available
+      available_at: post.available_at || post.created_at, // Use created_at as fallback
     }));
 
     return new Response(JSON.stringify({ data: mappedPosts }), {

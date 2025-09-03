@@ -21,6 +21,7 @@ import Animated, {
   Extrapolation,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import { useBackgroundColor, useTextColor, useThemeColors } from "@/hooks/useTheme";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -40,6 +41,8 @@ const ModalSheet: React.FC<ModalSheetProps> = ({
   const [visible, setVisible] = useState(isVisible);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const screenHeight = Dimensions.get("window").height;
+  const backgroundColor = useBackgroundColor();
+  const textColor = useTextColor()
 
   // Animation values
   const translateY = useSharedValue(screenHeight);
@@ -131,7 +134,7 @@ const ModalSheet: React.FC<ModalSheetProps> = ({
   useFocusEffect(
     useCallback(() => {
       return () => {
-        if (visible) handleClose();
+        
       };
     }, [visible, handleClose])
   );
@@ -146,7 +149,8 @@ const ModalSheet: React.FC<ModalSheetProps> = ({
       animationType="none"
       statusBarTranslucent
     >
-      <GestureHandlerRootView className="flex-1">
+      <GestureHandlerRootView 
+      className="flex-1">
 
           {/* Overlay only in sheet mode */}
           {!isFull && (
@@ -163,11 +167,11 @@ const ModalSheet: React.FC<ModalSheetProps> = ({
 
           {/* Sheet / Fullscreen container */}
           <Animated.View
-            style={animatedStyle}
+            style={[animatedStyle, { backgroundColor: backgroundColor }]}
             className={
               isFull
-                ? "absolute top-0 left-0 right-0 bottom-0 bg-white py-4"
-                : "absolute bottom-5 w-[92%] max-h-[75%] left-[4%] pb-2 bg-white rounded-[48px] shadow-xl elevation-10 overflow-hidden"
+                ? "absolute top-0 left-0 right-0 bottom-0 py-4"
+                : "absolute bottom-5 w-[92%] max-h-[75%] left-[4%] pb-2 rounded-[48px] shadow-xl elevation-10 overflow-hidden"
             }
           >
             {/* Drag handle (only sheet mode) */}
@@ -182,7 +186,11 @@ const ModalSheet: React.FC<ModalSheetProps> = ({
             {/* Title */}
             {title && (
               <View className="w-full items-center justify-center my-2 px-6">
-                <Text className="text-[16px] font-JakartaSemiBold">{title}</Text>
+                <Text 
+                className="text-[16px] font-JakartaSemiBold"
+                style={{
+                  color: textColor
+                }}>{title}</Text>
               </View>
             )}
 

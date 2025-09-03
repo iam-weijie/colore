@@ -1,5 +1,6 @@
 import { useUser } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
+import { navigateToNewPost, navigateToTemporaryPost, navigateToGlobalPost, navigateToPersonalPost } from "@/lib/postNavigation";
 import React, { useEffect, useState } from "react";
 import {
   Keyboard,
@@ -68,9 +69,9 @@ const { draftPost, resetDraftPost } = useDraftPost()
 const [selectedTab, setSelectedTab] = useState<string>("notes");
 
 const tabs = [
-  { name: "Prompts", key: "prompts", color: "#CFB1FB", notifications: 0 },
-  { name: "Notes", key: "notes", color: "#CFB1FB" },
-  { name: "Boards", key: "boards", color: "#93c5fd", notifications: 0 }
+  { name: "Prompts", key: "prompts", color: "#000", notifications: 0 },
+  { name: "Notes", key: "notes", color: "#000" },
+  { name: "Boards", key: "boards", color: "#000", notifications: 0 }
 ];
 
 // Generic navigation handler
@@ -91,15 +92,21 @@ const navigateTo = ({
 
   switch (type) {
     case "prompt":
+      navigateToNewPost(params);
+      break;
     case "note":
-      pathname = "root/new-post";
+      if (params.expiration) {
+        navigateToTemporaryPost(params);
+      } else if (params.recipientId) {
+        navigateToPersonalPost(params);
+      } else {
+        navigateToGlobalPost(params);
+      }
       break;
     case "board":
-      pathname = "root/new-board";
+      router.push({ pathname: "root/new-board", params });
       break;
   }
-
-  router.push({ pathname, params });
 };
 
 const handlePromptSubmit = async () => {

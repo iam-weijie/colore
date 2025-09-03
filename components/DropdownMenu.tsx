@@ -2,6 +2,7 @@ import { Animated, Image, ImageSourcePropType, Modal, Pressable, Text, Touchable
 import React, { useEffect, useRef, useState } from "react";
 import { BlurView } from "expo-blur";
 import ItemContainer from "./ItemContainer";
+import { useBackgroundColor } from "@/hooks/useTheme";
 
 type MenuItem = {
   label: string;
@@ -22,6 +23,8 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ icon, menuItems, customMenu
   const triggerRef = useRef<View>(null);
   const menuWidth = customMenuWidth ? customMenuWidth : 100;
   const isMounted = useRef(true);
+
+  const backgroundColor = useBackgroundColor()
 
   const slideAnim = useRef(new Animated.Value(300)).current; // Slide down animation
   const opacityAnim = useRef(new Animated.Value(0)).current; // Background fade animation
@@ -114,8 +117,8 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ icon, menuItems, customMenu
 
         {/* Dropdown Menu */}
         <Animated.View
-          style={{ transform: [{ translateY: slideAnim }] }}
-          className="absolute w-[90%] bottom-0 left-[50%] -ml-[45%] right-0 bg-white rounded-[48px] shadow-lg py-4 px-2  mb-7 overflow-hidden"
+          style={{ transform: [{ translateY: slideAnim }], backgroundColor: backgroundColor }}
+          className="absolute w-[90%] bottom-0 left-[50%] -ml-[45%] right-0  rounded-[48px] shadow-lg py-4 px-2  mb-7 overflow-hidden"
         >
 
           {menuItems.map((item, index) => (

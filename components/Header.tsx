@@ -38,7 +38,7 @@ const Header = ({
     onBackPress?: () => void
   }) => {
     const colors = useThemeColors();
-    const backgroundColor = useBackgroundColor("surface");
+    const backgroundColor = useBackgroundColor();
     const textColor = useTextColor();
 
     const handleTabChange = (tabKey: string) => {

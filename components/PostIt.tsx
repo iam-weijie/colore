@@ -9,11 +9,12 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
-import { allColors } from "@/constants/colors";
+
 import {
   View,
 } from "react-native";
 import React from "react";
+import { useAllPostItColors } from "@/hooks/useTheme";
 
 interface PostItProps {
   color?: string;
@@ -22,6 +23,7 @@ interface PostItProps {
 
 
 const PostIt: React.FC<PostItProps> = ({ color, viewed=false }) => {
+  const allColors = useAllPostItColors()
   // Used instead of color.hex incase colour is undefined or NULL in database and Post object
   // Should be changed later to color.hex when color is changed from a string to a PostItColor
   const getColorHex = (colorName: string | undefined) => {

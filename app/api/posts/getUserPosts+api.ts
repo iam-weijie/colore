@@ -6,6 +6,7 @@ export async function GET(request: Request) {
     const sql = neon(process.env.DATABASE_URL!);
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("id");
+    const viewerId = url.searchParams.get("viewerId"); // Add viewer ID to check like status
     const page = parseInt(url.searchParams.get("page") || "0");
     const limit = parseInt(url.searchParams.get("limit") || "25");
     const offset = page * limit;
@@ -41,7 +42,13 @@ export async function GET(request: Request) {
         p.expires_at,
         p.available_at,
         pr.content as prompt,
-        b.title as board_title
+        b.title as board_title,
+        ${viewerId ? sql`EXISTS(
+          SELECT 1 
+          FROM post_likes pl 
+          WHERE pl.post_id = p.id 
+          AND pl.user_id = ${viewerId}
+        )` : sql`FALSE`} as is_liked
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
@@ -90,6 +97,8 @@ export async function GET(request: Request) {
       user_id: post.user_id,
       firstname: post.firstname,
       username: post.username,
+      nickname: post.username, // Use username as nickname if not available
+      incognito_name: post.username, // Use username as incognito_name if not available
       content: post.content,
       created_at: post.created_at,
       expires_at: post.expires_at, // Not available in query - set default
@@ -109,6 +118,7 @@ export async function GET(request: Request) {
       board_id: post.board_id,
       reply_to: post.reply_to,
       unread: post.unread,
+      isLiked: post.is_liked,
       position:
         post.top !== null && post.left !== null
           ? { top: Number(post.top), left: Number(post.left) }
@@ -116,6 +126,7 @@ export async function GET(request: Request) {
       formatting: (post.formatting as Format) || [],
       formatting_encrypted: post.formatting_encrypted || null,
       static_emoji: post.static_emoji,
+      available_at: post.available_at || post.created_at, // Use created_at as fallback
     }));
 
      return new Response(JSON.stringify({ 

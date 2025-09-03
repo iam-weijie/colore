@@ -62,20 +62,9 @@ export const BoardsProvider: React.FC<{ children: React.ReactNode }> = ({
         board_type: 'personal',
         restrictions: ['personal', 'commentsAllowed', '5'],
         created_at: Date.now(),
-        color: "#93c5fd"
+        color: "light-blue"
       };
 
-      const shareWithMeBoard: Board = {
-        id: -2,
-        title: "Shared with Me",
-        user_id: user.id,
-        description: "Everything that was share with you!",
-        members_id: [user.id],
-        board_type: 'personal',
-        restrictions: ['personal', 'commentsAllowed', '5'],
-        created_at: Date.now(),
-        color: "#CFB1FB"
-      };
 
       if (response.data && response.data.length > 0) {
         const boardsWithColor = response.data.map((board: any, index: number) => ({
@@ -83,9 +72,9 @@ export const BoardsProvider: React.FC<{ children: React.ReactNode }> = ({
           color: defaultColors[Math.floor(Math.random() * 3)].hex,
         }));
         
-        setPersonalBoards([personalBoard, shareWithMeBoard, ...boardsWithColor]);
+        setPersonalBoards([personalBoard, ...boardsWithColor]);
       } else {
-        setPersonalBoards([personalBoard, shareWithMeBoard]);
+        setPersonalBoards([personalBoard]);
       }
     } catch (error) {
       console.error("[BoardsContext] Failed to fetch personal boards:", error);
@@ -144,7 +133,7 @@ export const BoardsProvider: React.FC<{ children: React.ReactNode }> = ({
       if (response.data && response.data.length > 0) {
         const boardsWithColor = response.data.map((board: any, index: number) => ({
           ...board,
-          color: defaultColors[Math.floor(Math.random() * 3)].hex,
+          color: defaultColors[Math.floor(Math.random() * 3)],
         }));
         
         setDiscoverBoards(boardsWithColor);

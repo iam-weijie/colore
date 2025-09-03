@@ -15,6 +15,7 @@ import PostGallery from "@/components/PostGallery";
 import { icons } from "@/constants";
 import { Ionicons } from "@expo/vector-icons";
 import Header from "@/components/Header";
+import { useBackgroundColor, useTextColor, useThemeColors } from "@/hooks/useTheme";
 
 const SavedPostGallery = () => {
   const router = useRouter();
@@ -25,6 +26,10 @@ const SavedPostGallery = () => {
   const [update, setUpdate] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshingKey, setRefreshingKey] = useState<number>(0);
+
+  const backgroundColor = useBackgroundColor();
+  const textColor = useTextColor();
+  const colors = useThemeColors();
 
   const fetchSavedPosts = async () => {
 
@@ -96,7 +101,12 @@ const SavedPostGallery = () => {
     setQuery("");
   };
   return (
-    <View className="flex-1 bg-[#FAFAFA]" key={refreshingKey}>
+    <View
+     className="flex-1" 
+     key={refreshingKey}
+     style={{
+      backgroundColor: backgroundColor
+     }}>
      <Header 
      title={Array.isArray(name) ? name.join(", ") : name}
      />
@@ -107,11 +117,11 @@ const SavedPostGallery = () => {
           boxShadow: "0 0 7px 1px rgba(120,120,120,.1)"
         }}
         >
-          <Ionicons name="search" size={20} color="#9ca3af" />
+          <Ionicons name="search" size={20} color={colors.surfaceSecondary} />
           <TextInput
             className="flex-1 pl-2 text-md "
             placeholder="Search emojis..."
-             placeholderTextColor="#9CA3AF"
+             placeholderTextColor={colors.textSecondary}
             value={query}
             onChangeText={setQuery}
             returnKeyType="search"
@@ -145,7 +155,11 @@ const SavedPostGallery = () => {
         </View>
       ) : (
         <View className="flex-1 flex mb-12 items-center justify-center">
-          <Text className="text-gray-600 text-base  text-center">
+          <Text 
+          className="text-base  text-center"
+          style={{
+            color: textColor
+          }}>
             You have no {name == "Saved Notes" ? "saved" : "liked"} posts.
           </Text>
         </View>

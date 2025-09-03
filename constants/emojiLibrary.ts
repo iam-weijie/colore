@@ -75,7 +75,7 @@ export const EMOJI_LIBRARY: EmojiData[] = [
 
   // Objects & Symbols (15 emojis)
   { id: 'object_heart', emoji: '❤️', categories: ['symbols', 'love', 'emotions'] },
-  { id: 'object_thumbs_up', emoji: '👍', categories: ['symbols', 'approval', 'positive'] },
+  { id: 'object_thumbs_up', emoji: '👌', categories: ['symbols', 'approval', 'positive'] },
   { id: 'object_clap', emoji: '👏', categories: ['symbols', 'celebration', 'approval'] },
   { id: 'object_peace', emoji: '✌️', categories: ['symbols', 'peace', 'positive'] },
   { id: 'object_ok_hand', emoji: '👌', categories: ['symbols', 'approval', 'perfect'] },
@@ -95,7 +95,7 @@ export const EMOJI_LIBRARY: EmojiData[] = [
 export const DEFAULT_SHORTHAND_EMOJIS: string[] = [
   '😊',
   '❤️', 
-  '👍', 
+  '👌', 
   '😂', 
   '🔥', 
   '🥳'  

@@ -10,8 +10,7 @@ import {
 import { allColors } from "@/constants/colors";
 import { PostWithPosition } from "@/types/type";
 import PostIt from "@/components/PostIt";
-import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
-import { fetchAPI } from "@/lib/fetch";
+import { useStacksManager} from "@/app/contexts/StacksContext";
 import { icons } from "@/constants";
 
 interface DraggablePostItProps {
@@ -48,6 +47,7 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
   enabledPan,
 }) => {
 
+  const { stacks } = useStacksManager();
 
   // Animated values for visual effects during drag
   const animatedPosition = useRef(
@@ -314,6 +314,24 @@ const DraggablePostIt: React.FC<DraggablePostItProps> = ({
       },
     })
   ).current;
+
+  const getRotation = (id: number) => {
+    // Hash id deterministically into [0, 1)
+    const hash = ((id * 2654435761) % 360) / 360; // Knuth multiplicative hash
+    // Scale to [-12, 12]
+    return (hash * 7) - 3.5;
+  };
+
+  useEffect(() => {
+    const isInStack = stacks.some((s) => s.ids.includes(post.id));
+
+    if (isInStack) {
+
+      const determinisicRotation = getRotation(post.id)
+        rotation.setValue(determinisicRotation);
+    }
+  }, [stacks, post.id]);
+
 
   return (
     <Animated.View

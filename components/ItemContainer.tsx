@@ -14,7 +14,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
-
+import { useBackgroundColor, useTextColor } from "@/hooks/useTheme";
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const ItemContainer = ({
@@ -39,6 +39,7 @@ const ItemContainer = ({
   const scale = useSharedValue(1);
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(20);
+  const textColor = useTextColor()
 
   const { playSoundEffect } = useSoundEffects();
   const animatedStyle = useAnimatedStyle(() => ({
@@ -103,7 +104,8 @@ const ItemContainer = ({
         {/* Text content */}
         <View className="flex-1 mr-2">
           <Text
-            className={`text-[15px] font-JakartaSemiBold ${isPrompt ? "text-white" : "text-black"}`}
+            className={`text-[15px] font-JakartaSemiBold ${isPrompt ? "text-white" : ""}`}
+            style={{ color: textColor }}
             ellipsizeMode="tail"
             numberOfLines={isPrompt ? 3 : 1}
           >

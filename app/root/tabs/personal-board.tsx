@@ -79,9 +79,9 @@ const UserPersonalBoard = () => {
   const [searchText, setSearchText] = useState<string>("");
 
   const tabs = [
-    { name: "Mine", key: "MyBoards", color: "#CFB1FB", notifications: 0 },
-    { name: "Community", key: "Community", color: "#CFB1FB" },
-    { name: "Discover", key: "Discover", color: "#93c5fd", notifications: 0 }
+    { name: "Mine", key: "MyBoards", color: "#000", notifications: 0 },
+    { name: "Community", key: "Community", color: "#000" },
+    { name: "Discover", key: "Discover", color: "#000", notifications: 0 }
   ];
 
   const handleTabChange = (tabKey: string) => {
@@ -130,7 +130,7 @@ const UserPersonalBoard = () => {
 
             <View className=" z-10 flex flex-row items-center rounded-[24px] px-4 mt-4 h-12 mx-6"
         style={{
-          backgroundColor: colors.surface,
+          backgroundColor: colors.surfaceSecondary,
           boxShadow: "0 0 7px 1px rgba(120,120,120,.1)",
           width: '90%',
           marginTop: 24
@@ -144,7 +144,8 @@ const UserPersonalBoard = () => {
             value={searchText}
             onChangeText={setSearchText}
             returnKeyType="search"
-            style={{ color: textColor }}
+            style={{ 
+              color: textColor }}
           />
           {searchText.length > 0 && (
             <TouchableOpacity 

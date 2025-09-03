@@ -1,5 +1,5 @@
 import PostModal from "@/components/PostModal";
-import UserProfile from "@/components/UserProfile";
+import UserProfile from "@/components/user-profile/UserProfile";
 import { fetchAPI } from "@/lib/fetch";
 import { Post, FriendStatusType } from "@/types/type";
 import { useAuth, useUser } from "@clerk/clerk-expo";

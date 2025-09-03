@@ -3,6 +3,7 @@ import { Image, View, Text } from "react-native";
 import Animated, { BounceIn, FadeInDown } from "react-native-reanimated";
 import { characters, characterMood } from "@/constants";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
+import { useTextColor } from "@/hooks/useTheme";
 
 interface EmptyListViewProps {
   scale?: number;
@@ -21,6 +22,7 @@ const EmptyListView: React.FC<EmptyListViewProps> = ({
 }) => {
   const [shouldRender, setShouldRender] = useState(false);
   const selectedCharacter = characterMood[character]?.[mood] ?? null;
+  const textColor = useTextColor()
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -49,11 +51,20 @@ const EmptyListView: React.FC<EmptyListViewProps> = ({
           }}
         />
       )}
-      <Animated.Text entering={FadeInDown.duration(800)} className="text-center text-[14px] font-Jakarta text-gray-700">
+      <Animated.Text 
+      entering={FadeInDown.duration(800)} 
+      className="text-center text-[14px] font-Jakarta"
+      style={{
+        color: textColor
+      }}>
         {message}
       </Animated.Text>
       {subMessage && (
-        <Text className="text-center text-[12px] font-Jakarta text-gray-400 mt-[-8px]">
+        <Text 
+        className="text-center text-[12px] font-Jakarta mt-[-8px]"
+        style={{
+          color: textColor
+        }}>
           {subMessage}
         </Text>
       )}

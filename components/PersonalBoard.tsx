@@ -121,16 +121,6 @@ const handleFetchPosts = async () => {
   className="flex-1 relative overflow-hidden" 
   style={{ height: screenHeight }}
 >
-  {/* Animated Gradient Background */}
-  <View
-    className="absolute flex-1 inset-0"
-  >
-    <LinearGradient
-      colors={['#fdf4ff', '#f0f9ff', '#f3e8ff']} // softer pink, blue, purple
-      locations={[0, 0.5, 1]}
-      style={{ flex: 1 }}
-    />
-  </View>
 
   <SignedIn>
     {/* Interactive Cork Board */}

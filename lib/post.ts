@@ -1,5 +1,5 @@
 import * as Linking from "expo-linking";
-import { router } from "expo-router";
+import { navigateToEditPost } from "./postNavigation";
 import { Post } from "@/types/type";
 import { fetchAPI } from "@/lib/fetch";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -20,6 +20,7 @@ import {
 import * as Haptics from "expo-haptics";
 import { addDays } from "date-fns";
 import { encryptText } from "@/lib/encryption";
+import { router } from "expo-router";
 
 export const handleReportPress = () => {
   Linking.openURL("mailto:support@colore.ca");
@@ -27,14 +28,11 @@ export const handleReportPress = () => {
 
 export const handleEditing = (post: Post) => {
   setTimeout(() => {
-    router.push({
-      pathname: "/root/new-post",
-      params: {
-        postId: post.id,
-        content: post.content,
-        color: post.color,
-        emoji: post.emoji,
-      },
+    navigateToEditPost({
+      postId: post.id.toString(),
+      content: post.content,
+      color: post.color,
+      emoji: post.emoji,
     });
   }, 750);
 };
@@ -345,28 +343,43 @@ export const handleSubmitPost = async (
   }
 };
 
+let abortController: AbortController | null = null;
+
 export const fetchLikeStatus = async (postId: number, userId: string) => {
   try {
-    if (!postId) {
-      console.warn("Invalid post ID:", postId);
+    if (!postId || !userId) {
+      console.warn("Invalid postId or userId:", { postId, userId });
       return { isLiked: false, likeCount: 0 };
     }
-    
+
+    // Abort any in-flight request
+    if (abortController) {
+      abortController.abort();
+    }
+    abortController = new AbortController();
+
     const response = await fetchAPI(
       `/api/posts/updateLikeCount?postId=${postId}&userId=${userId}`,
-      { method: "GET" }
+      { 
+        method: "GET",
+        signal: abortController.signal, // 👈 tie to controller
+      }
     );
-    
+
     if (response.error) {
       console.error("Error fetching like status:", response.error);
       return { isLiked: false, likeCount: 0 };
     }
 
-    const isLiked: boolean = response.data?.liked;
-    const likeCount: number = response.data?.likeCount;
+    const isLiked: boolean = response.data?.liked ?? false;
+    const likeCount: number = response.data?.likeCount ?? 0;
 
-    return { isLiked: isLiked ?? false, likeCount: likeCount ?? 0 };
-  } catch (error) {
+    return { isLiked, likeCount };
+  } catch (error: any) {
+    if (error.name === "AbortError") {
+      console.log("Like status fetch aborted");
+      return { isLiked: false, likeCount: 0 };
+    }
     console.error("Failed to fetch like status:", error);
     return { isLiked: false, likeCount: 0 };
   }

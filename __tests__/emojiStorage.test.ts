@@ -13,7 +13,7 @@ jest.mock('@react-native-async-storage/async-storage', () => mockAsyncStorage);
 
 describe('EmojiStorage', () => {
   const testUserId = 'test-user-123';
-  const testEmojis = ['😊', '❤️', '👍', '😂', '🔥', '🥳'];
+  const testEmojis = ['😊', '❤️', '👌', '😂', '🔥', '🥳'];
 
   beforeEach(() => {
     jest.clearAllMocks();

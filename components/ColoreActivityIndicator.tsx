@@ -18,11 +18,13 @@ const ColoreActivityIndicator = ({
   size = 50,
   strokeWidth = 6,
   colors = ['#ffe640', '#FBB1F5', '#93c5fd', '#CFB1FB'],
+  paddingType = 'none'
 }: {
   text?: string;
   size?: number;
   strokeWidth?: number;
   colors?: string[];
+  paddingType?: "none" | "fullPage"
 }) => {
   const rotation = useSharedValue(0);
   const colorCycle = useSharedValue(0);
@@ -39,10 +41,6 @@ const ColoreActivityIndicator = ({
   }, []);
 
   const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-
-  const arcAngles = [0, 120, 240]; // rotation offsets
-  const arcLengthRatio = 0.25; // 25% of the circle
 
   const getArcProps = (index: number) =>
     useAnimatedProps(() => {
@@ -77,7 +75,11 @@ const ColoreActivityIndicator = ({
     });
 
   return (
-    <View className="items-center justify-center space-y-3">
+    <View 
+    className="items-center justify-center space-y-3"
+    style={{
+      marginTop: paddingType == "fullPage" ? -90 : 0
+    }}>
 
       {/* Bouncing dots */}
       <View className="flex-row space-x-2 mt-1">

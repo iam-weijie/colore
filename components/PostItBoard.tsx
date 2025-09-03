@@ -1,7 +1,7 @@
-import { useStacks } from "@/app/contexts/StacksContext";
+import { useStacksManager } from "@/app/contexts/StacksContext";
 import DraggablePostIt from "./DraggablePostIt";
 import PostModal from "@/components/PostModal";
-import { Post, PostWithPosition, Stacks, PostItBoardProps, UserNicknamePair } from "@/types/type";
+import { Post, Stacks, PostItBoardProps, PostWithPosition } from "@/types/type";
 import { SignedIn } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
 import { 
@@ -17,38 +17,43 @@ import {
   RefreshControl,
   ScrollView,
   View,
+  Text,
+  TouchableOpacity
 } from "react-native";
 import ColoreActivityIndicator from "./ColoreActivityIndicator";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { mappingPostIt, reorderPost } from '@/lib/postItBoard';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
   withTiming, 
   Easing,
-  runOnJS,
-  useAnimatedGestureHandler,
-  useAnimatedScrollHandler
+  runOnJS
 } from 'react-native-reanimated';
-import StackCircle from "./StackCircle";
 import ModalSheet from "./Modal";
 import { 
   Gesture, 
   GestureDetector,
-  PanGestureHandler,
-  State,
   GestureHandlerRootView
 } from 'react-native-gesture-handler';
 import { updateStacks } from "@/lib/stack";
+
 import ScrollMap from "./ScrollMap";
 import { FindUser } from "./FindUsers";
 import { useAlert } from "@/notifications/AlertContext";
 import EmptyListView from "./EmptyList";
+import { useBackgroundColor, useTextColor } from "@/hooks/useTheme";
+import { distanceBetweenPosts } from "@/lib/post";
+import KeyboardOverlay from "./KeyboardOverlay";
+import RenameContainer from "./RenameContainer";
+
 
 const screenDimensions = {
   width: Dimensions.get("screen").width,
   height: Dimensions.get("screen").height
 };
+
+
 
 const PostItBoard: React.FC<PostItBoardProps> = ({
   userId,
@@ -63,26 +68,29 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
 }) => {
   // Core state
   const [posts, setPosts] = useState<Post[]>([]);
+  const { virtualMap, setVirtualMap, trackPostit, stacks, setStacks, onDragStart, onDragEnd } = useStacksManager();
+  const stacksRef = useRef(stacks);
   const [selectedPosts, setSelectedPosts] = useState<Post[] | null>(null);
   const [selectedModal, setSelectedModal] = useState<any>(null);
   const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const backgroundColor = useBackgroundColor()
+  const [onFocus, setOnFocus] = useState<boolean>(false);
+  const [currentStackName, setCurrentStackName] = useState<string>("");
+  const textColor = useTextColor();
 
   // Map and interaction state
   const [zoomScale, setZoomScale] = useState(1);
   const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 });
   const [showMap, setShowMap] = useState(false);
   const [isPanningMode, setIsPanningMode] = useState(true);
-  const [isStackMoving, setIsStackMoving] = useState(false);
   const [isPostItDragging, setIsPostItDragging] = useState(false);
-  const [dragStartTime, setDragStartTime] = useState(0);
-  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Refs
   const scrollViewRef = useRef<ScrollView>(null);
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeout = useRef<number | null>(null);
   const previousOffset = useRef({ x: 0, y: 0 });
 
   // Shared values for animations
@@ -92,10 +100,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const scale = useSharedValue(1);
   const lastScale = useRef(1);
 
-  // Context and hooks
-  const { stacks, setStacks } = useStacks();
-  const { showAlert } = useAlert();
-  const stackUpdating = useRef(false);
 
   // Animated styles - MUST be before any early returns
   const animatedContainerStyle = useAnimatedStyle(() => ({
@@ -195,8 +199,8 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         if (top <= 0 || left <= 0 || 
             top > boardDimensions.height - POSTIT_HEIGHT || 
             left > boardDimensions.width - POSTIT_WIDTH || (top <= POSTIT_HEIGHT && left <= POSTIT_WIDTH)) {
-          top = Math.random() * (boardDimensions.height - POSTIT_HEIGHT) + POSTIT_HEIGHT/2 ;
-          left = Math.random() * (boardDimensions.width - POSTIT_WIDTH) + POSTIT_WIDTH/2;
+          top = Math.random() * (boardDimensions.height - POSTIT_HEIGHT) + POSTIT_HEIGHT / 2 ;
+          left = Math.random() * (boardDimensions.width - POSTIT_WIDTH) + POSTIT_WIDTH / 2;
           
           // Update backend
           fetchAPI(`/api/posts/updatePostPosition`, {
@@ -204,6 +208,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             body: JSON.stringify({ postId: post.id, top, left }),
           });
         }
+        
         
         return { ...post, position: { top, left } };
       });
@@ -226,10 +231,13 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             body: JSON.stringify({ postId: post.id, top, left }),
           });
         }
-        
+
+
         return { ...post, position: { top, left } };
+
       });
     }
+
   };
 
   // Simplified post fetching
@@ -240,30 +248,9 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
       const positionedPosts = positionPosts(fetchedPosts);
       
       setPosts(positionedPosts);
+      setVirtualMap(positionedPosts)
       
-      // Initialize map
-      const initialMap = positionedPosts.map(post => 
-        mappingPostIt({
-          id: post.id,
-          coordinates: { 
-            x_coordinate: post.position?.left ?? 0,
-            y_coordinate: post.position?.top ?? 0,
-          },
-        })
-      );
-      
-      // Update stacks
-      if (initialMap.length > 1) {
-        updateStacks(
-          initialMap[initialMap.length - 1].id,
-          initialMap[initialMap.length - 1].coordinates,
-          positionedPosts,
-          stacks,
-          setStacks,
-          () => {}, // setAllPostsInStack
-          initialMap
-        );
-      }
+
     } catch (error) {
       console.error("Failed to fetch posts:", error);
       setError("Failed to fetch posts.");
@@ -273,10 +260,33 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   };
 
   // Simplified handlers
-  const handlePostPress = async (post: Post) => {
-    const stack = stacks.find(s => s.ids.includes(post.id));
-    if (stack) {
-      setSelectedPosts(stack.elements);
+
+
+
+  useEffect(() => { 
+    stacksRef.current = stacks
+    console.log("[POSTITBOARD] stacks updated", stacks)
+   }, [stacks]);
+
+  const handlePostPress = useCallback(async (post: Post) => {
+
+    console.log("[HANDLEPOSTPRESS] stacks", stacksRef.current)
+
+    const inStack = stacksRef.current.some((s) => s.ids.includes(post.id));
+   
+    console.log("[POSTITBOARD] stack found: ", inStack, post.id, stacksRef.current)
+
+    if (inStack) {
+      // Find the stack that contains this post
+      const stack = stacksRef.current.find(s => s.ids.includes(post.id));
+      
+      if (stack) {
+        // Get all posts that are in this stack
+        const elements = virtualMap.filter((p) => stack.ids.includes(p.id));
+        setSelectedPosts(elements);
+      } else {
+        setSelectedPosts([post]);
+      }
     } else {
       setSelectedPosts([post]);
     }
@@ -291,61 +301,14 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         console.error("Failed to update unread message:", error);
       }
     }
-  };
+  }, [stacks, posts]);
 
-  const handleShareStack = async (friend: UserNicknamePair, stack: Stacks) => {
-    try {
-      const stackResponse = await fetchAPI(`/api/stacks/newStack`, {
-        method: "POST",
-        body: JSON.stringify({
-          name: stack.name,
-          centerX: stack.center.x,
-          centerY: stack.center.y,
-          ids: stack.ids,
-          boardId: -1,
-          userId: userId
-        })
-      });
-
-      if (!stackResponse?.data) throw new Error("Failed to create stack");
-
-      const shareResponse = await fetchAPI(`/api/shared/newSharedStack`, {
-        method: "POST",
-        body: JSON.stringify({
-          stackId: stackResponse.data.id,
-          sharedById: userId,
-          sharedToId: friend[0],
-          boardId: -1,
-          message: ""
-        }),
-      });
-
-      if (shareResponse?.data) {
-        showAlert({
-          title: 'Shared!',
-          message: `Stack shared to ${shareResponse.data.username}`,
-          type: 'SUCCESS',
-          status: 'success',
-        });
-      }
-    } catch (err) {
-      console.error("Failed to share stack:", err);
-      showAlert({
-        title: 'Error',
-        message: "Unable to share this stack.",
-        type: 'ERROR',
-        status: 'error',
-      });
-    } finally {
-      setSelectedModal(null);
-      setSelectedTitle("");
-    }
-  };
 
   const handleCloseModal = () => {
     setTimeout(() => setSelectedPosts(null), 500);
     setIsPanningMode(true);
   };
+
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -360,7 +323,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center">
-        <ColoreActivityIndicator />
+        <ColoreActivityIndicator paddingType="fullPage" />
       </View>
     );
   }
@@ -378,8 +341,14 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
   const contentWidth = boardDimensions.width + screenDimensions.width + 150;
   const contentHeight = boardDimensions.height + screenDimensions.height;
 
+
+
   return (
-    <View className="flex-1 bg-[#FAFAFA]">
+    <View 
+    className="flex-1"
+    style={{
+      backgroundColor: backgroundColor
+    }}>
       <Animated.View
         style={[
           {
@@ -387,7 +356,6 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             top: 0,
             left: 0,
             right: 0,
-            backgroundColor: '#fafafa',
             zIndex: 10,
           },
           animatedHeaderStyle
@@ -399,7 +367,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
           <ScrollMap 
             scrollOffset={scrollOffset}
             scrollableDimensions={boardDimensions}
-            posts={posts}
+            posts={posts.filter(p => p.position) as PostWithPosition[]}
             zoomScale={zoomScale}
             indicator={{ color: '#FFC757', size: 12 }}
           />
@@ -407,7 +375,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         
         {error ? (
           <View className="flex-1 items-center justify-center">
-            <ColoreActivityIndicator />
+            <ColoreActivityIndicator paddingType="fullPage"/>
           </View>
         ) : (
           <GestureHandlerRootView style={{ flex: 1 }}>
@@ -453,20 +421,88 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
                         }}
                         updateIndex={() => setPosts(prev => reorderPost(prev, post))}
                         updatePosition={(dx, dy) => {
-                          // Update map position
+                          trackPostit(post.id, dx, dy);
+                          
+                          // Sync position with database
+                          fetchAPI(`/api/posts/updatePostPosition`, {
+                            method: "PATCH",
+                            body: JSON.stringify({ postId: post.id, top: dy, left: dx }),
+                          }).catch(error => {
+                            console.error("Failed to sync post position:", error);
+                          });
+                        } }
+                        onPress={() => {
+
+                          handlePostPress(post)
                         }}
-                        onPress={() => handlePostPress(post)}
                         showText={showPostItText}
                         isViewed={false}
                         enabledPan={() => setIsPanningMode(prev => !prev)}
-                        onDragStart={() => setIsPostItDragging(true)}
-                        onDragEnd={() => setIsPostItDragging(false)}
+                        onDragStart={() => {
+                          setIsPostItDragging(true);
+                          onDragStart(post.id);
+                        } }
+                        onDragEnd={() => {
+                          onDragEnd(post.id);
+                          setIsPostItDragging(false);
+     
+                        } }
                         zoomScale={zoomScale}
-                        scrollOffset={scrollOffset}
-                        disabled={isStackMoving}
-                        visibility={isStackMoving ? 0.5 : 1}
-                      />
+                        scrollOffset={scrollOffset} 
+                        disabled={false} 
+                        visibility={1}   
+                                           />
                     ))}
+
+                    {/* Render Stack */}
+                    {stacks.map((stack) => {
+
+                      const firstPostId =  stack.ids[0]
+                      const firstPost = virtualMap.find((p) => p.id == firstPostId)
+
+                      let positionX = 0 
+                      let positionY = 0
+
+                      if (stack.center) {
+                        positionX = stack.center.x
+                        positionY = stack.center.y
+                      } else {
+                        positionX = firstPost?.position?.left ?? 0;
+                        positionY = firstPost?.position?.top ?? 0;
+                      }
+                      
+                      return (
+                        <TouchableOpacity 
+                          activeOpacity={0.8} 
+                          onPress={() => {
+                            if (stack.name !== undefined) {
+                              setCurrentStackName(stack.name);
+                            }
+                            setOnFocus(true);
+                          }}
+                          key={stack.id}
+                          className="absolute top-0 left-0 z-999 overflow-wrap  self-center items-center"
+                          style={{
+                            width: 150,
+                            minWidth: 150,
+                            maxWidth: 150,
+                            transform: [
+                              { translateX: positionX},
+                              { translateY: positionY - 80},
+                            ]
+                          }}>
+                           
+                            <Text 
+                            className="font-JakartaSemiBold text-2xl text-center self-center"
+                            numberOfLines={2}
+                            style={{
+                              color: textColor
+                            }}>
+                              {stack.name}
+                            </Text>
+                          </TouchableOpacity>
+                    )
+                    })}
 
                 </ScrollView>
               </Animated.View>
@@ -492,7 +528,7 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
         {selectedModal && (
           <ModalSheet
             isVisible={!!selectedModal}
-            title={selectedTitle}
+            title={selectedTitle || undefined}
             onClose={() => {
               setSelectedModal(null);
               setSelectedTitle(null);
@@ -501,6 +537,19 @@ const PostItBoard: React.FC<PostItBoardProps> = ({
             {selectedModal}
           </ModalSheet>
         )}
+
+      {onFocus && (
+        <KeyboardOverlay onFocus={onFocus} offsetY={scrollOffset.y}>
+          <RenameContainer
+            onSave={(newName: string) => {
+              setStacks((prevStacks) => prevStacks.map((s) => s.name == currentStackName ? {...s, name: newName} : s))
+              setOnFocus(false)
+            }}
+            placeholder={ currentStackName }
+            onCancel={() => setOnFocus(false)}
+          />
+        </KeyboardOverlay>
+      )}
       </SignedIn>
     </View>
   );

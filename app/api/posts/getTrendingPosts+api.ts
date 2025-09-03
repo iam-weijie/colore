@@ -3,32 +3,30 @@ import { neon } from "@neondatabase/serverless";
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`, { fullResults: true });
+    const sql = neon(`${process.env.DATABASE_URL}`);
     const url = new URL(request.url);
     const number = url.searchParams.get("number");
     const id = url.searchParams.get("id");
-    const mode = url.searchParams.get("mode") as
-      | "city"
-      | "state"
-      | "country"
-      | null;
 
-    // Define score weights
+    if (!id) {
+      return new Response(
+        JSON.stringify({ error: "Missing required parameter: id" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // validate & clamp limit
+    const limit = Math.min(100, Math.max(1, Number(number) || 20));
+
     const SCORE_WEIGHTS = {
       likes: 0.7,
-      replies: 0.3,
+      replies: 0.3,   // reserved for future use if you add replies_count
       reports: -0.4,
       timeDecay: 1.2,
     };
 
-    // Build location condition
-    let locationCondition = "";
-    if (mode && ["city", "state", "country"].includes(mode)) {
-      locationCondition = `AND u.${mode} = (SELECT u1.${mode} FROM users u1 WHERE u1.clerk_id = $1)`;
-    }
-
-    // Build the complete query
-    const query = `
+    // NOTE: cast weights to float8 to avoid integer coercion
+    const rows = await sql/*sql*/`
       SELECT
         p.id, 
         p.content, 
@@ -44,7 +42,13 @@ export async function GET(request: Request) {
         p.board_id,
         p.formatting,
         p.static_emoji,
-        u.clerk_id,
+        p.expires_at,
+        p.notified,
+        p.reply_to,
+        p.unread,
+        p.top,
+        p.left,
+        u.clerk_id AS user_id,
         u.firstname, 
         u.lastname, 
         CASE
@@ -52,35 +56,39 @@ export async function GET(request: Request) {
             SELECT 1
             FROM friendships f
             WHERE 
-              (f.user_id = $1 AND f.friend_id = u.clerk_id)
+              (f.user_id = ${id} AND f.friend_id = u.clerk_id)
               OR
-              (f.friend_id = $1 AND f.user_id = u.clerk_id)
+              (f.friend_id = ${id} AND f.user_id = u.clerk_id)
           ) THEN u.incognito_name
           ELSE u.username
         END AS username,
         u.country, 
         u.state, 
         u.city,
-        pr.content as prompt,
+        pr.content AS prompt,
         (
-          (p.like_count * ${SCORE_WEIGHTS.likes}) +
-          (p.report_count * ${SCORE_WEIGHTS.reports})
+          (p.like_count * ${SCORE_WEIGHTS.likes}::float8) +
+          (p.report_count * ${SCORE_WEIGHTS.reports}::float8)
         ) /
         (
-          EXTRACT(EPOCH FROM (NOW() - p.created_at))/3600 +
-          ${SCORE_WEIGHTS.timeDecay}
+          EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600.0
+          + ${SCORE_WEIGHTS.timeDecay}::float8
         ) AS trending_score
       FROM posts p
       JOIN users u ON p.user_id = u.clerk_id
-      JOIN prompts pr ON p.prompt_id = pr.id
-      WHERE p.user_id != $1 
-      AND p.post_type = 'public'
-      ${locationCondition}
-      ORDER BY trending_score DESC
-      LIMIT $2;
+      LEFT JOIN prompts pr ON p.prompt_id = pr.id
+      WHERE p.user_id <> ${id}
+        AND p.post_type = 'public'
+      ORDER BY trending_score DESC NULLS LAST
+      LIMIT ${limit};
     `;
 
-    const { rows } = await sql.query(query, [id, number]);
+    if (!rows || rows.length === 0) {
+      return new Response(JSON.stringify({ error: "No posts found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     const mappedPosts = rows.map((post: any) => ({
       id: post.id,
@@ -89,7 +97,7 @@ export async function GET(request: Request) {
       username: post.username,
       content: post.content,
       created_at: post.created_at,
-      expires_at: post.expires_at, // Not available in query - set default
+      expires_at: post.expires_at ?? "",
       city: post.city,
       state: post.state,
       country: post.country,
@@ -100,9 +108,9 @@ export async function GET(request: Request) {
       pinned: post.pinned,
       color: post.color,
       emoji: post.emoji,
-      notified: post.notified,
+      notified: post.notified ?? false,
       prompt_id: post.prompt_id,
-      prompt: post.prompt,
+      prompt: post.prompt ?? null,
       board_id: post.board_id,
       reply_to: post.reply_to,
       unread: post.unread,
@@ -116,14 +124,13 @@ export async function GET(request: Request) {
 
     return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching trending posts:", error);
     return new Response(
-      JSON.stringify({ error: "Failed to fetch random posts" }),
-      {
-        status: 500,
-      }
+      JSON.stringify({ error: "Failed to fetch trending posts" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

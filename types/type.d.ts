@@ -33,6 +33,7 @@ declare interface Post {
   board_id: number;
   reply_to: number;
   unread: boolean;
+  isLiked?: boolean;
   position?: {
     top: number;
     left: number;
@@ -314,6 +315,29 @@ declare interface PostContainerProps {
   seeComments?: boolean;
   allowedComments?: boolean
 }
+declare interface LocalMenuItem {
+  source: any;
+  label: string;
+  color: string;
+  onPress: () => void | Promise<void>;
+};
+
+declare interface LocalPostCardProps {
+  isIpad: boolean;
+  isPreview: boolean;
+  isShowCasing: boolean;
+  allowedComments: boolean;
+  currentPost?: Post;
+  userId?: string | null;
+  formatting: Format[];
+  likeCount: number;
+  isLiked: boolean;
+  onClose: () => void;
+  onComments: () => void;
+  onLike: () => void;
+  menuItems: LocalMenuItem[];
+  reanimatedCardStyle: ViewStyle | any; // reanimated style
+};
 
 type MappingPostitProps = {
   id: number;
@@ -409,14 +433,14 @@ declare interface Friendship {
 
 declare interface Stacks {
   id: number;
-  name: string;
-  ids: [];
-  elements: [];
-  center: { x: number; y: number };
-  boardId: number;
-  userId: string;
-  createdAt: string;
-  isSharing: string[];
+  name?: string;
+  ids: number[];
+  elements?: [];
+  center?: { x: number; y: number };
+  boardId?: number;
+  userId?: string;
+  createdAt?: string;
+  isSharing?: string[];
 }
 
 type Prompt = {

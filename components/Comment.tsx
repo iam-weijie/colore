@@ -29,6 +29,7 @@ import { useReplyScroll } from "@/app/contexts/ReplyScrollContext";
 import { useSettingsContext } from "@/app/contexts/SettingsContext";
 import { useSoundEffects, SoundType } from "@/hooks/useSoundEffects";
 import { useSoundGesture } from "@/hooks/useSoundGesture";
+import { useTextColor, useIsDark } from "@/hooks/useTheme";
 
 type GestureContext = { startX: number };
 
@@ -48,6 +49,9 @@ const CommentItemInner: React.FC<PostComment> = ({
 }) => {
   const { user } = useUser();
   const router = useRouter();
+
+  const textThemeColor = useTextColor()
+  const isDark = useIsDark()
 
   const { replyTo, setReplyTo, setScrollTo } = useReplyScroll();
   const { soundEffectsEnabled } = useSettingsContext();
@@ -180,8 +184,8 @@ const CommentItemInner: React.FC<PostComment> = ({
     ? "black"
     : user_id === sender_id
     ? (postColor as string)
-    : "#EEEEEE";
-  const textColor: TextStyle["color"] = onlyEmoji ? "black" : isSelf ? "white" : "black";
+    : isDark ? "#A1A1A1" : "#EEEEEE";
+  const textColor: TextStyle["color"] = onlyEmoji ? "black" : isSelf ? "white" : isDark ? "white": "black";
   const replyBg =
     replyingTo && replyingTo.sender_id === user_id ? (postColor as string) : "#e5e7eb";
 
@@ -200,7 +204,8 @@ const CommentItemInner: React.FC<PostComment> = ({
           <Animated.View style={panStyle} className="w-auto">
             {/* Username */}
             {username ? (
-              <View className={`${isSelf ? "self-end pr-[5px]" : "self-start pl-[5px]"}`}>
+              <View 
+              className={`${isSelf ? "self-end pr-[5px]" : "self-start pl-[5px]"}`}>
                 <TouchableOpacity
                   activeOpacity={0.6}
                   onPress={() =>
@@ -213,7 +218,11 @@ const CommentItemInner: React.FC<PostComment> = ({
                   }
                   }
                 >
-                  <Text className="font-JakartaMedium text-[12px] text-tray-400">{username}</Text>
+                  <Text 
+                  className="font-JakartaMedium text-[12px]"
+                  style={{
+                    color: textThemeColor
+                  }}>{username}</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
@@ -222,9 +231,9 @@ const CommentItemInner: React.FC<PostComment> = ({
             {replyingTo ? (
               <View className={`mt-2 max-w-[70%] ${isSelf ? "self-end" : "self-start"}`}>
                 <TouchableOpacity onPress={() => setScrollTo(String(replyingTo.id))} activeOpacity={0.75}>
-                  <View className="flex-row rounded-[24px] px-4 py-3 opacity-60" style={{ backgroundColor: replyBg }}>
+                  <View className="flex-row rounded-[24px] p-3 opacity-60" style={{ backgroundColor: replyBg }}>
                     <Text
-                      className="ml-1 italic"
+                      className="ml-1 italic text-[14px]"
                       numberOfLines={4}
                       style={{ color: replyingTo.sender_id === user_id ? "white" : "black" }}
                     >

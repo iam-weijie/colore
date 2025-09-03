@@ -1,7 +1,7 @@
 import { SoundType, useSoundEffects } from "@/hooks/useSoundEffects";
 import React, { useEffect } from "react";
 import { Animated, View, Text } from "react-native";
-
+import { useBackgroundColor, useTextColor } from "@/hooks/useTheme";
 interface TabIconProps {
   source: any;
   focused: boolean;
@@ -21,6 +21,9 @@ const TabIcon: React.FC<TabIconProps> = ({
   isCenter = false, 
   nativeIcon = true
 }) => {
+
+  const textColor = useTextColor();
+  const backgroundColor = useBackgroundColor();
 
   return (
     <View className="flex-1 flex flex-col items-center justify-center">
@@ -44,11 +47,12 @@ const TabIcon: React.FC<TabIconProps> = ({
             opacity: !nativeIcon ? isCenter ? 1 : focused ? 1 : 0.75 : 1,
           }}
           resizeMode="cover"
+          tintColor={nativeIcon ? "" : isCenter ? "#000" : textColor}
         />
           {focused && !isCenter && (
           <View 
           className={` w-1 h-1 rounded-full`}
-          style={{backgroundColor: color ? color : "#e0e0e0"}} />
+          style={{backgroundColor: color ? color : textColor}} />
         )}
       </View>
       {/* Hide label if center */}
@@ -59,6 +63,7 @@ const TabIcon: React.FC<TabIconProps> = ({
             style={{
               opacity: !nativeIcon ? isCenter ? 1 : focused ? 1 : 0.75 : 1,
               marginTop: -2,
+              color: textColor
             }}
           >
             {label}

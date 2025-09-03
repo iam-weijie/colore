@@ -174,7 +174,7 @@ export async function PATCH(request: Request) {
           post_id: postInfo[0].id,
           post_content: postInfo[0].content,
           post_color: postInfo[0].color,
-          liker_username: likerUsername[0].username,
+          liker_username: likerUsername,
         };
 
         await sendNotification(

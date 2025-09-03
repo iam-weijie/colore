@@ -2,9 +2,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { navigateToPersonalPost } from "@/lib/postNavigation";
 import { useUser } from "@clerk/clerk-expo";
 
-import UserProfile from "@/components/UserProfile";
+import UserProfile from "@/components/user-profile/UserProfile";
 import { CustomButtonBar } from "@/components/CustomTabBar";
 import ModalSheet from "@/components/Modal";
 import ItemContainer from "@/components/ItemContainer";
@@ -176,12 +177,9 @@ const Profile = React.memo(() => {
   }, []);
 
   const handleNewPost = useCallback(() => {
-    router.push({
-      pathname: "root/new-post",
-      params: { 
-        recipientId: userId, 
-        username,
-         }, // align with other screen
+    navigateToPersonalPost({ 
+      recipientId: userId, 
+      username,
     });
   }, [userId, username]);
 

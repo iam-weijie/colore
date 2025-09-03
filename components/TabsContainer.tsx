@@ -9,6 +9,7 @@ import Animated, {
   interpolateColor
 } from "react-native-reanimated";
 import { TabItem, TabsContainerProps } from "@/types/type";
+import { useIsDark } from "@/app/contexts/ThemeContext"
 
 const TabsContainer: React.FC<TabsContainerProps> = ({
   tabs,
@@ -21,6 +22,7 @@ const TabsContainer: React.FC<TabsContainerProps> = ({
   const progress = useSharedValue(0);
 
   const activeIndex = tabs.findIndex(tab => tab.key === selectedTab);
+  const isDark = useIsDark()
 
   useEffect(() => {
     if (activeIndex >= 0) {
@@ -44,19 +46,37 @@ const TabsContainer: React.FC<TabsContainerProps> = ({
   });
 
   const backgroundAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      backgroundColor: interpolateColor(
-        progress.value,
-        [0, 1],
-        ['#ffffff60', '#ffffff90'] // Semi-transparent white
-      ),
-      borderColor: interpolateColor(
-        progress.value,
-        [0, 1],
-        ['#ffffff60', '#ffffff80']
-      ),
-    };
+
+    if (isDark) {
+      return {
+        backgroundColor: interpolateColor(
+          progress.value,
+          [0, 1],
+          ['#ffffff', '#ffffff'] // Semi-transparent white
+        ),
+        borderColor: interpolateColor(
+          progress.value,
+          [0, 1],
+          ['#fafafaee', '#fafafaee']
+        ),
+      };
+    }
+    else {
+      return {
+        backgroundColor: interpolateColor(
+          progress.value,
+          [0, 1],
+          ['#ffffff60', '#ffffff90'] // Semi-transparent white
+        ),
+        borderColor: interpolateColor(
+          progress.value,
+          [0, 1],
+          ['#ffffff60', '#ffffff80']
+        ),
+      };
+    }
   });
+
 
   const handleTabPress = (index: number, key: string) => {
     progress.value = withTiming(0, { duration: 100 }, () => {

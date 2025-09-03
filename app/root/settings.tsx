@@ -40,6 +40,7 @@ import { SRBInfoPage, InformationInfoPage, YourActivityInfoPage, PreferencesInfo
 import { encryptionCache } from "@/cache/encryptionCache";
 import { calculateSRB, handleNewColor } from "@/hooks/useColors";
 import { colorMatch } from "@/lib/colorsystem";
+import { useBackgroundColor, useTextColor } from "@/hooks/useTheme";
 
 const Settings = () => {
   const {
@@ -48,7 +49,7 @@ const Settings = () => {
     soundEffectsEnabled,
     setSoundEffectsEnabled,
   } = useSettingsContext();
-
+  const backgroundColor = useBackgroundColor()
   const {
     profile,
     setProfile,
@@ -502,7 +503,10 @@ const Settings = () => {
 
   return (
     <ScrollView
-      className="flex-1 pt-6 bg-gray-50"
+      className="flex-1 pt-6"
+      style={{
+        backgroundColor: backgroundColor
+      }}
       onScroll={onScroll}
       scrollEnabled={!onFocus}
       showsVerticalScrollIndicator={false}

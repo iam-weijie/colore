@@ -18,6 +18,7 @@ import { useHaptics } from "@/hooks/useHaptics";
 import * as Haptics from 'expo-haptics';
 import { useDecrypt } from "@/hooks/useDecrypt";
 import EmptyListView from "./EmptyList";
+import { useAllPostItColors, useBackgroundColor, useIsDark, usePostItColor, useTextColor } from "@/hooks/useTheme";
 
 const badgeShadow = {
   shadowColor: "#000",
@@ -28,11 +29,21 @@ const badgeShadow = {
 };
   
 const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElement => {
+  
   const { encryptionKey } = useEncryptionContext();
   const decrypt = useDecrypt();
   const router = useRouter();
   const { user } = useUser();
   const { triggerHaptic } = useHaptics();
+
+  const allColors = useAllPostItColors()
+  const boardColor = allColors.find((c) => c.id == item.color)
+
+  console.log("[BOARD GALLERY] board color: ", boardColor, "color: ", item.color)
+  const backgroundColor = useBackgroundColor()
+  const textColor = useTextColor()
+  const isDark = useIsDark()
+
 
   // Fast membership checks
   const restrictions = useMemo(() => new Set(item.restrictions ?? []), [item.restrictions]);
@@ -95,8 +106,8 @@ const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElemen
       entering={animationStyle}
       className="overflow-hidden m-2 border-2 rounded-[36px] shadow-md"
       style={{
-        backgroundColor: item.color,
-        borderColor: "#ffffff80",
+        backgroundColor: boardColor?.hex ?? "#f8e512",
+        borderColor: isDark ? "" : "#ffffff80",
         height: 225,
         width: 170,
         shadowColor: "#000",
@@ -112,14 +123,14 @@ const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElemen
             {iconRow.map((src, i) => (
               <View
                 key={i}
-                className="w-7 h-7 rounded-full bg-white items-center justify-center  -mx-0.5"
-                style={badgeShadow}
+                className="w-7 h-7 rounded-full items-center justify-center  -mx-0.5"
+                style={[badgeShadow, {backgroundColor: backgroundColor}]}
               >
                 <Image
                   source={src}
                   className="w-3 h-3"
                   // Dark tint so it reads on white; adjust if you prefer brand colors
-                  tintColor="#C1C1C1"
+                  tintColor={textColor}
                 />
               </View>
             ))}
@@ -158,7 +169,12 @@ const BoardContainer = React.memo(({ item }: { item: Board }): React.ReactElemen
         {item.imageUrl ? (
           <Image source={{ uri: item.imageUrl }} className="absolute w-full h-full" resizeMode="cover" />
         ) : (
-          <View className="absolute self-center w-[97%] h-[97%] top-[50%] -mt-[48.5%] border-2 border-white rounded-[32px] bg-white/20 z-[-1]" />
+          <View 
+          className="absolute self-center w-[97%] h-[97%] top-[50%] -mt-[48.5%] border-2 rounded-[32px] z-[-1]"
+          style={{
+            backgroundColor: isDark ? "#000000cc" : "#ffffff66",
+            borderColor: backgroundColor
+          }} />
         )}
       </TouchableOpacity>
     </Animated.View>

@@ -188,18 +188,21 @@ export const NotificationScreen: React.FC<NotificationScreenProps> = () => {
           focused={selectedTab === "Comments"}
           onPress={() => setSelectedTab("Comments")}
           notifications={commentsNotif?.length ?? 0}
+          color={"#93c5fd"}
         />
         <TabNavigation
           name="Posts"
           focused={selectedTab === "Posts"}
           onPress={() => setSelectedTab("Posts")}
           notifications={postsNotif?.length ?? 0}
+          color={"#1FD1F5"}
         />
         <TabNavigation
           name="Likes"
           focused={selectedTab === "Likes"}
           onPress={() => setSelectedTab("Likes")}
           notifications={likesNotif?.length ?? 0}
+          color={"#FBB1F5"}
         />
       </View>
 

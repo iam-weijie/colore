@@ -35,6 +35,7 @@ import { useProfileContext } from "@/app/contexts/ProfileContext";
 import * as Haptics from "expo-haptics";
 import { deriveKey } from "@/lib/encryption";
 import { FindUser } from "@/components/FindUsers";
+import { useBackgroundColor } from "@/hooks/useTheme";
 
 const UserInfo = () => {
   const { playSoundEffect } = useSoundEffects();
@@ -43,7 +44,8 @@ const UserInfo = () => {
   const { user } = useUser();
   const { showAlert } = useAlert();
 
-  const { userColors } = useProfileContext();
+  const backgroundColor = useBackgroundColor()
+
 
   console.log(
     "[user-info]: ",
@@ -554,10 +556,14 @@ const UserInfo = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView 
+    className="flex-1"
+    style={{
+      backgroundColor: backgroundColor
+    }}>
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ColoreActivityIndicator text="Summoning Bob..." />
+          <ColoreActivityIndicator text="Summoning Bob..." paddingType="fullPage"/>
         </View>
       ) : (
         <CarouselPage
