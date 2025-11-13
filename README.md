@@ -1,5 +1,7 @@
 # Coloré 🎨
 
+![](demo.MOV)
+
 ## Get started
 
 1. Install dependencies
