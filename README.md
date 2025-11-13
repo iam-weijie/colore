@@ -1,6 +1,6 @@
 # Coloré 🎨
 
-![](demo.MOV)
+https://github.com/user-attachments/assets/4242a8ff-b20e-49ec-8312-a223e63d2a52
 
 ## Get started
 
