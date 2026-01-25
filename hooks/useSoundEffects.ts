@@ -1,129 +1,186 @@
 import { Audio } from 'expo-av';
-import { useGlobalContext } from '../app/globalcontext'; // Corrected relative import path
-import { useState, useEffect } from 'react';
+import { useGlobalContext } from '../app/globalcontext';
+import { useState, useEffect, useRef } from 'react';
 
-// Define sound types/keys and their corresponding file paths
 export enum SoundType {
-  Tap = 'tap', // Keep tap for potential future use or other generic taps
+  Tap = 'tap',
   ToggleOn = 'toggleOn',
   ToggleOff = 'toggleOff',
-  Like = 'like', // Add Like sound type
-  Comment = 'comment', // Add Comment sound type
-  // Add more sound types as needed
+  Like = 'like',
+  Comment = 'comment',
+  Navigation = 'navigation',
+  Button = 'button',
+  Success = 'success',
+  Error = 'error',
+  Notification = 'notification',
+  Swipe = 'swipe',
+  Send = 'send',
+  Delete = 'delete',
+  Scroll = 'scroll',
+  Modal = 'modal',
+  Share = 'share',
+  Submit = 'submit',
+  Reply = 'reply',
+  Stack = 'stack',
 }
 
-// NOTE: Ensure these sound files exist at the specified paths
 const soundFiles = {
   [SoundType.Tap]: require('../assets/sounds/tap.mp3'),
   [SoundType.ToggleOn]: require('../assets/sounds/toggle.mp3'),
   [SoundType.ToggleOff]: require('../assets/sounds/toggle.mp3'),
-  [SoundType.Like]: require('../assets/sounds/like.mp3'), // Map Like type to like.mp3
-  [SoundType.Comment]: require('../assets/sounds/comment.mp3'), // Map Comment type to comment.mp3
-  // Add more sound files
+  [SoundType.Like]: require('../assets/sounds/like.mp3'),
+  [SoundType.Comment]: require('../assets/sounds/comment.mp3'),
+  [SoundType.Navigation]: require('../assets/sounds/navigation.mp3'),
+  [SoundType.Button]: require('../assets/sounds/button.mp3'),
+  [SoundType.Success]: require('../assets/sounds/success.mp3'),
+  [SoundType.Error]: require('../assets/sounds/error.mp3'),
+  [SoundType.Notification]: require('../assets/sounds/notification.mp3'),
+  [SoundType.Swipe]: require('../assets/sounds/swipe.mp3'),
+  [SoundType.Send]: require('../assets/sounds/send.mp3'),
+  [SoundType.Delete]: require('../assets/sounds/delete.mp3'),
+  [SoundType.Scroll]: require('../assets/sounds/scroll.mp3'),
+  [SoundType.Modal]: require('../assets/sounds/modal.mp3'),
+  [SoundType.Share]: require('../assets/sounds/share.mp3'),
+  [SoundType.Submit]: require('../assets/sounds/submit.mp3'),
+  [SoundType.Reply]: require('../assets/sounds/reply.mp3'),
+  [SoundType.Stack]: require('../assets/sounds/stack.mp3'),
+};
+
+// Global sound cache that persists across hook instances
+const soundCache = new Map<SoundType, Audio.Sound>();
+const DEFAULT_VOLUME = 1.0;
+const DEBOUNCE_INTERVAL = 200; // ms for debouncing same sound type
+const COMMON_SOUNDS = [
+  SoundType.Button,
+  SoundType.Tap,
+  SoundType.Navigation,
+  SoundType.Scroll,
+  SoundType.ToggleOn,
+  SoundType.ToggleOff,
+  SoundType.Like,
+  SoundType.Comment
+];
+
+// Preload sounds during app initialization (call this in your App.tsx or root component)
+export const preloadCommonSounds = async () => {
+  console.log("Preloading common sounds...");
+  try {
+    await Promise.all(COMMON_SOUNDS.map(async (type) => {
+      if (!soundCache.has(type)) {
+        const { sound } = await Audio.Sound.createAsync(
+          soundFiles[type],
+          { volume: DEFAULT_VOLUME, isLooping: false },
+          null,
+          false
+        );
+        soundCache.set(type, sound);
+        console.log(`Preloaded sound: ${type}`);
+      }
+    }));
+    console.log("Common sounds preloaded successfully");
+  } catch (error) {
+    console.error('Error preloading common sounds:', error);
+  }
 };
 
 export const useSoundEffects = () => {
   const { soundEffectsEnabled } = useGlobalContext();
-  const [soundObject, setSoundObject] = useState<Audio.Sound | null>(null);
-  // State to track last played time for debouncing
   const [lastPlayed, setLastPlayed] = useState<{ [key in SoundType]?: number }>({});
-  const DEBOUNCE_INTERVAL = 200; // milliseconds
+  const soundQueue = useRef<SoundType[]>([]);
+  const isProcessingQueue = useRef<boolean>(false);
+  const activeSounds = useRef<Set<Audio.Sound>>(new Set());
 
-  // Optional: Preload sounds if needed, or handle loading within playSoundEffect
+  const playSound = async (type: SoundType): Promise<boolean> => {
+    if (!soundEffectsEnabled) return false;
 
-  const playSoundEffect = async (type: SoundType) => {
-    console.log(`[SoundEffect] Attempting to play type: ${type}`); // Log type attempt
-    // Debounce check
-    const now = Date.now();
-    if (lastPlayed[type] && now - (lastPlayed[type] as number) < DEBOUNCE_INTERVAL) {
-      console.log(`[SoundEffect] Debounced play for type: ${type}`);
-      return; // Skip playing if called too recently
-    }
+    try {
+      // Check if sound is preloaded
+      let sound: Audio.Sound;
+      
+      if (soundCache.has(type)) {
+        // Use preloaded sound
+        sound = soundCache.get(type)!;
+        await sound.replayAsync(); // More efficient than creating new instance
+      } else {
+        // Load on demand for less common sounds
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          soundFiles[type],
+          { volume: DEFAULT_VOLUME, isLooping: false }
+        );
+        sound = newSound;
+      }
 
-    if (soundEffectsEnabled) {
-      console.log(`[SoundEffect] Sound effects enabled. Proceeding for type: ${type}`); // Log enabled check
-      let soundToPlay: Audio.Sound | null = null;
-      try {
-        // Unload previous sound if it exists and is different or if we want fresh playback
-        // Unload previous sound if it exists and is different or if we want fresh playback
-        if (soundObject) {
-          console.log(`[SoundEffect] Attempting to unload previous sound object for type: ${type}`);
-          try {
-            await soundObject.unloadAsync(); // Wait for unload to complete
-            console.log(`[SoundEffect] Previous sound object successfully unloaded for type: ${type}`);
-            setSoundObject(null); // Set state to null *after* successful unload
-          } catch (unloadError) {
-            console.error(`[SoundEffect] Error unloading previous sound object for type ${type}:`, unloadError);
-            setSoundObject(null); // Still set to null even if unload failed to prevent blocking
+      activeSounds.current.add(sound);
+      
+      sound.setOnPlaybackStatusUpdate(async (status) => {
+        if (status.isLoaded && (status.didJustFinish || !status.isPlaying)) {
+          activeSounds.current.delete(sound);
+          // Don't unload preloaded sounds
+          if (!soundCache.has(type)) {
+            try {
+              await sound.unloadAsync();
+            } catch (error) {
+              console.warn(`Error unloading sound ${type}:`, error);
+            }
           }
         }
+      });
 
-        const soundAsset = soundFiles[type];
-        console.log(`[SoundEffect] Loading sound asset for type ${type}:`, soundAsset); // Log the asset path/module
-
-        // Load the new sound with pitch correction enabled
-        const { sound } = await Audio.Sound.createAsync(
-          soundFiles[type]
-          // Removed { shouldCorrectPitch: true }
-        );
-        console.log(`[SoundEffect] Sound loaded successfully for type: ${type}`); // Log successful load
-        soundToPlay = sound;
-        setSoundObject(sound);
-
-        // Play the sound
-        console.log(`[SoundEffect] Playing sound for type: ${type}`); // Log play attempt
-        await sound.playAsync();
-        console.log(`[SoundEffect] Sound playing initiated for type: ${type}`);
-        // Update last played time after initiating playback
-        setLastPlayed((prev) => ({ ...prev, [type]: Date.now() }));
-
-        // Add listener to unload sound when finished playing
-        sound.setOnPlaybackStatusUpdate(async (status) => {
-          if (status.isLoaded && status.didJustFinish) {
-            console.log(`[SoundEffect] Sound finished playing and unloaded for type: ${type}`);
-            // Check if the sound object still exists before unloading
-            if (soundToPlay) {
-              await soundToPlay.unloadAsync();
-              // Only clear state if the finished sound is the one currently in state
-              setSoundObject((currentSound) => (currentSound === soundToPlay ? null : currentSound));
-            }
-          } else if (status.isLoaded === false && status.error) {
-            // Handle playback error if needed
-            console.error(`[SoundEffect] Playback Error for type ${type}: ${status.error}`);
-             if (soundToPlay) {
-                await soundToPlay.unloadAsync().catch(() => {}); // Attempt unload, ignore errors
-                setSoundObject((currentSound) => (currentSound === soundToPlay ? null : currentSound));
-             }
-          }
-        });
-
-      } catch (error) {
-        console.error(`[SoundEffect] Failed to load/play sound effect for type ${type}:`, error); // Log specific error
-        // Ensure sound object is cleared on error
-         if (soundToPlay) {
-            await soundToPlay.unloadAsync().catch(() => {}); // Attempt unload, ignore errors
-            setSoundObject((currentSound) => (currentSound === soundToPlay ? null : currentSound));
-         } else if (soundObject) {
-            // Fallback cleanup if loading failed before assignment
-            await soundObject.unloadAsync().catch(() => {});
-            setSoundObject(null);
-         }
-      }
-    } else {
-      console.log(`[SoundEffect] Sound effects disabled. Skipping play for type: ${type}`); // Log disabled skip
+      await sound.playAsync();
+      return true;
+    } catch (error) {
+      console.error(`Error playing sound ${type}:`, error);
+      return false;
     }
   };
 
-   // Cleanup sound object on unmount
-   useEffect(() => {
-    return () => {
-      if (soundObject) {
-        // console.log('Unloading Sound on unmount');
-        soundObject.unloadAsync().catch(() => {}); // Ignore errors on unmount cleanup
+  const processQueue = async () => {
+    if (isProcessingQueue.current || soundQueue.current.length === 0) return;
+    
+    isProcessingQueue.current = true;
+    
+    try {
+      while (soundQueue.current.length > 0) {
+        const nextSound = soundQueue.current.shift();
+        if (nextSound) {
+          await playSound(nextSound);
+          // Small delay between sounds to prevent overlap
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
       }
-    };
-  }, [soundObject]); // Rerun effect if soundObject changes
+    } catch (error) {
+      console.error('Sound queue processing error:', error);
+    } finally {
+      isProcessingQueue.current = false;
+    }
+  };
 
+  const playSoundEffect = async (type: SoundType) => {
+    // Debounce check
+    const now = Date.now();
+    if (lastPlayed[type] && now - (lastPlayed[type] as number) < DEBOUNCE_INTERVAL) {
+      return;
+    }
+    
+    setLastPlayed((prev) => ({ ...prev, [type]: now }));
+    soundQueue.current.push(type);
+    processQueue();
+  };
+
+  // Cleanup non-preloaded sounds on unmount
+  useEffect(() => {
+    return () => {
+      activeSounds.current.forEach(async (sound) => {
+        try {
+          await sound.stopAsync();
+          await sound.unloadAsync();
+        } catch (error) {
+          console.warn('Error cleaning up sound:', error);
+        }
+      });
+      activeSounds.current.clear();
+    };
+  }, []);
 
   return { playSoundEffect };
 };

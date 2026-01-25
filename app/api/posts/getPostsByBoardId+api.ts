@@ -6,8 +6,6 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const boardId = url.searchParams.get("id");
 
-    //console.log("Received GET request for user posts.");
-
     const response = await sql`
       SELECT 
         p.id, 
@@ -20,8 +18,13 @@ export async function GET(request: Request) {
         p.pinned,
         p.color,
         p.emoji,
+        p.top,
+        p.left,
         p.prompt_id,
+        p.reply_to,
         p.board_id,
+        p.notified,
+        p.unread,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -36,18 +39,51 @@ export async function GET(request: Request) {
       LEFT JOIN prompts pr ON p.prompt_id = pr.id
       WHERE p.board_id = ${boardId}
       ORDER BY p.created_at ASC;
-      `;
+    `;
 
-    return new Response(JSON.stringify({ data: response }), {
+    // Transform the response to match the Post interface
+    const mappedPosts = response.map((post) => ({
+      id: post.id,
+      clerk_id: post.clerk_id,
+      user_id: post.clerk_id, // Using clerk_id as user_id for temporary fix
+      firstname: post.firstname,
+      username: post.username,
+      content: post.content,
+      created_at: post.created_at,
+      expires_at: "", // Not available in query - set default
+      city: post.city,
+      state: post.state,
+      country: post.country,
+      like_count: post.like_count,
+      report_count: post.report_count,
+      unread_comments: post.unread_comments,
+      recipient_user_id: post.recipient_user_id,
+      pinned: post.pinned,
+      color: post.color,
+      emoji: post.emoji,
+      notified: post.notified,
+      prompt_id: post.prompt_id,
+      prompt: post.prompt,
+      board_id: post.board_id,
+      reply_to: post.reply_to, 
+      unread: post.unread,
+      position: post.top !== null && post.left !== null 
+        ? { top: Number(post.top), left: Number(post.left) } 
+        : undefined
+    }));
+
+    console.log("Mapped Post", mappedPosts)
+    return new Response(JSON.stringify({ data: mappedPosts }), {
       status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching board posts:", error);
     return new Response(
-      JSON.stringify({ error: "Failed to fetch board posts." }),
-      {
-        status: 500,
-      }
+      JSON.stringify({ error: "Failed to fetch board posts" }),
+      { status: 500 }
     );
   }
 }

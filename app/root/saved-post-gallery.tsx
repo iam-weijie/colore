@@ -22,13 +22,11 @@ const SavedPostGallery = () => {
   const { posts, name } = useLocalSearchParams();
   const [savedPostsList, setSavedPostsList] = useState<Post[]>([]);
   const [update, setUpdate] = useState<boolean>(false);
-  const [savedPostsID, setSavedPostsID] = useState<string[]>(
-    typeof posts === "string" ? JSON.parse(posts) : posts
-  );
+  const [refreshingKey, setRefreshingKey] = useState<number>(0);
 
-  const fetchPosts = async (ids: string[]) => {
+  const fetchSavedPosts = async () => {
     try {
-      const response = await fetchAPI(`/api/posts/getPostsById?ids=${ids}`);
+      const response = await fetchAPI(`/api/posts/getUserSavedPosts?userId=${user!.id}`);
       const posts = response.data;
 
       const sortedPosts = posts.sort((a, b) => a.color.localeCompare(b.color));
@@ -39,9 +37,9 @@ const SavedPostGallery = () => {
   };
 
   useEffect(() => {
-    const fetchSavedPosts = async () => {
+    const fetchPosts = async () => {
       // Fetch all posts asynchronously
-      const response = await fetchPosts(savedPostsID);
+      const response = await fetchSavedPosts();
 
       // Filter out null values (failed fetches)
       setSavedPostsList(
@@ -52,33 +50,22 @@ const SavedPostGallery = () => {
     };
 
     if (posts) {
-      fetchSavedPosts();
+      fetchPosts();
     }
   }, [posts, update]);
 
-  const handleUpdate = (postId: number, isRemoved: boolean) => {
-    if (isRemoved) {
-      setSavedPostsID((prevPost) => prevPost.filter((id) => id != `${postId}`));
-    }
-
-    setUpdate(true);
+  const handleUpdate = () => {
+    setRefreshingKey((prev) => prev + 1)
   };
   return (
-    <SafeAreaView className="flex-1">
-      <View className="flex flex-row items-center px-4 pt-2">
-        <View>
-          <TouchableOpacity onPress={() => router.back()} className="mr-2">
-            <AntDesign name="caretleft" size={18} />
-          </TouchableOpacity>
-        </View>
-        <View>
-          <Text className="font-JakartaBold text-2xl">{name}</Text>
-        </View>
+    <View className="flex-1 bg-[#FAFAFA]" key={refreshingKey}>
+      <View className="flex-row justify-between items-end pl-11 pt-16 bg-white">
+          <Text className="text-2xl font-JakartaBold my-4">{name}</Text>
       </View>
       {savedPostsList.length > 0 ? (
         <View className="flex-1 flex flex-column items-center px-6 pt-6">
           <TextInput
-            className="w-full  h-12 px-5 rounded-[16px] bg-gray-200 mb-6"
+            className="w-full  h-12 px-5 rounded-[16px] bg-[#F1F1F1] mb-6"
             placeholder="Search"
             onChangeText={setQuery}
             value={query}
@@ -88,7 +75,7 @@ const SavedPostGallery = () => {
               posts={savedPostsList}
               profileUserId={user!.id}
               handleUpdate={(id, isRemoved) => {
-                handleUpdate(id, isRemoved);
+                handleUpdate();
               }}
               query={query}
               header={
@@ -110,7 +97,12 @@ const SavedPostGallery = () => {
           </Text>
         </View>
       )}
-    </SafeAreaView>
+      <View className="absolute w-full flex-row items-center justify-between bottom-12  px-8 ">
+      <TouchableOpacity onPress={() => router.back()} className="p-4 rounded-full bg-white shadow-md ">
+          <AntDesign name="caretleft" size={18} />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 

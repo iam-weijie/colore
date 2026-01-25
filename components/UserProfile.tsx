@@ -21,13 +21,10 @@ import {
   UserProfileType,
 } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   Text,
@@ -38,9 +35,17 @@ import {
 import Animated, { SlideInDown, SlideInUp, FadeInDown, FadeIn } from "react-native-reanimated";
 import ColorGallery from "./ColorGallery";
 import DropdownMenu from "./DropdownMenu";
+import TabNavigation from "./TabNavigation";
 import { useAlert } from '@/notifications/AlertContext';
 import Circle from "./Circle";
-
+import Settings from "@/app/root/settings";
+import BoardGallery from "./BoardGallery";
+import PersonalBoard from "./PersonalBoard";
+import PostContainer from "./PostContainer";
+import ColoreActivityIndicator from "./ColoreActivityIndicator";
+import TabsContainer from "./TabsContainer";
+import { fetchCountryEmoji } from "@/lib/post";
+import Header from "./Header";
 // Skeleton component for post loading states
 const PostSkeleton = () => (
   <Animated.View 
@@ -67,25 +72,19 @@ const PostGallerySkeleton = () => (
   </Animated.View>
 );
 
-// Skeleton UI for color gallery
-const ColorGallerySkeleton = () => (
-  <Animated.View 
-    entering={FadeIn.duration(400)}
-    className="w-[85%] self-center flex-row flex-wrap justify-start "
-  >
-    {[...Array(9)].map((_, i) => (
-       <Circle key={i} color={"#E5E7EB"} size={50} />
-    ))}
-  </Animated.View>
-);
+
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const { user } = useUser();
+  const router = useRouter();
   const { isIpad } = useGlobalContext(); 
-  const [nickname, setNickname] = useState<string>("");
   const { showAlert } = useAlert();
+
+
+  const [nickname, setNickname] = useState<string>("");
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [emojiLoading, setEmojiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<UserProfileType | null>(null);
@@ -93,21 +92,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
   const { stateVars, setStateVars } = useNavigationContext();
-  const router = useRouter();
+
+  const [myBoards, setMyBoards] = useState<any>();
+  const [communityBoards, setCommunityBoards] = useState<any>();
+
+
   const [currentSubscreen, setCurrentSubscreen] = useState<string>("posts");
   const [convId, setConvId] = useState<string | null>(null);
+
+
   const [friendStatus, setFriendStatus] = useState<FriendStatusType>(
     FriendStatus.UNKNOWN
   );
   const [friendCount, setFriendCount] = useState<number>(0);
   const [isHandlingFriendRequest, setIsHandlingFriendRequest] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isFocusedOnProfile, setIsFocusedOnProfile] = useState<boolean>(true);
+  const [selectedTab, setSelectedTab] = useState<string>("Profile");
+
+  const [personalPosts, setPersonalPosts] = useState<Post[]>([]);
+  const [disableInteractions, setDisableInteractions] = useState<boolean>(false);
 
   const isEditable = user!.id === userId;
-
-  console.log("user received: ", userId)
 
 
   function findUserNickname(
@@ -142,33 +147,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
-  const fetchCountryEmoji = async (countryName: string) => {
-  
-    try {
-      const response = await fetch(`https://restcountries.com/v3.1/name/${countryName}`);
-      const data = await response.json();
 
-      if (!response.ok || !data || data.length === 0) {
-        //setError("Country not found.");
-        return;
-      }
-
-      const countryCode = data[0]?.cca2 || ""; // ISO 3166-1 alpha-2 country code
-      const flagEmoji = countryCode?.toUpperCase().split("").map((char: string) => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") || "📍";
-
-      setCountryEmoji(flagEmoji);
-      setEmojiLoading(false)
-    } catch (err) {
-      setError("Error fetching country data.");
-    }
-
-  };
 
   // Add useFocusEffect to reload data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       // Reload user data when screen is focused (e.g., after location change)
       fetchUserData();
+      fetchPersonalBoards();
+      fetchCommunityBoards();
+      fetchPersonalPosts();
       // Reload nickname data
       const getData = async () => {
         const data = await fetchCurrentNickname();
@@ -183,7 +171,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   );
 
   useEffect(() => {
-    setIsCollapsed(user!.id !== userId || isIpad);
     const getData = async () => {
       const data = await fetchCurrentNickname();
       setNickname(data);
@@ -192,17 +179,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
   }, [stateVars]);
 
   useEffect(() => {
-    const getFriendStatus = async () => {
-      let status;
-      if (user!.id !== userId) {
-        status = await fetchFriendStatus(userId, user!);
-        //console.log("Friend status:", status.name);
-        setFriendStatus(status);
-      }
-    };
-    getFriendStatus();
-    fetchFriendCount();
-  }, []);
+      const getFriendStatus = async () => {
+        let status;
+        if (user!.id !== userId) {
+          status = await fetchFriendStatus(userId, user!);
+          //console.log("Friend status:", status.name);
+          setFriendStatus(status);
+        }
+      };
+      getFriendStatus();
+      fetchFriendCount();
+    }, []);
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -225,7 +212,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
 
 
       // Fetch country emoji
-      await fetchCountryEmoji(userInfo.country);
+      setEmojiLoading(true)
+      const flagEmoji = await fetchCountryEmoji(userInfo.country);
+      console.log("country emoji", flagEmoji)
+      setCountryEmoji(() => flagEmoji)
+      setEmojiLoading(false)
     } catch (error) {
       setError("Failed to fetch user data.");
       console.error("Failed to fetch user data:", error);
@@ -234,18 +225,139 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
+  const post = {
+    id: -1,
+    clerk_id: userId,
+    user_id: userId, // this is supposed to be a temporary fix to prevent weird type mismatch errors
+    firstname: "",
+    username: "",
+    content: "Hi, I am a new Colore User!",
+    created_at: "",
+    expires_at: "",
+    city: "",
+    state: "",
+    country: "",
+    like_count: 0,
+    report_count: 0,
+    unread_comments: 0,
+    recipient_user_id: "",
+    pinned: true,
+    color: "yellow", //String for now. Should be changed to PostItColor
+    emoji: "",
+    notified: true,
+    prompt_id: -1,
+    prompt: "",
+    board_id: 0,
+    reply_to: -1,
+  }
+
+  const fetchPersonalBoards = async () => {
+    setProfileLoading(true)
+      try {
+        
+        const response = await fetchAPI(`/api/boards/getBoards?user_id=${userId}`,
+            {
+              method: "GET",
+            }
+        )
+        if (response.error) {
+          throw new Error(response.error);
+        }
+  
+        const personalBoard =  {
+          id: -1,
+          title: "Personal Board",
+          user_id: userId,
+          description: "Your window to the world!",
+          members_id: [userId],
+          board_type: 'personal',
+          restrictions: ['personal', 'commentsAllowed', '5'],
+          created_at: Date.now(),
+          color: "#93c5fd"
+        }
+
+        const checkForPrivacy = response.data.filter((b) => b.restrictions.includes("Everyone"))
+  
+          if (isEditable && response.data) {
+            const boardsWithColor = response.data.map((board: any, index: number) => ({
+              ...board,
+              color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            }));
+          
+            setMyBoards([...boardsWithColor, personalBoard]);
+          } else if (!isEditable && response.data) {
+            const boardsWithColor = checkForPrivacy.map((board: any, index: number) => ({
+              ...board,
+              color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            }));
+          
+            setMyBoards([...boardsWithColor, personalBoard]);
+          } else {
+           
+            setMyBoards(personalBoard)
+          }
+  
+      } catch (error) {
+        console.error("Failed to fetch board data:", error);
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+
+  const fetchCommunityBoards = async () => {
+      try {
+        setLoading(true)
+        const response = await fetchAPI(`/api/boards/getCommunityBoards?user_id=${userId}`,
+            {
+              method: "GET",
+            }
+        )
+        if (response.error) {
+          throw new Error(response.error);
+        }
+  
+  
+        
+            const boardsWithColor = response.data.map((board: any, index: number) => ({
+              ...board,
+              color: temporaryColors[Math.floor(Math.random() * 4)].hex, // only assign if not already set
+            }));
+          
+            setCommunityBoards(boardsWithColor);
+  
+          
+  
+      } catch (error) {
+        console.error("Failed to fetch board data:", error);
+      } finally {
+        setLoading(false)
+      }
+    }
+
+  const fetchPersonalPosts = async () => {
+      const response = await fetchAPI(
+        `/api/posts/getPersonalPosts?number=${8}&recipient_id=${userId}&user_id=${user!.id}`
+      );
+  
+      const filteredPosts = response.data.filter((p) => p.pinned)
+      
+      if (filteredPosts.length == 0 || response.length == 0) {
+        setDisableInteractions(true)
+
+        setPersonalPosts([post])
+
+      } else {
+        setPersonalPosts(filteredPosts)
+      }
+     
+  
+    }
+  
+
   useEffect(() => {
     fetchUserData();
   }, [isFocusedOnProfile]);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchUserData();
-      return () => {
-        setStateVars({ ...stateVars, queueRefresh: true});
-      }
-    }, [])
-  );
 
 
   const handleAddNickname = () => {
@@ -289,463 +401,240 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
     }
   };
 
-  const handleReportPress = () => {
-    Linking.openURL("mailto:support@colore.ca");
-  };
 
-  // to prevent database errors,
-  // don't load the "send friend request"
-  // option if the friend status can't be determined
-  const menuItems_unloaded = [
-    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
-    { label: "Report", source: icons.email, color: "#DA0808", onPress: handleReportPress },
-  ];
+const myTabs = [
+  { name: "Profile", key: "Profile", color: "#CFB1FB", notifications: 0 },
+  { name: "Posts", key: "Posts", color: "#CFB1FB", notifications: unreadComments },
+  { name: "Settings", key: "Settings", color: "#93c5fd", notifications: 0 }
+];
 
-  const menuItems_default = [
-    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
-    { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
-  ];
+const userTabs = [
+  { name: "Profile", key: "Profile", color: "#CFB1FB", notifications: 0 },
+  { name: "Boards", key: "Boards", color: "#CFB1FB" },
+  { name: "Communities", key: "Communities", color: "#93c5fd", notifications: 0 }
+];
 
-  const menuItems_friend = [
-    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
-    { label: "Unfriend",  source: icons.close, color: "#6408DA", onPress: async () => {
-      setIsHandlingFriendRequest(true);
-      const response: FriendStatusType = await unfriend(
-        user!.id,
-        userId
-      );
-      if (response === FriendStatus.NONE) {
-        showAlert({
-          title: 'Unfriended',
-          message: "You have unfriended this user.",
-          type: 'FRIEND_REQUEST',
-          status: 'success',
-        });
-      } else {
-        showAlert({
-          title: 'Error',
-          message: `Error unfriending this user.`,
-          type: 'ERROR',
-          status: 'error',
-        });
-      }
-      setFriendStatus(response);
-      setIsHandlingFriendRequest(false);
-    }},
-    { label: "Report",  source: icons.email, color: "#DA0808", onPress: handleReportPress },
-  ];
-
-  const menuItems_sent = [
-    { label: "Nickname", source: icons.person, color: "#000000", onPress: handleAddNickname },
-    {
-      label: "Report",
-      source: icons.email,
-      color: "#DA0808",
-      onPress: handleReportPress,
-    },
-  ];
-
-  const menuItems_received = [
-    { label: "Nickname", color: "#000000", source: icons.person, onPress: handleAddNickname },
-    {
-      label: "Report",
-      color: "#DA0808",
-      source: icons.email,
-      onPress: () => handleReportPress,
-    },
-  ];
-
-  function toggleExpanded() {
-    setIsExpanded(!isExpanded);
-    setIsFocusedOnProfile(isExpanded);
-    //console.log("FocusOnProfil", isFocusedOnProfile, "isExpanded", isExpanded, "isCollapsed", isCollapsed, "Query", query.length)
-  }
+const handleTabChange = (tabKey: string) => {
+  console.log("Tab changed to:", tabKey);
+  setSelectedTab(tabKey);
+};
 
   return (
-    <View className="flex-1 mt-3">
-      {!isFocusedOnProfile ||
-        (query.length < 1 && (
-          <View>
-            <View className="mx-7 mb-2">
-              {!isEditable && (
-                <View className="flex flex-row items-center justify-between pb-3">
-                  <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="mr-4"
-                  >
-                    <AntDesign name="caretleft" size={18} />
-                  </TouchableOpacity>
-                  <View className="flex flex-row items-right">
-                    {friendStatus === FriendStatus.FRIENDS && (
-                      <DropdownMenu
-                        menuItems={menuItems_friend}
-                        customMenuWidth={150}
-                      />
-                    )}
-                    {friendStatus === FriendStatus.SENT && (
-                      <DropdownMenu
-                        menuItems={menuItems_sent}
-                        customMenuWidth={150}
-                      />
-                    )}
-                    {friendStatus === FriendStatus.RECEIVED && (
-                      <DropdownMenu
-                        menuItems={menuItems_received}
-                        customMenuWidth={150}
-                      />
-                    )}
-                    {friendStatus === FriendStatus.NONE && (
-                      <DropdownMenu
-                        menuItems={menuItems_default}
-                        customMenuWidth={150}
-                      />
-                    )}
-                    {friendStatus === FriendStatus.UNKNOWN && (
-                      <DropdownMenu
-                        menuItems={menuItems_unloaded}
-                        customMenuWidth={150}
-                      />
-                    )}
-                  </View>
-                </View>
-              )}
+    <View className="absolute w-full h-full flex-1 bg-[#FAFAFA]">
 
-              <View className="relative flex flex-row items-center justify-end">
-                {isEditable && (
-                  <TouchableOpacity
-                    onPress={() => router.push("/root/settings")}
-                  >
-                    <Image source={icons.settings} className="w-7 h-7 top-5" />
-                  </TouchableOpacity>
-                )}
+            
+
+           {/* HEADER */}
+           <Header 
+        title=""
+        item={
+          <View className="flex-row w-full  justify-between items-center pl-10 pr-6">
+          <Animated.View entering={FadeIn.duration(800)}>
+          { (nickname || profileUser?.username) ? (
+          
+             <Text className={`text-2xl font-JakartaBold`}>
+              {nickname
+                ? nickname
+                : profileUser?.username
+                  ? `${profileUser?.username}`
+                  : `${profileUser?.firstname?.charAt(0)}.`} {emojiLoading ? "" : countryEmoji}
+            </Text> 
+          ) : 
+           <Text className={`text-2xl bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
+           }
+              { profileUser ?  (<View className="max-w-[200px]">
+          <Text className=" text-xs text-gray-600 text-left font-Jakarta">
+              {profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
+              {profileUser?.country}
+            </Text> 
+          </View>) : (
+            <View>
+            <Text className="text-[14px] text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta"> Location updating... </Text>
+            </View>)}
+          </Animated.View>
+          
+          {isEditable ? (
+            <View className="flex-row gap-6 mr-7">
+              <View>
+              <Text className="text-lg font-JakartaSemiBold">
+                {userPosts.length}
+              </Text>
+              <Text className="text-xs font-JakartaSemiBold">
+                Posts
+              </Text>
               </View>
-
-              <View className="p-8 flex flex-column items-center justify-center ">
-                <Animated.View entering={FadeIn.duration(800)}>
-                { (nickname || profileUser?.username) ? (<View className="flex flex-row items-center justify-center mb-2">
-                   <Text className={`text-[20px] font-JakartaBold`}>
-                    {nickname
-                      ? nickname
-                      : profileUser?.username
-                        ? `${profileUser?.username}`
-                        : `${profileUser?.firstname?.charAt(0)}.`}
-                  </Text> 
-                </View>) : <View>
-                 <Text className={`text-[20px] bg-[#E7E5Eb] text-[#E7E5Eb] font-JakartaBold`}>Username</Text>
-                 </View>}
-                </Animated.View>
-                <Animated.View entering={FadeIn.duration(800)}>
-                { profileUser ?  (<View>
-                <Text className=" text-[14px] text-gray-600 text-center font-Jakarta">
-                    {emojiLoading ? "" : countryEmoji}{" "}{profileUser?.city == profileUser?.state ? "" : `${profileUser?.city}, `}{profileUser?.state},{" "}
-                    {profileUser?.country}
-                  </Text> 
-                </View>) : (
-                  <View>
-                  <Text className="text-[14px] text-gray-700 bg-[#E7E5Eb] text-center font-Jakarta"> Location updating... </Text>
-                  </View>)}
-                </Animated.View>
+              <View className="flex-column items-start justify-center">
+              <Text className="text-lg font-JakartaSemiBold">
+                {friendCount}
+              </Text>
+              <Text className="text-xs font-JakartaSemiBold">
+                Friends
+              </Text>
               </View>
+          </View>) :
+          (<TouchableOpacity
+          onPress={async () => {
+            if (user!.id === userId) {
+              //router.push("/root/chat/chat-screen");
+            }
+            if (
+              (user!.id !== userId && friendStatus.name === "unknown") ||
+              friendStatus.name === "none"
+            ) {
+              handleSendFriendRequest();
+            }
+            if (user!.id !== userId && friendStatus.name === "received") {
+              setIsHandlingFriendRequest(true);
+              const response = await acceptFriendRequest(
+                profileUser!.clerk_id,
+                user!.id
+              );
+              if (response === FriendStatus.FRIENDS) {
+                showAlert({
+                  title: 'New friend!',
+                  message: "You have accepted this friend request.",
+                  type: 'FRIEND_REQUEST',
+                  status: 'success',
+                });
+              } else {
+                showAlert({
+                  title: 'Error',
+                  message: `Error accepting this friend request.`,
+                  type: 'ERROR',
+                  status: 'error',
+                });
+              }
+              setFriendStatus(response);
+              setIsHandlingFriendRequest(false);
+            }
+            if (user!.id !== userId && friendStatus.name === "sent") {
+              setIsHandlingFriendRequest(true);
+              const response: FriendStatusType =
+                await cancelFriendRequest(user!.id, userId);
+              if (response === FriendStatus.NONE) {
+                showAlert({
+                  title: 'Cancelled',
+                  message: "Friend request cancelled.",
+                  type: 'UPDATE',
+                  status: 'success',
+                });
+              } else {
+                showAlert({
+                  title: 'Error',
+                  message: `Error cancelling this friend request.`,
+                  type: 'ERROR',
+                  status: 'error',
+                });
+              }
+              setFriendStatus(response);
+              setIsHandlingFriendRequest(false);
+            }
+            if (user!.id !== userId && friendStatus.name === "friends") {
+              router.push({  
+                pathname: "/root/new-post",
+                params: {
+                  recipient_id: userId,
+                  username: profileUser?.username,
+                  source: "board"
+                },
+            })
+            }
+          }}
+          className="items-center justify-between px-4"
+          style={{
+            backgroundColor: user!.id === userId ? "#93c5fd" : "#000000",
+            justifyContent:
+              user!.id === userId ? "space-between" : "center",
+            padding: user!.id === userId ? 20 : 5,
+            height: 40,
+            borderRadius: user!.id === userId
+                ? 24
+                : 16,
+          }}
+        >
+
+         
+          {user!.id === userId && (
+            <View>
+              <Text className="text-white font-JakartaBold text-sm">
+                Friends
+              </Text>
             </View>
+          )}
+          {user!.id !== userId && friendStatus.name === "unknown" && (
+            <View>
+              <Text className="text-white font-JakartaBold text-sm">
+                Add friend
+              </Text>
+            </View>
+          )}
+          {user!.id !== userId &&
+            friendStatus.name !== "friends" &&
+            friendStatus.name === "none" && (
+              <View>
+                <Text className="text-white font-JakartaBold text-sm">
+                  Add friend
+                </Text>
+              </View>
+            )}
+          {user!.id !== userId &&
+            friendStatus.name !== "friends" &&
+            friendStatus.name === "sent" && (
+              <View>
+                <Text className="text-white font-JakartaBold text-sm">
+                  Cancel request
+                </Text>
+              </View>
+            )}
+          {user!.id !== userId &&
+            friendStatus.name !== "friends" &&
+            friendStatus.name === "received" && (
+              <View>
+                <Text className="text-white font-JakartaBold text-sm">
+                  Accept request
+                </Text>
+              </View>
+            )}
+          {user!.id !== userId && friendStatus.name === "friends" && (
+            <View>
+              <Text className="text-white font-JakartaBold text-sm">
+                Message
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>)}
+        </View>
+        }
+        tabs={isEditable ? myTabs : userTabs}
+        selectedTab={selectedTab}
+        onTabChange={handleTabChange} 
+        tabCount={0}    />
 
-            <View className="flex-row  items-center"
-            style={{
-              justifyContent: isIpad ? "space-between" : "space-around",
-              marginHorizontal: isIpad ? "10%" : 8,
-            }}>
-              {isEditable ? (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (currentSubscreen !== "colors")
-                      setCurrentSubscreen("colors");
-                    if (currentSubscreen === "colors")
-                      setCurrentSubscreen("posts");
-                  }}
-                  className="flex-1  bg-gray-200 items-center"
-                  style={{
-                    justifyContent:
-                      user!.id === userId ? "space-between" : "center",
-                    padding: user!.id === userId ? 20 : 5,
-                    height: isCollapsed ? (isIpad ? 60 : 50) : 150,
-                    maxWidth: isIpad ? 350 : 135,
-                    borderRadius: isCollapsed
-                      ? user!.id === userId
-                        ? 24
-                        : 20
-                      : 32,
-                  }}
-                >
-                  {!isCollapsed && (
-                    <View className="w-full flex flex-row items-start">
-                      <Text className="text-[#333333] font-JakartaBold text-3xl">
-                        {currentSubscreen !== "colors"
-                          ? temporaryColors.length
-                          : userPosts.length}
-                      </Text>
-                    </View>
-                  )}
-                  {!isCollapsed && (
-                    <View>
-                      {currentSubscreen !== "colors" && (
-                        <Image
-                          source={icons.palette}
-                          tintColor={
-                            currentSubscreen === "colors"
-                              ? "#93c5fd"
-                              : "#333333"
-                          }
-                          resizeMode="contain"
-                          className="w-10 h-10 -mt-4"
-                        />
-                      )}
-                      {currentSubscreen !== "posts" && (
-                        <Image
-                          source={icons.home}
-                          tintColor={
-                            currentSubscreen === "posts" ? "#93c5fd" : "#333333"
-                          }
-                          resizeMode="contain"
-                          className="w-10 h-10 -mt-4"
-                        />
-                      )}
-                    </View>
-                  )}
+           
+            
 
-                  <View>
-                    {currentSubscreen !== "colors" && (
-                      <Text className="text-[#333333] font-JakartaBold text-[16px]">
-                        {isCollapsed
-                          ? `Colors (${temporaryColors.length})`
-                          : "Colors"}
-                      </Text>
-                    )}
-                    {currentSubscreen !== "posts" && (
-                      <Text className="text-[#333333] font-JakartaBold text-[16px]">
-                        Posts
-                      </Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (user!.id === userId) {
-                      router.push("/root/tabs/personal-board");
-                    } else {
-                     
-                      router.push({
-                        pathname: "/root/user-board/[id]",
-                        params: { id: `${profileUser?.clerk_id}`, username: profileUser?.username },
-                      });
-                    }
-                  }}
-                  className="flex-1 bg-gray-200 items-center justify-between"
-                  style={{
-                    justifyContent:
-                    user!.id === userId ? "space-between" : "center",
-                    padding: user!.id === userId ? 20 : 5,
-                    maxWidth: isIpad ? 350 : 135,
-                    height: isCollapsed ? (isIpad ? 60 : 50) : 150,
-                    borderRadius: isCollapsed
-                      ? user!.id === userId
-                        ? 24
-                        : 20
-                      : 32,
-                  }}
-                >
-                
-
-                  <View className="items-center">
-                    <Text className="text-[#333333] font-JakartaBold text-[15px] text-center">
-                      Visit board
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+            {/* TABS */}
+            
+            {selectedTab === "Profile" && <View className="flex-1">
+              {!profileLoading ? (
+                <View className={`absolute -top-[20%]`}>
+                  <PostContainer selectedPosts={personalPosts} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>)
+              : (
+                <View className={`absolute -top-[25%]`}>
+                  <PostContainer selectedPosts={[post]} handleCloseModal={() => {}} isPreview={disableInteractions}/></View>
               )}
-              <TouchableOpacity
-                onPress={async () => {
-                  if (user!.id === userId) {
-                    //router.push("/root/chat/chat-screen");
-                  }
-                  if (
-                    (user!.id !== userId && friendStatus.name === "unknown") ||
-                    friendStatus.name === "none"
-                  ) {
-                    handleSendFriendRequest();
-                  }
-                  if (user!.id !== userId && friendStatus.name === "received") {
-                    setIsHandlingFriendRequest(true);
-                    const response = await acceptFriendRequest(
-                      profileUser!.clerk_id,
-                      user!.id
-                    );
-                    if (response === FriendStatus.FRIENDS) {
-                      showAlert({
-                        title: 'New friend!',
-                        message: "You have accepted this friend request.",
-                        type: 'FRIEND_REQUEST',
-                        status: 'success',
-                      });
-                    } else {
-                      showAlert({
-                        title: 'Error',
-                        message: `Error accepting this friend request.`,
-                        type: 'ERROR',
-                        status: 'error',
-                      });
-                    }
-                    setFriendStatus(response);
-                    setIsHandlingFriendRequest(false);
-                  }
-                  if (user!.id !== userId && friendStatus.name === "sent") {
-                    setIsHandlingFriendRequest(true);
-                    const response: FriendStatusType =
-                      await cancelFriendRequest(user!.id, userId);
-                    if (response === FriendStatus.NONE) {
-                      showAlert({
-                        title: 'Cancelled',
-                        message: "Friend request cancelled.",
-                        type: 'UPDATE',
-                        status: 'success',
-                      });
-                    } else {
-                      showAlert({
-                        title: 'Error',
-                        message: `Error cancelling this friend request.`,
-                        type: 'ERROR',
-                        status: 'error',
-                      });
-                    }
-                    setFriendStatus(response);
-                    setIsHandlingFriendRequest(false);
-                  }
-                  if (user!.id !== userId && friendStatus.name === "friends") {
-                      startChat([
-                        profileUser!.clerk_id,
-                        nickname || profileUser!.username,
-                      ] as UserNicknamePair);
-                  }
-                }}
-                className="flex-1 items-center justify-between"
-                style={{
-                  backgroundColor: user!.id === userId ? "#93c5fd" : "#000000",
-                  justifyContent:
-                    user!.id === userId ? "space-between" : "center",
-                  padding: user!.id === userId ? 20 : 5,
-                  maxWidth: isIpad ? 350 : 135,
-                  height: isCollapsed ? (isIpad ? 60 : 50) : 150,
-                  borderRadius: isCollapsed
-                    ? user!.id === userId
-                      ? 24
-                      : 20
-                    : 32,
-                }}
-              >
-                {!isCollapsed && (
-                  <View className="w-full flex flex-row items-start">
-                    {user!.id === userId && (
-                      <View>
-                        <Text className="text-white font-JakartaBold text-3xl">
-                          {friendCount}
-                        </Text>
-                      </View>
-                    )}
-                    {user!.id !== userId && (
-                      <View>
-                        <Text className="text-white font-JakartaBold text-4xl">
-                          +
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                )}
+            </View>}
 
-                {!isCollapsed && (
-                  <View>
-                    <FontAwesome5
-                      name="user-friends"
-                      size={30}
-                      color="white"
-                      marginTop={-20}
-                    />
-                  </View>
-                )}
-                {user!.id === userId && (
-                  <View>
-                    <Text className="text-white font-JakartaBold text-[16px]">
-                      Friends
-                    </Text>
-                  </View>
-                )}
-                {user!.id !== userId && friendStatus.name === "unknown" && (
-                  <View>
-                    <Text className="text-white font-JakartaBold text-[14px]">
-                      Add friend
-                    </Text>
-                  </View>
-                )}
-                {user!.id !== userId &&
-                  friendStatus.name !== "friends" &&
-                  friendStatus.name === "none" && (
-                    <View>
-                      <Text className="text-white font-JakartaBold text-[14px]">
-                        Add friend
-                      </Text>
-                    </View>
-                  )}
-                {user!.id !== userId &&
-                  friendStatus.name !== "friends" &&
-                  friendStatus.name === "sent" && (
-                    <View>
-                      <Text className="text-white font-JakartaBold text-[12px]">
-                        Cancel request
-                      </Text>
-                    </View>
-                  )}
-                {user!.id !== userId &&
-                  friendStatus.name !== "friends" &&
-                  friendStatus.name === "received" && (
-                    <View>
-                      <Text className="text-white font-JakartaBold text-[12px]">
-                        Accept request
-                      </Text>
-                    </View>
-                  )}
-                {user!.id !== userId && friendStatus.name === "friends" && (
-                  <View>
-                    <Text className="text-white font-JakartaBold text-[14px]">
-                      Message
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
-
-            <View className="mx-7 mt-5"></View>
-          </View>
-        ))}
-
-      {isEditable ? (
-        <View className="items-center flex-1 mt-5">
-          {currentSubscreen === "colors" ? (
-            <View className="items-center">
-              {loading ? (
-                <ColorGallerySkeleton />
-              ) : (
-                <ColorGallery />
-              )}
-            </View>
-          ) : currentSubscreen === "posts" && (
-            <View className="items-center flex-1 w-full">
+            {selectedTab === "Posts" && <View className="flex-1 bg-[#FAFAFA] pb-24">
+              <View className="items-center mx-6">
               <TextInput
-                className="w-4/5  h-12 px-5 rounded-[16px] bg-gray-200 mb-6 "
+                className=" w-full h-12 px-5 rounded-[16px] bg-[#F1F1F1] mt-6"
                 placeholder="Search"
                 onChangeText={setQuery}
                 value={query}
               />
-
-              <View className="items-center mb-[70px] w-4/5   mx-8">
-                {loading ? (
+              </View>
+              {loading ? (
                   <PostGallerySkeleton />
                 ) : (
                   <PostGallery
@@ -753,41 +642,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onSignOut }) => {
                     profileUserId={user!.id}
                     handleUpdate={fetchUserData}
                     query={query}
-                    header={
-                      <View className="w-full mx-8 flex flex-row items-center justify-between">
-                        <View>
-                          <Text className="text-lg font-JakartaSemiBold">
-                            Most Recent {unreadComments > 0 ? `(${unreadComments})` : ""}
-                          </Text>
-                        </View>
-                        <View>
-                          <TouchableOpacity
-                            activeOpacity={0.3}
-                            onPress={() => toggleExpanded()}
-                            className="w-full "
-                          >
-                            <Text className="text-gray-400 font-JakartaBold text-[14px]">
-                              {!isExpanded ? "See more" : "See less"}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    }
                   />
                 )}
-              </View>
-            </View>
-          )}
-        </View>
-      ) : (
-        <View className="items-center">
-          {loading ? (
-            <ColorGallerySkeleton />
-          ) : (
-            <ColorGallery />
-          )}
-        </View>
-      )}
+            </View>}
+
+            {selectedTab === "Boards" && <View className="flex-1 pt-4">
+            <BoardGallery boards={myBoards} />
+            </View>}
+
+            {selectedTab === "Communities" && <View className="flex-1 pt-4">
+            <BoardGallery boards={communityBoards} />
+            </View>}
+
+            {selectedTab === "Settings" && 
+            <Settings />
+            }
+        
+       
+
     </View>
   );
 };

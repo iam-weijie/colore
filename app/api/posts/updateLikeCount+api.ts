@@ -72,8 +72,8 @@ export async function PATCH(request: Request) {
       // Like the post
       result = await sql`
         WITH insert_like AS (
-          INSERT INTO post_likes (user_id, post_id)
-          VALUES (${userId}, ${postIdNum})
+          INSERT INTO post_likes (user_id, post_id, unread)
+          VALUES (${userId}, ${postIdNum}, TRUE)
           ON CONFLICT (user_id, post_id) DO NOTHING
           RETURNING id
         ),

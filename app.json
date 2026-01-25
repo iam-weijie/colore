@@ -9,6 +9,9 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "scripts": {
+    "cleanup": "ts-node scripts/cleanup.ts"
+    },
     "splash": {
       "image": "./assets/splash.jpg",
       "resizeMode": "contain",

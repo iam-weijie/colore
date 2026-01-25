@@ -4,10 +4,15 @@ import { useNavigationContext } from "@/components/NavigationContext";
 import { fetchAPI } from "@/lib/fetch";
 import { useUser } from "@clerk/clerk-expo";
 import { Href, router, useLocalSearchParams } from "expo-router";
-import { FlatList, Text, TouchableOpacity, View, ActivityIndicator, StyleSheet } from "react-native";
+import { FlatList, Image, Text, TouchableOpacity, View, StyleSheet, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScrollingText from "./ScrollingText";
 import { generateAcronym, isNameTooLong } from "./cacheStore";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+import React from "react";
+import { icons } from "@/constants";
+import Header from "@/components/Header";
+import { Ionicons } from "@expo/vector-icons";
 
 // Interface for City and State
 interface City {
@@ -85,26 +90,24 @@ const CityItem = memo(({
   const requiresScrolling = isNameTooLong(cityName, 15);
   
   return (
-    <TouchableOpacity 
-      onPress={() => onPress(cityName)} 
-      style={styles.itemContainer}
-    >
-      {requiresScrolling ? (
-        <ScrollingText
-          text={cityName}
-          style={styles.cityName}
-          maxLength={15}
-        />
-      ) : (
-        <Text style={styles.cityNameText}>
-          {cityName}
-        </Text>
-      )}
-
-      {isSelected && (
-        <Text style={styles.checkmark}>✓</Text>
-      )}
-    </TouchableOpacity>
+    <TouchableOpacity
+              className="flex-row items-center justify-between  mx-6 py-6 px-6 bg-white my-1 rounded-[32px]"
+              onPress={() => onPress(cityName)} 
+              activeOpacity={0.7}
+            >
+              <View  className="flex-1 flex-row items-center">
+               
+                  <Text className="text-base font-JakartaSemiBold max-w-[85%]">
+                    {cityName}
+                  </Text>
+              
+              </View>
+             {isSelected && <Image
+              source={icons.check}
+              tintColor={"#22c722"}
+              className="w-6 h-6"
+              />}
+            </TouchableOpacity>
   );
 });
 
@@ -115,13 +118,22 @@ const City = () => {
 
   const [loading, setLoading] = useState(true);
   const [sortedCities, setSortedCities] = useState<string[]>([]);
+  const [filteredCities, setFilteredCities] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState("");
+
+   const [searchText, setSearchText] = useState<string>("");
 
   // Format the state name in the title
   const formattedStateName = useCallback(() => {
     const stateStr = state as string || '';
     return isNameTooLong(stateStr) ? generateAcronym(stateStr) : stateStr;
   }, [state]);
+
+
+  // Clear search
+      const handleClearSearch = useCallback(() => {
+        setSearchText("");
+      }, []);
 
   // Process city data in a non-blocking way
   useEffect(() => {
@@ -135,6 +147,7 @@ const City = () => {
         const sorted = cityNames.sort((a: string, b: string) => a.localeCompare(b));
         
         setSortedCities(sorted);
+        setFilteredCities(sorted);
       } catch (error) {
         console.error("Error processing city data:", error);
         setSortedCities([]);
@@ -146,6 +159,24 @@ const City = () => {
     // Use setTimeout to move processing off the main thread
     setTimeout(processCityData, 0);
   }, [cities]);
+
+      // Filter countries based on search text
+      useEffect(() => {
+        if (sortedCities.length > 0) {
+          if (searchText) {
+            const filtered = sortedCities.filter(city => {
+              const slider = searchText.length
+              const beginningOfWord = city.slice(0, slider)
+              if (beginningOfWord.toLowerCase().includes(searchText.toLowerCase())) return city
+            }
+             
+            );
+            setFilteredCities(filtered);
+          } else {
+            setFilteredCities(sortedCities)
+          }
+        }
+      }, [cities, searchText]);
 
   // Memoized functions
   const handleCityPress = useCallback((city: string) => {
@@ -196,44 +227,70 @@ const City = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#888888" />
-          <Text style={styles.loadingText}>Loading cities...</Text>
-        </View>
+        <View className="flex-1 items-center justify-center">
+                <ColoreActivityIndicator text="Loading cities..." />
+                </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          Select a City in {formattedStateName()}
-        </Text>
-
-        <CustomButton
-          className="w-16 rounded-[24px] bg-[#b8e1ff] p-2 shadow-none"
-          fontSize="sm"
-          title="Done"
-          padding="0"
-          onPress={handleConfirmPress}
-          disabled={!selectedCity}
-        />
+       <View className="flex-1 bg-[#FAFAFA]">
+          <Header
+            title={`Select a City in ${formattedStateName()}`}
+              item={
+      <View className=" w-full px-6 -pt-2 pb-2">
+        <View className="flex-row items-center bg-white rounded-[24px] px-4 h-14 ">
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 ml-2 h-full text-base "
+            placeholder="Search countries..."
+            placeholderTextColor="#D1D1D1"
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearSearch}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
+      }
+          />
+    
+      
 
       <FlatList
-        data={sortedCities}
+        data={filteredCities}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         initialNumToRender={15}
         maxToRenderPerBatch={10}
         windowSize={5}
         removeClippedSubviews={true}
+        contentContainerStyle={{ paddingTop: 16 }}
         getItemLayout={(data, index) => (
           {length: 50, offset: 50 * index, index}
         )}
       />
-    </SafeAreaView>
+
+<View className="flex-1 absolute flex items-center w-full bottom-[10%]">
+            <CustomButton
+              className="w-[50%] h-16 rounded-full shadow-none bg-black"
+              fontSize="lg"
+              title={"Done"}
+              padding="0"
+              onPress={handleConfirmPress}
+              disabled={!selectedCity}
+            />
+            </View>
+    </View>
   );
 };
 

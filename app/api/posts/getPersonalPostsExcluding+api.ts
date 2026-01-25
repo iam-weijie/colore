@@ -7,8 +7,7 @@ export async function GET(request: Request) {
     const number = url.searchParams.get("number");
     const recipientId = url.searchParams.get("recipient_id");
     const viewerId = url.searchParams.get("user_id");
-    const excludeIds =
-      url.searchParams.get("exclude_ids")?.split(",").map(String) || [];
+    const excludeIds = url.searchParams.get("exclude_ids")?.split(",").map(String) || [];
 
     if (!recipientId || !viewerId) {
       return new Response(
@@ -17,10 +16,9 @@ export async function GET(request: Request) {
       );
     }
 
-    const excludeClause =
-      excludeIds.length > 0
-        ? `AND p.id NOT IN (${excludeIds.map((id) => `'${id}'`).join(",")})`
-        : "";
+    const excludeClause = excludeIds.length > 0
+      ? `AND p.id NOT IN (${excludeIds.map((id) => `'${id}'`).join(",")})`
+      : "";
 
     const query = `
       SELECT 
@@ -36,6 +34,9 @@ export async function GET(request: Request) {
         p.board_id,
         p.prompt_id,
         p.recipient_user_id,
+        p.unread,
+        p.top,
+        p.left,
         u.clerk_id,
         u.firstname, 
         u.lastname, 
@@ -56,8 +57,43 @@ export async function GET(request: Request) {
 
     const response = await sql(query);
 
-    return new Response(JSON.stringify({ data: response }), {
+    // Filter and transform the posts
+    const personalPosts = response
+      .map((post) => ({
+        id: post.id,
+        clerk_id: post.clerk_id,
+        user_id: post.clerk_id, // Temporary fix
+        firstname: post.firstname,
+        username: post.username,
+        content: post.content,
+        created_at: post.created_at,
+        expires_at: "", // Default value
+        city: post.city,
+        state: post.state,
+        country: post.country,
+        like_count: post.like_count,
+        report_count: post.report_count,
+        unread_comments: post.unread_comments,
+        recipient_user_id: post.recipient_user_id,
+        pinned: post.pinned,
+        color: post.color,
+        emoji: post.emoji,
+        notified: false, // Default value
+        prompt_id: post.prompt_id,
+        prompt: post.prompt,
+        board_id: post.board_id || -1,
+        reply_to: -1, // Default value
+        unread: post.unread,
+        position: post.top !== null && post.left !== null 
+          ? { top:  Number(post.top), left:  Number(post.left) } 
+          : undefined
+      }));
+
+    return new Response(JSON.stringify({ data: personalPosts }), {
       status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   } catch (error) {
     console.error("Error fetching personal posts:", error);

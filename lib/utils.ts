@@ -97,6 +97,10 @@ export function calculateAge(birthday: Date): number {
 }
 
 let storedPosition: Position[] = [];
+const POSTIT_WIDTH = 160;
+const POSTIT_HEIGHT = 160;
+const POSTIT_AREA = POSTIT_WIDTH * POSTIT_HEIGHT;
+let accumulatedArea = 0;
 
 export const cleanStoredPosition = () => {
   storedPosition = [];
@@ -117,60 +121,120 @@ const isOverlapping = (newPos: Position, positions: Position[]) => {
   return false; // No overlap
 };
 
-// Algorithm for random position generation
-export const AlgorithmRandomPosition = (isPinned: boolean, prevPost: Position) => {
-  const screenHeight = Dimensions.get("window").height / 1.97;
-  const screenWidth  = Dimensions.get("window").width / 1.8;
 
-  // pinned notes still get their fixed “stuck” spot
+export const AlgorithmRandomPosition = (
+  isPinned: boolean,
+  _: any,
+  postItCount: number
+) => {
+  const screenWidth = Dimensions.get("window").width * 2.25;
+  const screenHeight = Dimensions.get("window").height;
+
+
   if (isPinned) {
     return {
-      top:  60 + Math.random() * 10,
+      top: 60 + Math.random() * 10,
       left: 40 + Math.random() * 10,
+      rotate: `${Math.abs(Math.random() * 4)}deg`, // Only positive rotation for pinned
     };
   }
 
-  // minimum “push” in px, maximum is half the screen
-  const MIN_OFFSET = 40;
-  const MAX_OFFSET_Y = screenHeight  / 1.25;
-  const MAX_OFFSET_X = screenWidth;
+  const MAX_RETRIES = 50; // Increased retries
+  let bestPosition = {
+    top: Math.random() * (screenHeight - POSTIT_HEIGHT),
+    left: Math.random() * (screenWidth - POSTIT_WIDTH),
+    rotate: `${Math.abs(Math.random() * 8)}deg`, // Only positive rotation
+  };
+  let bestDistance = 0;
 
-  // decide whether the prev note was closer to top or bottom
-  const directionY = prevPost.top < screenHeight / 2 ? +1 : -1;
-  const directionX = prevPost.left < screenWidth / 2 ? +1 : -1;
+  for (let attempts = 0; attempts < MAX_RETRIES; attempts++) {
+    const top = Math.random() * (screenHeight - POSTIT_HEIGHT);
+    const left = Math.random() * (screenWidth - POSTIT_WIDTH);
+    
+    // Find minimum distance to existing post-its
+    let minDistance = Infinity;
+    for (const pos of storedPosition) {
+      const dx = pos.left - left;
+      const dy = pos.top - top;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      minDistance = Math.min(minDistance, distance);
+    }
 
-  // pick a random offset in [MIN_OFFSET, MAX_OFFSET]
-  const offsetY = MIN_OFFSET + Math.random() * (MAX_OFFSET_Y - MIN_OFFSET);
-  const offsetX = MIN_OFFSET + Math.random() * (MAX_OFFSET_X - MIN_OFFSET);
+    // If no stored positions yet, or this position is better
+    if (storedPosition.length === 0 || minDistance > bestDistance) {
+      bestDistance = minDistance;
+      bestPosition = {
+        top,
+        left,
+        rotate: `${Math.abs(Math.random() * 8)}deg`,
+      };
+    }
 
-  // compute and clamp to screen bounds
-  let newTop  = prevPost.top + directionY * offsetY;
-  let newLeft = prevPost.left + directionX * offsetX + 15;
-
-  newTop  = Math.min(Math.max(newTop, 0), screenHeight);
-  newLeft = Math.min(Math.max(newLeft, 0), screenWidth);
-
-  // Check if storedPosition is empty
-  if (storedPosition.length === 0) {
-    // If empty, no need to check overlap, just return the position
-    storedPosition = [{ top: newTop, left: newLeft }];
-    return { top: newTop, left: newLeft };
+    // If we found a good position, use it immediately
+    if (minDistance > MIN_DISTANCE) {
+      storedPosition.push({ top, left });
+      return bestPosition;
+    }
   }
 
-  // Check for overlap if there are already stored positions
-  let retries = 5;
-  while (isOverlapping({ top: newTop, left: newLeft }, storedPosition) && retries > 0) {
-    // Retry generating a new position if overlap occurs
-    newTop = prevPost.top + directionY * (MIN_OFFSET + Math.random() * (MAX_OFFSET_Y - MIN_OFFSET));
-    newLeft = prevPost.left + directionX * (MIN_OFFSET + Math.random() * (MAX_OFFSET_X - MIN_OFFSET));
-    newTop  = Math.min(Math.max(newTop, 0), screenHeight);
-    newLeft = Math.min(Math.max(newLeft, 0), screenWidth) + 15;
-    retries--;
-  }
-
-
-  // Save new position to storedPosition if no overlap
-  storedPosition = [...storedPosition, { top: newTop, left: newLeft }];
-
-  return { top: newTop, left: newLeft };
+  // After all retries, use the best position we found
+  storedPosition.push({ top: bestPosition.top, left: bestPosition.left });
+  return bestPosition;
 };
+
+
+/**
+ * Formats a date to a relative time string (e.g., "just now", "1m", "2h", "3d", "1w", "2mo", "1y")
+ * @param date The date to format (Date object or string)
+ * @returns A string representing the relative time
+ */
+export function getRelativeTime(date: Date | string): string {
+  const now = new Date();
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Get time difference in milliseconds
+  const diff = now.getTime() - dateObj.getTime();
+  
+  // Convert to seconds
+  const seconds = Math.floor(diff / 1000);
+  
+  // Less than a minute
+  if (seconds < 60) {
+    return 'just now';
+  }
+  
+  // Minutes (less than an hour)
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes} minutes ago`;
+  }
+  
+  // Hours (less than a day)
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hours ago`;
+  }
+  
+  // Days (less than a week)
+  const days = Math.floor(hours / 24);
+  if (days < 7) {
+    return `${days} days ago`;
+  }
+  
+  // Weeks (less than a month)
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) {
+    return `${weeks} weeks ago`;
+  }
+  
+  // Months (less than a year)
+  const months = Math.floor(days / 30);
+  if (months < 12) {
+    return `${months} months ago`;
+  }
+  
+  // Years
+  const years = Math.floor(days / 365);
+  return `${years} years ago`;
+}
+

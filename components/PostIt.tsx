@@ -1,5 +1,3 @@
-import { temporaryColors } from "@/constants";
-import { View } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,12 +9,19 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
+import { icons, temporaryColors } from "@/constants";
+import {
+  View,
+} from "react-native";
+import React from "react";
 
 interface PostItProps {
   color?: string;
+  viewed?: boolean;
 }
 
-const PostIt: React.FC<PostItProps> = ({ color }) => {
+
+const PostIt: React.FC<PostItProps> = ({ color, viewed=false }) => {
   // Used instead of color.hex incase colour is undefined or NULL in database and Post object
   // Should be changed later to color.hex when color is changed from a string to a PostItColor
   const getColorHex = (colorName: string | undefined) => {
@@ -33,9 +38,10 @@ const PostIt: React.FC<PostItProps> = ({ color }) => {
   const foldColor = getFoldColorHex(color);
 
   return (
+    viewed ? (
     <Animated.View 
     entering={FadeInDown.duration(100)}
-    className="w-40 h-40 shadow">
+    className="w-40 h-40 ">
       {/* Post-it Shape */}
       <Svg height="160" width="160">
         <Path
@@ -53,7 +59,7 @@ const PostIt: React.FC<PostItProps> = ({ color }) => {
       </Svg>
 
       {/* Folded Corner */}
-      <View
+      <Animated.View
         className="absolute right-0 top-0"
         style={{
           width: 0,
@@ -68,7 +74,16 @@ const PostIt: React.FC<PostItProps> = ({ color }) => {
           borderBottomLeftRadius: 8
         }}
       />
-    </Animated.View>
+    </Animated.View>) : (
+      <Animated.View
+       entering={FadeInDown.duration(100)}
+        className="w-40 h-40 rounded-[16px]"
+        style={{
+        backgroundColor: baseColor
+        }}
+      >
+      </Animated.View>
+    )
   );
 };
 

@@ -14,7 +14,7 @@ import { BackgroundFetchResult } from "expo-background-fetch"; // Import the Res
 import * as TaskManager from "expo-task-manager";
 import { fetchAPI } from "@/lib/fetch";
 import { sendPushNotification } from "@/notifications/PushNotificationService";
-import { Stacks } from "@/types/type";
+import { Stacks, Post } from "@/types/type";
 import { useUser } from "@clerk/clerk-expo";
 import { useNotification } from "@/notifications/NotificationContext";
 
@@ -22,6 +22,8 @@ import { useNotification } from "@/notifications/NotificationContext";
 type GlobalContextType = {
   stacks: Stacks[];
   setStacks: React.Dispatch<React.SetStateAction<Stacks[]>>;
+  draftPost: Post;
+  setDraftPost:  React.Dispatch<React.SetStateAction<Post | null>>; 
   notifications: any[];
   storedNotifications: any[];
   unreadComments: number;
@@ -71,6 +73,7 @@ export async function fetchNotificationsExternal(
     
     const commentsData = await commentsResponse.json();
     const comments = commentsData.toNotify;
+    const storedComments = commentsData.toStore;
     const unread_comments = commentsData.unread_count ?? 0;
 
     const messagesData = await messagesResponse.json();
@@ -79,6 +82,7 @@ export async function fetchNotificationsExternal(
 
     const personalPostsData = await postResponse.json();
     const personalPosts = personalPostsData.toNotify;
+    const storedPosts = personalPostsData.toStore;
     const unread_posts = personalPostsData.unread_count ?? 0;
 
     const userResponseData = await userResponse.json();
@@ -110,6 +114,10 @@ export async function fetchNotificationsExternal(
       ...friendRequests,
     ];
 
+    const allStoredNotifications = [
+      ...storedComments,
+      ...storedPosts
+    ]
     // Process each notification and send push if needed.
     const processFetchedNotifications = async (notifications: any[]) => {
       //console.log("notifications", notifications);
@@ -147,7 +155,7 @@ export async function fetchNotificationsExternal(
 
    
     processFetchedNotifications(allNotifications)
-    return {notifs: allNotifications, counts: [unread_comments, unread_messages, unread_posts, unread_requests]};
+    return {notifs: allNotifications, history: allStoredNotifications, counts: [unread_comments, unread_messages, unread_posts, unread_requests]};
   } catch (error) {
     console.error("Error fetching notifications externally", error);
     return
@@ -261,6 +269,31 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [stacks, setStacks] = useState<Stacks[]>([]);
+  const [draftPost, setDraftPost] = useState<Post | null>({
+    id: 0,
+    clerk_id: "",
+    firstname: "",
+    username: "",
+    content: "",
+    created_at: "",
+    expires_at: "",
+    city: "",
+    state: "",
+    country: "",
+    like_count: 0,
+    report_count: 0,
+    unread_comments: 0,
+    recipient_user_id: "",
+    pinned: false,
+    color: "",
+    emoji: "",
+    notified: false,
+    prompt_id: 0,
+    prompt: "",
+    board_id: 0,
+    reply_to: 0,
+    unread: false
+  });
   const [notifications, setNotifications] = useState<any[]>([]);
   const [storedNotifications, setStoredNotifications] = useState<any[]>([]);
   const [unreadComments, setUnreadComments] = useState<number>(0);
@@ -307,10 +340,13 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
       if (result) {
          // For UI state, update unread counts, last connection, etc.
       // (You can parse the responses as needed; here we simply set the notifications.)
-        const { notifs, counts } = result;
+        const { notifs, history, counts } = result;
         if (notifs.length > 0) {
           const prevNotifications = storedNotifications;
           setStoredNotifications([...prevNotifications, ...notifs]);
+        } else {
+         // console.log("history", history.length)
+          setStoredNotifications(history)
         }
         
         setNotifications(notifs);
@@ -426,6 +462,8 @@ const sendTokenDB = async (token) => {
       value={{
         stacks,
         setStacks,
+        draftPost,
+        setDraftPost,
         notifications,
         storedNotifications,
         unreadComments,

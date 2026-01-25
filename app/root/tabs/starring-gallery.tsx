@@ -15,68 +15,24 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   View,
-  ActivityIndicator,
 } from "react-native";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { useGlobalContext } from "@/app/globalcontext";
 import CustomButton from "@/components/CustomButton";
+import ModalSheet from "@/components/Modal";
+import InfoScreen from "@/components/InfoScreen";
+import EmojiBackground from "@/components/EmojiBackground";
 import { icons, temporaryColors } from "@/constants";
 import { PostItColor, Prompt } from "@/types/type";
 import { useAlert } from '@/notifications/AlertContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import { RenderPromptCard } from "@/components/RenderCard";
+import ColoreActivityIndicator from "@/components/ColoreActivityIndicator";
+import Header from "@/components/Header";
+import CardCarrousel from "@/components/CardCarroussel";
+
 
 const screenWidth = Dimensions.get('window').width;
-
-const RenderPromptCard = ({item, userId, promptContent, updatePromptContent, handlePromptSubmit} : {
-  item: Prompt, userId: string, promptContent: string, updatePromptContent: (text: string) => void, handlePromptSubmit: (item: Prompt) => void }) => { 
-
-    return (
-      <TouchableWithoutFeedback
-      className="flex-1"
-      onPress={() => Keyboard.dismiss()}
-      onPressIn={() => Keyboard.dismiss()}
-    >
-  <View className="flex-1 flex-column items-center justify-center mt-4 mb-8 py-8 rounded-[48px]" 
-  style={{
-    backgroundColor: item.color ?? 'yellow',
-    width: screenWidth * 0.85}}>
-  <View className="w-[85%] flex-1 mx-auto flex-col items-center justify-center">
-
-  <Text className="my-1 text-[14px] font-JakartaBold text-white">{item.theme}</Text>
-    <Text 
-    
-    className="text-[24px] text-center font-JakartaBold text-[#FAFAFA]">{item.cue}...</Text>
-  </View>
-  <KeyboardAvoidingView behavior="padding" className="flex-1 my-6 flex w-full">
-     <View className="mt-2">
-                    <TextInput
-                      className="text-[16px] text-white p-5 rounded-[24px] font-JakartaBold mx-10 "
-                      placeholder="Type something..."
-                      value={promptContent}
-                      onChangeText={updatePromptContent}
-                      multiline
-                      scrollEnabled
-                      style={{
-                        paddingTop: 10,
-                        paddingBottom: 0,
-                        minHeight: 200,
-                        maxHeight: 300,
-                        textAlignVertical: "top",
-                      }}
-                    />
-                    </View>
-  </KeyboardAvoidingView>
-   <CustomButton
-    className=" my-4 w-[50%] h-16 rounded-full shadow-none bg-black"
-    fontSize="lg"
-    title="submit"
-    padding="0"
-    disabled={promptContent.length === 0}
-    onPress={() => {handlePromptSubmit(item)}}
-    //disabled={}//navigationIndex < (type === 'community' ? tabs.length - 1 : tabs.length - 2)}
-  />
-</View>
-</TouchableWithoutFeedback>
-);}
 
 export default function Page() {
   const { user } = useUser();
@@ -100,6 +56,8 @@ export default function Page() {
   const selectedPostRef = useRef<Post | null>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const inputRef = useRef<TextInput>(null);
+
+  const [selectedModal, setSelectedModal] = useState<any>();
 
   // 1) request ATT permission
   const requestPermission = async () => {
@@ -186,7 +144,18 @@ export default function Page() {
   // reset modal visible each time the screen comes into focus
   useFocusEffect(
     useCallback(() => {
+      setSelectedModal(
+        <InfoScreen
+        title="Your Turn!"
+        content="Dive into creative exploration.
+                  Pick a cue, write your thoughts, and see how others responded to similar prompts.
+                  Every post is a chance to express and discover."
+        image={icons.star}
+        onAgree={() => {setSelectedModal(null)}}
+        />
+      )
       setIsModalVisible(true);
+
       if (user && stacks.length == 0) {  
         fetchPosts();
         
@@ -197,6 +166,7 @@ export default function Page() {
       
     }, [user, isIpad])
   );
+
 
 
   // on-mount (and whenever user / isIpad changes) load everything
@@ -256,10 +226,12 @@ export default function Page() {
 
 
 
+
+
   const handleCloseModalPress = () => {
-    router.replace("/root/tabs/home");
+    router.push("/root/tabs/home");
     setIsModalVisible(false);
-    setStacks([])
+    //setStacks([])
   };
 
   const handleScrollToLoad = async () => {
@@ -268,18 +240,6 @@ export default function Page() {
     setLoading(false);
   };
 
-  if (!selectedPostRef.current) return null; // or your skeleton
-
-  if (loading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center">
-        <ActivityIndicator 
-        size={"small"}
-        color={"#888"}
-        ></ActivityIndicator>
-      </SafeAreaView>
-    );
-  }
 
   const updatePromptContent = (text: string) => {
     const maxCharacters = 40
@@ -347,11 +307,17 @@ export default function Page() {
  };
 
   return (
-    <SafeAreaView className="flex-1">
-      <SignedIn>
+    <View className="flex-1">
+      <EmojiBackground 
+        emoji="😳"
+        color="#ffe640"
+        />
+         <Header 
+            title="Starring" 
+            />
         {hasSubmittedPrompt ? (<PostModal
           isVisible={isModalVisible}
-          selectedPost={selectedPostRef.current}
+          selectedPosts={posts}
           handleCloseModal={handleCloseModalPress}
           infiniteScroll={true}
           scrollToLoad={handleScrollToLoad}
@@ -361,74 +327,40 @@ export default function Page() {
                     onPressIn={() => Keyboard.dismiss()}
                   >
           <View className="flex-1">
-           
-            <View className="mt-3 mx-7">
-              <Text className="text-2xl font-JakartaBold my-4">Starring</Text>
-            </View>
-            <Text className="my-2 text-center text-[#888] text-[12px] font-JakartaSemiBold"> Create a prompt with the given cues to view other people's responses </Text>
+          
+              
             {loading ? (
-              <ActivityIndicator size={"small"} color={"#888"}/>
+              <View className="flex-1 items-center justify-center">
+                <ColoreActivityIndicator text="Summoning Bob..." />
+                </View>
             ) 
-            : (<Animated.FlatList
-                data={prompts}
-                keyExtractor={(item) => item.id.toString()}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: (screenWidth - screenWidth * 0.85) / 2 }}
-                scrollEventThrottle={16}
-                decelerationRate="fast"
-                onScroll={
-                    Animated.event(
-                  [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                  { useNativeDriver: true }
-                )
-        
-              }
-                onScrollBeginDrag={handleScrollBeginDrag} 
-                snapToInterval={screenWidth * 0.85 + 12} // Width + gap
-                ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-                renderItem={({ item, index }) => {
-                  const inputRange = [
-                    (index - 1) * (screenWidth * 0.85 + 12),
-                    index * (screenWidth * 0.85 + 12),
-                    (index + 1) * (screenWidth * 0.85 + 12)
-                  ];
-
-                  const scale = scrollX.interpolate({
-                    inputRange,
-                    outputRange: [0.92, 1, 0.92],
-                    extrapolate: 'clamp',
-                  });
-
-                  const shadowOpacity = scrollX.interpolate({
-                    inputRange,
-                    outputRange: [0.1, 0.3, 0.1],
-                    extrapolate: 'clamp',
-                  });
-
-    return (
-      <Animated.View
-        style={{
-          transform: [{ scale }],
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 12,
-          elevation: 6, // Android shadow
-        }}
-      >
-        {RenderPromptCard({ item: item, userId: user!.id, promptContent: promptContent, updatePromptContent, handlePromptSubmit})}
-      </Animated.View>
-    );
-  }}
-/>)}
+            : (
+              <View className="flex-[0.85]">
+            <CardCarrousel
+            items={prompts}
+            renderItem={(item, index) => 
+              <RenderPromptCard
+          item={item}
+          userId={user!.id}
+          promptContent={promptContent}
+          updatePromptContent={updatePromptContent}
+          handlePromptSubmit={handlePromptSubmit}
+          />}
+            handleScrollBeginDrag={handleScrollBeginDrag}
+            inputRef={inputRef} />
+            </View>)}
 
           </View>
           </TouchableWithoutFeedback>
         )}
-      </SignedIn>
-    </SafeAreaView>
+  {/* !!selectedModal && 
+  <ModalSheet
+  title=""
+  isVisible={!!selectedModal}
+  onClose={() => {setSelectedModal(null)}}>
+   {selectedModal}
+  </ModalSheet>*/}
+    </View>
   );
 }
 

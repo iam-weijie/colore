@@ -13,6 +13,7 @@ export async function GET(request: Request) {
       });
     }
 
+
     // combined api call
     const response = await sql`
     SELECT 
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
     WHERE u.clerk_id = ${clerkId}
     ORDER BY p.unread_comments DESC, p.created_at DESC;
   `;
+
 
     if (response.length === 0) {
       return new Response(JSON.stringify({ error: "User not found" }), {

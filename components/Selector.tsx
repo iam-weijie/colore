@@ -78,17 +78,7 @@ export const RadioButton: React.FC<RadioButtonProps> = ({ label, selected, onSel
                                 transform: [{ scale: scaleValue }]
                             }}
                         >
-                            <MaskedView
-                                style={{ width: 40, height: 40 }}
-                                maskElement={
-                                    <Image
-                                        source={images.highlight2}
-                                        style={{ width: 40, height: 40 }}
-                                    />
-                                }
-                            >
-                                <View style={{ flex: 1, backgroundColor: "#93c5fd" }} />
-                            </MaskedView>
+                            <View className='rounded-full w-5 h-5 bg-[#000]'></View>
                         </Animated.View>
                         
                     </>
@@ -218,31 +208,13 @@ export const NumberSelection = ({ maxNum, minNum, onSelect }) => {
           renderItem={({ item, index }) => (
             <View style={{ width: ITEM_WIDTH }} className="flex-row justify-center items-center">
               {selectedIndex === index && (
-                 <View className='absolute z-1'>
-                 <MaskedView
-                   style={{ width: 75, height: 75 }}
-                   maskElement={
-                     <Image
-                       source={
-                          index % 4 === 1 ? images.highlight1
-                          : ( index % 4 === 2 ? images.highlight2
-                           : (index % 4 === 3 ? images.highlight3 
-                               : images.highlight4 ))
-                       }
-                       style={{
-                         width: 75,
-                         height: 75,
-                       }}
-                     />
-                   }
-                 >
-                   <View style={{ 
-                       flex: 1, 
-                   backgroundColor:  index % 4 === 1 ? "#ffe640"
-                          : ( index % 4 === 2 ? "#fbb1d6"
-                           : (index % 4 === 3 ? "#93c5fd"
-                               : "#CFB1FB" ))}} />
-                 </MaskedView>
+                 <View className='absolute z-1 w-20 h-20 rounded-full'
+                 style={{
+                  backgroundColor:  index % 4 === 1 ? "#ffe640"
+                  : ( index % 4 === 2 ? "#FBB1F5"
+                   : (index % 4 === 3 ? "#93c5fd"
+                       : "#CFB1FB" ))
+                 }}>
                </View>
               )}
               
